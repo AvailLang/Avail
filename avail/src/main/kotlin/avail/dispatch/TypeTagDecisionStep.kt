@@ -53,7 +53,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.TagSplitter
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -63,7 +64,6 @@ import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import avail.utility.isNullOr
 import avail.utility.partitionRunsBy
-import avail.utility.removeLast
 import java.lang.String.format
 import kotlin.math.max
 import kotlin.math.min
@@ -261,7 +261,7 @@ constructor(
 		if (callSiteHelper.isSuper)
 		{
 			callSiteHelper.generator.jumpTo(
-				callSiteHelper.onFallBackToSlowLookup)
+				callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 
@@ -411,7 +411,7 @@ constructor(
 		{
 			// Just jump to the slow lookup, and don't continue down any more
 			// lookup subtrees.
-			generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
+			generator.jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 		// Expand the ranges through the don't-cares that were removed, so
@@ -485,7 +485,7 @@ constructor(
 				{
 					null ->
 						L2PcOperand(
-							callSiteHelper.onFallBackToSlowLookup,
+							callSiteHelper[FallBackToSlowLookup],
 							false,
 							edgeManifest,
 							"Fallback: $nameLow..$nameHigh, $spanName")

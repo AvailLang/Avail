@@ -323,6 +323,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				})
 		}
 
+	/**
+	 * The returnType might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

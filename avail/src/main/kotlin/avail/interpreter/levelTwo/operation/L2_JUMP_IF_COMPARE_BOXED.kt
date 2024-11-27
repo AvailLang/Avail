@@ -91,20 +91,19 @@ class L2_JUMP_IF_COMPARE_BOXED(
 		}
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(number1.registerString())
-		builder.append(" ")
-		builder.append(numericComparator.comparatorName)
-		builder.append(" ")
-		builder.append(number2.registerString())
+		renderPreamble()
+		append(' ')
+		append(number1.registerString())
+		append(" ")
+		append(numericComparator.comparatorName)
+		append(" ")
+		append(number2.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::number1, ::number2)
+			desiredOperandTypes, ::number1, ::number2)
 	}
 
 	override val name: String

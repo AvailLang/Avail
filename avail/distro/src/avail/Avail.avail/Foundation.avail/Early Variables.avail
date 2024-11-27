@@ -161,7 +161,7 @@ variableFailureFunction ::=
 		]
 		else
 		[
-			Invoke early failure function with <failureCode>
+			Failed primitive with failureCode
 		];
 	] : ⊤;
 

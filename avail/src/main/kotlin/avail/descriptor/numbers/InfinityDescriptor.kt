@@ -110,7 +110,7 @@ class InfinityDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append(if (self.isPositive) "\u221E" else "-\u221E")

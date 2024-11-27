@@ -65,6 +65,13 @@ object P_CreateVariableExpression : Primitive(2, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newVariable(token, type, nil, nil))
 	}
 
+	/**
+	 * The type might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

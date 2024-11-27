@@ -38,6 +38,7 @@ import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.values.L2SemanticUnboxedFloat
+import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
@@ -78,6 +79,9 @@ constructor(
 
 	override fun semanticValues(): Set<L2SemanticUnboxedFloat> =
 		super.semanticValues().cast()
+
+	override fun pickSemanticValue(): L2SemanticUnboxedFloat =
+		semanticValues().first()
 
 	override fun register(): L2FloatRegister = super.register().cast()
 

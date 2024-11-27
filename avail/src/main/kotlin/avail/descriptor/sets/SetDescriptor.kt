@@ -40,7 +40,6 @@ import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set.Companion.asTuple
 import avail.descriptor.sets.A_Set.Companion.equalsSet
@@ -134,7 +133,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	): Unit = builder.brief {
 		when
@@ -223,10 +222,10 @@ private constructor(
 	override fun o_EqualsSet(self: AvailObject, aSet: A_Set): Boolean = when
 	{
 		self.sameAddressAs(aSet) -> true
-		rootBin(self).sameAddressAs(rootBin(aSet as AvailObject)) -> true
+		self[ROOT_BIN].sameAddressAs((aSet as AvailObject)[ROOT_BIN]) -> true
 		self.setSize != aSet.setSize -> false
 		self.hash() != aSet.hash() -> false
-		!rootBin(self).isBinSubsetOf(aSet) -> false
+		!self[ROOT_BIN].isBinSubsetOf(aSet) -> false
 		// They're equal.
 		!isShared ->
 		{
@@ -245,7 +244,7 @@ private constructor(
 			// They're both shared, so we can't make one an indirection.
 			// Substitute one of the bins for the other to speed up
 			// subsequent equality checks.
-			self.writeBackSlot(ROOT_BIN, 1, rootBin(aSet))
+			self.writeBackSlot(ROOT_BIN, 1, aSet[ROOT_BIN])
 			true
 		}
 	}
@@ -254,14 +253,14 @@ private constructor(
 		self: AvailObject,
 		elementObject: A_BasicObject
 	): Boolean =
-		rootBin(self).binHasElementWithHash(elementObject, elementObject.hash())
+		self[ROOT_BIN].binHasElementWithHash(elementObject, elementObject.hash())
 
 	/**
 	 * A set's hash is a simple function of its rootBin's setBinHash, which is
 	 * always the sum of its elements' hashes.
 	 */
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(rootBin(self).setBinHash, 0x0CD9EFC6)
+		combine2(self[ROOT_BIN].setBinHash, 0x0CD9EFC6)
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -281,7 +280,7 @@ private constructor(
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
 					self.all(expectedContentType::enumerationIncludesInstance)
-				else -> rootBin(self).binElementsAreAllInstancesOfKind(
+				else -> self[ROOT_BIN].binElementsAreAllInstancesOfKind(
 					expectedContentType)
 			}
 		}
@@ -291,7 +290,7 @@ private constructor(
 
 	override fun o_IsSubsetOf(self: AvailObject, another: A_Set): Boolean =
 		(self.setSize <= another.setSize
-			&& rootBin(self).isBinSubsetOf(another))
+			&& self[ROOT_BIN].isBinSubsetOf(another))
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		setTypeForSizesContentType(
@@ -304,7 +303,7 @@ private constructor(
 	override fun o_SetElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: AvailObject
-	): Boolean = rootBin(self).binElementsAreAllInstancesOfKind(kind)
+	): Boolean = self[ROOT_BIN].binElementsAreAllInstancesOfKind(kind)
 
 	/**
 	 * Compute the intersection of two sets (a ∩ b).  May destroy one of them if
@@ -396,7 +395,7 @@ private constructor(
 			self.setSize == 0 -> return other
 			other.setSize == 0 -> return self
 		}
-		val newBin = rootBin(self).setBinUnion(rootBin(other), 0)
+		val newBin = self[ROOT_BIN].setBinUnion(other[ROOT_BIN], 0)
 		val out = when
 		{
 			!canDestroy -> mutable.create()
@@ -404,7 +403,7 @@ private constructor(
 			other.descriptor().isMutable -> other
 			else -> mutable.create()
 		}
-		setRootBin(out, newBin)
+		out[ROOT_BIN] = newBin
 		return out
 	}
 
@@ -417,7 +416,7 @@ private constructor(
 		// Ensure newElementObject is in the set, adding it if necessary. May
 		// destroy the set if it's mutable and canDestroy is true.
 		val elementHash = newElementObject.hash()
-		val root = rootBin(self)
+		val root = self[ROOT_BIN]
 		val oldSize = root.setBinSize
 		val newRootBin = root.setBinAddingElementHashLevelCanDestroy(
 			newElementObject,
@@ -430,7 +429,7 @@ private constructor(
 			return self
 		}
 		val result = if (canDestroy && isMutable) self else mutable.create()
-		setRootBin(result, newRootBin)
+		result[ROOT_BIN] = newRootBin
 		return result
 	}
 
@@ -443,7 +442,7 @@ private constructor(
 		// Ensure elementObjectToExclude is not in the set, removing it if
 		// necessary. May destroy the set if it's mutable and canDestroy is
 		// true.
-		val root = rootBin(self)
+		val root = self[ROOT_BIN]
 		val oldSize = root.setBinSize
 		val newRootBin = root.binRemoveElementHashLevelCanDestroy(
 			elementObjectToExclude,
@@ -463,7 +462,7 @@ private constructor(
 			canDestroy && isMutable -> self
 			else -> mutable.create()
 		}
-		setRootBin(result, newRootBin)
+		result[ROOT_BIN] = newRootBin
 		return result
 	}
 
@@ -477,7 +476,7 @@ private constructor(
 	abstract class SetIterator : Iterator<AvailObject>
 
 	override fun o_Iterator(self: AvailObject): SetIterator =
-		rootBin(self).setBinIterator
+		self[ROOT_BIN].setBinIterator
 
 	override fun o_AsTuple(self: AvailObject): A_Tuple
 	{
@@ -491,7 +490,7 @@ private constructor(
 		}
 	}
 
-	override fun o_SetSize(self: AvailObject): Int = rootBin(self).setBinSize
+	override fun o_SetSize(self: AvailObject): Int = self[ROOT_BIN].setBinSize
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -524,32 +523,6 @@ private constructor(
 	override fun shared() = shared
 
 	companion object {
-		/**
-		 * Extract the root [bin][SetBinDescriptor] from the [set][A_Set].  The
-		 * set must be known to have a [SetDescriptor] as its descriptor.
-		 *
-		 * @param self
-		 *   The set from which to extract the root bin.
-		 * @return
-		 *   The set's bin.
-		 */
-		private fun rootBin(self: AvailObject): AvailObject =
-			self[ROOT_BIN]
-
-		/**
-		 * Replace the [set][A_Set]'s root [bin][SetBinDescriptor]. The
-		 * replacement may be [nil] to indicate an empty map.
-		 *
-		 * @param set
-		 *   The set (must not be an indirection).
-		 * @param bin
-		 *   The root bin for the set, or nil.
-		 */
-		private fun setRootBin(set: AvailObject, bin: A_BasicObject)
-		{
-			set[ROOT_BIN] = bin
-		}
-
 		/**
 		 * Write a Unicode code point that's either the start or end of a range,
 		 * or a single value.
@@ -666,7 +639,7 @@ private constructor(
 
 		/** The empty set. */
 		val emptySet: A_Set = mutable.createShared {
-			setRootBin(this, emptyLinearSetBin(0))
+			this[ROOT_BIN] = emptyLinearSetBin(0)
 			hash()
 		}
 
@@ -699,7 +672,7 @@ private constructor(
 		 */
 		fun singletonSet(element: A_BasicObject): A_Set =
 			mutable.create {
-				setRootBin(this, element)
+				this[ROOT_BIN] = element
 				hash()
 			}
 
@@ -719,7 +692,7 @@ private constructor(
 		): A_Set {
 			assert(!element1.equals(element2))
 			return mutable.create {
-				setRootBin(this, createLinearSetBinPair(0, element1, element2))
+				this[ROOT_BIN] = createLinearSetBinPair(0, element1, element2)
 				hash()
 			}
 		}
@@ -751,7 +724,7 @@ private constructor(
 				}
 			}
 			else -> mutable.create {
-				setRootBin(this, generateSetBinFrom(0, size, generator))
+				this[ROOT_BIN] = generateSetBinFrom(0, size, generator)
 			}
 		}
 

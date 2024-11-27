@@ -54,7 +54,7 @@ import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Restart the given [continuation][A_Continuation]. Make sure
@@ -103,7 +103,7 @@ object P_RestartContinuation : Primitive(
 		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0
 		interpreter.returnNow = false
-		interpreter.setLatestResult(null)
+		interpreter.clearLatestResult()
 		return CONTINUATION_CHANGED
 	}
 
@@ -113,20 +113,19 @@ object P_RestartContinuation : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val continuationReg = arguments[0]
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val manifest = generator.currentManifest
+		val manifest = translator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
-		val label = generator.topFrame.label()
+		val label = translator.topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
@@ -142,7 +141,7 @@ object P_RestartContinuation : Primitive(
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
 		translator.addInstruction(L2_RESTART_CONTINUATION(continuationReg))
-		assert(!translator.generator.currentlyReachable())
+		assert(!translator.currentlyReachable())
 		return true
 	}
 }

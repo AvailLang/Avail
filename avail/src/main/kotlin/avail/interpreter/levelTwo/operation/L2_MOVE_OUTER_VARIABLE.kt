@@ -60,24 +60,23 @@ L2_MOVE_OUTER_VARIABLE(
 	var destination: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(destination.registerString())
-		builder.append(" ← ")
-		builder.append(function.registerString())
-		builder.append('[')
-		builder.append(outerIndex.value)
+		renderPreamble()
+		append(' ')
+		append(destination.registerString())
+		append(" ← ")
+		append(function.registerString())
+		append('[')
+		append(outerIndex.value)
 		if (outerName.isNotEmpty())
 		{
-			builder.append('=')
-			builder.append(outerName)
+			append('=')
+			append(outerName)
 		}
-		builder.append(']')
+		append(']')
 	}
 
 	override fun translateToJVM(
@@ -86,7 +85,7 @@ L2_MOVE_OUTER_VARIABLE(
 	{
 		// :: destination = function.outerVarAt(outerIndex);
 		translator.load(method, function.register())
-		translator.literal(method, outerIndex.value)
+		translator.intConstant(method, outerIndex.value)
 		FunctionDescriptor.outerVarAtMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}

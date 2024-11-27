@@ -59,8 +59,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.optimizer.CallSiteHelper
 import kotlin.math.min
 
 /**
@@ -132,18 +132,19 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
-	): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
+		): Boolean
 	{
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val bound = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		if (bound.lowerBound.equals(bound.upperBound))
 		{
 			// Constant result.
-			callSiteHelper.useAnswer(generator.boxedConstant(bound.lowerBound))
+			callSiteHelper.useAnswer(
+				translator.boxedConstant(bound.lowerBound),
+				false)
 			return true
 		}
 		val (range1, range2) = argumentTypes
@@ -161,7 +162,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			{
 				// range2 is a constant power of two big enough to include all
 				// non-zero bits of the first argument.
-				callSiteHelper.useAnswer(arguments[0])
+				callSiteHelper.useAnswer(arguments[0], false)
 				return true
 			}
 		}
@@ -177,7 +178,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			{
 				// range1 is a constant power of two big enough to include all
 				// non-zero bits of the second argument.
-				callSiteHelper.useAnswer(arguments[1])
+				callSiteHelper.useAnswer(arguments[1], false)
 				return true
 			}
 		}
@@ -191,7 +192,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			},
 			fallbackBody = {
 				generateGeneralFunctionInvocation(
-					functionToCallReg, arguments, false, callSiteHelper)
+					functionToCallReg, false, callSiteHelper, arguments)
 			})
 	}
 

@@ -52,7 +52,7 @@ import javax.swing.SwingWorker
  */
 abstract class AbstractWorkbenchTask constructor(
 	val workbench: AvailWorkbench
-) : SwingWorker<Void, Void>()
+) : SwingWorker<Unit, Unit>()
 {
 	/** The start time. */
 	private var startTimeMillis: Long = 0
@@ -88,12 +88,12 @@ abstract class AbstractWorkbenchTask constructor(
 	}
 
 	@Throws(Exception::class)
-	override fun doInBackground(): Void?
+	override fun doInBackground()
 	{
 		if (workbench.taskGate.getAndSet(true))
 		{
 			// task is running
-			return null
+			return
 		}
 		startTimeMillis = System.currentTimeMillis()
 		executeTaskThen {
@@ -107,7 +107,6 @@ abstract class AbstractWorkbenchTask constructor(
 			}
 
 		}
-		return null
 	}
 
 	/**

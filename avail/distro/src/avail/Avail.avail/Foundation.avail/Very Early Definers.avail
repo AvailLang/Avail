@@ -351,7 +351,7 @@ statementStyler ::=
 		|
 			Style fixed tokens of original with "#statement";
 		];
-	] : ⊤;	
+	] : ⊤;
 
 /**
  * Answer a function that applies the system style named
@@ -391,7 +391,7 @@ Primitive "Method_is_«styled by_»?" is
 	optionalStyler : <<>, styler function…|zeroOrOne>
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -414,7 +414,7 @@ Primitive "Method_is_«styled by_»?" is
 	optionalStyler : <<>, styler function…|zeroOrOne>
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -432,7 +432,7 @@ Method "definition styler" is
 	|
 		Primitive BootstrapDefinitionStyler (failureCode : {
 			cannot-style code}ᵀ);
-		Invoke early failure function with <failureCode>
+		Failed primitive with failureCode
 	] : ⊤
 ];
 
@@ -458,7 +458,7 @@ Method "special object styler" is
 	|
 		Primitive BootstrapDefineSpecialObjectMacroStyler (failureCode : {
 			cannot-style code}ᵀ);
-		Invoke early failure function with <failureCode>
+		Failed primitive with failureCode
 	] : ⊤
 ];
 
@@ -610,7 +610,7 @@ Method "private invoke_with_" is
 	arguments : tuple
 |
 	Primitive InvokeWithTuple (failureCode : natural number);
-	private invoke early failure function with <failureCode>;
+	Failed primitive with failureCode
 ] : ⊤;
 
 Semantic restriction "private invoke_with_" is
@@ -780,7 +780,7 @@ emptyTuple ::= <>;
 nullaryFunctionReturningString ::=
 	function accepting emptyTuple and returning string;
 
-assertStyler ::=	
+assertStyler ::=
 	[
 		optionalOriginal : optionalSendType,
 		transformed : phrase
@@ -805,7 +805,7 @@ assertStyler ::=
  *   The requested styler.
  */
 Primitive "assertion styler" is [assertStyler];
-	
+
 Method "Assert:_with function_" is
 [
 	predicate : boolean,

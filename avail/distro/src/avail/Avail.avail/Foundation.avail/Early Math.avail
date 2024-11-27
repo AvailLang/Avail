@@ -278,7 +278,7 @@ Semantic restriction "⌈_⌉" is
  *          The requested integer range.
  * @category "Integers" "Types" "Constructors"
  */
-Public method "[_.._]" is
+Public stable method "[_.._]" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -318,7 +318,7 @@ Semantic restriction "[_.._]" is
  *          The requested integer range.
  * @category "Integers" "Types" "Constructors"
  */
-Public method "[_.._)" is
+Public stable method "[_.._)" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -357,7 +357,7 @@ Semantic restriction "[_.._)" is
  *          The requested integer range.
  * @category "Integers" "Types" "Constructors"
  */
-Public method "(_.._]" is
+Public stable method "(_.._]" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -397,7 +397,7 @@ Semantic restriction "(_.._]" is
  *          The requested integer range.
  * @category "Integers" "Types" "Constructors"
  */
-Public method "(_.._)" is
+Public stable method "(_.._)" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer

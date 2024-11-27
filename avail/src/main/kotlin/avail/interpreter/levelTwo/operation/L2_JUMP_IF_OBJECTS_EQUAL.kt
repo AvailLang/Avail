@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
@@ -71,44 +72,23 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 			first.semanticValue(), second.semanticValue())
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(first.registerString())
-		builder.append(" = ")
-		builder.append(second.registerString())
+		renderPreamble()
+		append(' ')
+		append(first.registerString())
+		append(" = ")
+		append(second.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::first, ::second)
-	}
-
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
-	{
-		// :: if (first.equals(second)) goto ifEqual;
-		// :: else goto notEqual;
-		translator.load(method, first.register())
-		translator.load(method, second.register())
-		A_BasicObject.equalsMethod.generateCall(method)
-		emitBranch(
-			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
+			desiredOperandTypes, ::first, ::second)
 	}
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifEqual.targetBlock() == ifNotEqual.targetBlock())
-		{
-			regenerator.jumpTo(ifEqual.targetBlock())
-			return
-		}
-
+		if (replaceWithJumpIfPossible(regenerator)) return
 		val manifest = regenerator.currentManifest
 		val restriction1 = manifest.restrictionFor(first.semanticValue())
 		val restriction2 = manifest.restrictionFor(second.semanticValue())
@@ -146,9 +126,17 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
 		val int1Reg = regenerator.readInt(
-			first.semanticValue().unboxedInt, unreachable)
+			first.semanticValue().unboxedInt, unreachable
+		) {
+			super.emitTransformedInstruction(regenerator)
+			return
+		}
 		val int2Reg = regenerator.readInt(
-			second.semanticValue().unboxedInt, unreachable)
+			second.semanticValue().unboxedInt, unreachable
+		) {
+			super.emitTransformedInstruction(regenerator)
+			return
+		}
 		// Note that we *must not* reuse the manifests in the translated edges
 		// ifTrue and ifFalse, since they might not include information about
 		// registers freshly generated for int1Reg and int2Reg, which might have
@@ -178,5 +166,18 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 			conditions.add(unboxedIntCondition(listOf(second.register())))
 		}
 		return conditions
+	}
+
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor)
+	{
+		// :: if (first.equals(second)) goto ifEqual;
+		// :: else goto notEqual;
+		translator.load(method, first.register())
+		translator.load(method, second.register())
+		A_BasicObject.equalsMethod.generateCall(method)
+		emitBranch(
+			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
 	}
 }

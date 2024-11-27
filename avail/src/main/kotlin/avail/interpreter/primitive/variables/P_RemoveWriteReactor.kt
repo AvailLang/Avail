@@ -43,6 +43,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.removeWriteReactor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM

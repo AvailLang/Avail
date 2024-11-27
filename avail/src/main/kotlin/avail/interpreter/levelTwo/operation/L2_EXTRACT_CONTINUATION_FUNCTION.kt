@@ -51,16 +51,15 @@ class L2_EXTRACT_CONTINUATION_FUNCTION(
 	var extractedFunction: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(extractedFunction.registerString())
-		builder.append(" ← ")
-		builder.append(continuation.registerString())
+		renderPreamble()
+		append(' ')
+		append(extractedFunction.registerString())
+		append(" ← ")
+		append(continuation.registerString())
 	}
 
 	override fun translateToJVM(

@@ -184,7 +184,7 @@ open class AtomDescriptor protected constructor (
 	override fun printObjectOnAvoidingIndent (
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = with(builder) {
 		val nativeName = self.atomName.asNativeString()

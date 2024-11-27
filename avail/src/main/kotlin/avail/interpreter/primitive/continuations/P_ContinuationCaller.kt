@@ -38,6 +38,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.interpreter.Primitive

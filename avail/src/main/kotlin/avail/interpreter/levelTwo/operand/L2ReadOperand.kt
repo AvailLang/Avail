@@ -101,7 +101,7 @@ protected constructor(
 	 * @return
 	 *   The register.
 	 */
-	fun register(): L2Register<K> = register
+	open fun register(): L2Register<K> = register
 
 	/**
 	 * Answer whether this [L2ReadOperand] supplies a constant directly, rather
@@ -391,13 +391,17 @@ protected constructor(
 	abstract fun createSemanticConstant(): L2SemanticValue<K>
 
 	/**
-	 * This [L2ReadOperand] produces a constant value.  Replace its register
+	 * If this [L2ReadOperand] produces a constant value, replace its register
 	 * with a fresh one that has no definition, to break dependency chains from
 	 * its defining writes, allowing fewer registers to be live at the same
-	 * time.
+	 * time, and return true.  Otherwise return false.
+	 *
+	 * @return
+	 *   Whether the register was replaced because it's a constant read.
 	 */
-	fun replaceConstantRead()
+	fun replaceIfConstantRead(): Boolean
 	{
+		if (restriction().constantOrNull === null) return false
 		instruction.sourceRegisters.remove(register)
 		register.removeUse(this)
 		register = createConstantRegister()
@@ -408,6 +412,7 @@ protected constructor(
 		instruction.readOperands.forEach { read ->
 			instruction.sourceRegisters.add(read.register)
 		}
+		return true
 	}
 
 	override fun postOptimizationCleanup()

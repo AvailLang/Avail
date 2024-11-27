@@ -63,8 +63,8 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
@@ -181,5 +181,5 @@ object P_BootstrapVariableUseMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(LITERAL_PHRASE.create(TOKEN.o)), // Variable name
-			VARIABLE_USE_PHRASE.mostGeneralType)
+			EXPRESSION_PHRASE.mostGeneralType)
 }

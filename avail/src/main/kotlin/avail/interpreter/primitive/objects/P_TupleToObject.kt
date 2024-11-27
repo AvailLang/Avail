@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.objects
 
 import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.hasKey
@@ -49,6 +50,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -71,13 +73,12 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field assignment into an
@@ -146,9 +147,9 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean
 	{
 		// If we know the exact keys, we can statically determine the
@@ -160,13 +161,12 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		val sizeRange = pairsType.sizeRange
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 
 		if (!sizeRange.lowerBound.isInt) return false
 		val size = sizeRange.lowerBound.extractInt
 		if (!sizeRange.upperBound.equalsInt(size)) return false
 		// The tuple size is known.  See if the order of field atoms is known.
-		val atoms: List<A_Atom> = (1..size).map {
+		val atoms: List<A_Atom> = (1 .. size).map {
 			val keyType = pairsType.typeAtIndex(it).typeAtIndex(1)
 			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
@@ -184,7 +184,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		val sourcesByFieldIndex =
 			arrayOfNulls<L2ReadBoxedOperand>(variant.realSlotCount)
 		val pairSources: List<L2ReadBoxedOperand>? =
-			generator.explodeTupleIfPossible(
+			translator.explodeTupleIfPossible(
 				pairsReg,
 				pairsType.tupleOfTypesFromTo(1, size).toList())
 		pairSources ?: return false
@@ -194,26 +194,29 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 				if (index != 0)
 				{
 					val valueType = pairSource.type().typeAtIndex(2)
-					val valueTemp = generator.newTemp()
-					generator.extractTupleElement(
+					val valueTemp = translator.newTemp(
+						"value for ${atom.atomName.asNativeString()}"
+					)
+					translator.extractTupleElement(
 						pairSource, 2, setOf(valueTemp))
 					sourcesByFieldIndex[index - 1] =
-						generator.readBoxed(valueTemp)
+						translator.readBoxed(valueTemp)
 					fieldTypePairs.add(tuple(atom, valueType))
 				}
 			}
 		}
 		val typeGuarantee = objectTypeFromTuple(tupleFromList(fieldTypePairs))
-		val write = generator.boxedWriteTemp(
+		val write = translator.boxedWriteTemp(
+			"new object",
 			boxedRestrictionForType(typeGuarantee)
 				.intersectionWithObjectVariant(variant))
-		generator.addInstruction(
+		translator.addInstruction(
 			L2_CREATE_OBJECT(
-				L2ArbitraryConstantOperand(variant),
+				variant,
 				L2ConstantOperand(typeGuarantee),
 				L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
 				write))
-		callSiteHelper.useAnswer(generator.readBoxed(write))
+		callSiteHelper.useAnswer(translator.readBoxed(write), false)
 		return true
 	}
 }

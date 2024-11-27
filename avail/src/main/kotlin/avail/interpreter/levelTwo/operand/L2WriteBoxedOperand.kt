@@ -78,6 +78,9 @@ constructor(
 	override fun semanticValues(): Set<L2SemanticBoxedValue> =
 		super.semanticValues().cast()
 
+	override fun pickSemanticValue(): L2SemanticBoxedValue =
+		semanticValues().first()
+
 	override fun register(): L2BoxedRegister = super.register().cast()
 
 	init

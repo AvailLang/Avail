@@ -58,6 +58,8 @@ import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.KIND
@@ -203,6 +205,7 @@ open class VariableSharedDescriptor protected constructor(
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
+			println("ClassCast Shared 1")
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
@@ -232,6 +235,7 @@ open class VariableSharedDescriptor protected constructor(
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
+			println("ClassCast Shared 2")
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
@@ -263,6 +267,7 @@ open class VariableSharedDescriptor protected constructor(
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
+			println("ClassCast Shared 3")
 		}
 		return self.volatileSlot(VALUE).notNil
 	}
@@ -290,6 +295,12 @@ open class VariableSharedDescriptor protected constructor(
 		self.setVolatileSlot(VALUE, newValue.makeShared())
 		recordWriteToSharedVariable()
 	}
+
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = throw UnsupportedOperationException(
+		"Local variable should have been disqualified because it's now shared.")
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
@@ -595,7 +606,7 @@ open class VariableSharedDescriptor protected constructor(
 			val loader = AvailLoader.currentLoaderOrNull() ?: return
 			if (loader.statementCanBeSummarized()
 				&& self.volatileSlot(VALUE).notNil
-				&& !self.valueWasStablyComputed())
+				&& !self.valueWasStablyComputed)
 			{
 				loader.statementCanBeSummarized(false)
 			}

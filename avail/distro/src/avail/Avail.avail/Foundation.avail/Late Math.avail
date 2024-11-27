@@ -256,6 +256,30 @@ Method "_^_" is
 	if base = 0 then [0] else [∞]
 ] : {0, ∞}ᵀ;
 
+
+//TODO Remove
+//Private method "moo_" is
+//[
+//	x : integer
+//|
+//	plusOne ::= x + 1;
+//	plusTwo ::= x + 2;
+//	if x is odd then [plusOne] else [plusTwo]
+//];
+//
+//Ignore: moo 5;
+//Ignore: moo 6;
+//[
+//	Breakpoint;
+//	Print: "moo 5 = " ++ “moo 5” ++ "\n";
+//	Print: "moo 6 = " ++ “moo 6” ++ "\n";
+//	Print: "moo 10000000000 = " ++ “moo 10000000000” ++ "\n";
+//	Print: "moo 10000000001 = " ++ “moo 10000000001” ++ "\n";
+//]();
+//
+//zzz
+
+
 /**
  * Compute and answer the result of exponentiating {@param "base"} by {@param
  * "exponent"}, and multiplying it by {@param "accumulator"}. Do not complain
@@ -278,13 +302,64 @@ Private method "_simple^_onto_" is
 	accumulator : integer
 |
 	$loop : integer;
+	Print: (primitive description of <base, exponent, accumulator>) ++ "\n";
 	Exit loop with accumulator if exponent = 0;
 	newAccumulatorIfOdd ::= accumulator × base;
 	newAccumulator ::= if exponent is odd
 		then [newAccumulatorIfOdd]
 		else [accumulator];
+	Print: "newAcc = " ++ (primitive description of newAccumulator) ++ "\n";
 	Restart loop with <base × base, exponent >> 1, newAccumulator>
 ] : integer;
+
+//Salt:001
+Ignore: 1 simple^ 2 onto 3;
+Ignore: 1 simple^ 2 onto 3;
+Ignore: 1 simple^ 2 onto 3;
+
+[
+	Breakpoint;
+	x ::= 2 simple^ 3 onto 10;
+	Breakpoint;
+	Print: “x” ++ "\n";
+	Assert: x = 80;
+]();
+
+zzz
+
+
+//Private method "_half reps_onto_" is
+//[
+//	count : whole number,
+//	item : any,
+//	onto : tuple
+//|
+//	$here: tuple;
+//	Exit here with onto if count = 0;
+//	longer ::= onto ++ <item>;
+//	concat ::= if count ÷ 2 × 2 = count then [longer] else [onto];
+//	countdown ::= count ?→ natural number - 1;
+//	Restart here with 
+//		<countdown, item, concat>
+//];
+
+
+//
+///*TODO Remove*/
+//Ignore: 5 half reps ¢x onto <>;
+//Ignore: 5 half reps ¢x onto <>;
+//Print: "\n\n";
+//[
+////	Breakpoint;
+//	w1 ::= 5 half reps ¢x onto <>;
+//	w2 ::= 2 half reps ¢x onto <>;
+//	Print: “<w1, w2>” ++ "\n";
+////	Breakpoint;
+//]();
+//
+//zzzzz
+
+
 
 Method "_^_" is
 [
@@ -1021,6 +1096,25 @@ smallPrimes ::= <
 	73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127
 >;
 
+
+/*TODO Remove*/
+[
+	Breakpoint;
+	w ::= [a : integer, b : integer | a^b](2, 31);
+	Breakpoint;
+	Print: “w” ++ "\n";
+]();
+
+x ::= 2^31 - 30;
+Print: “x” ++ "\n";
+y ::= 2^31 - 60;
+Print: “y” ++ "\n";
+z ::= [y..x);
+Print: “z” ++ "\n";
+
+
+
+
 /**
  * Attempt to use trial division within the given range to find a pair of
  * nontrivial factors <p, q> such that p×q = n.  In addition, if n is known not
@@ -1078,7 +1172,7 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 		smallStop : [0..2^31 - 60)
 	|
 		factor ::= [
-			j : [0..2^31 - 30)
+			j : [0..    (2^31 - 30)   )  /*TODO parens*/
 		|
 			$scan : [0..2^31);
 			Exit scan with 0 if j > smallStop;

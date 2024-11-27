@@ -33,7 +33,6 @@ package avail.optimizer.reoptimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -47,6 +46,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
@@ -89,7 +89,6 @@ import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
-import avail.utility.isNullOr
 import avail.utility.mapToSet
 
 /**
@@ -227,8 +226,6 @@ constructor(
 			oldSemanticValue: L2SemanticValue<K>
 		): L2SemanticValue<K> = oldSemanticValue
 
-		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) = Unit
-
 		override fun doOperand(operand: L2CommentOperand) = Unit
 
 		override fun doOperand(operand: L2ConstantOperand) = Unit
@@ -286,34 +283,41 @@ constructor(
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadBoxedVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadIntVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadFloatVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
+		}
+
+		override fun doOperand(operand: L2ReadMixedVectorOperand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = L2ReadMixedVectorOperand(
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2WriteBoxedVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2WriteBoxedVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2PcVectorOperand)
 		{
 			currentOperand = L2PcVectorOperand(
-				operand.edges.map(this@L2Regenerator::transformOperand))
+				operand.edges.map(::transformOperand))
 		}
 	}
 
@@ -427,7 +431,7 @@ constructor(
 					currentOperand = L2ReadIntOperand(
 						constant(operand.constantOrNull!!).unboxedInt,
 						operand.restriction(),
-						operand.register() as L2IntRegister)
+						operand.register())
 				}
 				else ->
 				{
@@ -450,7 +454,7 @@ constructor(
 					currentOperand = L2ReadFloatOperand(
 						constant(operand.constantOrNull!!).unboxedFloat,
 						operand.restriction(),
-						operand.register() as L2FloatRegister)
+						operand.register())
 				}
 				else ->
 				{
@@ -473,7 +477,7 @@ constructor(
 					currentOperand = L2ReadBoxedOperand(
 						constant(operand.constantOrNull!!),
 						operand.restriction(),
-						operand.register() as L2BoxedRegister)
+						operand.register())
 				}
 				else ->
 				{
@@ -540,7 +544,7 @@ constructor(
 	 */
 	fun startBlock(
 		block: L2BasicBlock
-	): Unit = targetGenerator.startBlock(block, this)
+	): Unit = startBlock(block, this)
 
 	/** This regenerator's reusable [AbstractOperandTransformer]. */
 	private val operandInlineTransformer = when (val m = mode)
@@ -673,8 +677,7 @@ constructor(
 						val suffix = when (reduced.size)
 						{
 							0 -> "\n(no split)"
-							1 ->
-								"\nsplit: ${reduced.single().toString()}"
+							1 -> "\nsplit: ${reduced.single().toString()}"
 							else -> reduced
 								.joinToString(",", "\nsplits:") { "\n\t$it" }
 						}
@@ -704,24 +707,17 @@ constructor(
 					// Since the incoming edges in the old graph are the only
 					// place where a relevant manifest still exists, we take the
 					// intersection of the sets of semantic values that were
-					// present along these edges.
-					val allLive = mutableSetOf<L2SemanticValue<*>>()
-					currentManifest.synonymsArray()
-						.forEach { allLive.addAll(it.semanticValues()) }
+					// present along these edges.  And in case we're removing
+					// dead code, narrow this to the semantic values that are
+					// live here.
+					val commonSemanticValues = currentManifest.synonymsArray()
+						.flatMapTo(mutableSetOf(), L2Synonym<*>::semanticValues)
 					val manifests = originalBlock.predecessorEdges()
 						.map(L2PcOperand::manifest)
-					var commonSemanticValues = when
-					{
-						manifests.isEmpty() -> emptySet()
-						else -> manifests
-							.map(L2ValueManifest::liveOrPostponedSemanticValues)
-							.reduce(Set<L2SemanticValue<*>>::intersect)
-							.intersect(allLive)
+					manifests.forEach { m ->
+						commonSemanticValues.retainAll(
+							m.liveOrPostponedSemanticValues())
 					}
-					// In case we're removing dead code, narrow this to the
-					// semantic values that have already survived here.
-					commonSemanticValues =
-						commonSemanticValues.intersect(allLive)
 					// For each semantic value, determine all other semantic
 					// values that are in the same synonym with it in all
 					// predecessors.  We'll use that to reconstitute any
@@ -855,45 +851,12 @@ constructor(
 				if (!register.isConstant && mode == BySemanticValue)
 				{
 					assert(currentManifest.hasSemanticValue(semanticValue))
- 					assert(currentManifest.synonymsForRegister(register)
+					assert(currentManifest.synonymsForRegister(register)
 						.isNotEmpty())
 				}
 			}
 		}
 		return transformed.cast()
-	}
-
-	/**
-	 * A helper method for instruction postponement.  Given an [L2Instruction]
-	 * from the old graph being regenerated, emit a translated version of that
-	 * instruction.  If the instruction uses values that are not yet available
-	 * in registers due to postponement, first translate the instructions that
-	 * produce those values.
-	 *
-	 * The instruction must not currently be in the current
-	 * `postponedInstructions` map.
-	 *
-	 * TODO Make this iterative instead of recursive.
-	 */
-	fun forcePostponedTranslationNow(sourceInstruction: L2Instruction)
-	{
-		assert(
-			!shouldSanityCheck ||
-			sourceInstruction.writeOperands
-				.flatMap(L2WriteOperand<*>::semanticValues)
-				.all { sv ->
-					currentManifest.postponedInstructions()[sv].isNullOr {
-						!contains(sourceInstruction)
-					}
-				}
-		) {
-			"instruction should have been removed from postponed map"
-		}
-		sourceInstruction.readOperands.forEach { read ->
-			forceTranslationForRead(read.semanticValue())
-		}
-		basicTransformInstruction(sourceInstruction)
-			.emitTransformedInstruction(this)
 	}
 
 	/**
@@ -909,10 +872,10 @@ constructor(
 		val postponedMap = currentManifest.postponedInstructions()
 		while (semanticValue in postponedMap)
 		{
-			val postponedInstruction = postponedMap[semanticValue]!!.last()
+			val postponedInstruction = postponedMap[semanticValue]!!
 			currentManifest.removePostponedSourceInstruction(
 				postponedInstruction)
-			forcePostponedTranslationNow(postponedInstruction)
+			postponedInstruction.forcePostponedTranslationNow(this)
 		}
 		// At this point there must not be any other postponed instructions for
 		// the semantic value.
@@ -946,11 +909,10 @@ constructor(
 			}
 			if (shouldSanityCheck)
 			{
-				manifest.postponedInstructions().values.forEach { sub ->
-					sub.forEach { instruction ->
-						assert(instruction is L2_MOVE<*> ||
-							instruction is L2_MOVE_CONSTANT<*, *>)
-					}
+				manifest.postponedInstructions().values.forEach { instruction ->
+					assert(
+						instruction is L2_MOVE<*> ||
+						instruction is L2_MOVE_CONSTANT<*, *>)
 				}
 			}
 			return

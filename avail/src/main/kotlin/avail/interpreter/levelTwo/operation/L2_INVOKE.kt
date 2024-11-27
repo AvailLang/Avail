@@ -89,6 +89,18 @@ class L2_INVOKE(
 {
 	override val hasSideEffect get() = true
 
+	/** If it's primitive, defer to it, otherwise assume the worst. */
+	override fun mightMakeEscapedVariableShared(): Boolean
+	{
+		calledFunction.definitionSkippingMoves().constantCode?.let { code ->
+			code.codePrimitive()?.let { prim ->
+				return prim.mightMakeEscapedVariableShared(
+					arguments.elements.map(L2ReadBoxedOperand::type))
+			}
+		}
+		return true
+	}
+
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't
 	 * bother splitting paths that lead only to it and other cold blocks.
@@ -122,21 +134,19 @@ class L2_INVOKE(
 		super.emitTransformedInstruction(regenerator)
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(result.registerString())
-		builder.append(" ← ")
-		builder.append(calledFunction.registerString())
-		builder.append("(")
-		builder.append(arguments.elements)
-		builder.append(")")
+		renderPreamble()
+		append(' ')
+		append(result.registerString())
+		append(" ← ")
+		append(calledFunction.registerString())
+		append("(")
+		append(arguments.elements)
+		append(")")
 		renderOperandsExcludingFields(
-			builder,
 			desiredOperandTypes,
 			::result,
 			::calledFunction,

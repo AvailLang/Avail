@@ -43,7 +43,7 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
 import avail.interpreter.primitive.types.P_InstanceOfMeta
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.PrefixSharingList.Companion.append

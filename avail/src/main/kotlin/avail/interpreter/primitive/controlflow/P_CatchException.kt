@@ -47,6 +47,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE

@@ -52,10 +52,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_FLOAT
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT
+import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_PHI_BOXED
 import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT
@@ -264,16 +264,6 @@ constructor (
 		val registers = sourceManifests
 			.map { m -> m.getDefinitions(pickSemanticValue).toSet() }
 			.reduce(Set<L2Register<Self>>::intersect)
-		val restriction = sourceManifests
-			.map { m -> m.restrictionFor(pickSemanticValue) }
-			.reduce(TypeRestriction::union)
-			.intersection(typeRestriction)
-		// We've already done all the synonym extensions for moves as they were
-		// recorded as postponed instructions.  So be delicate when extending
-		// synonyms in general.  Adding actual move instructions will normally
-		// turn into an extension of the latest write if it's in the same block,
-		// but we couldn't do that for postponed instructions, because we don't
-		// know what block(s) they'll end up in.
 		val manifest = generator.currentManifest
 		val (inSynonym, notInSynonym) =
 			relatedSemanticValuesSet.partition(manifest::hasSemanticValue)
@@ -297,6 +287,10 @@ constructor (
 		{
 			// None of the semantic values is in a synonym yet, so create it in
 			// one step.
+			val restriction = sourceManifests
+				.map { m -> m.restrictionFor(pickSemanticValue) }
+				.reduce(TypeRestriction::union)
+				.intersection(typeRestriction)
 			manifest.introduceSynonym(
 				L2Synonym(relatedSemanticValues), restriction)
 		}
@@ -308,7 +302,26 @@ constructor (
 				// them all directly.  The updateConstraint() works whether the
 				// synonym exists yet or not.
 				manifest.updateDefinitions(pickSemanticValue) {
-					this@updateDefinitions + registers
+					this + registers
+				}
+				// Remove any postponed instructions that the common register
+				// was able to supply already.
+				manifest.removePostponedInstructioFor(pickSemanticValue)
+				// If any semantic value is in the situation that none of the
+				// common incoming registers has a definition that populates it,
+				// we'll need to introduce a move to ensure that semantic value
+				// has a visible definition point.
+				val valuesSetInRegisters = registers
+					.map { r -> r.definition().semanticValues() }
+					.reduce(Set<L2SemanticValue<Self>>::intersect)
+				val valuesNotSetInRegisters =
+					relatedSemanticValuesSet - valuesSetInRegisters
+				if (valuesNotSetInRegisters.isNotEmpty())
+				{
+					// Indeed, these semantic values have no visible writes in
+					// all historiess.  Move to them.
+					generator.moveRegister(
+						pickSemanticValue, valuesNotSetInRegisters)
 				}
 			}
 			else ->
@@ -588,9 +601,3 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		generator: L2GeneratorInterface
 	) = L2SemanticDummy(generator.nextUnique()).unboxedFloat
 }
-
-//		/**
-//		 * The kind of register that holds the value of some variable prior to
-//		 * the variable having escaped, if ever.  TODO Implement this.
-//		 */
-//		UNESCAPED_VARIABLE_VALUE

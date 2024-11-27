@@ -158,7 +158,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		if (self[TYPE_TUPLE].tupleSize == 0)
@@ -192,7 +192,7 @@ private constructor(
 				naturalNumbers ->
 				{
 					// Okay, it's homogeneous and nonempty…
-					builder.brief {
+					builder.run {
 						self.defaultType.printOnAvoidingIndent(
 							this,
 							recursionMap,
@@ -205,7 +205,7 @@ private constructor(
 				u1 ->
 				{
 					// It's an optional.
-					builder.brief {
+					builder.run {
 						self.defaultType.printOnAvoidingIndent(
 							this,
 							recursionMap,
@@ -217,7 +217,7 @@ private constructor(
 				}
 				else ->
 				{
-					builder.brief {
+					builder.run {
 						self.defaultType.printOnAvoidingIndent(
 							this,
 							recursionMap,
@@ -235,7 +235,7 @@ private constructor(
 			}
 		}
 		// Handle the complex case.
-		builder.brief {
+		builder.run {
 			append('<')
 			val end = self[TYPE_TUPLE].tupleSize
 			for (i in 1 .. end)

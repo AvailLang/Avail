@@ -67,9 +67,9 @@ interface L1OperationDispatcher
 
 	/**
 	 * `n` - Push the argument (actual value) or local variable (the variable
-	 * itself) indexed by `n`. Since this is known to be the last use
-	 * (non-debugger) of the argument or local, void that slot of the current
-	 * continuation.
+	 * itself), or local constant, indexed by `n`. Since this is known to be the
+	 * last use (non-debugger) of the argument or local, void that slot of the
+	 * current continuation.
 	 */
 	fun L1_doPushLastLocal()
 

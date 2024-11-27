@@ -65,6 +65,11 @@ class Statistic constructor(
 	 */
 	fun name(): String = nameSupplier()
 
+	override fun toString(): String
+	{
+		return "Statistic: ${name()}"
+	}
+
 	init
 	{
 		report.registerStatistic(this)

@@ -38,10 +38,11 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.interpreter.Primitive
@@ -73,7 +74,7 @@ object P_PrivateCreateModuleVariable
 		val variable = createGlobal(varType, module, name, isConstant)
 		if (stablyComputed)
 		{
-			variable.setValueWasStablyComputed(true)
+			variable.valueWasStablyComputed = true
 		}
 		// The compiler should ensure this will always succeed.
 		when

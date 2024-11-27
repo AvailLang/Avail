@@ -35,18 +35,42 @@ package avail.interpreter.levelOne
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.representation.AbstractDescriptor
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelOne.L1OperandType.IMMEDIATE
 import avail.interpreter.levelOne.L1OperandType.LITERAL
 import avail.interpreter.levelOne.L1OperandType.LOCAL
 import avail.interpreter.levelOne.L1OperandType.OUTER
+import avail.interpreter.levelOne.L1Operation.L1Ext_doDuplicate
+import avail.interpreter.levelOne.L1Operation.L1Ext_doGetLiteral
+import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
+import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
+import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
+import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
+import avail.interpreter.levelOne.L1Operation.L1Ext_doSuperCall
+import avail.interpreter.levelOne.L1Operation.L1_doCall
+import avail.interpreter.levelOne.L1Operation.L1_doClose
 import avail.interpreter.levelOne.L1Operation.L1_doExtension
+import avail.interpreter.levelOne.L1Operation.L1_doGetLocal
+import avail.interpreter.levelOne.L1Operation.L1_doGetLocalClearing
+import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
+import avail.interpreter.levelOne.L1Operation.L1_doGetOuterClearing
+import avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
+import avail.interpreter.levelOne.L1Operation.L1_doPop
+import avail.interpreter.levelOne.L1Operation.L1_doPushLastLocal
+import avail.interpreter.levelOne.L1Operation.L1_doPushLastOuter
+import avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
+import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
+import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
+import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
+import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
 import avail.io.NybbleOutputStream
 
 /**
@@ -71,14 +95,15 @@ import avail.io.NybbleOutputStream
  * [operand&#32;types][L1OperandType] that this operation expects.
  *
  * @param ordinalCheck
- *   This operation's ordinal.
+ *   This operation's ordinal, to be cross-checked with what the enum class
+ *   provides.
  * @param operandTypes
  *   This operation's list of [operand&#32;types][L1OperandType].
  */
 @Suppress("EnumEntryName")
 enum class L1Operation constructor(
 	ordinalCheck: Int,
-	vararg operandTypes: L1OperandType)
+	vararg val operandTypes: L1OperandType)
 {
 	/**
 	 * Invoke a method.
@@ -95,7 +120,7 @@ enum class L1Operation constructor(
 	 * the returned value. If it disagrees, some sort of runtime exception
 	 * should take place instead.
 	 */
-	L1_doCall(0, LITERAL, LITERAL)
+	L1_doCall(L1_doCall_ord, LITERAL, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doCall()
@@ -104,7 +129,7 @@ enum class L1Operation constructor(
 	/**
 	 * Push the literal whose index is specified by the operand.
 	 */
-	L1_doPushLiteral(1, LITERAL)
+	L1_doPushLiteral(L1_doPushLiteral_ord, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doPushLiteral()
@@ -124,7 +149,7 @@ enum class L1Operation constructor(
 	 * ordinary local variables, except that they can not be assigned after
 	 * their definition, nor can a reference to the constant be taken.
 	 */
-	L1_doPushLastLocal(2, LOCAL)
+	L1_doPushLastLocal(L1_doPushLastLocal_ord, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doPushLastLocal()
@@ -135,7 +160,7 @@ enum class L1Operation constructor(
 	 * argument or constant is specified then push the value, since there is no
 	 * actual [variable][VariableDescriptor] to operate on.
 	 */
-	L1_doPushLocal(3, LOCAL)
+	L1_doPushLocal(L1_doPushLocal_ord, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doPushLocal()
@@ -146,7 +171,7 @@ enum class L1Operation constructor(
 	 * function.  This should be the last use of the variable, so clear it from
 	 * the function if the function is still mutable.
 	 */
-	L1_doPushLastOuter(4, OUTER)
+	L1_doPushLastOuter(L1_doPushLastOuter_ord, OUTER)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doPushLastOuter()
@@ -156,7 +181,7 @@ enum class L1Operation constructor(
 	 * Create a function from the specified number of pushed outer variables and
 	 * the specified literal [compiled&#32;code][CompiledCodeDescriptor].
 	 */
-	L1_doClose(5, IMMEDIATE, LITERAL)
+	L1_doClose(L1_doClose_ord, IMMEDIATE, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doClose()
@@ -165,7 +190,7 @@ enum class L1Operation constructor(
 	/**
 	 * Pop the stack and write the value into the specified local variable.
 	 */
-	L1_doSetLocal(6, LOCAL)
+	L1_doSetLocal(L1_doSetLocal_ord, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doSetLocal()
@@ -176,7 +201,7 @@ enum class L1Operation constructor(
 	 * variable is mutable, null it out in the continuation.  Raise a suitable
 	 * runtime exception if the variable does not have a value.
 	 */
-	L1_doGetLocalClearing(7, LOCAL)
+	L1_doGetLocalClearing(L1_doGetLocalClearing_ord, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doGetLocalClearing()
@@ -185,7 +210,7 @@ enum class L1Operation constructor(
 	/**
 	 * Push the specified outer variable of the [function][FunctionDescriptor].
 	 */
-	L1_doPushOuter(8, OUTER)
+	L1_doPushOuter(L1_doPushOuter_ord, OUTER)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doPushOuter()
@@ -194,7 +219,7 @@ enum class L1Operation constructor(
 	/**
 	 * Discard the top element of the stack.
 	 */
-	L1_doPop(9)
+	L1_doPop(L1_doPop_ord)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doPop()
@@ -205,7 +230,7 @@ enum class L1Operation constructor(
 	 * variable is part of the [function][FunctionDescriptor] being executed.
 	 * Clear this outer variable if it is mutable.
 	 */
-	L1_doGetOuterClearing(10, OUTER)
+	L1_doGetOuterClearing(L1_doGetOuterClearing_ord, OUTER)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doGetOuterClearing()
@@ -215,7 +240,7 @@ enum class L1Operation constructor(
 	 * Pop the stack and write it to the specified outer variable of the
 	 * [function][FunctionDescriptor].
 	 */
-	L1_doSetOuter(11, OUTER)
+	L1_doSetOuter(L1_doSetOuter_ord, OUTER)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doSetOuter()
@@ -225,7 +250,7 @@ enum class L1Operation constructor(
 	 * Push the value of the specified local variable or constant.  Make it
 	 * immutable, since it may still be needed by subsequent instructions.
 	 */
-	L1_doGetLocal(12, LOCAL)
+	L1_doGetLocal(L1_doGetLocal_ord, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doGetLocal()
@@ -235,7 +260,7 @@ enum class L1Operation constructor(
 	 * Pop the specified number of elements from the stack and assemble them
 	 * into a tuple.  Push the tuple.
 	 */
-	L1_doMakeTuple(13, IMMEDIATE)
+	L1_doMakeTuple(L1_doMakeTuple_ord, IMMEDIATE)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doMakeTuple()
@@ -245,7 +270,7 @@ enum class L1Operation constructor(
 	 * Push the current value of the specified outer variable of the
 	 * [function][FunctionDescriptor].
 	 */
-	L1_doGetOuter(14, OUTER)
+	L1_doGetOuter(L1_doGetOuter_ord, OUTER)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doGetOuter()
@@ -255,7 +280,7 @@ enum class L1Operation constructor(
 	 * Process an extension nybblecode, which involves consuming the next nybble
 	 * and dispatching it as though 16 were added to it.
 	 */
-	L1_doExtension(15)
+	L1_doExtension(L1_doExtension_ord)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doExtension()
@@ -265,7 +290,7 @@ enum class L1Operation constructor(
 	 * Push a continuation just like the current one, such that if it is ever
 	 * resumed it will have the same effect as restarting the current one.
 	 */
-	L1Ext_doPushLabel(16)
+	L1Ext_doPushLabel(L1Ext_doPushLabel_ord)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doPushLabel()
@@ -275,7 +300,7 @@ enum class L1Operation constructor(
 	 * Get the value of a [variable][VariableDescriptor] literal. This is used
 	 * only to read from module variables.
 	 */
-	L1Ext_doGetLiteral(17, LITERAL)
+	L1Ext_doGetLiteral(L1Ext_doGetLiteral_ord, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doGetLiteral()
@@ -285,7 +310,7 @@ enum class L1Operation constructor(
 	 * Pop the stack and write the value into a [variable][VariableDescriptor]
 	 * literal.  This is used to write to module variables.
 	 */
-	L1Ext_doSetLiteral(18, LITERAL)
+	L1Ext_doSetLiteral(L1Ext_doSetLiteral_ord, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doSetLiteral()
@@ -296,7 +321,7 @@ enum class L1Operation constructor(
 	 * of stack}.  Make the object immutable since it now has an additional
 	 * reference.
 	 */
-	L1Ext_doDuplicate(19)
+	L1Ext_doDuplicate(L1Ext_doDuplicate_ord)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doDuplicate()
@@ -321,7 +346,7 @@ enum class L1Operation constructor(
 	 * 1, yielding the array [C,A,B].  These would then replace the original
 	 * values as though C, A, and B had been pushed, in that order.
 	 */
-	L1Ext_doPermute(20, LITERAL)
+	L1Ext_doPermute(L1Ext_doPermute_ord, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doPermute()
@@ -352,7 +377,7 @@ enum class L1Operation constructor(
 	 * this literal tuple type provides a tuple type that can be used to select
 	 * the method definition that will be invoked.
 	 */
-	L1Ext_doSuperCall(21, LITERAL, LITERAL, LITERAL)
+	L1Ext_doSuperCall(L1Ext_doSuperCall_ord, LITERAL, LITERAL, LITERAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doSuperCall()
@@ -362,14 +387,14 @@ enum class L1Operation constructor(
 	 * Pop the stack, writing the value directly to the current continuation in
 	 * the indicated local slot.
 	 */
-	L1Ext_doSetLocalSlot(22, LOCAL)
+	L1Ext_doSetLocalSlot(L1Ext_doSetLocalSlot_ord, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doSetLocalSlot()
 	};
 
-	/** This operation's collection of [operand types][L1OperandType]. */
-	val operandTypes = operandTypes.also {
+	init
+	{
 		assert(ordinalCheck == ordinal)
 	}
 
@@ -402,7 +427,7 @@ enum class L1Operation constructor(
 		else
 		{
 			assert(nybble < 32)
-			stream.write(L1_doExtension.ordinal)
+			stream.write(L1_doExtension_ord)
 			stream.write(nybble - 16)
 		}
 	}
@@ -422,5 +447,75 @@ enum class L1Operation constructor(
 		 *  The looked up `L1Operation`.
 		 */
 		fun lookup(ordinal: Int): L1Operation = all[ordinal]
+
 	}
 }
+
+/** The ordinal for [L1_doCall]. */
+const val L1_doCall_ord = 0
+
+/** The ordinal for [L1_doPushLiteral]. */
+const val L1_doPushLiteral_ord = 1
+
+/** The ordinal for [L1_doPushLastLocal]. */
+const val L1_doPushLastLocal_ord = 2
+
+/** The ordinal for [L1_doPushLocal]. */
+const val L1_doPushLocal_ord = 3
+
+/** The ordinal for [L1_doPushLastOuter]. */
+const val L1_doPushLastOuter_ord = 4
+
+/** The ordinal for [L1_doClose]. */
+const val L1_doClose_ord = 5
+
+/** The ordinal for [L1_doSetLocal]. */
+const val L1_doSetLocal_ord = 6
+
+/** The ordinal for [L1_doGetLocalClearing]. */
+const val L1_doGetLocalClearing_ord = 7
+
+/** The ordinal for [L1_doPushOuter]. */
+const val L1_doPushOuter_ord = 8
+
+/** The ordinal for [L1_doPop]. */
+const val L1_doPop_ord = 9
+
+/** The ordinal for [L1_doGetOuterClearing]. */
+const val L1_doGetOuterClearing_ord = 10
+
+/** The ordinal for [L1_doSetOuter]. */
+const val L1_doSetOuter_ord = 11
+
+/** The ordinal for [L1_doGetLocal]. */
+const val L1_doGetLocal_ord = 12
+
+/** The ordinal for [L1_doMakeTuple]. */
+const val L1_doMakeTuple_ord = 13
+
+/** The ordinal for [L1_doGetOuter]. */
+const val L1_doGetOuter_ord = 14
+
+/** The ordinal for [L1_doExtension]. */
+const val L1_doExtension_ord = 15
+
+/** The ordinal for [L1Ext_doPushLabel]. */
+const val L1Ext_doPushLabel_ord = 16
+
+/** The ordinal for [L1Ext_doGetLiteral]. */
+const val L1Ext_doGetLiteral_ord = 17
+
+/** The ordinal for [L1Ext_doSetLiteral]. */
+const val L1Ext_doSetLiteral_ord = 18
+
+/** The ordinal for [L1Ext_doDuplicate]. */
+const val L1Ext_doDuplicate_ord = 19
+
+/** The ordinal for [L1Ext_doPermute]. */
+const val L1Ext_doPermute_ord = 20
+
+/** The ordinal for [L1Ext_doSuperCall]. */
+const val L1Ext_doSuperCall_ord = 21
+
+/** The ordinal for [L1Ext_doSetLocalSlot]. */
+const val L1Ext_doSetLocalSlot_ord = 22

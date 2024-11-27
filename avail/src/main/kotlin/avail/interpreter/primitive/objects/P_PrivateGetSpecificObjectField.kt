@@ -50,7 +50,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
-import avail.optimizer.L1Translator
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Given an [object][ObjectDescriptor], extract the field
@@ -97,9 +97,9 @@ object P_PrivateGetSpecificObjectField : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean {
 		// This primitive is private, and the function *should* only have been
 		// constructed by P_CreateObjectFieldGetter.  Play it safe if the
@@ -119,24 +119,27 @@ object P_PrivateGetSpecificObjectField : Primitive(
 			// which is not available during folding.
 			constant !== null ->
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(
-						constant.fieldAt(fieldAtom)))
+					translator.boxedConstant(
+						constant.fieldAt(fieldAtom)),
+					false)
 
 			fieldType.isEnumeration
 					&& !fieldType.isInstanceMeta
 					&& fieldType.instanceCount.equalsInt(1) ->
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(fieldType.instance))
+					translator.boxedConstant(fieldType.instance),
+					false)
 
 			else -> {
-				val write = translator.generator.boxedWriteTemp(
+				val write = translator.boxedWriteTemp(
+					"field value",
 					boxedRestrictionForType(fieldType))
 				translator.addInstruction(
 					L2_GET_OBJECT_FIELD(
 						objectReg,
 						L2ConstantOperand(fieldAtom),
 						write))
-				callSiteHelper.useAnswer(translator.readBoxed(write))
+				callSiteHelper.useAnswer(translator.readBoxed(write), false)
 				// TODO - Generate L2 code to collect statistics on the variants
 				// that are encountered, then at the next reoptimization, inline
 				// L2 instructions that access the field by index.

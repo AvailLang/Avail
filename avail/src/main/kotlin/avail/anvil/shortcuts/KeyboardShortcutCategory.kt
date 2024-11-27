@@ -219,9 +219,9 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 
 		/**
 		 * @return
-		 *  The [List] of [Set]s of [KeyboardShortcut]s that have duplicate
-		 * 	shortcut key combinations. If there are no duplicates, the list will
-		 * 	be empty.
+		 *   The [List] of [Set]s of [KeyboardShortcut]s that have duplicate
+		 *   shortcut key combinations. If there are no duplicates, the list
+		 *   will be empty.
 		 */
 		fun getNonUniqueShortcuts (): List<Set<KeyboardShortcut>> =
 			entries.map { it.checkShortcutsUnique() }.flatten()

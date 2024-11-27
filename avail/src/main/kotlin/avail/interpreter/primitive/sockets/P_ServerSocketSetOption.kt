@@ -96,7 +96,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				val option = Options.socketOptions[key.extractInt]!!
 				if (option.type() == java.lang.Boolean::class.java
 						&& value.isBoolean)
-						{
+				{
 					val booleanOption: SocketOption<Boolean> = option.cast()
 					socket.setOption(booleanOption, value.extractBoolean)
 				}

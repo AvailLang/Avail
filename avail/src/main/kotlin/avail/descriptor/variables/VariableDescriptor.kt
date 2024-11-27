@@ -240,6 +240,7 @@ open class VariableDescriptor protected constructor(
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
+			println("ClassCast 1")
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
@@ -267,6 +268,7 @@ open class VariableDescriptor protected constructor(
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
+			println("ClassCast 2")
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.  Note that we do *not* have to make the retrieved
@@ -296,6 +298,7 @@ open class VariableDescriptor protected constructor(
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
+			println("ClassCast 3")
 		}
 		val value = self[VALUE]
 		return value.notNil
@@ -324,6 +327,31 @@ open class VariableDescriptor protected constructor(
 			if (isMutable) newValue
 			else
 				//TODO Mark/Todd – This is probably unnecessary.
+				newValue.makeImmutable()
+	}
+
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject)
+	{
+		// Even though this is a local variable that hasn't escaped (i.e., it
+		// isn't shared and it has no reactors), it still has to participate in
+		// write tracing, in case the tracing started after the variable was
+		// created and initialized.
+		try
+		{
+			handleVariableWriteTracing(self)
+		}
+		catch (e: VariableSetException)
+		{
+			assert(false) {
+				"Should not have triggered set exception on unescaped local"
+			}
+		}
+		self[VALUE] =
+			if (isMutable) newValue
+			else
+			//TODO Mark/Todd – This is probably unnecessary.
 				newValue.makeImmutable()
 	}
 
@@ -526,6 +554,20 @@ open class VariableDescriptor protected constructor(
 	override fun o_VariableMapHasKey(
 		self: AvailObject, key: A_BasicObject): Boolean
 	{
+		try
+		{
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
+			}
+		}
+		catch (e: ClassCastException)
+		{
+			// No implementation required.
+		}
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self[KIND]
 		val readType = outerKind.readType
@@ -533,8 +575,7 @@ open class VariableDescriptor protected constructor(
 		val oldMap: A_Map = self[VALUE]
 		if (oldMap.isNil)
 		{
-			throw VariableGetException(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		return oldMap.hasKey(key)
 	}
@@ -585,20 +626,13 @@ open class VariableDescriptor protected constructor(
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
 	{
 		return withWriteReactorsToModify(self, false) { writeReactors ->
-			var set = emptySet
-			if (writeReactors !== null)
-			{
-				for ((_, value) in writeReactors)
-				{
-					val function = value.getAndClearFunction()
-					if (function.notNil)
-					{
-						set = set.setWithElementCanDestroy(function, true)
-					}
-				}
-				writeReactors.clear()
-			}
-			set
+			if (writeReactors === null)
+				return@withWriteReactorsToModify emptySet
+			writeReactors.values.fold(emptySet) { set, reactor ->
+				val function = reactor.getAndClearFunction()
+				if (function.isNil) set
+				else set.setWithElementCanDestroy(function, true)
+			}.also { writeReactors.clear() }
 		}
 	}
 
@@ -721,7 +755,8 @@ open class VariableDescriptor protected constructor(
 	open fun <T> withWriteReactorsToModify(
 		self: AvailObject,
 		toModify: Boolean,
-		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T): T
+		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T
+	): T
 	{
 		assert(this == self.descriptor())
 		var pojo = self.volatileSlot(WRITE_REACTORS)
@@ -755,34 +790,26 @@ open class VariableDescriptor protected constructor(
 	@Throws(VariableSetException::class)
 	internal fun handleVariableWriteTracing(self: AvailObject)
 	{
-		try
+		val interpreter = Interpreter.currentOrNull() ?: return
+		if (interpreter.traceVariableWrites())
 		{
-			Interpreter.currentOrNull()?.let { interpreter ->
-				if (interpreter.traceVariableWrites())
+			interpreter.fiber().recordVariableAccess(self, false)
+		}
+		else
+		{
+			withWriteReactorsToModify(self, false) { writeReactors ->
+				if (writeReactors !== null)
 				{
-					interpreter.fiber().recordVariableAccess(self, false)
-				}
-				else
-				{
-					withWriteReactorsToModify(self, false) { writeReactors ->
-						if (writeReactors !== null)
-						{
-							discardInvalidWriteReactors(writeReactors)
-							// If there are write reactors, but write tracing
-							// isn't active, then raise an exception.
-							if (writeReactors.isNotEmpty())
-							{
-								throw VariableSetException(
-									E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
-							}
-						}
+					discardInvalidWriteReactors(writeReactors)
+					// If there are write reactors, but write tracing
+					// isn't active, then raise an exception.
+					if (writeReactors.isNotEmpty())
+					{
+						throw VariableSetException(
+							E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
 					}
 				}
 			}
-		}
-		catch (e: ClassCastException)
-		{
-			// No implementation required.
 		}
 	}
 
@@ -811,12 +838,6 @@ open class VariableDescriptor protected constructor(
 		{
 			writeReactors.values.removeIf(VariableAccessReactor::isInvalid)
 		}
-
-		/** The [CheckedMethod] for [A_Variable.clearValue]. */
-		val clearVariableMethod = instanceMethod(
-			A_Variable::class.java,
-			A_Variable::clearValue.name,
-			Void.TYPE)
 
 		/**
 		 * The bootstrapped [assignment&#32;function][P_SetValue] used to

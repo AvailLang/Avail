@@ -52,8 +52,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
@@ -83,14 +83,13 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val tupleReg = arguments[0]
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val lower = returnType.lowerBound
 		val upper = returnType.upperBound
@@ -99,7 +98,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that
 				// information to produce a constant.
-				callSiteHelper.useAnswer(generator.boxedConstant(lower))
+				callSiteHelper.useAnswer(translator.boxedConstant(lower), false)
 			else ->
 			{
 				// The exact size of the tuple isn't known, so generate code to
@@ -107,10 +106,11 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 				// register.  If the boxed form isn't needed, that instruction
 				// will be eliminated later.
 				val restriction = intRestrictionForType(returnType)
-				val writer = generator.intWriteTemp(restriction)
-				generator.addInstruction(L2_TUPLE_SIZE(tupleReg, writer))
+				val writer = translator.intWriteTemp("tuple size", restriction)
+				translator.addInstruction(L2_TUPLE_SIZE(tupleReg, writer))
 				callSiteHelper.useAnswer(
-					generator.readBoxed(writer.onlySemanticValue().boxed))
+					translator.readBoxed(writer.onlySemanticValue().boxed),
+					false)
 			}
 		}
 		return true

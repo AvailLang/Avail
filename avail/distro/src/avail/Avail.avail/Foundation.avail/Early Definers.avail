@@ -88,7 +88,7 @@ Semantic restriction "_'s⁇instance" is
 ];
 
 /**
- * Reject the current parse is the argument is not included in the current
+ * Reject the current parse if the argument is not included in the current
  * module's "Names" section. Do nothing if the name is not specifically known.
  *
  * @method "Require:_is public"
@@ -302,7 +302,7 @@ Method "Public abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -343,7 +343,7 @@ Method "Public abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclarationForAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -385,7 +385,7 @@ Method "Public forward method_is_" is
 	aFunctionType : function meta
 |
 	Primitive ForwardMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -429,7 +429,7 @@ Method "Public method_is_«styled by_»?" is
 	styler : optionalStylerFunction
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -469,7 +469,7 @@ Public method "Public method_is_«styled by_»?" is
 	styler : optionalStylerFunction
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -511,7 +511,7 @@ Public method "Private abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -552,7 +552,7 @@ Public method "Private abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclarationForAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -594,7 +594,7 @@ Public method "Private forward method_is_" is
 	aFunctionType : function meta
 |
 	Primitive ForwardMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -633,7 +633,7 @@ Public method "Private method_is_«styled by_»?" is
 	styler : optionalStylerFunction
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -673,7 +673,7 @@ Public method "Private method_is_«styled by_»?" is
 	styler : optionalStylerFunction
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -786,7 +786,7 @@ Method "Public macro_is«_,»_«styled by_»?" is
 	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -831,7 +831,7 @@ Method "Private macro_is«_,»_«styled by_»?" is
 	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**

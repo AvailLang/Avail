@@ -5,8 +5,8 @@ title: Repository
 ---
 graph LR
     subgraph _metadata["Metadata"]
-    	direction TB
-    	subgraph _clear1[&nbsp]
+		direction TB
+		subgraph _clear1[&nbsp]
 			direction TB
 			subgraph _moduleArchive["ModuleArchive"]
 				direction TB
@@ -54,7 +54,7 @@ array.  Its format is described by [Metadata](#metadata) below.
 3. For each cached digest,
    1. timestamp (vlq)
    2. digest (32 bytes)
-4. # of versions
+4. number of versions
 5. For each version,
    1. [ModuleVersionKey](#moduleversionkey)
    2. [ModuleVersion](#moduleversion)

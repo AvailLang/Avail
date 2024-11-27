@@ -48,6 +48,9 @@ import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
+import avail.descriptor.variables.A_Variable.Companion.clearValue
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
@@ -162,6 +165,12 @@ class PojoFinalFieldDescriptor(
 		throw VariableSetException(E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
 	}
 
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = throw UnsupportedOperationException(
+		"Pojo fields can't be local variables")
+
 	override fun o_Value(self: AvailObject): AvailObject =
 		self[CACHED_VALUE]
 
@@ -181,7 +190,7 @@ class PojoFinalFieldDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		val field = self[FIELD].javaObjectNotNull<Field>()

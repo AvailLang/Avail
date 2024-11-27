@@ -82,6 +82,11 @@ object P_AtomSetProperty : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/** The property value might contain a variable that becomes shared. */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ATOM.o, ATOM.o, ANY.o), TOP.o)
 

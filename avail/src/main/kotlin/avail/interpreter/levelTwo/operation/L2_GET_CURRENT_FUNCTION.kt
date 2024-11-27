@@ -57,14 +57,13 @@ class L2_GET_CURRENT_FUNCTION(
 {
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(currentFunction.registerString())
+		renderPreamble()
+		append(' ')
+		append(currentFunction.registerString())
 	}
 
 	override fun translateToJVM(

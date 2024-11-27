@@ -53,14 +53,13 @@ class L2_RETURN(
 {
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(returnValue.registerString())
+		renderPreamble()
+		append(' ')
+		append(returnValue.registerString())
 	}
 
 	override fun translateToJVM(

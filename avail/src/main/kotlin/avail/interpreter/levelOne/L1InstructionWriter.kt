@@ -366,7 +366,7 @@ class L1InstructionWriter constructor(
 		}
 		else
 		{
-			stream.write(L1_doExtension.ordinal)
+			stream.write(L1_doExtension_ord)
 			stream.write(opcode - 16)
 		}
 		operands.forEach(this::writeOperand)

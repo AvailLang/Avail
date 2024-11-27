@@ -63,6 +63,13 @@ object P_CreateLiteralExpression : Primitive(1, CannotFail, CanInline)
 		return interpreter.primitiveSuccess(literalNodeFromToken(token))
 	}
 
+	/**
+	 * The token might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

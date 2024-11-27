@@ -60,14 +60,13 @@ class L2_GET_LATEST_RETURN_VALUE(
 	 */
 	override val hasSideEffect: Boolean get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(latestResult.registerString())
+		renderPreamble()
+		append(' ')
+		append(latestResult.registerString())
 	}
 
 	override fun translateToJVM(

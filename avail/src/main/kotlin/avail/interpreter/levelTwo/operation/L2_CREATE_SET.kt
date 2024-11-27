@@ -51,17 +51,16 @@ class L2_CREATE_SET(
 	var newSet: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(newSet.registerString())
-		builder.append(" ← {")
-		values.elements.joinTo(builder, ", ")
-		builder.append('}')
+		renderPreamble()
+		append(' ')
+		append(newSet.registerString())
+		append(" ← {")
+		values.elements.joinTo(this, ", ")
+		append('}')
 	}
 
 	override fun translateToJVM(

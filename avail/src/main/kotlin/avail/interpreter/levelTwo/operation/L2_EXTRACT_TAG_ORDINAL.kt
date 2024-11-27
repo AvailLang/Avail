@@ -56,18 +56,16 @@ class L2_EXTRACT_TAG_ORDINAL(
 	var tagOrdinal: L2WriteIntOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder
-			.append(' ')
-			.append(tagOrdinal.registerString())
-			.append(" ← TAG(")
-			.append(value.registerString())
-			.append(")")
+		renderPreamble()
+		append(' ')
+		append(tagOrdinal.registerString())
+		append(" ← TAG(")
+		append(value.registerString())
+		append(")")
 	}
 
 	override fun interestingConditions(): List<L2SplitCondition?>

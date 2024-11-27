@@ -49,6 +49,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
 import avail.interpreter.Primitive
@@ -70,11 +71,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
-		val function = interpreter.argument(0)
-		val pc = interpreter.argument(1)
-		val stack = interpreter.argument(2)
-		val stackp = interpreter.argument(3)
-		val callerHolder = interpreter.argument(4)
+		val (function, pc, stack, stackp, callerHolder) = interpreter.argsBuffer
 
 		val rawFunction = function.code()
 		val primitive = rawFunction.codePrimitive()

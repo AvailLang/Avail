@@ -49,6 +49,8 @@ constructor(
 {
 	override val kind get() = BOXED_KIND
 
+	override val toBoxed: L2SemanticBoxedValue get() = this
+
 	companion object
 	{
 		/** Create an [L2SemanticUnboxedInt] from the receiver. */

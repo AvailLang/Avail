@@ -237,12 +237,11 @@ interface A_Continuation : A_BasicObject
 			dispatch { o_CurrentLineNumber(it, topFrame) }
 
 		/**
-		 * Answer the [ContinuationRegisterDumpDescriptor] object that was
-		 * secretly stashed inside this continuation for an [L2Chunk]'s use.
+		 * Answer the [RegisterDumpDescriptor] object that was secretly stashed
+		 * inside this continuation for an [L2Chunk]'s use.
 		 *
 		 * @return
-		 *   A register dump object with a [ContinuationRegisterDumpDescriptor]
-		 *   descriptor.
+		 *   A register dump object with a [RegisterDumpDescriptor] descriptor.
 		 */
 		val A_Continuation.registerDump: AvailObject
 			get() = dispatch { o_RegisterDump(it) }
@@ -251,7 +250,7 @@ interface A_Continuation : A_BasicObject
 		 * Determine which nybblecode index is "current" for this continuation.
 		 * If this is not the top frame, use the instruction previous to the
 		 * current [pc].
- 		 */
+		 */
 		fun A_Continuation.highlightPc(isTopFrame: Boolean): Int =
 			dispatch { o_HighlightPc(it, isTopFrame) }
 	}

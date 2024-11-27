@@ -179,6 +179,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReo
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
+import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
@@ -621,6 +622,30 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
+import avail.descriptor.variables.A_Variable.Companion.atomicAddToMap
+import avail.descriptor.variables.A_Variable.Companion.atomicAddToMapNoCheck
+import avail.descriptor.variables.A_Variable.Companion.atomicRemoveFromMap
+import avail.descriptor.variables.A_Variable.Companion.clearValue
+import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValues
+import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValuesNoCheck
+import avail.descriptor.variables.A_Variable.Companion.fetchAndAddValue
+import avail.descriptor.variables.A_Variable.Companion.getAndSetValue
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.getValueClearing
+import avail.descriptor.variables.A_Variable.Companion.getValueForDebugger
+import avail.descriptor.variables.A_Variable.Companion.globalModule
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.hasValue
+import avail.descriptor.variables.A_Variable.Companion.isGlobal
+import avail.descriptor.variables.A_Variable.Companion.removeWriteReactor
+import avail.descriptor.variables.A_Variable.Companion.setUnescapedLocalValueNoCheck
+import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
+import avail.descriptor.variables.A_Variable.Companion.validWriteReactorFunctions
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
+import avail.descriptor.variables.A_Variable.Companion.variableMapHasKey
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailException
@@ -633,6 +658,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
@@ -734,7 +760,7 @@ class IndirectionDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = self.traversed().printOnAvoidingIndent(builder, recursionMap, indent)
 
@@ -1652,7 +1678,7 @@ class IndirectionDescriptor private constructor(
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_Map = self .. {
 		mapAtEachReplacingCanDestroy(
 			keys, keyTransformer, notFoundValue, canDestroy, transformer)
@@ -1796,6 +1822,11 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		newValue: A_BasicObject
 	) = self .. { setValueNoCheck(newValue) }
+
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = self .. { setUnescapedLocalValueNoCheck(newValue) }
 
 	override fun o_SetWithElementCanDestroy(
 		self: AvailObject,
@@ -2794,15 +2825,22 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy(
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin = self.. {
 		mapBinAtHashReplacingLevelCanDestroy(
-			key, keyHash, notFoundValue, myLevel, canDestroy, transformer)
+			keyPrecursor,
+			key,
+			keyHash,
+			notFoundValue,
+			myLevel,
+			canDestroy,
+			transformer)
 	}
 
 	override fun o_MapBinSize(self: AvailObject): Int =
@@ -3059,7 +3097,9 @@ class IndirectionDescriptor private constructor(
 		self .. { methodName }
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		"IND" + mutability.suffix + "→" + (self .. { nameForDebugger() })
+		//TODO Replace
+		//"IND" + mutability.suffix + "→" + (self .. { nameForDebugger() })
+		"IND" + mutability.suffix + "→(omitted)"
 
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
@@ -3391,7 +3431,7 @@ class IndirectionDescriptor private constructor(
 		self .. { variablesWritten }
 
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set =
-		self .. { validWriteReactorFunctions() }
+		self .. { validWriteReactorFunctions }
 
 	override fun o_ReplacingCaller(
 		self: AvailObject,
@@ -3559,12 +3599,12 @@ class IndirectionDescriptor private constructor(
 	): A_Bundle = self .. { chooseBundle(currentModule) }
 
 	override fun o_ValueWasStablyComputed(self: AvailObject): Boolean =
-		self .. { valueWasStablyComputed() }
+		self .. { valueWasStablyComputed }
 
 	override fun o_SetValueWasStablyComputed(
 		self: AvailObject,
 		wasStablyComputed: Boolean
-	) = self .. { setValueWasStablyComputed(wasStablyComputed) }
+	) = self .. { valueWasStablyComputed = wasStablyComputed }
 
 	override fun o_UniqueId(self: AvailObject): Long =
 		self .. { uniqueId }
@@ -3734,13 +3774,13 @@ class IndirectionDescriptor private constructor(
 		self .. { originatingPhrase }
 
 	override fun o_IsGlobal(self: AvailObject): Boolean =
-		self .. { isGlobal() }
+		self .. { isGlobal }
 
 	override fun o_GlobalModule(self: AvailObject): A_Module =
-		self .. { globalModule() }
+		self .. { globalModule }
 
 	override fun o_GlobalName(self: AvailObject): A_String =
-		self .. { globalName() }
+		self .. { globalName }
 
 	override fun o_CreateLexicalScanner(self: AvailObject): LexicalScanner =
 		self .. { createLexicalScanner() }
@@ -3856,6 +3896,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		self .. { returnTypeIfPrimitiveFails }
 
+	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple =
+		self .. { encodedElidedLocals }
+
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,
 		index: Int
@@ -3863,6 +3906,10 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		self .. { extractDumpedLongAt(index) }
+
+	override fun o_FallbackEntryPoint(
+		self: AvailObject
+	): ChunkEntryPoint = self .. { fallbackEntryPoint }
 
 	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler) =
 		self .. { moduleAddStyler(styler) }

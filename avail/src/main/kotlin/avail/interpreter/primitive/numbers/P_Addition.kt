@@ -68,13 +68,14 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Add
-import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
+import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt
@@ -187,9 +188,9 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
 		callSiteHelper,
 		functionToCallReg,
@@ -197,11 +198,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		arguments,
 		argumentTypes,
 		ifOutputIsInt = {
-			generator.addInstruction(
-				L2_BIT_LOGIC_OP(Add, intA, intB, intWrite))
+			addInstruction(L2_BIT_LOGIC_OP(Add, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
-			generator.addInstruction(
+			addInstruction(
 				L2_ADD_INT_TO_INT(
 					intA,
 					intB,
@@ -304,10 +304,12 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				Add,
 				regenerator.readInt(
 					arg1.semanticValue().unboxedInt,
-					unreachable),
+					unreachable
+				) { return },
 				regenerator.readInt(
 					arg2.semanticValue().unboxedInt,
-					unreachable),
+					unreachable
+				) { return },
 				intWrite))
 		// Unbox it, in case something needs it unboxed downstream.
 		regenerator.addInstruction(

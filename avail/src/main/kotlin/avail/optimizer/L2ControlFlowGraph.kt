@@ -37,7 +37,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
@@ -132,14 +131,6 @@ class L2ControlFlowGraph
 	{
 		assert(Collections.disjoint(state, flags))
 	}
-
-	/**
-	 * Answer whether this graph is in a [state] that indicates that [L2_PHI]s
-	 * have been eliminated, replaced with multiple [L2_MOVE]s into the same
-	 * [L2Register], thus breaking from [IS_SSA] form.
-	 */
-	val hasEliminatedPhis: Boolean
-		get() = StateFlag.HAS_ELIMINATED_PHIS::class in state
 
 	/**
 	 * [L2BasicBlock]s can be grouped into zones for better visualization of the

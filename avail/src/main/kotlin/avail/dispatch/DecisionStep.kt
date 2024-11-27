@@ -49,16 +49,16 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.ShiftedHashSplitter
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.interpreter.primitive.general.P_Hash
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -67,7 +67,6 @@ import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 import avail.utility.notNullAnd
-import avail.utility.removeLast
 import java.lang.Integer.toHexString
 
 /**
@@ -544,7 +543,8 @@ constructor(
 					semanticShiftedInt
 				}
 		}
-		val indexWrite = generator.intWriteTemp(indexRestriction)
+		val indexWrite =
+			generator.intWriteTemp("masked index", indexRestriction)
 		generator.addInstruction(
 			L2_BIT_LOGIC_OP(
 				And,

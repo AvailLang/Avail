@@ -48,10 +48,11 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.VariantSplitter
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -59,7 +60,6 @@ import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticObjectVariantId
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
-import avail.utility.removeLast
 import java.lang.String.format
 import java.util.concurrent.ConcurrentHashMap
 
@@ -270,7 +270,7 @@ constructor(
 		if (callSiteHelper.isSuper)
 		{
 			callSiteHelper.generator.jumpTo(
-				callSiteHelper.onFallBackToSlowLookup)
+				callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 
@@ -298,7 +298,7 @@ constructor(
 		{
 			// Just jump to the slow lookup, and don't continue down any
 			// more lookup subtrees.
-			generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
+			generator.jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 		val semanticVariantId =
@@ -373,7 +373,7 @@ constructor(
 			}
 			variants.add(pair?.first)
 			L2PcOperand(
-				pair?.second ?: callSiteHelper.onFallBackToSlowLookup,
+				pair?.second ?: callSiteHelper[FallBackToSlowLookup],
 				false,
 				edgeManifest,
 				"$low..$highName")

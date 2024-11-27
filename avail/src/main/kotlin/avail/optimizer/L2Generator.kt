@@ -34,7 +34,6 @@ package avail.optimizer
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.descriptor.functions.FunctionDescriptor
@@ -90,7 +89,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -104,6 +102,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
@@ -117,9 +116,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestricti
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
-import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
-import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -127,21 +123,24 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_FLOAT
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_FLOAT
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
-import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
-import avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
-import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.operation.numbers.L2_BOX_FLOAT
+import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_UNBOX_FLOAT
+import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_UNBOX_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_FLOAT
+import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
+import avail.interpreter.levelTwo.operation.tuples.L2_CREATE_TUPLE
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_UPDATE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -153,10 +152,10 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.functions.P_ParamTypeAt
 import avail.interpreter.primitive.general.P_Equality
 import avail.interpreter.primitive.tuples.P_TupleAt
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.L2GeneratorInterface.SpecialBlock
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.L2Optimizer.GenerationMode
-import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
@@ -175,7 +174,6 @@ import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
-import avail.utility.removeLast
 import avail.utility.structures.EnumMap.Companion.enumMap
 
 /**
@@ -185,12 +183,6 @@ import avail.utility.structures.EnumMap.Companion.enumMap
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @property optimizationLevel
- *   The amount of [effort][OptimizationLevel] to apply to the current
- *   optimization attempt.
- * @property topFrame
- *   The topmost [Frame] for translation.
- *
  * @constructor
  * Construct a new `L2Generator`.
  *
@@ -198,21 +190,17 @@ import avail.utility.structures.EnumMap.Companion.enumMap
  *   The [OptimizationLevel] for controlling code generation.
  * @param topFrame
  *   The topmost [Frame] for code generation.
+ * @param mode
+ *   The [GenerationMode] that controls the way in which two values are
+ *   considered the same for the current optimization phase.
  */
 class L2Generator
 constructor(
-	val optimizationLevel: OptimizationLevel,
-	override val topFrame: Frame
+	override val optimizationLevel: OptimizationLevel,
+	override val topFrame: Frame,
+	override var mode: GenerationMode
 ): L2GeneratorInterface
 {
-	/**
-	 * By default we automatically generate [L2_PHI] instructions.  In later
-	 * optimization passes, the [L2ControlFlowGraph] is held together by
-	 * [L2Register]s instead of [L2SemanticValue]s, so we override this with
-	 * [ByRegister] in the [L2Regenerator] subclass.
-	 */
-	override val mode: GenerationMode get() = BySemanticValue
-
 	/**
 	 * The [SpecialBlock]s and corresponding [L2BasicBlock]s in this generator.
 	 */
@@ -233,8 +221,8 @@ constructor(
 	override fun nextUnique(): Int = uniqueCounter++
 
 	/**
-	 * The [Level&#32;Two&#32;chunk][L2Chunk] generated by [createChunk].  It
-	 * can be retrieved via [chunk].
+	 * The [Level&#32;Two&#32;chunk][L2Chunk] generated and installed by
+	 * [createChunk].
 	 */
 	private var chunk: L2Chunk? = null
 
@@ -253,13 +241,13 @@ constructor(
 
 	override fun addUnreachableCode() = addInstruction(L2_UNREACHABLE_CODE())
 
-	/**
-	 * Create a new [L2SemanticValue] to use as a temporary value.
-	 */
-	fun newTemp() = topFrame.temp(nextUnique())
+	override fun newTemp(name: String?) = topFrame.temp(name, nextUnique())
 
-	override fun boxedWriteTemp(restriction: TypeRestriction): L2WriteBoxedOperand =
-		boxedWrite(newTemp(), restriction)
+	override fun boxedWriteTemp(
+		name: String?,
+		restriction: TypeRestriction
+	): L2WriteBoxedOperand =
+		boxedWrite(newTemp(name), restriction)
 
 	override fun boxedWrite(
 		semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
@@ -273,25 +261,18 @@ constructor(
 			L2BoxedRegister(nextUnique()))
 	}
 
-	/**
-	 * Allocate a new [L2BoxedRegister].  Answer an [L2WriteBoxedOperand] that
-	 * writes to it as the given [L2SemanticValue], restricting it with the
-	 * given [TypeRestriction].
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] to write.
-	 * @param restriction
-	 *   The initial [TypeRestriction] for the new write.
-	 * @return
-	 *   The new boxed write operand.
-	 */
-	fun boxedWrite(
+	override fun boxedWrite(
 		semanticValue: L2SemanticBoxedValue,
 		restriction: TypeRestriction
 	): L2WriteBoxedOperand = boxedWrite(setOf(semanticValue), restriction)
 
-	override fun intWriteTemp(restriction: TypeRestriction): L2WriteIntOperand =
-		intWrite(setOf(newTemp().unboxedInt), restriction)
+	override fun intWriteTemp(
+		name: String?,
+		restriction: TypeRestriction
+	): L2WriteIntOperand =
+		intWrite(
+			setOf(newTemp(name).unboxedInt),
+			restriction)
 
 	override fun intWrite(
 		semanticValues: Set<L2SemanticValue<INTEGER_KIND>>,
@@ -305,20 +286,6 @@ constructor(
 			restriction,
 			forceRegister ?: L2IntRegister(nextUnique()))
 	}
-
-	/**
-	 * Allocate a new [L2FloatRegister]. Answer an [L2WriteFloatOperand] that
-	 * writes to it as a new temporary [L2SemanticValue], restricting it with
-	 * the given [TypeRestriction].
-	 *
-	 * @param restriction
-	 *   The initial [TypeRestriction] for the new operand.
-	 * @return
-	 *   The new unboxed float write operand.
-	 */
-	@Suppress("unused")
-	fun floatWriteTemp(restriction: TypeRestriction): L2WriteFloatOperand =
-		floatWrite(setOf(newTemp().unboxedFloat), restriction)
 
 	/**
 	 * Allocate a new [L2FloatRegister].  Answer an [L2WriteFloatOperand] that
@@ -479,11 +446,12 @@ constructor(
 			"Boxed value not available, even from unboxed versions")
 	}
 
-	override fun readInt(
+	override fun readIntInternal(
 		semanticUnboxed: L2SemanticUnboxedInt,
 		onFailure: L2BasicBlock
-	): L2ReadIntOperand
+	): L2ReadIntOperand?
 	{
+		if (!currentlyReachable()) return null
 		if (currentManifest.hasSemanticValue(semanticUnboxed))
 		{
 			// It already exists in an unboxed int register.
@@ -491,8 +459,9 @@ constructor(
 		}
 		// Synonyms of ints are tricky, so check if there's an int version of a
 		// synonym available.
+		val semanticBoxed = semanticUnboxed.boxed
 		val boxedSynonym =
-			currentManifest.semanticValueToSynonym(semanticUnboxed.boxed)
+			currentManifest.semanticValueToSynonym(semanticBoxed)
 		for (alternateBoxed in boxedSynonym.semanticValues())
 		{
 			val alternateInt = alternateBoxed.unboxedInt
@@ -515,7 +484,6 @@ constructor(
 		// synonymous boxed semantic values, without the unboxed form having all
 		// the same corresponding unboxed values.  Do a slower check for this
 		// case.
-		val semanticBoxed = semanticUnboxed.boxed
 		currentManifest.semanticValueToSynonym(semanticBoxed).semanticValues()
 			.forEach { equivalentBoxedSemanticValue ->
 				val equivalentUnboxed = equivalentBoxedSemanticValue.unboxedInt
@@ -533,8 +501,7 @@ constructor(
 			// It's not an unboxed int, and the boxed form can never be an
 			// int32, so it must always fail.
 			jumpTo(onFailure)
-			// Return a dummy, which should get suppressed or optimized away.
-			return unboxedIntConstant(-999)
+			return null
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
@@ -562,6 +529,11 @@ constructor(
 					edgeTo(onFailure),
 					edgeTo(onSuccess)))
 			startBlock(onSuccess)
+			if (!currentlyReachable())
+			{
+				// The success path might have ended up being impossible.
+				return null
+			}
 		}
 		return currentManifest.readInt(semanticUnboxed)
 	}
@@ -817,21 +789,12 @@ constructor(
 		targetSemanticValues: Iterable<L2SemanticValue<INTEGER_KIND>>
 	) = moveRegister(sourceSemanticValue, targetSemanticValues)
 
-	/**
-	 * Cause a tuple to be constructed from the given [L2ReadBoxedOperand]s.
-	 *
-	 * @param elements
-	 *   The [L2ReadBoxedOperand] that supply the elements of the tuple.
-	 * @return
-	 *   An [L2ReadBoxedOperand] that will contain the tuple.
-	 */
-	fun createTuple(elements: List<L2ReadBoxedOperand>): L2ReadBoxedOperand
+	override fun createTuple(
+		elements: List<L2ReadBoxedOperand>
+	): L2ReadBoxedOperand
 	{
 		val size = elements.size
-		if (size == 0)
-		{
-			return boxedConstant(emptyTuple())
-		}
+		if (elements.isEmpty()) return boxedConstant(emptyTuple())
 
 		// Special cases for characters and integers
 		val unionType = elements.fold(bottom) { t, read ->
@@ -846,9 +809,8 @@ constructor(
 				// the basis for the string that will be built, only editing the
 				// necessary parts.
 				generateStringFromCodePoints(size) { oneBasedIndex ->
-					elements[oneBasedIndex - 1].constantOrNull.let {
-						if (it === null) '?'.code else it.codePoint
-					}
+					elements[oneBasedIndex - 1].constantOrNull?.codePoint ?:
+						'?'.code
 				}
 			}
 			unionType.isSubtypeOf(i64) ->
@@ -885,6 +847,7 @@ constructor(
 				// are no constant values in it.  Build it all at once at
 				// runtime.
 				val write = boxedWriteTemp(
+					"new tuple",
 					boxedRestrictionForType(
 						tupleTypeForTypesList(elements.map { it.type() })))
 				addInstruction(
@@ -903,18 +866,19 @@ constructor(
 		}.makeShared()
 
 		var latestRead = boxedConstant(template)
-		val typesList = template.map(::instanceTypeOrMetaOn).toMutableList()
+		val typesList = template.mapTo(mutableListOf(), ::instanceTypeOrMetaOn)
 		// Generate the updates for the non-constant parts (if any).
 		elements.forEachIndexed { zeroIndex, read ->
 			if (read.constantOrNull === null)
 			{
 				typesList[zeroIndex] = read.type()
 				val newWrite = boxedWriteTemp(
+					"with update @${zeroIndex + 1}",
 					boxedRestrictionForType(tupleTypeForTypesList(typesList)))
 				addInstruction(
 					L2_TUPLE_AT_UPDATE(
 						latestRead,
-						L2IntImmediateOperand(zeroIndex + 1),
+						zeroIndex + 1,
 						read,
 						newWrite))
 				latestRead = readBoxed(newWrite)
@@ -947,27 +911,7 @@ constructor(
 				tupleRead, L2IntImmediateOperand(index), write))
 	}
 
-	/**
-	 * Given a register that will hold a tuple, check that the tuple has the
-	 * number of elements and statically satisfies the corresponding provided
-	 * type constraints.  If so, generate code and answer a list of register
-	 * reads corresponding to the elements of the tuple; otherwise, generate no
-	 * code and answer null.
-	 *
-	 * Depending on the source of the tuple, this may cause the creation of
-	 * the tuple to be entirely elided.
-	 *
-	 * @param tupleRead
-	 *   The [L2ReadBoxedOperand] providing the tuple.
-	 * @param requiredTypes
-	 *   The required [types][A_Type] against which to check the tuple's own
-	 *   type.
-	 * @return
-	 *   A [List] of [L2ReadBoxedOperand]s corresponding to the tuple's
-	 *   elements, or `null` if the tuple could not be proven to have the
-	 *   required shape and type.
-	 */
-	fun explodeTupleIfPossible(
+	override fun explodeTupleIfPossible(
 		tupleRead: L2ReadBoxedOperand,
 		requiredTypes: List<A_Type>
 	): List<L2ReadBoxedOperand>?
@@ -1028,18 +972,7 @@ constructor(
 		functionReg: L2ReadBoxedOperand
 	): A_Type? = functionReg.exactFunctionType()
 
-	/**
-	 * Given a register containing a function and a parameter index, emit code
-	 * to extract the parameter type at runtime from the actual function.
-	 *
-	 * @param functionRead
-	 *   The register that will hold the function at runtime.
-	 * @param parameterIndex
-	 *   Which function parameter should have its type extracted.
-	 * @return
-	 *   The register containing the parameter type.
-	 */
-	fun extractParameterTypeFromFunction(
+	override fun extractParameterTypeFromFunction(
 		functionRead: L2ReadBoxedOperand,
 		parameterIndex: Int
 	): L2ReadBoxedOperand
@@ -1053,18 +986,18 @@ constructor(
 		}
 		// Extract it at runtime instead.  Note that an actual function's
 		// argument type can't be bottom, so we specifically exclude it.
-		val semanticParamaterType = L2SemanticPrimitiveInvocation(
+		val semanticParameterType = L2SemanticPrimitiveInvocation(
 			P_ParamTypeAt,
 			listOf(
 				functionRead.semanticValue(),
 				constant(parameterIndex)))
-		currentManifest.equivalentSemanticValue(semanticParamaterType)?.let {
+		currentManifest.equivalentSemanticValue(semanticParameterType)?.let {
 			// Use the already extracted parameter type.
-			moveRegister(it, listOf(semanticParamaterType))
-			return readBoxed(semanticParamaterType)
+			moveRegister(it, listOf(semanticParameterType))
+			return readBoxed(semanticParameterType)
 		}
 		val parameterTypeWrite = boxedWrite(
-			semanticParamaterType,
+			semanticParameterType,
 			boxedRestrictionForType(anyMeta).minusValue(bottom))
 		addInstruction(
 			L2_FUNCTION_PARAMETER_TYPE(
@@ -1074,15 +1007,7 @@ constructor(
 		return readBoxed(parameterTypeWrite)
 	}
 
-	/**
-	 * Create an [L2BasicBlock], and mark it as a loop head.
-	 *
-	 * @param name
-	 *   The name of the new loop head block.
-	 * @return
-	 *   The loop head block.
-	 */
-	fun createLoopHeadBlock(name: String): L2BasicBlock =
+	override fun createLoopHeadBlock(name: String): L2BasicBlock =
 		L2BasicBlock(name, null, isLoopHead = true)
 
 	override fun createBasicBlock(
@@ -1108,9 +1033,9 @@ constructor(
 	 * @param regenerator
 	 *   The optional [L2Regenerator] to use.
 	 */
-	fun startBlock(
+	override fun startBlock(
 		block: L2BasicBlock,
-		regenerator: L2Regenerator? = null)
+		regenerator: L2Regenerator?)
 	{
 		currentBlock?.instructions()?.run {
 			assert(isNotEmpty())
@@ -1246,10 +1171,8 @@ constructor(
 			val boolSource = registerToTest.definitionSkippingMoves()
 			when
 			{
-				boolSource !is L2_RUN_INFALLIBLE_PRIMITIVE ->
-				{
-				}
-				boolSource.primitive.constant === P_Equality ->
+				boolSource is L2_RUN_INFALLIBLE_PRIMITIVE &&
+					boolSource.primitive === P_Equality ->
 				{
 					val (read1, read2) = argsOf(boolSource)
 					// If either operand of P_Equality is a constant, recurse to
@@ -1325,7 +1248,7 @@ constructor(
 			}
 		}
 		// Generate the general case.  In the pass case, flow through an
-		// intermediate block that uses a move to a temp to force the constant
+		// intermediate block that uses a move to a temp to F the constant
 		// value to be visible in a register.
 		val innerPass = L2BasicBlock("strengthen to constant")
 		val constantValueStrong = constantValue as AvailObject
@@ -1334,16 +1257,20 @@ constructor(
 		{
 			// The constant and the value are both int32s.  Use the quicker int
 			// test, unboxing the int register if needed.
-			val trulyUnreachable = L2BasicBlock("truly unreachable")
 			NumericComparator.Equal.compareAndBranchInt(
 				this,
 				readInt(
 					registerToTest.semanticValue().unboxedInt,
-					trulyUnreachable),
+					failBlock
+				) {
+					// It wasn't really an int, so it can't equal the constant
+					// int.  We've already jumped to failBlock in that case, so
+					// we're done rewriting the branch.
+					return
+				},
 				unboxedIntConstant(constantValueStrong.extractInt),
 				edgeTo(innerPass),
 				edgeTo(failBlock))
-			assert(trulyUnreachable.predecessorEdges().isEmpty())
 		}
 		else
 		{
@@ -1464,24 +1391,12 @@ constructor(
 				edgeTo(failedCheck)))
 	}
 
-	/**
-	 * Given a register that holds the function to invoke, answer either the
-	 * [A_RawFunction] it will be known to run, or `null`.
-	 *
-	 * @param functionToCallReg
-	 *   The [L2ReadBoxedOperand] containing the function to invoke.
-	 * @return
-	 *   Either `null` or the function's [A_RawFunction].
-	 */
-	fun determineRawFunction(
-		functionToCallReg: L2ReadBoxedOperand): A_RawFunction?
+	override fun determineRawFunction(
+		functionToCallReg: L2ReadBoxedOperand
+	): A_RawFunction?
 	{
-		val functionIfKnown: A_Function? =
-			functionToCallReg.constantOrNull
-		if (functionIfKnown !== null)
-		{
-			// The exact function is known.
-			return functionIfKnown.code()
+		functionToCallReg.constantOrNull?.let { function ->
+			return function.code()
 		}
 		// See if we can at least find out the raw function that the function
 		// was created from.
@@ -1520,29 +1435,13 @@ constructor(
 		}
 	}
 
-	/**
-	 * Record the fact that the chunk being created depends on the given
-	 * [A_ChunkDependable].  If that `A_ChunkDependable` changes, the chunk will
-	 * be invalidated.
-	 *
-	 * @param contingentValue
-	 *   The [AvailObject] that the chunk will be contingent on.
-	 */
-	fun addContingentValue(contingentValue: A_ChunkDependable)
+	override fun addContingentValue(contingentValue: A_ChunkDependable)
 	{
 		contingentValues =
 			contingentValues.setWithElementCanDestroy(contingentValue, true)
 	}
 
-	/**
-	 * Generate a [Level&#32;Two&#32;chunk][L2Chunk] from the control flow
-	 * graph.  Store it in the `L2Generator`, from which it can be retrieved via
-	 * [chunk].
-	 *
-	 * @param code
-	 *   The [A_RawFunction] which is the source of chunk creation.
-	 */
-	fun createChunk(code: A_RawFunction)
+	override fun createChunk(code: A_RawFunction): L2Chunk
 	{
 		assert(chunk === null)
 		val instructions = mutableListOf<L2Instruction>()
@@ -1564,15 +1463,8 @@ constructor(
 			contingentValues)
 		code.setStartingChunkAndReoptimizationCountdown(
 			chunk!!, optimizationLevel.countdown)
+		return chunk!!
 	}
-
-	/**
-	 * Return the [L2Chunk] previously created via [createChunk].
-	 *
-	 * @return
-	 *   The chunk.
-	 */
-	fun chunk(): L2Chunk = chunk!!
 
 	override fun visualize() = controlFlowGraph.visualize(this)
 
@@ -1591,8 +1483,6 @@ constructor(
 
 		/** The highest numbered float register encountered so far. */
 		private var floatMax = -1
-
-		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) = Unit
 
 		override fun doOperand(operand: L2CommentOperand) = Unit
 
@@ -1621,25 +1511,33 @@ constructor(
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
 		{
-			for (register in operand.elements)
+			for (read in operand.elements)
 			{
-				objectMax = objectMax.coerceAtLeast(register.finalIndex())
+				objectMax = objectMax.coerceAtLeast(read.finalIndex())
 			}
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
-			for (register in operand.elements)
+			for (read in operand.elements)
 			{
-				intMax = intMax.coerceAtLeast(register.finalIndex())
+				intMax = intMax.coerceAtLeast(read.finalIndex())
 			}
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
-			for (register in operand.elements)
+			for (read in operand.elements)
 			{
-				floatMax = floatMax.coerceAtLeast(register.finalIndex())
+				floatMax = floatMax.coerceAtLeast(read.finalIndex())
+			}
+		}
+
+		override fun doOperand(operand: L2ReadMixedVectorOperand)
+		{
+			for (read in operand.elements)
+			{
+				read.dispatchOperand(this)
 			}
 		}
 
@@ -1718,14 +1616,14 @@ constructor(
 		 * @param targetBlock
 		 *   The target [L2BasicBlock].
 		 * @param forcedClamped
-		 *   A [MutableSet] of [L2Entity] that limit the information that can
-		 *   propagate arcoss the new back-edge.
+		 *   A [Set] of [L2Entity] that limit the information that can propagate
+		 *   arcoss the new back-edge.
 		 * @return
 		 *   The new [L2PcOperand].
 		 */
 		fun backEdgeTo(
 			targetBlock: L2BasicBlock,
-			forcedClamped: MutableSet<L2Entity<*>>
+			forcedClamped: Set<L2Entity<*>>
 		): L2PcOperand
 		{
 			assert(targetBlock.isLoopHead)

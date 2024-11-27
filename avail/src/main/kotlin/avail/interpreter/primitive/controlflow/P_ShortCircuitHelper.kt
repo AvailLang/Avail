@@ -47,7 +47,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Run the zero-argument [function][FunctionDescriptor], ignoring
@@ -81,9 +81,9 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the passed function in the 2nd (=args[1]) argument, instead.  The
@@ -93,7 +93,7 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 		// the function in the 2nd (=args[1]) argument.
 		// takes no arguments.
 		callSiteHelper.translator.generateGeneralFunctionInvocation(
-			functionReg, emptyList(), true, callSiteHelper)
+			functionReg, true, callSiteHelper, emptyList())
 		return true
 	}
 }

@@ -72,7 +72,7 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 import java.util.Collections.nCopies
 
@@ -235,14 +235,13 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (functionReg, tupleReg) = arguments
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 
 		// Examine the function type.
 		val functionType = functionReg.type()
@@ -260,7 +259,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// Note: Uses any as each type, since we're going to do strengthening
 		// checks ourselves, below.
 		val explodedArgumentRegisters =
-			generator.explodeTupleIfPossible(
+			translator.explodeTupleIfPossible(
 				tupleReg,
 				nCopies(argsSize, Types.ANY.o))
 
@@ -270,26 +269,26 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 
 		// Fall back if the count will always be wrong.
 		if (functionArgTypes.tupleSize != argsSize) return false
-		val failurePath = generator.createBasicBlock(
+		val failurePath = translator.createBasicBlock(
 			"Failed dynamic type check for P_InvokeWithTuple",
 			isCold = true)
-		for (i in 1..argsSize)
+		for (i in 1 .. argsSize)
 		{
 			val argReg = explodedArgumentRegisters[i - 1]
 			val argType = argReg.type()
-			val exactTypeReg = generator.extractParameterTypeFromFunction(
+			val exactTypeReg = translator.extractParameterTypeFromFunction(
 				functionReg, i)
 			val constantExactArgType = exactTypeReg.restriction().constantOrNull
 			if (constantExactArgType === null
 				|| !argType.isSubtypeOf(constantExactArgType))
 			{
 				// This argument has to be checked at runtime.
-				val passedAnother = generator.createBasicBlock(
+				val passedAnother = translator.createBasicBlock(
 					"Passed check for argument #$i")
 				if (constantExactArgType !== null)
 				{
 					// We have a known exact type to compare against.
-					generator.jumpIfKindOfConstant(
+					translator.jumpIfKindOfConstant(
 						argReg,
 						constantExactArgType,
 						passedAnother,
@@ -298,14 +297,14 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 				else
 				{
 					// The arg type was extracted at runtime from the function.
-					generator.addInstruction(
+					translator.addInstruction(
 						L2_JUMP_IF_KIND_OF_OBJECT(
 							argReg,
 							exactTypeReg,
 							edgeTo(passedAnother),
 							edgeTo(failurePath)))
 				}
-				generator.startBlock(passedAnother)
+				translator.startBlock(passedAnother)
 			}
 		}
 
@@ -314,21 +313,21 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// type strengthening, so don't do it here.
 		translator.generateGeneralFunctionInvocation(
 			functionReg,
-			explodedArgumentRegisters,
 			true,
-			callSiteHelper)
+			callSiteHelper,
+			explodedArgumentRegisters)
 
-		generator.startBlock(failurePath)
+		translator.startBlock(failurePath)
 		// At least one argument disagreed with the required type, so call the
 		// actual invoker function (i.e., the one with this primitive) with the
 		// function to invoke and the tuple of arguments.
-		if (generator.currentlyReachable())
+		if (translator.currentlyReachable())
 		{
 			translator.generateGeneralFunctionInvocation(
 				functionToCallReg,
-				arguments,
 				false,
-				callSiteHelper)
+				callSiteHelper,
+				arguments)
 		}
 		return true
 	}

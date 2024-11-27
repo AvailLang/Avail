@@ -49,6 +49,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.validWriteReactorFunctions
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.Primitive
@@ -85,7 +86,7 @@ object P_DisableTraceVariableWrites : Primitive(
 		for (variable in written)
 		{
 			functions = functions.setUnionCanDestroy(
-				variable.validWriteReactorFunctions(), true)
+				variable.validWriteReactorFunctions, true)
 		}
 		return interpreter.primitiveSuccess(functions)
 	}

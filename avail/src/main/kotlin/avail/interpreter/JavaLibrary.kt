@@ -112,6 +112,13 @@ object JavaLibrary
 		intBoxed,
 		int)
 
+	/** The [CheckedMethod] for *Java* [java.lang.Double.valueOf] boxing. */
+	val javaUnboxDoubleMethod = javaLibraryStaticMethod(
+		doubleBoxed,
+		"valueOf",
+		doubleBoxed,
+		double)
+
 	/** The [CheckedMethod] for [java.util.List.get]. */
 	val listGetMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
@@ -137,4 +144,20 @@ object JavaLibrary
 		LongAdder::class.java,
 		LongAdder::increment.name,
 		void)
+
+	/** The [CheckedMethod] for taking the [Math.max] of two [Int]s. */
+	val intMaxMethod = javaLibraryStaticMethod(
+		java.lang.Math::class.java,
+		"max",
+		int,
+		int,
+		int)
+
+	/** The [CheckedMethod] for taking the [Math.min] of two [Int]s. */
+	val intMinMethod = javaLibraryStaticMethod(
+		java.lang.Math::class.java,
+		"min",
+		int,
+		int,
+		int)
 }

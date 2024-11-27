@@ -106,6 +106,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
@@ -623,7 +624,7 @@ protected constructor (
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_Map = unsupported
 
 	override fun o_MapWithoutKeyCanDestroy (
@@ -752,6 +753,10 @@ protected constructor (
 		unsupported
 
 	override fun o_SetValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject): Unit = unsupported
+
+	override fun o_SetUnescapedLocalValueNoCheck (
 		self: AvailObject,
 		newValue: A_BasicObject): Unit = unsupported
 
@@ -1837,12 +1842,13 @@ protected constructor (
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy (
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin = unsupported
 
 	override fun o_MapBinKeyUnionKind (self: AvailObject): A_Type = unsupported
@@ -2026,12 +2032,8 @@ protected constructor (
 
 	override fun o_NameForDebugger (self: AvailObject): String
 	{
-		var typeName = javaClass.simpleName
-		if (typeName.endsWith("Descriptor"))
-		{
-			typeName = typeName.substring(0, typeName.length - 10)
-		}
-		typeName += mutability.suffix
+		val typeName = javaClass.simpleName.removeSuffix("Descriptor") +
+			mutability.suffix
 		return (
 			if (self.showValueInNameForDebugger())
 				"($typeName) = $self"
@@ -2657,6 +2659,8 @@ protected constructor (
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		unsupported
 
+	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple = unsupported
+
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,
 		index: Int
@@ -2664,6 +2668,10 @@ protected constructor (
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		unsupported
+
+	override fun o_FallbackEntryPoint(
+		self: AvailObject
+	): ChunkEntryPoint = unsupported
 
 	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler): Unit =
 		unsupported

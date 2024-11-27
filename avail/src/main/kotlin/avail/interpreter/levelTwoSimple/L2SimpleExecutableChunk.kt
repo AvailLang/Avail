@@ -43,6 +43,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag

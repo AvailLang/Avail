@@ -54,7 +54,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -108,9 +108,9 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (firstReg, secondReg) = arguments
 
@@ -123,7 +123,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject))
+				translator.boxedConstant(trueObject), false)
 			return true
 		}
 
@@ -133,7 +133,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The actual values cannot be equal at runtime.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(falseObject))
+				translator.boxedConstant(falseObject), false)
 			return true
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -144,14 +144,14 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			&& !type1.isInstanceMeta)
 		{
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject))
+				translator.boxedConstant(trueObject), false)
 			return true
 		}
 
 		// At least avoid the overhead of a general primitive call.  Make sure
 		// to generate L2 instructions that expose the selection of booleans
 		// through control flow, so that code splitting can use it.
-		translator.generator.run {
+		translator.run {
 			val ifEqual = createBasicBlock("equal")
 			val ifNotEqual = createBasicBlock("not equal")
 			val c1 = firstReg.constantOrNull
@@ -178,12 +178,12 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			if (ifEqual.currentlyReachable())
 			{
 				startBlock(ifEqual)
-				callSiteHelper.useAnswer(boxedConstant(trueObject))
+				callSiteHelper.useAnswer(boxedConstant(trueObject), false)
 			}
 			if (ifNotEqual.currentlyReachable())
 			{
 				startBlock(ifNotEqual)
-				callSiteHelper.useAnswer(boxedConstant(falseObject))
+				callSiteHelper.useAnswer(boxedConstant(falseObject), false)
 			}
 		}
 		return true

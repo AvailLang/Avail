@@ -42,7 +42,7 @@ Entries
 Body
 
 
-Method 	"anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»‡,»" is
+Method "anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»‡,»" is
 [
 	uses : <
 		nonempty string,  // imported module

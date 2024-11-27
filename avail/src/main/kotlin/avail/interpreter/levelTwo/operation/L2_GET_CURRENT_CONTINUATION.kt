@@ -55,14 +55,13 @@ class L2_GET_CURRENT_CONTINUATION(
 	var currentContinuation: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(currentContinuation.registerString())
+		renderPreamble()
+		append(' ')
+		append(currentContinuation.registerString())
 	}
 
 	override fun translateToJVM(

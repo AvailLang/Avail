@@ -53,31 +53,30 @@ class L2_CREATE_MAP(
 	var newMap: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(newMap.registerString())
-		builder.append(" ← {")
+		renderPreamble()
+		append(' ')
+		append(newMap.registerString())
+		append(" ← {")
 		var i = 0
 		val limit = keys.elements.size
 		while (i < limit)
 		{
 			if (i > 0)
 			{
-				builder.append(", ")
+				append(", ")
 			}
 			val key = keys.elements[i]
 			val value = values.elements[i]
-			builder.append(key.registerString())
-			builder.append("→")
-			builder.append(value.registerString())
+			append(key.registerString())
+			append("→")
+			append(value.registerString())
 			i++
 		}
-		builder.append('}')
+		append('}')
 	}
 
 	override fun translateToJVM(

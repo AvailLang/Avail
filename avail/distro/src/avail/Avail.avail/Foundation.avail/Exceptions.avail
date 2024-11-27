@@ -133,7 +133,7 @@ Public method "_'s⁇stack summary" is
 |
 	Primitive ExceptionStackDump
 		(failureCode : incorrect-argument-type code's type);
-	early failure function(failureCode)
+	Failed primitive with failureCode
 ] : string*;
 
 /* Private field definitions. */
@@ -271,7 +271,7 @@ Private method "Mark nearest guard frame with_" is
 |
 	Primitive MarkNearestCatch (failureCode :
 		{cannot-mark-handler-frame code, no-handler-frame code}ᵀ);
-	early failure function(failureCode)
+	Failed primitive with failureCode
 ] : ⊤;
 
 /*
@@ -301,7 +301,7 @@ Private method "Mark guard variable_with_" is
 |
 	Primitive MarkGuardVariable (failureCode :
 		{cannot-mark-handler-frame code}ᵀ);
-	early failure function(failureCode)
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -409,7 +409,7 @@ styled by nonlocal control styler;
  * @type "cascade exception"
  * @supertype "exception"
  * @field "causal exception" "exception"
- * 		The original exception that led to the current exception
+ *      The original exception that led to the current exception
  * @category "Exceptions"
  */
 Public class "cascade exception" extends exception
@@ -761,10 +761,10 @@ Semantic restriction "try_else_" is
  *
  * @type "system exception"
  * @field "error code" "natural number"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @supertype "exception"
  * @category "Exceptions"
  */
@@ -939,7 +939,7 @@ Public explicit class "instantiation exception" extends exception;
  * @type "descriptive exception"
  * @supertype "exception"
  * @field "error message" "string"
- * 		A descriptive message associated with the exception.
+ *      A descriptive message associated with the exception.
  * @category "Exceptions"
  */
 Public class "descriptive exception" extends exception
@@ -1005,10 +1005,10 @@ Public explicit class "variable-use exception" extends exception;
  * @type "cannot-add-unlike-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "1's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-add-unlike-infinities" (1)
@@ -1021,10 +1021,10 @@ System exception "cannot-add-unlike-infinities" (1)
  * @type "cannot-subtract-like-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "2's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-subtract-like-infinities" (2)
@@ -1036,10 +1036,10 @@ System exception "cannot-subtract-like-infinities" (2)
  * @type "cannot-multiply-zero-and-infinity exception"
  * @supertype "arithmetic exception"
  * @field "error code" "3's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-multiply-zero-and-infinity" (3)
@@ -1051,10 +1051,10 @@ System exception "cannot-multiply-zero-and-infinity" (3)
  * @type "cannot-divide-by-zero exception"
  * @supertype "arithmetic exception"
  * @field "error code" "4's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-divide-by-zero" (4)
@@ -1066,10 +1066,10 @@ System exception "cannot-divide-by-zero" (4)
  * @type "cannot-divide-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "5's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-divide-infinities" (5)
@@ -1082,10 +1082,10 @@ System exception "cannot-divide-infinities" (5)
  * @type "cannot-read-unassigned-variable exception"
  * @supertype "variable-use exception"
  * @field "error code" "6's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Variables"
  */
 System exception "cannot-read-unassigned-variable" (6)
@@ -1098,10 +1098,10 @@ System exception "cannot-read-unassigned-variable" (6)
  * @type "cannot-store-incorrectly-typed-value exception"
  * @supertype "variable-use exception"
  * @field "error code" "7's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Variables"
  */
 System exception "cannot-store-incorrectly-typed-value" (7)
@@ -1114,10 +1114,10 @@ System exception "cannot-store-incorrectly-typed-value" (7)
  * @type "cannot-swap-contents-of-differently-typed-variables exception"
  * @supertype "variable-use exception"
  * @field "error code" "8's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Variables"
  */
 System exception "cannot-swap-contents-of-differently-typed-variables" (8)
@@ -1129,10 +1129,10 @@ System exception "cannot-swap-contents-of-differently-typed-variables" (8)
  * @type "no-such-fiber-variable exception"
  * @supertype "element-access exception"
  * @field "error code" "9's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Concurrency"
  */
 System exception "no-such-fiber-variable" (9)
@@ -1146,10 +1146,10 @@ System exception "no-such-fiber-variable" (9)
  * @type "subscript-out-of-bounds exception"
  * @supertype "element-access exception"
  * @field "error code" "10's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Tuples" "Pojos"
  */
 System exception "subscript-out-of-bounds" (10)
@@ -1161,10 +1161,10 @@ System exception "subscript-out-of-bounds" (10)
  * @type "incorrect-number-of-arguments exception"
  * @supertype "invocation exception"
  * @field "error code" "11's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions"
  */
 System exception "incorrect-number-of-arguments" (11)
@@ -1177,10 +1177,10 @@ System exception "incorrect-number-of-arguments" (11)
  * @type "incorrect-argument-type exception"
  * @supertype "invocation exception"
  * @field "error code" "12's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions"
  */
 System exception "incorrect-argument-type" (12)
@@ -1195,10 +1195,10 @@ System exception "incorrect-argument-type" (12)
  * @type "method-return-type-not-as-forward-declared exception"
  * @supertype "definition exception"
  * @field "error code" "13's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions"
  */
 System exception "method-return-type-not-as-forward-declared" (13)
@@ -1212,10 +1212,10 @@ System exception "method-return-type-not-as-forward-declared" (13)
  * @type "continuation-expected-stronger-type exception"
  * @supertype "invocation exception"
  * @field "error code" "14's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Continuations"
  */
 System exception "continuation-expected-stronger-type" (14)
@@ -1228,10 +1228,10 @@ System exception "continuation-expected-stronger-type" (14)
  * @type "operation-not-supported exception"
  * @supertype "unsupported-operation exception"
  * @field "error code" "15's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Primitives"
  */
 System exception "operation-not-supported" (15)
@@ -1246,8 +1246,8 @@ System exception "operation-not-supported" (15)
  * @field "error code" "16's type"
  *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Modules"
  */
 System exception "module-is-closed" (16)
@@ -1260,10 +1260,10 @@ System exception "module-is-closed" (16)
  * @type "not-an-enumeration exception"
  * @supertype "invocation exception"
  * @field "error code" "17's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Types" "Enumerations"
  */
 System exception "not-an-enumeration" (17)
@@ -1275,10 +1275,10 @@ System exception "not-an-enumeration" (17)
  * @type "no-method exception"
  * @supertype "element-access exception"
  * @field "error code" "19's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Methods"
  */
 System exception "no-method" (19)
@@ -1291,10 +1291,10 @@ System exception "no-method" (19)
  * @type "wrong-outers exception"
  * @supertype "code-generation"
  * @field "error code" "20's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Functions"
  */
 System exception "wrong-outers" (20)
@@ -2208,15 +2208,17 @@ noUnhandledExceptionHandler :=
 After the current module is unloaded,
 	do [noUnhandledExceptionHandler := bootstrapNoUnhandledExceptionHandler;];
 
-originalEarlyFailureFunction ::= early failure function;
+originalPrimitiveFailureFunction ::= current primitive failure handler;
 
 After the current module is unloaded,
-	do [Set early failure function to originalEarlyFailureFunction;];
+do [
+	Set primitive failure function to originalPrimitiveFailureFunction;
+];
 
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.
  */
-Set early failure function to
+Set primitive failure function to
 [
 	errorCode : natural number
 |

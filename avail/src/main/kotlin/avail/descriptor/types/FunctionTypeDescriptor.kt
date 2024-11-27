@@ -180,7 +180,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append('[')
@@ -533,7 +533,7 @@ private constructor(
 		private fun printListOnAvoidingIndent(
 			objects: List<A_BasicObject?>,
 			builder: StringBuilder,
-			recursionMap: IdentityHashMap<A_BasicObject, Void>,
+			recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 			indent: Int
 		) : Unit = with(builder)
 		{

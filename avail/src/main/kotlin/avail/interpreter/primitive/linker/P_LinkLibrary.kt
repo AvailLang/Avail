@@ -45,6 +45,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.setValue
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
@@ -65,8 +66,8 @@ import kotlin.concurrent.withLock
 
 /**
  * **Primitive:** Link the indicated jar file, in the same module root as the
- * loading module, using a [LibraryClassLoader]. The jar must be specified using an
- * Avail root-relative qualified path.
+ * loading module, using a [LibraryClassLoader]. The jar must be specified using
+ * an Avail root-relative qualified path.
  *
  * @author Richard Arriaga
  */

@@ -40,6 +40,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.setValue
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableSetException

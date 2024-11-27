@@ -76,8 +76,8 @@ internal class L2SemanticFunction constructor(frame: Frame)
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue =
-		frameTransformer(frame).let {
-			if (it == frame) this else L2SemanticFunction(it)
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this else L2SemanticFunction(newFrame)
 		}
 
 	override fun toString(): String =

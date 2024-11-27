@@ -72,6 +72,14 @@ object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The type might contain an instance type on an escaped variables,
+	 * making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(instanceMeta(mostGeneralObjectType), stringType), TOP.o)

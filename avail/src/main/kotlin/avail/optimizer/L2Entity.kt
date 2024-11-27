@@ -67,8 +67,10 @@ interface L2Entity<K: RegisterKind<K>>: Comparable<L2Entity<*>>
 		LABEL,
 		OUTER,
 		PRIMITIVE_INVOCATION,
+		NAMED_TEMP,
 		TEMP,
 		OTHER,
+		NAMED_SLOT,
 		SLOT;
 	}
 

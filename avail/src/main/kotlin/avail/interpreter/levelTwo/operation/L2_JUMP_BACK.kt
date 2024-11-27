@@ -82,7 +82,7 @@ class L2_JUMP_BACK(
 		manifest.retainRegisters(registersToKeep)
 		target.instructionWasAdded(manifest)
 		target.forcedClampedEntities =
-			(semanticValuesToKeep + registersToKeep).toMutableSet()
+			(semanticValuesToKeep + registersToKeep).toSet()
 	}
 
 	override fun replaceConstantReads(

@@ -122,7 +122,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	) {
 		val statements: A_Tuple = self[STATEMENTS]
 		val statementsCount = statements.tupleSize
-		assert(statements.tupleSize > 0)
+		assert(statementsCount > 0)
 		// Leave the first statement's value on the stack while evaluating the
 		// subsequent statements.
 		statements.tupleAt(1).emitValueOn(codeGenerator)

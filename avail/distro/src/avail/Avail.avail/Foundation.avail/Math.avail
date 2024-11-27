@@ -64,15 +64,6 @@ Names
 	"comparison chain semantic restriction function"
 Body
 
-Method "[_.._]" is stable at
-	[extended integer, extended integer]→extended integer meta;
-Method "[_.._)" is stable at
-	[extended integer, extended integer]→extended integer meta;
-Method "(_.._]" is stable at
-	[extended integer, extended integer]→extended integer meta;
-Method "(_.._)" is stable at
-	[extended integer, extended integer]→extended integer meta;
-
 Stable forward method "_mod_" is [number, number]→number;
 Public stable forward method "-_" is [number]→number;
 
@@ -1320,7 +1311,7 @@ Private method "_positive range pairs" is
 				++ (low + strongLowBits .. ⌈range⌉ + 1) positive range pairs
 		];
 		Restart loop with <strongLowBits << -1>
-	](cast lowBits into [x : whole number | x])
+	](lowBits ?→ whole number)
 ] : whole number's type*;
 
 /**

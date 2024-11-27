@@ -57,7 +57,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator

@@ -68,10 +68,10 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Mul
-import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
+import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -284,9 +284,9 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
 		callSiteHelper,
 		functionToCallReg,
@@ -294,11 +294,10 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		arguments,
 		argumentTypes,
 		ifOutputIsInt = {
-			generator.addInstruction(
-				L2_BIT_LOGIC_OP(Mul, intA, intB, intWrite))
+			addInstruction(L2_BIT_LOGIC_OP(Mul, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
-			generator.addInstruction(
+			addInstruction(
 				L2_MULTIPLY_INT_BY_INT(
 					intA,
 					intB,

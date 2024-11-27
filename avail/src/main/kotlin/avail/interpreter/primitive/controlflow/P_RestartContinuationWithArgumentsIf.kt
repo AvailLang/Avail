@@ -76,7 +76,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** If the given boolean condition is true, then restart the given
@@ -145,7 +145,7 @@ object P_RestartContinuationWithArgumentsIf : Primitive(
 		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0
 		interpreter.returnNow = false
-		interpreter.setLatestResult(null)
+		interpreter.clearLatestResult()
 		return CONTINUATION_CHANGED
 	}
 
@@ -164,20 +164,19 @@ object P_RestartContinuationWithArgumentsIf : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (continuationReg, argumentsTupleReg, condition) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val manifest = generator.currentManifest
+		val manifest = translator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
-		val label = generator.topFrame.label()
+		val label = translator.topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
@@ -200,7 +199,7 @@ object P_RestartContinuationWithArgumentsIf : Primitive(
 				// Couldn't guarantee the argument types matched.
 				return false
 			}
-			val explodedTupleRegs = generator.explodeTupleIfPossible(
+			val explodedTupleRegs = translator.explodeTupleIfPossible(
 				argumentsTupleReg, argTypesTuple.toList())
 			if (explodedTupleRegs === null)
 			{
@@ -209,17 +208,19 @@ object P_RestartContinuationWithArgumentsIf : Primitive(
 				// some reflective mechanism, fall back to the primitive.
 				return false
 			}
-			val noRestartLabel = generator.createBasicBlock("Don't restart")
-			val restartLabel = generator.createBasicBlock("Do restart")
-			generator.jumpIfEqualsConstant(
+			// Jump to noRestartLabel if the condition is false.
+			val noRestartLabel = translator.createBasicBlock("Don't restart")
+			val restartLabel = translator.createBasicBlock("Do restart")
+			translator.jumpIfEqualsConstant(
 				condition, trueObject, restartLabel, noRestartLabel)
-			generator.startBlock(restartLabel)
-			if (generator.currentlyReachable())
+			translator.startBlock(restartLabel)
+			if (translator.currentlyReachable())
 			{
 				translator.generateRestartContinuation(explodedTupleRegs)
 			}
-			generator.startBlock(noRestartLabel)
-			// Fall through for the not-restarting path.
+			// The not-restarting path.
+			translator.startBlock(noRestartLabel)
+			callSiteHelper.useConstantAnswer(nil)
 			return true
 		}
 
@@ -243,24 +244,24 @@ object P_RestartContinuationWithArgumentsIf : Primitive(
 			return false
 		}
 		val argsSize = upperBound.extractInt
-		val explodedArgumentRegs = generator.explodeTupleIfPossible(
+		val explodedArgumentRegs = translator.explodeTupleIfPossible(
 			argumentsTupleReg,
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
 		explodedArgumentRegs ?: return false
 
-		val noRestartLabel = generator.createBasicBlock("Don't restart")
-		val restartLabel = generator.createBasicBlock("Do restart")
-		generator.jumpIfEqualsConstant(
+		val noRestartLabel = translator.createBasicBlock("Don't restart")
+		val restartLabel = translator.createBasicBlock("Do restart")
+		translator.jumpIfEqualsConstant(
 			condition, trueObject, restartLabel, noRestartLabel)
-		generator.startBlock(restartLabel)
-		if (generator.currentlyReachable())
+		translator.startBlock(restartLabel)
+		if (translator.currentlyReachable())
 		{
 			translator.addInstruction(
 				L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 					continuationReg,
 					L2ReadBoxedVectorOperand(explodedArgumentRegs)))
 		}
-		generator.startBlock(noRestartLabel)
+		translator.startBlock(noRestartLabel)
 		// Fall through for the not-restarting path.
 		return true
 	}

@@ -87,6 +87,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFuncti
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.getValueClearing
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED

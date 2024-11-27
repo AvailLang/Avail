@@ -31,9 +31,10 @@
  */
 package avail.tools.bootstrap
 
-import avail.AvailRuntime.Companion.specialObjects
-import avail.descriptor.representation.A_BasicObject
-import avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
+import avail.SpecialObject
+import avail.tools.bootstrap.Resources.Key.specialObjectCommentTemplate
+import avail.tools.bootstrap.Resources.Key.specialObjectCommentTypeTemplate
+import avail.tools.bootstrap.Resources.Key.specialObjectCommentValueTemplate
 import avail.tools.bootstrap.Resources.escape
 import avail.tools.bootstrap.Resources.specialObjectCommentKey
 import avail.tools.bootstrap.Resources.specialObjectKey
@@ -75,18 +76,18 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 		writer: PrintWriter
 	) = with(writer) {
 		val keys = mutableSetOf<String>()
-		specialObjects.indices.forEach { i ->
-			if (specialObjects[i].notNil)
+		for (entry in SpecialObject.entries)
+		{
+			if (entry.value.notNil)
 			{
-				val specialObject: A_BasicObject = specialObjects[i]
 				// Write a primitive descriptive of the special object as a
 				// comment, to assist a human translator.
-				val text = specialObject.toString().replace("\n", "\n#")
+				val text = entry.value.toString().replace("\n", "\n#")
 				print("# ")
 				print(text)
 				println()
 				// Write the method name of the special object.
-				val key = specialObjectKey(i)
+				val key = specialObjectKey(entry)
 				keys.add(key)
 				print(key)
 				print('=')
@@ -97,7 +98,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 				}
 				println()
 				// Write the preferred alias that Stacks should indicate.
-				val typeKey = specialObjectTypeKey(i)
+				val typeKey = specialObjectTypeKey(entry)
 				keys.add(typeKey)
 				print(typeKey)
 				print('=')
@@ -105,7 +106,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 				print(escape(type))
 				println()
 				// Write the Stacks comment.
-				val commentKey = specialObjectCommentKey(i)
+				val commentKey = specialObjectCommentKey(entry)
 				keys.add(commentKey)
 				print(commentKey)
 				print('=')
@@ -116,21 +117,17 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 				}
 				else
 				{
-					val commentTemplate = preambleBundle.getString(
-						Resources.Key.specialObjectCommentTemplate.name)
-					val template: String = if (specialObject.isType)
+					val commentTemplate = preamble[specialObjectCommentTemplate]
+					val template: Resources.Key = when (entry.value.isType)
 					{
-						Resources.Key.specialObjectCommentTypeTemplate.name
-					}
-					else
-					{
-						Resources.Key.specialObjectCommentValueTemplate.name
+						true -> specialObjectCommentTypeTemplate
+						else -> specialObjectCommentValueTemplate
 					}
 					print(
 						escape(
 							checkedFormat(
 								commentTemplate,
-								preambleBundle.getString(template))))
+								preamble[template])))
 				}
 				println()
 			}
@@ -167,7 +164,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 				if (args.isNotEmpty()) args
 				else arrayOf(System.getProperty("user.language"))
 			languages.forEach { language ->
-				SpecialObjectNamesGenerator(Locale(language)).generate()
+				SpecialObjectNamesGenerator(Locale.of(language)).generate()
 			}
 		}
 	}

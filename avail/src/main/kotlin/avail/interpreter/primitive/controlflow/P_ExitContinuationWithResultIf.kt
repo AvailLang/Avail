@@ -58,7 +58,7 @@ import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RETURN
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Exit the given [continuation][ContinuationDescriptor]
@@ -127,39 +127,39 @@ object P_ExitContinuationWithResultIf : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (continuationReg, valueReg, conditionReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val manifest = generator.currentManifest
+		val manifest = translator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
-		val label = generator.topFrame.label()
+		val label = translator.topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
 			// We're conditionally exiting the current frame.
-			val exit = generator.createBasicBlock("Exit")
-			val noExit = generator.createBasicBlock("Don't exit")
-			generator.jumpIfEqualsConstant(
-				generator.readBoxed(
+			val exit = translator.createBasicBlock("Exit")
+			val noExit = translator.createBasicBlock("Don't exit")
+			translator.jumpIfEqualsConstant(
+				translator.readBoxed(
 					conditionReg.originalBoxedWriteSkippingMoves()),
 				trueObject,
 				exit,
 				noExit)
-			generator.startBlock(exit)
-			generator.addInstruction(L2_RETURN(valueReg))
-			generator.startBlock(noExit)
-			if (generator.currentlyReachable())
+			translator.startBlock(exit)
+			translator.addInstruction(L2_RETURN(valueReg))
+			translator.startBlock(noExit)
+			if (translator.currentlyReachable())
 			{
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(nil))
+					translator.boxedConstant(nil),
+					false)
 			}
 			return true
 		}

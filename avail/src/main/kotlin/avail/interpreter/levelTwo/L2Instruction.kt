@@ -45,9 +45,7 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -60,17 +58,21 @@ import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
+import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Optimizer
+import avail.optimizer.L2Optimizer.Companion.shouldSanityCheck
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
@@ -313,6 +315,21 @@ abstract class L2Instruction :
 	open val hasSideEffect get() = false
 
 	/**
+	 * Answer whether this instruction should be postponed, and therefore able
+	 * to move later in the graph, even if the current block's outbound edges
+	 * all indicate at least one produced value is always-live-out.
+	 */
+	open val shouldPostponeEvenIfLiveIn get() = false
+
+	/**
+	 * Check whether this instruction could cause any previously escaped
+	 * variables to become shared or to have a reactor installed.  Assume most
+	 * instructions can't do this, and override for instructions that can, like
+	 * invocations of general functions, or of primitives that say they can.
+	 */
+	open fun mightMakeEscapedVariableShared(): Boolean = false
+
+	/**
 	 * Answer whether this instruction produces any JVM code.  Examples of
 	 * instructions that produce no JVM code include unconditional jumps that
 	 * fall through to the next instruction, and moves between registers that
@@ -397,7 +414,7 @@ abstract class L2Instruction :
 		functionRegister: L2ReadBoxedOperand,
 		outerIndex: Int,
 		outerType: A_Type,
-		generator: L2Generator
+		generator: L2GeneratorInterface
 	): L2ReadBoxedOperand = unsupported
 
 	/**
@@ -673,7 +690,7 @@ abstract class L2Instruction :
 	 */
 	override fun toString() = buildString {
 		val instruction = this@L2Instruction
-		append("${instruction::class.simpleName}:\n\t")
+		append("${instruction.name}:\n\t")
 		var pairs = mutableListOf<Pair<String, L2Operand>>()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
 			pairs.add(namedOperandType.name to operand)
@@ -689,7 +706,7 @@ abstract class L2Instruction :
 	 * Output this instruction to the given builder, invoking the given lambda
 	 * with a boolean to turn warning style on or off, if tracked by the caller.
 	 *
-	 * @param builder
+	 * @receiver
 	 *   Where to write the description of this instruction.
 	 * @param desiredOperandTypes
 	 *   Which [L2OperandType]s to include.
@@ -698,19 +715,18 @@ abstract class L2Instruction :
 	 *   current builder position, and `false` to end it.  It must be invoked in
 	 *   (true, false) pairs.
 	 */
-	open fun appendToWithWarnings(
-		builder: StringBuilder,
+	open fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
+		renderPreamble()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
 			if (namedOperandType.operandType() in desiredOperandTypes)
 			{
-				builder.append("\n\t")
-				builder.append(namedOperandType.name())
-				builder.append(" = ")
-				operand.appendWithWarningsTo(builder, 1, warningStyleChange)
+				append("\n\t")
+				append(namedOperandType.name())
+				append(" = ")
+				operand.run { appendWithWarningsTo(1, warningStyleChange) }
 			}
 		}
 	}
@@ -720,18 +736,28 @@ abstract class L2Instruction :
 	 * [L2Instruction] that includes the [offset][L2Instruction.offset] and
 	 * [name][toString] of the instruction.
 	 *
-	 * @param builder
+	 * @receiver
 	 *   The [StringBuilder] to which the preamble should be written.
 	 */
-	fun renderPreamble(builder: StringBuilder)
+	fun StringBuilder.renderPreamble()
 	{
 		if (offset != -1)
 		{
-			builder.append(offset)
-			builder.append(". ")
+			append(offset)
+			append(". ")
 		}
-		builder.append(name)
+		append(name)
 	}
+
+	/**
+	 * If this instruction includes a move from a source register to this
+	 * [destinationRegister], return that source.  Otherwise return null.
+	 * This should only be called if this instruction contains a write to that
+	 * register.
+	 */
+	open fun sourceOfMoveToRegister(
+		destinationRegister: L2Register<*>
+	): L2Register<*>? = null
 
 	/**
 	 * Create an equivalent of this instruction, transforming each [L2Operand]
@@ -739,7 +765,7 @@ abstract class L2Instruction :
 	 * transforming each operand.
 	 *
 	 * @param regenerator
-	 *   The [L2Regenerator] by which to transform the given insstruction.
+	 *   The [L2Regenerator] by which to transform the given instruction.
 	 * @return
 	 *   A new instruction like the given one.
 	 */
@@ -753,9 +779,68 @@ abstract class L2Instruction :
 	}
 
 	/**
+	 * This intsruction from a previous control flow graph was encountered
+	 * during postponement optimization.  Depending on the kind of instruction,
+	 * either emit it to the regenerator, record it as a postponed instsruction,
+	 * or do something else like writing an arbitrary transformation.
+	 *
+	 * @param regenerator
+	 *   The [L2Regenerator] on which to write the effect.
+	 */
+	open fun regenerateForPostponement(regenerator: L2Regenerator)
+	{
+		if (hasSideEffect)
+		{
+			// Emit the translation right now.
+			forcePostponedTranslationNow(regenerator)
+			return
+		}
+		val successors = basicBlock().successorEdges()
+		if (!shouldPostponeEvenIfLiveIn)
+		{
+			if (successors.size > 1 &&
+				destinationRegisters.all { writeReg ->
+					successors.all { edge ->
+						writeReg in edge.alwaysLiveInEntities!!
+					}
+				})
+			{
+				// We're going to branch soon, but the result will be needed
+				// always along all the successor edges.  While we *could*
+				// postpone the instruction, we choose not to, since the
+				// increase of register pressure is minor compared to the cost
+				// of the duplicated code.
+				//
+				// Note that instructions that shouldPostponeEvenIfLiveIn *do*
+				// get postponed anyhow, since it may lead to useful
+				// cancellations further downstream.
+				forcePostponedTranslationNow(regenerator)
+				return
+			}
+		}
+		// Emit a constant move for each constant output, then postpone the
+		// instruction if any outputs were non-constant.
+		var anyNonconstant = false
+		for (write in writeOperands)
+		{
+			val constant = write.restriction().constantOrNull
+			when (constant)
+			{
+				null -> anyNonconstant = true
+				else -> write.moveConstantForWrite(constant, regenerator)
+			}
+		}
+		if (anyNonconstant)
+		{
+			// At least one output was non-constant.  Postpone the instruction.
+			regenerator.currentManifest.recordPostponedSourceInstruction(this)
+		}
+	}
+
+	/**
 	 * Given this instruction, which is already a transformation of the same
 	 * kind of instruction from an earlier graph, write to the regenerator an
-	 * equivalent instruction or seriess of replacement instructions.
+	 * equivalent instruction or series of replacement instructions.
 	 */
 	open fun emitTransformedInstruction(regenerator: L2Regenerator): Unit =
 		regenerator.addInstruction(this)
@@ -778,15 +863,9 @@ abstract class L2Instruction :
 		generator: L2GeneratorInterface,
 		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
 	{
-		var any = false
-		readOperands.forEach { readOperand ->
-			if (readOperand.restriction().constantOrNull !== null)
-			{
-				readOperand.replaceConstantRead()
-				any = true
-			}
-		}
-		if (any)
+		// Note: We have to run this against all readOperands, so don't replace
+		// the count{} with any{}, which short-circuits.
+		if (readOperands.count(L2ReadOperand<*>::replaceIfConstantRead) > 0)
 		{
 			// Rebuild the sourceRegisters list if anything changed.
 			sourceRegisters.clear()
@@ -794,6 +873,71 @@ abstract class L2Instruction :
 				operand.addSourceRegistersTo(sourceRegisters)
 			}
 		}
+	}
+
+	/**
+	 * We're performing [L2Optimizer.postponeConditionallyUsedValues], and we
+	 * have decided that this instruction (from the original graph) needs to be
+	 * translated for the new graph and emitted.  If the instruction uses values
+	 * that are not yet available in registers due to postponement, first
+	 * translate the instructions that produce those values.
+	 *
+	 * This instruction must not currently be in the current
+	 * `postponedInstructions` map.
+	 *
+	 * Subclasses may choose to look up any still-postponed predecessor
+	 * instructions, and perform instruction-specific special transformations as
+	 * they slip past this instruction.  Variable elision uses this technique,
+	 * allowing an [L2_CREATE_VARIABLE] to slip past an [L2_GET_VARIABLE], by
+	 * emitting a constant move (of the initialization value of the
+	 * create-variable) in place of the get.
+	 *
+	 * TODO Make this iterative instead of recursive.
+	 */
+	open fun forcePostponedTranslationNow(regenerator: L2Regenerator)
+	{
+		assert(
+			!shouldSanityCheck ||
+				writeOperands
+					.flatMap(L2WriteOperand<*>::semanticValues)
+					.all { sv ->
+						regenerator.currentManifest
+							.postponedInstructions()[sv] != this@L2Instruction
+					}
+		) {
+			"instruction should have been removed from postponed map"
+		}
+		if (!hasSideEffect)
+		{
+			// If we already have a live value for each of the *writes* of this
+			// instruction, we can elide the instruction and write extending
+			// moves instead.
+			val manifest = regenerator.currentManifest
+			val liveWriteRepresentatives = writeOperands.map { write ->
+				write to
+					write.semanticValues().filter(manifest::hasSemanticValue)
+			}
+			if (liveWriteRepresentatives.all { (_, reps) -> reps.isNotEmpty() })
+			{
+				// We have an assigned semantic value from each of the write
+				// operands.  Generate extending moves as needed, and omit the
+				// redundant postponed instruction.
+				liveWriteRepresentatives.forEach { (write, reps) ->
+					val notYetAssigned = write.semanticValues() - reps
+					regenerator.moveRegister(
+						reps.first(), notYetAssigned.cast())
+				}
+				return
+			}
+		}
+		// At least one write didn't have a semantic value already populated (or
+		// the instruction has a side-effect), so we have to emit the postponed
+		// instruction.  Emit any necessary predecessors first.
+		readOperands.forEach { read ->
+			regenerator.forceTranslationForRead(read.semanticValue())
+		}
+		regenerator.basicTransformInstruction(this)
+			.emitTransformedInstruction(regenerator)
 	}
 
 	/**
@@ -868,7 +1012,7 @@ abstract class L2Instruction :
 	 */
 	fun simpleAppendTo(builder: StringBuilder)
 	{
-		renderPreamble(builder)
+		builder.renderPreamble()
 		builder.append(": ")
 		val targets = mutableListOf<String>()
 		val sources = mutableListOf<String>()
@@ -877,17 +1021,6 @@ abstract class L2Instruction :
 		{
 			when (operand)
 			{
-				is L2ArbitraryConstantOperand<*> -> when(
-					val constant = operand.constant)
-				{
-					is Primitive -> commands.add(constant.name)
-					else -> sources.add(
-						Strings
-							.escape(operand.constant.javaClass.simpleName.run {
-								if (length > 20) substring(0, 20) + "…"
-								else this
-							}).run { substring(1, length - 1) })
-				}
 				is L2ConstantOperand ->
 				{
 					val value = operand.constant
@@ -967,17 +1100,16 @@ abstract class L2Instruction :
 	 * Generically render all [operands][L2Operand] of this [L2Instruction],
 	 * except for those linked to the given [Field]s.
 	 *
+	 * @receiver
+	 *   The [StringBuilder] to which the rendition should be written.
 	 * @param excludedFields
 	 *   The vararg array of [fields][KProperty] whose corresponding
 	 *   [L2Operand]s should be excluded.
 	 * @param desiredOperandTypes
 	 *   The [L2OperandType]s of [L2Operand]s to be included in generic
 	 *   renditions. Customized renditions may not honor these types.
-	 * @param builder
-	 *   The [StringBuilder] to which the rendition should be written.
 	 */
-	fun renderOperandsExcludingFields(
-		builder: StringBuilder,
+	fun StringBuilder.renderOperandsExcludingFields(
 		desiredOperandTypes: Set<L2OperandType>,
 		vararg excludedFields: KMutableProperty0<out L2Operand>)
 	{
@@ -986,11 +1118,10 @@ abstract class L2Instruction :
 			if (namedOperandType.operandType in desiredOperandTypes
 				&& namedOperandType.name !in excludedNames)
 			{
-				builder.append("\n\t")
-				builder.append(namedOperandType.name())
-				builder.append(" = ")
-				builder.append(
-					Strings.increaseIndentation(operand.toString(), 2))
+				append("\n\t")
+				append(namedOperandType.name())
+				append(" = ")
+				append(Strings.increaseIndentation(operand.toString(), 2))
 			}
 		}
 	}

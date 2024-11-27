@@ -1283,7 +1283,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 				//			C("««fruit bats»|sloths|carp|«breakfast cereals»»",
 				//				List(0, 0),
 				//				A("«", "«", "fruit", "bats", "»", "|", "sloths", "|", "carp",
-				//				  "|", "«", "breakfast", "cereals", "»", "»"),
+				//					"|", "«", "breakfast", "cereals", "»", "»"),
 				//				A(
 				//					BRANCH_FORWARD(5),
 				//					PARSE_PART(3), // fruit

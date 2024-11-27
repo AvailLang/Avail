@@ -46,7 +46,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_PHRASE_EXPRESSION_TYPE
 import avail.interpreter.primitive.phrases.P_PhraseExpressionType
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.PrefixSharingList.Companion.append
@@ -229,6 +229,7 @@ constructor(
 		append(childNode.toString(indent + 1))
 	}
 
+	@Suppress("unused")
 	private fun newSemanticValue(
 		semanticValues: List<L2SemanticBoxedValue>,
 		extraSemanticValues: List<L2SemanticBoxedValue>

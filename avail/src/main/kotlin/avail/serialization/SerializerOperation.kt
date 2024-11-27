@@ -32,8 +32,9 @@
 
 package avail.serialization
 
+import avail.AllSpecialAtoms
 import avail.AvailRuntime
-import avail.AvailRuntime.Companion.specialObject
+import avail.SpecialObject.Companion.specialObject
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -288,6 +289,12 @@ import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.globalModule
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.isGlobal
+import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
@@ -797,7 +804,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return Deserializer.specialAtom(subobjects[0].extractInt)
+			return AllSpecialAtoms.specialAtom(subobjects[0].extractInt)
 		}
 
 		override fun describe(describer: DeserializerDescriber)
@@ -808,7 +815,8 @@ enum class SerializerOperation constructor(
 			describer.append(" (")
 			describer.append(specialIndex.toString())
 			describer.append(") = ")
-			describer.append(Deserializer.specialAtom(specialIndex).toString())
+			describer.append(
+				AllSpecialAtoms.specialAtom(specialIndex).toString())
 		}
 	},
 
@@ -1465,7 +1473,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(!obj.isGlobal())
+			assert(!obj.isGlobal)
 			return array(obj.kind())
 		}
 
@@ -1505,14 +1513,14 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isGlobal())
+			assert(obj.isGlobal)
 			val flags =
 				(if (obj.isInitializedWriteOnceVariable) 1 else 0) +
-					if (obj.valueWasStablyComputed()) 2 else 0
+					if (obj.valueWasStablyComputed) 2 else 0
 			return array(
 				obj.kind(),
-				obj.globalModule(),
-				obj.globalName(),
+				obj.globalModule,
+				obj.globalName,
 				fromInt(flags))
 		}
 
@@ -1528,7 +1536,7 @@ enum class SerializerOperation constructor(
 			val variable =
 				if (writeOnce) module.constantBindings.mapAt(varName)
 				else module.variableBindings.mapAt(varName)
-			if (stablyComputed != variable.valueWasStablyComputed())
+			if (stablyComputed != variable.valueWasStablyComputed)
 			{
 				throw RuntimeException(
 					"Disagreement about whether a module constant was stably" +

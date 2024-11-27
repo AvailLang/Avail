@@ -322,7 +322,7 @@ Semantic restriction "an edge from_to_,⁇labeled by_" is
  * @param "aGraph" "graph"
  *        A graph.
  * @returns "{any|}"
- * 		The {@type "set"} of vertices.
+ *           The {@type "set"} of vertices.
  * @category "Data Abstractions" "Graphs"
  */
 Public abstract method "_'s⁇vertices" is [graph]→set;

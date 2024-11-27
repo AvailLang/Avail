@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 ;import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -59,11 +60,38 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
- 		targetEdges.forEach(L2PcOperand::installCounter)
+		targetEdges.forEach(L2PcOperand::installCounter)
 	}
 
 	/** This instruction jumps, which counts as a side effect. */
 	override val hasSideEffect: Boolean get() = true
+
+	/**
+	 * If this instruction leads to the same target block after skipping all
+	 * blocks that only contain jumps, then replace it with a jump to that block
+	 * and answer `true`, otherwise answer `false`.
+	 *
+	 * @param regenerator
+	 *   Where to write the jump if the target edges are equivalent.
+	 * @return
+	 *   Whether an [L2_JUMP] was emitted.
+	 */
+	fun replaceWithJumpIfPossible(regenerator: L2Regenerator): Boolean
+	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		val allTargets = targetEdges
+			.mapTo(mutableSetOf(), L2PcOperand::targetBlockSkippingBareJumps)
+			.distinct()
+		allTargets.singleOrNull()?.let {
+			val jump = L2_JUMP(
+				edgeTo(targetEdges.first().targetBlock(), "elided branch"))
+			println("Reduced jump to $jump")
+			jump.emitTransformedInstruction(regenerator)
+			return true
+		}
+		return false
+	}
 
 	final override fun generateReplacement(
 		regenerator: L2Regenerator,

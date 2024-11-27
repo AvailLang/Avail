@@ -67,8 +67,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Ushr
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2GeneratorInterface
@@ -80,7 +80,6 @@ import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.cast
 import avail.utility.notNullAnd
-import avail.utility.removeLast
 import org.objectweb.asm.MethodVisitor
 import kotlin.math.max
 import kotlin.math.min
@@ -111,18 +110,16 @@ constructor(
 	@On(SUCCESS) var branchEdges: L2PcVectorOperand
 ): L2ConditionalJump()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder
-			.append(" ")
-			.append(value.registerString())
-			.append(" in ")
-			.append(splitter)
-		renderOperandsExcludingFields(builder, desiredOperandTypes, ::value)
+		renderPreamble()
+		append(" ")
+		append(value.registerString())
+		append(" in ")
+		append(splitter)
+		renderOperandsExcludingFields(desiredOperandTypes, ::value)
 	}
 
 	override fun instructionWasAdded(
@@ -144,6 +141,7 @@ constructor(
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
+//TODO		if (replaceWithJumpIfPossible(regenerator)) return
 		// Delegate to the MultiWaySplitter.
 		splitter.emitInstruction(value, branchEdges.edges, regenerator)
 	}

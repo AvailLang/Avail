@@ -474,12 +474,13 @@ class HashedMapBinDescriptor private constructor(
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy(
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin {
 		checkHashedMapBin(self)
 		if (isMutable && !canDestroy) {
@@ -493,7 +494,7 @@ class HashedMapBinDescriptor private constructor(
 			return self.mapBinAtHashPutLevelCanDestroy(
 				key,
 				keyHash,
-				transformer(key, notFoundValue),
+				transformer(keyPrecursor, key, notFoundValue),
 				level,
 				canDestroy)
 		}
@@ -506,6 +507,7 @@ class HashedMapBinDescriptor private constructor(
 		val oldSubBinSize = oldSubBin.mapBinSize
 		val oldSubBinKeyHash = oldSubBin.mapBinKeysHash
 		val newSubBin = oldSubBin.mapBinAtHashReplacingLevelCanDestroy(
+			keyPrecursor,
 			key,
 			keyHash,
 			notFoundValue,

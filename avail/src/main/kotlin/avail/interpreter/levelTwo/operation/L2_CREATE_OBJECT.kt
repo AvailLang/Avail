@@ -35,12 +35,10 @@ import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -51,27 +49,25 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_CREATE_OBJECT(
-	var variant: L2ArbitraryConstantOperand<ObjectLayoutVariant>,
+	var variant: ObjectLayoutVariant,
 	var guaranteedType: L2ConstantOperand,
 	var fieldValues: L2ReadBoxedVectorOperand,
 	var newObject: L2WriteBoxedOperand
 ) : L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(newObject.registerString())
-		builder.append(" ← {")
-		val variant: ObjectLayoutVariant = variant.constant.cast()
+		renderPreamble()
+		append(' ')
+		append(newObject.registerString())
+		append(" ← {")
 		val realSlots = variant.realSlots
 		val fieldSources = fieldValues.elements
 		assert(realSlots.size == fieldSources.size)
 		var i = 0
-		realSlots.joinTo(builder, ",") { key ->
+		realSlots.joinTo(this, ",") { key ->
 			"$key: ${fieldSources[i++].registerString()}"
 		}
 	}
@@ -80,9 +76,8 @@ class L2_CREATE_OBJECT(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		val theVariant = variant.constant
-		translator.literal(method, theVariant)
-		translator.literal(method, guaranteedType.constant)
+		translator.loadLiteralObject(method, variant)
+		translator.loadLiteralObject(method, guaranteedType.constant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldValues.elements
 		val limit = fieldSources.size

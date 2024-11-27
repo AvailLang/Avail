@@ -273,7 +273,8 @@ class CheckedMethod private constructor(
 	}
 
 	/* The [Method] that was looked up during construction of this instance. */
-	private val method =
+	//TODO private
+	val method =
 		try
 		{
 			receiverClass.getMethod(methodNameString, *argumentTypes)

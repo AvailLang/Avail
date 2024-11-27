@@ -377,9 +377,7 @@ Public method "${…}«else_»" is
 |
 	environment map[aToken's lexeme] else
 	[
-		invoke
-			else[1] else
-				[[invoke early failure function with <key-not-found code>]]
+		invoke else[1] else [[Failed primitive with key-not-found code]]
 		with <>
 	]
 ] : string
@@ -404,9 +402,7 @@ Public method "${…#}«else_»" is
 |
 	environment map[aToken's value] else
 	[
-		invoke
-			else[1] else
-				[[invoke early failure function with <key-not-found code>]]
+		invoke else[1] else [[Failed primitive with key-not-found code]]
 		with <>
 	]
 ] : string

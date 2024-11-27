@@ -32,7 +32,6 @@
 package avail.interpreter.levelTwo
 
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -45,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -52,6 +52,8 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.levelTwo.register.RegisterKind
 
 /**
  * An `L2OperandDispatcher` acts as a visitor for the actual operands of
@@ -62,14 +64,6 @@ import avail.interpreter.levelTwo.register.L2IntRegister
  */
 interface L2OperandDispatcher
 {
-	/**
-	 * Process an operand which is an arbitrary Java constant.
-	 *
-	 * @param operand
-	 *   An [L2ArbitraryConstantOperand].
-	 */
-	fun doOperand(operand: L2ArbitraryConstantOperand<*>)
-
 	/**
 	 * Process an operand which is merely a comment.
 	 *
@@ -158,6 +152,15 @@ interface L2OperandDispatcher
 	 *   An [L2ReadFloatVectorOperand].
 	 */
 	fun doOperand(operand: L2ReadFloatVectorOperand)
+
+	/**
+	 * Process an operand which is a read of a vector of [L2Register]s, perhaps
+	 * of mixed [RegisterKind].
+	 *
+	 * @param operand
+	 *   An [L2ReadMixedVectorOperand].
+	 */
+	fun doOperand(operand: L2ReadMixedVectorOperand)
 
 	/**
 	 * Process an operand which is a write of an [Int] register.

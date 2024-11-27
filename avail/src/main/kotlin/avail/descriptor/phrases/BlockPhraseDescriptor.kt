@@ -190,9 +190,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
-	) : Unit = builder.brief {
+	) : Unit = builder.run {
 		// Optimize for one-liners...
 		val argumentsTuple = self.argumentsTuple
 		val argCount = argumentsTuple.tupleSize
@@ -233,7 +233,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 					append(';')
 				}
 				append(']')
-				return@brief
 			}
 		}
 

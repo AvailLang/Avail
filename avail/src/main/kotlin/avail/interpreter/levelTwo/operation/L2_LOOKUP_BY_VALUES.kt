@@ -172,7 +172,7 @@ class L2_LOOKUP_BY_VALUES(
 		method.visitLabel(tryStart)
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method)
-		translator.literal(method, messageBundle.constant)
+		translator.loadLiteralObject(method, messageBundle.constant)
 		translator.objectArray(
 			method, arguments.elements, AvailObject::class.java)
 		lookupMethod.generateCall(method)
@@ -247,7 +247,8 @@ class L2_LOOKUP_BY_VALUES(
 			{
 				definitionToCall.isAbstractDefinition() ->
 					throw abstractMethod()
-				definitionToCall.isForwardDefinition() -> throw forwardMethod()
+				definitionToCall.isForwardDefinition() ->
+					throw forwardMethod()
 				else -> return definitionToCall.bodyBlock()
 			}
 		}

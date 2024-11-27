@@ -120,7 +120,8 @@ object AvailRuntimeSupport
 		 */
 		fun increment()
 		{
-			counter.incrementAndGet()
+//TODO restore timeslicing below.
+//			counter.incrementAndGet()
 		}
 
 		/**

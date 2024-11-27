@@ -57,18 +57,17 @@ class L2_JUMP_IF_SUBTYPE(
 	@On(FAILURE) var ifNotSubtype: L2PcOperand
 ): L2ConditionalJump()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(firstType.registerString())
-		builder.append(" ⊆ ")
-		builder.append(seccondType.registerString())
+		renderPreamble()
+		append(' ')
+		append(firstType.registerString())
+		append(" ⊆ ")
+		append(seccondType.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::firstType, ::seccondType)
+			desiredOperandTypes, ::firstType, ::seccondType)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
@@ -76,13 +75,7 @@ class L2_JUMP_IF_SUBTYPE(
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifSubtype.targetBlock() == ifNotSubtype.targetBlock())
-		{
-			regenerator.jumpTo(ifSubtype.targetBlock())
-			return
-		}
+		if (replaceWithJumpIfPossible(regenerator)) return
 		super.emitTransformedInstruction(regenerator)
 	}
 

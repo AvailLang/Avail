@@ -44,7 +44,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** The first argument is being returned.
@@ -82,14 +82,14 @@ object P_PushArgument1 : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// The value is available in the first argument register.  Doesn't even
 		// need a move. The translator deals with strengthening separately,
 		// through the call return type checks.
-		callSiteHelper.useAnswer(arguments[0])
+		callSiteHelper.useAnswer(arguments[0], false)
 		return true
 	}
 	override fun attemptToGenerateSimpleInvocation(

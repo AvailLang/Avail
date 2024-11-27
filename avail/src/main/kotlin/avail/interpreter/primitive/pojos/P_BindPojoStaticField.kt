@@ -53,7 +53,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.pojos.PrimitiveHelper.lookupField
+import avail.interpreter.primitive.PrimitiveHelper.lookupField
 import avail.utility.Mutable
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier

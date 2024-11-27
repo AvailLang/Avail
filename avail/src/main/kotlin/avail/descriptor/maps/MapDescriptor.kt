@@ -149,7 +149,7 @@ class MapDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = builder.brief {
 		append('{')
@@ -271,10 +271,10 @@ class MapDescriptor private constructor(
 
 	override fun o_EqualsMap(self: AvailObject, aMap: A_Map): Boolean = when {
 		self.sameAddressAs(aMap) -> true
-		rootBin(self).sameAddressAs(rootBin(aMap)) -> true
+		self[ROOT_BIN].sameAddressAs((aMap as AvailObject)[ROOT_BIN]) -> true
 		self.mapSize != aMap.mapSize -> false
 		self.hash() != aMap.hash() -> false
-		rootBin(aMap).let { root ->
+		aMap[ROOT_BIN].let { root ->
 			self.mapIterable.any { (k, v, h) ->
 				root.mapBinAtHash(k, h).let { it === null || !it.equals(v) }
 			}
@@ -290,7 +290,7 @@ class MapDescriptor private constructor(
 		else -> {
 			// Both are shared.  Substitute one of the bins for the other to
 			// speed up subsequent equality checks.
-			self.writeBackSlot(ROOT_BIN, 1, (rootBin(aMap) as AvailObject))
+			self.writeBackSlot(ROOT_BIN, 1, aMap[ROOT_BIN])
 			true
 		}
 	}
@@ -298,7 +298,7 @@ class MapDescriptor private constructor(
 	override fun o_ForEach(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
-	) = rootBin(self).forEachInMapBin(action)
+	) = self[ROOT_BIN].forEachInMapBin(action)
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -312,7 +312,7 @@ class MapDescriptor private constructor(
 		}
 		val keyType = aType.keyType
 		val valueType = aType.valueType
-		val rootBin = rootBin(self)
+		val rootBin = self[ROOT_BIN]
 		val keyTypeIsEnumeration = keyType.isEnumeration
 		val valueTypeIsEnumeration = valueType.isEnumeration
 		var keyUnionKind: A_Type? = null
@@ -366,14 +366,14 @@ class MapDescriptor private constructor(
 	// A map's hash is a simple function of its rootBin's keysHash and
 	// valuesHash.
 	override fun o_Hash(self: AvailObject): Int =
-		rootBin(self).run {
+		self[ROOT_BIN].run {
 			combine3(mapBinKeysHash, mapBinValuesHash, 0x57CE9F5E)
 		}
 
 	override fun o_IsMap(self: AvailObject) = true
 
 	override fun o_Kind(self: AvailObject): A_Type {
-		val root = rootBin(self)
+		val root = self[ROOT_BIN]
 		return mapTypeForSizesKeyTypeValueType(
 			instanceType(fromInt(self.mapSize)),
 			root.mapBinKeyUnionKind,
@@ -387,7 +387,7 @@ class MapDescriptor private constructor(
 	override fun o_MapAtOrNull(
 		self: AvailObject,
 		keyObject: A_BasicObject
-	) = rootBin(self).mapBinAtHash(keyObject, keyObject.hash())
+	) = self[ROOT_BIN].mapBinAtHash(keyObject, keyObject.hash())
 
 	/**
 	 * Answer a map like this one but with [keyObject] associated with
@@ -412,7 +412,7 @@ class MapDescriptor private constructor(
 		newValueObject: A_BasicObject,
 		canDestroy: Boolean
 	): A_Map {
-		val oldRoot = rootBin(self)
+		val oldRoot = self[ROOT_BIN]
 		val traversedKey: A_BasicObject = keyObject.traversed()
 		val newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
 			traversedKey,
@@ -421,7 +421,7 @@ class MapDescriptor private constructor(
 			0,
 			canDestroy)
 		if (canDestroy && isMutable) {
-			setRootBin(self, newRoot)
+			self[ROOT_BIN] = newRoot
 			return self
 		}
 		if (isMutable) {
@@ -437,18 +437,19 @@ class MapDescriptor private constructor(
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
 	): A_Map {
-		val oldRoot = rootBin(self)
+		val oldRoot = self[ROOT_BIN]
 		val traversedKey = key.traversed()
 		val newRoot = oldRoot.mapBinAtHashReplacingLevelCanDestroy(
+			nil,
 			traversedKey,
 			traversedKey.hash(),
 			notFoundValue.cast(),
 			0,
 			canDestroy,
-			transformer)
+			{ _, k, v -> transformer(k, v) })
 		if (canDestroy && isMutable)
 		{
-			setRootBin(self, newRoot)
+			self[ROOT_BIN] = newRoot
 			return self
 		}
 		if (isMutable)
@@ -464,13 +465,14 @@ class MapDescriptor private constructor(
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_Map
 	{
-		var root = rootBin(self)
+		var root: A_MapBin = self[ROOT_BIN]
 		keys.forEach { keyPrecursor ->
 			val key = keyTransformer(keyPrecursor as AvailObject).traversed()
 			root = root.mapBinAtHashReplacingLevelCanDestroy(
+				keyPrecursor,
 				key,
 				key.hash(),
 				notFoundValue.cast(),
@@ -480,7 +482,7 @@ class MapDescriptor private constructor(
 		}
 		if (canDestroy && isMutable)
 		{
-			setRootBin(self, root)
+			self[ROOT_BIN] = root
 			return self
 		}
 		if (isMutable)
@@ -526,20 +528,20 @@ class MapDescriptor private constructor(
 			}
 			return self
 		}
-		val root = rootBin(self).mapBinRemoveKeyHashCanDestroy(
+		val root = self[ROOT_BIN].mapBinRemoveKeyHashCanDestroy(
 			keyObject, keyObject.hash(), canDestroy)
 		if (canDestroy && isMutable) {
-			setRootBin(self, root)
+			self[ROOT_BIN] = root
 			return self
 		}
 		return createFromBin(root)
 	}
 
-	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize
+	override fun o_MapSize(self: AvailObject) = self[ROOT_BIN].mapBinSize
 
 	override fun o_MapIterable(self: AvailObject): Iterable<Entry> =
 		object : Iterable<Entry> {
-			override fun iterator() = rootBin(self).mapBinIterator
+			override fun iterator() = self[ROOT_BIN].mapBinIterator
 		}
 
 	@Throws(AvailException::class)
@@ -736,31 +738,6 @@ class MapDescriptor private constructor(
 
 	companion object
 	{
-		/**
-		 * Extract the root [bin][MapBinDescriptor] from the
-		 * [map][MapDescriptor].
-		 *
-		 * @param map
-		 *   The map from which to extract the root bin.
-		 * @return
-		 *   The map's bin.
-		 */
-		private fun rootBin(map: A_Map): A_MapBin =
-			(map as AvailObject)[ROOT_BIN]
-
-		/**
-		 * Replace the [map][A_Map]'s root [bin][MapBinDescriptor].
-		 *
-		 * @param map
-		 *   The map (must not be an indirection).
-		 * @param bin
-		 *   The root bin for the map.
-		 */
-		private fun setRootBin(map: AvailObject, bin: A_MapBin)
-		{
-			map[ROOT_BIN] = bin
-		}
-
 		/** The mutable [MapDescriptor]. */
 		private val mutable = MapDescriptor(MUTABLE)
 
@@ -818,7 +795,7 @@ class MapDescriptor private constructor(
 		 *   A new mutable map.
 		 */
 		private fun createFromBin(rootBin: A_MapBin): A_Map =
-			mutable.create { setRootBin(this, rootBin) }
+			mutable.create { setSlot(ROOT_BIN, rootBin) }
 
 		/**
 		 * Combine the two [maps][A_Map] into a single map, destroying the

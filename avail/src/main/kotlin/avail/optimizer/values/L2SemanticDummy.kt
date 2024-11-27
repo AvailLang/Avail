@@ -73,7 +73,7 @@ internal constructor(
 
 	/**
 	 * It shouldn't mix in the same graph with anything else, but for safety
-	 * put it at the topdoes.
+	 * put it at the top.
 	 */
 	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.CONSTANT_NIL

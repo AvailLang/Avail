@@ -37,7 +37,8 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.increaseIndentation
@@ -190,7 +191,7 @@ constructor(
 		if (callSiteHelper.isSuper)
 		{
 			callSiteHelper.generator.jumpTo(
-				callSiteHelper.onFallBackToSlowLookup)
+				callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 

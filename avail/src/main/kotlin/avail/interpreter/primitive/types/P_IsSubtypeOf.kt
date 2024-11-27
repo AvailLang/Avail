@@ -51,7 +51,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -89,9 +89,9 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (xTypeReg, yTypeReg) = arguments
 		val xType = xTypeReg.type().instance
@@ -107,7 +107,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(trueObject))
+					translator.boxedConstant(trueObject), false)
 				return true
 			}
 		}
@@ -123,7 +123,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(falseObject))
+					translator.boxedConstant(falseObject), false)
 				return true
 			}
 		}
@@ -134,12 +134,12 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject))
+				translator.boxedConstant(trueObject), false)
 			return true
 		}
 
-		val ifSubtype = translator.generator.createBasicBlock("if subtype")
-		val ifNotSubtype = translator.generator.createBasicBlock("not subtype")
+		val ifSubtype = translator.createBasicBlock("if subtype")
+		val ifNotSubtype = translator.createBasicBlock("not subtype")
 
 		val xDef = xTypeReg.definitionSkippingMoves()
 		if (xDef is L2_GET_TYPE)
@@ -150,7 +150,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			val xInstanceRead = xDef.value
 			if (constantYType !== null)
 			{
-				translator.generator.jumpIfKindOfConstant(
+				translator.jumpIfKindOfConstant(
 					xInstanceRead, constantYType, ifSubtype, ifNotSubtype)
 			}
 			else
@@ -172,12 +172,10 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 					edgeTo(ifSubtype),
 					edgeTo(ifNotSubtype)))
 		}
-		translator.generator.startBlock(ifSubtype)
-		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(trueObject))
-		translator.generator.startBlock(ifNotSubtype)
-		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(falseObject))
+		translator.startBlock(ifSubtype)
+		callSiteHelper.useConstantAnswer(trueObject)
+		translator.startBlock(ifNotSubtype)
+		callSiteHelper.useConstantAnswer(falseObject)
 		return true
 	}
 

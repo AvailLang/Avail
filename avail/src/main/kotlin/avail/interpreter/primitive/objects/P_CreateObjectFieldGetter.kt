@@ -66,7 +66,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Given an [object&#32;type][ObjectTypeDescriptor] and an
@@ -159,15 +159,23 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 					mostGeneralObjectType),
 				ANY.o))
 
+	/**
+	 * The objectType might contain an instance type on an escaped variables,
+	 * making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean {
 		// TODO - Generate L2 code to collect statistics on the variants that
 		// are encountered, then at the next reoptimization, inline L2

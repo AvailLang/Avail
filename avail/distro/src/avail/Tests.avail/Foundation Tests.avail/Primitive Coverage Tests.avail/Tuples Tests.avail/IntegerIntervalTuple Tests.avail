@@ -39,7 +39,7 @@ Body
 
 Test "IntegerIntervalTuple ok" in primitive tuples test suite if supported is
 [
-    Require: 1 to 3 by 1 = <1, 2, 3>;
+	Require: 1 to 3 by 1 = <1, 2, 3>;
 	Require: 1 to 3 by 5 = <1>;
 	Require: 1 to 10 by -1 = <>;
 	Require: 4 to 10 by 2 = <4, 6, 8, 10>;
@@ -55,8 +55,7 @@ Test "IntegerIntervalTuple ok" in primitive tuples test suite if supported is
 Test "IntegerIntervalTuple fails with incorrect-argument-type exception"
 in primitive tuples test suite is
 [
-    delta : integer := 0;
+	delta : integer := 0;
 	Ignore: 1 to 4 by delta;
 ]
 must raise incorrect-argument-type exception;
-

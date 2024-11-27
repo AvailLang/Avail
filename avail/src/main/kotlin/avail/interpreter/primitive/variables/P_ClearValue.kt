@@ -40,6 +40,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.clearValue
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
@@ -69,6 +70,14 @@ object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
 			interpreter.primitiveFailure(e.numericCode)
 		}
 	}
+
+	/**
+	 * If the variable had a reactor, clearing it can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

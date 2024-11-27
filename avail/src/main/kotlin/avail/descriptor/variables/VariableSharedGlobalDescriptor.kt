@@ -39,6 +39,7 @@ import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -49,6 +50,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.VALUE_IS_STABLE
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE
@@ -188,6 +191,18 @@ class VariableSharedGlobalDescriptor private constructor(
 		|| e === VALUE
 		|| e === WRITE_REACTORS
 		|| e === HASH_AND_MORE) // only for flags.
+
+	override fun o_NameForDebugger(self: AvailObject): String = buildString {
+		append("Shared global named ${self.globalName}")
+		val modifiers = buildList {
+			if (writeOnce) add("writeOnce")
+			if (self.valueWasStablyComputed) add("stable")
+		}
+		if (modifiers.isNotEmpty())
+		{
+			modifiers.joinTo(this, ", ", " (", ")")
+		}
+	}
 
 	override fun o_GlobalModule(self: AvailObject): A_Module =
 		self[MODULE]

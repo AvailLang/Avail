@@ -87,6 +87,7 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Synonym
+import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
@@ -1212,46 +1213,59 @@ class TypeRestriction private constructor(
 		else ""
 	}
 
-	override fun toString(): String = buildString {
-		append("restriction(")
-		if (constantOrNull !== null)
+	override fun toString(): String
+	{
+		val parts: Map<String, Collection<Any>?> = buildMap {
+			constantOrNull?.let { put("c", listOf(it)) }
+			constantOrNull ?: put("t", listOf(type))
+			put("ex.t", excludedTypes)
+			put("ex.v", excludedValues)
+			put("typeVariants", positiveGroup.objectTypeVariants)
+			put("variants", positiveGroup.objectVariants)
+			put("ex.typeVariants", negativeGroup.objectTypeVariants)
+			put("ex.variants", negativeGroup.objectVariants)
+			put(
+				"flags",
+				buildList {
+					if (isImmutable) add("imm")
+					if (isBoxed) add("box")
+					if (isUnboxedInt) add("int")
+					if (isUnboxedFloat) add("float")
+				})
+		}
+		val strings = parts
+			.filterValues { v -> v.notNullAnd(Collection<*>::isNotEmpty) }
+			.mapValues { (_, v) -> v!!.map { it.toString().truncateTo(50)} }
+		val estimate = strings.entries.sumOf { (k, v) ->
+			k.length + v.sumOf(String::length)
+		}
+		return if (estimate < 100)
 		{
-			append("c=")
-			var valueString = constantOrNull.toString()
-			if (valueString.length > 50)
-			{
-				valueString = valueString.substring(0, 50) + '…'
+			strings.entries.joinToString(", ", "restriction(", ")") { (k, v) ->
+				when (v.size)
+				{
+					1 -> "$k=${v[0]}"
+					else -> v.joinToString(", ", "$k=(", ")")
+				}
 			}
-			valueString = valueString
-				.replace("\n", "\\n")
-				.replace("\t", "\\t")
-			append(valueString)
 		}
 		else
 		{
-			append("t=")
-			var typeString = type.toString()
-			if (typeString.length > 50)
-			{
-				typeString = typeString.substring(0, 50) + '…'
+			buildString {
+				append("restriction:")
+				strings.forEach { k, v ->
+					append("\n\t\t\t")
+					append(k)
+					when
+					{
+						v.size == 1 -> append("=${v[0]}")
+						v.sumOf { it.length } < 100 ->
+							v.joinTo(this, ", ", "=(", ")")
+						else -> v.joinTo(this, ",\n\t\t\t\t", ":\n\t\t\t\t")
+					}
+				}
 			}
-			append(typeString)
-			if (excludedTypes.isNotEmpty()) append(", ex.t=$excludedTypes")
-			if (excludedValues.isNotEmpty()) append(", ex.v=$excludedValues")
 		}
-		positiveGroup.objectTypeVariants?.let {
-			append(", typeVariants=$it") }
-		positiveGroup.objectVariants?.let {
-			append(", variants=$it") }
-		negativeGroup.objectTypeVariants?.let {
-			append(", ex.typeVariants=$it") }
-		negativeGroup.objectVariants?.let {
-			append(", ex.variants=$it") }
-		if (isImmutable) append(", imm")
-		if (isBoxed) append(", box")
-		if (isUnboxedInt) append(", int")
-		if (isUnboxedFloat) append(", float")
-		append(")")
 	}
 
 	/** Ensure all referenced [AvailObject]s are Shared. */

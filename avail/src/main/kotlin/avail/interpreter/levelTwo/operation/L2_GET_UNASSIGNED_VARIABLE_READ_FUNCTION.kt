@@ -55,14 +55,13 @@ class L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION(
 	var unassignedVariableReadFunction: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(unassignedVariableReadFunction.registerString())
+		renderPreamble()
+		append(' ')
+		append(unassignedVariableReadFunction.registerString())
 	}
 
 	override fun translateToJVM(

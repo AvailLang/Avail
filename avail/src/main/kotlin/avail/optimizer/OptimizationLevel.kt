@@ -34,10 +34,8 @@ package avail.optimizer
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
-import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 
 /**
  * [OptimizationLevel] is an enum class indicating the possible degrees of
@@ -57,15 +55,15 @@ enum class OptimizationLevel
 constructor(val countdown: Long)
 {
 	/**
-	 * Unoptimized code, interpreted via Level One machinery.  Technically
-	 * the current implementation only executes Level Two code, but the
-	 * default Level Two chunk relies on a Level Two instruction that simply
-	 * fetches each nybblecode and interprets it.
+	 * Unoptimized code, interpreted via Level One machinery.  Technically the
+	 * current implementation only executes Level Two code, but the default
+	 * Level Two chunk relies on a Level Two instruction that simply fetches
+	 * each nybblecode and interprets it.
 	 *
 	 * The [countdown] is very small to encourage early translation of any
 	 * function that is executed even a small number of times.
 	 */
-	UNOPTIMIZED(10)
+	UNOPTIMIZED(2) //TODO 10)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
@@ -76,27 +74,27 @@ constructor(val countdown: Long)
 	/**
 	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
 	 */
-	SIMPLE_TRANSLATION(10_000)
-	{
-		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
-		{
-			code.setStartingChunkAndReoptimizationCountdown(
-				L2SimpleTranslator.translateToLevelTwoSimple(
-					code, FIRST_JVM_TRANSLATION, interpreter),
-				countdown)
-		}
-	},
+	//TODO reinstate 10_000L
+	//SIMPLE_TRANSLATION(10_000_000_000_000L)
+	//{
+	//	override fun optimize(code: A_RawFunction, interpreter: Interpreter)
+	//	{
+	//		code.setStartingChunkAndReoptimizationCountdown(
+	//			L2SimpleTranslator.translateToLevelTwoSimple(
+	//				code, FIRST_JVM_TRANSLATION, interpreter),
+	//			countdown)
+	//	}
+	//},
 
 	/**
 	 * The initial translation into Level Two instructions customized to a
-	 * particular raw function.  This at least should avoid the cost of
-	 * fetching nybblecodes.  It also avoids looking up monomorphic methods
-	 * at execution time, and can inline or even fold calls to suitable
-	 * primitives.  The inlined calls to infallible primitives are simpler
-	 * than the calls to fallible ones or non-primitives or polymorphic
-	 * methods.  Inlined primitive attempts avoid having to reify the
-	 * calling continuation in the case that they're successful, but have to
-	 * reify if the primitive fails.
+	 * particular raw function.  This at least should avoid the cost of fetching
+	 * nybblecodes.  It also avoids looking up monomorphic methods at execution
+	 * time, and can inline or even fold calls to suitable primitives.  The
+	 * inlined calls to infallible primitives are simpler than the calls to
+	 * fallible ones or non-primitives or polymorphic methods.  Inlined
+	 * primitive attempts avoid having to reify the calling continuation in the
+	 * case that they're successful, but have to reify if the primitive fails.
 	 */
 	FIRST_JVM_TRANSLATION(1_000_000)
 	{
@@ -110,14 +108,13 @@ constructor(val countdown: Long)
 
 	/**
 	 * The initial translation into Level Two instructions customized to a
-	 * particular raw function.  This at least should avoid the cost of
-	 * fetching nybblecodes.  It also avoids looking up monomorphic methods
-	 * at execution time, and can inline or even fold calls to suitable
-	 * primitives.  The inlined calls to infallible primitives are simpler
-	 * than the calls to fallible ones or non-primitives or polymorphic
-	 * methods.  Inlined primitive attempts avoid having to reify the
-	 * calling continuation in the case that they're successful, but have to
-	 * reify if the primitive fails.
+	 * particular raw function.  This at least should avoid the cost of fetching
+	 * nybblecodes.  It also avoids looking up monomorphic methods at execution
+	 * time, and can inline or even fold calls to suitable primitives.  The
+	 * inlined calls to infallible primitives are simpler than the calls to
+	 * fallible ones or non-primitives or polymorphic methods.  Inlined
+	 * primitive attempts avoid having to reify the calling continuation in the
+	 * case that they're successful, but have to reify if the primitive fails.
 	 *
 	 * Note that the sentinel [countdown] of [Long.MAX_VALUE] indicates not to
 	 * create a decrement instruction that leads to another reoptimization.
@@ -134,10 +131,10 @@ constructor(val countdown: Long)
 	/**
 	 * Unimplemented.  The idea is that at this level some inlining of
 	 * non-primitives will take place, emphasizing inlining of function
-	 * application.  Invocations of methods that take a literal function
-	 * should tend very strongly to get inlined, as the potential to turn
-	 * things like continuation-based conditionals and loops into mere jumps
-	 * is expected to be highly profitable.
+	 * application.  Invocations of methods that take a literal function should
+	 * tend very strongly to get inlined, as the potential to turn things like
+	 * continuation-based conditionals and loops into mere jumps is expected to
+	 * be highly profitable.
 	 */
 	@Suppress("unused")
 	CHASED_BLOCKS(Long.MAX_VALUE)

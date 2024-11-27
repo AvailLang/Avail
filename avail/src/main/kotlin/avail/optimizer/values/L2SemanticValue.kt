@@ -35,11 +35,13 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.Primitive
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
+import avail.optimizer.L2ValueManifest
 import avail.utility.ifZero
 
 /**
@@ -79,6 +81,22 @@ protected constructor(
 	 */
 	open val isConstant: Boolean
 		get() = false
+
+	/**
+	 * Answer whether this is a constant and the constant is the given one.
+	 *
+	 * @param constant
+	 *   The [AvailObject] to compare this semantic value's constant against, if
+	 *   the semantic value is constant.
+	 * @return
+	 *   Whether this semantic value is a constant that matches the given
+	 *   [constant].
+	 */
+	fun isConstant(constant: AvailObject): Boolean =
+		isConstant &&
+			constantRestrictionOrNull!!.constantOrNull!!.equals(constant)
+
+	abstract val toBoxed: L2SemanticBoxedValue
 
 	/**
 	 * If this semantic value represents a constant, answer the constant-valued
@@ -143,6 +161,20 @@ protected constructor(
 	 *   A short string representation of this semantic value.
 	 */
 	open fun toStringForSynonym(): String = toString()
+
+	/**
+	 * A helper function to assist Kotlin's type deduction.  Create an
+	 * [L2ReadOperand] that produces the value of this semantic value.
+	 *
+	 * @param manifest
+	 *   The active [L2ValueManifest] at the current code generation site.
+	 * @return
+	 *   The new [L2ReadOperand], parameterized with [K].
+	 */
+	fun createRead(manifest: L2ValueManifest): L2ReadOperand<K>
+	{
+		return kind.createRead(this, manifest)
+	}
 
 	companion object
 	{

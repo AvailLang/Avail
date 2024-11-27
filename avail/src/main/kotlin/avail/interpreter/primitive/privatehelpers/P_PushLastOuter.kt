@@ -48,7 +48,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** The sole outer value is being returned.
@@ -78,9 +78,9 @@ object P_PushLastOuter : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val constantFunction = functionToCallReg.constantOrNull
 
@@ -90,8 +90,9 @@ object P_PushLastOuter : Primitive(
 		if (constantFunction !== null)
 		{
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(
-					constantFunction.outerVarAt(1)))
+				translator.boxedConstant(
+					constantFunction.outerVarAt(1)),
+				false)
 			return true
 		}
 
@@ -105,8 +106,8 @@ object P_PushLastOuter : Primitive(
 			functionToCallReg,
 			1,
 			returnType,
-			translator.generator)
-		callSiteHelper.useAnswer(outerReg)
+			translator)
+		callSiteHelper.useAnswer(outerReg, false)
 		return true
 	}
 

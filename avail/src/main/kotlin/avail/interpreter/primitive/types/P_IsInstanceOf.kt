@@ -49,7 +49,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -88,30 +88,29 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (xReg, yTypeReg) = arguments
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		if (xReg.restriction().metaRestriction().intersection(
-			yTypeReg.restriction()).type.isVacuousType)
+				yTypeReg.restriction()).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
 			callSiteHelper.useAnswer(
-				generator.boxedConstant(falseObject))
+				translator.boxedConstant(falseObject), false)
 			return true
 		}
 
-		val ifInstance = generator.createBasicBlock("if instance")
-		val ifNotInstance = generator.createBasicBlock("not instance")
+		val ifInstance = translator.createBasicBlock("if instance")
+		val ifNotInstance = translator.createBasicBlock("not instance")
 
 		val constantYType = yTypeReg.constantOrNull
 		if (constantYType !== null)
 		{
-			generator.jumpIfKindOfConstant(
+			translator.jumpIfKindOfConstant(
 				xReg,
 				constantYType.typeIntersection(xReg.type()),
 				ifInstance,
@@ -126,15 +125,17 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 					edgeTo(ifInstance),
 					edgeTo(ifNotInstance)))
 		}
-		generator.startBlock(ifInstance)
-		if (generator.currentlyReachable())
+		translator.startBlock(ifInstance)
+		if (translator.currentlyReachable())
 		{
-			callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
+			callSiteHelper.useAnswer(
+				translator.boxedConstant(trueObject), false)
 		}
-		generator.startBlock(ifNotInstance)
-		if (generator.currentlyReachable())
+		translator.startBlock(ifNotInstance)
+		if (translator.currentlyReachable())
 		{
-			callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+			callSiteHelper.useAnswer(
+				translator.boxedConstant(falseObject), false)
 		}
 		return true
 	}

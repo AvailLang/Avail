@@ -47,7 +47,6 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -88,6 +87,16 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 {
 	override val hasSideEffect get() = true
 
+
+	/** If it's primitive, defer to it, otherwise assume the worst. */
+	override fun mightMakeEscapedVariableShared(): Boolean =
+		when (val prim = constantFunction.constant.code().codePrimitive())
+		{
+			null -> true
+			else -> prim.mightMakeEscapedVariableShared(
+				arguments.elements.map(L2ReadBoxedOperand::type))
+		}
+
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't
 	 * bother splitting paths that lead only to it and other cold blocks. The
@@ -99,26 +108,27 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		get() =
 			constantFunction.constant.code().functionType().returnType.isBottom
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		val function = constantFunction.constant
-		with(builder) {
-			renderPreamble(builder)
-			append(' ')
-			append(result.registerString())
-			append(" ← /* ")
-			append(function.code().methodName.asNativeString())
-			append(" */\n")
-			append(function)
-			append("(")
-			append(arguments.elements)
-			append(")")
-			renderOperandsExcludingFields(
-				builder, desiredOperandTypes, ::constantFunction, ::arguments)
+		renderPreamble()
+		append(' ')
+		append(result.registerString())
+		append(" ← /* ")
+		append(function.code().methodName.asNativeString())
+		append(" */\n")
+		append(function)
+		append("(")
+		arguments.elements.forEachIndexed { index, it ->
+			if (index > 0) append(",")
+			append("\n\t")
+			append(it.registerString())
 		}
+		append(")")
+		renderOperandsExcludingFields(
+			desiredOperandTypes, ::constantFunction, ::arguments)
 	}
 
 	override fun emitTransformedInstruction(
@@ -144,13 +154,13 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 				regenerator.addInstruction(
 					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 						L2ConstantOperand(rawFunction),
-						L2ArbitraryConstantOperand(primitive),
+						primitive,
 						arguments,
 						regenerator.boxedWrite(
 							result.semanticValues(),
 							result.restriction()
 								.intersectionWithType(resultType))))
-				// Don't forget to jump to the onReturn edge's target.
+				// Don't forget to jump to the ifReturn edge's target.
 				regenerator.jumpTo(ifReturn.targetBlock())
 				return
 			}
@@ -170,7 +180,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.literal(method, constantFunction.constant)
+		translator.loadLiteralObject(method, constantFunction.constant)
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,

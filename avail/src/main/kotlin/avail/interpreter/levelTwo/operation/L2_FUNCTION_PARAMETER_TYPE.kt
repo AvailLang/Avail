@@ -55,19 +55,18 @@ class L2_FUNCTION_PARAMETER_TYPE(
 	var parameterType: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(parameterType.registerString())
-		builder.append(" ← ")
-		builder.append(function.registerString())
-		builder.append('[')
-		builder.append(parameterIndex.value)
-		builder.append(']')
+		renderPreamble()
+		append(' ')
+		append(parameterType.registerString())
+		append(" ← ")
+		append(function.registerString())
+		append('[')
+		append(parameterIndex.value)
+		append(']')
 	}
 
 	override fun translateToJVM(
@@ -80,7 +79,7 @@ class L2_FUNCTION_PARAMETER_TYPE(
 		FunctionDescriptor.functionCodeMethod.generateCall(method)
 		A_RawFunction.functionTypeMethod.generateCall(method)
 		A_Type.argsTupleTypeMethod.generateCall(method)
-		translator.literal(method, parameterIndex.value)
+		translator.intConstant(method, parameterIndex.value)
 		A_Type.typeAtIndexMethod.generateCall(method)
 		translator.store(method, parameterType.register())
 	}

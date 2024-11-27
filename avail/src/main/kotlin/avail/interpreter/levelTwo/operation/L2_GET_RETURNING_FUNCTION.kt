@@ -55,14 +55,13 @@ class L2_GET_RETURNING_FUNCTION(
 	var returningFunction: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(returningFunction.registerString())
+		renderPreamble()
+		append(' ')
+		append(returningFunction.registerString())
 	}
 
 	override fun translateToJVM(

@@ -1175,9 +1175,9 @@ internal constructor(
 		val objectType = bound.typeAtIndex(argumentIndex)
 		val fieldType = objectType.fieldTypeAtIndex(fieldIndex)
 		val newExtractedMap = alreadyExtractedFields
-			.mapAtReplacingCanDestroy(fromInt(argumentIndex), zero, false) {
-					_, bits -> bits.bitSet(fieldIndex - 1, true, false)
-			}
+			.mapAtReplacingCanDestroy(
+				fromInt(argumentIndex), zero, false
+			) { _, bits -> bits.bitSet(fieldIndex - 1, true, false) }
 			.makeShared()
 		assert(!newExtractedMap.equals(alreadyExtractedFields))
 		val child = InternalLookupTree<Element, Result>(
@@ -1229,9 +1229,9 @@ internal constructor(
 		val fieldType = objectMeta.instance.fieldTypeAtIndex(fieldIndex)
 		val fieldMeta = instanceMeta(fieldType)
 		val newExtractedMap = alreadyExtractedFields
-			.mapAtReplacingCanDestroy(fromInt(argumentIndex), zero, false) {
-					_, bits -> bits.bitSet(fieldIndex - 1, true, false)
-			}
+			.mapAtReplacingCanDestroy(
+				fromInt(argumentIndex), zero, false
+			) { _, bits -> bits.bitSet(fieldIndex - 1, true, false) }
 			.makeShared()
 		assert(!newExtractedMap.equals(alreadyExtractedFields))
 		val child = InternalLookupTree<Element, Result>(

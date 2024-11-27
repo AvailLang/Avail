@@ -67,6 +67,14 @@ object P_CreatePrimitiveFailureVariableDeclaration : Primitive(
 			newPrimitiveFailureVariable(token, nil, type))
 	}
 
+	/**
+	 * The token or type might contain an escaped variable, making it shared
+	 * here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

@@ -38,7 +38,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
@@ -65,7 +64,7 @@ import org.objectweb.asm.Opcodes
 class L2_REIFY(
 	var captureFrames: L2IntImmediateOperand,
 	var processInterrupt: L2IntImmediateOperand,
-	var statistic: L2ArbitraryConstantOperand<Statistic>,
+	var statistic: Statistic,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
 ) : L2ControlFlowInstruction()
 {
@@ -119,38 +118,36 @@ class L2_REIFY(
 		}
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		val statistic = statistic.constant
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(statistic.name())
+		renderPreamble()
+		append(' ')
+		append(statistic.name())
 		if (captureFrames.value != 0 || processInterrupt.value != 0)
 		{
-			builder.append(" [")
+			append(" [")
 			if (captureFrames.value != 0)
 			{
-				builder.append("actually reify")
+				append("actually reify")
 				if (processInterrupt.value != 0)
 				{
-					builder.append(", ")
+					append(", ")
 				}
 			}
 			if (processInterrupt.value != 0)
 			{
-				builder.append("process interrupt")
+				append("process interrupt")
 			}
-			builder.append(']')
+			append(']')
 		}
 		if (PC in desiredOperandTypes)
 		{
-			builder.append("\n\t")
-			builder.append(::ifReification.name)
-			builder.append(" = ")
-			builder.append(increaseIndentation(ifReification.toString(), 1))
+			append("\n\t")
+			append(::ifReification.name)
+			append(" = ")
+			append(increaseIndentation(ifReification.toString(), 1))
 		}
 	}
 
@@ -161,9 +158,9 @@ class L2_REIFY(
 		// :: reifier = interpreter.reify(
 		// ::    actuallyReify, processInterrupt, statistic);
 		translator.loadInterpreter(method)
-		translator.literal(method, captureFrames.value)
-		translator.literal(method, processInterrupt.value)
-		translator.literal(method, statistic.constant)
+		translator.intConstant(method, captureFrames.value)
+		translator.intConstant(method, processInterrupt.value)
+		translator.loadLiteralObject(method, statistic)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an

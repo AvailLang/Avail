@@ -105,6 +105,8 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 	override fun semanticValue(): L2SemanticUnboxedInt =
 		super.semanticValue().cast()
 
+	override fun register(): L2IntRegister = super.register().cast()
+
 	override fun copyForRegister(
 		newRegister: L2Register<INTEGER_KIND>
 	) = L2ReadIntOperand(semanticValue(), restriction(), newRegister)

@@ -37,6 +37,10 @@ import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.hasValue
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.exceptions.VariableGetException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
@@ -49,7 +53,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** A global variable's value is being returned.
@@ -86,9 +90,9 @@ object P_GetGlobalVariableValue : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// We have to know the specific function to know what variable to read
 		// from, since it's the first literal.
@@ -101,18 +105,22 @@ object P_GetGlobalVariableValue : Primitive(
 		// constant had been accessed, and a new global constant initialization
 		// running this L2Chunk wouldn't be flagged correctly as also unstable.
 		if (variable.isInitializedWriteOnceVariable &&
-			variable.valueWasStablyComputed())
+			variable.valueWasStablyComputed)
 		{
 			// The variable is permanently set to this value.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(variable.getValue()))
+				translator.boxedConstant(variable.getValue()),
+				false)
 			return true
 		}
-		val valueReg = translator.emitGetVariableOffRamp(
+		val temp = translator.newTemp(
+			"value of global ${variable.globalName}")
+		translator.emitGetVariableOffRamp(
 			false,
-			translator.generator.boxedConstant(variable),
-			translator.generator.newTemp())
-		callSiteHelper.useAnswer(valueReg)
+			translator.boxedConstant(variable),
+			variable.kind().readType,
+			destination = temp)
+		callSiteHelper.useAnswer(translator.readBoxed(temp), false)
 		return true
 	}
 
@@ -126,7 +134,7 @@ object P_GetGlobalVariableValue : Primitive(
 	{
 		val variable = rawFunction.literalAt(1)
 		if (!variable.isInitializedWriteOnceVariable ||
-			!variable.valueWasStablyComputed() ||
+			!variable.valueWasStablyComputed ||
 			!variable.hasValue())
 		{
 			// The variable is not an initialized stable global.

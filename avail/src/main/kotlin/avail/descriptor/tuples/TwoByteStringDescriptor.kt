@@ -111,7 +111,36 @@ class TwoByteStringDescriptor private constructor(
 		 * [unusedShortsOfLastLong], which indicates how many (0-3) of the
 		 * 16-bit subfields of the last long are unused.
 		 */
-		RAW_LONGS_;
+		RAW_LONGS_
+		{
+			override fun describeIntegerSlot(
+				self: AvailObject,
+				value: Long,
+				subscript: Int,
+				bitFields: List<BitField>,
+				builder: StringBuilder)
+			{
+				assert(bitFields.isEmpty())
+				super.describeIntegerSlot(
+					self, value, subscript, bitFields, builder)
+				builder.append("  |  ")
+				val offset = (subscript - 1) shl 2
+				for (i in offset + 1 .. min(self.tupleSize, offset + 4))
+				{
+					val c = self.shortSlot(this, i).toInt()
+					builder.appendCodePoint(
+						when
+						{
+							Character.isISOControl(c) -> '.'.code
+							c == ' '.code -> c
+							Character.isWhitespace(c) -> '.'.code
+							!Character.isDefined(c) -> '.'.code
+							else -> c
+						})
+				}
+			}
+
+		};
 
 		companion object
 		{

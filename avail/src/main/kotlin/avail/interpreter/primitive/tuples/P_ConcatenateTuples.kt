@@ -71,9 +71,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
-import avail.interpreter.levelTwo.operation.L2_APPEND_TO_TUPLE
-import avail.interpreter.levelTwo.operation.L2_CONCATENATE_TUPLES
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
+import avail.interpreter.levelTwo.operation.tuples.L2_CONCATENATE_TUPLES
+import avail.optimizer.CallSiteHelper
 import avail.utility.notNullAnd
 
 /**
@@ -155,22 +155,22 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
-	): Boolean {
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
+	): Boolean
+	{
 		assert(arguments.size == 1)
 		val tupleOfTuplesReg = arguments[0]
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val tupleOfTuplesType = tupleOfTuplesReg.type()
 		val range = tupleOfTuplesType.sizeRange
 		val size = range.lowerBound
 		if (!size.isInt || !range.upperBound.equals(size))
 			return false
 		val sizeInt = size.extractInt
-		var elementRegs = generator.explodeTupleIfPossible(
+		var elementRegs = translator.explodeTupleIfPossible(
 			tupleOfTuplesReg,
 			tupleOfTuplesType.tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
@@ -189,9 +189,10 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			{
 				constant === null ->
 				{
-					if (currentTuple !== null) {
+					if (currentTuple !== null)
+					{
 						adjustedSources.add(
-							generator.boxedConstant(currentTuple))
+							translator.boxedConstant(currentTuple))
 					}
 					adjustedSources.add(source)
 					null
@@ -204,7 +205,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		{
 			// Deal with the final one.
 			adjustedSources.add(
-				generator.boxedConstant(currentTuple))
+				translator.boxedConstant(currentTuple))
 		}
 		if (adjustedSources.size == 2
 			&& adjustedSources[1].type().sizeRange.run {
@@ -215,37 +216,43 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			// shows up in Avail code, where an element needs to be concatenated
 			// to a tuple, which looks like "oldTuple ++ <newElement>".
 			val (inputTuple, newElementTuple) = adjustedSources
-			val resultWrite = generator.boxedWriteTemp(
+			val resultWrite = translator.boxedWriteTemp(
+				"left tuple",
 				boxedRestrictionForType(
 					concatenatingAnd(
 						inputTuple.type(),
 						newElementTuple.type())))
-			val elementTemp = generator.newTemp()
-			generator.extractTupleElement(
+			val elementTemp = translator.newTemp("value to append")
+			translator.extractTupleElement(
 				newElementTuple, 1, setOf(elementTemp))
-			generator.addInstruction(
+			translator.addInstruction(
 				L2_APPEND_TO_TUPLE(
 					inputTuple,
-					generator.readBoxed(elementTemp),
+					translator.readBoxed(elementTemp),
 					resultWrite))
-			callSiteHelper.useAnswer(translator.readBoxed(resultWrite))
+			callSiteHelper.useAnswer(
+				translator.readBoxed(resultWrite),
+				// Append to a tuple can't endanger escaped locals.
+				false)
 			return true
 		}
 		when (adjustedSources.size)
 		{
-			0 -> callSiteHelper.useAnswer(generator.boxedConstant(emptyTuple))
-			1 -> callSiteHelper.useAnswer(adjustedSources[0])
+			0 -> callSiteHelper.useAnswer(
+				translator.boxedConstant(emptyTuple), false)
+			1 -> callSiteHelper.useAnswer(adjustedSources[0], false)
 			else ->
 			{
 				val guaranteedType = returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
-				val write = generator.boxedWriteTemp(
+				val write = translator.boxedWriteTemp(
+					"concatenated",
 					restriction(guaranteedType, null))
 				translator.addInstruction(
 					L2_CONCATENATE_TUPLES(
 						L2ReadBoxedVectorOperand(adjustedSources),
 						write))
-				callSiteHelper.useAnswer(translator.readBoxed(write))
+				callSiteHelper.useAnswer(translator.readBoxed(write), false)
 			}
 		}
 		return true

@@ -42,7 +42,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 plugins {
-	kotlin("jvm") version "1.9.0"
+	kotlin("jvm") version "2.0.0"
 	id("java")
 	`maven-publish`
 	publishing
@@ -60,34 +60,34 @@ group = "org.availlang"
 version = "2.0.0.alpha28"
 
 /** The version of Kotlin to be used by Avail. */
-val kotlin = "1.9.0"
+val kotlin = "2.0.0"
 
 /** The `com.github.johnrengelman.shadow` version. */
 val shadow = "8.1.1"
 
 /** The `org.jetbrains:annotations` version. */
-val kotlinAnnotations = "23.0.0"
+val kotlinAnnotations = "24.1.0"
 
 /** The `org.ow2.asm` version. */
-val asmVersion = "9.2"
+val asmVersion = "9.7"
 
 /** The `com.github.weisj:darklaf-core` version.*/
-val flatlafVersion = "2.1"
+val flatlafVersion = "3.5"
 
 /** The `io.methvin:directory-watcher` version. */
-val directoryWatcherVersion = "0.16.1"
+val directoryWatcherVersion = "0.18.0"
 
 /** The `com.google.code.findbugs:jsr305` version. */
 val jsrVersion = "3.0.2"
 
 /** The `org.junit.jupiter:junit-jupiter` version. */
-val junitVersion = "5.10.1"
+val junitVersion = "5.11.2"
 
 /** The language level version of Kotlin. */
 val kotlinLanguage = "1.9"
 
 /** The JVM target version for Kotlin. */
-val jvmTarget = 17
+val jvmTarget = 21
 
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
@@ -151,15 +151,18 @@ val built: String get() = formattedNow
 val relativePathBootstrapClasses =
 	systemPath(buildClassesPath, bootstrapPackagePath)
 
-
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(jvmTarget))
+kotlin {
+	jvmToolchain {
+		languageVersion = JavaLanguageVersion.of(jvmTarget)
+		vendor = JvmVendorSpec.ADOPTIUM
 	}
 }
 
-kotlin {
-	jvmToolchain(jvmTarget)
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(jvmTarget)
+		vendor = JvmVendorSpec.ADOPTIUM
+	}
 }
 
 dependencies {
@@ -175,8 +178,9 @@ dependencies {
 	implementation("com.formdev:flatlaf-intellij-themes:$flatlafVersion")
 	implementation("com.formdev:flatlaf:$flatlafVersion")
 	compileOnly("org.jetbrains:annotations:$kotlinAnnotations")
-	testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitVersion")
+	testImplementation(platform("org.junit:junit-bom:$junitVersion"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
@@ -189,10 +193,9 @@ tasks {
 	}
 
 	withType<KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = jvmTargetString
+		compilerOptions {
 			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = kotlinLanguage
+			version = kotlinLanguage
 		}
 	}
 	withType<Test> {
@@ -245,6 +248,9 @@ tasks {
 		maxHeapSize = "6g"
 		enableAssertions = true
 		systemProperty("availRoots", availRoots)
+		testLogging {
+			events("passed", "skipped", "failed")
+		}
 	}
 
 	jar {
@@ -348,6 +354,7 @@ tasks {
 		group = "bootstrap"
 		mainClass.set("avail.tools.bootstrap.PrimitiveNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
+		systemProperties["java.awt.headless"] = "true"
 		dependsOn(classes)
 	}
 
@@ -358,6 +365,7 @@ tasks {
 		group = "bootstrap"
 		mainClass.set("avail.tools.bootstrap.ErrorCodeNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
+		systemProperties["java.awt.headless"] = "true"
 		dependsOn(classes)
 	}
 
@@ -368,6 +376,7 @@ tasks {
 		group = "bootstrap"
 		mainClass.set("avail.tools.bootstrap.SpecialObjectNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
+		systemProperties["java.awt.headless"] = "true"
 		dependsOn(classes)
 	}
 
@@ -397,6 +406,7 @@ tasks {
 		group = "internal"
 		mainClass.set("avail.tools.bootstrap.BootstrapGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
+		systemProperties["java.awt.headless"] = "true"
 		dependsOn(classes)
 	}
 
@@ -502,11 +512,6 @@ publishing {
 			artifact(javadocJar)
 		}
 	}
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-	languageVersion = kotlinLanguage
-	apiVersion = kotlinLanguage
 }
 
 /**
@@ -653,7 +658,7 @@ fun Project.relocateGeneratedPropertyFiles (task: Copy)
 			"${rootProject.projectDir}",
 			relativePathBootstrap))
 	val movedPropertyFiles = file(systemPath(
-		"$buildDir",
+		"${layout.buildDirectory}",
 		"classes",
 		"kotlin",
 		"main",

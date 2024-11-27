@@ -40,7 +40,7 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
@@ -109,6 +109,8 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 
 	override fun semanticValue(): L2SemanticBoxedValue =
 		super.semanticValue().cast()
+
+	override fun register(): L2BoxedRegister = super.register().cast()
 
 	override fun copyForRegister(
 		newRegister: L2Register<BOXED_KIND>

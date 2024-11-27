@@ -99,6 +99,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.getValueForDebugger
 import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
@@ -243,7 +244,7 @@ class AvailDebugger internal constructor (
 
 	private val inspectFrame = object : AbstractDebuggerAction(
 		this,
-		"Inspect")
+		"Inspect frame")
 	{
 		override fun updateIsEnabled(busy: Boolean)
 		{
@@ -254,6 +255,23 @@ class AvailDebugger internal constructor (
 		{
 			stackListPane.selectedValue?.let {
 				inspect(it.function.code().toString(), it as AvailObject)
+			}
+		}
+	}
+
+	private val inspectFiber = object : AbstractDebuggerAction(
+		this,
+		"Inspect fiber")
+	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
+		override fun actionPerformed(e: ActionEvent)
+		{
+			fiberListPane.selectedValue?.let {
+				inspect(it.fiberName.asNativeString(), it as AvailObject)
 			}
 		}
 	}
@@ -397,7 +415,7 @@ class AvailDebugger internal constructor (
 			val map = mutableMapOf<Int, IntRange>()
 			val string = buildString {
 				L1Disassembler(code).printInstructions(
-					IdentityHashMap<A_BasicObject, Void>(10), 0)
+					IdentityHashMap<A_BasicObject, Unit>(10), 0)
 				{ pc, line, string ->
 					val before = length
 					append("$pc. [:$line] $string")
@@ -1276,6 +1294,9 @@ class AvailDebugger internal constructor (
 			DefaultHighlightPainter(washedOut)
 		}
 
+		fiberListPane.componentPopupMenu = JPopupMenu("Fiber").apply {
+			add(inspectFiber)
+		}
 		stackListPane.componentPopupMenu = JPopupMenu("Stack").apply {
 			add(inspectFrame)
 		}

@@ -73,7 +73,7 @@ object P_ResumeContinuation : Primitive(
 		interpreter.chunk = con.levelTwoChunk
 		interpreter.offset = con.levelTwoOffset
 		interpreter.returnNow = false
-		interpreter.setLatestResult(null)
+		interpreter.clearLatestResult()
 		return CONTINUATION_CHANGED
 	}
 

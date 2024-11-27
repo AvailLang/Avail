@@ -57,7 +57,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
@@ -119,16 +119,15 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (firstReg, secondReg) = arguments
 		val firstType = firstReg.type()
 		val secondType = secondReg.type()
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val possible =
 			possibleOrdersWhenComparingInstancesOf(firstType, secondType)
 		val canBeTrue =
@@ -140,21 +139,21 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The branch direction has been statically proven.
 			callSiteHelper.useAnswer(
-				generator.boxedConstant(objectFromBoolean(canBeTrue)))
+				translator.boxedConstant(objectFromBoolean(canBeTrue)), false)
 			return true
 		}
-		val truePath = generator.createBasicBlock("true path")
-		val falsePath = generator.createBasicBlock("false path")
+		val truePath = translator.createBasicBlock("true path")
+		val falsePath = translator.createBasicBlock("false path")
 		NumericComparator.LessOrEqual.compareAndBranchBoxed(
-			generator,
+			translator,
 			firstReg,
 			secondReg,
 			edgeTo(truePath),
 			edgeTo(falsePath))
-		generator.startBlock(truePath)
-		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
-		generator.startBlock(falsePath)
-		callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+		translator.startBlock(truePath)
+		callSiteHelper.useAnswer(translator.boxedConstant(trueObject), false)
+		translator.startBlock(falsePath)
+		callSiteHelper.useAnswer(translator.boxedConstant(falseObject), false)
 		return true
 	}
 

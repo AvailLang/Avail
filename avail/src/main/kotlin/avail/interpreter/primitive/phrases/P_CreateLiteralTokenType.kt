@@ -63,6 +63,14 @@ object P_CreateLiteralTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(literalTokenType(literalValueType))
 	}
 
+	/**
+	 * The type might contain an escaped variable, possibly making it shared
+	 * here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

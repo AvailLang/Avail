@@ -57,7 +57,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.utility.cast
 import java.lang.String.format
 
@@ -128,9 +128,9 @@ object P_EmergencyExit : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// Never inline.  Ensure the caller reifies the stack before calling it.
 		return false

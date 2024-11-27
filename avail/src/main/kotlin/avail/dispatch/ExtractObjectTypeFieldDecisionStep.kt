@@ -50,7 +50,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_TYPE_FIELD
 import avail.interpreter.primitive.objects.P_GetObjectTypeField
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant

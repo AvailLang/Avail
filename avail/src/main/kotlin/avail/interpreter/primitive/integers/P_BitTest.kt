@@ -38,6 +38,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.bitTest
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
@@ -67,13 +68,14 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.SelectBit
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import kotlin.math.min
 
@@ -156,13 +158,15 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean
 	{
 		val (a, b) = arguments
 		val (aType, bType) = argumentTypes
+//TODO
+//if (true) return false
 
 		// Only bother with specialized code if we know the values are int32's.
 		if (aType.typeIntersection(i32).isBottom
@@ -174,63 +178,68 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		val translator = callSiteHelper.translator
 		val generator = callSiteHelper.generator
 		val fallback = L2BasicBlock("fallback for bit test")
-		val aInt = generator.readInt(
-			a.semanticValue().unboxedInt, fallback)
-		val bInt = generator.readInt(
-			b.semanticValue().unboxedInt, fallback)
-		// Fall back if bInt is > 31.  We already know it's non-negative.
-		val inRange = L2BasicBlock("bit position is in 0..31")
-		NumericComparator.LessOrEqual.compareAndBranchInt(
-			generator,
-			bInt,
-			generator.unboxedIntConstant(31),
-			edgeTo(inRange),
-			edgeTo(fallback))
-		generator.startBlock(inRange)
-		val shifted: L2ReadIntOperand = if (bType.upperBound.equals(zero))
-		{
-			// No need to shift it.
-			aInt
+		val aInt = generator.readInt(a.semanticValue().unboxedInt, fallback) {
+			return false
 		}
-		else
+		// At this point we have the i32 under test, and know from the primitive
+		// signature that the bit position is >= 0.  If the bit position we're
+		// selecting is >31, it'll just be a copy of the sign bit.
+		val bit = generator.intWriteTemp("bit", intRestrictionForType(u1))
+		val bigShift = L2BasicBlock("shift is huge")
+		val hasBit = L2BasicBlock("bit was extracted")
+		run {
+			val bInt = generator.readInt(
+				b.semanticValue().unboxedInt, bigShift
+			) {
+				// We're shifting by an amount that *always* exceeds an i32, so
+				// we just use the sign bit (31) unconditionally.
+				generator.jumpTo(bigShift)
+				return@run
+			}
+			if (bType.upperBound.equalsInt(0))
+			{
+				// Common case: no shift is needed because we're extracting the
+				// low bit.
+				generator.addInstruction(
+					L2_BIT_LOGIC_OP(
+						And, aInt, generator.unboxedIntConstant(1), bit))
+			}
+			else
+			{
+				generator.addInstruction(
+					L2_BIT_LOGIC_OP(SelectBit, aInt, bInt, bit))
+			}
+			generator.jumpTo(hasBit)
+		}
+		assert(!generator.currentlyReachable())
+		generator.startBlock(bigShift)
+		if (generator.currentlyReachable())
 		{
-			val shiftedWrite = generator.intWriteTemp(
-				intRestrictionForType(i32))
 			generator.addInstruction(
 				L2_BIT_LOGIC_OP(
-					Shr,
-					aInt,
-					bInt,
-					shiftedWrite))
-			L2ReadIntOperand(
-				shiftedWrite.pickSemanticValue(),
-				shiftedWrite.restriction(),
-				generator.currentManifest)
+					SelectBit, aInt, generator.unboxedIntConstant(31), bit))
+			generator.jumpTo(hasBit)
 		}
-		val maskedWrite = generator.intWriteTemp(intRestrictionForType(u1))
-		generator.addInstruction(
-			L2_BIT_LOGIC_OP(
-				And,
-				shifted,
-				generator.unboxedIntConstant(1),
-				maskedWrite))
+		assert(!generator.currentlyReachable())
+		generator.startBlock(hasBit)
+		// We have now populated `bit` with either 0 or 1.
 		val isZeroLabel = generator.createBasicBlock("bit is zero")
 		val isOneLabel = generator.createBasicBlock("bit is one")
 		NumericComparator.Equal.compareAndBranchInt(
 			generator,
 			L2ReadIntOperand(
-				maskedWrite.pickSemanticValue(),
-				maskedWrite.restriction(),
+				bit.pickSemanticValue(),
+				bit.restriction(),
 				generator.currentManifest),
 			generator.unboxedIntConstant(0),
-			edgeTo(isZeroLabel),
-			edgeTo(isOneLabel))
+			ifTrue = edgeTo(isZeroLabel),
+			ifFalse = edgeTo(isOneLabel))
 		generator.startBlock(isZeroLabel)
 		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(falseObject))
+			translator.boxedConstant(falseObject), false)
 		generator.startBlock(isOneLabel)
 		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(trueObject))
+			translator.boxedConstant(trueObject), false)
 		generator.startBlock(fallback)
 		// If the fallback is reachable, return false to indicate general
 		// infallible primitive invocation code should be generated for it,

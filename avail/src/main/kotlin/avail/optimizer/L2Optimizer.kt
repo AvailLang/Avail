@@ -32,7 +32,6 @@
 package avail.optimizer
 
 import avail.AvailRuntimeSupport
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
@@ -45,18 +44,16 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -72,7 +69,7 @@ import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.Strings.increaseIndentation
 import avail.utility.cast
 import avail.utility.deepForEach
-import avail.utility.removeLast
+import avail.utility.mapToSet
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Deque
@@ -469,23 +466,79 @@ class L2Optimizer internal constructor(
 			mode = BySemanticValue,
 			interestingConditionsByOldBlock = splitConditions)
 		{ sourceInstruction ->
-			if (sourceInstruction is L2_PHI<*>) return@regenerateGraph
-			if (!sourceInstruction.hasSideEffect)
-			{
-				sourceInstruction.writeOperands.singleOrNull()?.let { write ->
-					val semanticValues = write.semanticValues()
-					semanticValues.firstNotNullOfOrNull {
-						currentManifest.equivalentSemanticValue(it)
-					}?.let { equivalent ->
-						moveRegister(equivalent, semanticValues.cast())
-						return@regenerateGraph
-					}
-				}
-			}
+			if (populateIfPossible(sourceInstruction)) return@regenerateGraph
 			// Fall back to having the instruction transform itself.
 			basicTransformInstruction(sourceInstruction)
 				.emitTransformedInstruction(this)
 		}
+	}
+
+	/**
+	 * If the source instruction has no side effects and isn't a phi, check if
+	 * its sole write has a semantic value equivalent to a value already in the
+	 * manifest.  If so, emit a move into the not-yet-populated semantic values,
+	 * and answer `true`.  Otherwise answer `false`.
+	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which emission should occur if possible.
+	 * @param sourceInstruction
+	 *   The [L2Instruction] from a previous version of the graph.
+	 */
+	private fun L2GeneratorInterface.populateIfPossible(
+		sourceInstruction: L2Instruction
+	): Boolean
+	{
+		// If it's a phi, pretend we wrote something, since it will be
+		// automatically generated as needed.
+		if (sourceInstruction is L2_PHI<*>) return true
+		// If it has side effect, do the default processing.
+		if (sourceInstruction.hasSideEffect) return false
+		sourceInstruction.writeOperands.singleOrNull()?.let { write ->
+			// See if there's an equivalent value alredy computed, and
+			// if so just move it to the sole write, eliding the
+			// sourceInstruction.
+			val semanticValues = write.semanticValues()
+			val possibleSources = semanticValues.mapNotNull {
+				currentManifest.equivalentSemanticValue(it)
+			}
+			if (possibleSources.isNotEmpty())
+			{
+				val unpopulated = semanticValues - possibleSources
+				if (unpopulated.isEmpty())
+				{
+					// All destination semantic values are already populated, so
+					// there's no need to do anything else.  However, since we
+					// know they're supposed to be equivalent to each other, we
+					// merge their synonyms.  Note that since there won't be an
+					// instruction to repeat this in subsequent passes, we'll
+					// lose out on the values being synonymous, but at least we
+					// can cause them now to all to have the intersection of the
+					// restrictions.
+					// TODO introduce an instruction whose purpose is to merge
+					//  synonyms, while also setting a restriction.  It's
+					//  unclear how such an instruction can move, be postponed,
+					//  or even be preserved.  Perhaps a better solution is to
+					//  respect the synonym grouping of an old edge's manifest
+					//  during regeneration.
+					val synonymRepresentatives = possibleSources.mapToSet {
+						currentManifest.semanticValueToSynonym(it)
+							.pickSemanticValue()
+					}.toList()
+					for (i in 1..<synonymRepresentatives.size)
+					{
+						currentManifest.dynamicMergeExistingSemanticValues(
+							synonymRepresentatives[0],
+							synonymRepresentatives[i])
+					}
+					return true
+				}
+				// Not all destinations have been filled, so populate them with
+				// a move.
+				moveRegister(possibleSources.first(), unpopulated.cast())
+				return true
+			}
+		}
+		return false
 	}
 
 	/**
@@ -671,101 +724,8 @@ class L2Optimizer internal constructor(
 		// Emit the transformation of the given instruction, emitting any
 		// necessary postponed instructions first.
 		regenerateGraph(BySemanticValue) { sourceInstruction ->
-			if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
-			{
-				// Don't allow instructions to be delayed across an instruction
-				// that goes both ways, since that would make the computation in
-				// one of the forks redundant with the computation in the other.
-				// Specifically, an L2_SAVE_ALL_AND_PC_TO_INT must act as a
-				// barrier against postponement, since values created after the
-				// fork will not affect the collection of registers that need to
-				// be saved in a register dump and restored on the second path.
-				// For simplicity, just recursively force all postponed
-				// instructions to be generated here.
-				forceAllPostponedTranslationsExceptConstantMoves(null, true)
-			}
-			when
-			{
-				sourceInstruction is L2_PHI<*> ->
-				{
-					// Ignore it.
-				}
-				sourceInstruction.hasSideEffect ->
-				{
-					// Emit the translation right now.
-					forcePostponedTranslationNow(sourceInstruction)
-				}
-				sourceInstruction.basicBlock().successorEdges().size > 1 &&
-					sourceInstruction.destinationRegisters.all { writeReg ->
-						sourceInstruction.basicBlock().successorEdges().all {
-							edge -> writeReg in edge.alwaysLiveInEntities!!
-						}
-					} ->
-				{
-					// We're going to branch soon, but the result will be needed
-					// always along all the successor edges.  While we *could*
-					// postpone the instruction, we choose not to, since the
-					// increase of register pressure is minor compared to the
-					// cost of the duplicated code.
-					forcePostponedTranslationNow(sourceInstruction)
-				}
-				else ->
-				{
-					// At least one output is a constant.  Emit a constant move
-					// for each constant output, then postpone the instruction
-					// if any outputs were non-constant.
-					var anyNonconstant = false
-					for (write in sourceInstruction.writeOperands)
-					{
-						val constant = write.restriction().constantOrNull
-						when (constant)
-						{
-							null -> anyNonconstant = true
-							else -> moveConstantForWrite(constant, write)
-						}
-					}
-					if (anyNonconstant)
-					{
-						// At least one output was non-constant.  Postpone the
-						// instruction.
-						currentManifest.recordPostponedSourceInstruction(
-							sourceInstruction)
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Ensure the given constant is written to each of the [L2SemanticValue]s
-	 * of the given [L2WriteOperand].
-	 */
-	private fun <K: RegisterKind<K>> moveConstantForWrite(
-		constant: AvailObject,
-		write: L2WriteOperand<K>)
-	{
-		val kind = write.kind
-		val read = kind.readConstant(generator, constant)
-		// Populate the rest of the semantic values.
-		val (old, new) = write.semanticValues().partition(
-			generator.currentManifest::hasSemanticValue)
-		if (new.isNotEmpty())
-		{
-			generator.addInstruction(
-				kind.move(
-					read,
-					kind.createWrite(
-						generator::nextUnique,
-						new.toSet(),
-						restrictionForConstant(
-							constant, kind.restrictionFlag))))
-		}
-		// Ensure already-populated semantic values end up in the same synonym
-		// as the semantic constant.
-		for (oldValue in old)
-		{
-			generator.currentManifest.mergeExistingSemanticValues(
-				read.semanticValue(), oldValue)
+			println("Processing: " + sourceInstruction)
+			sourceInstruction.regenerateForPostponement(this@regenerateGraph)
 		}
 	}
 
@@ -825,6 +785,8 @@ class L2Optimizer internal constructor(
 		// into the emptied CFG.
 		val oldGraph = L2ControlFlowGraph()
 		controlFlowGraph.evacuateTo(oldGraph)
+		generator.mode = mode
+		generator.currentManifest.mode = mode
 		val inverseSpecialBlockMap =
 			generator.specialBlocks.entries.associate { (s, b) -> b to s }
 		val regenerator = object : L2Regenerator(
@@ -883,19 +845,7 @@ class L2Optimizer internal constructor(
 		}
 		// Use an L2Regenerator to do the substitution.
 		regenerateGraph(BySemanticValue) { sourceInstruction ->
-			if (sourceInstruction is L2_PHI<*>) return@regenerateGraph
-			if (!sourceInstruction.hasSideEffect)
-			{
-				sourceInstruction.writeOperands.singleOrNull()?.let { write ->
-					val semanticValues = write.semanticValues()
-					semanticValues.firstNotNullOfOrNull {
-						currentManifest.equivalentSemanticValue(it)
-					}?.let { equivalent ->
-						moveRegister(equivalent, semanticValues.cast())
-						return@regenerateGraph
-					}
-				}
-			}
+			if (populateIfPossible(sourceInstruction)) return@regenerateGraph
 			// Fall back to having the instruction transform itself.
 			basicTransformInstruction(sourceInstruction)
 				.generateReplacement(this, sourceInstruction)
@@ -1061,11 +1011,14 @@ class L2Optimizer internal constructor(
 				// Keep if it's not a move.
 				if (this !is L2_MOVE<*>) return@run true
 				// Keep if it's not a same-color move.
-				if (source.register() != destination.register())
+				if (source.register().finalIndex
+					!= destination.register().finalIndex)
+				{
 					return@run true
+				}
 				val sourceSynonym = currentManifest.semanticValueToSynonym(
 					source.semanticValue())
-				// Keep if it doesn't introduce a new semantic value.
+				// Keep if it introduces a new semantic value.
 				if (!sourceSynonym.semanticValues().containsAll(
 						destination.semanticValues()))
 					return@run true
@@ -1297,8 +1250,8 @@ class L2Optimizer internal constructor(
 			instructions.forEachIndexed { i, instruction ->
 				// Deal with the register reads.
 				if (instruction is L2_MOVE<*>
-					&& instruction.sourceRegisters.single()
-						== instruction.destinationRegisters.single())
+					&& instruction.source.register().finalIndex
+						== instruction.destination.register().finalIndex)
 				{
 					// Treat it as a pass-through, since it just moves from a
 					// register to itself.
@@ -1315,7 +1268,7 @@ class L2Optimizer internal constructor(
 					return@forEachIndexed
 				}
 				instruction.readsThatMightDestroy.forEach { read ->
-					val readReg = read.register() as L2BoxedRegister
+					val readReg = read.register()
 					val pair = firstUses[readReg]
 					when
 					{
@@ -1576,6 +1529,18 @@ class L2Optimizer internal constructor(
 				instruction.writeOperands.forEach {
 					definitions.getOrPut(it.register(), ::mutableSetOf).add(it)
 				}
+				if (generator.mode == BySemanticValue
+					&& instruction !is L2_PHI<*>
+					&& instruction !is L2_STRIP_MANIFEST)
+				{
+					// An instruction cannot read and write the same semantic
+					// value.
+					val written = instruction.writeOperands
+						.flatMap(L2WriteOperand<*>::semanticValues)
+					val read = instruction.readOperands
+						.map(L2ReadOperand<*>::semanticValue)
+					assert(written.intersect(read).isEmpty())
+				}
 			}
 			// Ensure the successorEdges of the block agree with the edges of
 			// the last instruction.  Also collect all successor and predecessor
@@ -1833,25 +1798,23 @@ class L2Optimizer internal constructor(
 				{
 					// It's the last instruction of the block.  First apply the
 					// writes that don't specify a Purpose...
-					instruction.operandsWithNamedTypesDo { operand, namedType ->
-						if (operand is L2WriteOperand<*> &&
-							namedType.purpose === null)
+					instruction.writesAndPurposesDo { write, purpose ->
+						if (purpose === null)
 						{
 							workingSet.writeRegister(
-								operand.register(), registerIdFunction)
+								write.register(), registerIdFunction)
 						}
 					}
 					// Now produce variants for each mentioned purpose, if any.
-					instruction.operandsWithNamedTypesDo { operand, namedType ->
-						if (operand is L2WriteOperand<*> &&
-							namedType.purpose !== null)
+					instruction.writesAndPurposesDo { write, purpose ->
+						if (purpose !== null)
 						{
-							val purposeWorkingSet = workingSetByPurpose
-								.computeIfAbsent(namedType.purpose) {
+							val purposeWorkingSet =
+								workingSetByPurpose.computeIfAbsent(purpose) {
 									UsedRegisters(workingSet)
 								}
 							purposeWorkingSet.writeRegister(
-								operand.register(), registerIdFunction)
+								write.register(), registerIdFunction)
 						}
 					}
 				}
@@ -1995,7 +1958,7 @@ class L2Optimizer internal constructor(
 	companion object
 	{
 		/** Whether to sanity-check the graph between optimization steps. */
-		var shouldSanityCheck = false
+		var shouldSanityCheck = true //TODO false
 
 		/** Statistic for tracking the cost of sanity checks. */
 		private val sanityCheckStat = Statistic(

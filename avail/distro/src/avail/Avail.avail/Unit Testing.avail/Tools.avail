@@ -613,9 +613,9 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 	/**
 	 * @method "Require:_=_"
 	 * @forbids 1 "_≤_" "_<_" "_②≥_①" "_②>_①" "_=_" "«_‡=»" "«_‡«=|≤|<»!»"
-	 * 		"«_‡«=|≥|>»!»"
+	 *      "«_‡«=|≥|>»!»"
 	 * @forbids 2 "_≤_" "_<_" "_②≥_①" "_②>_①" "_=_" "«_‡=»" "«_‡«=|≤|<»!»"
-	 * 		"«_‡«=|≥|>»!»"
+	 *      "«_‡«=|≥|>»!»"
 	 * @forbids 3 "∅"
 	 */
 	Grammatical restriction "Require:_=_" is <comparisons, comparisons>;
@@ -623,9 +623,9 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 	/**
 	 * @method "Require:_=_(_)"
 	 * @forbids 1 "_≤_" "_<_" "_②≥_①" "_②>_①" "_=_" "«_‡=»" "«_‡«=|≤|<»!»"
-	 * 		"«_‡«=|≥|>»!»"
+	 *      "«_‡«=|≥|>»!»"
 	 * @forbids 2 "_≤_" "_<_" "_②≥_①" "_②>_①" "_=_" "«_‡=»" "«_‡«=|≤|<»!»"
-	 * 		"«_‡«=|≥|>»!»"
+	 *      "«_‡«=|≥|>»!»"
 	 * @forbids 3 "∅"
 	 */
 	Grammatical restriction "Require:_=_(_)" is <comparisons, comparisons, ∅>;

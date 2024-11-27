@@ -53,7 +53,7 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -113,9 +113,9 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// Inline the invocation of this P_CastIntoElse primitive, such that it
 		// does a type test for the type being cast to, then either invokes the
@@ -124,9 +124,9 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		val (valueRead, castFunctionRead, elseFunctionRead) = arguments
 		val translator = callSiteHelper.translator
 		val castBlock =
-			translator.generator.createBasicBlock("cast type matched")
+			translator.createBasicBlock("cast type matched")
 		val elseBlock =
-			translator.generator.createBasicBlock("cast type did not match")
+			translator.createBasicBlock("cast type did not match")
 
 		val typeTest = castFunctionRead.exactSoleArgumentType()
 		if (typeTest !== null)
@@ -155,18 +155,18 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 				when {
 					passedTest -> translator.generateGeneralFunctionInvocation(
 						castFunctionRead,
-						listOf(valueRead),
 						true,
-						callSiteHelper)
+						callSiteHelper,
+						listOf(valueRead))
 					else -> translator.generateGeneralFunctionInvocation(
-						elseFunctionRead, emptyList(), true, callSiteHelper)
+						elseFunctionRead, true, callSiteHelper, emptyList())
 				}
 				return true
 			}
 
 			// We know the exact type to compare the value against, but we
 			// couldn't statically eliminate the type test.  Emit a branch.
-			translator.generator.jumpIfKindOfConstant(
+			translator.jumpIfKindOfConstant(
 				valueRead, typeTest, castBlock, elseBlock)
 		}
 		else
@@ -177,7 +177,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// the valueRead along the branches, since we don't statically know
 			// the type that it was compared to.
 			val parameterTypeRead =
-				translator.generator.extractParameterTypeFromFunction(
+				translator.extractParameterTypeFromFunction(
 					castFunctionRead, 1)
 			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_OBJECT(
@@ -190,14 +190,14 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// We couldn't skip the runtime type check, which takes us to either
 		// castBlock or elseBlock, after which we merge the control flow back.
 		// Start by generating the invocation of castFunction.
-		translator.generator.startBlock(castBlock)
+		translator.startBlock(castBlock)
 		translator.generateGeneralFunctionInvocation(
-			castFunctionRead, listOf(valueRead), true, callSiteHelper)
+			castFunctionRead, true, callSiteHelper, listOf(valueRead))
 
 		// Now deal with invoking the elseBlock instead.
-		translator.generator.startBlock(elseBlock)
+		translator.startBlock(elseBlock)
 		translator.generateGeneralFunctionInvocation(
-			elseFunctionRead, emptyList(), true, callSiteHelper)
+			elseFunctionRead, true, callSiteHelper, emptyList())
 
 		return true
 	}

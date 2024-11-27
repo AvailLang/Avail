@@ -434,20 +434,18 @@ abstract class PhraseDescriptor protected constructor(
 			resultType: A_Type): Boolean
 		{
 			val statementCount = flat.size
-			for (i in 0 until statementCount)
-			{
-				val statement = flat[i]
+			flat.forEachIndexed { i, statement ->
 				assert(!statement.phraseKindIsUnder(SEQUENCE_PHRASE))
 				val valid: Boolean = when
 				{
-					i >= statementCount - 1 ->
+					i == statementCount - 1 ->
 					{
 						statement.phraseExpressionType.isSubtypeOf(resultType)
 					}
 					else ->
 					{
 						((statement.phraseKindIsUnder(STATEMENT_PHRASE)
-							||statement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
+							|| statement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
 							|| statement.phraseKindIsUnder(SEND_PHRASE))
 							&& statement.phraseExpressionType.isTop)
 					}

@@ -73,22 +73,21 @@ class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 	// Never remove this.
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(" got: ")
-		builder.append(returnedValue.registerString())
-		builder.append(", expected: ")
-		builder.append(expectedType.constant.typeTag)
-		builder.append(", pc: ")
-		builder.append(pc.value)
-		builder.append(", stackp: ")
-		builder.append(stackp.value)
-		builder.append("\n\tframe data: ")
-		frameValues.elements.joinTo(builder, limit = 5) { it.registerString() }
+		renderPreamble()
+		append(" got: ")
+		append(returnedValue.registerString())
+		append(", expected: ")
+		append(expectedType.constant.typeTag)
+		append(", pc: ")
+		append(pc.value)
+		append(", stackp: ")
+		append(stackp.value)
+		append("\n\tframe data: ")
+		frameValues.elements.joinTo(this, limit = 5) { it.registerString() }
 	}
 
 	override fun translateToJVM(
@@ -98,7 +97,7 @@ class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 		translator.loadInterpreter(method)
 		// :: interpreter
 		translator.load(method, returnedValue.register())
-		translator.literal(method, expectedType.constant)
+		translator.loadLiteralObject(method, expectedType.constant)
 		translator.intConstant(method, pc.value)
 		translator.intConstant(method, stackp.value)
 		// :: interpreter, value, expected, pc, stackp

@@ -58,16 +58,15 @@ class L2_GET_TYPE(
 	var type: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(type.registerString())
-		builder.append(" ← ")
-		builder.append(value.registerString())
+		renderPreamble()
+		append(' ')
+		append(type.registerString())
+		append(" ← ")
+		append(value.registerString())
 	}
 
 	override fun translateToJVM(

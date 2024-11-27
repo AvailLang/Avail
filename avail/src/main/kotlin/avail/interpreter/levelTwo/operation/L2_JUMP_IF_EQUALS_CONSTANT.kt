@@ -91,18 +91,17 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			oldRestriction.minusValue(constant.constant))
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(value.registerString())
-		builder.append(" = ")
-		builder.append(constant.constant)
+		renderPreamble()
+		append(' ')
+		append(value.registerString())
+		append(" = ")
+		append(constant.constant)
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::value, ::constant)
+			desiredOperandTypes, ::value, ::constant)
 	}
 
 	override fun generateConditionalReplacement(
@@ -120,13 +119,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		regenerator: L2Regenerator)
 	{
 		assert(!regenerator.currentManifest.hasImpossibleRestriction)
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifEqual.targetBlock() == ifNotEqual.targetBlock())
-		{
-			regenerator.jumpTo(ifEqual.targetBlock())
-			return
-		}
+		if (replaceWithJumpIfPossible(regenerator)) return
 		val valueRestriction =
 			regenerator.currentManifest.restrictionFor(value.semanticValue())
 		valueRestriction.constantOrNull?.let { valueValue ->
@@ -220,7 +213,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			// :: if (value.equals(constant)) goto ifEqual;
 			// :: else goto ifUnequal;
 			translator.load(method, value.register())
-			translator.literal(method, constant.constant)
+			translator.loadLiteralObject(method, constant.constant)
 			A_BasicObject.equalsMethod.generateCall(method)
 		}
 		emitBranch(

@@ -56,7 +56,6 @@ import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -134,7 +133,7 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 				regenerator.addInstruction(
 					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 						L2ConstantOperand(rawFunction),
-						L2ArbitraryConstantOperand(this),
+						this,
 						arguments,
 						regenerator.boxedWrite(
 							result.semanticValues(),

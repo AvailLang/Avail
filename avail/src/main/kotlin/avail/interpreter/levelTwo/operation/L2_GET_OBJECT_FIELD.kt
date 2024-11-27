@@ -41,8 +41,8 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.mapToSet
@@ -60,19 +60,18 @@ class L2_GET_OBJECT_FIELD(
 	var fieldValue: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(fieldValue.registerString())
-		builder.append(" ← ")
-		builder.append(sourceObject)
-		builder.append("[")
-		builder.append(fieldAtom)
-		builder.append("]")
+		renderPreamble()
+		append(' ')
+		append(fieldValue.registerString())
+		append(" ← ")
+		append(sourceObject)
+		append("[")
+		append(fieldAtom)
+		append("]")
 	}
 
 	override fun emitTransformedInstruction(
@@ -82,7 +81,7 @@ class L2_GET_OBJECT_FIELD(
 		val originalWriteInstruction = originalWrite.instruction
 		if (originalWriteInstruction is L2_CREATE_OBJECT)
 		{
-			val variant = originalWriteInstruction.variant.constant
+			val variant = originalWriteInstruction.variant
 			val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
 			if (fieldIndex == 0)
 			{
@@ -153,7 +152,7 @@ class L2_GET_OBJECT_FIELD(
 		}
 		else
 		{
-			translator.literal(method, fieldAtom.constant)
+			translator.loadLiteralObject(method, fieldAtom.constant)
 			AvailObject.fieldAtMethod.generateCall(method)
 		}
 		translator.store(method, fieldValue.register())

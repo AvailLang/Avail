@@ -1986,9 +1986,7 @@ sealed class AvailObjectRepresentation constructor(
 	 * That's a convenient warning for the programmer, even though it actually
 	 * works correctly.
 	 */
-	@Deprecated(
-		message = "Don't compare AvailObject and arbitrary Object",
-		replaceWith = ReplaceWith("equals(AvailObject)"))
+	//Deprecated in inherited interface A_BasicObject
 	override fun equals(other: Any?): Boolean
 	{
 		return other is AvailObject

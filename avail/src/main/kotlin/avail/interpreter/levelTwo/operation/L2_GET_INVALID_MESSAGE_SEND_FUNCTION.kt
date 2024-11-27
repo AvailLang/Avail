@@ -64,14 +64,13 @@ class L2_GET_INVALID_MESSAGE_SEND_FUNCTION(
 	 */
 	override val isCold get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(invalidMessageSendFunction.registerString())
+		renderPreamble()
+		append(' ')
+		append(invalidMessageSendFunction.registerString())
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()

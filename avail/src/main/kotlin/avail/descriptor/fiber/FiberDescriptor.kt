@@ -99,6 +99,7 @@ import avail.exceptions.unsupported
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
 import avail.utility.isNullOr
@@ -892,8 +893,22 @@ class FiberDescriptor private constructor(
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self.mutableSlot(RESULT)
 
-	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject) =
+	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject)
+	{
+		if (helper.executionState == ExecutionState.ABORTED)
+		{
+			assert(result.isNil)
+		}
+		else
+		{
+			//TODO Remove expensive type check.
+			val expectedType = self[RESULT_TYPE]
+			assert(result.isInstanceOf(expectedType)) {
+				"Unexpected type of result from fiber completion"
+			}
+		}
 		self.setMutableSlot(RESULT, result)
+	}
 
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(HERITABLE_FIBER_GLOBALS)
@@ -1414,6 +1429,6 @@ class FiberDescriptor private constructor(
 		 * @return
 		 *   A fiber.
 		 */
-		fun currentFiber(): A_Fiber = Interpreter.current().fiber()
+		fun currentFiber(): A_Fiber = currentInterpreter.fiber()
 	}
 }

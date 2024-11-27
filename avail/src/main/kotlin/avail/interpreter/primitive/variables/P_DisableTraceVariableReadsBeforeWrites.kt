@@ -47,6 +47,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.Primitive
@@ -88,6 +89,13 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
+
+	/**
+	 * If the reactorFunction captured a local variable, it will become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

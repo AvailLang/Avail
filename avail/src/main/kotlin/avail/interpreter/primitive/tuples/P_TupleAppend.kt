@@ -59,8 +59,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
-import avail.interpreter.levelTwo.operation.L2_APPEND_TO_TUPLE
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
+import avail.optimizer.CallSiteHelper
 import avail.utility.PrefixSharingList.Companion.append
 
 /**
@@ -93,23 +93,22 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		assert(arguments.size == 2)
 		val tupleRead = arguments[0]
 		val newElementRead = arguments[1]
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val tupleType = argumentTypes[0]
 		val range = tupleType.sizeRange
 		val size = range.lowerBound
 		val explodedTupleElements =
 			if (size.isInt && size.equals(range.upperBound))
 			{
-				generator.explodeTupleIfPossible(
+				translator.explodeTupleIfPossible(
 					tupleRead,
 					tupleRead.type().tupleOfTypesFromTo(1, size.extractInt)
 						.toList())
@@ -118,19 +117,19 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 		if (explodedTupleElements !== null)
 		{
 			callSiteHelper.useAnswer(
-				generator.createTuple(
-					explodedTupleElements.append(newElementRead)))
+				translator.createTuple(
+					explodedTupleElements.append(newElementRead)),
+				false)
+			return true
 		}
-		else
-		{
-			val resultType = concatenatingAnd(
-				tupleType, tupleTypeForTypes(newElementRead.type()))
-			val tempWrite =
-				generator.boxedWriteTemp(restriction(resultType, null))
-			generator.addInstruction(
-				L2_APPEND_TO_TUPLE(tupleRead, newElementRead, tempWrite))
-			callSiteHelper.useAnswer(translator.readBoxed(tempWrite))
-		}
+		val resultType = concatenatingAnd(
+			tupleType, tupleTypeForTypes(newElementRead.type()))
+		val tempWrite = translator.boxedWriteTemp(
+			"tuple after append",
+			restriction(resultType, null))
+		translator.addInstruction(
+			L2_APPEND_TO_TUPLE(tupleRead, newElementRead, tempWrite))
+		callSiteHelper.useAnswer(translator.readBoxed(tempWrite), false)
 		return true
 	}
 

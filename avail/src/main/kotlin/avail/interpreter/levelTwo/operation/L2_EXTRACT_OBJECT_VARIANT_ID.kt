@@ -53,18 +53,16 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 	var variantId: L2WriteIntOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder
-			.append(' ')
-			.append(variantId.registerString())
-			.append(" ← VARIANT_ID(")
-			.append(sourceObject.registerString())
-			.append(")")
+		renderPreamble()
+		append(' ')
+		append(variantId.registerString())
+		append(" ← VARIANT_ID(")
+		append(sourceObject.registerString())
+		append(")")
 	}
 
 	override fun emitTransformedInstruction(

@@ -156,7 +156,7 @@ sealed class ParsingOperation constructor(
 	 *   The [A_BundleTree]s at which to continue parsing.
 	 * @return
 	 *   The requested description.
- 	 */
+	 */
 	internal open fun compilerStepsDebuggerDescription(
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree

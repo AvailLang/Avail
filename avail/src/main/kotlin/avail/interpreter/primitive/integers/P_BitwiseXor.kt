@@ -61,9 +61,9 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Xor
-import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.notNullAnd
 import kotlin.math.min
@@ -160,8 +160,7 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 			regenerator.currentManifest.isEquivalentSemanticValue(
 				x.semanticValue(), y.semanticValue()
 			) -> regenerator.addInstruction(
-				L2_MOVE.L2_MOVE_BOXED(
-					regenerator.boxedConstant(zero), result))
+				L2_MOVE_BOXED(regenerator.boxedConstant(zero), result))
 			else -> super.emitTransformedInfalliblePrimitive(
 				rawFunction, arguments, result, regenerator)
 		}
@@ -170,9 +169,9 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean = Xor.generateBinaryIntOperation(
 		this,
 		arguments,
@@ -183,6 +182,6 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 		},
 		fallbackBody = {
 			generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
+				functionToCallReg, false, callSiteHelper, arguments)
 		})
 }

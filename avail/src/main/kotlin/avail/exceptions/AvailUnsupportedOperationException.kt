@@ -78,6 +78,10 @@ private fun unsupportedOperation (problemClass: Class<*>): Nothing
 		}
 		catch (e: Exception)
 		{
+			//TODO Remove after debugging Kotlin debugger warnings.
+			println("UNSUPPORTED:\n")
+			e.printStackTrace()
+
 			var name = e.stackTrace[1].methodName
 			if (name == "getUnsupported")  // property name
 			{

@@ -32,7 +32,6 @@
 package avail.optimizer.values
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.interpreter.levelTwo.L2Chunk
@@ -152,6 +151,9 @@ class Frame constructor(
 	/**
 	 * Answer the semantic value representing a new temporary value.
 	 *
+	 * @param name
+	 *   An optional short name that describes the purpose of this temp.  It
+	 *   does not need to be unique.
 	 * @param uniqueId
 	 *   The unique identifier used to identify this temporary value within its
 	 *   frame.
@@ -159,8 +161,8 @@ class Frame constructor(
 	 *   An [L2SemanticTemp] representing the temporary value, generalized to an
 	 *   [L2SemanticValue].
 	 */
-	fun temp(uniqueId: Int): L2SemanticBoxedValue =
-		L2SemanticTemp(this, uniqueId)
+	fun temp(name: String?, uniqueId: Int): L2SemanticBoxedValue =
+		L2SemanticTemp(this, name, uniqueId)
 
 	/**
 	 * Answer an [L2SemanticValue] that represents the reified caller

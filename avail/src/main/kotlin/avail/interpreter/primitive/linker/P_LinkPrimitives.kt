@@ -45,6 +45,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.setValue
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -83,8 +84,7 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 	{
 		interpreter.checkArgumentCount(2)
 		val jarPath = interpreter.argument(0).asNativeString()
-		val oldModuleOut: A_Variable =
-			interpreter.argument(1)
+		val oldModuleOut: A_Variable = interpreter.argument(1)
 		val loader = interpreter.availLoaderOrNull()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		loader.statementCanBeSummarized(false)

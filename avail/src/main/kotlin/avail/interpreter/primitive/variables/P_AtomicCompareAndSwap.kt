@@ -48,6 +48,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValues
+import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValuesNoCheck
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
@@ -62,9 +64,9 @@ import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operation.L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK
+import avail.interpreter.levelTwo.operation.variables.L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.optimizer.L1Translator
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -98,12 +100,20 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable is shared and a local variable is captured inside the
+	 * newValue, it could become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean
 	{
 		val translator = callSiteHelper.translator
@@ -115,14 +125,13 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 			return super.tryToGenerateSpecialPrimitiveInvocation(
 				functionToCallReg,
 				rawFunction,
-				arguments,
 				argumentTypes,
-				callSiteHelper)
+				callSiteHelper,
+				arguments)
 		}
-		val generator = translator.generator
-		val success = generator.createBasicBlock("swap success")
-		val failure = generator.createBasicBlock("swap failure")
-		val exception = generator.createBasicBlock("swap exception")
+		val success = translator.createBasicBlock("swap success")
+		val failure = translator.createBasicBlock("swap failure")
+		val exception = translator.createBasicBlock("swap exception")
 		translator.addInstruction(
 			L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
 				variableReg,
@@ -131,15 +140,15 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 				edgeTo(success),
 				edgeTo(failure),
 				edgeTo(exception)))
-		generator.startBlock(success)
-		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
+		translator.startBlock(success)
+		callSiteHelper.useAnswer(translator.boxedConstant(trueObject), false)
 
-		generator.startBlock(failure)
-		callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+		translator.startBlock(failure)
+		callSiteHelper.useAnswer(translator.boxedConstant(falseObject), false)
 
-		generator.startBlock(exception)
+		translator.startBlock(exception)
 		translator.generateGeneralFunctionInvocation(
-			functionToCallReg, arguments, false, callSiteHelper)
+			functionToCallReg, false, callSiteHelper, arguments)
 
 		return true
 	}

@@ -31,11 +31,14 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
@@ -112,7 +115,7 @@ constructor(
 	 * @return
 	 *   The write operand's [L2SemanticValue].
 	 */
-	fun pickSemanticValue(): L2SemanticValue<K> = semanticValues.first()
+	open fun pickSemanticValue(): L2SemanticValue<K> = semanticValues.first()
 
 	/**
 	 * Answer this write's [TypeRestriction].
@@ -171,6 +174,7 @@ constructor(
 		super.instructionWasAdded(manifest)
 		register.addDefinition(this)
 		manifest.recordDefinition(this)
+		manifest.removePostponedInstructioFor(this)
 	}
 
 	/**
@@ -257,6 +261,38 @@ constructor(
 		destinationRegisters: MutableList<L2Register<*>>)
 	{
 		destinationRegisters.add(register)
+	}
+
+	/**
+	 * Ensure the given constant is written to each of the [L2SemanticValue]s
+	 * of the given [L2WriteOperand].
+	 */
+	fun moveConstantForWrite(
+		constant: AvailObject,
+		generator: L2GeneratorInterface)
+	{
+		val read = kind.readConstant(generator, constant)
+		// Populate the rest of the semantic values.
+		val (old, new) = semanticValues().partition(
+			generator.currentManifest::hasSemanticValue)
+		if (new.isNotEmpty())
+		{
+			generator.addInstruction(
+				kind.move(
+					read,
+					kind.createWrite(
+						generator::nextUnique,
+						new.toSet(),
+						restrictionForConstant(
+							constant, kind.restrictionFlag))))
+		}
+		// Ensure already-populated semantic values end up in the same synonym
+		// as the semantic constant.
+		for (oldValue in old)
+		{
+			generator.currentManifest.mergeExistingSemanticValues(
+				read.semanticValue(), oldValue)
+		}
 	}
 
 	override fun appendTo(builder: StringBuilder)

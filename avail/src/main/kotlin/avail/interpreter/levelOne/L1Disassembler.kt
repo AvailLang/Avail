@@ -64,6 +64,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.isGlobal
 import avail.utility.Strings
 import java.util.IdentityHashMap
 
@@ -168,7 +170,7 @@ class L1Disassembler constructor(
 	 */
 	fun print(
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int,
 		highlightPc: Int = -1)
 	{
@@ -200,7 +202,7 @@ class L1Disassembler constructor(
 	 *   disassembled instruction.
 	 */
 	fun printInstructions(
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int,
 		action: (Int, Int, String)->Unit)
 	{
@@ -385,8 +387,10 @@ class L1Disassembler constructor(
 		{
 			// Allow
 			builder.append(" = var(")
-			val variableValue = value.value()
-			printIfSimple(variableValue, builder, null, depth + 1)
+			if (value.isGlobal)
+			{
+				builder.append(value.globalName)
+			}
 			builder.append(")")
 			return
 		}

@@ -82,6 +82,16 @@ sealed class LeftistHeap<Value : Comparable<Value>>(
 	 */
 	abstract fun without(value: Value): LeftistHeap<Value>
 
+	/**
+	 * Split the heap into two heaps.  This is only used for work stealing, to
+	 * reduce the number of times other heaps are explored.  The distribution of
+	 * values is not specified, but if there are multiple elements neither
+	 * produced heap will be empty, and if there is exactly one element, it will
+	 * be in the *first* split heap.  So during work stealing, the first heap
+	 * should be considered what has been taken.
+	 */
+	abstract val split: Pair<LeftistHeap<Value>, LeftistHeap<Value>>
+
 	/** Collect the heap's elements in a [List] in sorted order. */
 	fun toList(): List<Value>
 	{
@@ -106,6 +116,7 @@ private open class LeftistLeaf<Value : Comparable<Value>>
 	override fun with(newValue: Value) = LeftistInternal(newValue, this, this)
 	override fun merge(another: LeftistHeap<Value>) = another
 	override fun without(value: Value) = this
+	override val split get() = Pair(this, this)
 }
 
 /** The sole empty heap. */
@@ -157,6 +168,8 @@ constructor(
 		if (leftWithout == left && rightWithout == right) return this
 		return join(first, leftWithout, rightWithout)
 	}
+
+	override val split get() = Pair(left.with(first), right)
 }
 
 /**

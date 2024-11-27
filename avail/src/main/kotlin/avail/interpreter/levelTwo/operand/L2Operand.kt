@@ -208,12 +208,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 */
 	open fun addEdgesTo(list: MutableList<L2PcOperand>) { }
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		appendWithWarningsTo(builder, 0) {  }
-		return builder.toString()
-	}
+	override fun toString() = buildString { appendWithWarningsTo(0) { } }
 
 	/**
 	 * Append a textual representation of this operand to the provided
@@ -221,7 +216,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * string, invoke the warningStyleChange lambda with `true` to enable
 	 * the warning style, and `false` to turn it off again.
 	 *
-	 * @param builder
+	 * @receiver
 	 *   The [StringBuilder] on which to describe this operand.
 	 * @param indent
 	 *   How much additional indentation to add to successive lines.
@@ -229,27 +224,26 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   A lambda to invoke to turn the warning style on or off, with a
 	 *   mechanism specified (or ignored) by the caller.
 	 */
-	fun appendWithWarningsTo(
-		builder: StringBuilder,
+	fun StringBuilder.appendWithWarningsTo(
 		indent: Int,
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		if (instructionOrNull === null)
 		{
 			warningStyleChange(true)
-			builder.append("DEAD-OPERAND: ")
+			append("DEAD-OPERAND: ")
 			warningStyleChange(false)
 		}
 		else if (isMisconnected)
 		{
 			warningStyleChange(true)
-			builder.append("MISCONNECTED: ")
+			append("MISCONNECTED: ")
 			warningStyleChange(false)
 		}
 		// Call the inner method that can be overridden.
 		val temp = StringBuilder()
 		appendTo(temp)
-		builder.append(increaseIndentation(temp.toString(), indent))
+		append(increaseIndentation(temp.toString(), indent))
 	}
 
 	/**

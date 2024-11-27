@@ -60,12 +60,11 @@ class L2_RETURN_FROM_REIFICATION_HANDLER(
 
 	override val hasSideEffect: Boolean get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
+		renderPreamble()
 	}
 
 	override fun translateToJVM(

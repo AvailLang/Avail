@@ -47,7 +47,7 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Invoke the [falseBlock][FunctionDescriptor].
@@ -83,9 +83,9 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the else function, instead.  The client will generate any needed type
@@ -95,7 +95,7 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// 'then' function
 		// takes no arguments.
 		translator.generateGeneralFunctionInvocation(
-			elseFunction, emptyList(), true, callSiteHelper)
+			elseFunction, true, callSiteHelper, emptyList())
 		return true
 	}
 }

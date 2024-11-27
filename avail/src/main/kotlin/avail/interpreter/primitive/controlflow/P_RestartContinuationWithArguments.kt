@@ -73,7 +73,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
@@ -137,7 +137,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0
 		interpreter.returnNow = false
-		interpreter.setLatestResult(null)
+		interpreter.clearLatestResult()
 		return CONTINUATION_CHANGED
 	}
 
@@ -153,20 +153,19 @@ object P_RestartContinuationWithArguments : Primitive(
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		val (continuationReg, argumentsTupleReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val manifest = generator.currentManifest
+		val manifest = translator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
-		val label = generator.topFrame.label()
+		val label = translator.topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
@@ -189,7 +188,7 @@ object P_RestartContinuationWithArguments : Primitive(
 				// Couldn't guarantee the argument types matched.
 				return false
 			}
-			val explodedTupleRegs = generator.explodeTupleIfPossible(
+			val explodedTupleRegs = translator.explodeTupleIfPossible(
 				argumentsTupleReg, argTypesTuple.toList())
 			if (explodedTupleRegs === null)
 			{
@@ -222,7 +221,7 @@ object P_RestartContinuationWithArguments : Primitive(
 			return false
 		}
 		val argsSize = upperBound.extractInt
-		val explodedArgumentRegs = generator.explodeTupleIfPossible(
+		val explodedArgumentRegs = translator.explodeTupleIfPossible(
 			argumentsTupleReg,
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
 		explodedArgumentRegs ?: return false
@@ -231,9 +230,9 @@ object P_RestartContinuationWithArguments : Primitive(
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 				continuationReg,
 				L2ReadBoxedVectorOperand(explodedArgumentRegs)))
-		assert(!generator.currentlyReachable())
-		generator.startBlock(
-			generator.createBasicBlock(
+		assert(!translator.currentlyReachable())
+		translator.startBlock(
+			translator.createBasicBlock(
 				"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
 		return true
 	}

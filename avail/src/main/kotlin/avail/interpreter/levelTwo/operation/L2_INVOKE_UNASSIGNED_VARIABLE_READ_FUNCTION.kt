@@ -68,18 +68,17 @@ class L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION(
 	// Never remove this instruction.
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(" pc: ")
-		builder.append(pc.value)
-		builder.append(", stackp: ")
-		builder.append(stackp.value)
-		builder.append("\n\tframe data: ")
-		frameValues.elements.joinTo(builder, limit = 5) { it.registerString() }
+		renderPreamble()
+		append(" pc: ")
+		append(pc.value)
+		append(", stackp: ")
+		append(stackp.value)
+		append("\n\tframe data: ")
+		frameValues.elements.joinTo(this, limit = 5) { it.registerString() }
 	}
 
 	override fun translateToJVM(

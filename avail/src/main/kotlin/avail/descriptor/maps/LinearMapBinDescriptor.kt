@@ -398,12 +398,13 @@ internal class LinearMapBinDescriptor private constructor(
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy(
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin {
 		// Associate the key and value in this bin, potentially modifying it if
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
@@ -424,7 +425,7 @@ internal class LinearMapBinDescriptor private constructor(
 				return self.mapBinAtHashPutLevelCanDestroy(
 					key,
 					keyHash,
-					transformer(key, notFoundValue),
+					transformer(keyPrecursor, key, notFoundValue),
 					myLevel,
 					canDestroy)
 			}
@@ -432,7 +433,7 @@ internal class LinearMapBinDescriptor private constructor(
 
 		// The key is present.
 		val oldValue = self[BIN_SLOT_AT_, index shl 1]
-		val newValue = transformer(key, oldValue)
+		val newValue = transformer(keyPrecursor, key, oldValue)
 		if (newValue === oldValue)
 		{
 			if (isMutable)

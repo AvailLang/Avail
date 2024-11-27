@@ -57,7 +57,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
+import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import avail.utility.cast
 import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier

@@ -37,6 +37,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -78,6 +79,9 @@ constructor(
 
 	override fun semanticValues(): Set<L2SemanticUnboxedInt> =
 		super.semanticValues().cast()
+
+	override fun pickSemanticValue(): L2SemanticUnboxedInt =
+		semanticValues().first()
 
 	override fun register(): L2IntRegister = super.register().cast()
 

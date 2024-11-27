@@ -39,6 +39,8 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.character.CharacterDescriptor
+import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
@@ -96,11 +98,13 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.REGISTER_DUMP
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.unsupported
 import avail.interpreter.execution.LexicalScanner
+import avail.optimizer.L2Generator
 import avail.serialization.SerializerOperation
 import avail.utility.iterableWith
 import org.availlang.json.JSONWriter
@@ -184,7 +188,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append(self[NAME].asNativeString())
@@ -346,6 +350,7 @@ private constructor(
 					NUMBER, PARSING_PLAN_IN_PROGRESS,
 					RAW_POJO, DEFINITION, TOKEN ->
 						super.o_MarshalToJava(self, classHint)
+					REGISTER_DUMP -> unsupported
 				}
 			}
 		}
@@ -434,7 +439,7 @@ private constructor(
 	companion object
 	{
 		/** The total count of [Types] enum values. */
-		const val typesEnumCount = 22
+		const val typesEnumCount = 23
 
 		/**
 		 * Extract the [Types] enum value from this primitive
@@ -534,7 +539,7 @@ private constructor(
 		 * [variable][VariableDescriptor]) and can never be manipulated by an
 		 * Avail program.
 		 */
-		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.TOP_TAG),
+		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.ANY_TAG),
 
 		/**
 		 * This is the kind of all non-types.
@@ -690,7 +695,18 @@ private constructor(
 		 * the raw POJOs, placing them in sets and doing other things that
 		 * occasionally require their kind to be extracted.
 		 */
-		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG);
+		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG),
+
+		/**
+		 * An [A_RegisterDump] is a private construct used by the [L2Generator]
+		 * and related classes to capture the state of all live registers in a
+		 * JVM
+		 * stack frame, so that they can be quickly restored during reification
+		 * and on resumption of a reified [A_Continuation].  It's not normally
+		 * visible to an Avail programmer.
+		 */
+		REGISTER_DUMP(
+			NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.REGISTER_DUMP_TAG);
 
 		/**
 		 * Create the [A_Type] associated with this [Types] entry.

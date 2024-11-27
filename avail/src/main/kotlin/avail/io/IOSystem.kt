@@ -353,7 +353,7 @@ class IOSystem
 		 * explicitly when the file is closed.  This weak set allows the cache
 		 * removals to happen efficiently.
 		 */
-		val bufferKeys = WeakHashMap<BufferKey, Void>()
+		val bufferKeys = WeakHashMap<BufferKey, Unit>()
 	}
 
 	/**

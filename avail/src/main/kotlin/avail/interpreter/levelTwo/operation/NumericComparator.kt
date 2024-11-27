@@ -37,6 +37,7 @@ import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
@@ -48,9 +49,10 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.optimizer.L2Generator
+import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
@@ -214,7 +216,7 @@ enum class NumericComparator(
 	 * path to fall back on), but that probably isn't any faster here.
 	 */
 	fun compareAndBranchBoxed(
-		generator: L2Generator,
+		generator: L2GeneratorInterface,
 		number1Read: L2ReadBoxedOperand,
 		number2Read: L2ReadBoxedOperand,
 		ifTrue: L2PcOperand,
@@ -315,7 +317,7 @@ enum class NumericComparator(
 	 * Convert the branch to an unconditional jump if possible.
 	 */
 	fun compareAndBranchInt(
-		generator: L2Generator,
+		generator: L2GeneratorInterface,
 		int1Reg: L2ReadIntOperand,
 		int2Reg: L2ReadIntOperand,
 		ifTrue: L2PcOperand,
@@ -348,7 +350,7 @@ enum class NumericComparator(
 				// are in the same synonym, so they are definitely equal.
 				// Compare two zeroes with this comparator to decide which
 				// edge would be taken when the actual values are equal.
-				val zeros = intRestrictionForConstant(0)
+				val zeros = boxedRestrictionForConstant(zero)
 				val (firstIfHolds, _, firstIfFails, _) =
 					computeRestrictions(zeros, zeros)
 				when

@@ -85,7 +85,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 * bad [TreeCellRenderer].  When the text attempting to be rendered agrees
 	 * with [cachedText], the [cachedLabel] should be used directly instead of
 	 * running it through the glacial HTML3.2 engine.
- 	 */
+	 */
 	private var cachedLabel: JLabel? = null
 
 	/**

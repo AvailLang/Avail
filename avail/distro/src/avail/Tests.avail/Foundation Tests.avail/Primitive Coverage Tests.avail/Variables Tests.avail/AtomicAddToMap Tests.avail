@@ -40,14 +40,14 @@ Body
 Test "AtomicAddToMap ok" in primitive variables test suite is
 [
 	c : {integer → string|0..10} := {};
-    ↑c[8] := "foo";
+	↑c[8] := "foo";
 ];
 
 Test "AtomicAddToMap fails with cannot-read-unassigned-variable exception"
 in primitive variables test suite is
 [
 	c : {integer → string|0..10};
-    ↑c[8] := "foo";
+	↑c[8] := "foo";
 ]
 must raise cannot-read-unassigned-variable exception;
 
@@ -62,4 +62,3 @@ in primitive variables test suite is
 	def's function(↑c, 8, 8);
 ]
 must raise cannot-store-incorrectly-typed-value exception;
-

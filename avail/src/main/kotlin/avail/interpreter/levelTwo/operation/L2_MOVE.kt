@@ -83,8 +83,8 @@ import org.objectweb.asm.MethodVisitor
  * @param kind
  *   The [RegisterKind] serviced by this operation.
  */
-abstract class L2_MOVE<K: RegisterKind<K>>
-constructor(
+sealed class L2_MOVE<K: RegisterKind<K>>
+protected constructor(
 	val kind: K,
 ) : L2Instruction()
 {
@@ -94,7 +94,7 @@ constructor(
 	abstract val source: L2ReadOperand<K>
 
 	/**
-	 * The destination of this move.  Subclassse further strengthen this
+	 * The destination of this move.  Subclasses further strengthen this
 	 * property.
 	 */
 	abstract val destination: L2WriteOperand<K>
@@ -108,6 +108,12 @@ constructor(
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(manifest)
 		destination.instructionWasAddedForMove(source, manifest)
+		//TODO Remove check
+		if (manifest.mode == GenerationMode.BySemanticValue &&
+			source.semanticValue() in destination.semanticValues())
+		{
+			println("MOVE to itself")
+		}
 	}
 
 	/**
@@ -121,30 +127,31 @@ constructor(
 		get() = source.finalIndex() == -1
 			|| source.finalIndex() != destination.finalIndex()
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
+		renderPreamble()
+		append(' ')
 		if (destination.restriction().constantOrNull.notNullAnd { isNil })
 		{
 			// Assume propagation of nil into a new semantic value will be
 			// both successful and uninteresting.
-			val tempDest = StringBuilder()
-			destination.appendWithWarningsTo(tempDest, 0) { }
-			builder.append(tempDest.toString().truncateTo(30))
-			builder.append(" ← ")
-			val tempSource = StringBuilder()
-			source.appendWithWarningsTo(tempSource, 0) { }
-			builder.append(tempSource.toString().truncateTo(20))
+			val tempDest = destination.run {
+				buildString { appendWithWarningsTo(0) { } }
+			}
+			append(tempDest.truncateTo(30))
+			append(" ← ")
+			val tempSource = source.run {
+				buildString { appendWithWarningsTo(0) { } }
+			}
+			append(tempSource.truncateTo(20))
 		}
 		else
 		{
-			destination.appendWithWarningsTo(builder, 0, warningStyleChange)
-			builder.append(" ← ")
-			source.appendWithWarningsTo(builder, 0, warningStyleChange)
+			destination.run { appendWithWarningsTo(0, warningStyleChange) }
+			append(" ← ")
+			source.run { appendWithWarningsTo(0, warningStyleChange) }
 		}
 	}
 
@@ -166,7 +173,7 @@ constructor(
 		if (regenerator.mode == GenerationMode.BySemanticValue)
 		{
 			// When regenerating the graph in such a way that instructions are
-			// couple by semantic values, we can look for a write to the source
+			// coupled by semantic values, we can look for a write to the source
 			// register within the current block, and if present we can simply
 			// augment the write to include one more semantic value.
 			val definingWrite = clone.source.definition()
@@ -194,6 +201,14 @@ constructor(
 		regenerator.addInstruction(clone)
 	}
 
+	override fun sourceOfMoveToRegister(
+		destinationRegister: L2Register<*>
+	): L2Register<*>?
+	{
+		assert(destinationRegister == destination.register())
+		return source.register()
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
@@ -205,48 +220,48 @@ constructor(
 		translator.load(method, source.register())
 		translator.store(method, destination.register())
 	}
+}
 
-	class L2_MOVE_BOXED
-	constructor(
-		var moveSource: L2ReadBoxedOperand,
-		var moveDestination: L2WriteBoxedOperand
-	): L2_MOVE<BOXED_KIND>(BOXED_KIND)
-	{
-		override val source: L2ReadBoxedOperand get() = moveSource
+class L2_MOVE_BOXED
+constructor(
+	var moveSource: L2ReadBoxedOperand,
+	var moveDestination: L2WriteBoxedOperand
+): L2_MOVE<BOXED_KIND>(BOXED_KIND)
+{
+	override val source: L2ReadBoxedOperand get() = moveSource
 
-		override val destination: L2WriteBoxedOperand get() = moveDestination
+	override val destination: L2WriteBoxedOperand get() = moveDestination
 
-		override val constantCode: A_RawFunction?
-			get() = source.definition().instruction.constantCode
+	override val constantCode: A_RawFunction?
+		get() = source.definitionSkippingMoves().constantCode
 
-		override fun extractTupleElement(
-			tupleRead: L2ReadBoxedOperand,
-			index: Int,
-			destinationSemanticValues: Set<L2SemanticBoxedValue>,
-			generator: L2Generator
-		): Unit = generator.extractTupleElement(
-			source, index, destinationSemanticValues)
-	}
+	override fun extractTupleElement(
+		tupleRead: L2ReadBoxedOperand,
+		index: Int,
+		destinationSemanticValues: Set<L2SemanticBoxedValue>,
+		generator: L2Generator
+	): Unit = generator.extractTupleElement(
+		source, index, destinationSemanticValues)
+}
 
-	class L2_MOVE_INT
-	constructor(
-		var moveSource: L2ReadIntOperand,
-		var moveDestination: L2WriteIntOperand
-	): L2_MOVE<INTEGER_KIND>(INTEGER_KIND)
-	{
-		override val source: L2ReadIntOperand get() = moveSource
+class L2_MOVE_INT
+constructor(
+	var moveSource: L2ReadIntOperand,
+	var moveDestination: L2WriteIntOperand
+): L2_MOVE<INTEGER_KIND>(INTEGER_KIND)
+{
+	override val source: L2ReadIntOperand get() = moveSource
 
-		override val destination: L2WriteIntOperand get() = moveDestination
-	}
+	override val destination: L2WriteIntOperand get() = moveDestination
+}
 
-	class L2_MOVE_FLOAT
-	constructor(
-		var moveSource: L2ReadFloatOperand,
-		var moveDestination: L2WriteFloatOperand
-	): L2_MOVE<FLOAT_KIND>(FLOAT_KIND)
-	{
-		override val source: L2ReadFloatOperand get() = moveSource
+class L2_MOVE_FLOAT
+constructor(
+	var moveSource: L2ReadFloatOperand,
+	var moveDestination: L2WriteFloatOperand
+): L2_MOVE<FLOAT_KIND>(FLOAT_KIND)
+{
+	override val source: L2ReadFloatOperand get() = moveSource
 
-		override val destination: L2WriteFloatOperand get() = moveDestination
-	}
+	override val destination: L2WriteFloatOperand get() = moveDestination
 }

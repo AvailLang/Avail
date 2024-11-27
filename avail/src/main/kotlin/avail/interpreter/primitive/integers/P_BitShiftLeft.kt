@@ -69,10 +69,10 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shl
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shl
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shr
+import avail.optimizer.CallSiteHelper
 import avail.utility.notNullAnd
 
 /**
@@ -201,9 +201,9 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
 		callSiteHelper,
 		functionToCallReg,
@@ -217,8 +217,8 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 				outputType.lowerBound.equals(outputType.upperBound) ->
 				{
 					// The resulting value is known precisely.
-					generator.moveIntRegister(
-						generator.unboxedIntConstant(
+					moveIntRegister(
+						unboxedIntConstant(
 							outputType.lowerBound.extractInt
 						).semanticValue(),
 						intWrite.semanticValues())
@@ -230,25 +230,25 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 					//   1. The base is always in [-1, 0], so the shift, whether
 					//      left or right, has no effect, or
 					//   2. The shift is always zero, likewise having no effect.
-					generator.moveIntRegister(
+					moveIntRegister(
 						intA.semanticValue(), intWrite.semanticValues())
 				}
 				intB.type().isSubtypeOf(inclusive(0, 31)) ->
 				{
 					// The shift is in [0..31], so the JVM can directly handle
 					// it.
-					generator.addInstruction(
+					addInstruction(
 						L2_BIT_LOGIC_OP(Shl, intA, intB, intWrite))
 				}
 				intB.constantOrNull.notNullAnd { extractInt in -31..0 } ->
 				{
 					// The shift is a constant in [-31..0], so we can convert it
 					// to a constant right shift that the JVM can handle.
-					generator.addInstruction(
+					addInstruction(
 						L2_BIT_LOGIC_OP(
 							Shr,
 							intA,
-							generator.unboxedIntConstant(
+							unboxedIntConstant(
 								0 - intB.constantOrNull!!.extractInt),
 							intWrite))
 				}
@@ -260,13 +260,13 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 					// tests for the shift factors falling into [MIN_INT..-32],
 					// [-31..-1], [0..31], and [32..MAX_INT], and generate
 					// separate code to handle each reachable case separately.
-					generator.jumpTo(this.intFailure)
+					jumpTo(this.intFailure)
 				}
 			}
 		},
 		ifOutputIsPossiblyInt = {
 			// Fall back completely if the shift could overflow an i32.
-			generator.jumpTo(intFailure)
+			jumpTo(intFailure)
 		})
 
 	override fun privateBlockTypeRestriction(): A_Type =

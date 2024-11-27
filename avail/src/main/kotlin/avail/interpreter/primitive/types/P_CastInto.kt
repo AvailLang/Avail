@@ -59,7 +59,7 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -137,9 +137,9 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>): Boolean
 	{
 		// Inline the invocation of this P_CastInto primitive, such that it
 		// does a type test for the type being cast to, then either invokes the
@@ -148,31 +148,33 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		val (valueRead, castFunctionRead) = arguments
 
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val castBlock = generator.createBasicBlock("cast type matched")
-		val elseBlock = generator.createBasicBlock(
+		val castBlock = translator.createBasicBlock("cast type matched")
+		val elseBlock = translator.createBasicBlock(
 			"cast type did not match",
 			isCold = true)
 
 		val constantValue = valueRead.constantOrNull
 		val typeTest = castFunctionRead.exactSoleArgumentType()
-		val passedTest: Boolean? = typeTest?.run{
-			when {
+		val passedTest: Boolean? = typeTest?.run {
+			when
+			{
 				constantValue !== null -> constantValue.isInstanceOf(typeTest)
 				valueRead.type().isSubtypeOf(typeTest) -> true
 				valueRead.type().typeIntersection(typeTest).isBottom -> false
 				else -> null
 			}
 		}
-		when {
-			typeTest === null -> {
+		when
+		{
+			typeTest === null ->
+			{
 				// We don't statically know the type to compare the value
 				// against, but we can get it at runtime by extracting the
 				// actual castFunction's argument type.  Note that we can't
 				// phi-strengthen the valueRead along the branches, since we
 				// don't statically know the type that it was compared to.
 				val parameterTypeRead =
-					translator.generator.extractParameterTypeFromFunction(
+					translator.extractParameterTypeFromFunction(
 						castFunctionRead, 1)
 				translator.addInstruction(
 					L2_JUMP_IF_KIND_OF_OBJECT(
@@ -184,30 +186,32 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			passedTest === null ->
 				// Couldn't prove or disprove type test, but we know statically
 				// the cast block's exact argument type.
-				generator.jumpIfKindOfConstant(
+				translator.jumpIfKindOfConstant(
 					valueRead, typeTest, castBlock, elseBlock)
 			else ->
 				// We proved the test always passes or always fails.
-				translator.generator.jumpTo(
+				translator.jumpTo(
 					if (passedTest) castBlock else elseBlock)
 		}
 
 		// In castBlock, generate the invocation of castFunction.
-		generator.startBlock(castBlock)
-		if (generator.currentlyReachable()) {
+		translator.startBlock(castBlock)
+		if (translator.currentlyReachable())
+		{
 			translator.generateGeneralFunctionInvocation(
-				castFunctionRead, listOf(valueRead), true, callSiteHelper)
+				castFunctionRead, true, callSiteHelper, listOf(valueRead))
 		}
 
 		// In elseBlock, generate the invocation of the actual block implemented
 		// with this primitive, which should always run the failure code.
-		generator.startBlock(elseBlock)
-		if (generator.currentlyReachable()) {
+		translator.startBlock(elseBlock)
+		if (translator.currentlyReachable())
+		{
 			translator.generateGeneralFunctionInvocation(
 				functionToCallReg,
-				arguments,
 				false,
 				callSiteHelper,
+				arguments,
 				willAlwaysFailPrimitive = true)
 		}
 		return true

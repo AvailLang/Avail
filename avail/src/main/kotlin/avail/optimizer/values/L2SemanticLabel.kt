@@ -67,8 +67,8 @@ internal class L2SemanticLabel constructor(frame: Frame)
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue =
-		frameTransformer(frame).let {
-			return if (it == frame) this else L2SemanticLabel(it)
+		frameTransformer(frame).let { newFrame ->
+			return if (newFrame == frame) this else L2SemanticLabel(newFrame)
 		}
 
 	override val defaultRestriction: TypeRestriction

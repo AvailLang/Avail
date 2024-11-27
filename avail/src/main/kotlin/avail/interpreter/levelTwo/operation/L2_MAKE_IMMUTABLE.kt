@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.optimizer.L2Generator
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
@@ -67,30 +67,29 @@ class L2_MAKE_IMMUTABLE(
 		functionRegister: L2ReadBoxedOperand,
 		outerIndex: Int,
 		outerType: A_Type,
-		generator: L2Generator): L2ReadBoxedOperand
+		generator: L2GeneratorInterface): L2ReadBoxedOperand
 	{
 		// The make-immutable instruction should only be inserted near the end
 		// of optimization.
 		throw AssertionError("Should not reach this")
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(output.registerString())
-		builder.append(" ← ")
-		builder.append(input.registerString())
+		renderPreamble()
+		append(' ')
+		append(output.registerString())
+		append(" ← ")
+		append(input.registerString())
 	}
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		// The make-immutable instruction should only be inserted near the end
-		// of optimization.
+		// The make-immutable instruction should only be inserted after all
+		// optimization passes that use graph regeneration.
 		throw AssertionError("Should not reach this")
 	}
 

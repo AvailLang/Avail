@@ -158,7 +158,7 @@ class L2_LOOKUP_BY_TYPES(
 		method.visitLabel(tryStart)
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method)
-		translator.literal(method, messageBundle.constant)
+		translator.loadLiteralObject(method, messageBundle.constant)
 		translator.objectArray(
 			method, argumentTypes.elements, AvailObject::class.java)
 		lookupMethod.generateCall(method)

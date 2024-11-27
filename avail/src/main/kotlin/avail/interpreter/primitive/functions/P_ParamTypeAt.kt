@@ -62,7 +62,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.optimizer.L1Translator
+import avail.optimizer.CallSiteHelper
 
 /**
  * **Primitive:** Answer the type of the parameter at the given index within the
@@ -127,9 +127,9 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean
 	{
 		val (functionTypeRead, _) = arguments
@@ -148,7 +148,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		// function, the resulting argument type can't be top or bottom.
 		val read = callSiteHelper.generator.extractParameterTypeFromFunction(
 			functionTypeDefinition.value, exactIndex.extractInt)
-		callSiteHelper.useAnswer(read)
+		callSiteHelper.useAnswer(read, false)
 		return true
 	}
 }

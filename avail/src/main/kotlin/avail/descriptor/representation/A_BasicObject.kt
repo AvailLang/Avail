@@ -189,7 +189,7 @@ interface A_BasicObject : JSONFriendly
 	 */
 	fun printOnAvoidingIndent(
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 
 	/**
@@ -199,7 +199,7 @@ interface A_BasicObject : JSONFriendly
 	 *   An array of [AvailObjectFieldHelper] objects that help describe the
 	 *   logical structure of the receiver to the debugger.
 	 */
-	fun describeForDebugger(): Array<AvailObjectFieldHelper>
+	fun describeForDebugger(): Array<*>
 
 	/**
 	 * Answer a name suitable for labeling a field containing this object.
@@ -233,21 +233,19 @@ interface A_BasicObject : JSONFriendly
 	override fun hashCode(): Int
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * This comparison operation takes an [Object] as its argument to avoid
 	 * accidentally calling this with, say, a [String] literal. We mark it as
 	 * deprecated to ensure we don't accidentally invoke this method when we
 	 * really mean the version that takes an `AvailObject` as an argument.
-	 * Eclipse conveniently shows such invocations with a <span
-	 * style="text-decoration: line-through">strike-out</span>.  That's a
-	 * convenient warning for the programmer, but we also fail if this method
-	 * actually gets invoked AND the argument is not an `AvailObject`.  That
-	 * means we don't allow AvailObjects to be added to Java [sets][Set] and
-	 * such, at least when they're intermixed with things that are not
-	 * AvailObjects.
+	 *
+	 * IntelliJ conveniently shows such invocations with a struck-through font.
+	 * That's a convenient warning for the programmer, even though it actually
+	 * works correctly.
 	 */
-	@Deprecated("")
+	@Deprecated(
+		message = "Don't compare AvailObject and arbitrary Object",
+		replaceWith = ReplaceWith("equals(AvailObject)"))
+	@Suppress("Deprecation")
 	override fun equals(other: Any?): Boolean
 
 	/**
@@ -495,6 +493,14 @@ interface A_BasicObject : JSONFriendly
 	 * non-nil receiver, or the result of the action.
 	 */
 	fun <T : A_BasicObject> ifNil(action: ()->T): T =
+		if (this === nil) action() else cast()
+
+	/**
+	 * If the receiver [isNil], evaluate the [action].  Answer either the
+	 * non-nil receiver, or the result of the action.  The lambda is allowed to
+	 * be nullable in this version.
+	 */
+	fun <T : A_BasicObject> ifNilNullable(action: ()->T?): T? =
 		if (this === nil) action() else cast()
 
 	/**

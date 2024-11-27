@@ -73,7 +73,7 @@ class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		translator.loadInterpreter(method)
-		translator.literal(method, newOptimizationLevel.value)
+		translator.intConstant(method, newOptimizationLevel.value)
 		decrementMethod.generateCall(method)
 		val didNotOptimize = Label()
 		method.visitJumpInsn(Opcodes.IFEQ, didNotOptimize)

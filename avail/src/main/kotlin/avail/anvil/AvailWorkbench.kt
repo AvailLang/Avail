@@ -353,7 +353,7 @@ class AvailWorkbench internal constructor(
 
 	/**
 	 * The directory which is the root of the project.
- 	 */
+	 */
 	val projectHomeDirectory =
 		availProjectFilePath.substringBeforeLast(File.separator)
 
@@ -3257,7 +3257,7 @@ class AvailWorkbench internal constructor(
 		 * inefficient and has a variety of pathologies that lead to the
 		 * appearance of a hung system if we make this too big.
 		 */
-		private const val maxDocumentSize = 2_000_000
+		private const val maxDocumentSize = 100_000 //TODO 2_000_000
 
 		/** The [Statistic] for tracking text insertions. */
 		private val insertStringStat =
@@ -3571,8 +3571,8 @@ class AvailWorkbench internal constructor(
 		 * independent of any [AvailProjectManager].
 		 *
 		 * @param globalEnvironmentSettings
-		 * 	 The [GlobalEnvironmentSettings] for the environment this
-		 * 	 [AvailWorkbench] is being launched in.
+		 *   The [GlobalEnvironmentSettings] for the environment this
+		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
 		 * @param availProjectFilePath

@@ -78,30 +78,23 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		}
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(value.registerString())
-		builder.append(" ∈ ")
-		builder.append(type.registerString())
+		renderPreamble()
+		append(' ')
+		append(value.registerString())
+		append(" ∈ ")
+		append(type.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::value, ::type)
+			desiredOperandTypes, ::value, ::type)
 	}
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifKind.targetBlock() == ifNotKind.targetBlock())
-		{
-			regenerator.jumpTo(ifKind.targetBlock())
-			return
-		}
+		if (replaceWithJumpIfPossible(regenerator)) return
 		type.restriction().constantOrNull?.let { constantType ->
 			regenerator.jumpIfKindOfConstant(
 				value,

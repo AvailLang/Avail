@@ -85,9 +85,9 @@ Method "“_”" is
  *
  * @method "[«_‡,»]→_"
  * @param "argTypes" "tuple of any meta"
- * 	The lexically specified argument types.
+ *     The lexically specified argument types.
  * @param "returnType" "type"
- * 	The return type.
+ *     The return type.
  * @category "Functions" "Types"
  * @returns "function meta"
  *  The requested function type.
@@ -180,11 +180,11 @@ Semantic restriction "<_,_`…`|_>" is
  * Tuple type constructor.
  * @method "<«_‡,»`…`|_.._>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
- *		a tuple of the types in the tuple
+ *      a tuple of the types in the tuple
  * @param "minimumSize" "whole number"
- *		minimum cardinality
+ *      minimum cardinality
  * @param "maximumSize" "[0..∞]"
- *		maximum cardinality
+ *      maximum cardinality
  * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type.
@@ -273,9 +273,9 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
  *
  * @method "<«_‡,»`…`|_..>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
- *		a tuple of the types in the tuple
+ *      a tuple of the types in the tuple
  * @param "minimumSize" "whole number"
- *		minimum cardinality
+ *      minimum cardinality
  * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type.
@@ -358,9 +358,9 @@ Semantic restriction "<«_‡,»`…`|_..>" is
  *
  * @method "<«_‡,»`…`|.._>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
- *		a tuple of the types in the tuple
+ *      a tuple of the types in the tuple
  * @param "maximumSize" "[0..∞]"
- *		maximum cardinality
+ *      maximum cardinality
  * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type.
@@ -444,9 +444,9 @@ Semantic restriction "<«_‡,»`…`|.._>" is
  *
  * @method "<«_‡,»`…`|_>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
- *		a tuple of the types in the tuple
+ *      a tuple of the types in the tuple
  * @param "exactSize" "whole number"
- *		the minimum and maximum cardinality
+ *      the minimum and maximum cardinality
  * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type's type.
@@ -531,7 +531,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
  *
  * @method "<«_‡,»`…`|>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
- *		a tuple of the types in the tuple
+ *      a tuple of the types in the tuple
  * @returns "tuple meta"
  *    The requested tuple's type's type.
  * @category "Tuples" "Types"
@@ -628,11 +628,11 @@ Semantic restriction "{_`|_}" is
  *
  * @method "{_`|_.._}"
  * @param "elementType" "any's type"
- *		The element type.
+ *      The element type.
  * @param "minimumSize" "whole number"
- * 		The minimum cardinality of the set.
+ *      The minimum cardinality of the set.
  * @param "maximumSize" "[0..∞]"
- *		The maximum cardinality of the set.
+ *      The maximum cardinality of the set.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
@@ -694,9 +694,9 @@ Semantic restriction "{_`|_.._}" is
  *
  * @method "{_`|_..}"
  * @param "elementType" "any's type"
- *		The element type.
+ *      The element type.
  * @param "minimumSize" "whole number"
- * 		The minimum cardinality of the set.
+ *      The minimum cardinality of the set.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
@@ -733,9 +733,9 @@ Semantic restriction "{_`|_..}" is
  *
  * @method "{_`|.._}"
  * @param "elementType" "any's type"
- *		The element type.
+ *      The element type.
  * @param "maximumSize" "[0..∞]"
- *		The maximum cardinality of the set.
+ *      The maximum cardinality of the set.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to

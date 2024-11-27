@@ -31,6 +31,7 @@
  */
 package avail.tools.bootstrap
 
+import avail.SpecialObject
 import avail.exceptions.AvailErrorCode
 import avail.interpreter.Primitive
 import java.text.MessageFormat
@@ -105,37 +106,39 @@ internal object Resources
 	/**
 	 * Answer the key for the special object name given by `index`.
 	 *
-	 * @param index
-	 *   The special object index.
+	 * @param specialObject
+	 *   The [SpecialObject].
 	 * @return
 	 *   A key that may be used to access the Avail name of the special object
 	 *   in the appropriate [resource bundle][ResourceBundle].
 	 */
-	fun specialObjectKey(index: Int) = "specialObject$index"
+	fun specialObjectKey(specialObject: SpecialObject) =
+		"specialObject${specialObject.ordinal}"
 
 	/**
 	 * Answer the key for the specified special object's comment.
 	 *
-	 * @param index
-	 *   The special object index.
+	 * @param specialObject
+	 *   The [SpecialObject].
 	 * @return
 	 *   A key that may be used to access the special object's comment in the
 	 *   appropriate [resource bundle][ResourceBundle].
 	 */
-	fun specialObjectCommentKey(index: Int) =
-		"${specialObjectKey(index)}_comment"
+	fun specialObjectCommentKey(specialObject: SpecialObject) =
+		"${specialObjectKey(specialObject)}_comment"
 
 	/**
 	 * Answer the key for the specified special object's preferred Stacks
 	 * type name.
 	 *
-	 * @param index
-	 *   The special object index.
+	 * @param specialObject
+	 *   The [SpecialObject].
 	 * @return
 	 *   A key that may be used to access the special object's preferred Stacks
 	 *   `@type` name in the appropriate [resource bundle][ResourceBundle].
 	 */
-	fun specialObjectTypeKey(index: Int) = "${specialObjectKey(index)}_type"
+	fun specialObjectTypeKey(specialObject: SpecialObject) =
+		"${specialObjectKey(specialObject)}_type"
 
 	/**
 	 * Answer the key for the `index`-th parameter name of the specified
@@ -199,7 +202,8 @@ internal object Resources
 	 *   A key that may be used to access the primitive error code's comment in
 	 *   the appropriate [resource bundle][ResourceBundle].
 	 */
-	fun errorCodeCommentKey(code: AvailErrorCode) = "${errorCodeKey(code)}_comment"
+	fun errorCodeCommentKey(code: AvailErrorCode) =
+		"${errorCodeKey(code)}_comment"
 
 	/**
 	 * Escape the string to survive multiple passes through a [MessageFormat].
@@ -226,7 +230,6 @@ internal object Resources
 		return newValue
 	}
 
-	@Suppress("EnumEntryName")
 	enum class Key
 	{
 		propertiesCopyright,
@@ -259,12 +262,13 @@ internal object Resources
 		specialObjectUse,
 		parameterPrefix,
 		primitiveKeyword,
+		primitiveFailureVariableName,
+		primitiveFailureCrashName,
+		primitiveFailureCrashNameUse,
+		primitiveFailureFunctionGetterMethod,
+		primitiveFailureFunctionSetterMethod,
 		primitiveFailureMethod,
 		primitiveFailureMethodUse,
-		primitiveFailureVariableName,
-		primitiveFailureFunctionName,
-		primitiveFailureFunctionSetterMethod,
-		primitiveFailureFunctionGetterMethod,
 		invokePrimitiveFailureFunctionMethod,
 		invokePrimitiveFailureFunctionMethodUse,
 		primitiveSemanticRestriction,

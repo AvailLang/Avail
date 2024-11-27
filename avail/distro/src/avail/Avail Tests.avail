@@ -191,7 +191,7 @@ Private method "Run all tests" is
  * @entry
  * @method "Run all tests"
  * @param "count" "natural number"
-          The number of times to run all tests.
+ *        The number of times to run all tests.
  * @returns "boolean"
  */
 Private method "Time all tests_time|times" is

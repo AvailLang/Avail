@@ -368,7 +368,7 @@ function presentUI ()
 				var startLineIndex = beginningOfCurrentLineIndex();
 				var startText = expression.val().substring(0, start);
 				var selectedText =
-			    	allText.slice(startLineIndex,end);
+					allText.slice(startLineIndex,end);
 
 
 				if (startLineIndex == 0 &&
@@ -387,7 +387,7 @@ function presentUI ()
 			    var shift = 0;
 			    if (newTextLength != textSize && startText.slice(-1) != "\n")
 			    {
-			    	shift = -1;
+					shift = -1;
 			    }
 
 			    resetSelectedText(textSize, newTextLength, start, end, shift);
@@ -406,7 +406,7 @@ function presentUI ()
 						var textSize = allText.length;
 						var startLineIndex = beginningOfCurrentLineIndex();
 						var selectedText =
-					    	allText.slice(startLineIndex,end);
+							allText.slice(startLineIndex,end);
 
 						if (startLineIndex == 0 &&
 							selectedText.charAt(startLineIndex) != "\n")
@@ -474,7 +474,7 @@ function beginningOfCurrentLineIndex()
     var i = start;
     while (i > 0 && allText.charAt(i) != "\n")
     {
-    	i--;
+		i--;
     }
     return i;
 }

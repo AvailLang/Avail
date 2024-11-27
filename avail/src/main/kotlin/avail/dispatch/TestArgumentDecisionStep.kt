@@ -45,7 +45,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -55,8 +55,8 @@ import avail.utility.Strings.newlineTab
 import java.lang.String.format
 
 /**
- * This is a [DecisionStep] which tests a particular argument position
- * against some constant type.
+ * This is a [DecisionStep] which tests a particular argument position against
+ * some constant type.
  *
  * @constructor
  * Construct the new instance.
@@ -180,8 +180,7 @@ constructor(
 			List<L2SemanticBoxedValue>>>
 	{
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		if (!generator.currentlyReachable())
+		if (!translator.currentlyReachable())
 		{
 			// If no paths lead here, don't generate code.  This can happen
 			// when we short-circuit type-tests into unconditional jumps,
@@ -190,9 +189,9 @@ constructor(
 			return emptyList()
 		}
 		val counter = callSiteHelper.branchLabelCounter++
-		val passBlock = generator.createBasicBlock(
+		val passBlock = translator.createBasicBlock(
 			"Pass #$counter for ${callSiteHelper.quotedBundleName}")
-		val failBlock = generator.createBasicBlock(
+		val failBlock = translator.createBasicBlock(
 			"Fail #$counter for ${callSiteHelper.quotedBundleName}")
 		val result = listOf(
 			Triple(
@@ -205,7 +204,7 @@ constructor(
 				extraSemanticArguments))
 		val semanticArgument =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val argRead = generator.readBoxed(semanticArgument)
+		val argRead = translator.readBoxed(semanticArgument)
 		val argRestriction = argRead.restriction()
 
 		// Tricky here.  We have the type we want to test for, and we have
@@ -225,13 +224,13 @@ constructor(
 			if (intersection === TypeRestriction.bottomRestriction)
 			{
 				// It will always fail the test.
-				generator.jumpTo(failBlock)
+				translator.jumpTo(failBlock)
 				return result
 			}
 			if (argRestriction.type.isSubtypeOf(argumentTypeToTest))
 			{
 				// It will always pass the test.
-				generator.jumpTo(passBlock)
+				translator.jumpTo(passBlock)
 				return result
 			}
 
@@ -247,19 +246,19 @@ constructor(
 				var instance: A_BasicObject = iterator.next()
 				while (iterator.hasNext())
 				{
-					val nextCheckOrFail = generator.createBasicBlock(
+					val nextCheckOrFail = translator.createBasicBlock(
 						"test next case of enumeration")
-					generator.jumpIfEqualsConstant(
+					translator.jumpIfEqualsConstant(
 						argRead, instance, passBlock, nextCheckOrFail)
-					generator.startBlock(nextCheckOrFail)
+					translator.startBlock(nextCheckOrFail)
 					instance = iterator.next()
 				}
-				generator.jumpIfEqualsConstant(
+				translator.jumpIfEqualsConstant(
 					argRead, instance, passBlock, failBlock)
 				return result
 			}
 			// A runtime test is needed, and it's not a small enumeration.
-			generator.jumpIfKindOfConstant(
+			translator.jumpIfKindOfConstant(
 				argRead, argumentTypeToTest, passBlock, failBlock)
 			return result
 		}
@@ -274,8 +273,8 @@ constructor(
 			when
 			{
 				superUnionElementType.isSubtypeOf(argumentTypeToTest) ->
-					generator.jumpTo(passBlock)
-				else -> generator.jumpTo(failBlock)
+					translator.jumpTo(passBlock)
+				else -> translator.jumpTo(failBlock)
 			}
 			return result
 		}
@@ -289,21 +288,23 @@ constructor(
 		// generate a more complex collection of branches – but this is already
 		// a pretty rare case.
 		val argMeta = instanceMeta(argRestriction.type)
-		val argTypeWrite =
-			generator.boxedWriteTemp(argRestriction.metaRestriction())
-		generator.addInstruction(L2_GET_TYPE(argRead, argTypeWrite))
-		val superUnionReg = generator.boxedConstant(superUnionElementType)
-		val unionReg = generator.boxedWriteTemp(
+		val argTypeWrite = translator.boxedWriteTemp(
+			"original arg type",
+			argRestriction.metaRestriction())
+		translator.addInstruction(L2_GET_TYPE(argRead, argTypeWrite))
+		val superUnionReg = translator.boxedConstant(superUnionElementType)
+		val unionReg = translator.boxedWriteTemp(
+			"supercast arg type",
 			boxedRestrictionForType(argMeta.typeUnion(superUnionReg.type())))
-		generator.addInstruction(
+		translator.addInstruction(
 			L2_TYPE_UNION(
-				generator.readBoxed(argTypeWrite),
+				translator.readBoxed(argTypeWrite),
 				superUnionReg,
 				unionReg))
-		generator.addInstruction(
+		translator.addInstruction(
 			L2_JUMP_IF_SUBTYPE(
-				generator.readBoxed(unionReg),
-				generator.boxedConstant(argumentTypeToTest),
+				translator.readBoxed(unionReg),
+				translator.boxedConstant(argumentTypeToTest),
 				edgeTo(passBlock),
 				edgeTo(failBlock)))
 		return result

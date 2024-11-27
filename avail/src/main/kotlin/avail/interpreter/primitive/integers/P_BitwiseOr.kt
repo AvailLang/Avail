@@ -53,8 +53,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Or
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
+import avail.optimizer.CallSiteHelper
 import kotlin.math.max
 
 /**
@@ -114,9 +114,9 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>
 	): Boolean = Or.generateBinaryIntOperation(
 		this,
 		arguments,
@@ -127,6 +127,6 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 		},
 		fallbackBody = {
 			generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
+				functionToCallReg, false, callSiteHelper, arguments)
 		})
 }

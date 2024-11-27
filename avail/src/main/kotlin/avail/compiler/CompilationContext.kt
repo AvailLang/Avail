@@ -153,6 +153,7 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.effects.LoadingEffect
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
@@ -635,7 +636,7 @@ class CompilationContext constructor(
 		val fiber = newLoaderFiber(function.kind().returnType, loader)
 		{
 			formatString(
-				"Eval fn=%s, in %s:%d",
+				"Eval fn=%s in %s:%d",
 				code.methodName,
 				code.module.shortModuleNameNative,
 				code.codeStartingLineNumber)
@@ -652,7 +653,7 @@ class CompilationContext constructor(
 			shouldSerialize -> fiber.fiberHelper.fiberTime().let { before ->
 				{ successValue ->
 					val after = fiber.fiberHelper.fiberTime()
-					Interpreter.current().recordTopStatementEvaluation(
+					currentInterpreter.recordTopStatementEvaluation(
 						(after - before).toDouble(), module)
 					loader.stopRecordingEffects()
 					serializeAfterRunning(function)

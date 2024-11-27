@@ -33,6 +33,7 @@
 package avail.interpreter.levelTwo
 
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2OperandType.Companion.operandTypeForOperandClass
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -116,7 +117,7 @@ internal constructor(
 		 * [Purpose].
 		 */
 		val namedOperandType: L2NamedOperandType = L2NamedOperandType(
-			OperandTypeMap.operandTypeForOperandClass(type),
+			operandTypeForOperandClass(type),
 			name,
 			property.javaField!!.getAnnotation(On::class.java)?.purpose)
 
@@ -269,8 +270,8 @@ internal constructor(
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
 		operandFields.forEach { field ->
-    		consumer(field.get(instruction), field.namedOperandType)
-    	}
+			consumer(field.get(instruction), field.namedOperandType)
+		}
 	}
 
 	/**

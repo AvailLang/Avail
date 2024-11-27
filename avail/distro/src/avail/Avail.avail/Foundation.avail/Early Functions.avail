@@ -159,7 +159,7 @@ Public method "_(«_‡,»)" is
 	arguments : tuple
 |
 	Primitive InvokeWithTuple (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
