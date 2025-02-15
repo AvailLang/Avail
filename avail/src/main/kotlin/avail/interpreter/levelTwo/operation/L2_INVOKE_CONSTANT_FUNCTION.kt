@@ -31,9 +31,12 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type.Companion.returnType
+import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CanSwitchContinuations
@@ -47,12 +50,13 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -88,6 +92,22 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 {
 	override val hasSideEffect get() = true
 
+
+	/** If it's primitive, defer to it, otherwise assume the worst. */
+	override fun mightMakeEscapedVariableShared(): Boolean =
+		when (val prim = constantFunction.constant.code().codePrimitive())
+		{
+			null -> true
+			else -> prim.mightMakeEscapedVariableShared(
+				arguments.elements.map(L2ReadBoxedOperand::type))
+		}
+
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		forcePostponedWritesToLocals()
+		basicRegenerateForPostponement()
+	}
+
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't
 	 * bother splitting paths that lead only to it and other cold blocks. The
@@ -99,30 +119,55 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		get() =
 			constantFunction.constant.code().functionType().returnType.isBottom
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		val function = constantFunction.constant
-		with(builder) {
-			renderPreamble(builder)
-			append(' ')
-			append(result.registerString())
-			append(" ← /* ")
-			append(function.code().methodName.asNativeString())
-			append(" */\n")
-			append(function)
-			append("(")
-			append(arguments.elements)
-			append(")")
-			renderOperandsExcludingFields(
-				builder, desiredOperandTypes, ::constantFunction, ::arguments)
+		val code = function.code()
+		renderPreamble()
+		append(' ')
+		append(result.registerString())
+		append(" ← /* ")
+		append(function.code().methodName.asNativeString())
+		append(" */\n")
+		append(function)
+		append("(")
+		val argNames = code.declarationNames.take(code.numArgs())
+		arguments.elements.zip(argNames).joinTo(this, ",") { (arg, name) ->
+			"\n\t\t${name.asNativeString()} ← ${arg.registerString()}"
 		}
+		append(")")
+		renderOperandsExcludingFields(
+			desiredOperandTypes, ::constantFunction, ::arguments)
 	}
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun interestingConditions(): List<L2SplitCondition?>
+	{
+		val rawFunction = constantFunction.constant.code()
+		val argumentTypes = arguments.elements.map(L2ReadBoxedOperand::type)
+		val primitive = rawFunction.codePrimitive()
+		when
+		{
+			primitive === null -> { }
+			!primitive.hasFlag(CanInline) -> { }
+			primitive.hasFlag(CanSwitchContinuations) -> { }
+			primitive.hasFlag(Invokes) -> { }
+			primitive.hasFlag(Unknown) -> { }
+			primitive.fallibilityForArgumentTypes(argumentTypes)
+				== CallSiteCanFail ->
+			{
+				// The call site is *sometimes* fallible, so ask the primitive
+				// to produce any interesting conditions that might make it
+				// entirely infalllible along some split paths.
+				return primitive.interestingSplitConditions(
+					arguments.elements, rawFunction)
+			}
+		}
+		return emptyList()
+	}
+
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		// See if the new situation has become specialized enough to invoke a
 		// primitive that's infallible for these arguments.
@@ -141,21 +186,19 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			{
 				val resultType = primitive.returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
-				regenerator.addInstruction(
-					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-						L2ConstantOperand(rawFunction),
-						L2ArbitraryConstantOperand(primitive),
-						arguments,
-						regenerator.boxedWrite(
-							result.semanticValues(),
-							result.restriction()
-								.intersectionWithType(resultType))))
-				// Don't forget to jump to the onReturn edge's target.
-				regenerator.jumpTo(ifReturn.targetBlock())
+				+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+					L2ConstantOperand(rawFunction),
+					primitive,
+					arguments,
+					boxedWrite(
+						result.semanticValues(),
+						result.restriction().intersectionWithType(resultType)))
+				// Don't forget to jump to the ifReturn edge's target.
+				jumpTo(ifReturn.targetBlock())
 				return
 			}
 		}
-		super.emitTransformedInstruction(regenerator)
+		+this@L2_INVOKE_CONSTANT_FUNCTION
 	}
 
 	override fun translateToJVM(
@@ -170,7 +213,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.literal(method, constantFunction.constant)
+		translator.loadLiteralObject(method, constantFunction.constant)
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,

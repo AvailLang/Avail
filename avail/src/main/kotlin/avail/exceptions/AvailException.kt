@@ -34,9 +34,6 @@ package avail.exceptions
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
-import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * [AvailException] is the root of the hierarchy of [exceptions][Exception] that
@@ -65,15 +62,5 @@ constructor(
 	 * @return
 	 *   The [numeric&#32;error&#32;code][AvailObject].
 	 */
-	@ReferencedInGeneratedCode
 	fun numericCode(): A_Number = errorCode.numericCode()
-
-	companion object
-	{
-		/** The [CheckedMethod] for [numericCode]. */
-		val numericCodeMethod = instanceMethod(
-			AvailException::class.java,
-			AvailException::numericCode.name,
-			A_Number::class.java)
-	}
 }

@@ -130,7 +130,7 @@ class NybbleArray constructor(
 	 *
 	 * @return
 	 *   `true` iff the receiver is empty.
- 	 */
+	 */
 	fun isEmpty() = size == 0
 
 	/**

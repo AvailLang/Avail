@@ -43,8 +43,9 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
 import avail.interpreter.primitive.types.P_InstanceOfMeta
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
@@ -240,7 +241,7 @@ constructor(
 		list.add(childNode)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -250,22 +251,22 @@ constructor(
 			LookupTree<A_Definition, A_Tuple>,
 			List<L2SemanticBoxedValue>>>
 	{
-		val generator = callSiteHelper.generator
 		val baseSemanticValue =
-			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val baseRestriction =
-			generator.currentManifest.restrictionFor(baseSemanticValue)
+			sourceSemanticValue(
+				semanticArguments,
+				extraSemanticArguments)
+		val baseRestriction = currentManifest.restrictionFor(baseSemanticValue)
 		val instanceSemanticValue =
-			newSemanticValue(semanticArguments, extraSemanticArguments)
+			newSemanticValue(
+				semanticArguments,
+				extraSemanticArguments)
 		val instanceRestriction =
 			boxedRestrictionForType(baseRestriction.type.instance)
-		generator.addInstruction(
-			L2_INSTANCE_OF_META(
-				generator.readBoxed(baseSemanticValue),
-				generator.boxedWrite(
-					instanceSemanticValue, instanceRestriction)))
+		+L2_INSTANCE_OF_META(
+			readBoxed(baseSemanticValue),
+			boxedWrite(instanceSemanticValue, instanceRestriction))
 		val target = L2BasicBlock("after extracting meta's instance")
-		generator.jumpTo(target)
+		jumpTo(target)
 		return listOf(
 			Triple(
 				target,

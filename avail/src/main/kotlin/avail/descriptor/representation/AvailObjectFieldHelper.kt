@@ -32,7 +32,6 @@
 package avail.descriptor.representation
 
 import avail.descriptor.representation.AbstractDescriptor.Companion.bitFieldsFor
-import avail.descriptor.representation.AbstractDescriptor.Companion.describeIntegerSlot
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.utility.cast
 import avail.utility.stackToString
@@ -42,64 +41,13 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * This class assists with the presentation of [AvailObject]s in the IntelliJ
  * debugger.  Since AvailObjects have a uniform structure consisting of a
- * [descriptor][AbstractDescriptor], an array of `AvailObject`s, and an array of
- * `long`s, it is essential to the understanding of a hierarchy of Avail objects
+ * [descriptor][AbstractDescriptor], an array of [AvailObject]s, and an array of
+ * [Long]s, it is essential to the understanding of a hierarchy of Avail objects
  * that they be presented at the right level of abstraction, including the use
  * of symbolic names for conceptual subobjects.
  *
- * `[`The following steps are for Eclipse, but there's a similar mechanism for
- * IntelliJ.]
- *
- * Eclipse is still kind of fiddly about these presentations, requiring explicit
- * manipulation through dialogs (well, maybe there's some way to hack around
- * with the Eclipse preference files).  Here are the minimum steps by which to
- * set up symbolic Avail descriptions:
- *
- * 1. Preferences...  Java  Debug  Logical Structures
- *
- *    Add:
- *    * Qualified name:
- *      avail.descriptor.representation.AvailIntegerValueHelper
- *    * Description: Hide integer value field
- *    * Structure type: Single value
- *    * Code: `return new Object[0];`
- *
- * 1. Preferences...  Java  Debug  Logical Structures
- *
- *     Add:
- *    * Qualified name: avail.descriptor.representation.AvailObject
- *    * Description: Present Avail objects
- *    * Structure type: Single value
- *    * Code: `return describeForDebugger();`
- *
- * 1. Preferences...  Java  Debug  Logical Structures
- *
- *    Add:
- *    * Qualified name: avail.interpreter.execution.Interpreter
- *    * Description: Present Interpreter as stack frames
- *    * Structure type: Single value
- *    * Code: `return describeForDebugger();`
- *
- * 1. Preferences...  Java  Debug  Logical Structures
- *
- *    Add:
- *    * Qualified name:
- *      avail.descriptor.representation.AvailObjectFieldHelper
- *    * Description: Present helper's value's fields instead of the helper
- *    * Structure type: Single value
- *    * Code: `return value;`
- *
- * 1. Preferences...  Java  Debug  Detail Formatters
- *
- *    Add:
- *    * Qualified type name:
- *      avail.descriptor.representation.AvailObjectFieldHelper
- *    * Detail formatter code snippet: `return name();`
- *    * Enable this detail formatter: (checked)
- *    * (after OK) Show variable details: As the label for all variables
- *
- * 1. In the Debug perspective, go to the Variables view.  Select the tool bar
- *    icon whose hover help is Show Logical Structure.
+ * See [DebugRenderer] for instructions on how to manually activate this
+ * rendering mechanism in IntelliJ.
  *
  * @param parentObject
  *   The object containing the value.
@@ -131,7 +79,8 @@ class AvailObjectFieldHelper(
 	val value: Any?,
 	val slotName: String = slot.fieldName,
 	val forcedName: String? = null,
-	val forcedChildren: Array<*>? = null)
+	val forcedChildren: Array<*>? = null
+): DebugRenderer
 {
 	/**
 	 * The name to present for this field.
@@ -145,7 +94,7 @@ class AvailObjectFieldHelper(
 	 *
 	 * @return A [String].
 	 */
-	fun nameForDebugger(): String = nameHolder.get() ?:
+	override fun nameForDebugger(): String = nameHolder.get() ?:
 		nameHolder.updateAndGet {
 			it ?: privateComputeNameForDebugger()
 		}
@@ -181,10 +130,10 @@ class AvailObjectFieldHelper(
 						// Remove the name.
 						delete(0, length)
 					}
-					describeIntegerSlot(
+					strongSlot.describeIntegerSlot(
 						parentObject as AvailObject,
 						value.longValue,
-						strongSlot,
+						subscript,
 						bitFields,
 						this)
 				}
@@ -200,7 +149,7 @@ class AvailObjectFieldHelper(
 		}
 	}
 
-	fun describeForDebugger(): Array<*> = when {
+	override fun describeForDebugger(): Array<*> = when {
 		forcedChildren !== null -> forcedChildren
 		value is AvailObject -> value.describeForDebugger()
 		value is AvailIntegerValueHelper -> emptyArray<Any>()

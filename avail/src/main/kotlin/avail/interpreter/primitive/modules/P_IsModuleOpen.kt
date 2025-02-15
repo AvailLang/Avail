@@ -64,5 +64,5 @@ object P_IsModuleOpen : Primitive(1, CanInline, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction () =
-		functionType(tuple(MODULE.o), booleanType)
+		functionType(tuple(MODULE()), booleanType)
 }

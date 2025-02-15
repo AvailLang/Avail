@@ -76,7 +76,7 @@ object P_MethodFromName : Primitive(1, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o), METHOD.o)
+		functionType(tuple(ATOM()), METHOD())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(MessageSplitter.possibleErrors)

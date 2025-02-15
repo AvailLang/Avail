@@ -74,7 +74,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
-import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.ModuleArchive
@@ -452,7 +452,7 @@ internal class BuildLoader constructor(
 					fiber.setSuccessAndFailure(
 						onSuccess = {
 							val after = fiber.fiberHelper.fiberTime()
-							Interpreter.current().recordTopStatementEvaluation(
+							currentInterpreter.recordTopStatementEvaluation(
 								(after - before).toDouble(), module)
 							runNext()
 						},
@@ -460,11 +460,8 @@ internal class BuildLoader constructor(
 					availLoader.phase = Phase.EXECUTING_FOR_LOAD
 					if (AvailLoader.debugLoadedStatements)
 					{
-						println(
-							module.toString()
-								+ ":" + function.code()
-								.codeStartingLineNumber
-								+ " Running precompiled -- " + function)
+						val line = function.code().codeStartingLineNumber
+						println("$module:$line\n$function")
 					}
 					availBuilder.runtime.runOutermostFunction(
 						fiber, function, emptyList(), true)

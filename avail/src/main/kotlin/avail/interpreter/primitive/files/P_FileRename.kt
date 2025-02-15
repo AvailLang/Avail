@@ -166,7 +166,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 				stringType,
 				stringType,
 				booleanType,
-				functionType(emptyTuple, TOP.o),
+				functionType(emptyTuple, TOP()),
 				functionType(
 					tuple(enumerationWith(
 						set(
@@ -174,9 +174,9 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 							E_FILE_EXISTS,
 							E_NO_FILE,
 							E_IO_ERROR))),
-					TOP.o),
+					TOP()),
 				u8),
-			fiberType(TOP.o))
+			fiberType(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))

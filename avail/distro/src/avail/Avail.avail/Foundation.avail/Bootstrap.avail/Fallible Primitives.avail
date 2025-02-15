@@ -1,6 +1,6 @@
 /*
  * Fallible Primitives.avail
- * Copyright © 1993-2024, The Avail Foundation, LLC.
+ * Copyright © 1993-2025, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/6/24, 3:01 PM
+ * * Last Generated: 2/14/25, 12:19 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -154,8 +154,9 @@ Uses
 		"↓_"
 	)
 Names
-	"early failure function",
-	"Set early failure function to_"
+	"Set primitive failure function to_",
+	"current primitive failure handler",
+	"Failed primitive with_"
 Body
 
 Primitive "{«_‡,»}" is
@@ -172,30 +173,23 @@ Primitive "_ᵀ" is
 	Primitive CreateEnumeration;
 ] : any meta;
 
-Primitive "Private fail primitive with_" is
+Primitive "Crash:_" is
 [
 	value : any
 |
 	Primitive EmergencyExit;
 ] : ⊥;
 
-_fail_primitive : primitive failure function :=
-	[
-		arg1 : any
-	|
-		Private fail primitive with arg1
-	] : ⊥;
-
-Primitive "early failure function" is
+Primitive "current primitive failure handler" is
 [
-	_fail_primitive
+	Primitive GetPrimitiveFailureFunction;
 ] : primitive failure function;
 
-Primitive "Set early failure function to_" is
+Primitive "Set primitive failure function to_" is
 [
-	arg1 : primitive failure function
+	newHandler : primitive failure function
 |
-	_fail_primitive := arg1;
+	Primitive InstallPrimitiveFailureFunction;
 ] : ⊤;
 
 Primitive "Private invoke_with«_‡,»" is
@@ -204,7 +198,7 @@ Primitive "Private invoke_with«_‡,»" is
 	arguments : tuple
 |
 	Primitive InvokeWithTuple (failureCode : natural number);
-	Private fail primitive with failureCode
+	Crash: failureCode
 ] : ⊤;
 
 Primitive "Private semantic restriction_is_" is
@@ -213,7 +207,7 @@ Primitive "Private semantic restriction_is_" is
 	restriction : semantic restriction function
 |
 	Primitive AddSemanticRestriction (failureCode : natural number);
-	Private fail primitive with failureCode
+	Crash: failureCode
 ] : ⊤;
 
 Private semantic restriction "Private invoke_with«_‡,»" is
@@ -223,6 +217,13 @@ Private semantic restriction "Private invoke_with«_‡,»" is
 |
 	⊥
 ];
+
+Primitive "Failed primitive with_" is
+[
+	failureCode : any
+|
+	Private invoke current primitive failure handler with failureCode
+] : ⊥;
 
 /**
  * Assuming that {@param "anAtom"} has a property whose key is {@param
@@ -237,7 +238,7 @@ Private semantic restriction "Private invoke_with«_‡,»" is
  *        The property key.
  * @returns "any"
  *    The property value bound to the key.
- * @raises "no-such-field exception"
+ * @raises "no-such-field code"
  */
 Primitive "_[_]" is
 [
@@ -246,7 +247,7 @@ Primitive "_[_]" is
 |
 	Primitive AtomGetProperty (failureCode : {
 		no-such-field code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -261,7 +262,7 @@ Primitive "_[_]" is
  * @returns "boolean"
  *    `true` if {@param "anAtom"} has a property whose key is {@param
  *    "key"}, `false` otherwise.
- * @raises "special-atom exception"
+ * @raises "special-atom code"
  */
 Primitive "_∈_" is
 [
@@ -270,7 +271,7 @@ Primitive "_∈_" is
 |
 	Primitive AtomHasProperty (failureCode : {
 		special-atom code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : boolean;
 
 /**
@@ -282,7 +283,7 @@ Primitive "_∈_" is
  *        An atom.
  * @returns "module"
  *    The requested module.
- * @raises "special-atom exception"
+ * @raises "special-atom code"
  */
 Primitive "_'s⁇issuing module" is
 [
@@ -290,7 +291,7 @@ Primitive "_'s⁇issuing module" is
 |
 	Primitive AtomIssuingModule (failureCode : {
 		special-atom code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : module;
 
 /**
@@ -303,7 +304,7 @@ Primitive "_'s⁇issuing module" is
  * @param "key" "atom"
  *        A property key.
  * @returns "⊤"
- * @raises "no-such-field exception"
+ * @raises "no-such-field code"
  */
 Primitive "Remove_[_]" is
 [
@@ -312,7 +313,7 @@ Primitive "Remove_[_]" is
 |
 	Primitive AtomRemoveProperty (failureCode : {
 		no-such-field code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -329,7 +330,7 @@ Primitive "Remove_[_]" is
  * @param "value" "any"
  *        The property value.
  * @returns "⊤"
- * @raises "special-atom exception"
+ * @raises "special-atom code"
  */
 Primitive "_[_]:=_" is
 [
@@ -339,7 +340,7 @@ Primitive "_[_]:=_" is
 |
 	Primitive AtomSetProperty (failureCode : {
 		special-atom code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -356,7 +357,7 @@ Primitive "_[_]:=_" is
  * @returns "atom"
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive.
- * @raises "ambiguous-name exception"
+ * @raises "ambiguous-name code"
  */
 Primitive "new atom named_" is
 [
@@ -364,7 +365,7 @@ Primitive "new atom named_" is
 |
 	Primitive CreateAtom (failureCode : {
 		ambiguous-name code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : atom;
 
 /**
@@ -384,7 +385,7 @@ Primitive "new atom named_" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive, and marked for use as an explicit subclass
  *    field key in a new object type.
- * @raises "ambiguous-name exception"
+ * @raises "ambiguous-name code"
  */
 Primitive "new explicit subclass atom named_" is
 [
@@ -392,7 +393,7 @@ Primitive "new explicit subclass atom named_" is
 |
 	Primitive CreateExplicitSubclassAtom (failureCode : {
 		ambiguous-name code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : atom;
 
 /**
@@ -405,7 +406,7 @@ Primitive "new explicit subclass atom named_" is
  * @returns "boolean"
  *    {@method "true"} if the argument is unambiguous, {@method "false"}
  *    otherwise.
- * @raises "loading-is-over exception"
+ * @raises "loading-is-over code"
  */
 Primitive "_is unambiguous" is
 [
@@ -413,7 +414,7 @@ Primitive "_is unambiguous" is
 |
 	Primitive IsUnambiguousName (failureCode : {
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : boolean;
 
 /**
@@ -430,7 +431,7 @@ Primitive "_is unambiguous" is
  *        The name which should be resolved locally.
  * @returns "{atom|}"
  *    The set of all locally visible atoms that match the argument.
- * @raises "loading-is-over exception"
+ * @raises "loading-is-over code"
  */
 Primitive "all atoms for_" is
 [
@@ -438,7 +439,7 @@ Primitive "all atoms for_" is
 |
 	Primitive LookupAtomsForName (failureCode : {
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : set of atom;
 
 /**
@@ -459,13 +460,13 @@ Primitive "all atoms for_" is
  * @returns "⊥"
  *    Ends the current fiber immediately (or after safely unwinding to the base
  *    stack frame after exceptions are installed), and does not return.
- * @raises "untimely-parse-acceptance exception"
+ * @raises "untimely-parse-acceptance code"
  */
 Primitive "Immediately accept parse" is
 [
 	Primitive AcceptParsing (failureCode : {
 		untimely-parse-acceptance code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊥;
 
 /**
@@ -476,14 +477,14 @@ Primitive "Immediately accept parse" is
  * @method "current macro name"
  * @returns "atom"
  *    The atom of the send phrase undergoing macro expansion.
- * @raises "not-evaluating-macro exception"
+ * @raises "not-evaluating-macro"
  *    If a macro is not being evaluated by the current fiber.
  */
 Primitive "current macro name" is
 [
 	Primitive CurrentMacroName (failureCode : {
 		not-evaluating-macro}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : atom;
 
 /**
@@ -496,9 +497,9 @@ Primitive "current macro name" is
  *        it must not refer to any outer variable declarations.
  * @returns "[…]→⊤"
  *    The requested function.
- * @raises "block-is-invalid exception"
- * @raises "block-must-not-contain-outers exception"
- * @raises "block-compilation-failed exception"
+ * @raises "block-is-invalid code"
+ * @raises "block-must-not-contain-outers code"
+ * @raises "block-compilation-failed code"
  */
 Primitive "_→function" is
 [
@@ -508,7 +509,7 @@ Primitive "_→function" is
 		block-is-invalid code,
 		block-must-not-contain-outers code,
 		block-compilation-failed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : function;
 
 /**
@@ -536,8 +537,8 @@ Primitive "_→function" is
  *        one without a caller).
  * @returns "$[…]→⊥"
  *    The requested continuation.
- * @raises "incorrect-continuation-stack-size exception"
- * @raises "cannot-create-continuation-for-infallible-primitive-function exception"
+ * @raises "incorrect-continuation-stack-size code"
+ * @raises "cannot-create-continuation-for-infallible-primitive-function code"
  */
 Primitive "$_@pc=_stack=_[_]caller=_" is
 [
@@ -550,7 +551,7 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
 	Primitive CreateContinuation (failureCode : {
 		incorrect-continuation-stack-size code,
 		cannot-create-continuation-for-infallible-primitive-function code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : continuation;
 
 /**
@@ -570,7 +571,7 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
  * @param "condition" "boolean"
  *        Whether to exit.
  * @returns "⊤"
- * @raises "continuation-expected-stronger-type exception"
+ * @raises "continuation-expected-stronger-type code"
  *         If the value to return isn't strong enough for the continuation.
  */
 Primitive "Exit_with_if_" is
@@ -581,7 +582,7 @@ Primitive "Exit_with_if_" is
 |
 	Primitive ExitContinuationWithResultIf (failureCode : {
 		continuation-expected-stronger-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -605,7 +606,7 @@ Primitive "Invoke|invoke_with_" is
 	arguments : tuple
 |
 	Primitive InvokeWithTuple (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -622,8 +623,8 @@ Primitive "Invoke|invoke_with_" is
  * @param "arguments" "tuple"
  *        The new arguments with which to restart {@param "aContinuation"}.
  * @returns "⊥"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
  */
 Primitive "Restart_with_" is
 [
@@ -633,7 +634,7 @@ Primitive "Restart_with_" is
 	Primitive RestartContinuationWithArguments (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊥;
 
 /**
@@ -653,8 +654,8 @@ Primitive "Restart_with_" is
  * @param "condition" "boolean"
  *        Whether to restart the continuation.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
  */
 Primitive "Restart_with_if_" is
 [
@@ -665,7 +666,7 @@ Primitive "Restart_with_if_" is
 	Primitive RestartContinuationWithArgumentsIf (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -678,7 +679,7 @@ Primitive "Restart_with_if_" is
  *        A double-precision floating point number.
  * @returns "ℤ∞"
  *    The requested value.
- * @raises "cannot-convert-not-a-number-to-integer exception"
+ * @raises "cannot-convert-not-a-number-to-integer code"
  */
 Primitive "_→extended integer" is
 [
@@ -686,7 +687,7 @@ Primitive "_→extended integer" is
 |
 	Primitive DoubleTruncatedAsInteger (failureCode : {
 		cannot-convert-not-a-number-to-integer code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : extended integer;
 
 /**
@@ -699,7 +700,7 @@ Primitive "_→extended integer" is
  * @param "aFiber" "fiber→⊤"
  *        A fiber.
  * @returns "⊤"
- * @raises "fiber-cannot-join-itself exception"
+ * @raises "fiber-cannot-join-itself code"
  */
 Primitive "Attempt to join_" is
 [
@@ -707,7 +708,7 @@ Primitive "Attempt to join_" is
 |
 	Primitive AttemptJoinFiber (failureCode : {
 		fiber-cannot-join-itself code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -727,8 +728,8 @@ Primitive "Attempt to join_" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive, that represents a heritable fiber-local
  *    variable.
- * @raises "ambiguous-name exception"
- * @raises "atom-already-exists exception"
+ * @raises "ambiguous-name code"
+ * @raises "atom-already-exists code"
  */
 Primitive "new⁇heritable«fiber-local»⁇atom named_" is
 [
@@ -737,7 +738,7 @@ Primitive "new⁇heritable«fiber-local»⁇atom named_" is
 	Primitive CreateFiberHeritableAtom (failureCode : {
 		ambiguous-name code,
 		atom-already-exists code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : atom;
 
 /**
@@ -759,8 +760,8 @@ Primitive "new⁇heritable«fiber-local»⁇atom named_" is
  *        The priority of the new fiber.
  * @returns "fiber→⊤"
  *    The new fiber.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
  */
 Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
 [
@@ -772,7 +773,7 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	Primitive DelayedFork (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : fiber;
 
 /**
@@ -793,8 +794,8 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  * @param "priority" "u8"
  *        The priority of the new fiber.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
  */
 Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
 [
@@ -806,7 +807,7 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	Primitive DelayedForkOrphan (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -821,8 +822,8 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  * @returns "any"
  *    The result yielded by the specified fiber. This is the value produced by
  *    the fiber's outermost continuation, i.e., its base function.
- * @raises "fiber-result-unavailable exception"
- * @raises "fiber-produced-incorrectly-typed-result exception"
+ * @raises "fiber-result-unavailable code"
+ * @raises "fiber-produced-incorrectly-typed-result code"
  */
 Primitive "_'s⁇result" is
 [
@@ -831,7 +832,7 @@ Primitive "_'s⁇result" is
 	Primitive FiberResult (failureCode : {
 		fiber-result-unavailable code,
 		fiber-produced-incorrectly-typed-result code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -848,8 +849,8 @@ Primitive "_'s⁇result" is
  *        The priority of the new fiber.
  * @returns "fiber→⊤"
  *    The new fiber.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
  */
 Primitive "invoke_with_,⁇forked at priority_" is
 [
@@ -860,7 +861,7 @@ Primitive "invoke_with_,⁇forked at priority_" is
 	Primitive Fork (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : fiber;
 
 /**
@@ -876,8 +877,8 @@ Primitive "invoke_with_,⁇forked at priority_" is
  * @param "priority" "u8"
  *        The priority of the new fiber.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
  */
 Primitive "Invoke_with_,⁇forked at priority_" is
 [
@@ -888,7 +889,7 @@ Primitive "Invoke_with_,⁇forked at priority_" is
 	Primitive ForkOrphan (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -903,7 +904,7 @@ Primitive "Invoke_with_,⁇forked at priority_" is
  * @returns "boolean"
  *    `true` if the current fiber binds a value to {@param "key"}, `false`
  *    otherwise.
- * @raises "special-atom exception"
+ * @raises "special-atom code"
  */
 Primitive "_∈current fiber" is
 [
@@ -911,7 +912,7 @@ Primitive "_∈current fiber" is
 |
 	Primitive IsFiberVariable (failureCode : {
 		special-atom code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : boolean;
 
 /**
@@ -926,7 +927,7 @@ Primitive "_∈current fiber" is
  *        The key whose value should be obtained.
  * @returns "any"
  *    The value bound to {@param "key"} within the current fiber's environment.
- * @raises "no-such-fiber-variable exception"
+ * @raises "no-such-fiber-variable code"
  */
 Primitive "current fiber[_]" is
 [
@@ -934,7 +935,7 @@ Primitive "current fiber[_]" is
 |
 	Primitive LookupFiberVariable (failureCode : {
 		no-such-fiber-variable code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -946,8 +947,8 @@ Primitive "current fiber[_]" is
  * @param "key" "atom"
  *        The key whose binding should be removed.
  * @returns "⊤"
- * @raises "no-such-fiber-variable exception"
- * @raises "special-atom exception"
+ * @raises "no-such-fiber-variable code"
+ * @raises "special-atom code"
  */
 Primitive "Remove current fiber[_]" is
 [
@@ -956,7 +957,7 @@ Primitive "Remove current fiber[_]" is
 	Primitive RemoveFiberVariable (failureCode : {
 		no-such-fiber-variable code,
 		special-atom code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -969,7 +970,7 @@ Primitive "Remove current fiber[_]" is
  *        A single-precision floating point number.
  * @returns "ℤ∞"
  *    The requested value.
- * @raises "cannot-convert-not-a-number-to-integer exception"
+ * @raises "cannot-convert-not-a-number-to-integer code"
  */
 Primitive "_→extended integer" is
 [
@@ -977,7 +978,7 @@ Primitive "_→extended integer" is
 |
 	Primitive FloatTruncatedAsInteger (failureCode : {
 		cannot-convert-not-a-number-to-integer code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : extended integer;
 
 /**
@@ -992,7 +993,7 @@ Primitive "_→extended integer" is
  *        The tuple of outer variables.
  * @returns "[…]→⊤"
  *    The requested function.
- * @raises "wrong-outers exception"
+ * @raises "wrong-outers code"
  */
 Primitive "function from_and_" is
 [
@@ -1001,7 +1002,7 @@ Primitive "function from_and_" is
 |
 	Primitive CreateFunction (failureCode : {
 		wrong-outers code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : function;
 
 /**
@@ -1015,7 +1016,7 @@ Primitive "function from_and_" is
  *        The one-based index of the desired parameter type.
  * @returns "{any}ᵀ"
  *    The {@param "index"}-th parameter type of the argument.
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  */
 Primitive "_[_]" is
 [
@@ -1024,7 +1025,7 @@ Primitive "_[_]" is
 |
 	Primitive ParamTypeAt (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any meta;
 
 /**
@@ -1036,7 +1037,7 @@ Primitive "_[_]" is
  * @param "count" "𝕎"
  *        The requested number of characters of read ahead.
  * @returns "⊤"
- * @raises "I/O exception"
+ * @raises "I/O-error code"
  */
 Primitive "Mark for_character|characters of read ahead" is
 [
@@ -1044,7 +1045,7 @@ Primitive "Mark for_character|characters of read ahead" is
 |
 	Primitive MarkStandardInputStream (failureCode : {
 		I/O-error code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1055,7 +1056,7 @@ Primitive "Mark for_character|characters of read ahead" is
  * @param "text" "string"
  *        A string.
  * @returns "⊤"
- * @raises "I/O exception"
+ * @raises "I/O-error code"
  */
 Primitive "Print:_" is
 [
@@ -1063,7 +1064,7 @@ Primitive "Print:_" is
 |
 	Primitive PrintToConsole (failureCode : {
 		I/O-error code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1074,7 +1075,7 @@ Primitive "Print:_" is
  * @param "text" "string"
  *        A string.
  * @returns "⊤"
- * @raises "I/O exception"
+ * @raises "I/O-error code"
  */
 Primitive "Error:_" is
 [
@@ -1082,7 +1083,7 @@ Primitive "Error:_" is
 |
 	Primitive PrintToErrorConsole (failureCode : {
 		I/O-error code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1092,13 +1093,13 @@ Primitive "Error:_" is
  * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
- * @raises "I/O exception"
+ * @raises "I/O-error code"
  */
 Primitive "next character" is
 [
 	Primitive ReadFromStandardInput (failureCode : {
 		I/O-error code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : character;
 
 /**
@@ -1107,13 +1108,13 @@ Primitive "next character" is
  * @category "Primitives" "Standard IO"
  * @method "Reset to mark"
  * @returns "⊤"
- * @raises "I/O exception"
+ * @raises "I/O-error code"
  */
 Primitive "Reset to mark" is
 [
 	Primitive ResetStandardInputStream (failureCode : {
 		I/O-error code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1129,7 +1130,7 @@ Primitive "Reset to mark" is
  *        How many bits to shift left (or right if negative).
  * @returns "ℤ"
  *    ⌊_<<_ × 2<sup>baseInteger</sup>⌋
- * @raises "too-large-to-represent exception"
+ * @raises "too-large-to-represent code"
  */
 Primitive "_<<_" is
 [
@@ -1138,7 +1139,7 @@ Primitive "_<<_" is
 |
 	Primitive BitShiftLeft (failureCode : {
 		too-large-to-represent code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : integer;
 
 /**
@@ -1154,7 +1155,7 @@ Primitive "_<<_" is
  *        How many bits to shift right (or left if negative).
  * @returns "ℤ"
  *    ⌊_>>_ ÷ 2<sup>baseInteger</sup>⌋
- * @raises "too-large-to-represent exception"
+ * @raises "too-large-to-represent code"
  */
 Primitive "_>>_" is
 [
@@ -1163,7 +1164,7 @@ Primitive "_>>_" is
 |
 	Primitive BitShiftRight (failureCode : {
 		too-large-to-represent code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : integer;
 
 /**
@@ -1182,7 +1183,7 @@ Primitive "_>>_" is
  *        be ≥ 0).
  * @returns "𝕎"
  *    ⌊_<<_keeping_bits × 2<sup>baseInteger</sup>⌋ mod 2<sup>shiftFactor</sup>
- * @raises "too-large-to-represent exception"
+ * @raises "too-large-to-represent code"
  */
 Primitive "_<<_keeping_bits" is
 [
@@ -1192,7 +1193,7 @@ Primitive "_<<_keeping_bits" is
 |
 	Primitive BitShiftWithTruncation (failureCode : {
 		too-large-to-represent code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : whole number;
 
 /**
@@ -1206,7 +1207,7 @@ Primitive "_<<_keeping_bits" is
  *        The key whose bound value should be obtained.
  * @returns "any"
  *    The value bound to {@param "key"} in {@param "aMap"}.
- * @raises "key-not-found exception"
+ * @raises "key-not-found code"
  */
 Primitive "_[_]" is
 [
@@ -1215,7 +1216,7 @@ Primitive "_[_]" is
 |
 	Primitive MapAtKey (failureCode : {
 		key-not-found code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -1240,10 +1241,10 @@ Primitive "_[_]" is
  *        The tuple containing the replacement values.
  * @returns "map"
  *    a new map with the new values installed at the proposed locations.
- * @raises "subscript-out-of-bounds exception"
- * @raises "incorrect-argument-type exception"
- * @raises "key-not-found exception"
- * @raises "negative-size exception"
+ * @raises "subscript-out-of-bounds code"
+ * @raises "incorrect-argument-type code"
+ * @raises "key-not-found code"
+ * @raises "negative-size code"
  */
 Primitive "_«[_]»[_.._]→_" is
 [
@@ -1258,7 +1259,7 @@ Primitive "_«[_]»[_.._]→_" is
 		incorrect-argument-type code,
 		key-not-found code,
 		negative-size code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : map;
 
 /**
@@ -1278,14 +1279,14 @@ Primitive "_«[_]»[_.._]→_" is
  *        The replacement value.
  * @returns "map"
  *    a new map with the new value installed at the proposed location
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  *    If an index in the pathTuple attempts to access an index that is greater
  *    than the size of the targeted tuple within aMap.
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-argument-type code"
  *    If an index in the pathTuple, that is not the final index where the
  *    replacement is made, attempts to access a value as if it were a
  *    map or a tuple but the value at that location is neither.
- * @raises "key-not-found exception"
+ * @raises "key-not-found code"
  *    If an index in the pathTuple attempts to access a map in aMap with a key
  *    not in the map.
  */
@@ -1299,7 +1300,7 @@ Primitive "_«[_]»→_" is
 		subscript-out-of-bounds code,
 		incorrect-argument-type code,
 		key-not-found code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : map;
 
 /**
@@ -1314,31 +1315,31 @@ Primitive "_«[_]»→_" is
  * @param "aFunctionType" "{[…]→⊤}ᵀ"
  *        The signature.
  * @returns "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "redefined-with-same-argument-types exception"
- * @raises "result-type-should-covary-with-arguments exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "method-is-sealed exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "redefined-with-same-argument-types code"
+ * @raises "result-type-should-covary-with-arguments code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "method-is-sealed code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1371,7 +1372,7 @@ Primitive "Abstract method_is_" is
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1389,30 +1390,30 @@ Primitive "Abstract method_is_" is
  * @param "signature" "{[…]→⊤}ᵀ"
  *        The signature.
  * @returns "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "redefined-with-same-argument-types exception"
- * @raises "result-type-should-covary-with-arguments exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "method-is-sealed exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "redefined-with-same-argument-types code"
+ * @raises "result-type-should-covary-with-arguments code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "method-is-sealed code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1444,7 +1445,7 @@ Primitive "Abstract method_is_" is
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1468,30 +1469,30 @@ Primitive "Abstract method_is_" is
  * @param "restriction" "[…]→{⊤}ᵀ"
  *        The restriction function.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "type-restriction-must-accept-only-types exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "type-restriction-must-accept-only-types code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1523,7 +1524,7 @@ Primitive "Semantic restriction_is_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1547,29 +1548,29 @@ Primitive "Semantic restriction_is_" is
  * @param "restriction" "[…]→{⊤}ᵀ"
  *        The restriction function.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "type-restriction-must-accept-only-types exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "type-restriction-must-accept-only-types code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1600,7 +1601,7 @@ Primitive "Semantic restriction_is_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1614,30 +1615,30 @@ Primitive "Semantic restriction_is_" is
  * @param "oldAtom" "atom"
  *        An {@type "atom"} that represents the original name.
  * @returns "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "special-atom exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "atom-already-exists exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "special-atom code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "atom-already-exists code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Alias_to_" is
 [
@@ -1669,7 +1670,7 @@ Primitive "Alias_to_" is
 		atom-already-exists code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1686,10 +1687,10 @@ Primitive "Alias_to_" is
  * @returns "boolean"
  *    `true` if {@param "methodName"} has a unique definition for the specified
  *    parameter types, `false` otherwise.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "no-method exception"
- * @raises "no-method-definition exception"
- * @raises "ambiguous-method-definition exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "no-method code"
+ * @raises "no-method-definition code"
+ * @raises "ambiguous-method-definition code"
  */
 Primitive "_has definition for_" is
 [
@@ -1701,7 +1702,7 @@ Primitive "_has definition for_" is
 		no-method code,
 		no-method-definition code,
 		ambiguous-method-definition code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : boolean;
 
 /**
@@ -1715,31 +1716,31 @@ Primitive "_has definition for_" is
  * @param "targetAtom" "atom"
  *        The {type bundle} in which to add new macros.
  * @returns "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "redefined-with-same-argument-types exception"
- * @raises "special-atom exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "atom-already-exists exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "redefined-with-same-argument-types code"
+ * @raises "special-atom code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "atom-already-exists code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Copy macros from_to_" is
 [
@@ -1772,7 +1773,7 @@ Primitive "Copy macros from_to_" is
 		atom-already-exists code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1789,10 +1790,10 @@ Primitive "Copy macros from_to_" is
  * @returns "definition"
  *    The unique definition of {@param "methodName"} that best accords with the
  *    specified parameter types.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "no-method exception"
- * @raises "no-method-definition exception"
- * @raises "ambiguous-method-definition exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "no-method code"
+ * @raises "no-method-definition code"
+ * @raises "ambiguous-method-definition code"
  */
 Primitive "method definition of_for_" is
 [
@@ -1804,7 +1805,7 @@ Primitive "method definition of_for_" is
 		no-method code,
 		no-method-definition code,
 		ambiguous-method-definition code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : definition;
 
 /**
@@ -1822,31 +1823,31 @@ Primitive "method definition of_for_" is
  * @param "aFunctionType" "{[…]→⊤}ᵀ"
  *        The signature.
  * @returns "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "redefined-with-same-argument-types exception"
- * @raises "result-type-should-covary-with-arguments exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "method-is-sealed exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "redefined-with-same-argument-types code"
+ * @raises "result-type-should-covary-with-arguments code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "method-is-sealed code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Forward method_is_" is
 [
@@ -1879,7 +1880,7 @@ Primitive "Forward method_is_" is
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1905,29 +1906,29 @@ Primitive "Forward method_is_" is
  *        position of any invocation of a method named in
  *        {@param "methodsToRestrict"}.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -1958,7 +1959,7 @@ Primitive "Grammatical restriction_is_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -1984,28 +1985,28 @@ Primitive "Grammatical restriction_is_" is
  *       argument position of any invocation of a method named in
  *       {@param "methodsToRestrict"}.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -2035,7 +2036,7 @@ Primitive "Grammatical restriction_is_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2047,25 +2048,25 @@ Primitive "Grammatical restriction_is_" is
  *        An atom.
  * @returns "method"
  *    The requested method.
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "method for_" is
 [
@@ -2091,7 +2092,7 @@ Primitive "method for_" is
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : method;
 
 /**
@@ -2104,25 +2105,25 @@ Primitive "method for_" is
  * @returns "boolean"
  *    `true` if the specified message contains lexical groups, or `false`
  *    otherwise.
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "message_contains groups" is
 [
@@ -2148,7 +2149,7 @@ Primitive "message_contains groups" is
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : boolean;
 
 /**
@@ -2161,25 +2162,25 @@ Primitive "message_contains groups" is
  *        A method name.
  * @returns "𝕎"
  *    The number of parameters required to send the specified message.
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "`|message_'s⁇parameters`|" is
 [
@@ -2205,7 +2206,7 @@ Primitive "`|message_'s⁇parameters`|" is
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : whole number;
 
 /**
@@ -2221,29 +2222,29 @@ Primitive "`|message_'s⁇parameters`|" is
  *        A tuple of parameter types. This is the signature at which the
  *       seal will be placed.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Seal method_at_" is
 [
@@ -2274,7 +2275,7 @@ Primitive "Seal method_at_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2290,28 +2291,28 @@ Primitive "Seal method_at_" is
  *        A tuple of parameter types. This is the signature at which the seal
  *        will be placed.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Seal method_at_" is
 [
@@ -2341,7 +2342,7 @@ Primitive "Seal method_at_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2353,8 +2354,8 @@ Primitive "Seal method_at_" is
  * @param "methodNames" "{atom|}"
  *        A set of atoms that serve as method names.
  * @returns "⊤"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
  */
 Primitive "Seal method|methods_at existing definitions" is
 [
@@ -2363,7 +2364,7 @@ Primitive "Seal method|methods_at existing definitions" is
 	Primitive SealMethodsAtExistingDefinitions (failureCode : {
 		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2379,7 +2380,7 @@ Primitive "Seal method|methods_at existing definitions" is
  *        restrictions.
  * @returns "[…]→{⊤}ᵀ*"
  *    The requested semantic restrictions.
- * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-number-of-arguments code"
  */
 Primitive "semantic restrictions for_given_" is
 [
@@ -2388,7 +2389,7 @@ Primitive "semantic restrictions for_given_" is
 |
 	Primitive SemanticRestrictions (failureCode : {
 		incorrect-number-of-arguments code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple of semantic restriction function;
 
 /**
@@ -2410,27 +2411,27 @@ Primitive "semantic restrictions for_given_" is
  * @param "optionalStyler" "[send phrase⇒⊤?, phrase⇒⊤]→⊤?"
  *        The optional function used for styling invocations of this lexer.
  * @raises "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Lexer_when_is_«styled by_»?" is
 [
@@ -2461,7 +2462,7 @@ Primitive "Lexer_when_is_«styled by_»?" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2493,36 +2494,36 @@ Primitive "Lexer_when_is_«styled by_»?" is
  * @param "optionalStyler" "[send phrase⇒⊤?, phrase⇒⊤]→⊤?"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "styler-already-set-by-this-module exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "macro-argument-must-be-a-phrase exception"
- * @raises "ambiguous-name exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "redefined-with-same-argument-types exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "macro-prefix-functions-must-return-top exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "macro-prefix-function-index-out-of-bounds exception"
- * @raises "macro-prefix-function-argument-must-be-a-phrase exception"
- * @raises "macro-must-return-a-phrase exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "styler-already-set-by-this-module code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "macro-argument-must-be-a-phrase code"
+ * @raises "ambiguous-name code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "redefined-with-same-argument-types code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "macro-prefix-functions-must-return-top code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "macro-prefix-function-index-out-of-bounds code"
+ * @raises "macro-prefix-function-argument-must-be-a-phrase code"
+ * @raises "macro-must-return-a-phrase code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Macro_is«_,»_«styled by_»?" is
 [
@@ -2562,7 +2563,7 @@ Primitive "Macro_is«_,»_«styled by_»?" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2594,35 +2595,35 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  * @param "optionalStyler" "[send phrase⇒⊤?, phrase⇒⊤]→⊤?"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "styler-already-set-by-this-module exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "macro-argument-must-be-a-phrase exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "redefined-with-same-argument-types exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "macro-prefix-functions-must-return-top exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "macro-prefix-function-index-out-of-bounds exception"
- * @raises "macro-prefix-function-argument-must-be-a-phrase exception"
- * @raises "macro-must-return-a-phrase exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "styler-already-set-by-this-module code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "macro-argument-must-be-a-phrase code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "redefined-with-same-argument-types code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "macro-prefix-functions-must-return-top code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "macro-prefix-function-index-out-of-bounds code"
+ * @raises "macro-prefix-function-argument-must-be-a-phrase code"
+ * @raises "macro-must-return-a-phrase code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Macro_is«_,»_«styled by_»?" is
 [
@@ -2661,7 +2662,7 @@ Primitive "Macro_is«_,»_«styled by_»?" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2673,7 +2674,7 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  * @param "aFunction" "[…]→⊤"
  *        The post-load function.
  * @returns "⊤"
- * @raises "loading-is-over exception"
+ * @raises "loading-is-over code"
  */
 Primitive "After the current module is loaded,⁇do_" is
 [
@@ -2681,7 +2682,7 @@ Primitive "After the current module is loaded,⁇do_" is
 |
 	Primitive AddPostLoadFunction (failureCode : {
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2693,7 +2694,7 @@ Primitive "After the current module is loaded,⁇do_" is
  * @param "aFunction" "[…]→⊤"
  *        The post-unload function.
  * @returns "⊤"
- * @raises "loading-is-over exception"
+ * @raises "loading-is-over code"
  */
 Primitive "After the current module is unloaded,⁇do_" is
 [
@@ -2701,7 +2702,7 @@ Primitive "After the current module is unloaded,⁇do_" is
 |
 	Primitive AddUnloadFunction (failureCode : {
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2713,7 +2714,7 @@ Primitive "After the current module is unloaded,⁇do_" is
  * @param "aModule" "module"
  *        The module to close.
  * @returns "⊤"
- * @raises "module-is-closed exception"
+ * @raises "module-is-closed code"
  *    If {@param "aModule"} is already closed.
  */
 Primitive "Close module_" is
@@ -2722,7 +2723,7 @@ Primitive "Close module_" is
 |
 	Primitive CloseModule (failureCode : {
 		module-is-closed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2731,11 +2732,11 @@ Primitive "Close module_" is
  *
  * @category "Primitives" "Modules"
  * @method "new anonymous module importing_"
- * @param "allImports" "<string, <<boolean, character+, character+?…|3>*, boolean…|…"
+ * @param "allImports" "<string, <<boolean, character+, character+?…|3>*, boolean…|2>?…|2>+"
  *        Every module and name to be imported privately by the new module.
  * @returns "module"
  *    The new module.
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-argument-type code"
  *    If the module import specifications are invalid in some way.
  */
 Primitive "new anonymous module importing_" is
@@ -2744,7 +2745,7 @@ Primitive "new anonymous module importing_" is
 |
 	Primitive CreateAnonymousModule (failureCode : {
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : module;
 
 /**
@@ -2754,13 +2755,13 @@ Primitive "new anonymous module importing_" is
  * @method "current module"
  * @returns "module"
  *    The module currently undergoing compilation.
- * @raises "loading-is-over exception"
+ * @raises "loading-is-over code"
  */
 Primitive "current module" is
 [
 	Primitive CurrentModule (failureCode : {
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : module;
 
 /**
@@ -2775,7 +2776,7 @@ Primitive "current module" is
 Primitive "current module's exported names" is
 [
 	Primitive ExportedNames (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : set of atom;
 
 /**
@@ -2792,8 +2793,8 @@ Primitive "current module's exported names" is
  *        The name by which this atom is known locally.
  * @returns "atom"
  *    The requested atom.
- * @raises "ambiguous-name exception"
- * @raises "loading-is-over exception"
+ * @raises "ambiguous-name code"
+ * @raises "loading-is-over code"
  */
 Primitive "atom for_" is
 [
@@ -2802,7 +2803,7 @@ Primitive "atom for_" is
 	Primitive LookupName (failureCode : {
 		ambiguous-name code,
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : atom;
 
 /**
@@ -2817,9 +2818,9 @@ Primitive "atom for_" is
  * @param "newName" "string"
  *        The name that should be introduced.
  * @returns "⊤"
- * @raises "ambiguous-name exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
+ * @raises "ambiguous-name code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
  */
 Primitive "Export_as a new name" is
 [
@@ -2829,7 +2830,7 @@ Primitive "Export_as a new name" is
 		ambiguous-name code,
 		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -2840,13 +2841,13 @@ Primitive "Export_as a new name" is
  * @method "current module's visible names"
  * @returns "{atom|}"
  *    The {@type "set"} of visible {@type "atom"}s.
- * @raises "loading-is-over exception"
+ * @raises "loading-is-over code"
  */
 Primitive "current module's visible names" is
 [
 	Primitive VisibleAtoms (failureCode : {
 		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : set of atom;
 
 /**
@@ -2860,7 +2861,7 @@ Primitive "current module's visible names" is
  *        The addend.
  * @returns "number"
  *    The sum of the augend and the addend.
- * @raises "cannot-add-unlike-infinities exception"
+ * @raises "cannot-add-unlike-infinities code"
  */
 Primitive "_+_" is
 [
@@ -2869,7 +2870,7 @@ Primitive "_+_" is
 |
 	Primitive Addition (failureCode : {
 		cannot-add-unlike-infinities code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : number;
 
 /**
@@ -2883,8 +2884,8 @@ Primitive "_+_" is
  *        The divisor.
  * @returns "number"
  *    The quotient of the dividend and the divisor.
- * @raises "cannot-divide-by-zero exception"
- * @raises "cannot-divide-infinities exception"
+ * @raises "cannot-divide-by-zero code"
+ * @raises "cannot-divide-infinities code"
  */
 Primitive "_÷_" is
 [
@@ -2894,7 +2895,7 @@ Primitive "_÷_" is
 	Primitive Division (failureCode : {
 		cannot-divide-by-zero code,
 		cannot-divide-infinities code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : number;
 
 /**
@@ -2908,7 +2909,7 @@ Primitive "_÷_" is
  *        The multiplier.
  * @returns "number"
  *    The product of the multiplicand and the multiplier.
- * @raises "cannot-multiply-zero-and-infinity exception"
+ * @raises "cannot-multiply-zero-and-infinity code"
  */
 Primitive "_×_" is
 [
@@ -2917,7 +2918,7 @@ Primitive "_×_" is
 |
 	Primitive Multiplication (failureCode : {
 		cannot-multiply-zero-and-infinity code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : number;
 
 /**
@@ -2931,7 +2932,7 @@ Primitive "_×_" is
  *        The subtrahend.
  * @returns "number"
  *    The difference of the minuend and the subtrahend.
- * @raises "cannot-subtract-like-infinities exception"
+ * @raises "cannot-subtract-like-infinities code"
  */
 Primitive "_-_" is
 [
@@ -2940,7 +2941,7 @@ Primitive "_-_" is
 |
 	Primitive Subtraction (failureCode : {
 		cannot-subtract-like-infinities code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : number;
 
 /**
@@ -2954,7 +2955,7 @@ Primitive "_-_" is
  *        The field for which to extract the value.
  * @returns "any"
  *    The field's value.
- * @raises "no-such-field exception"
+ * @raises "no-such-field code"
  */
 Primitive "_[_]" is
 [
@@ -2963,7 +2964,7 @@ Primitive "_[_]" is
 |
 	Primitive GetObjectField (failureCode : {
 		no-such-field code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -2977,7 +2978,7 @@ Primitive "_[_]" is
  *        The field for which to extract the type.
  * @returns "{any}ᵀ"
  *    The field's constraining type.
- * @raises "no-such-field exception"
+ * @raises "no-such-field code"
  */
 Primitive "_[_]" is
 [
@@ -2986,7 +2987,7 @@ Primitive "_[_]" is
 |
 	Primitive GetObjectTypeField (failureCode : {
 		no-such-field code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any meta;
 
 /**
@@ -2999,7 +3000,7 @@ Primitive "_[_]" is
  *        whose values are the corresponding values.
  * @returns "{atom→{any}ᵀ|}"
  *    The requested map.
- * @raises "no-such-field exception"
+ * @raises "no-such-field code"
  */
 Primitive "_→map" is
 [
@@ -3007,7 +3008,7 @@ Primitive "_→map" is
 |
 	Primitive ObjectTypeToMap (failureCode : {
 		no-such-field code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : field type map;
 
 /**
@@ -3022,7 +3023,7 @@ Primitive "_→map" is
  *    are 2-tuples. Each 2-tuple's first element is an atom (i.e., the field
  *    identifier) and its second element is the value type permitted by the
  *    field.
- * @raises "no-such-field exception"
+ * @raises "no-such-field code"
  */
 Primitive "_→tuple" is
 [
@@ -3030,7 +3031,7 @@ Primitive "_→tuple" is
 |
 	Primitive ObjectTypeToTuple (failureCode : {
 		no-such-field code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : field type tuple;
 
 /**
@@ -3046,8 +3047,8 @@ Primitive "_→tuple" is
  *    An expression that describes assigning to the variable indicated by
  *    {@param "variableUse"} the result of running {@param "valueExpression"}.
  *    The result yields the same answer as {@param "valueExpression"}.
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "declaration-kind-does-not-support-assignment exception"
+ * @raises "cannot-store-incorrectly-typed-value code"
+ * @raises "declaration-kind-does-not-support-assignment code"
  */
 Primitive "`«(_:=_)`»" is
 [
@@ -3057,7 +3058,7 @@ Primitive "`«(_:=_)`»" is
 	Primitive CreateAssignmentExpression (failureCode : {
 		cannot-store-incorrectly-typed-value code,
 		declaration-kind-does-not-support-assignment code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : assignment phrase;
 
 /**
@@ -3072,8 +3073,8 @@ Primitive "`«(_:=_)`»" is
  * @returns "assignment phrase⇒⊤"
  *    A statement that describes assigning to the variable indicated by
  *    {@param "variableUse"} the result of running {@param "valueExpression"}.
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "declaration-kind-does-not-support-assignment exception"
+ * @raises "cannot-store-incorrectly-typed-value code"
+ * @raises "declaration-kind-does-not-support-assignment code"
  */
 Primitive "`«_:=_`»" is
 [
@@ -3083,7 +3084,7 @@ Primitive "`«_:=_`»" is
 	Primitive CreateAssignmentStatement (failureCode : {
 		cannot-store-incorrectly-typed-value code,
 		declaration-kind-does-not-support-assignment code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : assignment phrase;
 
 /**
@@ -3106,8 +3107,8 @@ Primitive "`«_:=_`»" is
  *        The set of exceptions that may be raised.
  * @returns "block phrase⇒[…]→⊤"
  *    The requested block.
- * @raises "invalid-primitive-name exception"
- * @raises "block-contains-invalid-statements exception"
+ * @raises "invalid-primitive-name code"
+ * @raises "block-contains-invalid-statements code"
  */
 Primitive "`«[_`|Primitive__]:_^_`»" is
 [
@@ -3120,7 +3121,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 	Primitive CreateBlockExpression (failureCode : {
 		invalid-primitive-name code,
 		block-contains-invalid-statements code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : block phrase;
 
 /**
@@ -3133,7 +3134,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
  *        A tuple of statements.
  * @returns "first of sequence phrase⇒⊤"
  *    The requested first-of-sequence phrase.
- * @raises "sequence-contains-invalid-statements exception"
+ * @raises "sequence-contains-invalid-statements code"
  */
 Primitive "first-of-seq`«_`»" is
 [
@@ -3141,7 +3142,7 @@ Primitive "first-of-seq`«_`»" is
 |
 	Primitive CreateFirstOfSequenceOfStatements (failureCode : {
 		sequence-contains-invalid-statements code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : first of sequence phrase;
 
 /**
@@ -3164,7 +3165,7 @@ Primitive "first-of-seq`«_`»" is
  *        constructed.
  * @returns "literal token⇒any"
  *          The requested literal token.
- * @raises "exceeds-VM-limit exception"
+ * @raises "exceeds-VM-limit code"
  *         If a numeric parameter is outside the range supported by the VM.
  */
 Primitive "``_``(_)@_:_«from phrase_»?" is
@@ -3177,7 +3178,7 @@ Primitive "``_``(_)@_:_«from phrase_»?" is
 |
 	Primitive CreateLiteralToken (failureCode : {
 		exceeds-VM-limit code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : literal token;
 
 /**
@@ -3194,7 +3195,7 @@ Primitive "``_``(_)@_:_«from phrase_»?" is
  *        index by source index.
  * @returns "permuted list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *    The requested {@type "permuted list phrase"}.
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "_permuted by_" is
 [
@@ -3203,7 +3204,7 @@ Primitive "_permuted by_" is
 |
 	Primitive CreatePermutedListPhrase (failureCode : {
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : permuted list phrase;
 
 /**
@@ -3216,7 +3217,7 @@ Primitive "_permuted by_" is
  * @returns "reference phrase⇒read ⊤/write ⊥"
  *    A variable reference expression that answers the variable described by
  *    {@param "variableUse"}.
- * @raises "declaration-kind-does-not-support-reference exception"
+ * @raises "declaration-kind-does-not-support-reference code"
  */
 Primitive "`«`↑_`»" is
 [
@@ -3224,7 +3225,7 @@ Primitive "`«`↑_`»" is
 |
 	Primitive CreateReferenceExpression (failureCode : {
 		declaration-kind-does-not-support-reference code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : variable reference phrase;
 
 /**
@@ -3252,28 +3253,28 @@ Primitive "`«`↑_`»" is
  *        applicable method definitions and semantic restrictions.
  * @returns "<send phrase⇒⊤?, string…|2>"
  *        A pair of the optional restricted send phrase and report string.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "no-method-definition exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "no-method-definition code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "restricted report and send_with_:_" is
 [
@@ -3304,7 +3305,7 @@ Primitive "restricted report and send_with_:_" is
 		up-arrow-must-follow-argument code,
 		no-method-definition code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : optional send phrase and report string;
 
 /**
@@ -3323,26 +3324,26 @@ Primitive "restricted report and send_with_:_" is
  *        The expected (strengthened) return type of the method send.
  * @returns "send phrase⇒⊤"
  *    The requested message send.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "incorrect-argument-type code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "send_with_:_" is
 [
@@ -3371,7 +3372,7 @@ Primitive "send_with_:_" is
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : send phrase;
 
 /**
@@ -3383,7 +3384,7 @@ Primitive "send_with_:_" is
  *        A tuple of statements.
  * @returns "sequence phrase⇒⊤"
  *    The requested sequence.
- * @raises "sequence-contains-invalid-statements exception"
+ * @raises "sequence-contains-invalid-statements code"
  */
 Primitive "seq`«_`»" is
 [
@@ -3391,7 +3392,7 @@ Primitive "seq`«_`»" is
 |
 	Primitive CreateSequenceOfStatements (failureCode : {
 		sequence-contains-invalid-statements code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : sequence phrase;
 
 /**
@@ -3405,9 +3406,9 @@ Primitive "seq`«_`»" is
  *        The type to use to lookup this argument rather than its actual type.
  * @returns "super cast phrase⇒any"
  *    A supercast phrase.
- * @raises "supercast-expression-type-must-not-be-top-or-bottom exception"
- * @raises "supercast-expression-must-not-also-be-a-supercast exception"
- * @raises "supercast-must-be-strict-supertype-of-expression-type exception"
+ * @raises "supercast-expression-type-must-not-be-top-or-bottom code"
+ * @raises "supercast-expression-must-not-also-be-a-supercast code"
+ * @raises "supercast-must-be-strict-supertype-of-expression-type code"
  */
 Primitive "`«supercast(_::_)`»" is
 [
@@ -3418,7 +3419,7 @@ Primitive "`«supercast(_::_)`»" is
 		supercast-expression-type-must-not-be-top-or-bottom code,
 		supercast-expression-must-not-also-be-a-supercast code,
 		supercast-must-be-strict-supertype-of-expression-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : super cast phrase;
 
 /**
@@ -3441,7 +3442,7 @@ Primitive "`«supercast(_::_)`»" is
  *        "0"} if the line number is unknown or meaningless.
  * @returns "token"
  *          The requested {@type "token"}.
- * @raises "exceeds-VM-limit exception"
+ * @raises "exceeds-VM-limit code"
  *         If a numeric parameter is outside the range supported by the VM.
  */
 Primitive "_(_)@_:_" is
@@ -3453,7 +3454,7 @@ Primitive "_(_)@_:_" is
 |
 	Primitive CreateToken (failureCode : {
 		exceeds-VM-limit code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : token;
 
 /**
@@ -3467,7 +3468,7 @@ Primitive "_(_)@_:_" is
  *        The declaration.
  * @returns "expression phrase⇒any"
  *    The declaration's initializing expression.
- * @raises "declaration-does-not-have-initializer exception"
+ * @raises "declaration-does-not-have-initializer code"
  *    If the declaration does not have an initializing expression.
  */
 Primitive "_'s⁇initializing expression" is
@@ -3476,7 +3477,7 @@ Primitive "_'s⁇initializing expression" is
 |
 	Primitive DeclarationInitializingExpression (failureCode : {
 		declaration-does-not-have-initializer code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : expression yielding any;
 
 /**
@@ -3491,9 +3492,9 @@ Primitive "_'s⁇initializing expression" is
  *        The tuple of phrases to use as arguments for the lookup.
  * @returns "[…]→phrase⇒⊤"
  *    The body function of the looked up macro.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "no-method-definition exception"
- * @raises "ambiguous-method-definition exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "no-method-definition code"
+ * @raises "ambiguous-method-definition code"
  */
 Primitive "lookup macro_with phrases_" is
 [
@@ -3504,7 +3505,7 @@ Primitive "lookup macro_with phrases_" is
 		incorrect-number-of-arguments code,
 		no-method-definition code,
 		ambiguous-method-definition code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : macro function;
 
 /**
@@ -3521,7 +3522,7 @@ Primitive "lookup macro_with phrases_" is
  *        The name of the desired field.
  * @returns "read ⊤/write ⊥"
  *    A variable bound to the specified instance field.
- * @raises "Java-field-not-available exception"
+ * @raises "Java-field-not-available code"
  */
 Primitive "_'s⁇_field" is
 [
@@ -3530,7 +3531,7 @@ Primitive "_'s⁇_field" is
 |
 	Primitive BindPojoInstanceField (failureCode : {
 		Java-field-not-available code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : write-only variable;
 
 /**
@@ -3547,8 +3548,8 @@ Primitive "_'s⁇_field" is
  *        The name of the desired field.
  * @returns "read ⊤/write ⊥"
  *    A variable bound to the specified static field.
- * @raises "Java-field-not-available exception"
- * @raises "Java-field-reference-is-ambiguous exception"
+ * @raises "Java-field-not-available code"
+ * @raises "Java-field-reference-is-ambiguous code"
  */
 Primitive "_'s⁇_field" is
 [
@@ -3558,7 +3559,7 @@ Primitive "_'s⁇_field" is
 	Primitive BindPojoStaticField (failureCode : {
 		Java-field-not-available code,
 		Java-field-reference-is-ambiguous code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : write-only variable;
 
 /**
@@ -3598,9 +3599,9 @@ Primitive "_'s⁇_field" is
  *        The parameter types accepted by the desired constructor.
  * @returns "[…]→any"
  *    The requested constructor invocation function.
- * @raises "pojo-type-is-abstract exception"
- * @raises "Java-method-not-available exception"
- * @raises "Java-marshaling-failed exception"
+ * @raises "pojo-type-is-abstract code"
+ * @raises "Java-method-not-available code"
+ * @raises "Java-marshaling-failed code"
  */
 Primitive "constructor of_,⁇parameterized by_" is
 [
@@ -3611,7 +3612,7 @@ Primitive "constructor of_,⁇parameterized by_" is
 		pojo-type-is-abstract code,
 		Java-method-not-available code,
 		Java-marshaling-failed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : function returning any;
 
 /**
@@ -3654,8 +3655,8 @@ Primitive "constructor of_,⁇parameterized by_" is
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *    The requested instance method invocation function.
- * @raises "Java-method-not-available exception"
- * @raises "Java-method-reference-is-ambiguous exception"
+ * @raises "Java-method-not-available code"
+ * @raises "Java-method-reference-is-ambiguous code"
  */
 Primitive "method_._,⁇parameterized by_" is
 [
@@ -3666,7 +3667,7 @@ Primitive "method_._,⁇parameterized by_" is
 	Primitive CreatePojoInstanceMethodFunction (failureCode : {
 		Java-method-not-available code,
 		Java-method-reference-is-ambiguous code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : function;
 
 /**
@@ -3708,8 +3709,8 @@ Primitive "method_._,⁇parameterized by_" is
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *    The requested static method invocation function.
- * @raises "Java-method-not-available exception"
- * @raises "Java-method-reference-is-ambiguous exception"
+ * @raises "Java-method-not-available code"
+ * @raises "Java-method-reference-is-ambiguous code"
  */
 Primitive "static method_._,⁇parameterized by_" is
 [
@@ -3720,7 +3721,7 @@ Primitive "static method_._,⁇parameterized by_" is
 	Primitive CreatePojoStaticMethodFunction (failureCode : {
 		Java-method-not-available code,
 		Java-method-reference-is-ambiguous code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : function;
 
 /**
@@ -3735,8 +3736,8 @@ Primitive "static method_._,⁇parameterized by_" is
  *        number of type parameters required by the Java class or interface.
  * @returns "{any}ᵀ"
  *    The requested pojo type.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "Java-class-not-available exception"
+ * @raises "incorrect-number-of-arguments code"
+ * @raises "Java-class-not-available code"
  */
 Primitive "_parameterized by_" is
 [
@@ -3746,7 +3747,7 @@ Primitive "_parameterized by_" is
 	Primitive CreatePojoType (failureCode : {
 		incorrect-number-of-arguments code,
 		Java-class-not-available code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any meta;
 
 /**
@@ -3760,8 +3761,8 @@ Primitive "_parameterized by_" is
  *        A one-based index into the pojo array.
  * @returns "any"
  *    The {@param "index"}-th element of {@param "anArray"}.
- * @raises "subscript-out-of-bounds exception"
- * @raises "Java-marshaling-failed exception"
+ * @raises "subscript-out-of-bounds code"
+ * @raises "Java-marshaling-failed code"
  */
 Primitive "_[_]" is
 [
@@ -3771,7 +3772,7 @@ Primitive "_[_]" is
 	Primitive PojoArrayGet (failureCode : {
 		subscript-out-of-bounds code,
 		Java-marshaling-failed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -3787,9 +3788,9 @@ Primitive "_[_]" is
  * @param "value" "any"
  *        The value that should be written into the pojo array.
  * @returns "⊤"
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "subscript-out-of-bounds exception"
- * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-store-incorrectly-typed-value code"
+ * @raises "subscript-out-of-bounds code"
+ * @raises "Java-marshaling-failed code"
  */
 Primitive "_[_]:=_" is
 [
@@ -3801,7 +3802,7 @@ Primitive "_[_]:=_" is
 		cannot-store-incorrectly-typed-value code,
 		subscript-out-of-bounds code,
 		Java-marshaling-failed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -3820,28 +3821,28 @@ Primitive "_[_]:=_" is
  * @param "aFunction" "[send phrase⇒⊤?, phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
- * @raises "incorrect-argument-type exception"
- * @raises "styler-already-set-by-this-module exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
+ * @raises "incorrect-argument-type code"
+ * @raises "styler-already-set-by-this-module code"
+ * @raises "incorrect-type-for-group code"
+ * @raises "exclamation-mark-must-follow-an-alternation-group code"
+ * @raises "incorrect-type-for-complex-group code"
+ * @raises "incorrect-use-of-double-dagger code"
+ * @raises "unbalanced-guillemets code"
+ * @raises "method-name-is-not-canonical code"
+ * @raises "expected-operator-after-backquote code"
+ * @raises "incorrect-type-for-boolean-group code"
+ * @raises "incorrect-type-for-counting-group code"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis code"
+ * @raises "question-mark-must-follow-a-simple-group code"
+ * @raises "case-insensitive-expression-canonization code"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group code"
+ * @raises "alternative-must-not-contain-arguments code"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups code"
+ * @raises "incorrect-type-for-numbered-choice code"
+ * @raises "cannot-define-during-compilation code"
+ * @raises "loading-is-over code"
+ * @raises "up-arrow-must-follow-argument code"
+ * @raises "inconsistent-argument-reordering code"
  */
 Primitive "Style_with_" is
 [
@@ -3871,7 +3872,7 @@ Primitive "Style_with_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -3886,7 +3887,7 @@ Primitive "Style_with_" is
  * @param "overwriting" "boolean"
  *    Whether to overwrite existing styles of the affected tokens.
  * @returns "⊤"
- * @raises "cannot-style exception"
+ * @raises "cannot-style code"
  */
 Primitive "Style fixed tokens of_with_«overwriting»?" is
 [
@@ -3896,7 +3897,7 @@ Primitive "Style fixed tokens of_with_«overwriting»?" is
 |
 	Primitive StyleFixedTokensOfPhrase (failureCode : {
 		cannot-style code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -3911,7 +3912,7 @@ Primitive "Style fixed tokens of_with_«overwriting»?" is
  * @param "methodName" "literal phrase⇒literal token⇒string"
  *    The string literal phrase to style as a method name.
  * @returns "⊤"
- * @raises "cannot-style exception"
+ * @raises "cannot-style code"
  */
 Primitive "Style method name_" is
 [
@@ -3919,7 +3920,7 @@ Primitive "Style method name_" is
 |
 	Primitive StyleMethodName (failureCode : {
 		cannot-style code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -3935,7 +3936,7 @@ Primitive "Style method name_" is
  * @param "overwriting" "boolean"
  *        Whether to overwrite existing styles in this span.
  * @returns "⊤"
- * @raises "cannot-style exception"
+ * @raises "cannot-style code"
  */
 Primitive "Style span of_with_«overwriting»?" is
 [
@@ -3945,7 +3946,7 @@ Primitive "Style span of_with_«overwriting»?" is
 |
 	Primitive StyleSpanOfPhrase (failureCode : {
 		cannot-style code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -3962,7 +3963,7 @@ Primitive "Style span of_with_«overwriting»?" is
  * @param "overwriting" "boolean"
  *        `true` to completely overwrite the style, `false` to merge them.
  * @returns "⊤"
- * @raises "cannot-style exception"
+ * @raises "cannot-style code"
  */
 Primitive "Style token_as_«overwriting»?" is
 [
@@ -3972,7 +3973,7 @@ Primitive "Style token_as_«overwriting»?" is
 |
 	Primitive StyleToken (failureCode : {
 		cannot-style code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -3988,7 +3989,7 @@ Primitive "Style token_as_«overwriting»?" is
  *        The one-based end index (inclusive) of the desired slice.
  * @returns "tuple"
  *    The requested tuple.
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  */
 Primitive "_[_.._]" is
 [
@@ -3998,7 +3999,7 @@ Primitive "_[_.._]" is
 |
 	Primitive ExtractSubtuple (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4016,7 +4017,7 @@ Primitive "_[_.._]" is
  *        The step size of the interval, which must not be zero.
  * @returns "ℤ*"
  *    The requested tuple.
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-argument-type code"
  *    If {@param "delta"} is zero.
  */
 Primitive "_to_by_" is
@@ -4027,7 +4028,7 @@ Primitive "_to_by_" is
 |
 	Primitive IntegerIntervalTuple (failureCode : {
 		incorrect-argument-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple of integer;
 
 /**
@@ -4041,7 +4042,7 @@ Primitive "_to_by_" is
  *        The repeated value.
  * @returns "tuple"
  *    A tuple containing {@param "count"} occurrences of {@param "value"}.
- * @raises "exceeds-VM-limit exception"
+ * @raises "exceeds-VM-limit code"
  */
 Primitive "_occurrences⁇of_" is
 [
@@ -4050,7 +4051,7 @@ Primitive "_occurrences⁇of_" is
 |
 	Primitive RepeatedElementTuple (failureCode : {
 		exceeds-VM-limit code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4064,7 +4065,7 @@ Primitive "_occurrences⁇of_" is
  *        The one-based index of the desired element.
  * @returns "any"
  *    The requested element.
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  */
 Primitive "_[_]" is
 [
@@ -4073,7 +4074,7 @@ Primitive "_[_]" is
 |
 	Primitive TupleAt (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -4091,7 +4092,7 @@ Primitive "_[_]" is
  *        The "replacement" value.
  * @returns "tuple"
  *    The requested tuple.
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  */
 Primitive "_[_]→_" is
 [
@@ -4101,7 +4102,7 @@ Primitive "_[_]→_" is
 |
 	Primitive TupleReplaceAt (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4121,14 +4122,14 @@ Primitive "_[_]→_" is
  *        The replacement value.
  * @returns "tuple"
  *    A new tuple with the new value installed at the proposed location.
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  *    If an index in the pathTuple attempts to access an index that is greater
  *    than the size of the targeted tuple within aTuple.
- * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-argument-type code"
  *    If an index in the pathTuple, that is not the final index where the
  *    replacement is made, attempts to access a value as if it were a
  *    map or a tuple but the value at that location is neither.
- * @raises "key-not-found exception"
+ * @raises "key-not-found code"
  *    If an index in the pathTuple attempts to access a map in aTuple with a key
  *    not in the map.
  */
@@ -4142,7 +4143,7 @@ Primitive "_«[_]»→_" is
 		subscript-out-of-bounds code,
 		incorrect-argument-type code,
 		key-not-found code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4168,8 +4169,8 @@ Primitive "_«[_]»→_" is
  *    {@param "aTuple"}, followed by the elements of
  *    {@param "replacementSubtuple"}, followed by the elements of
  *    {@param "aTuple"} starting at {@param "endIndex"} + 1,
- * @raises "subscript-out-of-bounds exception"
- * @raises "negative-size exception"
+ * @raises "subscript-out-of-bounds code"
+ * @raises "negative-size code"
  */
 Primitive "_[_.._]→_" is
 [
@@ -4181,7 +4182,7 @@ Primitive "_[_.._]→_" is
 	Primitive TupleReplaceRange (failureCode : {
 		subscript-out-of-bounds code,
 		negative-size code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4206,10 +4207,10 @@ Primitive "_[_.._]→_" is
  *        The tuple containing the replacement values.
  * @returns "tuple"
  *    a new tuple with the new values installed at the proposed locations.
- * @raises "subscript-out-of-bounds exception"
- * @raises "incorrect-argument-type exception"
- * @raises "key-not-found exception"
- * @raises "negative-size exception"
+ * @raises "subscript-out-of-bounds code"
+ * @raises "incorrect-argument-type code"
+ * @raises "key-not-found code"
+ * @raises "negative-size code"
  */
 Primitive "_«[_]»[_.._]→_" is
 [
@@ -4224,7 +4225,7 @@ Primitive "_«[_]»[_.._]→_" is
 		incorrect-argument-type code,
 		key-not-found code,
 		negative-size code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4241,7 +4242,7 @@ Primitive "_«[_]»[_.._]→_" is
  *        Another index into the tuple.
  * @returns "tuple"
  *    A tuple like the input, but with the specified indices swapped.
- * @raises "subscript-out-of-bounds exception"
+ * @raises "subscript-out-of-bounds code"
  */
 Primitive "_[_↔_]" is
 [
@@ -4251,7 +4252,7 @@ Primitive "_[_↔_]" is
 |
 	Primitive TupleSwapElements (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple;
 
 /**
@@ -4268,8 +4269,8 @@ Primitive "_[_↔_]" is
  *        The one-based index (inclusive) of the end of the slice.
  * @returns "{any}ᵀ*"
  *    The requested slice of element types.
- * @raises "subscript-out-of-bounds exception"
- * @raises "negative-size exception"
+ * @raises "subscript-out-of-bounds code"
+ * @raises "negative-size code"
  */
 Primitive "_[_.._]" is
 [
@@ -4280,7 +4281,7 @@ Primitive "_[_.._]" is
 	Primitive TupleTypeSequenceOfTypes (failureCode : {
 		subscript-out-of-bounds code,
 		negative-size code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : tuple of any meta;
 
 /**
@@ -4292,7 +4293,7 @@ Primitive "_[_.._]" is
  *        An enumeration.
  * @returns "set"
  *    A set whose members are the instances of the enumeration.
- * @raises "not-an-enumeration exception"
+ * @raises "not-an-enumeration code"
  */
 Primitive "_'s⁇instances" is
 [
@@ -4300,7 +4301,7 @@ Primitive "_'s⁇instances" is
 |
 	Primitive Instances (failureCode : {
 		not-an-enumeration code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : set;
 
 /**
@@ -4316,8 +4317,8 @@ Primitive "_'s⁇instances" is
  *        The value to store at that key.
  * @returns "⊤"
  *    Nothing.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-read-unassigned-variable code"
+ * @raises "cannot-store-incorrectly-typed-value code"
  */
 Primitive "_[_]:=_" is
 [
@@ -4328,7 +4329,7 @@ Primitive "_[_]:=_" is
 	Primitive AtomicAddToMap (failureCode : {
 		cannot-read-unassigned-variable code,
 		cannot-store-incorrectly-typed-value code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -4342,8 +4343,8 @@ Primitive "_[_]:=_" is
  *        The key to remove.
  * @returns "⊤"
  *    Nothing.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-read-unassigned-variable code"
+ * @raises "cannot-store-incorrectly-typed-value code"
  */
 Primitive "_-=_" is
 [
@@ -4353,7 +4354,7 @@ Primitive "_-=_" is
 	Primitive AtomicRemoveFromMap (failureCode : {
 		cannot-read-unassigned-variable code,
 		cannot-store-incorrectly-typed-value code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -4369,7 +4370,7 @@ Primitive "_-=_" is
  * @returns "read ⊤/write ⊥"
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
- * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-store-incorrectly-typed-value code"
  */
 Primitive "new`↑_initialized to_" is
 [
@@ -4378,7 +4379,7 @@ Primitive "new`↑_initialized to_" is
 |
 	Primitive CreateInitializedVariable (failureCode : {
 		cannot-store-incorrectly-typed-value code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : write-only variable;
 
 /**
@@ -4390,8 +4391,8 @@ Primitive "new`↑_initialized to_" is
  *        A variable.
  * @returns "any"
  *    The value contained within the specified variable.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-read-unassigned-variable code"
+ * @raises "Java-marshaling-failed code"
  */
 Primitive "↓_" is
 [
@@ -4400,7 +4401,7 @@ Primitive "↓_" is
 	Primitive GetValue (failureCode : {
 		cannot-read-unassigned-variable code,
 		Java-marshaling-failed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : any;
 
 /**
@@ -4414,7 +4415,7 @@ Primitive "↓_" is
  *        The variable holding a map whose keys are to be searched.
  * @returns "boolean"
  *    Whether the key is present in the variable's map.
- * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-read-unassigned-variable code"
  */
 Primitive "_∈_" is
 [
@@ -4423,6 +4424,6 @@ Primitive "_∈_" is
 |
 	Primitive KeyInVariableMap (failureCode : {
 		cannot-read-unassigned-variable code}ᵀ);
-	Private invoke _fail_primitive with failureCode
+	Failed primitive with failureCode
 ] : boolean;
 

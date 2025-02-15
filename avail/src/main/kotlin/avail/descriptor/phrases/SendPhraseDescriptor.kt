@@ -132,7 +132,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		self.bundle.messageSplitter.printSendNodeOnIndent(
@@ -281,7 +281,7 @@ private constructor(
 			argsListNode: A_Phrase,
 			returnType: A_Type
 		): A_Phrase {
-			assert(bundle.isInstanceOfKind(MESSAGE_BUNDLE.o))
+			assert(bundle.isInstanceOfKind(MESSAGE_BUNDLE()))
 			assert(argsListNode.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 			return mutable.createShared {
 				setSlot(TOKENS, consumedTokens)

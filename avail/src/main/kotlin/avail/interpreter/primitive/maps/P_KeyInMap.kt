@@ -61,7 +61,7 @@ object P_KeyInMap : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o, mostGeneralMapType()), booleanType)
+		functionType(tuple(ANY(), mostGeneralMapType()), booleanType)
 
 	override val canDestroyArguments get() = false
 }

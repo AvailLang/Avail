@@ -114,7 +114,7 @@ abstract class StringDescriptor protected constructor(
 		endIndex: Int,
 		type: A_Type
 	): Boolean =
-		(CHARACTER.o.isSubtypeOf(type)
+		(CHARACTER().isSubtypeOf(type)
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				self, startIndex, endIndex, type))
 

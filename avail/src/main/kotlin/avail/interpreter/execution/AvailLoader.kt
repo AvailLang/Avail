@@ -38,7 +38,14 @@ import avail.annotations.ThreadSafe
 import avail.anvil.Stylesheet
 import avail.anvil.SystemStyleClassifier.TOKEN_HIGHLIGHT
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.SideEffectKind.*
+import avail.compiler.SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND
+import avail.compiler.SideEffectKind.ATOM_DEFINITION_KIND
+import avail.compiler.SideEffectKind.FORWARD_METHOD_DEFINITION_KIND
+import avail.compiler.SideEffectKind.GRAMMATICAL_RESTRICTION_KIND
+import avail.compiler.SideEffectKind.MACRO_DEFINITION_KIND
+import avail.compiler.SideEffectKind.METHOD_DEFINITION_KIND
+import avail.compiler.SideEffectKind.SEAL_KIND
+import avail.compiler.SideEffectKind.SEMANTIC_RESTRICTION_KIND
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
@@ -223,6 +230,7 @@ import avail.interpreter.effects.LoadingEffect
 import avail.interpreter.effects.LoadingEffectToAddDefinition
 import avail.interpreter.effects.LoadingEffectToAddMacro
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
+import avail.interpreter.execution.AvailLoader.Companion.moduleHeaderBundleRoot
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_LOAD
@@ -1471,7 +1479,7 @@ constructor(
 					SEAL_KIND,
 					methodName.asNameInModule,
 					methodName.atomName.asNativeString(),
-					functionType(seal, TOP.o),
+					functionType(seal, TOP()),
 					topLevelStatementBeingCompiled!!.startingLineNumber,
 					topLevelStatementBeingCompiled!!.startingLineNumber))
 		}
@@ -1689,7 +1697,7 @@ constructor(
 			{
 				val function = functions.next()
 				val fiber = newLoaderFiber(
-					TOP.o,
+					TOP(),
 					this,
 					nameSupplier = {
 						val n = counter++

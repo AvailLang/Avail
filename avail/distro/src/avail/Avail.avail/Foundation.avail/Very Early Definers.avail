@@ -47,6 +47,7 @@ Names
 	"Replace assertion failure function with_",
 	"Replace parse rejection function with_",
 	"Replace parse acceptance function with_",
+	"Replace value of_with_until module is unloaded",
 	"Shouldn't happen",
 	"Shouldn't happen(_)",
 	"definition styler",
@@ -351,7 +352,7 @@ statementStyler ::=
 		|
 			Style fixed tokens of original with "#statement";
 		];
-	] : ⊤;	
+	] : ⊤;
 
 /**
  * Answer a function that applies the system style named
@@ -391,7 +392,7 @@ Primitive "Method_is_«styled by_»?" is
 	optionalStyler : <<>, styler function…|zeroOrOne>
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -414,7 +415,7 @@ Primitive "Method_is_«styled by_»?" is
 	optionalStyler : <<>, styler function…|zeroOrOne>
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -432,7 +433,7 @@ Method "definition styler" is
 	|
 		Primitive BootstrapDefinitionStyler (failureCode : {
 			cannot-style code}ᵀ);
-		Invoke early failure function with <failureCode>
+		Failed primitive with failureCode
 	] : ⊤
 ];
 
@@ -458,7 +459,7 @@ Method "special object styler" is
 	|
 		Primitive BootstrapDefineSpecialObjectMacroStyler (failureCode : {
 			cannot-style code}ᵀ);
-		Invoke early failure function with <failureCode>
+		Failed primitive with failureCode
 	] : ⊤
 ];
 
@@ -610,7 +611,7 @@ Method "private invoke_with_" is
 	arguments : tuple
 |
 	Primitive InvokeWithTuple (failureCode : natural number);
-	private invoke early failure function with <failureCode>;
+	Failed primitive with failureCode
 ] : ⊤;
 
 Semantic restriction "private invoke_with_" is
@@ -619,6 +620,40 @@ Semantic restriction "private invoke_with_" is
 	argumentsType : tuple meta
 |
 	functionType's return type
+];
+
+/** Private - Write to a variable, bypassing static checks. */
+Method "Assign_from_" is
+[
+	var : variable,
+	value : any
+|
+	Primitive SetValue (failureCode : enumeration of {
+		cannot-store-incorrectly-typed-value code,
+		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
+		cannot-modify-final-Java-field code,
+		observed-variable-written-while-untraced code});
+	Crash: "Invalid assignment"
+] : ⊤;
+
+/**
+ * Given a variable and a value, capture the variable's current value, then set
+ * the variable to the provided value.  Then set up an unload action that will
+ * restore the captured value back into the variable when the current module
+ * unloads.
+ */
+Method "Replace value of_↑with_until module is unloaded" is
+[
+	variable : read any/write ⊥,
+	value : any
+|
+	oldValue ::= ↓variable;
+	Assign variable from value;
+	After the current module is unloaded, do
+	[
+		Assign variable from oldValue;
+	];
 ];
 
 /**
@@ -780,7 +815,7 @@ emptyTuple ::= <>;
 nullaryFunctionReturningString ::=
 	function accepting emptyTuple and returning string;
 
-assertStyler ::=	
+assertStyler ::=
 	[
 		optionalOriginal : optionalSendType,
 		transformed : phrase
@@ -805,7 +840,7 @@ assertStyler ::=
  *   The requested styler.
  */
 Primitive "assertion styler" is [assertStyler];
-	
+
 Method "Assert:_with function_" is
 [
 	predicate : boolean,

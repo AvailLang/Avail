@@ -35,7 +35,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.utility.removeLast
 import java.lang.Integer.toHexString
 
 /**
@@ -186,7 +185,8 @@ constructor(
 	 * @param predecessorEdge
 	 *   The [L2PcOperand] that leads here.
 	 */
-	fun addPredecessorEdge(predecessorEdge: L2PcOperand)
+	fun addPredecessorEdge(
+		predecessorEdge: L2PcOperand)
 	{
 		predecessorEdges.add(predecessorEdge)
 		if (hasStartedCodeGeneration)
@@ -214,7 +214,8 @@ constructor(
 	 * @param predecessorEdge
 	 *   The [L2PcOperand] that no longer leads here.
 	 */
-	fun removePredecessorEdge(predecessorEdge: L2PcOperand)
+	fun removePredecessorEdge(
+		predecessorEdge: L2PcOperand)
 	{
 		if (hasStartedCodeGeneration)
 		{
@@ -228,10 +229,7 @@ constructor(
 					// Phi functions are always at the start of a block.
 					break
 				}
-				val replacement = instruction.phiWithoutIndex(index)
-				instruction.justRemoved()
-				instructions[i] = replacement
-				replacement.justInserted()
+				instruction.replaceWith(instruction.phiWithoutIndex(index))
 			}
 		}
 		predecessorEdges.remove(predecessorEdge)

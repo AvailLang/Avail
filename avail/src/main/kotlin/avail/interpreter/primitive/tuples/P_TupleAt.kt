@@ -52,8 +52,10 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.Primitive
@@ -64,15 +66,23 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.codePointIntRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
-import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
-import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
+import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
+import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_NO_FAIL
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_CODEPOINT_AT_NO_FAIL
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_INT_AT_NO_FAIL
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
+import avail.interpreter.primitive.characters.P_CharacterCodePoint
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import java.lang.Integer.MAX_VALUE
 
@@ -104,7 +114,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			tuple(
 				mostGeneralTupleType,
 				naturalNumbers),
-			ANY.o)
+			ANY())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
@@ -137,20 +147,19 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		else super.fallibilityForArgumentTypes(argumentTypes)
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (tupleReg, subscriptReg) = arguments
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			// We can't guarantee success, so do a dynamic bounds check.
-			val outOfBounds = generator.createBasicBlock(
+			val outOfBounds = createBasicBlock(
 				"failed bounds check",
 				ZoneType.DEAD_END.createZone("failed bounds check"))
 			val unboxedSemanticSize =
@@ -160,67 +169,103 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val intSizeRestriction = intRestrictionForType(
 				tupleReg.type().sizeRange.typeIntersection(i31))
 			val intSizeType = intSizeRestriction.type
-			val sizeWriter = generator.intWrite(
+			val sizeWriter = intWrite(
 				setOf(unboxedSemanticSize), intSizeRestriction)
 			if (intSizeType.lowerBound.equals(intSizeType.upperBound))
 			{
-				generator.addInstruction(
-					L2_MOVE_INT(
-						generator.unboxedIntConstant(
-							intSizeType.lowerBound.extractInt),
-						sizeWriter))
+				+L2_MOVE_INT(
+					unboxedIntConstant(intSizeType.lowerBound.extractInt),
+					sizeWriter)
 			}
 			else
 			{
-				translator.addInstruction(L2_TUPLE_SIZE(tupleReg, sizeWriter))
+				val equivalent =
+					currentManifest.equivalentSemanticValue(unboxedSemanticSize)
+				if (equivalent != null)
+					moveIntRegister(equivalent, setOf(unboxedSemanticSize))
+				else
+					+L2_TUPLE_SIZE(tupleReg, sizeWriter)
 			}
-			val readSubscript = generator.readInt(
+			val readSubscript = readInt(
 				subscriptReg.semanticValue().unboxedInt,
-				outOfBounds)
+				outOfBounds
+			) {
+				return false
+			}
 
 			// Check the upper bound, if necessary.
-			if (generator.currentlyReachable()
+			if (currentlyReachable()
 				&& subscriptReg.type().upperBound.greaterThan(
 					intSizeRestriction.type.lowerBound))
 			{
-				val inBounds = generator.createBasicBlock(
-					"passed upper bound check")
-				NumericComparator.LessOrEqual.compareAndBranchInt(
-					generator,
+				val inBounds = createBasicBlock("passed upper bound check")
+				compareAndBranchInt(
+					NumericComparator.LessOrEqual,
 					readSubscript,
-					translator.currentManifest.readInt(unboxedSemanticSize),
+					currentManifest.readInt(unboxedSemanticSize),
 					edgeTo(inBounds),
 					edgeTo(outOfBounds))
-				generator.startBlock(inBounds)
+				startBlock(inBounds)
 			}
-			if (generator.currentlyReachable())
+			if (currentlyReachable())
 			{
 				val resultRestriction = boxedRestrictionForType(
 					returnTypeGuaranteedByVM(
 						rawFunction,
 						listOf(
 							argumentTypes[0],
-							translator.currentManifest
+							currentManifest
 								.restrictionFor(subscriptReg.semanticValue())
 								.type)))
 				val semanticResult = semanticInvocation(
 					tupleReg.semanticValue(),
 					subscriptReg.semanticValue())
-				val writeResult =
-					generator.boxedWrite(semanticResult, resultRestriction)
-				generator.addInstruction(
-					L2_TUPLE_AT_NO_FAIL(tupleReg, readSubscript, writeResult))
-				callSiteHelper.useAnswer(translator.readBoxed(writeResult))
+				val writeResult = boxedWrite(semanticResult, resultRestriction)
+				if (resultRestriction.containedByType(i32))
+				{
+					// Extract it as an Int, then box it.  Further optimizations
+					// may be able to elide the boxing.
+					val semanticResultInt = semanticResult.unboxedInt
+					val writeIntResult = intWrite(
+						setOf(semanticResultInt),
+						resultRestriction.forUnboxedInt())
+					+L2_TUPLE_INT_AT_NO_FAIL(
+						tupleReg, readSubscript, writeIntResult)
+					+L2_BOX_INT(
+						readIntNoFail(writeIntResult.pickSemanticValue()),
+						writeResult)
+				}
+				else if (resultRestriction.containedByType(CHARACTER()))
+				{
+					// Extract the character's codepoint, then convert it to a
+					// character, with the hope that the conversion might be
+					// elided.
+					val semanticResultCodepoint =
+						P_CharacterCodePoint.semanticInvocation(semanticResult)
+							.unboxedInt
+					val writeCodepointResult = intWrite(
+						setOf(semanticResultCodepoint), codePointIntRestriction)
+					+L2_TUPLE_CODEPOINT_AT_NO_FAIL(
+						tupleReg, readSubscript, writeCodepointResult)
+					+L2_CODEPOINT_TO_CHARACTER(
+						readIntNoFail(semanticResultCodepoint),
+						writeResult)
+				}
+				else
+				{
+					+L2_TUPLE_AT_NO_FAIL(tupleReg, readSubscript, writeResult)
+				}
+				callSiteHelper.useAnswer(readBoxed(writeResult), false)
 			}
-			generator.startBlock(outOfBounds)
-			if (generator.currentlyReachable())
+			startBlock(outOfBounds)
+			if (currentlyReachable())
 			{
 				// The failure path can be reached.
-				translator.generateGeneralFunctionInvocation(
+				generateGeneralFunctionInvocation(
 					functionToCallReg,
-					arguments,
 					false,
 					callSiteHelper,
+					arguments,
 					willAlwaysFailPrimitive = true)
 			}
 			return true
@@ -231,29 +276,31 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		val subscriptType = subscriptReg.type()
 		val lower = subscriptType.lowerBound
 		val upper = subscriptType.upperBound
-		val writer = generator.boxedWriteTemp(
+		val writer = boxedWriteTemp(
+			"element",
 			boxedRestrictionForType(
 				returnTypeGuaranteedByVM(rawFunction, argumentTypes)))
 		if (lower.equals(upper))
 		{
 			// The subscript is a constant (and it's within range).
 			val subscriptInt = lower.extractInt
-			translator.addInstruction(
-				L2_TUPLE_AT_CONSTANT(
-					tupleReg, L2IntImmediateOperand(subscriptInt), writer))
-			callSiteHelper.useAnswer(translator.readBoxed(writer))
+			+L2_TUPLE_AT_CONSTANT(
+				tupleReg, L2IntImmediateOperand(subscriptInt), writer)
+			callSiteHelper.useAnswer(readBoxed(writer), false)
 			return true
 		}
 		// The subscript isn't a constant, but it's known to be in range.
 		val subscriptConversionFailure =
-			generator.createBasicBlock("Should be unreachable")
-		val subscriptIntReg = generator.readInt(
+			createBasicBlock("Should be unreachable")
+		val subscriptIntReg = readInt(
 			subscriptReg.semanticValue().unboxedInt,
-			subscriptConversionFailure)
+			subscriptConversionFailure
+		) {
+			return false
+		}
 		assert(subscriptConversionFailure.predecessorEdges().isEmpty())
-		translator.addInstruction(
-			L2_TUPLE_AT_NO_FAIL(tupleReg, subscriptIntReg, writer))
-		callSiteHelper.useAnswer(translator.readBoxed(writer))
+		+L2_TUPLE_AT_NO_FAIL(tupleReg, subscriptIntReg, writer)
+		callSiteHelper.useAnswer(readBoxed(writer), false)
 		return true
 	}
 }

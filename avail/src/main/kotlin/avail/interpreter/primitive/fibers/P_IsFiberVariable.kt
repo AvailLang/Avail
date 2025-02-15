@@ -82,7 +82,7 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o), booleanType)
+		functionType(tuple(ATOM()), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))

@@ -71,7 +71,7 @@ object P_HasNewName : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				MODULE.o,
+				MODULE(),
 				stringType),
 			booleanType)
 

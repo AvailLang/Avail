@@ -206,7 +206,7 @@ protected constructor(
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
-			computeIntersectionWith(self, primitiveTypeEnum.o)
+			computeIntersectionWith(self, primitiveTypeEnum())
 
 	override fun o_TypeIntersectionOfVariableType(
 		self: AvailObject,
@@ -296,7 +296,7 @@ protected constructor(
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
-			computeUnionWith(self, primitiveTypeEnum.o)
+			computeUnionWith(self, primitiveTypeEnum())
 
 	override fun o_TypeUnionOfSetType(
 		self: AvailObject,
@@ -557,7 +557,7 @@ protected constructor(
 							union.typeUnion(type).cast()
 						})
 				// It's a mix of types and non-types.
-				else -> Types.ANY.o
+				else -> Types.ANY()
 			}
 		}
 

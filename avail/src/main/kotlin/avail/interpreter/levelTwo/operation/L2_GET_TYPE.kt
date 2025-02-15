@@ -32,13 +32,13 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOnMethod
 import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -58,27 +58,26 @@ class L2_GET_TYPE(
 	var type: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(type.registerString())
-		builder.append(" ← ")
-		builder.append(value.registerString())
+		renderPreamble()
+		append(' ')
+		append(type.registerString())
+		append(" ← ")
+		append(value.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		translator.load(method, value.register())
+		translator.load(method, value)
 		// [value]
 		when
 		{
-			value.restriction().containedByType(NONTYPE.o) ->
+			value.restriction().containedByType(NONTYPE()) ->
 			{
 				// The value will *never* be a type.
 				InstanceTypeDescriptor.instanceTypeMethod.generateCall(method)
@@ -94,11 +93,11 @@ class L2_GET_TYPE(
 			else ->
 			{
 				// The value could be either a type or a non-type.
-				AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOnMethod
-					.generateCall(method)
+				instanceTypeOrMetaOnMethod.generateCall(method)
 				// Strengthen to AvailObject
 				method.visitTypeInsn(
-					Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+					Opcodes.CHECKCAST,
+					Type.getInternalName(AvailObject::class.java))
 			}
 		}
 		// [type]

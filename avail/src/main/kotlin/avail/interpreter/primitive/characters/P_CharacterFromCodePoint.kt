@@ -73,7 +73,7 @@ object P_CharacterFromCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 	): A_Type
 	{
 		val intType = argumentTypes[0]
-		if (intType.equals(characterCodePoints)) return CHARACTER.o
+		if (intType.equals(characterCodePoints)) return CHARACTER()
 
 		var chars = emptySet
 		if (intType.isEnumeration)
@@ -103,7 +103,7 @@ object P_CharacterFromCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				characterCodePoints),
-			CHARACTER.o)
+			CHARACTER())
 
 	override val canDestroyArguments get() = false
 }

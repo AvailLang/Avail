@@ -82,5 +82,5 @@ object P_StyleMethodName : Primitive(1, CanInline, WritesToHiddenGlobalState)
 	override fun privateBlockTypeRestriction(): A_Type = functionType(
 		tuple(
 			LITERAL_PHRASE.create(literalTokenType(stringType))),
-		TOP.o)
+		TOP())
 }

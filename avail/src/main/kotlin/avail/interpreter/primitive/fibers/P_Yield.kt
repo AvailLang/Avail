@@ -60,7 +60,7 @@ object P_Yield : Primitive(0, CannotFail, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, TOP.o)
+		functionType(emptyTuple, TOP())
 
 	override val canDestroyArguments get() = false
 }

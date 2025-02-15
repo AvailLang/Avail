@@ -49,6 +49,8 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TypeTag
 
 /**
@@ -393,6 +395,8 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		/** The Avail [A_String] version of the [kotlinString]. */
 		val string = stringFrom(kotlinString).makeShared()
 	}
+
+	override fun o_Kind(self: AvailObject): A_Type = ANY()
 
 	override fun o_Hash(self: AvailObject): Int = combine4(
 		self[FUNCTION].hash(),

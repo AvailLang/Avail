@@ -40,6 +40,7 @@ import avail.anvil.SystemStyleClassifier.CODE_TEXT
 import avail.anvil.ValidatedRenderingContext.Companion.defaultDocumentStyle
 import avail.anvil.shortcuts.CodePaneShortcut
 import avail.utility.PrefixTree.Companion.payloads
+import avail.utility.Strings
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
@@ -248,12 +249,17 @@ class CodePane constructor(
 	internal fun initializeStyles()
 	{
 		val attributes = SimpleAttributeSet()
-		StyleConstants.setTabSet(attributes, tabSet)
 		StyleConstants.setFontFamily(attributes, "Monospaced")
+
+		val fontMetrics = getFontMetrics(font)
+		val eightyWidth = fontMetrics.stringWidth(eightyCharacters)
+		val tabWidth = eightyWidth / 20.0
+		val tabSet =
+			TabSet(Array(100) { TabStop((tabWidth * (it + 1)).toFloat()) })
+		StyleConstants.setTabSet(attributes, tabSet)
 		styledDocument.run {
 			setParagraphAttributes(0, length, attributes, false)
-			val defaultStyle = defaultDocumentStyle
-			defaultStyle.addAttributes(attributes)
+			defaultDocumentStyle.addAttributes(attributes)
 		}
 	}
 
@@ -436,8 +442,14 @@ class CodePane constructor(
 
 	companion object
 	{
-		/** The [tab&#32;set][TabSet]. */
-		private val tabSet = TabSet(Array(500) { TabStop(32.0f * (it + 1)) })
+		/**
+		 * A string with eighty (80) characters, used for improving the width
+		 * calculations for setting tab stops.  Even though we use a monospaced
+		 * font, we use a Euro (€) character, because the code guide mechanism
+		 * that we use claimed that it was slightly wider than a space, although
+		 * this was probably from experiments with variable-width fonts.
+		 */
+		private val eightyCharacters = Strings.repeated("€", 80)
 
 		/** The length of the receiver after template expansion. */
 		private val String.expandedLength get() =

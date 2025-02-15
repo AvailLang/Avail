@@ -65,8 +65,8 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.pojos.PrimitiveHelper.lookupMethod
-import avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
+import avail.interpreter.primitive.PrimitiveHelper.lookupMethod
+import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import avail.utility.Mutable
 import avail.utility.cast
 import java.lang.reflect.Method
@@ -144,10 +144,10 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 					P_InvokeInstancePojoMethod,
 					it,
 					// Outer#1 = Instance method to invoke.
-					RAW_POJO.o,
+					RAW_POJO(),
 					// Outer#2 = Marshaled type parameters, starting with the
 					// receiver.
-					oneOrMoreOf(RAW_POJO.o))
+					oneOrMoreOf(RAW_POJO()))
 			}
 		}
 		val function = createWithOuters2(
@@ -165,7 +165,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 				anyMeta,
 				stringType,
 				zeroOrMoreOf(anyMeta)),
-			functionTypeReturning(TOP.o))
+			functionTypeReturning(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

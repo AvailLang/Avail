@@ -202,7 +202,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o,
+								TOKEN(),
 								/* Argument type. */
 								anyMeta)))),
 				/* Macro argument is a phrase. */
@@ -212,14 +212,14 @@ object P_BootstrapPrefixPrimitiveDeclaration
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o,
+							TOKEN(),
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o,
+									TOKEN(),
 									/* Primitive failure variable type */
 									anyMeta)))))),
-			TOP.o)
+			TOP())
 }

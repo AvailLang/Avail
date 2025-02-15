@@ -181,7 +181,7 @@ internal class DeadCodeAnalyzer constructor(
 						|| phiInstruction.hasSideEffect)
 					{
 						liveInstructions.add(phiInstruction)
-						val readOperand = phiInstruction.sources()
+						val readOperand = phiInstruction.sources
 							.elements[predecessorIndex]
 						dataCouplingMode.addEntitiesFromRead(
 							readOperand, entities)

@@ -245,7 +245,7 @@ protected constructor(
 
 	// A type's kind is always ANY, since there are no more metatypes that
 	// are kinds.
-	override fun o_Kind(self: AvailObject): A_Type = ANY.o
+	override fun o_Kind(self: AvailObject): A_Type = ANY()
 
 	abstract override fun o_LowerBound(self: AvailObject): A_Number
 

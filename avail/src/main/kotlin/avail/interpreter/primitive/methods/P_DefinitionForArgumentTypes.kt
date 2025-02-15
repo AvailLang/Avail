@@ -95,11 +95,19 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 		{
 			return interpreter.primitiveFailure(e.errorCode)
 		}
-
 	}
 
+	/**
+	 * The argTypes might include instance types on variables that are escaped,
+	 * and those instance types might end up in the dispatch tree, which makes
+	 * them shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o, zeroOrMoreOf(anyMeta)), DEFINITION.o)
+		functionType(tuple(ATOM(), zeroOrMoreOf(anyMeta)), DEFINITION())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

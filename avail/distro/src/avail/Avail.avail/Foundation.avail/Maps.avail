@@ -244,7 +244,7 @@ Public method "a map iteration prefix function" is
  *
  * @method "map body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
+ *      macro builds
  * @param "baseReturnType" "type" the base return type of the method
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ map,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"

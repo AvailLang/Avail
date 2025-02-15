@@ -75,12 +75,14 @@ constructor(
 			if (it == privateBoxed) this else it.unboxedInt
 		}
 
+	override val toBoxed: L2SemanticBoxedValue get() = boxed
+
 	override val isConstant: Boolean get() = privateBoxed.isConstant
 
 	override val defaultRestriction: TypeRestriction
 		get() = constantRestrictionOrNull ?: i32Restriction
 
-	override val isUsefulForGlobalValueNumbering: Boolean =
+	override val isUsefulForGlobalValueNumbering: Boolean get() =
 		privateBoxed.isUsefulForGlobalValueNumbering
 
 	override val constantRestrictionOrNull: TypeRestriction?
@@ -95,6 +97,6 @@ constructor(
 			get() = (this as L2SemanticUnboxedInt).privateBoxed
 
 		/** The default restriction for int semantic values. */
-		private val i32Restriction = intRestrictionForType(i32)
+		val i32Restriction = intRestrictionForType(i32)
 	}
 }

@@ -31,7 +31,7 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObject.Companion.combine2
 
 /**
  * A semantic value which is specific to a [Frame].
@@ -51,18 +51,10 @@ import avail.descriptor.representation.AvailObject
 internal abstract class L2FrameSpecificSemanticValue constructor(
 	val frame: Frame,
 	hash: Int
-) : L2SemanticBoxedValue(hash + frame.hashCode() * AvailObject.multiplier)
+) : L2SemanticBoxedValue(combine2(hash, frame.hashCode()))
 {
-	/**
-	 * Answer the [Frame] in which this invocation takes place.
-	 *
-	 * @return
-	 *   The frame.
-	 */
-	fun frame(): Frame = frame
-
 	override fun equalsSemanticValue(other: L2SemanticValue<*>): Boolean =
-		other is L2FrameSpecificSemanticValue && frame() == other.frame()
+		other is L2FrameSpecificSemanticValue && frame == other.frame
 
 	abstract override fun toString(): String
 

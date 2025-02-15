@@ -41,7 +41,6 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
@@ -54,12 +53,13 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Compare for equality. Answer a
- * [boolean][EnumerationTypeDescriptor.booleanType].
+ * [boolean][booleanType].
  */
 @Suppress("unused")
 object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
@@ -103,27 +103,26 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o, ANY.o), booleanType)
+		functionType(tuple(ANY(), ANY()), booleanType)
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (firstReg, secondReg) = arguments
 
-		val translator = callSiteHelper.translator
-		val manifest = callSiteHelper.generator.currentManifest
+		val manifest = currentManifest
 		if (manifest.synonymsForRegister(firstReg.register())
 			.intersect(manifest.synonymsForRegister(secondReg.register()))
 			.isNotEmpty())
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
-			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject))
+			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
 			return true
 		}
 
@@ -132,8 +131,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		if (type1.typeIntersection(type2).isBottom)
 		{
 			// The actual values cannot be equal at runtime.
-			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(falseObject))
+			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
 			return true
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -143,48 +141,44 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			&& type1.instanceCount.equalsInt(1)
 			&& !type1.isInstanceMeta)
 		{
-			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject))
+			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
 			return true
 		}
 
 		// At least avoid the overhead of a general primitive call.  Make sure
 		// to generate L2 instructions that expose the selection of booleans
 		// through control flow, so that code splitting can use it.
-		translator.generator.run {
-			val ifEqual = createBasicBlock("equal")
-			val ifNotEqual = createBasicBlock("not equal")
-			val c1 = firstReg.constantOrNull
-			val c2 = secondReg.constantOrNull
-			when
-			{
-				c1 !== null -> jumpIfEqualsConstant(
-					readBoxed(secondReg.semanticValue()),
-					c1,
-					ifEqual,
-					ifNotEqual)
-				c2 !== null -> jumpIfEqualsConstant(
-					readBoxed(firstReg.semanticValue()),
-					c2,
-					ifEqual,
-					ifNotEqual)
-				else -> addInstruction(
-					L2_JUMP_IF_OBJECTS_EQUAL(
-						readBoxed(firstReg.semanticValue()),
-						readBoxed(secondReg.semanticValue()),
-						edgeTo(ifEqual),
-						edgeTo(ifNotEqual)))
-			}
-			if (ifEqual.currentlyReachable())
-			{
-				startBlock(ifEqual)
-				callSiteHelper.useAnswer(boxedConstant(trueObject))
-			}
-			if (ifNotEqual.currentlyReachable())
-			{
-				startBlock(ifNotEqual)
-				callSiteHelper.useAnswer(boxedConstant(falseObject))
-			}
+		val ifEqual = createBasicBlock("equal")
+		val ifNotEqual = createBasicBlock("not equal")
+		val c1 = firstReg.constantOrNull
+		val c2 = secondReg.constantOrNull
+		when
+		{
+			c1 !== null -> jumpIfEqualsConstant(
+				secondReg,
+				c1,
+				ifEqual,
+				ifNotEqual)
+			c2 !== null -> jumpIfEqualsConstant(
+				firstReg,
+				c2,
+				ifEqual,
+				ifNotEqual)
+			else -> +L2_JUMP_IF_OBJECTS_EQUAL(
+				firstReg,
+				secondReg,
+				edgeTo(ifEqual),
+				edgeTo(ifNotEqual))
+		}
+		if (ifEqual.currentlyReachable())
+		{
+			startBlock(ifEqual)
+			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+		}
+		if (ifNotEqual.currentlyReachable())
+		{
+			startBlock(ifNotEqual)
+			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
 		}
 		return true
 	}

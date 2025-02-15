@@ -87,5 +87,5 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 		functionType(
 			/* Module name */
 			tupleFromArray(stringLiteralType),
-			TOP.o)
+			TOP())
 }

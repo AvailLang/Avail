@@ -33,12 +33,10 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
@@ -46,8 +44,8 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
- * An `L2ReadIntOperand` is an operand of type [L2OperandType.READ_INT]. It
- * holds the actual [L2IntRegister] that is to be accessed.
+ * An [L2ReadIntOperand] is an operand of type [READ_INT]. It holds the actual
+ * [L2IntRegister] that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -58,8 +56,7 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 
 	/**
 	 * Construct a new `L2ReadIntOperand` for the specified [L2SemanticValue]
-	 * and [TypeRestriction], using information from the given
-	 * [L2ValueManifest].
+	 * and [TypeRestriction].
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
@@ -68,49 +65,23 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 	 *   The [TypeRestriction] to constrain this particular read. This
 	 *   restriction has been guaranteed by the VM at the point where this
 	 *   operand's instruction occurs.
-	 * @param manifest
-	 *   The [L2ValueManifest] from which to extract a suitable definition
-	 *   instruction.
 	 */
 	constructor(
 		semanticValue: L2SemanticValue<INTEGER_KIND>,
 		restriction: TypeRestriction,
-		manifest: L2ValueManifest
-	) : super(
-		semanticValue,
-		restriction,
-		manifest.getDefinition(semanticValue))
+		register: L2Register<INTEGER_KIND>? = null
+	) : super(semanticValue, restriction, register)
 	{
 		assert(restriction.isUnboxedInt)
 	}
 
-	/**
-	 * Construct a new `L2ReadIntOperand` with an explicit definition
-	 * register [L2WriteIntOperand].
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
-	 *   this [L2Operand].
-	 * @param restriction
-	 *   The [TypeRestriction] that bounds the value being read.
-	 * @param register
-	 *   The [L2IntRegister] being read by this operand.
-	 */
-	constructor(
-		semanticValue: L2SemanticValue<INTEGER_KIND>,
-		restriction: TypeRestriction,
-		register: L2Register<INTEGER_KIND>
-	) : super(semanticValue, restriction, register)
-
 	override fun semanticValue(): L2SemanticUnboxedInt =
 		super.semanticValue().cast()
 
-	override fun copyForRegister(
-		newRegister: L2Register<INTEGER_KIND>
-	) = L2ReadIntOperand(semanticValue(), restriction(), newRegister)
+	override fun register(): L2IntRegister = super.register().cast()
 
 	override fun createConstantRegister() =
-		L2IntRegister(-999, restriction().constantOrNull!!)
+		L2IntRegister(-999, constantOrNull!!)
 
 	override fun createSemanticConstant(): L2SemanticUnboxedInt =
 		constant(register().constant!!).unboxedInt

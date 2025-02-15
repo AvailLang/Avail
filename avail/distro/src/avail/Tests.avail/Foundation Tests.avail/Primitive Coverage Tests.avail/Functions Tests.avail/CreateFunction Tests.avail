@@ -46,9 +46,9 @@ Test "CreateFunction ok" in primitive functions test suite is
     f2 ::= function from f1's implementation and <↑z>;
     Cast f2 into
     [
-    	f : [integer]→integer
+		f : [integer]→integer
     |
-    	Require: f(10) = 60;
+		Require: f(10) = 60;
     ];
     f2b ::= function from f1's implementation and <↑x>;
 	Cast f2b into
@@ -64,9 +64,9 @@ Test "CreateFunction ok" in primitive functions test suite is
     f4 ::= function from f3's implementation and <8>;
     Cast f4 into
     [
-    	f : [integer]→integer
+		f : [integer]→integer
     |
-    	Require: f(10) = 18;
+		Require: f(10) = 18;
     ];
 
     f5 ::= [mm : integer, nn : integer | mm + mm + nn];
@@ -80,7 +80,7 @@ Test "CreateFunction ok" in primitive functions test suite is
 	];
     Cast f6 into
     [
-    	f : [integer, integer]→integer
+		f : [integer, integer]→integer
 	|
 		Require: f(10, 10) = 30;
     ];
@@ -91,4 +91,3 @@ Test "CreateFunction fails with wrong-outers exception" in primitive functions t
 	Skip test;
 ]
 must raise wrong-outers exception;
-

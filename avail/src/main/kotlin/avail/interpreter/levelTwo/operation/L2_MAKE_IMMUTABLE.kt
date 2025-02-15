@@ -33,13 +33,13 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2OperandType
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.optimizer.L2Generator
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -63,43 +63,50 @@ class L2_MAKE_IMMUTABLE(
 	var output: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun extractFunctionOuter(
+	/**
+	 * The make-immutable instruction should only be inserted near the end of
+	 * optimization.
+ 	 */
+	override fun L2GeneratorInterface.extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
 		outerIndex: Int,
-		outerType: A_Type,
-		generator: L2Generator): L2ReadBoxedOperand
-	{
-		// The make-immutable instruction should only be inserted near the end
-		// of optimization.
-		throw AssertionError("Should not reach this")
-	}
+		outerType: A_Type
+	): L2ReadBoxedOperand = unsupported
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(output.registerString())
-		builder.append(" ← ")
-		builder.append(input.registerString())
+		renderPreamble()
+		append(' ')
+		append(output.registerString())
+		append(" ← ")
+		append(input.registerString())
 	}
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		// The make-immutable instruction should only be inserted near the end
-		// of optimization.
+		// The make-immutable instruction should only be inserted after all
+		// optimization passes that use graph regeneration.
 		throw AssertionError("Should not reach this")
 	}
+
+
+	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
+		get()
+		{
+			// The make-immutable instructions are added *after* all uses of
+			// this method.
+			throw AssertionError("Should not reach this")
+		}
+
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
 		// :: output = input.makeImmutable();
-		translator.load(method, input.register())
+		translator.load(method, input)
 		A_BasicObject.makeImmutableMethod.generateCall(method)
 		translator.store(method, output.register())
 	}

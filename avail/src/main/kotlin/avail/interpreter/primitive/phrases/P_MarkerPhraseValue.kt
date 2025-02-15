@@ -65,5 +65,5 @@ object P_MarkerPhraseValue : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				MARKER_PHRASE.mostGeneralType),
-			ANY.o)
+			ANY())
 }

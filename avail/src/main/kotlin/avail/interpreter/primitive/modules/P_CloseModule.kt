@@ -66,11 +66,11 @@ object P_CloseModule : Primitive(1, CanInline)
 			return interpreter.primitiveFailure(E_MODULE_IS_CLOSED)
 		}
 		module.moduleState = Loaded
-		return interpreter.primitiveSuccess(TOP.o)
+		return interpreter.primitiveSuccess(TOP())
 	}
 
 	override fun privateBlockTypeRestriction() =
-		functionType(tuple(MODULE.o), TOP.o)
+		functionType(tuple(MODULE()), TOP())
 
 	override fun privateFailureVariableType() =
 		enumerationWith(set(E_MODULE_IS_CLOSED))

@@ -34,7 +34,7 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.fiber.A_Fiber.Companion.traceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.variablesWritten
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Function
 import avail.descriptor.sets.A_Set
@@ -46,9 +46,10 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.validWriteReactorFunctions
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.Primitive
@@ -58,9 +59,9 @@ import avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Disable
- * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for
- * the [current&#32;fiber][FiberDescriptor.currentFiber]. For each
- * [variable][A_Variable] that survived tracing, accumulate the variable's
+ * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for the
+ * [current&#32;fiber][currentFiber]. For each [variable][A_Variable] that
+ * survived tracing, accumulate the variable's
  * [write&#32;reactor][VariableAccessReactor] [functions][A_Function] into a
  * [set][A_Set]. Clear the write reactors for each variable written. Answer the
  * set of functions.
@@ -85,7 +86,7 @@ object P_DisableTraceVariableWrites : Primitive(
 		for (variable in written)
 		{
 			functions = functions.setUnionCanDestroy(
-				variable.validWriteReactorFunctions(), true)
+				variable.validWriteReactorFunctions, true)
 		}
 		return interpreter.primitiveSuccess(functions)
 	}
@@ -97,7 +98,7 @@ object P_DisableTraceVariableWrites : Primitive(
 				wholeNumbers,
 				functionType(
 					emptyTuple,
-					TOP.o)))
+					TOP())))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

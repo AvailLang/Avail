@@ -114,7 +114,7 @@ constructor(
 		assert(integerSlot === other!!.integerSlot) {
 			"Bit fields of different slots are incomparable"
 		}
-		return other!!.shift.compareTo(shift)
+		return other.shift.compareTo(shift)
 	}
 
 	/**
@@ -132,7 +132,7 @@ constructor(
 			&& shift == bitField.shift
 			&& bits == bitField.bits
 
-	override fun toString() = "${javaClass.simpleName}($shift:$bits)"
+	override fun toString() = "${javaClass.simpleName}($shift:$bits $name)"
 
 	/**
 	 * Extract this `BitField` from the given [Long].

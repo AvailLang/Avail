@@ -83,7 +83,7 @@ object P_CreateAtom : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType), ATOM.o)
+		functionType(tuple(stringType), ATOM())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_AMBIGUOUS_NAME))

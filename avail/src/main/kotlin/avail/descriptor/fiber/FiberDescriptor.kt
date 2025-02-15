@@ -50,6 +50,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberName
 import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
+import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import avail.descriptor.fiber.FiberDescriptor.FiberKind.entries
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.FIBER_GLOBALS
@@ -99,6 +101,7 @@ import avail.exceptions.unsupported
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
 import avail.utility.isNullOr
@@ -108,6 +111,7 @@ import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import javax.annotation.concurrent.GuardedBy
 import javax.swing.ImageIcon
 
 /**
@@ -309,6 +313,7 @@ class FiberDescriptor private constructor(
 		 * The non-emptiness of this set must agree with the value of the
 		 * [InterruptRequestFlag.REIFICATION_REQUESTED] flag.
 		 */
+		@GuardedBy("self")
 		val reificationWaiters = mutableSetOf<(A_Continuation) -> Unit>()
 
 		/**
@@ -892,8 +897,34 @@ class FiberDescriptor private constructor(
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self.mutableSlot(RESULT)
 
-	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject) =
+	override fun o_SetFiberResultAndState(
+		self: AvailObject,
+		result: A_BasicObject,
+		state: ExecutionState)
+	{
+		// MAKE SURE the fiberResult gets set before the executionState,
+		// since primitives are allowed to poll them and should not see the
+		// fiber as terminated and then not be able to see a result.  This
+		// actually happend, once, on 2025-02-05.  If you don't believe me,
+		// prove it to yourself by reversing their order and putting a short
+		// thread sleep between them.
+		if (state == ExecutionState.ABORTED)
+		{
+			assert(result.isNil)
+		}
+		else
+		{
+			//TODO Remove expensive type check, or make it less fatal somehow.
+			// Perhaps introduce a new terminal state that says it was trying to
+			// yield a value of the wrong type.
+			val expectedType = self[RESULT_TYPE]
+			assert(result.isInstanceOf(expectedType)) {
+				"Unexpected type of result from fiber completion"
+			}
+		}
 		self.setMutableSlot(RESULT, result)
+		helper.executionState = state
+	}
 
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(HERITABLE_FIBER_GLOBALS)
@@ -1336,7 +1367,7 @@ class FiberDescriptor private constructor(
 			loader: AvailLoader,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			TOP.o,
+			TOP(),
 			loader.runtime,
 			loader,
 			loader.textInterface,
@@ -1414,6 +1445,6 @@ class FiberDescriptor private constructor(
 		 * @return
 		 *   A fiber.
 		 */
-		fun currentFiber(): A_Fiber = Interpreter.current().fiber()
+		fun currentFiber(): A_Fiber = currentInterpreter.fiber()
 	}
 }

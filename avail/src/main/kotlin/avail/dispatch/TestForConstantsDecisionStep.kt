@@ -36,8 +36,10 @@ import avail.descriptor.methods.A_Definition
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -174,7 +176,7 @@ constructor(
 		list.add(bypassForTypeLookup)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -189,14 +191,13 @@ constructor(
 		if (callSiteHelper.isSuper)
 		{
 			callSiteHelper.generator.jumpTo(
-				callSiteHelper.onFallBackToSlowLookup)
+				callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 
 		return generateDispatchTriples(
 			semanticArguments,
 			extraSemanticArguments,
-			callSiteHelper,
 			valueToSubtree,
 			noMatchSubtree)
 	}

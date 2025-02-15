@@ -53,7 +53,7 @@ class L2_INSTANCE_OF_META(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		translator.load(method, meta.register())
+		translator.load(method, meta)
 		instanceOfMetaMethod.generateCall(method)
 		translator.store(method, instanceOfMeta.register())
 	}

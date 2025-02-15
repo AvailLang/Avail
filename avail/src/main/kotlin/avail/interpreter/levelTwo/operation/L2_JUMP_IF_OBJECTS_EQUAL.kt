@@ -40,11 +40,13 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.sameSynonymCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -71,84 +73,65 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 			first.semanticValue(), second.semanticValue())
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(first.registerString())
-		builder.append(" = ")
-		builder.append(second.registerString())
+		renderPreamble()
+		append(' ')
+		append(first.registerString())
+		append(" = ")
+		append(second.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::first, ::second)
+			desiredOperandTypes, ::first, ::second)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		// :: if (first.equals(second)) goto ifEqual;
-		// :: else goto notEqual;
-		translator.load(method, first.register())
-		translator.load(method, second.register())
-		A_BasicObject.equalsMethod.generateCall(method)
-		emitBranch(
-			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
-	}
-
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
-	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifEqual.targetBlock() == ifNotEqual.targetBlock())
-		{
-			regenerator.jumpTo(ifEqual.targetBlock())
-			return
-		}
-
-		val manifest = regenerator.currentManifest
-		val restriction1 = manifest.restrictionFor(first.semanticValue())
-		val restriction2 = manifest.restrictionFor(second.semanticValue())
+		if (replaceWithJumpIfPossible(this)) return
+		val restriction1 = currentManifest.restrictionFor(first.semanticValue())
+		val restriction2 = currentManifest.restrictionFor(second.semanticValue())
 		if (restriction1.intersection(restriction2).isImpossible)
 		{
 			// The restrictions are disjoint, so the comparison is always false.
 			// Jump unconditionally to the false case.
-			regenerator.jumpTo(ifNotEqual.targetBlock())
+			jumpTo(ifNotEqual.targetBlock())
 			return
 		}
 		restriction1.constantOrNull?.let { c1 ->
 			restriction2.constantOrNull?.let { c2 ->
 				// The restrictions say the values are both constants, so jump
 				// unconditionally based on whether those constants are equal.
-				if (c1.equals(c2)) regenerator.jumpTo(ifEqual.targetBlock())
-				else regenerator.jumpTo(ifNotEqual.targetBlock())
+				if (c1.equals(c2)) jumpTo(ifEqual.targetBlock())
+				else jumpTo(ifNotEqual.targetBlock())
 				return
 			}
 		}
-		if (manifest.semanticValueToSynonym(first.semanticValue()) ==
-			manifest.semanticValueToSynonym(second.semanticValue()))
+		if (currentManifest.semanticValueToSynonym(first.semanticValue()) ==
+			currentManifest.semanticValueToSynonym(second.semanticValue()))
 		{
 			// The values aren't both known as static constants, but they are in
 			// the same synonym, so they are definitely equal.
-			regenerator.jumpTo(ifEqual.targetBlock())
+			jumpTo(ifEqual.targetBlock())
 			return
 		}
 		if (!first.restriction().containedByType(i32)
 			|| !second.restriction().containedByType(i32))
 		{
-			super.emitTransformedInstruction(regenerator)
+			+this@L2_JUMP_IF_OBJECTS_EQUAL
 			return
 		}
 		// The values are definitely ints, even if they're not necessarily both
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
-		val int1Reg = regenerator.readInt(
-			first.semanticValue().unboxedInt, unreachable)
-		val int2Reg = regenerator.readInt(
-			second.semanticValue().unboxedInt, unreachable)
+		val int1Reg = readInt(first.semanticValue().unboxedInt, unreachable) {
+			+this@L2_JUMP_IF_OBJECTS_EQUAL
+			return
+		}
+		val int2Reg = readInt(second.semanticValue().unboxedInt, unreachable) {
+			+this@L2_JUMP_IF_OBJECTS_EQUAL
+			return
+		}
 		// Note that we *must not* reuse the manifests in the translated edges
 		// ifTrue and ifFalse, since they might not include information about
 		// registers freshly generated for int1Reg and int2Reg, which might have
@@ -157,7 +140,7 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		// as dead code in the same pass that translated a downstream occurrence
 		// of L2_JUMP_IF_OBJECT_EQUAL, which could be translated to an
 		// L2_JUMP_IF_COMPARE_INT by the compareAndBranchInt() below.
-		regenerator.compareAndBranchInt(
+		compareAndBranchInt(
 			NumericComparator.Equal,
 			int1Reg,
 			int2Reg,
@@ -168,15 +151,31 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun interestingConditions(): List<L2SplitCondition?>
-	{
-		val conditions = mutableListOf<L2SplitCondition?>()
+	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
+		add(
+			sameSynonymCondition(
+				listOf(first.register()),
+				listOf(second.register())))
+		// If the values are both available as ints, we can do the comparison
+		// more efficiently, perhaps avoiding boxing entirely.
 		if (first.restriction().intersectsType(i32)
 			&& second.restriction().intersectsType(i32))
 		{
-			conditions.add(unboxedIntCondition(listOf(first.register())))
-			conditions.add(unboxedIntCondition(listOf(second.register())))
+			addAll(unboxedIntConditions(listOf(first.register())))
+			addAll(unboxedIntConditions(listOf(second.register())))
 		}
-		return conditions
+	}
+
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor)
+	{
+		// :: if (first.equals(second)) goto ifEqual;
+		// :: else goto notEqual;
+		translator.load(method, first)
+		translator.load(method, second)
+		A_BasicObject.equalsMethod.generateCall(method)
+		emitBranch(
+			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
 	}
 }

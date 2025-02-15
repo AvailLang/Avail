@@ -113,7 +113,7 @@ Public class "bad-cast exception" extends bad-multiway-cast exception
  *        The function to invoke if {@param "value"} is an instance of the its
  *        parameter type.
  * @returns "any"
- * 		The result of {@param "accept"}.
+ *        The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If {@param "value"} is not an instance of {@param "accept"}'s
  *         parameter type.
@@ -303,10 +303,10 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
  *        The function to invoke if each element of {@param "values"} is a
  *        subtype of the corresponding parameter type.
  * @returns "any"
- * 		The result of {@param "accept"}.
+ *           The result of {@param "accept"}.
  * @raises "bad-cast exception"
- *         If any element of {@param "values"} is not an instance of the
- *         corresponding parameter type of {@param "accept"}.
+ *        If any element of {@param "values"} is not an instance of the
+ *        corresponding parameter type of {@param "accept"}.
  * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast each of_into_" is

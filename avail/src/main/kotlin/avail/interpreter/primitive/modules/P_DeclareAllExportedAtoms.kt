@@ -33,20 +33,20 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.addPrivateNames
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
@@ -59,9 +59,8 @@ import avail.interpreter.execution.Interpreter
  * deserialize correctly. It forces the given set of atoms to be included in the
  * current module's [public&#32;names][ObjectSlots.IMPORTED_NAMES] or
  * [private&#32;names][ObjectSlots.PRIVATE_NAMES], depending on the value of the
- * supplied [boolean][EnumerationTypeDescriptor.booleanType]
- * ([true][AtomDescriptor.trueObject] for public,
- * [false][AtomDescriptor.falseObject] for private).
+ * supplied [boolean][booleanType] ([true][trueObject] for public,
+ * [false][falseObject] for private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -90,7 +89,7 @@ object P_DeclareAllExportedAtoms : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				setTypeForSizesContentType(wholeNumbers, ATOM.o),
+				setTypeForSizesContentType(wholeNumbers, ATOM()),
 				booleanType),
-			TOP.o)
+			TOP())
 }

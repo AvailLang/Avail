@@ -34,6 +34,7 @@ package avail.descriptor.fiber
 import avail.AvailDebuggerModel
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.IS_STYLING
+import avail.descriptor.fiber.A_Fiber.Companion.getFiberPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -45,7 +46,6 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -151,9 +151,13 @@ interface A_Fiber : A_BasicObject
 		/**
 		 * @return
 		 */
-		var A_Fiber.fiberResult: AvailObject
+		val A_Fiber.fiberResult: AvailObject
 			get() = dispatch { o_FiberResult(it) }
-			set(value) = dispatch { o_SetFiberResult(it, value) }
+
+		fun A_Fiber.setFiberResultAndState(
+			result: A_BasicObject,
+			state: ExecutionState
+		) = dispatch { o_SetFiberResultAndState(it, result, state) }
 
 		/**
 		 * @return
@@ -399,11 +403,10 @@ interface A_Fiber : A_BasicObject
 		/**
 		 * Extract a fiber's priority.
 		 *
-		 * @param aDouble
-		 *   The Kotlin [Double] to box.
+		 * @param aFiber
+		 *   The [A_Fiber] to query.
 		 * @return
-		 *   The boxed Avail [double][DoubleDescriptor]-precision floating point
-		 *   object.
+		 *   The priority of the fiber, in [0..255].
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic

@@ -67,6 +67,6 @@ object P_SetWithout : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralSetType(),
-				ANY.o),
+				ANY()),
 			mostGeneralSetType())
 }

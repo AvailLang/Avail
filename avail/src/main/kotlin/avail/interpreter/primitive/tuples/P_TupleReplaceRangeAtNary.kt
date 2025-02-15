@@ -113,10 +113,10 @@ object P_TupleReplaceRangeAtNary : Primitive(5, CanInline, CanFold)
 		functionType(
 			tuple(
 				mostGeneralTupleType,
-				oneOrMoreOf(ANY.o),
+				oneOrMoreOf(ANY()),
 				naturalNumbers,
 				wholeNumbers,
-				zeroOrMoreOf(ANY.o)),
+				zeroOrMoreOf(ANY())),
 			mostGeneralTupleType)
 
 	override fun privateFailureVariableType(): A_Type =

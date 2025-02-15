@@ -119,7 +119,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("{")
@@ -177,7 +177,7 @@ private constructor(
 		another.isInstanceMeta ->
 			instanceMeta(getInstance(self).typeUnion(another.instance))
 		// Unless another is top, then the answer will be any.
-		else -> ANY.o.typeUnion(another)
+		else -> ANY().typeUnion(another)
 	}
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
@@ -187,7 +187,7 @@ private constructor(
 
 	override fun o_IsInstanceMeta(self: AvailObject): Boolean = true
 
-	override fun o_ComputeSuperkind(self: AvailObject): A_Type = ANY.o
+	override fun o_ComputeSuperkind(self: AvailObject): A_Type = ANY()
 
 	/**
 	 * {@inheritDoc}
@@ -373,13 +373,13 @@ private constructor(
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
-			at("kind") { ANY.o.writeTo(writer) }
+			at("kind") { ANY().writeTo(writer) }
 			at("instances") { self.instances.writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
-			at("kind") { ANY.o.writeSummaryTo(writer) }
+			at("kind") { ANY().writeSummaryTo(writer) }
 			at("instances") { self.instances.writeSummaryTo(writer) }
 		}
 
@@ -430,12 +430,12 @@ private constructor(
 		/**
 		 * `⊤`'s type, cached statically for convenience.
 		 */
-		val topMeta: A_Type = instanceMeta(Types.TOP.o).makeShared()
+		val topMeta: A_Type = instanceMeta(Types.TOP()).makeShared()
 
 		/**
 		 * Any's type, cached statically for convenience.
 		 */
-		val anyMeta: A_Type = instanceMeta(ANY.o).makeShared()
+		val anyMeta: A_Type = instanceMeta(ANY()).makeShared()
 
 		/**
 		 * Answer a new instance of this descriptor based on some object whose

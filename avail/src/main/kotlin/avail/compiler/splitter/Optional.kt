@@ -39,15 +39,15 @@ import avail.compiler.PushLiteral.Companion.pushTrue
 import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
-import avail.compiler.splitter.MessageSplitter.Metacharacter
+import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -59,14 +59,12 @@ import java.util.Collections
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a
  * question mark (?).  It may not contain [Argument]s or subgroups, and since it
  * is not a group it may not contain a
- * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡).
+ * [double&#32;dagger][DOUBLE_DAGGER] (‡).
  *
- * At a call site, an optional produces a
- * [boolean][EnumerationTypeDescriptor.booleanType] that indicates whether there
- * was an occurrence of the group.  For example, the message "«very»?good"
- * accepts a single argument: a boolean that is
- * [true][AtomDescriptor.trueObject] if the token "very" occurred and
- * [false][AtomDescriptor.falseObject] if it did not.
+ * At a call site, an optional produces a [boolean][booleanType] that indicates
+ * whether there was an occurrence of the group.  For example, the message
+ * "«very»?good" accepts a single argument: a boolean that is [true][trueObject]
+ * if the token "very" occurred and [false][falseObject] if it did not.
  *
  * @property sequence
  *   The governed [sequence][Sequence].

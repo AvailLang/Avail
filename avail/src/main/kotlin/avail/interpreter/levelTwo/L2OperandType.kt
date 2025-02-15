@@ -47,7 +47,8 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -55,6 +56,7 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.register.RegisterKind
 
 /**
  * An `L2OperandType` specifies the nature of a level two operand.  It doesn't
@@ -133,13 +135,6 @@ constructor(
 		object CONSTANT : L2OperandType(L2ConstantOperand::class.java)
 
 		/**
-		 * An [L2ConstantOperand] holds a Java object of any type, except
-		 * [AvailObject], which should be handled with a [CONSTANT] operand.
-		 */
-		object ARBITRARY_CONSTANT : L2OperandType(
-			L2ArbitraryConstantOperand::class.java)
-
-		/**
 		 * An [L2IntImmediateOperand] holds an [Int] value.
 		 */
 		object INT_IMMEDIATE : L2OperandType(L2IntImmediateOperand::class.java)
@@ -149,6 +144,13 @@ constructor(
 		 */
 		object FLOAT_IMMEDIATE : L2OperandType(
 			L2FloatImmediateOperand::class.java)
+
+		/**
+		 * An [L2ArbitraryConstantOperand] holds a specific value, of a type
+		 * generically constrained by the instruction that operates on it.
+		 */
+		object ARBITRARY_CONSTANT : L2OperandType(
+			L2ArbitraryConstantOperand::class.java)
 
 		/**
 		 * The [L2ReadBoxedOperand] holds the [L2BoxedRegister] that will be
@@ -168,25 +170,34 @@ constructor(
 		object READ_FLOAT : L2OperandType(L2ReadFloatOperand::class.java)
 
 		/**
-		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
-		 * which will be read.
+		 * The [L2ReadBoxedVectorOperand] holds a [List] of
+		 * [L2ReadBoxedOperand]s which will be read.
 		 */
 		object READ_BOXED_VECTOR : L2OperandType(
 			L2ReadBoxedVectorOperand::class.java)
 
 		/**
-		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
+		 * The [L2ReadIntVectorOperand] holds a [List] of [L2ReadIntOperand]s
 		 * which will be read.
 		 */
 		object READ_INT_VECTOR : L2OperandType(
 			L2ReadIntVectorOperand::class.java)
 
 		/**
-		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
-		 * which will be read.
+		 * The [L2ReadFloatVectorOperand] holds a [List] of
+		 * [L2ReadFloatOperand]s which will be read.
 		 */
 		object READ_FLOAT_VECTOR : L2OperandType(
 			L2ReadFloatVectorOperand::class.java)
+
+		/**
+		 * The [L2ReadMixedVectorOperand] holds a [List] of [L2ReadOperand]s
+		 * which will be read.  The specific values will be specializations of
+		 * [L2ReadOperand], perhaps parameterized with a mixture of
+		 * [RegisterKind]s.
+		 */
+		object READ_MIXED_VECTOR : L2OperandType(
+			L2ReadMixedVectorOperand::class.java)
 
 		/**
 		 * The [L2WriteBoxedOperand] holds the [L2BoxedRegister] that will be
@@ -217,7 +228,8 @@ constructor(
 		 * [L2WriteBoxedOperand]s which will all be written.
 		 */
 		object WRITE_BOXED_VECTOR : L2OperandType(
-			L2WriteBoxedVectorOperand::class.java)
+			L2WriteBoxedVectorOperand::class.java,
+			true)
 
 		/**
 		 * An [L2PcOperand] holds an offset into the chunk's instructions,
@@ -232,40 +244,40 @@ constructor(
 		 * The [L2PcVectorOperand] holds a [List] of [L2PcOperand]s which can be
 		 * the targets of a multi-way jump.
 		 */
-		object PC_VECTOR : L2OperandType(L2PcVectorOperand::class.java, true)
-	}
-}
+		object PC_VECTOR : L2OperandType(
+			L2PcVectorOperand::class.java,
+			true)
 
-object OperandTypeMap
-{
-	/** The set of all [L2OperandType]s. */
-	val allOperandTypes: Set<L2OperandType>
 
-	/** A private map from [L2Operand] class to its [L2OperandType]. */
-	private val privateOperandTypeByOperandClass:
-		Map<Class<out L2Operand>, L2OperandType>
+		/** The set of all [L2OperandType]s. */
+		val allOperandTypes: Set<L2OperandType>
 
-	init
-	{
-		// Force all singletons to be instantiated, and therefore added to
-		// privateAllOperandTypes and privateOperandTypeByOperandClass.
-		val operandClassToOperandType =
-			mutableMapOf<Class<out L2Operand>, L2OperandType>()
-		val allTypes = mutableSetOf<L2OperandType>()
-		L2OperandType::class.sealedSubclasses.forEach { subclass ->
-			val operandType = subclass.objectInstance!!
-			val operandClass = operandType.operandClass
-			operandClassToOperandType[operandClass] = operandType
-			allTypes.add(operandType)
+		/** A private map from [L2Operand] class to its [L2OperandType]. */
+		private val privateOperandTypeByOperandClass:
+			Map<Class<out L2Operand>, L2OperandType>
+
+		init
+		{
+			// Force all singletons to be instantiated, and therefore added to
+			// privateAllOperandTypes and privateOperandTypeByOperandClass.
+			val operandClassToOperandType =
+				mutableMapOf<Class<out L2Operand>, L2OperandType>()
+			val allTypes = mutableSetOf<L2OperandType>()
+			L2OperandType::class.sealedSubclasses.forEach { subclass ->
+				val operandType = subclass.objectInstance!!
+				val operandClass = operandType.operandClass
+				operandClassToOperandType[operandClass] = operandType
+				allTypes.add(operandType)
+			}
+			privateOperandTypeByOperandClass = operandClassToOperandType
+			allOperandTypes = allTypes
 		}
-		privateOperandTypeByOperandClass = operandClassToOperandType
-		allOperandTypes = allTypes
-	}
 
-	/**
-	 * Given an [L2Operand] class, get its [L2OperandType].
-	 */
-	fun operandTypeForOperandClass(
-		operandClass: Class<out L2Operand>
-	): L2OperandType = privateOperandTypeByOperandClass[operandClass]!!
+		/**
+		 * Given an [L2Operand] class, get its [L2OperandType].
+		 */
+		fun operandTypeForOperandClass(
+			operandClass: Class<out L2Operand>
+		): L2OperandType = privateOperandTypeByOperandClass[operandClass]!!
+	}
 }

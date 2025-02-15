@@ -33,6 +33,7 @@
 package avail.interpreter.levelTwo
 
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2OperandType.Companion.operandTypeForOperandClass
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -116,7 +117,7 @@ internal constructor(
 		 * [Purpose].
 		 */
 		val namedOperandType: L2NamedOperandType = L2NamedOperandType(
-			OperandTypeMap.operandTypeForOperandClass(type),
+			operandTypeForOperandClass(type),
 			name,
 			property.javaField!!.getAnnotation(On::class.java)?.purpose)
 
@@ -198,6 +199,29 @@ internal constructor(
 			"Found val fields (${valFields.map { it.name }}) in " +
 				"instruction class ($instructionClass).  They must be var."
 		}
+
+		// Require all val and var properties that have a backing field to be
+		// L2Operands.
+		val illegalFields = instructionClass.declaredMemberProperties
+			.filterIsInstance<KProperty1<I, *>>()
+			.filter { it.javaField != null }
+			.filterNot {
+				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)
+			}
+		if (illegalFields.isNotEmpty())
+		{
+			val names = illegalFields.map {
+				"${it.name} (${it.returnType})"
+			}
+			println(
+				"${instructionClass.simpleName} " +
+					"has non-L2Operand var fields: $names")
+		}
+		//assert(illegalFields.isEmpty()) {
+		//	"${instructionClass.simpleName} " +
+		//		"has non-L2Operand var fields: $illegalFields"
+		//}
+
 		// In Kotlin/JVM, `declaredFields` seems to produce the fields in
 		// declaration order, so this is a handy sorting index for preserving
 		// that when starting with the declared properties.
@@ -205,39 +229,50 @@ internal constructor(
 		val fieldNumbering = instructionClass.java.declaredFields
 			.withIndex()
 			.associate { (i, field) -> field to i }
+
 		val localFields = instructionClass.declaredMemberProperties
 			.filterIsInstance<KMutableProperty1<I, out L2Operand>>()
 			.filter {
 				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)
 			}
-			.sortedBy { fieldNumbering[it.javaField] }
+			.sortedBy { fieldNumbering[it.javaField!!] }
 			.map { OperandField(it) }
 		operandFields = (parentOperandFields + localFields)
 			.sortedWith(operandComparator).cast()
 	}
 
+	/**
+	 * Transform this instruction's operands, writing them back.  The
+	 * transformer must preserve the type of each operand, otherwise the attempt
+	 * to write it back will fail.
+	 *
+	 * @param instruction
+	 *   The instruction to alter, which must be of a type suitable for this
+	 *   layout to manipulate.
+	 * @param transform
+	 *   A function that maps an [L2Operand] into a replacement operand of the
+	 *   same [Class].
+	 */
 	fun updateOperands(
 		instruction: L2Instruction,
 		transform: (L2Operand) -> L2Operand)
 	{
 		operandFields.forEach { field ->
-			val old = field.get(instruction)
-			val new = transform(old)
-			field.setUnchecked(instruction, new)
+			field.setUnchecked(instruction, transform(field.get(instruction)))
 		}
 	}
 
 	/**
-	 * Create an Array of [OperandField]s metting the reified [L2Operand]
+	 * Create a List of [OperandField]s metting the reified [L2Operand]
 	 * subtype.
 	 */
 	private inline fun <reified OperandClass: L2Operand> filterOperands(
 		operandType: KClass<OperandClass>
-	): Array<OperandField<OperandClass>>
+	): List<OperandField<OperandClass>>
 	{
 		return operandFields
 			.filter { operandType.java.isAssignableFrom(it.type) }
-			.toTypedArray<OperandField<*>>().cast()!!
+			.cast()!!
 	}
 
 	/** Operands of type [L2ReadOperand]. */
@@ -269,15 +304,15 @@ internal constructor(
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
 		operandFields.forEach { field ->
-    		consumer(field.get(instruction), field.namedOperandType)
-    	}
+			consumer(field.get(instruction), field.namedOperandType)
+		}
 	}
 
 	/**
 	 * Extract the [Array] of [L2Operand]s from the instruction.
 	 */
-	fun operands(instruction: L2Instruction): Array<L2Operand> =
-		operandFields.map { it.get(instruction) }.toTypedArray()
+	fun operands(instruction: L2Instruction): List<L2Operand> =
+		operandFields.map { it.get(instruction) }
 
 	/**
 	 * Extract a list of all [L2ReadOperand]s, even those inside vectors.
@@ -324,27 +359,6 @@ internal constructor(
 			operandFields.forEach { operandField ->
 				operandField.get(instruction).addEdgesTo(list)
 			}
-		}
-	}
-
-	/**
-	 * Transform this instruction's operands, writing them back.  The
-	 * transformer must preserve the type of each operand, otherwise the attempt
-	 * to write it back will fail.
-	 *
-	 * @param instruction
-	 *   The instruction to alter, which must be of a type ssuitable for this
-	 *   layout to manipulate.
-	 * @param transform
-	 *   A function that maps an [L2Operand] into a replacement operand of the
-	 *   same [Class].
-	 */
-	fun transformOperands(
-		instruction: L2Instruction,
-		transform: (L2Operand) -> L2Operand)
-	{
-		operandFields.forEach { operandField ->
-			operandField.update(instruction, transform.cast())
 		}
 	}
 

@@ -83,7 +83,7 @@ object P_LookupModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 		functionType(
 			tuple(
 				stringType),
-			MODULE.o)
+			MODULE())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

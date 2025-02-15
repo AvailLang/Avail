@@ -80,8 +80,8 @@ object P_DoubleTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				DOUBLE.o,
+				DOUBLE(),
 				instanceType(two),
 				integers),
-			DOUBLE.o)
+			DOUBLE())
 }

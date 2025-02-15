@@ -46,7 +46,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Answer the type of the given object.
@@ -63,7 +64,7 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o),
+			tuple(ANY()),
 			anyMeta)
 
 	override fun returnTypeGuaranteedByVM(
@@ -71,20 +72,20 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>
 	): A_Type = instanceMeta(argumentTypes[0])
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		// Note that we exclude the values ⊥ and ⊤, as these are not the exact
 		// types of any objects.
 		val restriction = arguments[0].restriction().metaRestriction()
-		val translator = callSiteHelper.translator
-		val writer = translator.generator.boxedWriteTemp(restriction)
-		translator.addInstruction(L2_GET_TYPE(arguments[0], writer))
-		callSiteHelper.useAnswer(translator.readBoxed(writer))
+		val writer = boxedWriteTemp("type", restriction)
+		+L2_GET_TYPE(arguments[0], writer)
+		callSiteHelper.useAnswer(readBoxed(writer), false)
 		return true
 	}
 }

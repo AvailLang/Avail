@@ -222,7 +222,7 @@ abstract class AbstractFileWrapper constructor(
 	 * @param originator
 	 *   The [UUID] of the session that originated the undo.
 	 */
-	fun undo(@Suppress("UNUSED_PARAMETER") originator: UUID)
+	fun undo(@Suppress("unused") originator: UUID)
 	{
 		if (tracedActionStack.size >= undoStackDepth.get() + 1)
 		{
@@ -245,7 +245,7 @@ abstract class AbstractFileWrapper constructor(
 	 * @param originator
 	 *   The [UUID] of the session that originated the undo.
 	 */
-	fun redo(@Suppress("UNUSED_PARAMETER") originator: UUID)
+	fun redo(@Suppress("unused") originator: UUID)
 	{
 		if (undoStackDepth.get() == 0)
 		{

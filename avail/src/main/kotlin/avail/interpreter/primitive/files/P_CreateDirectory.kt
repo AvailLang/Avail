@@ -187,7 +187,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 			tuple(
 				stringType,
 				setTypeForSizesContentType(inclusive(0, 9), inclusive(1, 9)),
-				functionType(emptyTuple, TOP.o),
+				functionType(emptyTuple, TOP()),
 				functionType(
 					tuple(
 						enumerationWith(
@@ -195,9 +195,9 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 								E_FILE_EXISTS,
 								E_PERMISSION_DENIED,
 								E_IO_ERROR))),
-						TOP.o),
+						TOP()),
 					u8),
-			fiberType(TOP.o))
+			fiberType(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))

@@ -39,7 +39,6 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
@@ -51,7 +50,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -66,6 +64,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
 /**
@@ -90,8 +89,8 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val (objectType, fieldAtom) = interpreter.argsBuffer
 
-		val map = objectType.fieldTypeMap
-		if (!map.hasKey(fieldAtom))
+		val fieldType = objectType.fieldTypeAtOrNull(fieldAtom)
+		if (fieldType == null)
 		{
 			// The field is not guaranteed to be part of the object.
 			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD)
@@ -107,21 +106,21 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		val module = interpreter.availLoaderOrNull()?.module ?: nil
 		val returnType = objectType.fieldTypeAt(fieldAtom)
 		val rawFunction = newCompiledCode(
-			emptyTuple,
-			0,
-			functionType(tuple(objectType), returnType),
-			P_PrivateGetSpecificObjectField,
-			bottom,
-			emptyTuple(),
-			emptyTuple(),
-			emptyTuple(),
-			tuple(instanceType(fieldAtom)),
-			module,
-			0,
-			emptyTuple,
-			-1,
-			nil,
-			packedDeclarationNamesForGeneratedFunction)
+			nybbles = emptyTuple,
+			stackDepth = 0,
+			functionType = functionType(tuple(objectType), returnType),
+			primitive = P_PrivateGetSpecificObjectField,
+			returnTypeIfPrimitiveFails = bottom,
+			literals = emptyTuple(),
+			localVariableTypes = emptyTuple(),
+			localConstantTypes = emptyTuple(),
+			outerTypes = tuple(instanceType(fieldAtom)),
+			module = module,
+			lineNumber = 0,
+			lineNumberEncodedDeltas = emptyTuple,
+			originatingPhraseIndex = -1,
+			originatingPhrase = nil,
+			packedDeclarationNames = packedDeclarationNamesForGeneratedFunction)
 		val newFunction = createWithOuters1(rawFunction, fieldAtom)
 		return interpreter.primitiveSuccess(newFunction)
 	}
@@ -153,21 +152,29 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralObjectMeta,
-				ATOM.o),
+				ATOM()),
 			functionType(
 				tuple(
 					mostGeneralObjectType),
-				ANY.o))
+				ANY()))
+
+	/**
+	 * The objectType might contain an instance type on an escaped variables,
+	 * making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper
 	): Boolean {
 		// TODO - Generate L2 code to collect statistics on the variants that
 		// are encountered, then at the next reoptimization, inline L2

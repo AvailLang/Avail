@@ -66,7 +66,7 @@ object P_CurrentModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, MODULE.o)
+		functionType(emptyTuple, MODULE())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

@@ -65,9 +65,13 @@ object P_BootstrapLiteral :
 		return interpreter.primitiveSuccess(literal)
 	}
 
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(literalTokenType(ANY.o))),
-			LITERAL_PHRASE.create(ANY.o))
+				LITERAL_PHRASE.create(literalTokenType(ANY()))),
+			LITERAL_PHRASE.create(ANY()))
 }

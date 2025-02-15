@@ -255,7 +255,7 @@ class VariableUsePhraseDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		builder.append(self[USE_TOKEN].string().asNativeString())
@@ -282,7 +282,7 @@ class VariableUsePhraseDescriptor private constructor(
 			theToken: A_Token,
 			declaration: A_Phrase
 		): A_Phrase {
-			assert(theToken.isInstanceOfKind(TOKEN.o))
+			assert(theToken.isInstanceOfKind(TOKEN()))
 			assert(declaration.isInstanceOfKind(
 				PhraseKind.DECLARATION_PHRASE.mostGeneralType))
 			return mutable.createShared {

@@ -94,7 +94,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("literal token⇒")
@@ -233,7 +233,7 @@ private constructor(
 
 		/** The most general literal token type. */
 		private val mostGeneralType: A_Type =
-			literalTokenType(ANY.o).makeShared()
+			literalTokenType(ANY()).makeShared()
 
 		/**
 		 * Answer the most general literal token type, specifically the literal

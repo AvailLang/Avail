@@ -37,7 +37,7 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
 import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
-import avail.interpreter.levelOne.L1Operation.L1_doGetOuterClearing
+import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
 import avail.io.NybbleOutputStream
 
 /**
@@ -64,7 +64,7 @@ class AvailGetOuterVariable constructor(
 
 	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		val op = if (canClear) L1_doGetOuterClearing else L1_doGetOuter
+		val op = if (canClear) L1_doGetLastOuter else L1_doGetOuter
 		op.writeTo(aStream)
 		writeIntegerOn(index, aStream)
 	}

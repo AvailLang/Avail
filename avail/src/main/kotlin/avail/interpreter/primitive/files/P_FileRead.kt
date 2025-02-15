@@ -342,12 +342,12 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			tupleFromArray(
 				naturalNumbers,
 				inclusive(one, positiveInfinity),
-				ATOM.o,
-				functionType(tuple(zeroOrMoreOf(u8)), TOP.o),
+				ATOM(),
+				functionType(tuple(zeroOrMoreOf(u8)), TOP()),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP()),
 				u8),
-			fiberType(TOP.o))
+			fiberType(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

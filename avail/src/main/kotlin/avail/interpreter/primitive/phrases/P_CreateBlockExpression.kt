@@ -35,10 +35,12 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -96,15 +98,27 @@ object P_CreateBlockExpression : Primitive(5, CanInline)
 			return interpreter.primitiveFailure(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS)
 		}
+		// Approximate where the block's "first line" is.
+		val allTokens = (argDecls + statements)
+			.flatMapTo(mutableSetOf()) { it.tokens }
+		val earliestLine =
+			allTokens.minOfOrNull(A_Token::lineNumber) ?: 0
 		val block = newBlockNode(
 			argDecls,
 			primitive,
 			statements,
 			resultType,
 			exceptions,
-			0)
+			earliestLine)
 		return interpreter.primitiveSuccess(block)
 	}
+
+	/**
+	 * The resultType might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

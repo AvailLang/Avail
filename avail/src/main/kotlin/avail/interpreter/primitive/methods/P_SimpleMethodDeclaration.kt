@@ -165,7 +165,7 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 			stringType,
 			mostGeneralFunctionType(),
 			zeroOrOneOf(stylerFunctionType)),
-		TOP.o)
+		TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

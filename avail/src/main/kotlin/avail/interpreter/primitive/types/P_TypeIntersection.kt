@@ -49,9 +49,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
 /**
  * **Primitive:** Answer the type intersection of the
@@ -85,30 +85,23 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>,
 		rawFunction: A_RawFunction
-	): List<L2SplitCondition?>
-	{
-		val identities = mutableListOf<L2SplitCondition?>()
+	): List<L2SplitCondition?> = buildList {
 		readBoxedOperands.forEach { read ->
-			identities.add(
-				typeRestrictionCondition(
+			addAll(
+				typeRestrictionConditions(
 					listOf(read.register()),
 					boxedRestrictionForConstant(bottom)))
-			identities.add(
-				typeRestrictionCondition(
+			addAll(
+				typeRestrictionConditions(
 					listOf(read.register()),
-					boxedRestrictionForConstant(TOP.o)))
+					boxedRestrictionForConstant(TOP())))
 		}
-		// TODO: It would be nice to wish for one or the other argument to be
-		//  a constant, without specifying a particular constant.  That isn't
-		//  supported yet [2024.02.24].
-		return identities
 	}
 
-	override fun emitTransformedInfalliblePrimitive(
+	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand,
-		regenerator: L2Regenerator)
+		result: L2WriteBoxedOperand)
 	{
 		// Take advantage of identities exposed by the split conditions.
 		val (arg1, arg2) = arguments.elements
@@ -132,10 +125,9 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 			}
 		}
 		moveSource?.let { source ->
-			regenerator.moveBoxedRegister(
+			moveBoxedRegister(
 				source.semanticValue(), result.semanticValues())
 		}
-		super.emitTransformedInfalliblePrimitive(
-			rawFunction, arguments, result, regenerator)
+		emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 	}
 }

@@ -56,7 +56,7 @@ Uses
 	"Variables"
 Names
 	"Current fiber's unhandled exception handler is_",
-	"Guard|guard_«intercept_»«ensure_»",
+	"Guard_«intercept_»«ensure_»",
 	"Raise_",
 	"an exception for_",
 	"cascade_",
@@ -64,6 +64,7 @@ Names
 	"causal exception",
 	"descriptive_",
 	"error message",
+	"guard_«intercept_»«ensure_»",
 	"try_else_",
 	"_caused by_",
 	"_'s⁇causal exception",
@@ -133,7 +134,7 @@ Public method "_'s⁇stack summary" is
 |
 	Primitive ExceptionStackDump
 		(failureCode : incorrect-argument-type code's type);
-	early failure function(failureCode)
+	Failed primitive with failureCode
 ] : string*;
 
 /* Private field definitions. */
@@ -222,17 +223,18 @@ noUnhandledExceptionHandler : [exception]→⊥ :=
 /**
  * Raise the specified {@type "exception"}. The virtual machine scans the
  * {@method "current fiber"}'s chain of {@type "continuation"}s to identify an
- * invocation of {@method "Guard|guard_«intercept_»«ensure_»"} (primitive 200).
- * Extract the second argument from that continuation. This is a {@type "tuple"}
- * of arity-one exception handling {@type "function"}. If any of these handlers,
- * from left to right, accepts {@param "anException"}, then discard all
- * continuations after this one and then invoke the handler with {@param
- * "anException"}. If none of these handlers accept the argument, then the
- * virtual machine continues scanning the chain of continuations for correctly
- * typed exception handling functions. If no suitable exception handling
- * function is found, then invoke the current fiber's {@method
- * "_'s⁇unhandled exception handler is_" unhandled exception handler}. {@method
- * "Crash:_" Crash} the current fiber if no such handler exists.
+ * invocation of {@method "Guard_«intercept_»«ensure_»"} or {@method
+ * "guard_«intercept_»«ensure_»"} (primitive 200). Extract the second argument
+ * from that continuation. This is a {@type "tuple"} of arity-one exception
+ * handling {@type "function"}. If any of these handlers, from left to right,
+ * accepts {@param "anException"}, then discard all continuations after this one
+ * and then invoke the handler with {@param "anException"}. If none of these
+ * handlers accept the argument, then the virtual machine continues scanning the
+ * chain of continuations for correctly typed exception handling functions. If
+ * no suitable exception handling function is found, then invoke the current
+ * fiber's {@method "_'s⁇unhandled exception handler is_" unhandled exception
+ * handler}. {@method "Crash:_" Crash} the current fiber if no such handler
+ * exists.
  *
  * @method "Raise_"
  * @param "anException" "exception"
@@ -257,7 +259,8 @@ Public method "Raise_" is
 styled by nonlocal control styler;
 
 /**
- * Mark the nearest {@method "Guard|guard_«intercept_»«ensure_»" guard frame}
+ * Mark the nearest guard frame, an invocation of either {@method
+ * "Guard_«intercept_»«ensure_»"} or {@method "guard_«intercept_»«ensure_»"},
  * with the current exception handling state.
  *
  * @method "Mark nearest guard frame with_"
@@ -271,7 +274,7 @@ Private method "Mark nearest guard frame with_" is
 |
 	Primitive MarkNearestCatch (failureCode :
 		{cannot-mark-handler-frame code, no-handler-frame code}ᵀ);
-	early failure function(failureCode)
+	Failed primitive with failureCode
 ] : ⊤;
 
 /*
@@ -301,7 +304,7 @@ Private method "Mark guard variable_with_" is
 |
 	Primitive MarkGuardVariable (failureCode :
 		{cannot-mark-handler-frame code}ᵀ);
-	early failure function(failureCode)
+	Failed primitive with failureCode
 ] : ⊤;
 
 /**
@@ -373,13 +376,10 @@ Private method "Private guard_intercept_ensure_" is
 	 * not an exception.
 	 */
 	failureVariable ::= failureCode;
-	Cast ↓failureVariable into
+	If ↓failureVariable > 0 then
 	[
-		code : natural number
-	|
-		Primitive EmergencyExit;
-	] : ⊥
-	else [];
+		Crash: "Invalid initial failure code in CatchException"
+	];
 
 	Do
 		[
@@ -404,12 +404,81 @@ Private method "Private guard_intercept_ensure_" is
 styled by nonlocal control styler;
 
 /**
+ * Though this is the primitive guard method, it is merely a helper for
+ * {@method "Guard|guard_«intercept_»«ensure_»"}, the public exception
+ * protection control structure.
+ *
+ * Execute {@param "body"}. If an {@type "exception"} is {@method "Raise_"
+ * raised}, the virtual machine will scan the {@method "current fiber"}'s chain
+ * of {@type "continuation"}s to identify invocations of this primitive. The
+ * continuation nearest to the end of the continuation chain, i.e., closest to
+ * the raise of the exception, that defines a handler that accepts an argument
+ * of the correct type is invoked with the exception. So an exception handler
+ * will potentially run if code run (directly or indirectly) by {@param "body"}
+ * raises an exception of the accepted type.
+ *
+ * Whether {@param "body"} succeeds or is curtailed by an exception, always
+ * apply {@param "unwind"}. This is a safe place to clean up an algorithm after
+ * it runs or fails. If one of the handlers is invoked, then it will run after
+ * the handler runs, even if the handler raises its own exception. This happens
+ * because the public control structure, {@method
+ * "Guard|guard_«intercept_»«ensure_»"}, embeds {@param "unwind"} into each of
+ * the (modified) exception handlers.
+ *
+ * @method "Private guard_intercept_ensure_"
+ * @param "body" "[]→any"
+ *    The protected function.
+ * @param "handlers" "<[⊥]→any…|>"
+ *    A tuple of exception handlers.
+ * @param "unwind" "[]→⊤"
+ *    A function to execute after either the successful completion of {@param
+ *    "body"} or an unwind through this continuation.
+ * @returns "⊤"
+ * @category "Bootstrap" "Primitives" "Exception Handling" "Control Structures"
+ */
+Private method "private guard_intercept_ensure_" is
+[
+	body : []→any,
+	handlers : <[⊥]→any…|>,
+	unwind : []→⊤
+|
+	Primitive CatchException (failureCode : guardVariableType);
+
+	/*
+	 * If the failureCode is non-zero, report it with a "hard" fiber failure,
+	 * not an exception.
+	 */
+	failureVariable ::= failureCode;
+	If ↓failureVariable > 0 then
+	[
+		Crash: "Invalid initial failure code in CatchException"
+	];
+
+	result ::= body();
+
+	/*
+	 * No exception was caught, or we would have dealt with the unwind already
+	 * in "handle_handler_unwind_".  Therefore, any exception raised in the
+	 * unwind should propagate (unmodified by causal chaining) to any enclosing
+	 * handlers.
+	 */
+	If ↓failureVariable = 0 then
+	[
+		Mark guard variable failureVariable with handler-sentinel code;
+		unwind();
+		Mark guard variable failureVariable with unwind-sentinel code;
+	];
+	result
+] : any
+styled by nonlocal control styler;
+
+/**
  * A cascade exception retains the exception that originally caused it.
  *
  * @type "cascade exception"
  * @supertype "exception"
  * @field "causal exception" "exception"
- * 		The original exception that led to the current exception
+ *      The original exception that led to the current exception
  * @category "Exceptions"
  */
 Public class "cascade exception" extends exception
@@ -472,26 +541,25 @@ Public method "_caused by_" is
 ] : cascade exception;
 
 /**
- * This is a helper for {@method "Guard|guard_«intercept_»«ensure_»"}. Having
+ * This is a helper for {@method "Guard_«intercept_»«ensure_»"}. Having
  * intercepted {@param "originalException"}, invoke {@param "handler"}. If it
  * raises an {@type "exception", then intercept it and store it locally. Run
  * {@param "unwind"}. If it raises an exception, then intercept it and store it
  * locally, overwriting any exception intercepted by a failure of {@param
  * "handler"}. If a new exception has been stored locally, then convert it into
- * a {@type "cascade exception"} and reraise it. Otherwise answer the result
- * produced by {@param "handler"}.
+ * a {@type "cascade exception"} and reraise it. Otherwise return.
  *
  * @method "Handle_handler_unwind_"
  * @param "originalException" "exception"
  *        The exception originally caught by the handler that {@method
- *        "Guard|guard_«intercept_»«ensure_»"} wrapped around {@param
+ *        "Guard_«intercept_»«ensure_»"} wrapped around {@param
  *        "handler"}.
  * @param "handler" "[⊥]→⊤"
  *        An exception handler lexically specified in the send of {@method
- *        "Guard|guard_«intercept_»«ensure_»"}.
+ *        "Guard_«intercept_»«ensure_»"}.
  * @param "unwind" "[]→⊤"
  *        The unwind handler lexically specified in the send of {@method
- *        "Guard|guard_«intercept_»«ensure_»"}.
+ *        "Guard_«intercept_»«ensure_»"}.
  * @returns "any"
  *          The value, if any, produced by {@param "handler"}.
  * @raises "cascade exception"
@@ -534,7 +602,35 @@ Private method "Handle_handler_unwind_" is
 ] : ⊤
 styled by nonlocal control styler;
 
-Private method "Handle_handler_unwind_" is
+/**
+ * This is a helper for {@method "guard_«intercept_»«ensure_»"}. Having
+ * intercepted {@param "originalException"}, invoke {@param "handler"}. If it
+ * raises an {@type "exception", then intercept it and store it locally. Run
+ * {@param "unwind"}. If it raises an exception, then intercept it and store it
+ * locally, overwriting any exception intercepted by a failure of {@param
+ * "handler"}. If a new exception has been stored locally, then convert it into
+ * a {@type "cascade exception"} and reraise it. Otherwise answer the result
+ * produced by {@param "handler"}.
+ *
+ * @method "handle_handler_unwind_"
+ * @param "originalException" "exception"
+ *        The exception originally caught by the handler that {@method
+ *        "Guard_«intercept_»«ensure_»"} wrapped around {@param
+ *        "handler"}.
+ * @param "handler" "[⊥]→⊤"
+ *        An exception handler lexically specified in the send of {@method
+ *        "Guard_«intercept_»«ensure_»"}.
+ * @param "unwind" "[]→⊤"
+ *        The unwind handler lexically specified in the send of {@method
+ *        "Guard_«intercept_»«ensure_»"}.
+ * @returns "any"
+ *          The value, if any, produced by {@param "handler"}.
+ * @raises "cascade exception"
+ *         If either {@param "handler"} or {@param "unwind"} raises an
+ *         {@type "exception"}.
+ * @category "Bootstrap" "Exception Handling"
+ */
+Private method "handle_handler_unwind_" is
 [
 	originalException : exception,
 	handler : [⊥]→any,
@@ -579,15 +675,76 @@ Private method "Handle_handler_unwind_" is
  * Reject the current parse if 1) any of the exception handlers aren't or 2) any
  * earlier handlers hide later handlers (by having a more general type).
  *
- * @method "Guard|guard_«intercept_»«ensure_»"
+ * @method "Guard_«intercept_»«ensure_»"
  * @restricts "([]→⊤)'s type"
  * @restricts "<[⊥]→⊤…|>'s type"
  * @restricts "([]→⊤)?'s type"
  */
-Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
+Semantic restriction "Guard_«intercept_»«ensure_»" is
 [
 	bodyType : ([]→⊤)'s type,
 	handlersType : <[⊥]→⊤…|>'s type,
+	unwindType : ([]→⊤)?'s type
+|
+	returnType : type := bodyType's return type;
+	handlerCount ::= ⌊handlersType⌋;
+	unwindCount ::= ⌊unwindType⌋;
+	If handlerCount = 0 ∧ unwindCount = 0 then
+	[
+		Reject parse, expected:
+			"at least one exception handler or an unwind handler"
+	];
+	For each index from 1 to handlerCount do
+	[
+		handlerType ::= handlersType[index];
+		argType ::= handlerType[1];
+		If argType = ⊥ then
+		[
+			Reject parse, expected: format
+				"exception handler #“①”'s parameter type to be \
+				\|statically known"
+				with index
+		];
+		If ¬argType ⊆ exception then
+		[
+			Reject parse, expected: format
+				"exception handler to accept only exceptions (not “①”)"
+				with argType
+		];
+		hidingArgTypes : type* := <>;
+		For each inner from 1 to index - 1 do
+		[
+			previousArgType ::= handlersType[inner][1];
+			If argType ⊆ previousArgType then
+			[
+				hidingArgTypes := eject hidingArgTypes ++ <previousArgType>;
+			];
+		];
+		If ¬hidingArgTypes is empty then
+		[
+			Reject parse, expected: format
+			"exception handler for “①” to be reachable \
+			\|(but it is hidden by each of: “②”)"
+			with argType, hidingArgTypes
+		];
+		returnType := eject returnType ∪ handlerType's return type;
+	];
+	returnType
+];
+
+/**
+ * Reject the current parse if 1) any of the exception handlers aren't or 2) any
+ * earlier handlers hide later handlers (by having a more general type).
+ *
+ * @method "Guard|guard_«intercept_»«ensure_»"
+ * @restricts "([]→any)'s type"
+ * @restricts "<[⊥]→any…|>'s type"
+ * @restricts "([]→⊤)?'s type"
+ */
+Semantic restriction "guard_«intercept_»«ensure_»" is
+[
+	bodyType : ([]→any)'s type,
+	handlersType : <[⊥]→any…|>'s type,
 	unwindType : ([]→⊤)?'s type
 |
 	returnType : type := bodyType's return type;
@@ -648,8 +805,8 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
  *
  * Whether {@param "body"} succeeds or is curtailed by an exception, always
  * apply {@param "unwind"}. This is a safe place to clean up an algorithm after
- * it runs or fails. If one of the handlers is invoked, then it will run after
- * the handler runs, even if the handler raises its own exception.
+ * it runs or fails. If one of the handlers is invoked, then the unwind will run
+ * after the handler runs, even if the handler raises its own exception.
  *
  * @method "Guard|guard_«intercept_»«ensure_»"
  * @param "bodyPhrase" "expression phrase ⇒ []→⊤"
@@ -662,7 +819,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Exception Handling" "Control Structures"
  */
-Public macro "Guard|guard_«intercept_»«ensure_»" is
+Public macro "Guard_«intercept_»«ensure_»" is
 [
 	bodyPhrase : expression phrase ⇒ []→⊤,
 	handlersPhrase : list phrase ⇒ ([⊥]→⊤)*,
@@ -679,7 +836,7 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 				|
 					Handle e
 					handler [ex : exception | Raise ex]
-					unwind ⦊unwind⦉
+					unwind ⦊unwind⦉;
 				] : ⊤
 			⟧
 		];
@@ -714,6 +871,88 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
 			→ list phrase ?→ list phrase ⇒ <[⊥]→⊤…|>;
 	⟦Private guard ⦊bodyPhrase⦉ intercept ⦊realHandlers⦉ ensure ⦊unwind⦉⟧
+]
+styled by conditional styler;
+
+/**
+ * Execute {@param "body"}. If an {@type "exception"} is {@method "Raise_"
+ * raised}, the virtual machine will scan the {@method "current fiber"}'s chain
+ * of {@type "continuation"}s to identify invocations of this primitive. The
+ * continuation nearest to the end of the continuation chain, i.e., closest to
+ * the raise of the exception, that defines a handler that accepts an argument
+ * of the correct type is invoked with the exception. So an exception handler
+ * will potentially run if code run (directly or indirectly) by {@param "body"}
+ * raises an exception of the accepted type.
+ *
+ * Whether {@param "body"} succeeds or is curtailed by an exception, always
+ * apply {@param "unwind"}. This is a safe place to clean up an algorithm after
+ * it runs or fails. If one of the handlers is invoked, then the unwind will run
+ * after the handler runs, even if the handler raises its own exception.
+ *
+ * @method "Guard|guard_«intercept_»«ensure_»"
+ * @param "bodyPhrase" "expression phrase ⇒ []→⊤"
+ *        The protected function.
+ * @param "handlersPhrase" "list phrase ⇒ ([⊥]→⊤)*"
+ *        A {@type "list phrase" list} of exception handlers.
+ * @param "optionalUnwindPhrase" "list phrase ⇒ ([]→⊤)?"
+ *        If specified, then a function to apply after either the successful
+ *        completion of {@param "body"} or an unwind through this continuation.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Exception Handling" "Control Structures"
+ */
+Public macro "guard_«intercept_»«ensure_»" is
+[
+	bodyPhrase : expression phrase ⇒ []→any,
+	handlersPhrase : list phrase ⇒ ([⊥]→any)*,
+	optionalUnwindPhrase : list phrase ⇒ ([]→⊤)?
+|
+	handlers ::= handlersPhrase's expressions;
+	optionalUnwind ::= optionalUnwindPhrase's expressions;
+	unwind ::= optionalUnwind[1] else [⟦[]:⊤⟧ ?→ (expression phrase ⇒ []→⊤)];
+	catchAll ::=
+		[
+			⟦
+				[
+					e : exception
+				|
+					Handle e
+					handler [ex : exception | Raise ex]
+					unwind ⦊unwind⦉;
+					Shouldn't happen
+				] : any
+			⟧
+		];
+
+	/* Wrap each of the handlers. The wrapper will call the user-supplied
+	 * exception handler and then the unwind handler. If the user did not supply
+	 * a catch-all, then we need to synthesize one to make sure that the ensure
+	 * mechanism always works.
+	 */
+	needCatchAll : boolean := true;
+	wrappedHandlers ::=
+		map each handler in handlers through
+		[
+			handlerType ::= handler's semantic type;
+			argType ::= handlerType[1];
+			If argType = exception then [needCatchAll := false;];
+			arg ::= arg «`"originalException"` : argType»;
+			«[
+				<arg>
+			|
+				<
+					restricted send $"handle_handler_unwind_" with
+						«<
+							«↓arg»,
+							handler,
+							unwind
+						>» : handlerType's return type
+				>
+			] : handlerType's return type»
+		];
+	realHandlers ::=
+		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
+			→ list phrase ?→ list phrase ⇒ <[⊥]→any…|>;
+	⟦private guard ⦊bodyPhrase⦉ intercept ⦊realHandlers⦉ ensure ⦊unwind⦉⟧
 ]
 styled by conditional styler;
 
@@ -761,10 +1000,10 @@ Semantic restriction "try_else_" is
  *
  * @type "system exception"
  * @field "error code" "natural number"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @supertype "exception"
  * @category "Exceptions"
  */
@@ -939,7 +1178,7 @@ Public explicit class "instantiation exception" extends exception;
  * @type "descriptive exception"
  * @supertype "exception"
  * @field "error message" "string"
- * 		A descriptive message associated with the exception.
+ *      A descriptive message associated with the exception.
  * @category "Exceptions"
  */
 Public class "descriptive exception" extends exception
@@ -1005,10 +1244,10 @@ Public explicit class "variable-use exception" extends exception;
  * @type "cannot-add-unlike-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "1's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-add-unlike-infinities" (1)
@@ -1021,10 +1260,10 @@ System exception "cannot-add-unlike-infinities" (1)
  * @type "cannot-subtract-like-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "2's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-subtract-like-infinities" (2)
@@ -1036,10 +1275,10 @@ System exception "cannot-subtract-like-infinities" (2)
  * @type "cannot-multiply-zero-and-infinity exception"
  * @supertype "arithmetic exception"
  * @field "error code" "3's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-multiply-zero-and-infinity" (3)
@@ -1051,10 +1290,10 @@ System exception "cannot-multiply-zero-and-infinity" (3)
  * @type "cannot-divide-by-zero exception"
  * @supertype "arithmetic exception"
  * @field "error code" "4's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-divide-by-zero" (4)
@@ -1066,10 +1305,10 @@ System exception "cannot-divide-by-zero" (4)
  * @type "cannot-divide-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "5's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Mathematics"
  */
 System exception "cannot-divide-infinities" (5)
@@ -1082,10 +1321,10 @@ System exception "cannot-divide-infinities" (5)
  * @type "cannot-read-unassigned-variable exception"
  * @supertype "variable-use exception"
  * @field "error code" "6's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Variables"
  */
 System exception "cannot-read-unassigned-variable" (6)
@@ -1098,10 +1337,10 @@ System exception "cannot-read-unassigned-variable" (6)
  * @type "cannot-store-incorrectly-typed-value exception"
  * @supertype "variable-use exception"
  * @field "error code" "7's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Variables"
  */
 System exception "cannot-store-incorrectly-typed-value" (7)
@@ -1114,10 +1353,10 @@ System exception "cannot-store-incorrectly-typed-value" (7)
  * @type "cannot-swap-contents-of-differently-typed-variables exception"
  * @supertype "variable-use exception"
  * @field "error code" "8's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Variables"
  */
 System exception "cannot-swap-contents-of-differently-typed-variables" (8)
@@ -1129,10 +1368,10 @@ System exception "cannot-swap-contents-of-differently-typed-variables" (8)
  * @type "no-such-fiber-variable exception"
  * @supertype "element-access exception"
  * @field "error code" "9's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Concurrency"
  */
 System exception "no-such-fiber-variable" (9)
@@ -1146,10 +1385,10 @@ System exception "no-such-fiber-variable" (9)
  * @type "subscript-out-of-bounds exception"
  * @supertype "element-access exception"
  * @field "error code" "10's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Tuples" "Pojos"
  */
 System exception "subscript-out-of-bounds" (10)
@@ -1161,10 +1400,10 @@ System exception "subscript-out-of-bounds" (10)
  * @type "incorrect-number-of-arguments exception"
  * @supertype "invocation exception"
  * @field "error code" "11's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions"
  */
 System exception "incorrect-number-of-arguments" (11)
@@ -1177,10 +1416,10 @@ System exception "incorrect-number-of-arguments" (11)
  * @type "incorrect-argument-type exception"
  * @supertype "invocation exception"
  * @field "error code" "12's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions"
  */
 System exception "incorrect-argument-type" (12)
@@ -1195,10 +1434,10 @@ System exception "incorrect-argument-type" (12)
  * @type "method-return-type-not-as-forward-declared exception"
  * @supertype "definition exception"
  * @field "error code" "13's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions"
  */
 System exception "method-return-type-not-as-forward-declared" (13)
@@ -1212,10 +1451,10 @@ System exception "method-return-type-not-as-forward-declared" (13)
  * @type "continuation-expected-stronger-type exception"
  * @supertype "invocation exception"
  * @field "error code" "14's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Continuations"
  */
 System exception "continuation-expected-stronger-type" (14)
@@ -1228,10 +1467,10 @@ System exception "continuation-expected-stronger-type" (14)
  * @type "operation-not-supported exception"
  * @supertype "unsupported-operation exception"
  * @field "error code" "15's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Primitives"
  */
 System exception "operation-not-supported" (15)
@@ -1246,8 +1485,8 @@ System exception "operation-not-supported" (15)
  * @field "error code" "16's type"
  *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Modules"
  */
 System exception "module-is-closed" (16)
@@ -1260,10 +1499,10 @@ System exception "module-is-closed" (16)
  * @type "not-an-enumeration exception"
  * @supertype "invocation exception"
  * @field "error code" "17's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Types" "Enumerations"
  */
 System exception "not-an-enumeration" (17)
@@ -1275,10 +1514,10 @@ System exception "not-an-enumeration" (17)
  * @type "no-method exception"
  * @supertype "element-access exception"
  * @field "error code" "19's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Methods"
  */
 System exception "no-method" (19)
@@ -1291,10 +1530,10 @@ System exception "no-method" (19)
  * @type "wrong-outers exception"
  * @supertype "code-generation"
  * @field "error code" "20's type"
- * 		The VM error code.
+ *      The VM error code.
  * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
  * @category "Exceptions" "Functions"
  */
 System exception "wrong-outers" (20)
@@ -2208,15 +2447,17 @@ noUnhandledExceptionHandler :=
 After the current module is unloaded,
 	do [noUnhandledExceptionHandler := bootstrapNoUnhandledExceptionHandler;];
 
-originalEarlyFailureFunction ::= early failure function;
+originalPrimitiveFailureFunction ::= current primitive failure handler;
 
 After the current module is unloaded,
-	do [Set early failure function to originalEarlyFailureFunction;];
+do [
+	Set primitive failure function to originalPrimitiveFailureFunction;
+];
 
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.
  */
-Set early failure function to
+Set primitive failure function to
 [
 	errorCode : natural number
 |
@@ -2228,10 +2469,13 @@ Set early failure function to
 		error name ::= exceptionType's error name's instance
 ] : ⊥;
 
-originalStabilityFailureFunction ::= stability failure function;
-
-After the current module is unloaded,
-	do [Set stability failure function to originalStabilityFailureFunction;];
+[
+	originalStabilityFailureFunction ::= stability failure function;
+	After the current module is unloaded,
+	do [
+		Set stability failure function to originalStabilityFailureFunction;
+	];
+]();
 
 /* Henceforth, when a macro generated by "Method_is stable at_«compute with_»?"
  * raises an exception, the exception will be suppressed. recover() will be
@@ -2340,18 +2584,20 @@ Method "Private reject_,_" is
  * Define a new method for rejecting a parse.  The raw primitive form was fine
  * for bootstrapping, but now we're ready to honor unwinds.
  */
-oldRejectionFunction ::= Replace parse rejection function with
-	[
-		level : parse rejection level,
-		expected : string
-	|
-		Unwind fiber and run [Private reject level, expected]
-	] : ⊥;
-
-After the current module is unloaded, do
 [
-	Ignore: Replace parse rejection function with oldRejectionFunction;
-];
+	oldRejectionFunction ::= Replace parse rejection function with
+		[
+			level : parse rejection level,
+			expected : string
+		|
+			Unwind fiber and run [Private reject level, expected]
+		] : ⊥;
+
+	After the current module is unloaded, do
+	[
+		Ignore: Replace parse rejection function with oldRejectionFunction;
+	];
+]();
 
 /**
  * This function accepts the current parse immediately, exiting the fiber.  It
@@ -2371,12 +2617,14 @@ privateAccept ::=
  * Replace the acceptance function with one that unwinds the stack safely, then
  * uses the primitive to accept the current parse, terminating the fiber.
  */
-oldAcceptanceFunction ::= Replace parse acceptance function with
 [
-	Unwind fiber and run privateAccept
-];
+	oldAcceptanceFunction ::= Replace parse acceptance function with
+	[
+		Unwind fiber and run privateAccept
+	];
 
-After the current module is unloaded, do
-[
-	Ignore: Replace parse acceptance function with oldAcceptanceFunction;
-];
+	After the current module is unloaded, do
+	[
+		Ignore: Replace parse acceptance function with oldAcceptanceFunction;
+	];
+]();

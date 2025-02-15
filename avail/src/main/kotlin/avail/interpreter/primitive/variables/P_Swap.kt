@@ -41,6 +41,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.exceptions.AvailErrorCode.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableSetException
@@ -86,14 +88,22 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 		{
 			interpreter.primitiveFailure(e)
 		}
-}
+	}
+
+	/**
+	 * If either variable had a reactor, the reads or writes could activate
+	 * them, which might cause a variable captured in them to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				mostGeneralVariableType,
 				mostGeneralVariableType),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

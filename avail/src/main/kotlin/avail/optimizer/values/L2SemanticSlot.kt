@@ -35,7 +35,9 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
+import avail.utility.ifZero
 
 /**
  * A semantic value which represents a slot of some [Frame]'s effective
@@ -49,6 +51,9 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
  *   instruction that produced this value.  This serves to distinguish semantic
  *   slots at the same index but at different times, allowing a correct SSA
  *   graph and the reordering that it supports.
+ * @property optionalName
+ *   Either a [String] that provides a useful naming hint for this slot, or
+ *   `null`.
  *
  * @constructor
  * Create a new `L2SemanticSlot` semantic value.
@@ -68,7 +73,7 @@ internal class L2SemanticSlot constructor(
 	frame: Frame,
 	val slotIndex: Int,
 	val pcAfter: Int,
-	private val optionalName: String?
+	val optionalName: String?
 ) : L2FrameSpecificSemanticValue(
 	frame, slotIndex * AvailObject.multiplier xor pcAfter)
 {
@@ -88,16 +93,29 @@ internal class L2SemanticSlot constructor(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
-		frameTransformer(frame()).let {
-			if (it == frame()) this
-			else L2SemanticSlot(it, slotIndex, pcAfter, optionalName)
+	): L2SemanticSlot =
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this
+			else L2SemanticSlot(newFrame, slotIndex, pcAfter, optionalName)
 		}
 
 	override val defaultRestriction: TypeRestriction
 		get() = TypeRestriction.topRestriction
 
-	override val primaryVisualSortKey get() = PrimaryVisualSortKey.SLOT
+	override val primaryVisualSortKey get() =
+		if (optionalName == null) PrimaryVisualSortKey.SLOT
+		else PrimaryVisualSortKey.NAMED_SLOT
+
+	override fun secondaryCompare(other: L2Entity<*>): Int
+	{
+		if (other !is L2SemanticSlot)
+			return super.secondaryCompare(other)
+		return (optionalName ?: "").compareTo(other.optionalName ?: "").ifZero {
+			slotIndex.compareTo(other.slotIndex).ifZero {
+				pcAfter.compareTo(other.pcAfter)
+			}
+		}
+	}
 
 	override fun toString(): String = buildString {
 		when (optionalName)
@@ -110,7 +128,6 @@ internal class L2SemanticSlot constructor(
 		if (frame.depth() > 1) append("[$frame]")
 	}
 
-
 	override fun toStringForSynonym(): String = buildString {
 		when (optionalName)
 		{
@@ -121,4 +138,5 @@ internal class L2SemanticSlot constructor(
 		append(pcAfter)
 		if (frame.depth() > 1) append("[$frame]")
 	}
+
 }

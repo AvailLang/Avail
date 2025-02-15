@@ -37,20 +37,23 @@ import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.character.CharacterDescriptor
+import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.numbers.DoubleDescriptor
-import avail.descriptor.numbers.FloatDescriptor
+import avail.descriptor.numbers.DoubleDescriptor.Companion.doubleNegativeInfinity
+import avail.descriptor.numbers.DoubleDescriptor.Companion.doubleNotANumber
+import avail.descriptor.numbers.DoubleDescriptor.Companion.doublePositiveInfinity
+import avail.descriptor.numbers.FloatDescriptor.Companion.floatNegativeInfinity
+import avail.descriptor.numbers.FloatDescriptor.Companion.floatNotANumber
+import avail.descriptor.numbers.FloatDescriptor.Companion.floatPositiveInfinity
 import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
-import avail.descriptor.parsing.DefinitionParsingPlanDescriptor
+import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.parsing.LexerDescriptor
-import avail.descriptor.parsing.ParsingPlanInProgressDescriptor
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -74,30 +77,27 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.NAME
 import avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.PARENT
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ABSTRACT_DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.Companion.all
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FORWARD_DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.LEXER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MACRO_DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE_TREE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.OTHER_NONTYPE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.entries
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.unsupported
 import avail.interpreter.execution.LexicalScanner
@@ -184,7 +184,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append(self[NAME].asNativeString())
@@ -324,13 +324,13 @@ private constructor(
 	): Boolean = topMeta.isSubtypeOf(self)
 
 	@ThreadSafe
-	override fun o_IsTop(self: AvailObject): Boolean = self.sameAddressAs(TOP.o)
+	override fun o_IsTop(self: AvailObject): Boolean = self.sameAddressAs(TOP())
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		for (type in all)
+		for (type in entries)
 		{
-			if (self.equals(type.o))
+			if (self.equals(type()))
 			{
 				return when (type)
 				{
@@ -338,13 +338,10 @@ private constructor(
 					ANY -> Any::class.java
 					DOUBLE -> Double::class.javaPrimitiveType
 					FLOAT -> Float::class.javaPrimitiveType
-					ABSTRACT_DEFINITION, ATOM, CHARACTER,
-					DEFINITION_PARSING_PLAN, FORWARD_DEFINITION,
-					LEXER, MACRO_DEFINITION, MESSAGE_BUNDLE,
-					MESSAGE_BUNDLE_TREE, METHOD,
-					METHOD_DEFINITION, MODULE, NONTYPE,
-					NUMBER, PARSING_PLAN_IN_PROGRESS,
-					RAW_POJO, DEFINITION, TOKEN ->
+					ABSTRACT_DEFINITION, ATOM, CHARACTER, FORWARD_DEFINITION,
+					LEXER, MACRO_DEFINITION, MESSAGE_BUNDLE, METHOD,
+					METHOD_DEFINITION, MODULE, NONTYPE, NUMBER, RAW_POJO,
+					DEFINITION, TOKEN, OTHER_NONTYPE ->
 						super.o_MarshalToJava(self, classHint)
 				}
 			}
@@ -434,7 +431,7 @@ private constructor(
 	companion object
 	{
 		/** The total count of [Types] enum values. */
-		const val typesEnumCount = 22
+		const val typesEnumCount = 20
 
 		/**
 		 * Extract the [Types] enum value from this primitive
@@ -534,7 +531,7 @@ private constructor(
 		 * [variable][VariableDescriptor]) and can never be manipulated by an
 		 * Avail program.
 		 */
-		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.TOP_TAG),
+		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.ANY_TAG),
 
 		/**
 		 * This is the kind of all non-types.
@@ -566,26 +563,24 @@ private constructor(
 
 		/**
 		 * The type of all double-precision floating point numbers.  This
-		 * includes the double precision
-		 * [positive][DoubleDescriptor.doublePositiveInfinity] and
-		 * [negative][DoubleDescriptor.doubleNegativeInfinity] infinities and
-		 * [Not-a-Number][DoubleDescriptor.doubleNotANumber].
+		 * includes the double precision [positive][doublePositiveInfinity] and
+		 * [negative][doubleNegativeInfinity] infinities and
+		 * [Not-a-Number][doubleNotANumber].
 		 */
 		DOUBLE(NUMBER, TypeTag.NUMBER_TYPE_TAG, TypeTag.DOUBLE_TAG),
 
 		/**
 		 * The type of all single-precision floating point numbers.  This
-		 * includes the single precision
-		 * [positive][FloatDescriptor.floatPositiveInfinity] and
-		 * [negative][FloatDescriptor.floatNegativeInfinity] infinities and
-		 * [Not-a-Number][FloatDescriptor.floatNotANumber].
+		 * includes the single precision [positive][floatPositiveInfinity] and
+		 * [negative][floatNegativeInfinity] infinities and
+		 * [Not-a-Number][floatNotANumber].
 		 */
 		FLOAT(NUMBER, TypeTag.NUMBER_TYPE_TAG, TypeTag.FLOAT_TAG),
 
 		/**
 		 * All [lexers][LexerDescriptor] are of this kind.
 		 */
-		LEXER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.LEXER_TAG),
+		LEXER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.OTHER_NONTYPE_TAG),
 
 		/**
 		 * All [methods][MethodDescriptor] are of this kind.
@@ -600,39 +595,10 @@ private constructor(
 		MESSAGE_BUNDLE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.BUNDLE_TAG),
 
 		/**
-		 * This is the kind of all
-		 * [definition&#32;parsing&#32;plans][DefinitionParsingPlanDescriptor],
-		 * which are used during parsing of Avail code.
-		 */
-		DEFINITION_PARSING_PLAN(
-			NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.PARSING_PLAN_TAG),
-
-		/**
 		 * The type of macro definitions.
 		 */
-		MACRO_DEFINITION(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.MACRO_TAG),
-
-		/**
-		 * This is the kind of all
-		 * [parsing-plans-in-progress][ParsingPlanInProgressDescriptor], which
-		 * are used during parsing of Avail code.
-		 */
-		PARSING_PLAN_IN_PROGRESS(
-			NONTYPE,
-			TypeTag.NONTYPE_TYPE_TAG,
-			TypeTag.PARSING_PLAN_IN_PROGRESS_TAG),
-
-		/**
-		 * This is the kind of all
-		 * [message&#32;bundle&#32;trees][MessageBundleTreeDescriptor], which
-		 * are lazily expanded during parallel parsing of Avail expressions.
-		 * They collapse together the cost of parsing method or macro
-		 * invocations that start with the same tokens and arguments.
-		 */
-		MESSAGE_BUNDLE_TREE(
-			NONTYPE,
-			TypeTag.NONTYPE_TYPE_TAG,
-			TypeTag.BUNDLE_TREE_TAG),
+		MACRO_DEFINITION(
+			NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.OTHER_NONTYPE_TAG),
 
 		/**
 		 * [Tokens][TokenDescriptor] all have the same kind, except for
@@ -690,28 +656,36 @@ private constructor(
 		 * the raw POJOs, placing them in sets and doing other things that
 		 * occasionally require their kind to be extracted.
 		 */
-		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG);
+		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG),
+
+		/**
+		 * This is the primitive type for mostly private types used by the Avail
+		 * machinery.  It's a legitimate type, but it subsumes implementation
+		 * objects like [A_SemanticRestriction]s and [A_ParsingPlanInProgress].
+		 */
+		OTHER_NONTYPE(NONTYPE, TypeTag.NONTYPE_TAG, TypeTag.OTHER_NONTYPE_TAG)
+
+		;
 
 		/**
 		 * Create the [A_Type] associated with this [Types] entry.
 		 */
-		lateinit var o: AvailObject
+		private lateinit var o: AvailObject
 			private set
+
+		/**
+		 * Extract the [AvailObject] named by this enum.
+		 */
+		operator fun invoke() = o
 
 		companion object
 		{
-			/**
-			 * Stash a [List] of all `Types` enum values.
-			 */
-			val all = entries.toTypedArray()
-
 			init
 			{
-				assert(all.size == typesEnumCount)
 				// Build all the objects with null fields.
-				assert(all.size == typesEnumCount)
+				assert(entries.size == typesEnumCount)
 				// Connect the objects.
-				for (spec in all)
+				for (spec in entries)
 				{
 					val o = createMutablePrimitiveObjectNamed(
 						when (val typeName = spec.typeName)
@@ -731,20 +705,20 @@ private constructor(
 					}
 				}
 				// Precompute all type unions and type intersections.
-				for (a in all)
+				for (a in entries)
 				{
-					for (b in all)
+					for (b in entries)
 					{
 						// First, compute the union.  Move both pointers up the
 						// tree repeatedly until one is a supertype of the
 						// other.  Use that supertype as the union.
-						val bOrdinal: Int = b.ordinal
+						val bOrdinal = b.ordinal
 						var aAncestor: Types = a
 						var bAncestor: Types = b
 						val union: Types
 						while (true)
 						{
-							val bAncestorOrdinal: Int = bAncestor.ordinal
+							val bAncestorOrdinal = bAncestor.ordinal
 							if (a.superTests[bAncestorOrdinal])
 							{
 								union = bAncestor
@@ -780,12 +754,12 @@ private constructor(
 					}
 				}
 				// Now make all the objects shared.
-				for (spec in all)
+				for (spec in entries)
 				{
 					spec.o.makeShared()
 				}
 				// Sanity check them for metacovariance: a<=b -> a.type<=b.type
-				for (spec in all)
+				for (spec in entries)
 				{
 					if (spec.parent !== null)
 					{

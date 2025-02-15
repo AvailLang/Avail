@@ -150,7 +150,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		// Run either the success or failure function in a new fiber.
 		val runtime = interpreter.runtime
 		val newFiber = newFiber(
-			TOP.o,
+			TOP(),
 			runtime,
 			textInterface,
 			priority.extractInt)
@@ -166,6 +166,13 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
+	/**
+	 * An argument might capture an escaped variable and make it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
@@ -176,16 +183,16 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 						wholeNumbers, stringType, stringType)),
 				functionType(
 					emptyTuple,
-					TOP.o),
+					TOP()),
 				functionType(
 					tuple(
 						enumerationWith(
 							set(
 								E_PERMISSION_DENIED,
 								E_NO_EXTERNAL_PROCESS))),
-					TOP.o),
+					TOP()),
 				u8),
-			fiberType(TOP.o))
+			fiberType(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

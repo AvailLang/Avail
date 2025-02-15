@@ -158,8 +158,12 @@ interface A_MapBin : A_BasicObject {
 		 * transformer, otherwise pass the notFoundValue.  Write the result back
 		 * to the bin, potentially recycling it if canDestroy is true.
 		 *
+		 * @param keyPrecursor
+		 *   The original value that the key was derived from.  This value is
+		 *   passed as the first parameter of the [transformer].
 		 * @param key
-		 *   The key to look up.
+		 *   The key to look up.  It's passed as the second parameter of the
+		 *   [transformer].
 		 * @param keyHash
 		 *   The already computed hash of that key, to avoid rehashing while
 		 *   traversing the tree structure.
@@ -170,22 +174,25 @@ interface A_MapBin : A_BasicObject {
 		 * @param canDestroy
 		 *   Whether the original bin can be destroyed, if it's also mutable.
 		 * @param transformer
-		 *   A binary operator that takes the key and its value, or the
-		 *   [notFoundValue], and produces a replacement value to associate with
-		 *   the key.
-		 * @return
+		 *   A function that produces a replacement value to store into the map.
+		 *   It takes the [keyPrecursor], the [key], and either the found value
+		 *   or the [notFoundValue], and produces a replacement value to
+		 *   associate with the transformed key in the map.
+v		 * @return
 		 *   A replacement bin.
 		 */
 		fun A_MapBin.mapBinAtHashReplacingLevelCanDestroy(
+			keyPrecursor: AvailObject,
 			key: AvailObject,
 			keyHash: Int,
 			notFoundValue: AvailObject,
 			myLevel: Int,
 			canDestroy: Boolean,
-			transformer: (AvailObject, AvailObject) -> A_BasicObject
+			transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 		): A_MapBin = dispatch {
 			o_MapBinAtHashReplacingLevelCanDestroy(
 				it,
+				keyPrecursor,
 				key,
 				keyHash,
 				notFoundValue,

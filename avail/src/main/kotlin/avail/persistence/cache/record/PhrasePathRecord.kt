@@ -43,13 +43,10 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.persistence.cache.record.NamesIndex.UsageType
-import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
-import avail.persistence.cache.record.PhrasePathRecord.PhraseNode.PhraseNodeToken
 import avail.utility.Mutable
 import avail.utility.decodeString
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.iterableWith
-import avail.utility.removeLast
 import avail.utility.sizedString
 import avail.utility.unvlqInt
 import avail.utility.unzigzagInt

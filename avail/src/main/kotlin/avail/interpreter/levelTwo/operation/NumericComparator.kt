@@ -44,13 +44,14 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.optimizer.L2Generator
+import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
@@ -66,6 +67,8 @@ import org.objectweb.asm.Opcodes
  *   The symbolic name of the opcode for this compare-and-branch.
  * @param opcode
  *   The JVM opcode number for the int version of this compare-and-branch.
+ * @param reflexive
+ *   Whether (x op x) is true for any (and actually all) x.
  * @property comparatorMethod
  *   The static [CheckedMethod] that compares the numbers, leaving a JVM boolean
  *   on the stack.
@@ -85,6 +88,7 @@ import org.objectweb.asm.Opcodes
 enum class NumericComparator(
 	internal val comparatorName: String,
 	internal val opcode: Int,
+	internal val reflexive: Boolean,
 	internal val reversed: ()->NumericComparator,
 	internal val comparatorMethod: CheckedMethod,
 	private val ifTrue1:
@@ -98,47 +102,51 @@ enum class NumericComparator(
 {
 	/** An instance for testing whether a < b. */
 	Less(
-		"<",
-		Opcodes.IF_ICMPLT,
-		{Greater},
-		A_Number.numericLessThanMethod,
-		::lessHelper,
-		::greaterHelper,
-		::greaterOrEqualHelper,
-		::lessOrEqualHelper),
+		comparatorName = "<",
+		opcode = Opcodes.IF_ICMPLT,
+		reflexive = false,
+		reversed = {Greater},
+		comparatorMethod = A_Number.numericLessThanMethod,
+		ifTrue1 = ::lessHelper,
+		ifTrue2 = ::greaterHelper,
+		ifFalse1 = ::greaterOrEqualHelper,
+		ifFalse2 = ::lessOrEqualHelper),
 
 	/** An instance for testing whether a > b. */
 	Greater(
-		">",
-		Opcodes.IF_ICMPGT,
-		{Less},
-		A_Number.numericGreaterThanMethod,
-		::greaterHelper,
-		::lessHelper,
-		::lessOrEqualHelper,
-		::greaterOrEqualHelper),
+		comparatorName = ">",
+		opcode = Opcodes.IF_ICMPGT,
+		reflexive = false,
+		reversed = {Less},
+		comparatorMethod = A_Number.numericGreaterThanMethod,
+		ifTrue1 = ::greaterHelper,
+		ifTrue2 = ::lessHelper,
+		ifFalse1 = ::lessOrEqualHelper,
+		ifFalse2 = ::greaterOrEqualHelper),
 
 	/** An instance for testing whether a ≤ b. */
 	LessOrEqual(
-		"≤",
-		Opcodes.IF_ICMPLE,
-		{GreaterOrEqual},
-		A_Number.numericLessOrEqualMethod,
-		::lessOrEqualHelper,
-		::greaterOrEqualHelper,
-		::greaterHelper,
-		::lessHelper),
+		comparatorName = "≤",
+		opcode = Opcodes.IF_ICMPLE,
+		reflexive = true,
+		reversed = {GreaterOrEqual},
+		comparatorMethod = A_Number.numericLessOrEqualMethod,
+		ifTrue1 = ::lessOrEqualHelper,
+		ifTrue2 = ::greaterOrEqualHelper,
+		ifFalse1 = ::greaterHelper,
+		ifFalse2 = ::lessHelper),
 
 	/** An instance for testing whether a ≥ b. */
 	GreaterOrEqual(
-		"≥",
-		Opcodes.IF_ICMPGE,
-		{LessOrEqual},
-		A_Number.numericGreaterOrEqualMethod,
-		::greaterOrEqualHelper,
-		::lessOrEqualHelper,
-		::lessHelper,
-		::greaterHelper),
+		comparatorName = "≥",
+		opcode = Opcodes.IF_ICMPGE,
+		reflexive = true,
+		reversed = {LessOrEqual},
+		comparatorMethod = A_Number.numericGreaterOrEqualMethod,
+		ifTrue1 = ::greaterOrEqualHelper,
+		ifTrue2 = ::lessOrEqualHelper,
+		ifFalse1 = ::lessHelper,
+		ifFalse2 = ::greaterHelper),
 
 	/**
 	 * An instance for testing whether a = b – but only numerically.  Note that
@@ -148,25 +156,27 @@ enum class NumericComparator(
 	 * restricted to integers, this *is* the same as general equality.
 	 */
 	Equal(
-		"=",
-		Opcodes.IF_ICMPEQ,
-		{Equal},
-		A_Number.numericEqualMethod,
-		::equalHelper,
-		::equalHelper,
-		::unequalHelper,
-		::unequalHelper),
+		comparatorName = "=",
+		opcode = Opcodes.IF_ICMPEQ,
+		reflexive = true,
+		reversed = {Equal},
+		comparatorMethod = A_Number.numericEqualMethod,
+		ifTrue1 = ::equalHelper,
+		ifTrue2 = ::equalHelper,
+		ifFalse1 = ::unequalHelper,
+		ifFalse2 = ::unequalHelper),
 
 	/** An instance for testing whether a ≠ b. */
 	NotEqual(
-		"≠",
-		Opcodes.IF_ICMPNE,
-		{NotEqual},
-		A_Number.numericNotEqualMethod,
-		::unequalHelper,
-		::unequalHelper,
-		::equalHelper,
-		::equalHelper);
+		comparatorName = "≠",
+		opcode = Opcodes.IF_ICMPNE,
+		reflexive = false,
+		reversed = {NotEqual},
+		comparatorMethod = A_Number.numericNotEqualMethod,
+		ifTrue1 = ::unequalHelper,
+		ifTrue2 = ::unequalHelper,
+		ifFalse1 = ::equalHelper,
+		ifFalse2 = ::equalHelper);
 
 	/**
 	 * Compute the output ranges along the ifTrue and ifFalse edges. It takes
@@ -213,8 +223,7 @@ enum class NumericComparator(
 	 * cannot fail.  We could extract them conditionally, (i.e., have a failure
 	 * path to fall back on), but that probably isn't any faster here.
 	 */
-	fun compareAndBranchBoxed(
-		generator: L2Generator,
+	fun L2GeneratorInterface.generateCompareAndBranchBoxed(
 		number1Read: L2ReadBoxedOperand,
 		number2Read: L2ReadBoxedOperand,
 		ifTrue: L2PcOperand,
@@ -224,17 +233,16 @@ enum class NumericComparator(
 		// eliminate the branch entirely.
 		if (ifTrue.targetBlock() == ifFalse.targetBlock())
 		{
-			generator.jumpTo(ifTrue.targetBlock())
+			jumpTo(ifTrue.targetBlock())
 			return
 		}
 
 		val restriction1 = number1Read.restriction()
 		val restriction2 = number2Read.restriction()
 
-		val manifest = generator.currentManifest
-		val int1SemanticValue = manifest.equivalentSemanticValue(
+		val int1SemanticValue = currentManifest.equivalentSemanticValue(
 			number1Read.semanticValue().unboxedInt)
-		val int2SemanticValue = manifest.equivalentSemanticValue(
+		val int2SemanticValue = currentManifest.equivalentSemanticValue(
 			number2Read.semanticValue().unboxedInt)
 		if (int1SemanticValue !== null && int2SemanticValue !== null)
 		{
@@ -242,9 +250,9 @@ enum class NumericComparator(
 			assert(restriction1.containedByType(i32))
 			assert(restriction2.containedByType(i32))
 			compareAndBranchInt(
-				generator,
-				generator.readIntNoFail(int1SemanticValue),
-				generator.readIntNoFail(int2SemanticValue),
+				this@NumericComparator,
+				readIntNoFail(int1SemanticValue),
+				readIntNoFail(int2SemanticValue),
 				ifTrue,
 				ifFalse)
 			return
@@ -256,13 +264,12 @@ enum class NumericComparator(
 			// analysis.  With concerns like infinities, NaNs, and mixing
 			// numeric kinds, it would be too tricky anyhow.  Plus, only the
 			// integers have range types.
-			generator.addInstruction(
-				L2_JUMP_IF_COMPARE_BOXED(
-					this,
-					number1Read,
-					number2Read,
-					ifTrue,
-					ifFalse))
+			+L2_JUMP_IF_COMPARE_BOXED(
+				L2ArbitraryConstantOperand(this@NumericComparator),
+				number1Read,
+				number2Read,
+				ifTrue,
+				ifFalse)
 			return
 		}
 		// They're both (boxed) integers.
@@ -276,36 +283,40 @@ enum class NumericComparator(
 			{
 				// One of the registers would have an impossible value if the
 				// ifTrue branch is taken, so always jump to the ifFalse case.
-				generator.currentManifest.setRestriction(
+				currentManifest.setRestriction(
 					number1Read.semanticValue(), rest3)
-				generator.currentManifest.setRestriction(
+				currentManifest.setRestriction(
 					number2Read.semanticValue(),
 					restriction2.intersection(rest4))
-				generator.jumpTo(ifFalse.targetBlock())
+				jumpTo(ifFalse.targetBlock())
 			}
 			rest3.type.isBottom || rest4.type.isBottom ->
 			{
 				// One of the registers would have an impossible value if the
 				// ifFalse branch is taken, so always jump to the ifTrue case.
-				generator.currentManifest.setRestriction(
+				currentManifest.setRestriction(
 					number1Read.semanticValue(),
 					restriction1.intersection(rest1))
-				generator.currentManifest.setRestriction(
+				currentManifest.setRestriction(
 					number2Read.semanticValue(),
 					restriction2.intersection(rest2))
-				generator.jumpTo(ifTrue.targetBlock())
+				jumpTo(ifTrue.targetBlock())
 			}
-			restriction1.constantOrNull !== null -> generator.addInstruction(
+			restriction1.constantOrNull !== null ->
 				// First value is constant, so reverse them.
-				L2_JUMP_IF_COMPARE_BOXED(
-					reversed(),
+				+L2_JUMP_IF_COMPARE_BOXED(
+					L2ArbitraryConstantOperand(reversed()),
 					number2Read,
 					number1Read,
 					ifTrue,
-					ifFalse))
-			else -> generator.addInstruction(
-				L2_JUMP_IF_COMPARE_BOXED(
-					this, number1Read, number2Read, ifTrue, ifFalse))
+					ifFalse)
+			else ->
+				+L2_JUMP_IF_COMPARE_BOXED(
+					L2ArbitraryConstantOperand(this@NumericComparator),
+					number1Read,
+					number2Read,
+					ifTrue,
+					ifFalse)
 		}
 	}
 
@@ -314,8 +325,7 @@ enum class NumericComparator(
 	 * Restrict the possible values as much as possible along both branches.
 	 * Convert the branch to an unconditional jump if possible.
 	 */
-	fun compareAndBranchInt(
-		generator: L2Generator,
+	fun L2GeneratorInterface.generateCompareAndBranchInt(
 		int1Reg: L2ReadIntOperand,
 		int2Reg: L2ReadIntOperand,
 		ifTrue: L2PcOperand,
@@ -325,7 +335,7 @@ enum class NumericComparator(
 		// eliminate the branch entirely.
 		if (ifTrue.targetBlock() == ifFalse.targetBlock())
 		{
-			generator.jumpTo(ifTrue.targetBlock())
+			jumpTo(ifTrue.targetBlock())
 			return
 		}
 
@@ -334,70 +344,62 @@ enum class NumericComparator(
 
 		assert(restriction1.containedByType(i32))
 		assert(restriction2.containedByType(i32))
-		val manifest = generator.currentManifest
 		// Restrict both values along both branches.
 		val (rest1, rest2, rest3, rest4) = computeRestrictions(
 			restriction1.forBoxed(), restriction2.forBoxed()
 		).map(TypeRestriction::forUnboxedInt)
 		when
 		{
-			manifest.semanticValueToSynonym(int1Reg.semanticValue()) ==
-				manifest.semanticValueToSynonym(int2Reg.semanticValue()) ->
+			currentManifest.semanticValueToSynonym(int1Reg.semanticValue()) ==
+				currentManifest.semanticValueToSynonym(
+					int2Reg.semanticValue()) ->
 			{
-				// The values aren't both known as static constants, but they
-				// are in the same synonym, so they are definitely equal.
-				// Compare two zeroes with this comparator to decide which
-				// edge would be taken when the actual values are equal.
-				val zeros = intRestrictionForConstant(0)
-				val (firstIfHolds, _, firstIfFails, _) =
-					computeRestrictions(zeros, zeros)
-				when
-				{
-					// `0 op 0 = false` would produce an impossible constraint,
-					// so it must be true.
-					firstIfFails.isImpossible ->
-						generator.jumpTo(ifTrue.targetBlock())
-					// `0 op 0 = trueu` would produce an impossible constraint,
-					// so it must be false.
-					firstIfHolds.isImpossible ->
-						generator.jumpTo(ifFalse.targetBlock())
-					else -> error("Can't determine truth of 0 op 0!")
-				}
+				jumpTo(
+					(if (reflexive) ifTrue else ifFalse).targetBlock())
 			}
 			rest1.type.isBottom || rest2.type.isBottom ->
 			{
 				// One of the registers would have an impossible value if the
 				// ifTrue branch is taken, so always jump to the ifFalse case.
-				manifest.updateRestriction(int1Reg.semanticValue())
+				currentManifest.updateRestriction(int1Reg.semanticValue())
 				{
-					intersection(restriction1).intersection(rest3)
+					restriction1.intersection(rest3)
 				}
-				manifest.updateRestriction(int2Reg.semanticValue())
+				currentManifest.updateRestriction(int2Reg.semanticValue())
 				{
-					intersection(restriction2).intersection(rest4)
+					restriction2.intersection(rest4)
 				}
-				generator.jumpTo(ifFalse.targetBlock())
+				jumpTo(ifFalse.targetBlock())
 			}
 			rest3.type.isBottom || rest4.type.isBottom ->
 			{
 				// One of the registers would have an impossible value if the
 				// ifFalse branch is taken, so always jump to the ifTrue case.
-				manifest.updateRestriction(int1Reg.semanticValue())
+				currentManifest.updateRestriction(int1Reg.semanticValue())
 				{
-					intersection(restriction1).intersection(rest1)
+					restriction1.intersection(rest1)
 				}
-				manifest.updateRestriction(int2Reg.semanticValue())
+				currentManifest.updateRestriction(int2Reg.semanticValue())
 				{
-					intersection(restriction2).intersection(rest2)
+					restriction2.intersection(rest2)
 				}
-				generator.jumpTo(ifTrue.targetBlock())
+				jumpTo(ifTrue.targetBlock())
 			}
-			restriction1.constantOrNull !== null -> generator.addInstruction(
-				// First value is constant, so reverse them.
-				L2_JUMP_IF_COMPARE_INT(
-					reversed(), int2Reg, int1Reg, ifTrue, ifFalse))
-			else -> generator.addInstruction(
-				L2_JUMP_IF_COMPARE_INT(this, int1Reg, int2Reg, ifTrue, ifFalse))
+			// First value is constant, so reverse them.
+			restriction1.constantOrNull !== null ->
+				+L2_JUMP_IF_COMPARE_INT(
+					L2ArbitraryConstantOperand(reversed()),
+					int2Reg,
+					int1Reg,
+					ifTrue,
+					ifFalse)
+			else ->
+				+L2_JUMP_IF_COMPARE_INT(
+					L2ArbitraryConstantOperand(this@NumericComparator),
+					int1Reg,
+					int2Reg,
+					ifTrue,
+					ifFalse)
 		}
 	}
 }
@@ -424,7 +426,7 @@ private operator fun A_Number.plus(delta: Int) =
  * Given two [i32] subranges, answer the range that a value from the first range
  * can have if it's known to be less than a value from the second range.
  */
-@Suppress("UNUSED_PARAMETER")
+@Suppress("unused")
 private fun lessHelper(
 	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
 ) = boxedRestrictionForType(inclusive(low1, min(high1, high2 + -1)).narrow())
@@ -434,7 +436,7 @@ private fun lessHelper(
  * can have if it's known to be less than or equal to a value from the second
  * range.
  */
-@Suppress("UNUSED_PARAMETER")
+@Suppress("unused")
 private fun lessOrEqualHelper(
 	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
 ) = boxedRestrictionForType(inclusive(low1, min(high1, high2)).narrow())
@@ -443,7 +445,7 @@ private fun lessOrEqualHelper(
  * Given two [i32] subranges, answer the range that a value from the first range
  * can have if it's known to be greater than a value from the second range.
  */
-@Suppress("UNUSED_PARAMETER")
+@Suppress("unused")
 private fun greaterHelper(
 	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
 ) = boxedRestrictionForType(
@@ -454,7 +456,7 @@ private fun greaterHelper(
  * can have if it's known to be greater than or equal to a value from the second
  * range.
  */
-@Suppress("UNUSED_PARAMETER")
+@Suppress("unused")
 private fun greaterOrEqualHelper(
 	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
 ) = boxedRestrictionForType(inclusive(max(low1, low2), high1).narrow())

@@ -111,6 +111,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.priority
 import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
 import avail.descriptor.fiber.A_Fiber.Companion.releaseFromDebugger
 import avail.descriptor.fiber.A_Fiber.Companion.resultContinuation
+import avail.descriptor.fiber.A_Fiber.Companion.setFiberResultAndState
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
@@ -156,9 +157,11 @@ import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
 import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.decreaseCountdownToReoptimizeFromPoll
 import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
+import avail.descriptor.functions.A_RawFunction.Companion.encounteredFallbackLookup
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
 import avail.descriptor.functions.A_RawFunction.Companion.maxStackDepth
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
@@ -179,6 +182,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReo
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
+import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
@@ -320,8 +324,8 @@ import avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.equalsDouble
 import avail.descriptor.numbers.A_Number.Companion.equalsFloat
 import avail.descriptor.numbers.A_Number.Companion.equalsInfinity
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.equalsInteger
+import avail.descriptor.numbers.A_Number.Companion.equalsLong
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractFloat
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -621,7 +625,33 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
+import avail.descriptor.variables.A_Variable.Companion.atomicAddToMap
+import avail.descriptor.variables.A_Variable.Companion.atomicAddToMapNoCheck
+import avail.descriptor.variables.A_Variable.Companion.atomicRemoveFromMap
+import avail.descriptor.variables.A_Variable.Companion.clearValue
+import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValues
+import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValuesNoCheck
+import avail.descriptor.variables.A_Variable.Companion.fetchAndAddValue
+import avail.descriptor.variables.A_Variable.Companion.getAndSetValue
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.getValueClearing
+import avail.descriptor.variables.A_Variable.Companion.getValueClearingIfMutable
+import avail.descriptor.variables.A_Variable.Companion.getValueForDebugger
+import avail.descriptor.variables.A_Variable.Companion.globalModule
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.hasValue
+import avail.descriptor.variables.A_Variable.Companion.isGlobal
+import avail.descriptor.variables.A_Variable.Companion.removeWriteReactor
+import avail.descriptor.variables.A_Variable.Companion.setUnescapedLocalValueNoCheck
+import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
+import avail.descriptor.variables.A_Variable.Companion.validWriteReactorFunctions
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
+import avail.descriptor.variables.A_Variable.Companion.variableMapHasKey
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
+import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
@@ -633,6 +663,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
@@ -734,7 +765,7 @@ class IndirectionDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = self.traversed().printOnAvoidingIndent(builder, recursionMap, indent)
 
@@ -877,7 +908,7 @@ class IndirectionDescriptor private constructor(
 
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag {
-		val tag = self .. { typeTag }
+		val tag = self { typeTag }
 		// Now that we know it, switch to a descriptor that has it cached...
 		self.setDescriptor(when {
 			mutability === Mutability.MUTABLE -> mutable(tag)
@@ -896,9 +927,9 @@ class IndirectionDescriptor private constructor(
 	 * @return
 	 *   The value produced by the action.
 	 */
-	inline operator fun <R> AvailObject.rangeTo(
+	inline operator fun <R> AvailObject.invoke(
 		body: AvailObject.() -> R
-	): R = o_Traversed(this@rangeTo).body()
+	): R = o_Traversed(this@invoke).body()
 
 
 	/* ====================================================================
@@ -910,95 +941,95 @@ class IndirectionDescriptor private constructor(
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
 		functionType: A_Type
-	): Boolean = self .. { acceptsArgTypesFromFunctionType(functionType) }
+	): Boolean = self { acceptsArgTypesFromFunctionType(functionType) }
 
 	override fun o_AcceptsListOfArgTypes(
 		self: AvailObject,
 		argTypes: List<A_Type>
-	): Boolean = self .. { acceptsListOfArgTypes(argTypes) }
+	): Boolean = self { acceptsListOfArgTypes(argTypes) }
 
 	override fun o_AcceptsListOfArgValues(
 		self: AvailObject,
 		argValues: List<A_BasicObject>
-	): Boolean = self .. { acceptsListOfArgValues(argValues) }
+	): Boolean = self { acceptsListOfArgValues(argValues) }
 
 	override fun o_AcceptsTupleOfArgTypes(
 		self: AvailObject,
 		argTypes: A_Tuple
-	): Boolean = self .. { acceptsTupleOfArgTypes(argTypes) }
+	): Boolean = self { acceptsTupleOfArgTypes(argTypes) }
 
 	override fun o_AcceptsTupleOfArguments(
 		self: AvailObject,
 		arguments: A_Tuple
-	): Boolean = self .. { acceptsTupleOfArguments(arguments) }
+	): Boolean = self { acceptsTupleOfArguments(arguments) }
 
 	override fun o_AddDependentChunk(
 		self: AvailObject,
 		chunk: L2Chunk
-	) = self .. { addDependentChunk(chunk) }
+	) = self { addDependentChunk(chunk) }
 
 	@Throws(SignatureException::class)
 	override fun o_MethodAddDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	) = self .. { methodAddDefinition(definition) }
+	) = self { methodAddDefinition(definition) }
 
 	override fun o_AddGrammaticalRestriction(
 		self: AvailObject,
 		grammaticalRestriction: A_GrammaticalRestriction
-	) = self .. { addGrammaticalRestriction(grammaticalRestriction) }
+	) = self { addGrammaticalRestriction(grammaticalRestriction) }
 
 	override fun o_AddToInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number = self .. { addToInfinityCanDestroy(sign, canDestroy) }
+	): A_Number = self { addToInfinityCanDestroy(sign, canDestroy) }
 
 	override fun o_AddToIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = self .. { addToIntegerCanDestroy(anInteger, canDestroy) }
+	): A_Number = self { addToIntegerCanDestroy(anInteger, canDestroy) }
 
 	override fun o_ModuleAddGrammaticalRestriction(
 		self: AvailObject,
 		grammaticalRestriction: A_GrammaticalRestriction
-	) = self .. { moduleAddGrammaticalRestriction(grammaticalRestriction) }
+	) = self { moduleAddGrammaticalRestriction(grammaticalRestriction) }
 
 	override fun o_ModuleAddDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	) = self .. { moduleAddDefinition(definition) }
+	) = self { moduleAddDefinition(definition) }
 
 	override fun o_AddDefinitionParsingPlan(
 		self: AvailObject,
 		plan: A_DefinitionParsingPlan
-	) = self .. { addDefinitionParsingPlan(plan) }
+	) = self { addDefinitionParsingPlan(plan) }
 
 	override fun o_AddImportedName(
 		self: AvailObject,
 		trueName: A_Atom
-	) = self .. { addImportedName(trueName) }
+	) = self { addImportedName(trueName) }
 
 	override fun o_AddImportedNames(
 		self: AvailObject,
 		trueNames: A_Set
-	) = self .. { addImportedNames(trueNames) }
+	) = self { addImportedNames(trueNames) }
 
 	override fun o_IntroduceNewName(
 		self: AvailObject,
 		trueName: A_Atom
-	) = self .. { introduceNewName(trueName) }
+	) = self { introduceNewName(trueName) }
 
 	override fun o_AddPrivateName(
 		self: AvailObject,
 		trueName: A_Atom
-	) = self .. { addPrivateName(trueName) }
+	) = self { addPrivateName(trueName) }
 
 	override fun o_AddPrivateNames(
 		self: AvailObject,
 		trueNames: A_Set
-	) = self .. { addPrivateNames(trueNames) }
+	) = self { addPrivateNames(trueNames) }
 
 	override fun o_SetBinAddingElementHashLevelCanDestroy(
 		self: AvailObject,
@@ -1006,7 +1037,7 @@ class IndirectionDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_SetBin = self.. {
+	): A_SetBin = self {
 		setBinAddingElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}
@@ -1014,13 +1045,13 @@ class IndirectionDescriptor private constructor(
 	override fun o_BinElementAt(
 		self: AvailObject,
 		index: Int
-	): AvailObject = self .. { binElementAt(index) }
+	): AvailObject = self { binElementAt(index) }
 
 	override fun o_BinHasElementWithHash(
 		self: AvailObject,
 		elementObject: A_BasicObject,
 		elementObjectHash: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		binHasElementWithHash(elementObject, elementObjectHash)
 	}
 
@@ -1030,19 +1061,19 @@ class IndirectionDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_SetBin = self .. {
+	): A_SetBin = self {
 		binRemoveElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}
 
 	override fun o_BuildFilteredBundleTree(
 		self: AvailObject
-	): A_BundleTree = self .. { buildFilteredBundleTree() }
+	): A_BundleTree = self { buildFilteredBundleTree() }
 
 	override fun o_CheckAgainstObjectType(
 		self: AvailObject,
 		otherObjectType: A_Type
-	): ObjectTypeDescriptor.TestOutcome = self .. { checkAgainstObjectType(otherObjectType) }
+	): ObjectTypeDescriptor.TestOutcome = self { checkAgainstObjectType(otherObjectType) }
 
 	override fun o_CompareFromToWithStartingAt(
 		self: AvailObject,
@@ -1050,7 +1081,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		anotherObject: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithStartingAt(
 			startIndex1, endIndex1, anotherObject, startIndex2)
 	}
@@ -1061,7 +1092,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithAnyTupleStartingAt(
 			startIndex1, endIndex1, aTuple, startIndex2)
 	}
@@ -1072,7 +1103,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aByteString: A_String,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithByteStringStartingAt(
 			startIndex1, endIndex1, aByteString, startIndex2)
 	}
@@ -1083,7 +1114,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aByteTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithByteTupleStartingAt(
 			startIndex1, endIndex1, aByteTuple, startIndex2)
 	}
@@ -1094,7 +1125,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		anIntegerIntervalTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithIntegerIntervalTupleStartingAt(
 			startIndex1, endIndex1, anIntegerIntervalTuple, startIndex2)
 	}
@@ -1105,7 +1136,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aSmallIntegerIntervalTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithSmallIntegerIntervalTupleStartingAt(
 			startIndex1, endIndex1, aSmallIntegerIntervalTuple, startIndex2)
 	}
@@ -1116,7 +1147,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aRepeatedElementTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithRepeatedElementTupleStartingAt(
 			startIndex1, endIndex1, aRepeatedElementTuple, startIndex2)
 	}
@@ -1127,7 +1158,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aNybbleTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithNybbleTupleStartingAt(
 			startIndex1, endIndex1, aNybbleTuple, startIndex2)
 	}
@@ -1138,7 +1169,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		anObjectTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithObjectTupleStartingAt(
 			startIndex1, endIndex1, anObjectTuple, startIndex2)
 	}
@@ -1149,7 +1180,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aTwoByteString: A_String,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithTwoByteStringStartingAt(
 			startIndex1, endIndex1, aTwoByteString, startIndex2)
 	}
@@ -1160,7 +1191,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aTwentyOneBitString: A_String,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithTwentyOneBitStringStartingAt(
 			startIndex1, endIndex1, aTwentyOneBitString, startIndex2)
 	}
@@ -1169,470 +1200,473 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		start: Int,
 		end: Int
-	): Int = self .. { computeHashFromTo(start, end) }
+	): Int = self { computeHashFromTo(start, end) }
 
 	override fun o_ConcatenateTuplesCanDestroy(
 		self: AvailObject,
 		canDestroy: Boolean
-	): A_Tuple = self .. { concatenateTuplesCanDestroy(canDestroy) }
+	): A_Tuple = self { concatenateTuplesCanDestroy(canDestroy) }
 
 	override fun o_SetContinuation(
 		self: AvailObject,
 		value: A_Continuation
-	) = self .. { continuation = value }
+	) = self { continuation = value }
 
 	override fun o_CopyTupleFromToCanDestroy(
 		self: AvailObject,
 		start: Int,
 		end: Int,
 		canDestroy: Boolean
-	): A_Tuple = self .. {
+	): A_Tuple = self {
 		copyTupleFromToCanDestroy(start, end, canDestroy)
 	}
 
 	override fun o_CouldEverBeInvokedWith(
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>
-	): Boolean = self .. { couldEverBeInvokedWith(argRestrictions) }
+	): Boolean = self { couldEverBeInvokedWith(argRestrictions) }
 
 	override fun o_DivideCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { divideCanDestroy(aNumber, canDestroy) }
+	): A_Number = self { divideCanDestroy(aNumber, canDestroy) }
 
 	override fun o_DivideIntoInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number = self .. { divideIntoInfinityCanDestroy(sign, canDestroy) }
+	): A_Number = self { divideIntoInfinityCanDestroy(sign, canDestroy) }
 
 	override fun o_DivideIntoIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = self .. {
+	): A_Number = self {
 		divideIntoIntegerCanDestroy(anInteger, canDestroy)
 	}
 
-	override fun o_DummyElement(self: AvailObject) = self .. { dummyElement }
+	override fun o_DummyElement(self: AvailObject) = self { dummyElement }
 
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = self .. { equals(another) }
+	): Boolean = self { equals(another) }
 
 	override fun o_EqualsAnyTuple(
 		self: AvailObject,
 		aTuple: A_Tuple
-	): Boolean = self .. { equalsAnyTuple(aTuple) }
+	): Boolean = self { equalsAnyTuple(aTuple) }
 
 	override fun o_EqualsByteString(
 		self: AvailObject,
 		aByteString: A_String
-	): Boolean = self .. { equalsByteString(aByteString) }
+	): Boolean = self { equalsByteString(aByteString) }
 
 	override fun o_EqualsByteTuple(
 		self: AvailObject,
 		aByteTuple: A_Tuple
-	): Boolean = self .. { equalsByteTuple(aByteTuple) }
+	): Boolean = self { equalsByteTuple(aByteTuple) }
 
 	override fun o_EqualsCharacterWithCodePoint(
 		self: AvailObject,
 		aCodePoint: Int
-	): Boolean = self .. { equalsCharacterWithCodePoint(aCodePoint) }
+	): Boolean = self { equalsCharacterWithCodePoint(aCodePoint) }
 
 	override fun o_EqualsFiberType(
 		self: AvailObject,
 		aFiberType: A_Type
-	): Boolean = self .. { equalsFiberType(aFiberType) }
+	): Boolean = self { equalsFiberType(aFiberType) }
 
 	override fun o_EqualsFunction(
 		self: AvailObject,
 		aFunction: A_Function
-	): Boolean = self .. { equalsFunction(aFunction) }
+	): Boolean = self { equalsFunction(aFunction) }
 
 	override fun o_EqualsFunctionType(
 		self: AvailObject,
 		aFunctionType: A_Type
-	): Boolean = self .. { equalsFunctionType(aFunctionType) }
+	): Boolean = self { equalsFunctionType(aFunctionType) }
 
 	override fun o_EqualsIntegerIntervalTuple(
 		self: AvailObject,
 		anIntegerIntervalTuple: A_Tuple
-	): Boolean = self .. { equalsIntegerIntervalTuple(
+	): Boolean = self { equalsIntegerIntervalTuple(
 		anIntegerIntervalTuple) }
 
 	override fun o_EqualsSmallIntegerIntervalTuple(
 		self: AvailObject,
 		aSmallIntegerIntervalTuple: A_Tuple
-	): Boolean = self .. {
+	): Boolean = self {
 		equalsSmallIntegerIntervalTuple(aSmallIntegerIntervalTuple)
 	}
 
 	override fun o_EqualsRepeatedElementTuple(
 		self: AvailObject,
 		aRepeatedElementTuple: A_Tuple
-	): Boolean = self .. {
+	): Boolean = self {
 		equalsRepeatedElementTuple(aRepeatedElementTuple)
 	}
 
 	override fun o_EqualsCompiledCode(
 		self: AvailObject,
 		aCompiledCode: A_RawFunction
-	): Boolean = self .. { equalsCompiledCode(aCompiledCode) }
+	): Boolean = self { equalsCompiledCode(aCompiledCode) }
 
 	override fun o_EqualsVariableType(
 		self: AvailObject,
 		aType: A_Type
-	): Boolean = self .. { equalsVariableType(aType) }
+	): Boolean = self { equalsVariableType(aType) }
 
 	override fun o_EqualsContinuation(
 		self: AvailObject,
 		aContinuation: A_Continuation
-	): Boolean = self .. { equalsContinuation(aContinuation) }
+	): Boolean = self { equalsContinuation(aContinuation) }
 
 	override fun o_EqualsContinuationType(
 		self: AvailObject,
 		aContinuationType: A_Type
-	): Boolean = self .. { equalsContinuationType(aContinuationType) }
+	): Boolean = self { equalsContinuationType(aContinuationType) }
 
 	override fun o_EqualsCompiledCodeType(
 		self: AvailObject,
 		aCompiledCodeType: A_Type
-	): Boolean = self .. { equalsCompiledCodeType(aCompiledCodeType) }
+	): Boolean = self { equalsCompiledCodeType(aCompiledCodeType) }
 
 	override fun o_EqualsDouble(
 		self: AvailObject,
 		aDouble: Double
-	): Boolean = self .. { equalsDouble(aDouble) }
+	): Boolean = self { equalsDouble(aDouble) }
 
 	override fun o_EqualsFloat(
 		self: AvailObject,
 		aFloat: Float
-	): Boolean = self .. { equalsFloat(aFloat) }
+	): Boolean = self { equalsFloat(aFloat) }
 
 	override fun o_EqualsInfinity(
 		self: AvailObject,
 		sign: Sign
-	): Boolean = self .. { equalsInfinity(sign) }
+	): Boolean = self { equalsInfinity(sign) }
 
 	override fun o_EqualsInteger(
 		self: AvailObject,
 		anAvailInteger: AvailObject
-	): Boolean = self .. { equalsInteger(anAvailInteger) }
+	): Boolean = self { equalsInteger(anAvailInteger) }
 
 	override fun o_EqualsIntegerRangeType(
 		self: AvailObject,
 		another: A_Type
-	): Boolean = self .. { equalsIntegerRangeType(another) }
+	): Boolean = self { equalsIntegerRangeType(another) }
 
 	override fun o_EqualsMap(
 		self: AvailObject,
 		aMap: A_Map
-	): Boolean = self .. { equalsMap(aMap) }
+	): Boolean = self { equalsMap(aMap) }
 
 	override fun o_EqualsMapType(
 		self: AvailObject,
 		aMapType: A_Type
-	): Boolean = self .. { equalsMapType(aMapType) }
+	): Boolean = self { equalsMapType(aMapType) }
 
 	override fun o_EqualsNybbleTuple(
 		self: AvailObject,
 		aTuple: A_Tuple
-	): Boolean = self .. { equalsNybbleTuple(aTuple) }
+	): Boolean = self { equalsNybbleTuple(aTuple) }
 
 	override fun o_EqualsObject(
 		self: AvailObject,
 		anObject: AvailObject
-	): Boolean = self .. { equalsObject(anObject) }
+	): Boolean = self { equalsObject(anObject) }
 
 	override fun o_EqualsObjectTuple(
 		self: AvailObject,
 		aTuple: A_Tuple
-	): Boolean = self .. { equalsObjectTuple(aTuple) }
+	): Boolean = self { equalsObjectTuple(aTuple) }
 
 	override fun o_EqualsPojo(
 		self: AvailObject,
 		aPojo: AvailObject
-	): Boolean = self .. { equalsPojo(aPojo) }
+	): Boolean = self { equalsPojo(aPojo) }
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
 		aPojoType: AvailObject
-	): Boolean = self .. { equalsPojoType(aPojoType) }
+	): Boolean = self { equalsPojoType(aPojoType) }
 
 	override fun o_EqualsPrimitiveType(
 		self: AvailObject,
 		aPrimitiveType: A_Type
-	): Boolean = self .. { equalsPrimitiveType(aPrimitiveType) }
+	): Boolean = self { equalsPrimitiveType(aPrimitiveType) }
 
 	override fun o_EqualsRawPojoFor(
 		self: AvailObject,
 		otherRawPojo: AvailObject,
 		otherJavaObject: Any?
-	): Boolean = self .. { equalsRawPojoFor(otherRawPojo, otherJavaObject) }
+	): Boolean = self { equalsRawPojoFor(otherRawPojo, otherJavaObject) }
 
 	override fun o_EqualsReverseTuple(
 		self: AvailObject,
 		aTuple: A_Tuple
-	): Boolean = self .. { equalsReverseTuple(aTuple) }
+	): Boolean = self { equalsReverseTuple(aTuple) }
 
 	override fun o_EqualsSet(
 		self: AvailObject,
 		aSet: A_Set
-	): Boolean = self .. { equalsSet(aSet) }
+	): Boolean = self { equalsSet(aSet) }
 
 	override fun o_EqualsSetType(
 		self: AvailObject,
 		aSetType: A_Type
-	): Boolean = self .. { equalsSetType(aSetType) }
+	): Boolean = self { equalsSetType(aSetType) }
 
 	override fun o_EqualsTupleType(
 		self: AvailObject,
 		aTupleType: A_Type
-	): Boolean = self .. { equalsTupleType(aTupleType) }
+	): Boolean = self { equalsTupleType(aTupleType) }
 
 	override fun o_EqualsTwoByteString(
 		self: AvailObject,
 		aString: A_String
-	): Boolean = self .. { equalsTwoByteString(aString) }
+	): Boolean = self { equalsTwoByteString(aString) }
 
 	override fun o_EqualsTwentyOneBitString(
 		self: AvailObject,
 		aTwentyOneBitString: A_String
-	): Boolean = self .. { equalsTwentyOneBitString(aTwentyOneBitString) }
+	): Boolean = self { equalsTwentyOneBitString(aTwentyOneBitString) }
 
 	override fun o_SetExecutionState(
 		self: AvailObject,
 		value: ExecutionState
-	) = self .. { executionState = value }
+	) = self { executionState = value }
 
 	override fun o_ExtractNybbleFromTupleAt(
 		self: AvailObject,
 		index: Int
-	): Byte = self .. { extractNybbleFromTupleAt(index) }
+	): Byte = self { extractNybbleFromTupleAt(index) }
 
 	override fun o_FilterByTypes(
 		self: AvailObject,
 		argTypes: List<A_Type>
-	): List<A_Definition> = self .. { filterByTypes(argTypes) }
+	): List<A_Definition> = self { filterByTypes(argTypes) }
 
 	override fun o_NumericCompareToInteger(
 		self: AvailObject,
 		anInteger: AvailObject
 	): AbstractNumberDescriptor.Order =
-		self .. { numericCompareToInteger(anInteger) }
+		self { numericCompareToInteger(anInteger) }
 
 	override fun o_NumericCompareToInfinity(
 		self: AvailObject,
 		sign: Sign
 	): AbstractNumberDescriptor.Order =
-		self .. { numericCompareToInfinity(sign) }
+		self { numericCompareToInfinity(sign) }
 
 	override fun o_HasElement(
 		self: AvailObject,
 		elementObject: A_BasicObject
-	): Boolean = self .. { hasElement(elementObject) }
+	): Boolean = self { hasElement(elementObject) }
 
 	override fun o_HashFromTo(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int
-	): Int = self .. { hashFromTo(startIndex, endIndex) }
+	): Int = self { hashFromTo(startIndex, endIndex) }
 
 	override fun o_SetHashOrZero(self: AvailObject, value: Int) =
-		self .. { setHashOrZero(value) }
+		self { setHashOrZero(value) }
 
 	override fun o_HasObjectInstance(
 		self: AvailObject,
 		potentialInstance: AvailObject
-	): Boolean = self .. { hasObjectInstance(potentialInstance) }
+	): Boolean = self { hasObjectInstance(potentialInstance) }
 
 	override fun o_DefinitionsAtOrBelow(
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>
-	): List<A_Definition> = self .. { definitionsAtOrBelow(argRestrictions) }
+	): List<A_Definition> = self { definitionsAtOrBelow(argRestrictions) }
 
 	override fun o_IncludesDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	): Boolean = self .. { includesDefinition(definition) }
+	): Boolean = self { includesDefinition(definition) }
 
 	override fun o_SetInterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
-	) = self .. { setInterruptRequestFlag(flag) }
+	) = self { setInterruptRequestFlag(flag) }
 
 	override fun o_CountdownToReoptimize(self: AvailObject, value: Long) =
-		self .. { countdownToReoptimize(value) }
+		self { countdownToReoptimize(value) }
 
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
 		anotherObject: A_BasicObject
-	): Boolean = self .. { isBetterRepresentationThan(anotherObject) }
+	): Boolean = self { isBetterRepresentationThan(anotherObject) }
 
 	override fun o_RepresentationCostOfTupleType(
 		self: AvailObject
-	): Int = self .. { representationCostOfTupleType() }
+	): Int = self { representationCostOfTupleType() }
 
 	override fun o_IsBinSubsetOf(
 		self: AvailObject,
 		potentialSuperset: A_Set
-	): Boolean = self .. { isBinSubsetOf(potentialSuperset) }
+	): Boolean = self { isBinSubsetOf(potentialSuperset) }
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
-	): Boolean = self .. { isInstanceOfKind(aType) }
+	): Boolean = self { isInstanceOfKind(aType) }
 
 	override fun o_IsSubsetOf(
 		self: AvailObject,
 		another: A_Set
-	): Boolean = self .. { isSubsetOf(another) }
+	): Boolean = self { isSubsetOf(another) }
 
 	override fun o_IsSubtypeOf(
 		self: AvailObject,
 		aType: A_Type
-	): Boolean = self .. { isSubtypeOf(aType) }
+	): Boolean = self { isSubtypeOf(aType) }
 
 	override fun o_IsSupertypeOfVariableType(
 		self: AvailObject,
 		aVariableType: A_Type
-	): Boolean = self .. { isSupertypeOfVariableType(aVariableType) }
+	): Boolean = self { isSupertypeOfVariableType(aVariableType) }
 
 	override fun o_IsSupertypeOfContinuationType(
 		self: AvailObject,
 		aContinuationType: A_Type
-	): Boolean = self .. {
+	): Boolean = self {
 		isSupertypeOfContinuationType(aContinuationType)
 	}
 
 	override fun o_IsSupertypeOfCompiledCodeType(
 		self: AvailObject,
 		aCompiledCodeType: A_Type
-	): Boolean = self .. {
+	): Boolean = self {
 		isSupertypeOfCompiledCodeType(aCompiledCodeType)
 	}
 
 	override fun o_IsSupertypeOfFiberType(
 		self: AvailObject,
 		aType: A_Type
-	): Boolean = self .. { isSupertypeOfFiberType(aType) }
+	): Boolean = self { isSupertypeOfFiberType(aType) }
 
 	override fun o_IsSupertypeOfFunctionType(
 		self: AvailObject,
 		aFunctionType: A_Type
-	): Boolean = self .. { isSupertypeOfFunctionType(aFunctionType) }
+	): Boolean = self { isSupertypeOfFunctionType(aFunctionType) }
 
 	override fun o_IsSupertypeOfIntegerRangeType(
 		self: AvailObject,
 		anIntegerRangeType: A_Type
 	): Boolean {
-		return self .. { isSupertypeOfIntegerRangeType(anIntegerRangeType) }
+		return self { isSupertypeOfIntegerRangeType(anIntegerRangeType) }
 	}
 
 	override fun o_IsSupertypeOfListNodeType(
 		self: AvailObject,
 		aListNodeType: A_Type
-	): Boolean = self .. { isSupertypeOfListNodeType(aListNodeType) }
+	): Boolean = self { isSupertypeOfListNodeType(aListNodeType) }
 
 	override fun o_IsSupertypeOfMapType(
 		self: AvailObject,
 		aMapType: AvailObject
-	): Boolean = self .. { isSupertypeOfMapType(aMapType) }
+	): Boolean = self { isSupertypeOfMapType(aMapType) }
 
 	override fun o_IsSupertypeOfObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
-	): Boolean = self .. { isSupertypeOfObjectType(anObjectType) }
+	): Boolean = self { isSupertypeOfObjectType(anObjectType) }
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type
-	): Boolean = self .. { isSupertypeOfPhraseType(aPhraseType) }
+	): Boolean = self { isSupertypeOfPhraseType(aPhraseType) }
 
 	override fun o_IsSupertypeOfPojoType(
 		self: AvailObject,
 		aPojoType: A_Type
-	): Boolean = self .. { isSupertypeOfPojoType(aPojoType) }
+	): Boolean = self { isSupertypeOfPojoType(aPojoType) }
 
 	override fun o_IsSupertypeOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types
-	): Boolean = self .. {
+	): Boolean = self {
 		isSupertypeOfPrimitiveTypeEnum(primitiveTypeEnum)
 	}
 
 	override fun o_IsSupertypeOfSetType(
 		self: AvailObject,
 		aSetType: A_Type
-	): Boolean = self .. { isSupertypeOfSetType(aSetType) }
+	): Boolean = self { isSupertypeOfSetType(aSetType) }
 
 	override fun o_IsSupertypeOfTupleType(
 		self: AvailObject,
 		aTupleType: A_Type
-	): Boolean = self .. { isSupertypeOfTupleType(aTupleType) }
+	): Boolean = self { isSupertypeOfTupleType(aTupleType) }
 
 	override fun o_IsSupertypeOfEnumerationType(
 		self: AvailObject,
 		anEnumerationType: A_Type
-	): Boolean = self .. { isSupertypeOfEnumerationType(anEnumerationType) }
+	): Boolean = self { isSupertypeOfEnumerationType(anEnumerationType) }
 
 	override fun o_Iterator(self: AvailObject): Iterator<AvailObject> =
-		self .. { iterator() }
+		self { iterator() }
 
 	override fun o_Spliterator(self: AvailObject): Spliterator<AvailObject> =
-		self .. { spliterator() }
+		self { spliterator() }
 
 	override fun o_Stream(self: AvailObject): Stream<AvailObject> =
-		self .. { stream() }
+		self { stream() }
 
 	override fun o_ParallelStream(self: AvailObject): Stream<AvailObject> =
-		self .. { parallelStream() }
+		self { parallelStream() }
 
 	override fun o_LiteralAt(self: AvailObject, index: Int): AvailObject =
-		self .. { literalAt(index) }
+		self { literalAt(index) }
 
 	override fun o_FrameAt(
 		self: AvailObject,
 		index: Int
-	): AvailObject = self .. { frameAt(index) }
+	): AvailObject = self { frameAt(index) }
 
 	override fun o_FrameAtPut(
 		self: AvailObject,
 		index: Int,
 		value: AvailObject
-	): AvailObject = self .. { frameAtPut(index, value) }
+	): AvailObject = self { frameAtPut(index, value) }
 
 	override fun o_LocalTypeAt(
 		self: AvailObject,
 		index: Int
-	): A_Type = self .. { localTypeAt(index) }
+	): A_Type = self { localTypeAt(index) }
 
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByTypesFromTuple(
 		self: AvailObject,
 		argumentTypeTuple: A_Tuple
-	): A_Definition = self .. { lookupByTypesFromTuple(argumentTypeTuple) }
+	): A_Definition =
+		self { lookupByTypesFromTuple(argumentTypeTuple) }
 
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByValuesFromList(
 		self: AvailObject,
-		argumentList: List<A_BasicObject>
-	): A_Definition = self .. { lookupByValuesFromList(argumentList) }
+		argumentList: List<A_BasicObject>,
+		callerLookupStat: LookupStatistics?
+	): A_Definition =
+		self { lookupByValuesFromList(argumentList, callerLookupStat) }
 
 	override fun o_MapAtOrNull(
 		self: AvailObject,
 		keyObject: A_BasicObject
-	): AvailObject? = self .. { mapAtOrNull(keyObject) }
+	): AvailObject? = self { mapAtOrNull(keyObject) }
 
 	override fun o_MapAtPuttingCanDestroy(
 		self: AvailObject,
 		keyObject: A_BasicObject,
 		newValueObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Map = self .. {
+	): A_Map = self {
 		mapAtPuttingCanDestroy(keyObject, newValueObject, canDestroy)
 	}
 
@@ -1642,7 +1676,7 @@ class IndirectionDescriptor private constructor(
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
-	): A_Map = self .. {
+	): A_Map = self {
 		mapAtReplacingCanDestroy(key, notFoundValue, canDestroy, transformer)
 	}
 
@@ -1652,8 +1686,8 @@ class IndirectionDescriptor private constructor(
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
-	): A_Map = self .. {
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
+	): A_Map = self {
 		mapAtEachReplacingCanDestroy(
 			keys, keyTransformer, notFoundValue, canDestroy, transformer)
 	}
@@ -1662,146 +1696,151 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		keyObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Map = self .. { mapWithoutKeyCanDestroy(keyObject, canDestroy) }
+	): A_Map = self { mapWithoutKeyCanDestroy(keyObject, canDestroy) }
 
 	override fun o_MinusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { minusCanDestroy(aNumber, canDestroy) }
+	): A_Number = self { minusCanDestroy(aNumber, canDestroy) }
 
 	override fun o_MultiplyByInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number = self .. { multiplyByInfinityCanDestroy(sign, canDestroy) }
+	): A_Number = self { multiplyByInfinityCanDestroy(sign, canDestroy) }
 
 	override fun o_MultiplyByIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = self .. {
+	): A_Number = self {
 		multiplyByIntegerCanDestroy(anInteger, canDestroy)
 	}
 
 	override fun o_OptionallyNilOuterVar(
 		self: AvailObject,
 		index: Int
-	): Boolean = self .. { optionallyNilOuterVar(index) }
+	): Boolean = self { optionallyNilOuterVar(index) }
 
 	override fun o_OuterTypeAt(self: AvailObject, index: Int): A_Type =
-		self .. { outerTypeAt(index) }
+		self { outerTypeAt(index) }
 
 	override fun o_OuterVarAt(self: AvailObject, index: Int): AvailObject =
-		self .. { outerVarAt(index) }
+		self { outerVarAt(index) }
 
 	override fun o_OuterVarAtPut(
 		self: AvailObject,
 		index: Int,
 		value: AvailObject
-	) = self .. { outerVarAtPut(index, value) }
+	) = self { outerVarAtPut(index, value) }
 
 	override fun o_PlusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { plusCanDestroy(aNumber, canDestroy) }
+	): A_Number = self { plusCanDestroy(aNumber, canDestroy) }
 
 	override fun o_SetPriority(
 		self: AvailObject,
 		value: Int
-	) = self .. { priority = value }
+	) = self { priority = value }
 
 	override fun o_SetFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self .. { fiberGlobals = globals }
+	) = self { fiberGlobals = globals }
 
 	override fun o_RawByteForCharacterAt(
 		self: AvailObject,
 		index: Int
-	): Short = self .. { rawByteForCharacterAt(index) }
+	): Short = self { rawByteForCharacterAt(index) }
 
 	override fun o_RawSignedIntegerAt(self: AvailObject, index: Int): Int =
-		self .. { rawSignedIntegerAt(index) }
+		self { rawSignedIntegerAt(index) }
 
 	override fun o_RawSignedIntegerAtPut(
 		self: AvailObject,
 		index: Int,
 		value: Int
-	) = self .. { rawSignedIntegerAtPut(index, value) }
+	) = self { rawSignedIntegerAtPut(index, value) }
 
 	override fun o_RawUnsignedIntegerAt(
 		self: AvailObject,
 		index: Int
-	): Long = self .. { rawUnsignedIntegerAt(index) }
+	): Long = self { rawUnsignedIntegerAt(index) }
 
 	override fun o_RawUnsignedIntegerAtPut(
 		self: AvailObject,
 		index: Int,
 		value: Int
-	) = self .. { rawUnsignedIntegerAtPut(index, value) }
+	) = self { rawUnsignedIntegerAtPut(index, value) }
 
 	override fun o_RemoveDependentChunk(
 		self: AvailObject,
 		chunk: L2Chunk
-	) = self .. { removeDependentChunk(chunk) }
+	) = self { removeDependentChunk(chunk) }
 
 	override fun o_RemoveFrom(
 		self: AvailObject,
 		loader: AvailLoader,
 		afterRemoval: () -> Unit) =
-			self .. { removeFrom(loader, afterRemoval) }
+			self { removeFrom(loader, afterRemoval) }
 
 	override fun o_RemoveDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	) = self .. { removeDefinition(definition) }
+	) = self { removeDefinition(definition) }
 
 	override fun o_RemoveGrammaticalRestriction(
 		self: AvailObject,
 		obsoleteRestriction: A_GrammaticalRestriction
-	) = self .. { removeGrammaticalRestriction(obsoleteRestriction) }
+	) = self { removeGrammaticalRestriction(obsoleteRestriction) }
 
 	override fun o_ResolveForward(
 		self: AvailObject,
 		forwardDefinition: A_BasicObject
-	) = self .. { resolveForward(forwardDefinition) }
+	) = self { resolveForward(forwardDefinition) }
 
 	override fun o_SetIntersectionCanDestroy(
 		self: AvailObject,
 		otherSet: A_Set,
 		canDestroy: Boolean
-	): A_Set = self .. { setIntersectionCanDestroy(otherSet, canDestroy) }
+	): A_Set = self { setIntersectionCanDestroy(otherSet, canDestroy) }
 
 	override fun o_SetMinusCanDestroy(
 		self: AvailObject,
 		otherSet: A_Set,
 		canDestroy: Boolean
-	): A_Set = self .. { setMinusCanDestroy(otherSet, canDestroy) }
+	): A_Set = self { setMinusCanDestroy(otherSet, canDestroy) }
 
 	override fun o_SetUnionCanDestroy(
 		self: AvailObject,
 		otherSet: A_Set,
 		canDestroy: Boolean
-	): A_Set = self .. { setUnionCanDestroy(otherSet, canDestroy) }
+	): A_Set = self { setUnionCanDestroy(otherSet, canDestroy) }
 
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(
 		self: AvailObject,
 		newValue: A_BasicObject
-	) = self .. { setValue(newValue) }
+	) = self { setValue(newValue) }
 
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
 		newValue: A_BasicObject
-	) = self .. { setValueNoCheck(newValue) }
+	) = self { setValueNoCheck(newValue) }
+
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = self { setUnescapedLocalValueNoCheck(newValue) }
 
 	override fun o_SetWithElementCanDestroy(
 		self: AvailObject,
 		newElementObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Set = self .. {
+	): A_Set = self {
 		setWithElementCanDestroy(newElementObject, canDestroy)
 	}
 
@@ -1809,18 +1848,18 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		elementObjectToExclude: A_BasicObject,
 		canDestroy: Boolean
-	): A_Set = self .. {
+	): A_Set = self {
 		setWithoutElementCanDestroy(elementObjectToExclude, canDestroy)
 	}
 
 	override fun o_StackAt(self: AvailObject, slotIndex: Int): AvailObject =
-		self .. { stackAt(slotIndex) }
+		self { stackAt(slotIndex) }
 
 	override fun o_SetStartingChunkAndReoptimizationCountdown(
 		self: AvailObject,
 		chunk: L2Chunk,
 		countdown: Long
-	) = self .. {
+	) = self {
 		setStartingChunkAndReoptimizationCountdown(chunk, countdown)
 	}
 
@@ -1828,7 +1867,7 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number = self .. {
+	): A_Number = self {
 		subtractFromInfinityCanDestroy(sign, canDestroy)
 	}
 
@@ -1836,886 +1875,891 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = self .. {
+	): A_Number = self {
 		subtractFromIntegerCanDestroy(anInteger, canDestroy)
 	}
 
 	override fun o_TakePostLoadFunctions (
 		self: AvailObject
-	): A_Tuple = self .. { takePostLoadFunctions() }
+	): A_Tuple = self { takePostLoadFunctions() }
 
 	override fun o_TimesCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { timesCanDestroy(aNumber, canDestroy) }
+	): A_Number = self { timesCanDestroy(aNumber, canDestroy) }
 
 	override fun o_TrueNamesForStringName(
 		self: AvailObject,
 		stringName: A_String
-	): A_Set = self .. { trueNamesForStringName(stringName) }
+	): A_Set = self { trueNamesForStringName(stringName) }
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject =
-		self .. { tupleAt(index) }
+		self { tupleAt(index) }
 
 	override fun o_TupleAtPuttingCanDestroy(
 		self: AvailObject,
 		index: Int,
 		newValueObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Tuple = self .. {
+	): A_Tuple = self {
 		tupleAtPuttingCanDestroy(index, newValueObject, canDestroy)
 	}
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
-		self .. { tupleIntAt(index) }
+		self { tupleIntAt(index) }
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
-		self .. { tupleLongAt(index) }
+		self { tupleLongAt(index) }
 
 	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type =
-		self .. { typeAtIndex(index) }
+		self { typeAtIndex(index) }
 
 	override fun o_TypeIntersection(
 		self: AvailObject,
 		another: A_Type
-	): A_Type = self .. { typeIntersection(another) }
+	): A_Type = self { typeIntersection(another) }
 
 	override fun o_TypeIntersectionOfCompiledCodeType(
 		self: AvailObject,
 		aCompiledCodeType: A_Type
-	): A_Type = self .. {
+	): A_Type = self {
 		typeIntersectionOfCompiledCodeType(aCompiledCodeType)
 	}
 
 	override fun o_TypeIntersectionOfContinuationType(
 		self: AvailObject,
 		aContinuationType: A_Type
-	): A_Type = self .. {
+	): A_Type = self {
 		typeIntersectionOfContinuationType(aContinuationType)
 	}
 
 	override fun o_TypeIntersectionOfFiberType(
 		self: AvailObject,
 		aFiberType: A_Type
-	): A_Type = self .. { typeIntersectionOfFiberType(aFiberType) }
+	): A_Type = self { typeIntersectionOfFiberType(aFiberType) }
 
 	override fun o_TypeIntersectionOfFunctionType(
 		self: AvailObject,
 		aFunctionType: A_Type
-	): A_Type = self .. { typeIntersectionOfFunctionType(aFunctionType) }
+	): A_Type = self { typeIntersectionOfFunctionType(aFunctionType) }
 
 	override fun o_TypeIntersectionOfIntegerRangeType(
 		self: AvailObject,
 		anIntegerRangeType: A_Type
-	): A_Type = self .. {
+	): A_Type = self {
 		typeIntersectionOfIntegerRangeType(anIntegerRangeType)
 	}
 
 	override fun o_TypeIntersectionOfListNodeType(
 		self: AvailObject,
 		aListNodeType: A_Type
-	): A_Type = self .. { typeIntersectionOfListNodeType(aListNodeType) }
+	): A_Type = self { typeIntersectionOfListNodeType(aListNodeType) }
 
 	override fun o_TypeIntersectionOfMapType(
 		self: AvailObject,
 		aMapType: A_Type
-	): A_Type = self .. { typeIntersectionOfMapType(aMapType) }
+	): A_Type = self { typeIntersectionOfMapType(aMapType) }
 
 	override fun o_TypeIntersectionOfObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
-	): A_Type = self .. { typeIntersectionOfObjectType(anObjectType) }
+	): A_Type = self { typeIntersectionOfObjectType(anObjectType) }
 
 	override fun o_TypeIntersectionOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type
-	): A_Type = self .. { typeIntersectionOfPhraseType(aPhraseType) }
+	): A_Type = self { typeIntersectionOfPhraseType(aPhraseType) }
 
 	override fun o_TypeIntersectionOfPojoType(
 		self: AvailObject,
 		aPojoType: A_Type
-	): A_Type = self .. { typeIntersectionOfPojoType(aPojoType) }
+	): A_Type = self { typeIntersectionOfPojoType(aPojoType) }
 
 	override fun o_TypeIntersectionOfSetType(
 		self: AvailObject,
 		aSetType: A_Type
-	): A_Type = self .. { typeIntersectionOfSetType(aSetType) }
+	): A_Type = self { typeIntersectionOfSetType(aSetType) }
 
 	override fun o_TypeIntersectionOfTupleType(
 		self: AvailObject,
 		aTupleType: A_Type
-	): A_Type = self .. { typeIntersectionOfTupleType(aTupleType) }
+	): A_Type = self { typeIntersectionOfTupleType(aTupleType) }
 
 	override fun o_TypeIntersectionOfVariableType(
 		self: AvailObject,
 		aVariableType: A_Type
-	): A_Type = self .. { typeIntersectionOfVariableType(aVariableType) }
+	): A_Type = self { typeIntersectionOfVariableType(aVariableType) }
 
 	override fun o_TypeUnion(
 		self: AvailObject,
 		another: A_Type
-	): A_Type = self .. { typeUnion(another) }
+	): A_Type = self { typeUnion(another) }
 
 	override fun o_TypeUnionOfFiberType(
 		self: AvailObject,
 		aFiberType: A_Type
-	): A_Type = self .. { typeUnionOfFiberType(aFiberType) }
+	): A_Type = self { typeUnionOfFiberType(aFiberType) }
 
 	override fun o_TypeUnionOfFunctionType(
 		self: AvailObject,
 		aFunctionType: A_Type
-	): A_Type = self .. { typeUnionOfFunctionType(aFunctionType) }
+	): A_Type = self { typeUnionOfFunctionType(aFunctionType) }
 
 	override fun o_TypeUnionOfVariableType(
 		self: AvailObject,
 		aVariableType: A_Type
-	): A_Type = self .. { typeUnionOfVariableType(aVariableType) }
+	): A_Type = self { typeUnionOfVariableType(aVariableType) }
 
 	override fun o_TypeUnionOfContinuationType(
 		self: AvailObject,
 		aContinuationType: A_Type
-	): A_Type = self .. { typeUnionOfContinuationType(aContinuationType) }
+	): A_Type = self { typeUnionOfContinuationType(aContinuationType) }
 
 	override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,
 		aCompiledCodeType: A_Type
-	): A_Type = self .. { typeUnionOfCompiledCodeType(aCompiledCodeType) }
+	): A_Type = self { typeUnionOfCompiledCodeType(aCompiledCodeType) }
 
 	override fun o_TypeUnionOfIntegerRangeType(
 		self: AvailObject,
 		anIntegerRangeType: A_Type
-	): A_Type = self .. { typeUnionOfIntegerRangeType(anIntegerRangeType) }
+	): A_Type = self { typeUnionOfIntegerRangeType(anIntegerRangeType) }
 
 	override fun o_TypeUnionOfMapType(
 		self: AvailObject,
 		aMapType: A_Type
-	): A_Type = self .. { typeUnionOfMapType(aMapType) }
+	): A_Type = self { typeUnionOfMapType(aMapType) }
 
 	override fun o_TypeUnionOfObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
-	): A_Type = self .. { typeUnionOfObjectType(anObjectType) }
+	): A_Type = self { typeUnionOfObjectType(anObjectType) }
 
 	override fun o_TypeUnionOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type
-	): A_Type = self .. { typeUnionOfPhraseType(aPhraseType) }
+	): A_Type = self { typeUnionOfPhraseType(aPhraseType) }
 
 	override fun o_TypeUnionOfPojoType(
 		self: AvailObject,
 		aPojoType: A_Type
-	): A_Type = self .. { typeUnionOfPojoType(aPojoType) }
+	): A_Type = self { typeUnionOfPojoType(aPojoType) }
 
 	override fun o_TypeUnionOfSetType(
 		self: AvailObject,
 		aSetType: A_Type
-	): A_Type = self .. { typeUnionOfSetType(aSetType) }
+	): A_Type = self { typeUnionOfSetType(aSetType) }
 
 	override fun o_TypeUnionOfTupleType(
 		self: AvailObject,
 		aTupleType: A_Type
-	): A_Type = self .. { typeUnionOfTupleType(aTupleType) }
+	): A_Type = self { typeUnionOfTupleType(aTupleType) }
 
 	override fun o_UnionOfTypesAtThrough(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int
-	): A_Type = self .. { unionOfTypesAtThrough(startIndex, endIndex) }
+	): A_Type = self { unionOfTypesAtThrough(startIndex, endIndex) }
 
 	override fun o_AsNativeString(self: AvailObject): String =
-		self .. { asNativeString() }
+		self { asNativeString() }
 
 	override fun o_AsSet(self: AvailObject): A_Set =
-		self .. { asSet }
+		self { asSet }
 
 	override fun o_AsTuple(self: AvailObject): A_Tuple =
-		self .. { asTuple }
+		self { asTuple }
 
 	override fun o_BitsPerEntry(self: AvailObject): Int =
-		self .. { bitsPerEntry }
+		self { bitsPerEntry }
 
 	override fun o_BodyBlock(self: AvailObject): A_Function =
-		self .. { bodyBlock() }
+		self { bodyBlock() }
 
 	override fun o_BodySignature(self: AvailObject): A_Type =
-		self .. { bodySignature() }
+		self { bodySignature() }
 
 	override fun o_Caller(self: AvailObject): A_Continuation =
-		self .. { caller }
+		self { caller }
 
 	override fun o_ClearValue(self: AvailObject) =
-		self .. { clearValue() }
+		self { clearValue() }
 
 	override fun o_Function(self: AvailObject): A_Function =
-		self .. { function() }
+		self { function() }
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		self .. { functionType() }
+		self { functionType() }
 
 	override fun o_Code(self: AvailObject): A_RawFunction =
-		self .. { code() }
+		self { code() }
 
 	override fun o_CodePoint(self: AvailObject): Int =
-		self .. { codePoint }
+		self { codePoint }
 
 	override fun o_LazyComplete(self: AvailObject): A_Map =
-		self .. { lazyComplete }
+		self { lazyComplete }
 
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
-		self .. { constantBindings }
+		self { constantBindings }
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		self .. { contentType }
+		self { contentType }
 
 	override fun o_Continuation(self: AvailObject): A_Continuation =
-		self .. { continuation }
+		self { continuation }
 
 	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple =
-		self .. { copyAsMutableIntTuple() }
+		self { copyAsMutableIntTuple() }
 
 	override fun o_CopyAsMutableLongTuple(self: AvailObject): A_Tuple =
-		self .. { copyAsMutableLongTuple() }
+		self { copyAsMutableLongTuple() }
 
 	override fun o_CopyAsMutableObjectTuple(self: AvailObject): A_Tuple =
-		self .. { copyAsMutableObjectTuple() }
+		self { copyAsMutableObjectTuple() }
 
 	override fun o_DefaultType(self: AvailObject): A_Type =
-		self .. { defaultType }
+		self { defaultType }
 
 	override fun o_EnsureMutable(self: AvailObject): A_Continuation =
-		self .. { ensureMutable() }
+		self { ensureMutable() }
 
 	override fun o_ExecutionState(self: AvailObject): ExecutionState =
-		self .. { executionState }
+		self { executionState }
 
 	override fun o_Expand(self: AvailObject, module: A_Module) =
-		self .. { expand(module) }
+		self { expand(module) }
 
 	override fun o_ExtractBoolean(self: AvailObject): Boolean =
-		self .. { extractBoolean }
+		self { extractBoolean }
 
 	override fun o_ExtractUnsignedByte(self: AvailObject): Short =
-		self .. { extractUnsignedByte }
+		self { extractUnsignedByte }
 
 	override fun o_ExtractDouble(self: AvailObject): Double =
-		self .. { extractDouble }
+		self { extractDouble }
 
 	override fun o_ExtractFloat(self: AvailObject): Float =
-		self .. { extractFloat }
+		self { extractFloat }
 
 	override fun o_ExtractInt(self: AvailObject): Int =
-		self .. { extractInt }
+		self { extractInt }
 
 	override fun o_ExtractLong(self: AvailObject): Long =
-		self .. { extractLong }
+		self { extractLong }
 
 	override fun o_ExtractNybble(self: AvailObject): Byte =
-		self .. { extractNybble }
+		self { extractNybble }
 
 	override fun o_FieldMap(self: AvailObject): A_Map =
-		self .. { fieldMap() }
+		self { fieldMap() }
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map =
-		self .. { fieldTypeMap }
+		self { fieldTypeMap }
 
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject =
-		self .. { getValue() }
+		self { getValue() }
 
 	@Throws(VariableGetException::class)
 	override fun o_GetValueClearing(self: AvailObject): AvailObject =
-		self .. { getValueClearing() }
+		self { getValueClearing() }
+
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearingIfMutable(self: AvailObject): AvailObject =
+		self { getValueClearingIfMutable() }
 
 	override fun o_Hash(self: AvailObject): Int =
-		self .. { hash() }
+		self { hash() }
 
 	override fun o_HashOrZero(self: AvailObject): Int =
-		self .. { hashOrZero() }
+		self { hashOrZero() }
 
 	override fun o_HasGrammaticalRestrictions(self: AvailObject): Boolean =
-		self .. { hasGrammaticalRestrictions }
+		self { hasGrammaticalRestrictions }
 
 	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple =
-		self .. { definitionsTuple }
+		self { definitionsTuple }
 
 	override fun o_LazyIncomplete(self: AvailObject): A_Map =
-		self .. { lazyIncomplete }
+		self { lazyIncomplete }
 
-	override fun o_DecrementCountdownToReoptimize(
-		self: AvailObject,
-		continuation: (Boolean)->Unit
-	): Boolean = self .. { decrementCountdownToReoptimize(continuation) }
+	override fun o_DecrementCountdownToReoptimize(self: AvailObject): Boolean =
+		self { decrementCountdownToReoptimize() }
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
 		delta: Long
-	) = self .. { decreaseCountdownToReoptimizeFromPoll(delta) }
+	) = self { decreaseCountdownToReoptimizeFromPoll(delta) }
+
+	override fun o_EncounteredFallbackLookup(self: AvailObject) =
+		self { encounteredFallbackLookup() }
 
 	override fun o_IsAbstractDefinition(self: AvailObject): Boolean =
-		self .. { isAbstractDefinition() }
+		self { isAbstractDefinition() }
 
 	override fun o_IsAbstract(self: AvailObject): Boolean =
-		self .. { isAbstract }
+		self { isAbstract }
 
 	override fun o_IsBoolean(self: AvailObject): Boolean =
-		self .. { isBoolean }
+		self { isBoolean }
 
 	override fun o_IsUnsignedByte(self: AvailObject): Boolean =
-		self .. { isUnsignedByte }
+		self { isUnsignedByte }
 
 	/**
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	override fun o_IsByteTuple(self: AvailObject): Boolean =
-		self .. { isByteTuple }
+		self { isByteTuple }
 
 	override fun o_IsCharacter(self: AvailObject): Boolean =
-		self .. { isCharacter }
+		self { isCharacter }
 
 	override fun o_IsFunction(self: AvailObject): Boolean =
-		self .. { isFunction }
+		self { isFunction }
 
 	override fun o_IsAtom(self: AvailObject): Boolean =
-		self .. { isAtom }
+		self { isAtom }
 
 	override fun o_IsExtendedInteger(self: AvailObject): Boolean =
-		self .. { isExtendedInteger }
+		self { isExtendedInteger }
 
 	override fun o_IsFinite(self: AvailObject): Boolean =
-		self .. { isFinite }
+		self { isFinite }
 
 	override fun o_IsForwardDefinition(self: AvailObject): Boolean =
-		self .. { isForwardDefinition() }
+		self { isForwardDefinition() }
 
 	override fun o_IsInstanceMeta(self: AvailObject): Boolean =
-		self .. { isInstanceMeta }
+		self { isInstanceMeta }
 
 	override fun o_IsMethodDefinition(self: AvailObject): Boolean =
-		self .. { isMethodDefinition() }
+		self { isMethodDefinition() }
 
 	override fun o_IsIntegerRangeType(self: AvailObject): Boolean =
-		self .. { isIntegerRangeType }
+		self { isIntegerRangeType }
 
 	override fun o_IsMap(self: AvailObject): Boolean =
-		self .. { isMap }
+		self { isMap }
 
 	override fun o_IsMapType(self: AvailObject): Boolean =
-		self .. { isMapType }
+		self { isMapType }
 
 	override fun o_IsNybble(self: AvailObject): Boolean =
-		self .. { isNybble }
+		self { isNybble }
 
 	override fun o_IsPositive(self: AvailObject): Boolean =
-		self .. { isPositive }
+		self { isPositive }
 
 	override fun o_IsSet(self: AvailObject): Boolean =
-		self .. { isSet }
+		self { isSet }
 
 	override fun o_IsSetType(self: AvailObject): Boolean =
-		self .. { isSetType }
+		self { isSetType }
 
 	override fun o_IsString(self: AvailObject): Boolean =
-		self .. { isString }
+		self { isString }
 
 	override fun o_IsTuple(self: AvailObject): Boolean =
-		self .. { isTuple }
+		self { isTuple }
 
 	override fun o_IsTupleType(self: AvailObject): Boolean =
-		self .. { isTupleType }
+		self { isTupleType }
 
 	override fun o_IsType(self: AvailObject): Boolean =
-		self .. { isType }
+		self { isType }
 
 	override fun o_KeysAsSet(self: AvailObject): A_Set =
-		self .. { keysAsSet }
+		self { keysAsSet }
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		self .. { keyType }
+		self { keyType }
 
 	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk =
-		self .. { levelTwoChunk }
+		self { levelTwoChunk }
 
 	override fun o_LevelTwoOffset(self: AvailObject): Int =
-		self .. { levelTwoOffset }
+		self { levelTwoOffset }
 
 	override fun o_Literal(self: AvailObject): AvailObject =
-		self .. { literal() }
+		self { literal() }
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
-		self .. { lowerBound }
+		self { lowerBound }
 
 	override fun o_LowerInclusive(self: AvailObject): Boolean =
-		self .. { lowerInclusive }
+		self { lowerInclusive }
 
 	override fun o_MakeSubobjectsImmutable(self: AvailObject): AvailObject =
-		self .. { makeSubobjectsImmutable() }
+		self { makeSubobjectsImmutable() }
 
 	override fun o_MakeSubobjectsShared(self: AvailObject): AvailObject =
-		self .. { makeSubobjectsShared() }
+		self { makeSubobjectsShared() }
 
 	override fun o_MapSize(self: AvailObject): Int =
-		self .. { mapSize }
+		self { mapSize }
 
 	override fun o_MaxStackDepth(self: AvailObject): Int =
-		self .. { maxStackDepth }
+		self { maxStackDepth }
 
 	override fun o_Message(self: AvailObject): A_Atom =
-		self .. { message }
+		self { message }
 
 	override fun o_MessagePart (self: AvailObject, index: Int): A_String =
-		self .. { messagePart(index) }
+		self { messagePart(index) }
 
 	override fun o_MessageParts(self: AvailObject): A_Tuple =
-		self .. { messageParts }
+		self { messageParts }
 
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
-		self .. { methodDefinitions }
+		self { methodDefinitions }
 
 	override fun o_ImportedNames(self: AvailObject): A_Map =
-		self .. { importedNames }
+		self { importedNames }
 
 	override fun o_NewNames(self: AvailObject): A_Map =
-		self .. { newNames }
+		self { newNames }
 
 	override fun o_NumArgs(self: AvailObject): Int =
-		self .. { numArgs }
+		self { numArgs }
 
 	override fun o_NumSlots(self: AvailObject): Int =
-		self .. { numSlots() }
+		self { numSlots() }
 
 	override fun o_NumLiterals(self: AvailObject): Int =
-		self .. { numLiterals }
+		self { numLiterals }
 
 	override fun o_NumLocals(self: AvailObject): Int =
-		self .. { numLocals }
+		self { numLocals }
 
 	override fun o_NumOuters(self: AvailObject): Int =
-		self .. { numOuters }
+		self { numOuters }
 
 	override fun o_NumOuterVars(self: AvailObject): Int =
-		self .. { numOuterVars }
+		self { numOuterVars }
 
 	override fun o_Nybbles(self: AvailObject): A_Tuple =
-		self .. { nybbles }
+		self { nybbles }
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
-		self .. { parent }
+		self { parent }
 
 	override fun o_Pc(self: AvailObject): Int =
-		self .. { pc }
+		self { pc }
 
 	override fun o_Priority(self: AvailObject): Int =
-		self .. { priority }
+		self { priority }
 
 	override fun o_PrivateNames(self: AvailObject): A_Map =
-		self .. { privateNames }
+		self { privateNames }
 
 	override fun o_FiberGlobals(self: AvailObject): A_Map =
-		self .. { fiberGlobals }
+		self { fiberGlobals }
 
 	override fun o_GrammaticalRestrictions(self: AvailObject): A_Set =
-		self .. { grammaticalRestrictions }
+		self { grammaticalRestrictions }
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
-		self .. { returnType }
+		self { returnType }
 
 	override fun o_SetBinHash(self: AvailObject): Int =
-		self .. { setBinHash }
+		self { setBinHash }
 
 	override fun o_SetBinSize(self: AvailObject): Int =
-		self .. { setBinSize }
+		self { setBinSize }
 
 	override fun o_SetSize(self: AvailObject): Int =
-		self .. { setSize }
+		self { setSize }
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self .. { sizeRange }
+		self { sizeRange }
 
 	override fun o_LazyActions(
 		self: AvailObject
-	): MutableMap<ParsingOperation, A_Tuple> = self .. { lazyActions }
+	): MutableMap<ParsingOperation, A_Tuple> = self { lazyActions }
 
 	override fun o_Stackp(self: AvailObject): Int =
-		self .. { stackp }
+		self { stackp }
 
 	override fun o_Start(self: AvailObject): Int =
-		self .. { start() }
+		self { start() }
 
 	override fun o_StartingChunk(self: AvailObject): L2Chunk =
-		self .. { startingChunk }
+		self { startingChunk }
 
 	override fun o_String(self: AvailObject): A_String =
-		self .. { string() }
+		self { string() }
 
 	override fun o_TokenType(self: AvailObject): TokenDescriptor.TokenType =
-		self .. { tokenType() }
+		self { tokenType() }
 
 	override fun o_TrimExcessInts(self: AvailObject) =
-		self .. { trimExcessInts() }
+		self { trimExcessInts() }
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple =
-		self .. { tupleReverse() }
+		self { tupleReverse() }
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self .. { tupleSize }
+		self { tupleSize }
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		self .. { kind() }
+		self { kind() }
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple =
-		self .. { typeTuple }
+		self { typeTuple }
 
 	override fun o_UpperBound(self: AvailObject): A_Number =
-		self .. { upperBound }
+		self { upperBound }
 
 	override fun o_UpperInclusive(self: AvailObject): Boolean =
-		self .. { upperInclusive }
+		self { upperInclusive }
 
 	override fun o_Value(self: AvailObject): AvailObject =
-		self .. { value() }
+		self { value() }
 
 	override fun o_ValuesAsTuple(self: AvailObject): A_Tuple =
-		self .. { valuesAsTuple }
+		self { valuesAsTuple }
 
 	override fun o_ValueType(self: AvailObject): A_Type =
-		self .. { valueType }
+		self { valueType }
 
 	override fun o_VariableBindings(self: AvailObject): A_Map =
-		self .. { variableBindings }
+		self { variableBindings }
 
 	override fun o_VisibleNames(self: AvailObject): A_Set =
-		self .. { visibleNames }
+		self { visibleNames }
 
 	override fun o_ParsingInstructions(
 		self: AvailObject
-	): List<ParsingOperation> = self .. { parsingInstructions }
+	): List<ParsingOperation> = self { parsingInstructions }
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
-		self .. { expression }
+		self { expression }
 
 	override fun o_Sequence (self: AvailObject): A_Phrase =
-		self .. { sequence }
+		self { sequence }
 
 	override fun o_Variable(self: AvailObject): A_Phrase =
-		self .. { variable }
+		self { variable }
 
 	override fun o_ArgumentsTuple(self: AvailObject): A_Tuple =
-		self .. { argumentsTuple }
+		self { argumentsTuple }
 
 	override fun o_StatementsTuple(self: AvailObject): A_Tuple =
-		self .. { statementsTuple }
+		self { statementsTuple }
 
 	override fun o_ResultType(self: AvailObject): A_Type =
-		self .. { resultType() }
+		self { resultType() }
 
 	override fun o_NeededVariables(
 		self: AvailObject,
 		neededVariables: A_Tuple
-	) = self .. { this.neededVariables = neededVariables }
+	) = self { this.neededVariables = neededVariables }
 
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =
-		self .. { neededVariables }
+		self { neededVariables }
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
-		self .. { codePrimitive() }
+		self { codePrimitive() }
 
 	override fun o_DeclaredType(self: AvailObject): A_Type =
-		self .. { declaredType }
+		self { declaredType }
 
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
-		self .. { declarationKind() }
+		self { declarationKind() }
 
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
-		self .. { typeExpression }
+		self { typeExpression }
 
 	override fun o_InitializationExpression(self: AvailObject): AvailObject =
-		self .. { initializationExpression }
+		self { initializationExpression }
 
 	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
-		self .. { literalObject }
+		self { literalObject }
 
 	override fun o_Token(self: AvailObject): A_Token =
-		self .. { token }
+		self { token }
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
-		self .. { markerValue }
+		self { markerValue }
 
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
-		self .. { argumentsListNode }
+		self { argumentsListNode }
 
 	override fun o_Bundle(self: AvailObject): A_Bundle =
-		self .. { bundle }
+		self { bundle }
 
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		self .. { expressionsTuple }
+		self { expressionsTuple }
 
 	override fun o_Declaration(self: AvailObject): A_Phrase =
-		self .. { declaration }
+		self { declaration }
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self .. { phraseExpressionType }
+		self { phraseExpressionType }
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
-		self .. { phraseTypeExpressionType }
+		self { phraseTypeExpressionType }
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self .. { emitEffectOn(codeGenerator) }
+	) = self { emitEffectOn(codeGenerator) }
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self .. { emitValueOn(codeGenerator) }
+	) = self { emitValueOn(codeGenerator) }
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
-	) = self .. { childrenMap(transformer) }
+	) = self { childrenMap(transformer) }
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
-	) = self .. { childrenDo(action) }
+	) = self { childrenDo(action) }
 
 	override fun o_ValidateLocally(self: AvailObject) =
-		self .. { validateLocally() }
+		self { validateLocally() }
 
 	override fun o_GenerateInModule(
 		self: AvailObject,
 		module: A_Module
-	): A_RawFunction = self .. { generateInModule(module) }
+	): A_RawFunction = self { generateInModule(module) }
 
 	override fun o_CopyWith(
 		self: AvailObject,
 		newPhrase: A_Phrase
-	): A_Phrase = self .. { copyWith(newPhrase) }
+	): A_Phrase = self { copyWith(newPhrase) }
 
 	override fun o_CopyConcatenating(
 		self: AvailObject,
 		newListPhrase: A_Phrase
-	): A_Phrase = self .. { copyConcatenating(newListPhrase) }
+	): A_Phrase = self { copyConcatenating(newListPhrase) }
 
 	override fun o_IsLastUse(
 		self: AvailObject,
 		isLastUse: Boolean
-	) = self .. { this.isLastUse = isLastUse }
+	) = self { this.isLastUse = isLastUse }
 
 	override fun o_IsLastUse(self: AvailObject): Boolean =
-		self .. { isLastUse }
+		self { isLastUse }
 
 	override fun o_CopyMutablePhrase(self: AvailObject): A_Phrase =
-		self .. { copyMutablePhrase() }
+		self { copyMutablePhrase() }
 
 	override fun o_BinUnionKind(self: AvailObject): A_Type =
-		self .. { binUnionKind }
+		self { binUnionKind }
 
 	override fun o_OutputPhrase(self: AvailObject): A_Phrase =
-		self .. { outputPhrase }
+		self { outputPhrase }
 
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
-		self .. { apparentSendName }
+		self { apparentSendName }
 
 	override fun o_Statements(self: AvailObject): A_Tuple =
-		self .. { statements }
+		self { statements }
 
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
 		accumulatedStatements: MutableList<A_Phrase>
-	) = self .. { flattenStatementsInto(accumulatedStatements) }
+	) = self { flattenStatementsInto(accumulatedStatements) }
 
 	override fun o_LineNumber(self: AvailObject): Int =
-		self .. { lineNumber() }
+		self { lineNumber() }
 
 	override fun o_AllParsingPlansInProgress(self: AvailObject): A_Map =
-		self .. { allParsingPlansInProgress }
+		self { allParsingPlansInProgress }
 
 	override fun o_IsSetBin(self: AvailObject): Boolean =
-		self .. { isSetBin }
+		self { isSetBin }
 
 	override fun o_MapIterable(
 		self: AvailObject
 	): Iterable<MapDescriptor.Entry> =
-		self .. { mapIterable }
+		self { mapIterable }
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		self .. { declaredExceptions }
+		self { declaredExceptions }
 
 	override fun o_IsInt(self: AvailObject): Boolean =
-		self .. { isInt }
+		self { isInt }
 
 	override fun o_IsLong(self: AvailObject): Boolean =
-		self .. { isLong }
+		self { isLong }
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		self .. { argsTupleType }
+		self { argsTupleType }
 
 	override fun o_EqualsInstanceTypeFor(
 		self: AvailObject,
 		anObject: AvailObject
-	): Boolean = self .. { equalsInstanceTypeFor(anObject) }
+	): Boolean = self { equalsInstanceTypeFor(anObject) }
 
 	override fun o_Instances(self: AvailObject): A_Set =
-		self .. { instances }
+		self { instances }
 
 	override fun o_EqualsEnumerationWithSet(
 		self: AvailObject,
 		aSet: A_Set
-	): Boolean = self .. { equalsEnumerationWithSet(aSet) }
+	): Boolean = self { equalsEnumerationWithSet(aSet) }
 
 	override fun o_IsEnumeration(self: AvailObject): Boolean =
-		self .. { isEnumeration }
+		self { isEnumeration }
 
 	override fun o_IsInstanceOf(
 		self: AvailObject,
 		aType: A_Type
-	): Boolean = self .. { isInstanceOf(aType) }
+	): Boolean = self { isInstanceOf(aType) }
 
 	override fun o_EnumerationIncludesInstance(
 		self: AvailObject,
 		potentialInstance: AvailObject
 	): Boolean =
-		self .. { enumerationIncludesInstance(potentialInstance) }
+		self { enumerationIncludesInstance(potentialInstance) }
 
 	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
-		self .. { computeSuperkind() }
+		self { computeSuperkind() }
 
 	override fun o_SetAtomProperty(
 		self: AvailObject,
 		key: A_Atom,
 		value: A_BasicObject
-	) = self .. { setAtomProperty(key, value) }
+	) = self { setAtomProperty(key, value) }
 
 	override fun o_GetAtomProperty(
 		self: AvailObject,
 		key: A_Atom
-	): AvailObject = self .. { getAtomProperty(key) }
+	): AvailObject = self { getAtomProperty(key) }
 
 	override fun o_EqualsEnumerationType(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = self .. { equalsEnumerationType(another) }
+	): Boolean = self { equalsEnumerationType(another) }
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		self .. { readType }
+		self { readType }
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		self .. { writeType }
+		self { writeType }
 
 	override fun o_Versions(self: AvailObject): A_Set =
-		self .. { versions }
+		self { versions }
 
 	override fun o_EqualsPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type
-	): Boolean = self .. { equalsPhraseType(aPhraseType) }
+	): Boolean = self { equalsPhraseType(aPhraseType) }
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
-		self .. { phraseKind }
+		self { phraseKind }
 
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,
 		expectedPhraseKind: PhraseKind
-	): Boolean = self .. { phraseKindIsUnder(expectedPhraseKind) }
+	): Boolean = self { phraseKindIsUnder(expectedPhraseKind) }
 
 	override fun o_IsRawPojo(self: AvailObject): Boolean =
-		self .. { isRawPojo }
+		self { isRawPojo }
 
 	override fun o_AddSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
-	) = self .. { addSemanticRestriction(restriction) }
+	) = self { addSemanticRestriction(restriction) }
 
 	override fun o_RemoveSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
-	) = self .. { removeSemanticRestriction(restriction) }
+	) = self { removeSemanticRestriction(restriction) }
 
 	override fun o_SemanticRestrictions(
 		self: AvailObject
-	): A_Set = self .. { semanticRestrictions }
+	): A_Set = self { semanticRestrictions }
 
 	override fun o_AddSealedArgumentsType(
 		self: AvailObject,
 		typeTuple: A_Tuple
-	) = self .. { addSealedArgumentsType(typeTuple) }
+	) = self { addSealedArgumentsType(typeTuple) }
 
 	override fun o_RemoveSealedArgumentsType(
 		self: AvailObject,
 		typeTuple: A_Tuple
-	) = self .. { removeSealedArgumentsType(typeTuple) }
+	) = self { removeSealedArgumentsType(typeTuple) }
 
 	override fun o_SealedArgumentsTypesTuple(
 		self: AvailObject
-	): A_Tuple = self .. { sealedArgumentsTypesTuple }
+	): A_Tuple = self { sealedArgumentsTypesTuple }
 
 	override fun o_ModuleAddSemanticRestriction(
 		self: AvailObject,
 		semanticRestriction: A_SemanticRestriction
-	) = self .. { moduleAddSemanticRestriction(semanticRestriction) }
+	) = self { moduleAddSemanticRestriction(semanticRestriction) }
 
 	override fun o_AddConstantBinding(
 		self: AvailObject,
 		name: A_String,
 		constantBinding: A_Variable
-	) = self .. { addConstantBinding(name, constantBinding) }
+	) = self { addConstantBinding(name, constantBinding) }
 
 	override fun o_AddVariableBinding(
 		self: AvailObject,
 		name: A_String,
 		variableBinding: A_Variable
-	) = self .. { addVariableBinding(name, variableBinding) }
+	) = self { addVariableBinding(name, variableBinding) }
 
 	override fun o_IsMethodEmpty(
 		self: AvailObject
-	): Boolean = self .. { isMethodEmpty }
+	): Boolean = self { isMethodEmpty }
 
 	override fun o_IsPojoSelfType(self: AvailObject): Boolean =
-		self .. { isPojoSelfType }
+		self { isPojoSelfType }
 
 	override fun o_PojoSelfType(self: AvailObject): A_Type =
-		self .. { pojoSelfType() }
+		self { pojoSelfType() }
 
 	override fun o_JavaClass(self: AvailObject): AvailObject =
-		self .. { javaClass() }
+		self { javaClass() }
 
 	override fun o_IsUnsignedShort(self: AvailObject): Boolean =
-		self .. { isUnsignedShort }
+		self { isUnsignedShort }
 
 	override fun o_ExtractUnsignedShort(self: AvailObject): Int =
-		self .. { extractUnsignedShort }
+		self { extractUnsignedShort }
 
 	override fun o_IsFloat(self: AvailObject): Boolean =
-		self .. { isFloat }
+		self { isFloat }
 
 	override fun o_IsDouble(self: AvailObject): Boolean =
-		self .. { isDouble }
+		self { isDouble }
 
 	override fun o_RawPojo(self: AvailObject): AvailObject =
-		self .. { rawPojo() }
+		self { rawPojo() }
 
 	override fun o_IsPojo(self: AvailObject): Boolean =
-		self .. { isPojo }
+		self { isPojo }
 
 	override fun o_IsPojoType(self: AvailObject): Boolean =
-		self .. { isPojoType }
+		self { isPojoType }
 
 	override fun o_NumericCompare(
 		self: AvailObject,
 		another: A_Number): AbstractNumberDescriptor.Order =
-		self .. { numericCompare(another) }
+		self { numericCompare(another) }
 
 	override fun o_NumericCompareToDouble(
 		self: AvailObject,
 		aDouble: Double): AbstractNumberDescriptor.Order =
-		self .. { numericCompareToDouble(aDouble) }
+		self { numericCompareToDouble(aDouble) }
 
 	override fun o_AddToDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. {
+	): A_Number = self {
 		addToDoubleCanDestroy(doubleObject, canDestroy)
 	}
 
@@ -2723,55 +2767,55 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { addToFloatCanDestroy(floatObject, canDestroy) }
+	): A_Number = self { addToFloatCanDestroy(floatObject, canDestroy) }
 
 	override fun o_SubtractFromDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number =
-		self .. { subtractFromDoubleCanDestroy(doubleObject, canDestroy) }
+		self { subtractFromDoubleCanDestroy(doubleObject, canDestroy) }
 
 	override fun o_SubtractFromFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number =
-		self .. { subtractFromFloatCanDestroy(floatObject, canDestroy) }
+		self { subtractFromFloatCanDestroy(floatObject, canDestroy) }
 
 	override fun o_MultiplyByDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number =
-		self .. { multiplyByDoubleCanDestroy(doubleObject, canDestroy) }
+		self { multiplyByDoubleCanDestroy(doubleObject, canDestroy) }
 
 	override fun o_MultiplyByFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number =
-		self .. { multiplyByFloatCanDestroy(floatObject, canDestroy) }
+		self { multiplyByFloatCanDestroy(floatObject, canDestroy) }
 
 	override fun o_DivideIntoDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number =
-		self .. { divideIntoDoubleCanDestroy(doubleObject, canDestroy) }
+		self { divideIntoDoubleCanDestroy(doubleObject, canDestroy) }
 
 	override fun o_DivideIntoFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number =
-		self .. { divideIntoFloatCanDestroy(floatObject, canDestroy) }
+		self { divideIntoFloatCanDestroy(floatObject, canDestroy) }
 
 	override fun o_LazyPrefilterMap(self: AvailObject): A_Map =
-		self .. { lazyPrefilterMap }
+		self { lazyPrefilterMap }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		self .. { serializerOperation() }
+		self { serializerOperation() }
 
 	override fun o_MapBinAtHashPutLevelCanDestroy(
 		self: AvailObject,
@@ -2780,7 +2824,7 @@ class IndirectionDescriptor private constructor(
 		value: A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_MapBin = self.. {
+	): A_MapBin = self {
 		mapBinAtHashPutLevelCanDestroy(key, keyHash, value, myLevel, canDestroy)
 	}
 
@@ -2790,336 +2834,345 @@ class IndirectionDescriptor private constructor(
 		keyHash: Int,
 		canDestroy: Boolean
 	): A_MapBin =
-		self .. { mapBinRemoveKeyHashCanDestroy(key, keyHash, canDestroy) }
+		self { mapBinRemoveKeyHashCanDestroy(key, keyHash, canDestroy) }
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy(
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
-	): A_MapBin = self.. {
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
+	): A_MapBin = self {
 		mapBinAtHashReplacingLevelCanDestroy(
-			key, keyHash, notFoundValue, myLevel, canDestroy, transformer)
+			keyPrecursor,
+			key,
+			keyHash,
+			notFoundValue,
+			myLevel,
+			canDestroy,
+			transformer)
 	}
 
 	override fun o_MapBinSize(self: AvailObject): Int =
-		self .. { mapBinSize }
+		self { mapBinSize }
 
 	override fun o_MapBinKeyUnionKind(self: AvailObject): A_Type =
-		self .. { mapBinKeyUnionKind }
+		self { mapBinKeyUnionKind }
 
 	override fun o_MapBinValueUnionKind(self: AvailObject): A_Type =
-		self .. { mapBinValueUnionKind }
+		self { mapBinValueUnionKind }
 
 	override fun o_IsHashedMapBin(self: AvailObject): Boolean =
-		self .. { isHashedMapBin }
+		self { isHashedMapBin }
 
 	override fun o_MapBinAtHash(
 		self: AvailObject,
 		key: A_BasicObject,
 		keyHash: Int
-	): AvailObject? = self .. { mapBinAtHash(key, keyHash) }
+	): AvailObject? = self { mapBinAtHash(key, keyHash) }
 
 	override fun o_MapBinKeysHash(
 		self: AvailObject
-	): Int = self .. { mapBinKeysHash }
+	): Int = self { mapBinKeysHash }
 
 	override fun o_MapBinValuesHash(self: AvailObject): Int =
-		self .. { mapBinValuesHash }
+		self { mapBinValuesHash }
 
 	override fun o_IssuingModule(
 		self: AvailObject
-	): A_Module = self .. { issuingModule }
+	): A_Module = self { issuingModule }
 
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
-		self .. { isPojoFusedType }
+		self { isPojoFusedType }
 
 	override fun o_IsSupertypeOfPojoBottomType(
 		self: AvailObject,
 		aPojoType: A_Type
-	): Boolean = self .. { isSupertypeOfPojoBottomType(aPojoType) }
+	): Boolean = self { isSupertypeOfPojoBottomType(aPojoType) }
 
 	override fun o_EqualsPojoBottomType(self: AvailObject): Boolean =
-		self .. { equalsPojoBottomType() }
+		self { equalsPojoBottomType() }
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self .. { javaAncestors() }
+		self { javaAncestors() }
 
 	override fun o_TypeIntersectionOfPojoFusedType(
 		self: AvailObject,
 		aFusedPojoType: A_Type
-	): A_Type = self .. { typeIntersectionOfPojoFusedType(aFusedPojoType) }
+	): A_Type = self { typeIntersectionOfPojoFusedType(aFusedPojoType) }
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type
 	): A_Type =
-		self .. { typeIntersectionOfPojoUnfusedType(anUnfusedPojoType) }
+		self { typeIntersectionOfPojoUnfusedType(anUnfusedPojoType) }
 
 	override fun o_TypeUnionOfPojoFusedType(
 		self: AvailObject,
 		aFusedPojoType: A_Type
-	): A_Type = self .. { typeUnionOfPojoFusedType(aFusedPojoType) }
+	): A_Type = self { typeUnionOfPojoFusedType(aFusedPojoType) }
 
 	override fun o_TypeUnionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type
-	): A_Type = self .. { typeUnionOfPojoUnfusedType(anUnfusedPojoType) }
+	): A_Type = self { typeUnionOfPojoUnfusedType(anUnfusedPojoType) }
 
 	override fun o_IsPojoArrayType(self: AvailObject): Boolean =
-		self .. { isPojoArrayType }
+		self { isPojoArrayType }
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
-	): Any? = self .. { marshalToJava(classHint) }
+	): Any? = self { marshalToJava(classHint) }
 
 	override fun o_TypeVariables(self: AvailObject): A_Map =
-		self .. { typeVariables }
+		self { typeVariables }
 
 	override fun o_EqualsPojoField(
 		self: AvailObject,
 		field: AvailObject,
 		receiver: AvailObject
-	): Boolean = self .. { equalsPojoField(field, receiver) }
+	): Boolean = self { equalsPojoField(field, receiver) }
 
 	override fun o_IsSignedByte(self: AvailObject): Boolean =
-		self .. { isSignedByte }
+		self { isSignedByte }
 
 	override fun o_IsSignedShort(self: AvailObject): Boolean =
-		self .. { isSignedShort }
+		self { isSignedShort }
 
 	override fun o_ExtractSignedByte(self: AvailObject): Byte =
-		self .. { extractSignedByte }
+		self { extractSignedByte }
 
 	override fun o_ExtractSignedShort(self: AvailObject): Short =
-		self .. { extractSignedShort }
+		self { extractSignedShort }
 
 	override fun o_EqualsEqualityRawPojo(
 		self: AvailObject,
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?
-	): Boolean = self .. { equalsEqualityRawPojoFor(self, otherJavaObject) }
+	): Boolean = self { equalsEqualityRawPojoFor(self, otherJavaObject) }
 
 	override fun <T : Any> o_JavaObject(self: AvailObject): T? =
-		self .. { javaObject() }
+		self { javaObject() }
 
 	override fun o_AsBigInteger(
 		self: AvailObject
-	): BigInteger = self .. { asBigInteger() }
+	): BigInteger = self { asBigInteger() }
 
 	override fun o_AppendCanDestroy(
 		self: AvailObject,
 		newElement: A_BasicObject,
 		canDestroy: Boolean
-	): A_Tuple = self .. { appendCanDestroy(newElement, canDestroy) }
+	): A_Tuple = self { appendCanDestroy(newElement, canDestroy) }
 
 	override fun o_LazyIncompleteCaseInsensitive(
 		self: AvailObject
-	): A_Map = self .. { lazyIncompleteCaseInsensitive }
+	): A_Map = self { lazyIncompleteCaseInsensitive }
 
 	override fun o_LowerCaseString(self: AvailObject): A_String =
-		self .. { lowerCaseString() }
+		self { lowerCaseString() }
 
 	override fun o_InstanceCount(self: AvailObject): A_Number =
-		self .. { instanceCount }
+		self { instanceCount }
 
 	override fun o_TotalInvocations(self: AvailObject): Long =
-		self .. { totalInvocations }
+		self { totalInvocations }
 
 	override fun o_TallyInvocation(self: AvailObject) =
-		self .. { tallyInvocation() }
+		self { tallyInvocation() }
 
 	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
-		self .. { fieldTypeTuple }
+		self { fieldTypeTuple }
 
 	override fun o_FieldTuple(self: AvailObject): A_Tuple =
-		self .. { fieldTuple() }
+		self { fieldTuple() }
 
 	override fun o_LiteralType(self: AvailObject): A_Type =
-		self .. { literalType }
+		self { literalType }
 
 	override fun o_TypeIntersectionOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type
-	): A_Type = self .. { typeIntersectionOfTokenType(aTokenType) }
+	): A_Type = self { typeIntersectionOfTokenType(aTokenType) }
 
 	override fun o_TypeIntersectionOfLiteralTokenType(
 		self: AvailObject,
 		aLiteralTokenType: A_Type
 	): A_Type =
-		self .. { typeIntersectionOfLiteralTokenType(aLiteralTokenType) }
+		self { typeIntersectionOfLiteralTokenType(aLiteralTokenType) }
 
 	override fun o_TypeUnionOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type
-	): A_Type = self .. { typeUnionOfTokenType(aTokenType) }
+	): A_Type = self { typeUnionOfTokenType(aTokenType) }
 
 	override fun o_TypeUnionOfLiteralTokenType(
 		self: AvailObject,
 		aLiteralTokenType: A_Type
-	): A_Type = self .. { typeUnionOfLiteralTokenType(aLiteralTokenType) }
+	): A_Type = self { typeUnionOfLiteralTokenType(aLiteralTokenType) }
 
 	override fun o_IsTokenType(self: AvailObject): Boolean =
-		self .. { isTokenType }
+		self { isTokenType }
 
 	override fun o_IsLiteralTokenType(self: AvailObject): Boolean =
-		self .. { isLiteralTokenType }
+		self { isLiteralTokenType }
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean =
-		self .. { isLiteralToken() }
+		self { isLiteralToken() }
 
 	override fun o_IsSupertypeOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type
-	): Boolean = self .. { isSupertypeOfTokenType(aTokenType) }
+	): Boolean = self { isSupertypeOfTokenType(aTokenType) }
 
 	override fun o_IsSupertypeOfLiteralTokenType(
 		self: AvailObject,
 		aLiteralTokenType: A_Type
 	): Boolean =
-		self .. { isSupertypeOfLiteralTokenType(aLiteralTokenType) }
+		self { isSupertypeOfLiteralTokenType(aLiteralTokenType) }
 
 	override fun o_EqualsTokenType(
 		self: AvailObject,
 		aTokenType: A_Type
-	): Boolean = self .. { equalsTokenType(aTokenType) }
+	): Boolean = self { equalsTokenType(aTokenType) }
 
 	override fun o_EqualsLiteralTokenType(
 		self: AvailObject,
 		aLiteralTokenType: A_Type
-	): Boolean = self .. { equalsLiteralTokenType(aLiteralTokenType) }
+	): Boolean = self { equalsLiteralTokenType(aLiteralTokenType) }
 
 	override fun o_EqualsObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
-	): Boolean = self .. { equalsObjectType(anObjectType) }
+	): Boolean = self { equalsObjectType(anObjectType) }
 
 	override fun o_EqualsToken(
 		self: AvailObject,
 		aToken: A_Token
-	): Boolean = self .. { equalsToken(aToken) }
+	): Boolean = self { equalsToken(aToken) }
 
 	override fun o_BitwiseAnd(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { bitwiseAnd(anInteger, canDestroy) }
+	): A_Number = self { bitwiseAnd(anInteger, canDestroy) }
 
 	override fun o_BitwiseOr(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { bitwiseOr(anInteger, canDestroy) }
+	): A_Number = self { bitwiseOr(anInteger, canDestroy) }
 
 	override fun o_BitwiseXor(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { bitwiseXor(anInteger, canDestroy) }
+	): A_Number = self { bitwiseXor(anInteger, canDestroy) }
 
 	override fun o_BitTest(
 		self: AvailObject,
 		bitPosition: Int
-	): Boolean = self .. { bitTest(bitPosition) }
+	): Boolean = self { bitTest(bitPosition) }
 
 	override fun o_BitSet(
 		self: AvailObject,
 		bitPosition: Int,
 		value: Boolean,
 		canDestroy: Boolean
-	) : A_Number = self .. { bitSet(bitPosition, value, canDestroy) }
+	) : A_Number = self { bitSet(bitPosition, value, canDestroy) }
 
 	override fun o_AddSeal(
 		self: AvailObject,
 		methodName: A_Atom,
 		argumentTypes: A_Tuple
-	) = self .. { addSeal(methodName, argumentTypes) }
+	) = self { addSeal(methodName, argumentTypes) }
 
 	override fun o_Instance(
 		self: AvailObject
-	): AvailObject = self .. { instance }
+	): AvailObject = self { instance }
 
 	override fun o_SetMethodName(
 		self: AvailObject,
 		methodName: A_String
-	) = self .. { this.methodName = methodName }
+	) = self { this.methodName = methodName }
 
 	override fun o_StartingLineNumber(
 		self: AvailObject
-	): Int = self .. { codeStartingLineNumber }
+	): Int = self { codeStartingLineNumber }
 
 	override fun o_Module(self: AvailObject): A_Module =
-		self .. { module }
+		self { module }
 
 	override fun o_MethodName(self: AvailObject): A_String =
-		self .. { methodName }
+		self { methodName }
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		"IND" + mutability.suffix + "→" + (self .. { nameForDebugger() })
+		//TODO Replace
+		//"IND" + mutability.suffix + "→" + (self { nameForDebugger() })
+		"IND" + mutability.suffix + "→(omitted)"
 
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: A_Type
-	): Boolean = self .. { binElementsAreAllInstancesOfKind(kind) }
+	): Boolean = self { binElementsAreAllInstancesOfKind(kind) }
 
 	override fun o_SetElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: AvailObject
-	): Boolean = self .. { setElementsAreAllInstancesOfKind(kind) }
+	): Boolean = self { setElementsAreAllInstancesOfKind(kind) }
 
 	override fun o_MapBinIterator(
 		self: AvailObject
-	): MapIterator = self .. { mapBinIterator }
+	): MapIterator = self { mapBinIterator }
 
 	override fun o_RangeIncludesLong(
 		self: AvailObject,
 		aLong: Long
-	): Boolean = self .. { rangeIncludesLong(aLong) }
+	): Boolean = self { rangeIncludesLong(aLong) }
 
 	override fun o_BitShiftLeftTruncatingToBits(
 		self: AvailObject,
 		shiftFactor: A_Number,
 		truncationBits: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. {
+	): A_Number = self {
 		bitShiftLeftTruncatingToBits(shiftFactor, truncationBits, canDestroy)
 	}
 
 	override fun o_SetBinIterator(
 		self: AvailObject
-	): SetIterator = self .. { setBinIterator }
+	): SetIterator = self { setBinIterator }
 
 	override fun o_BitShift(
 		self: AvailObject,
 		shiftFactor: A_Number,
 		canDestroy: Boolean
-	): A_Number = self .. { bitShift(shiftFactor, canDestroy) }
+	): A_Number = self { bitShift(shiftFactor, canDestroy) }
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = self .. { equalsPhrase(aPhrase) }
+	): Boolean = self { equalsPhrase(aPhrase) }
 
 	override fun o_StripMacro(
 		self: AvailObject
-	): A_Phrase = self .. { stripMacro }
+	): A_Phrase = self { stripMacro }
 
 	override fun o_DefinitionMethod(
 		self: AvailObject
-	): A_Method = self .. { definitionMethod() }
+	): A_Method = self { definitionMethod() }
 
 	override fun o_PrefixFunctions(
 		self: AvailObject
-	): A_Tuple = self .. { prefixFunctions() }
+	): A_Tuple = self { prefixFunctions() }
 
 	override fun o_EqualsByteArrayTuple(
 		self: AvailObject,
 		aByteArrayTuple: A_Tuple
-	): Boolean = self .. { equalsByteArrayTuple(aByteArrayTuple) }
+	): Boolean = self { equalsByteArrayTuple(aByteArrayTuple) }
 
 	override fun o_CompareFromToWithByteArrayTupleStartingAt(
 		self: AvailObject,
@@ -3127,137 +3180,140 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aByteArrayTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithByteArrayTupleStartingAt(
 			startIndex1, endIndex1, aByteArrayTuple, startIndex2)
 	}
 
 	override fun o_ByteArray(self: AvailObject): ByteArray =
-		self .. { byteArray }
+		self { byteArray }
 
 	override fun o_IsByteArrayTuple(self: AvailObject): Boolean =
-		self .. { isByteArrayTuple }
+		self { isByteArrayTuple }
 
 	override fun o_UpdateForNewGrammaticalRestriction(
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress,
 		treesToVisit: Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-	) = self .. {
+	) = self {
 		updateForNewGrammaticalRestriction(planInProgress, treesToVisit)
 	}
 
 	override fun <T> o_Lock(self: AvailObject, body: () -> T): T =
-		self .. { lock(body) }
+		self { lock(body) }
 
 	override fun o_ModuleName(self: AvailObject): A_String =
-		self .. { moduleName }
+		self { moduleName }
 
 	override fun o_ShortModuleNameNative(self: AvailObject): String =
-		self .. { shortModuleNameNative }
+		self { shortModuleNameNative }
 
 	override fun o_BundleMethod(self: AvailObject): A_Method =
-		self .. { bundleMethod }
+		self { bundleMethod }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
 		self: AvailObject,
 		newValue: A_BasicObject
-	): AvailObject = self .. { getAndSetValue(newValue) }
+	): AvailObject = self { getAndSetValue(newValue) }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
 		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject
-	): Boolean = self .. { compareAndSwapValues(reference, newValue) }
+	): Boolean = self { compareAndSwapValues(reference, newValue) }
 
 	@Throws(VariableSetException::class)
 	override fun o_CompareAndSwapValuesNoCheck(
 		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject
-	): Boolean = self .. { compareAndSwapValuesNoCheck(reference, newValue) }
+	): Boolean = self { compareAndSwapValuesNoCheck(reference, newValue) }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
 		self: AvailObject,
 		addend: A_Number
-	): A_Number = self .. { fetchAndAddValue(addend) }
+	): A_Number = self { fetchAndAddValue(addend) }
 
 	override fun o_FailureContinuation(
 		self: AvailObject
 	): (Throwable)->Unit =
-		self .. { failureContinuation }
+		self { failureContinuation }
 
 	override fun o_ResultContinuation(
 		self: AvailObject
 	): (AvailObject)->Unit =
-		self .. { resultContinuation }
+		self { resultContinuation }
 
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? =
-		self .. { availLoader }
+		self { availLoader }
 
 	override fun o_SetAvailLoader(self: AvailObject, loader: AvailLoader?) =
-		self .. { availLoader = loader }
+		self { availLoader = loader }
 
 	override fun o_InterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
-	): Boolean = self .. { interruptRequestFlag(flag) }
+	): Boolean = self { interruptRequestFlag(flag) }
 
 	override fun o_GetAndClearInterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
-	): Boolean = self .. { getAndClearInterruptRequestFlag(flag) }
+	): Boolean = self { getAndClearInterruptRequestFlag(flag) }
 
 	override fun o_GetAndSetSynchronizationFlag(
 		self: AvailObject,
 		flag: SynchronizationFlag,
 		value: Boolean
-	): Boolean = self.. { getAndSetSynchronizationFlag(flag, value) }
+	): Boolean = self { getAndSetSynchronizationFlag(flag, value) }
 
 	override fun o_FiberResult(self: AvailObject): AvailObject =
-		self .. { fiberResult }
+		self { fiberResult }
 
-	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject) =
-		self .. { fiberResult = result as AvailObject }
+	override fun o_SetFiberResultAndState(
+		self: AvailObject,
+		result: A_BasicObject,
+		state: ExecutionState
+	) = self { setFiberResultAndState(result, state) }
 
 	override fun o_JoiningFibers(self: AvailObject): A_Set =
-		self .. { joiningFibers }
+		self { joiningFibers }
 
 	override fun o_WakeupTask(self: AvailObject): TimerTask? =
-		self .. { wakeupTask }
+		self { wakeupTask }
 
 	override fun o_SetWakeupTask(self: AvailObject, task: TimerTask?) =
-		self .. { wakeupTask = task }
+		self { wakeupTask = task }
 
 	override fun o_SetJoiningFibers(self: AvailObject, joiners: A_Set) =
-		self .. { joiningFibers = joiners }
+		self { joiningFibers = joiners }
 
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
-		self .. { heritableFiberGlobals }
+		self { heritableFiberGlobals }
 
 	override fun o_SetHeritableFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self .. { heritableFiberGlobals = globals }
+	) = self { heritableFiberGlobals = globals }
 
 	override fun o_GeneralFlag(self: AvailObject, flag: GeneralFlag): Boolean =
-		self .. { generalFlag(flag) }
+		self { generalFlag(flag) }
 
 	override fun o_SetGeneralFlag(self: AvailObject, flag: GeneralFlag) =
-		self .. { setGeneralFlag(flag) }
+		self { setGeneralFlag(flag) }
 
 	override fun o_ClearGeneralFlag(self: AvailObject, flag: GeneralFlag) =
-		self .. { clearGeneralFlag(flag) }
+		self { clearGeneralFlag(flag) }
 
 	override fun o_ByteBuffer(self: AvailObject): ByteBuffer =
-		self .. { byteBuffer }
+		self { byteBuffer }
 
 	override fun o_EqualsByteBufferTuple(
 		self: AvailObject,
 		aByteBufferTuple: A_Tuple
-	): Boolean = self .. { equalsByteBufferTuple(aByteBufferTuple) }
+	): Boolean = self { equalsByteBufferTuple(aByteBufferTuple) }
 
 	override fun o_CompareFromToWithByteBufferTupleStartingAt(
 		self: AvailObject,
@@ -3265,7 +3321,7 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		aByteBufferTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithByteBufferTupleStartingAt(
 			startIndex1,
 			endIndex1,
@@ -3274,177 +3330,177 @@ class IndirectionDescriptor private constructor(
 	}
 
 	override fun o_IsByteBufferTuple(self: AvailObject): Boolean =
-		self .. { isByteBufferTuple }
+		self { isByteBufferTuple }
 
 	override fun o_FiberName(self: AvailObject): A_String =
-		self .. { fiberName }
+		self { fiberName }
 
 	override fun o_FiberNameSupplier(
 		self: AvailObject,
 		supplier: () -> A_String
-	) = self .. { fiberNameSupplier(supplier) }
+	) = self { fiberNameSupplier(supplier) }
 
 	override fun o_Bundles(self: AvailObject): A_Set =
-		self .. { bundles }
+		self { bundles }
 
 	override fun o_MethodAddBundle(self: AvailObject, bundle: A_Bundle) =
-		self .. { methodAddBundle(bundle) }
+		self { methodAddBundle(bundle) }
 
 	override fun o_MethodRemoveBundle(self: AvailObject, bundle: A_Bundle) =
-		self .. { methodRemoveBundle(bundle) }
+		self { methodRemoveBundle(bundle) }
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self .. { definitionModule() }
+		self { definitionModule() }
 
 	override fun o_DefinitionModuleName(self: AvailObject): A_String =
-		self .. { definitionModuleName() }
+		self { definitionModuleName() }
 
 	@Throws(MalformedMessageException::class)
 	override fun o_BundleOrCreate(self: AvailObject): A_Bundle =
-		self .. { bundleOrCreate() }
+		self { bundleOrCreate() }
 
 	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
-		self .. { bundleOrNil }
+		self { bundleOrNil }
 
 	override fun o_EntryPoints(self: AvailObject): A_Map =
-		self .. { entryPoints }
+		self { entryPoints }
 
 	override fun o_AllAncestors(self: AvailObject): A_Set =
-		self .. { allAncestors }
+		self { allAncestors }
 
 	override fun o_ArgumentRestrictionSets(self: AvailObject): A_Tuple =
-		self .. { argumentRestrictionSets() }
+		self { argumentRestrictionSets() }
 
 	override fun o_RestrictedBundle(self: AvailObject): A_Bundle =
-		self .. { restrictedBundle() }
+		self { restrictedBundle() }
 
 	override fun o_AtomName(self: AvailObject): A_String =
-		self .. { atomName }
+		self { atomName }
 
 	override fun o_AdjustPcAndStackp(self: AvailObject, pc: Int, stackp: Int) =
-		self .. { adjustPcAndStackp(pc, stackp) }
+		self { adjustPcAndStackp(pc, stackp) }
 
 	override fun o_TreeTupleLevel(self: AvailObject): Int =
-		self .. { treeTupleLevel }
+		self { treeTupleLevel }
 
 	override fun o_ChildCount(self: AvailObject): Int =
-		self .. { childCount }
+		self { childCount }
 
 	override fun o_ChildAt(self: AvailObject, childIndex: Int): A_Tuple =
-		self .. { childAt(childIndex) }
+		self { childAt(childIndex) }
 
 	override fun o_ConcatenateWith(
 		self: AvailObject,
 		otherTuple: A_Tuple,
 		canDestroy: Boolean
-	): A_Tuple = self .. { concatenateWith(otherTuple, canDestroy) }
+	): A_Tuple = self { concatenateWith(otherTuple, canDestroy) }
 
 	override fun o_ReplaceFirstChild(
 		self: AvailObject,
 		newFirst: A_Tuple
-	): A_Tuple = self .. { replaceFirstChild(newFirst) }
+	): A_Tuple = self { replaceFirstChild(newFirst) }
 
 	override fun o_IsByteString(self: AvailObject): Boolean =
-		self .. { isByteString }
+		self { isByteString }
 
 	override fun o_IsTwoByteString(self: AvailObject): Boolean =
-		self .. { isTwoByteString }
+		self { isTwoByteString }
 
 	override fun o_IsIntegerIntervalTuple(self: AvailObject): Boolean =
-		self .. { isIntegerIntervalTuple }
+		self { isIntegerIntervalTuple }
 
 	override fun o_IsSmallIntegerIntervalTuple(self: AvailObject): Boolean =
-		self .. { isSmallIntegerIntervalTuple }
+		self { isSmallIntegerIntervalTuple }
 
 	override fun o_IsRepeatedElementTuple(self: AvailObject): Boolean =
-		self .. { isRepeatedElementTuple }
+		self { isRepeatedElementTuple }
 
 	override fun o_AddWriteReactor(
 		self: AvailObject,
 		key: A_Atom,
 		reactor: VariableAccessReactor
-	) = self .. { addWriteReactor(key, reactor) }
+	) = self { addWriteReactor(key, reactor) }
 
 	@Throws(AvailException::class)
 	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom) =
-		self .. { removeWriteReactor(key) }
+		self { removeWriteReactor(key) }
 
 	override fun o_TraceFlag(self: AvailObject, flag: TraceFlag): Boolean =
-		self .. { traceFlag(flag) }
+		self { traceFlag(flag) }
 
 	override fun o_SetTraceFlag(self: AvailObject, flag: TraceFlag) =
-		self .. { setTraceFlag(flag) }
+		self { setTraceFlag(flag) }
 
 	override fun o_ClearTraceFlag(self: AvailObject, flag: TraceFlag) =
-		self .. { clearTraceFlag(flag) }
+		self { clearTraceFlag(flag) }
 
 	override fun o_RecordVariableAccess(
 		self: AvailObject,
 		variable: A_Variable,
 		wasRead: Boolean
-	) = self.. { recordVariableAccess(variable, wasRead) }
+	) = self { recordVariableAccess(variable, wasRead) }
 
 	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set =
-		self .. { variablesReadBeforeWritten }
+		self { variablesReadBeforeWritten }
 
 	override fun o_VariablesWritten(self: AvailObject): A_Set =
-		self .. { variablesWritten }
+		self { variablesWritten }
 
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set =
-		self .. { validWriteReactorFunctions() }
+		self { validWriteReactorFunctions }
 
 	override fun o_ReplacingCaller(
 		self: AvailObject,
 		newCaller: A_Continuation
-	): A_Continuation = self .. { replacingCaller(newCaller) }
+	): A_Continuation = self { replacingCaller(newCaller) }
 
 	override fun o_WhenContinuationIsAvailableDo(
 		self: AvailObject,
 		whenReified: (A_Continuation) -> Unit
-	) = self .. { whenContinuationIsAvailableDo(whenReified) }
+	) = self { whenContinuationIsAvailableDo(whenReified) }
 
 	override fun o_GetAndClearReificationWaiters(
 		self: AvailObject
 	): List<(A_Continuation)->Unit> =
-		self .. { getAndClearReificationWaiters() }
+		self { getAndClearReificationWaiters() }
 
 	override fun o_IsBottom(self: AvailObject): Boolean =
-		self .. { isBottom }
+		self { isBottom }
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self .. { isVacuousType }
+		self { isVacuousType }
 
 	override fun o_IsTop(self: AvailObject): Boolean =
-		self .. { isTop }
+		self { isTop }
 
 	override fun o_IsAtomSpecial(self: AvailObject): Boolean =
-		self .. { isAtomSpecial }
+		self { isAtomSpecial }
 
 	override fun o_HasValue(self: AvailObject): Boolean =
-		self .. { hasValue() }
+		self { hasValue() }
 
 	override fun o_AddPostLoadFunction(
 		self: AvailObject,
 		postLoadFunction: A_Function
-	) = self .. { addPostLoadFunction(postLoadFunction) }
+	) = self { addPostLoadFunction(postLoadFunction) }
 
 	override fun o_AddUnloadFunction(
 		self: AvailObject,
 		unloadFunction: A_Function
-	) = self .. { addUnloadFunction(unloadFunction) }
+	) = self { addUnloadFunction(unloadFunction) }
 
 	override fun o_ExportedNames(self: AvailObject): A_Set =
-		self .. { exportedNames }
+		self { exportedNames }
 
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject): Boolean =
-		self .. { isInitializedWriteOnceVariable }
+		self { isInitializedWriteOnceVariable }
 
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
 		outputByteBuffer: ByteBuffer
-	) = self .. {
+	) = self {
 		transferIntoByteBuffer(startIndex, endIndex, outputByteBuffer)
 	}
 
@@ -3453,179 +3509,179 @@ class IndirectionDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type
-	): Boolean = self .. {
+	): Boolean = self {
 		tupleElementsInRangeAreInstancesOf(startIndex, endIndex, type)
 	}
 
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean =
-		self .. { isNumericallyIntegral }
+		self { isNumericallyIntegral }
 
 	override fun o_TextInterface(self: AvailObject): TextInterface =
-		self .. { textInterface }
+		self { textInterface }
 
 	override fun o_SetTextInterface(
 		self: AvailObject,
 		textInterface: TextInterface
-	) = self .. { this.textInterface = textInterface }
+	) = self { this.textInterface = textInterface }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
-		self .. { writeTo(writer) }
+		self { writeTo(writer) }
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
-		self .. { writeSummaryTo(writer) }
+		self { writeSummaryTo(writer) }
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types
 	): A_Type =
-		self .. { typeIntersectionOfPrimitiveTypeEnum(primitiveTypeEnum) }
+		self { typeIntersectionOfPrimitiveTypeEnum(primitiveTypeEnum) }
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types
-	): A_Type = self .. { typeUnionOfPrimitiveTypeEnum(primitiveTypeEnum) }
+	): A_Type = self { typeUnionOfPrimitiveTypeEnum(primitiveTypeEnum) }
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int
-	): A_Tuple = self .. { tupleOfTypesFromTo(startIndex, endIndex) }
+	): A_Tuple = self { tupleOfTypesFromTo(startIndex, endIndex) }
 
 	override fun o_ShowValueInNameForDebugger(
 		self: AvailObject
-	): Boolean = self .. { showValueInNameForDebugger() }
+	): Boolean = self { showValueInNameForDebugger() }
 
-	override fun o_List(self: AvailObject): A_Phrase = self .. { list }
+	override fun o_List(self: AvailObject): A_Phrase = self { list }
 
 	override fun o_Permutation(self: AvailObject): A_Tuple =
-		self .. { permutation }
+		self { permutation }
 
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self .. { emitAllValuesOn(codeGenerator) }
+	) = self { emitAllValuesOn(codeGenerator) }
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
-		self .. { superUnionType }
+		self { superUnionType }
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self .. { hasSuperCast }
+		self { hasSuperCast }
 
 	override fun o_MacrosTuple(self: AvailObject): A_Tuple =
-		self .. { macrosTuple }
+		self { macrosTuple }
 
 	override fun o_LookupMacroByPhraseTuple(
 		self: AvailObject,
 		argumentPhraseTuple: A_Tuple
-	): A_Tuple = self .. { lookupMacroByPhraseTuple(argumentPhraseTuple) }
+	): A_Tuple = self { lookupMacroByPhraseTuple(argumentPhraseTuple) }
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
-		self .. { expressionAt(index) }
+		self { expressionAt(index) }
 
 	override fun o_ExpressionsSize(self: AvailObject): Int =
-		self .. { expressionsSize }
+		self { expressionsSize }
 
 	override fun o_ParsingPc(self: AvailObject): Int =
-		self .. { parsingPc }
+		self { parsingPc }
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean =
-		self .. { isMacroSubstitutionNode }
+		self { isMacroSubstitutionNode }
 
 	override fun o_MessageSplitter(self: AvailObject): MessageSplitter =
-		self .. { messageSplitter }
+		self { messageSplitter }
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	) = self .. { statementsDo(continuation) }
+	) = self { statementsDo(continuation) }
 
 	override fun o_MacroOriginalSendNode(self: AvailObject): A_Phrase =
-		self .. { macroOriginalSendNode }
+		self { macroOriginalSendNode }
 
-	override fun o_EqualsInt(
+	override fun o_EqualsLong(
 		self: AvailObject,
-		theInt: Int
-	): Boolean = self .. { equalsInt(theInt) }
+		theLong: Long
+	): Boolean = self { equalsLong(theLong) }
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self .. { tokens }
+		self { tokens }
 
 	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
-		self .. { tokenIndicesInName }
+		self { tokenIndicesInName }
 
 	override fun o_ChooseBundle(
 		self: AvailObject,
 		currentModule: A_Module
-	): A_Bundle = self .. { chooseBundle(currentModule) }
+	): A_Bundle = self { chooseBundle(currentModule) }
 
 	override fun o_ValueWasStablyComputed(self: AvailObject): Boolean =
-		self .. { valueWasStablyComputed() }
+		self { valueWasStablyComputed }
 
 	override fun o_SetValueWasStablyComputed(
 		self: AvailObject,
 		wasStablyComputed: Boolean
-	) = self .. { setValueWasStablyComputed(wasStablyComputed) }
+	) = self { valueWasStablyComputed = wasStablyComputed }
 
 	override fun o_UniqueId(self: AvailObject): Long =
-		self .. { uniqueId }
+		self { uniqueId }
 
 	override fun o_Definition(self: AvailObject): A_Definition =
-		self .. { definition }
+		self { definition }
 
 	override fun o_NameHighlightingPc(self: AvailObject): String =
-		self .. { nameHighlightingPc }
+		self { nameHighlightingPc }
 
 	override fun o_SetIntersects(self: AvailObject, otherSet: A_Set): Boolean =
-		self .. { setIntersects(otherSet) }
+		self { setIntersects(otherSet) }
 
 	override fun o_RemovePlanForSendable(
 		self: AvailObject,
 		sendable: A_Sendable
-	) = self .. { removePlanForSendable(sendable) }
+	) = self { removePlanForSendable(sendable) }
 
 	override fun o_DefinitionParsingPlans(self: AvailObject): A_Map =
-		self .. { definitionParsingPlans }
+		self { definitionParsingPlans }
 
 	override fun o_EqualsListNodeType(
 		self: AvailObject,
 		aListNodeType: A_Type
-	): Boolean = self .. { equalsListNodeType(aListNodeType) }
+	): Boolean = self { equalsListNodeType(aListNodeType) }
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
-		self .. { subexpressionsTupleType }
+		self { subexpressionsTupleType }
 
 	override fun o_TypeUnionOfListNodeType(
 		self: AvailObject,
 		aListNodeType: A_Type
-	): A_Type = self .. { typeUnionOfListNodeType(aListNodeType) }
+	): A_Type = self { typeUnionOfListNodeType(aListNodeType) }
 
 	override fun o_LazyTypeFilterTree(
 		self: AvailObject
-	): LookupTree<A_Tuple, A_BundleTree>? = self .. { lazyTypeFilterTree }
+	): LookupTree<A_Tuple, A_BundleTree>? = self { lazyTypeFilterTree }
 
 	override fun o_AddPlanInProgress(
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress
-	) = self .. { addPlanInProgress(planInProgress) }
+	) = self { addPlanInProgress(planInProgress) }
 
 	override fun o_ParsingSignature(self: AvailObject): A_Type =
-		self .. { parsingSignature() }
+		self { parsingSignature() }
 
 	override fun o_RemovePlanInProgress(
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress
-	) = self .. { removePlanInProgress(planInProgress) }
+	) = self { removePlanInProgress(planInProgress) }
 
 	override fun o_FieldAt(
 		self: AvailObject, field: A_Atom
-	): AvailObject = self .. { fieldAt(field) }
+	): AvailObject = self { fieldAt(field) }
 
 	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
-		self .. { fieldAtIndex(index) }
+		self { fieldAtIndex(index) }
 
 	override fun o_FieldAtOrNull(
 		self: AvailObject, field: A_Atom
-	): AvailObject? = self .. { fieldAtOrNull(field) }
+	): AvailObject? = self { fieldAtOrNull(field) }
 
 	override fun o_FieldAtPuttingCanDestroy(
 		self: AvailObject,
@@ -3633,21 +3689,21 @@ class IndirectionDescriptor private constructor(
 		value: A_BasicObject,
 		canDestroy: Boolean
 	): A_BasicObject =
-		self .. { fieldAtPuttingCanDestroy(field, value, canDestroy) }
+		self { fieldAtPuttingCanDestroy(field, value, canDestroy) }
 
 	override fun o_FieldTypeAt(
 		self: AvailObject, field: A_Atom
-	): A_Type = self .. { fieldTypeAt(field) }
+	): A_Type = self { fieldTypeAt(field) }
 
 	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
-		self .. { fieldTypeAtIndex(index) }
+		self { fieldTypeAtIndex(index) }
 
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject, field: A_Atom
-	): A_Type? = self .. { fieldTypeAtOrNull(field) }
+	): A_Type? = self { fieldTypeAtOrNull(field) }
 
 	override fun o_ParsingPlan(self: AvailObject): A_DefinitionParsingPlan =
-		self .. { parsingPlan }
+		self { parsingPlan }
 
 	override fun o_CompareFromToWithIntTupleStartingAt(
 		self: AvailObject,
@@ -3655,428 +3711,438 @@ class IndirectionDescriptor private constructor(
 		endIndex1: Int,
 		anIntTuple: A_Tuple,
 		startIndex2: Int
-	): Boolean = self .. {
+	): Boolean = self {
 		compareFromToWithIntTupleStartingAt(
 			startIndex1, endIndex1, anIntTuple, startIndex2)
 	}
 
 	override fun o_IsIntTuple(self: AvailObject): Boolean =
-		self .. { isIntTuple }
+		self { isIntTuple }
 
 	override fun o_IsLongTuple(self: AvailObject): Boolean =
-		self .. { isLongTuple }
+		self { isLongTuple }
 
 	override fun o_EqualsIntTuple(
 		self: AvailObject, anIntTuple: A_Tuple
-	): Boolean = self .. { equalsIntTuple(anIntTuple) }
+	): Boolean = self { equalsIntTuple(anIntTuple) }
 
 	override fun o_EqualsLongTuple(
 		self: AvailObject, aLongTuple: A_Tuple
-	): Boolean = self .. { equalsLongTuple(aLongTuple) }
+	): Boolean = self { equalsLongTuple(aLongTuple) }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
 		self: AvailObject,
 		key: A_BasicObject,
 		value: A_BasicObject
-	) = self .. { atomicAddToMap(key, value) }
+	) = self { atomicAddToMap(key, value) }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMapNoCheck(
 		self: AvailObject,
 		key: A_BasicObject,
 		value: A_BasicObject
-	) = self .. { atomicAddToMapNoCheck(key, value) }
+	) = self { atomicAddToMapNoCheck(key, value) }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicRemoveFromMap(
 		self: AvailObject,
 		key: A_BasicObject
-	) = self .. { atomicRemoveFromMap(key) }
+	) = self { atomicRemoveFromMap(key) }
 
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
 		self: AvailObject, key: A_BasicObject
-	): Boolean = self .. { variableMapHasKey(key) }
+	): Boolean = self { variableMapHasKey(key) }
 
 	override fun o_LexerMethod(self: AvailObject): A_Method =
-		self .. { lexerMethod }
+		self { lexerMethod }
 
 	override fun o_LexerFilterFunction(self: AvailObject): A_Function =
-		self .. { lexerFilterFunction }
+		self { lexerFilterFunction }
 
 	override fun o_LexerBodyFunction(self: AvailObject): A_Function =
-		self .. { lexerBodyFunction }
+		self { lexerBodyFunction }
 
 	override fun o_SetLexer(self: AvailObject, lexer: A_Lexer) =
-		self .. {
+		self {
 			this.lexer = lexer
 		}
 
 	override fun o_AddLexer(self: AvailObject, lexer: A_Lexer) =
-		self .. { addLexer(lexer) }
+		self { addLexer(lexer) }
 
 	override fun o_NextLexingState(self: AvailObject): LexingState =
-		self .. { nextLexingState() }
+		self { nextLexingState() }
 
 	override fun o_NextLexingStatePojo(self: AvailObject): AvailObject =
-		self .. { nextLexingStatePojo() }
+		self { nextLexingStatePojo() }
 
 	override fun o_SetNextLexingStateFromPrior(
 		self: AvailObject,
 		priorLexingState: LexingState
-	) = self .. { setNextLexingStateFromPrior(priorLexingState) }
+	) = self { setNextLexingStateFromPrior(priorLexingState) }
 
 	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int =
-		self .. { tupleCodePointAt(index) }
+		self { tupleCodePointAt(index) }
 
 	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase =
-		self .. { originatingPhrase }
+		self { originatingPhrase }
 
 	override fun o_IsGlobal(self: AvailObject): Boolean =
-		self .. { isGlobal() }
+		self { isGlobal }
 
 	override fun o_GlobalModule(self: AvailObject): A_Module =
-		self .. { globalModule() }
+		self { globalModule }
 
 	override fun o_GlobalName(self: AvailObject): A_String =
-		self .. { globalName() }
+		self { globalName }
 
 	override fun o_CreateLexicalScanner(self: AvailObject): LexicalScanner =
-		self .. { createLexicalScanner() }
+		self { createLexicalScanner() }
 
 	override fun o_Lexer(self: AvailObject): A_Lexer =
-		self .. { lexer }
+		self { lexer }
 
 	override fun o_SetSuspendingFunction(
 		self: AvailObject,
 		suspendingFunction: A_Function
-	) = self .. { this.suspendingFunction = suspendingFunction }
+	) = self { this.suspendingFunction = suspendingFunction }
 
 	override fun o_SuspendingFunction(self: AvailObject): A_Function =
-		self .. { suspendingFunction }
+		self { suspendingFunction }
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean =
-		self .. { isBackwardJump }
+		self { isBackwardJump }
 
 	override fun o_LatestBackwardJump(
 		self: AvailObject
-	): A_BundleTree = self .. { latestBackwardJump }
+	): A_BundleTree = self { latestBackwardJump }
 
 	override fun o_HasBackwardJump(self: AvailObject): Boolean =
-		self .. { hasBackwardJump }
+		self { hasBackwardJump }
 
 	override fun o_IsSourceOfCycle(self: AvailObject): Boolean =
-		self .. { isSourceOfCycle }
+		self { isSourceOfCycle }
 
 	override fun o_IsSourceOfCycle(
 		self: AvailObject,
 		isSourceOfCycle: Boolean
-	) = self .. { this.isSourceOfCycle = isSourceOfCycle }
+	) = self { this.isSourceOfCycle = isSourceOfCycle }
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder =
-		self .. { debugLog }
+		self { debugLog }
 
 	override fun o_NumConstants(self: AvailObject): Int =
-		self .. { numConstants }
+		self { numConstants }
 
 	override fun o_ConstantTypeAt(self: AvailObject, index: Int): A_Type =
-		self .. { constantTypeAt(index) }
+		self { constantTypeAt(index) }
 
 	override fun o_ReturnerCheckStat(self: AvailObject): Statistic =
-		self .. { returnerCheckStat }
+		self { returnerCheckStat }
 
 	override fun o_ReturneeCheckStat(self: AvailObject): Statistic =
-		self .. { returneeCheckStat }
+		self { returneeCheckStat }
+
+	override fun o_LookupStat(self: AvailObject): LookupStatistics =
+		self { lookupStat }
 
 	override fun o_NumNybbles(self: AvailObject): Int =
-		self .. { numNybbles }
+		self { numNybbles }
 
 	override fun o_LineNumberEncodedDeltas(self: AvailObject): A_Tuple =
-		self .. { lineNumberEncodedDeltas }
+		self { lineNumberEncodedDeltas }
 
 	override fun o_CurrentLineNumber(
 		self: AvailObject, topFrame: Boolean
-	): Int = self .. { currentLineNumber(topFrame) }
+	): Int = self { currentLineNumber(topFrame) }
 
 	override fun o_FiberResultType(self: AvailObject): A_Type =
-		self .. { fiberResultType }
+		self { fiberResultType }
 
 	override fun o_TestingTree(
 		self: AvailObject): LookupTree<A_Definition, A_Tuple> =
-		self .. { testingTree }
+		self { testingTree }
 
 	override fun o_ForEach(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
-	) = self .. { forEach(action) }
+	) = self { forEach(action) }
 
 	override fun o_ForEachInMapBin(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
-	) = self .. { forEachInMapBin(action) }
+	) = self { forEachInMapBin(action) }
 
 	override fun o_SetSuccessAndFailure(
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit
-	) = self .. { setSuccessAndFailure(onSuccess, onFailure) }
+	) = self { setSuccessAndFailure(onSuccess, onFailure) }
 
 	override fun o_ClearLexingState(self: AvailObject) =
-		self .. { clearLexingState() }
+		self { clearLexingState() }
 
 	override fun o_LastExpression(self: AvailObject): A_Phrase =
-		self .. { lastExpression }
+		self { lastExpression }
 
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
-		self .. { registerDump }
+		self { registerDump }
 
 	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,
 		ignoreSeals: Boolean
-	) = self .. { bundleAddMacro(macro, ignoreSeals) }
+	) = self { bundleAddMacro(macro, ignoreSeals) }
 
 	override fun o_DefinitionBundle(self: AvailObject): A_Bundle =
-		self .. { definitionBundle() }
+		self { definitionBundle() }
 
 	override fun o_MembershipChanged(self: AvailObject) =
-		self .. { membershipChanged() }
+		self { membershipChanged() }
 
 	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro) =
-		self .. { moduleAddMacro(macro) }
+		self { moduleAddMacro(macro) }
 
 	override fun o_RemoveMacro(self: AvailObject, macro: A_Macro) =
-		self .. { removeMacro(macro) }
+		self { removeMacro(macro) }
 
 	override fun o_AddBundle(self: AvailObject, bundle: A_Bundle): Unit =
-		self .. { addBundle(bundle) }
+		self { addBundle(bundle) }
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
-		self .. { returnTypeIfPrimitiveFails }
+		self { returnTypeIfPrimitiveFails }
+
+	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple =
+		self { encodedElidedLocals }
 
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,
 		index: Int
-	): AvailObject = self .. { extractDumpedObjectAt(index) }
+	): AvailObject = self { extractDumpedObjectAt(index) }
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
-		self .. { extractDumpedLongAt(index) }
+		self { extractDumpedLongAt(index) }
+
+	override fun o_FallbackEntryPoint(
+		self: AvailObject
+	): ChunkEntryPoint = self { fallbackEntryPoint }
 
 	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler) =
-		self .. { moduleAddStyler(styler) }
+		self { moduleAddStyler(styler) }
 
 	override fun o_ModuleStylers (self: AvailObject): A_Set =
-		self .. { (this as A_Module).stylers }
+		self { (this as A_Module).stylers }
 
 	override fun o_ModuleState(self: AvailObject): ModuleDescriptor.State =
-		self .. { moduleState }
+		self { moduleState }
 
 	override fun o_SetModuleState(
 		self: AvailObject,
 		newState: ModuleDescriptor.State
-	) = self .. {
+	) = self {
 		moduleState = newState
 	}
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
-		self .. { setAtomBundle(bundle) }
+		self { setAtomBundle(bundle) }
 
 	override fun o_OriginatingPhraseAtIndex(
 		self: AvailObject,
 		index: Int
-	): A_Phrase = self .. { originatingPhraseAtIndex(index) }
+	): A_Phrase = self { originatingPhraseAtIndex(index) }
 
 	override fun o_RecordBlockPhrase(
 		self: AvailObject,
 		blockPhrase: A_Phrase
-	): Int = self .. { recordBlockPhrase(blockPhrase) }
+	): Int = self { recordBlockPhrase(blockPhrase) }
 
 	override fun o_GetAndSetTupleOfBlockPhrases(
 		self: AvailObject,
 		newValue: AvailObject
-	): AvailObject = self .. { getAndSetTupleOfBlockPhrases(newValue) }
+	): AvailObject = self { getAndSetTupleOfBlockPhrases(newValue) }
 
 	override fun o_OriginatingPhraseIndex(self: AvailObject): Int =
-		self .. { originatingPhraseIndex }
+		self { originatingPhraseIndex }
 
 	override fun o_DeclarationNames(self: AvailObject): A_Tuple =
-		self .. { declarationNames }
+		self { declarationNames }
 
 	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
-		self .. { packedDeclarationNames }
+		self { packedDeclarationNames }
 
 	override fun o_SetOriginatingPhraseIndex(
 		self: AvailObject,
 		index: Int
-	) = self .. { originatingPhraseIndex = index }
+	) = self { originatingPhraseIndex = index }
 
 	override fun o_LexerApplicability(
 		self: AvailObject,
 		codePoint: Int
-	): Boolean? = self .. { lexerApplicability(codePoint) }
+	): Boolean? = self { lexerApplicability(codePoint) }
 
 	override fun o_SetLexerApplicability(
 		self: AvailObject,
 		codePoint: Int,
 		applicability: Boolean
-	) = self .. { setLexerApplicability(codePoint, applicability) }
+	) = self { setLexerApplicability(codePoint, applicability) }
 
 	override fun o_SerializedObjects(
 		self: AvailObject,
 		serializedObjects: A_Tuple
-	) = self .. { serializedObjects(serializedObjects) }
+	) = self { serializedObjects(serializedObjects) }
 
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
 		moduleHeader: ModuleHeader
-	): String? = self .. { applyModuleHeader(loader, moduleHeader) }
+	): String? = self { applyModuleHeader(loader, moduleHeader) }
 
 	override fun o_HasAncestor(
 		self: AvailObject,
 		potentialAncestor: A_Module
-	): Boolean = self .. { hasAncestor(potentialAncestor) }
+	): Boolean = self { hasAncestor(potentialAncestor) }
 
 	override fun o_FiberHelper(
 		self: AvailObject
-	): FiberDescriptor.FiberHelper = self .. { fiberHelper }
+	): FiberDescriptor.FiberHelper = self { fiberHelper }
 
 	override fun o_TrimType(
 		self: AvailObject,
 		typeToRemove: A_Type
-	): A_Type = self .. { trimType(typeToRemove) }
+	): A_Type = self { trimType(typeToRemove) }
 
 	override fun o_UpdateStylers(
 		self: AvailObject,
 		updater: A_Set.() -> A_Set
-	) = self .. { updateStylers(updater) }
+	) = self { updateStylers(updater) }
 
 	override fun o_MethodStylers(
 		self: AvailObject
-	): A_Set = self .. { methodStylers }
+	): A_Set = self { methodStylers }
 
 	override fun o_InstanceTag(
 		self: AvailObject
-	): TypeTag = self .. { instanceTag }
+	): TypeTag = self { instanceTag }
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
-		self .. { computeInstanceTag() }
+		self { computeInstanceTag() }
 
 	override fun o_SetManifestEntriesIndex(
 		self: AvailObject,
 		recordNumber: Long
-	) = self .. { setManifestEntriesIndex(recordNumber) }
+	) = self { setManifestEntriesIndex(recordNumber) }
 
 	override fun o_ManifestEntries(
 		self: AvailObject
-	): List<ModuleManifestEntry> = self .. { manifestEntries() }
+	): List<ModuleManifestEntry> = self { manifestEntries() }
 
 	override fun o_SynthesizeCurrentLexingState(
 		self: AvailObject
-	): LexingState = self .. { synthesizeCurrentLexingState() }
+	): LexingState = self { synthesizeCurrentLexingState() }
 
 	override fun o_ObjectVariant(self: AvailObject): ObjectLayoutVariant =
-		self .. { objectVariant }
+		self { objectVariant }
 
 	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
-		self .. { objectTypeVariant }
+		self { objectTypeVariant }
 
 	override fun o_ModuleNameNative(self: AvailObject): String =
-		self .. { moduleNameNative }
+		self { moduleNameNative }
 
 	override fun o_ReleaseFromDebugger(self: AvailObject) =
-		self .. { releaseFromDebugger() }
+		self { releaseFromDebugger() }
 
 	override fun o_DeoptimizeForDebugger(self: AvailObject) =
-		self .. { deoptimizeForDebugger() }
+		self { deoptimizeForDebugger() }
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
-		self .. { getValueForDebugger() }
+		self { getValueForDebugger() }
 
 	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int =
-		self .. { highlightPc(topFrame) }
+		self { highlightPc(topFrame) }
 
 	override fun o_CaptureInDebugger(
 		self: AvailObject,
 		debugger: AvailDebuggerModel
-	) = self .. { captureInDebugger(debugger) }
+	) = self { captureInDebugger(debugger) }
 
 	override fun o_SetStylingRecordIndex(
 		self: AvailObject,
 		recordNumber: Long
-	) = self .. { setStylingRecordIndex(recordNumber) }
+	) = self { setStylingRecordIndex(recordNumber) }
 
 	override fun o_StylingRecord(self: AvailObject): StylingRecord =
-		self .. { stylingRecord() }
+		self { stylingRecord() }
 
 	override fun o_SetPhrasePathRecordIndex(
 		self: AvailObject,
 		recordNumber: Long
-	) = self .. { setPhrasePathRecordIndex(recordNumber) }
+	) = self { setPhrasePathRecordIndex(recordNumber) }
 
 	override fun o_PhrasePathRecord(self: AvailObject): PhrasePathRecord =
-		self .. { phrasePathRecord() }
+		self { phrasePathRecord() }
 
 	override fun o_StylerMethod(self: AvailObject): A_Method =
-		self .. { stylerMethod }
+		self { stylerMethod }
 
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
-		self .. { generatingPhrase }
+		self { generatingPhrase }
 
 	override fun o_GeneratingLexer(self: AvailObject): A_Lexer =
-		self .. { generatingLexer }
+		self { generatingLexer }
 
 	override fun o_IsInCurrentModule(
 		self: AvailObject,
 		currentModule: A_Module
-	): Boolean = self .. { isInCurrentModule(currentModule) }
+	): Boolean = self { isInCurrentModule(currentModule) }
 
 	override fun o_SetCurrentModule(
 		self: AvailObject,
 		currentModule: A_Module
-	): Unit = self .. { setCurrentModule(currentModule) }
+	): Unit = self { setCurrentModule(currentModule) }
 
 	override fun o_ApplyStylesThen(
 		self: AvailObject,
 		context: CompilationContext,
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit
-	): Unit = self .. {
+	): Unit = self {
 		applyStylesThen(context, visitedSet, then)
 	}
 
 	override fun o_CurrentLexer(self: AvailObject): A_Lexer =
-		self .. { currentLexer }
+		self { currentLexer }
 
 	override fun o_WhichPowerOfTwo(self: AvailObject): Int =
-		self .. { whichPowerOfTwo }
+		self { whichPowerOfTwo }
 
 	override fun o_SetBinUnion(
 		self: AvailObject,
 		otherBin: A_SetBin,
 		level: Int
-	): A_SetBin = self .. { setBinUnion(otherBin, level) }
+	): A_SetBin = self { setBinUnion(otherBin, level) }
 
 	override fun o_SetBinUnionWithLinearBin(
 		self: AvailObject,
 		linearBin: AvailObject,
 		level: Int
-	): A_SetBin = self .. { setBinUnionWithLinearBin(linearBin, level) }
+	): A_SetBin = self { setBinUnionWithLinearBin(linearBin, level) }
 
 	override fun o_SetBinUnionWithHashedBin(
 		self: AvailObject,
 		hashedBin: AvailObject,
 		level: Int
-	): A_SetBin = self .. { setBinUnionWithHashedBin(hashedBin, level) }
+	): A_SetBin = self { setBinUnionWithHashedBin(hashedBin, level) }
 
 	override fun o_FirstIndexOf(
 		self: AvailObject,
 		value: A_BasicObject,
 		startIndex: Int,
 		endIndex: Int
-	): Int = self .. { firstIndexOf(value, startIndex, endIndex) }
+	): Int = self { firstIndexOf(value, startIndex, endIndex) }
 
 	override fun o_FirstIndexOfOr(
 		self: AvailObject,
@@ -4084,29 +4150,29 @@ class IndirectionDescriptor private constructor(
 		otherValue: A_BasicObject,
 		startIndex: Int,
 		endIndex: Int
-	): Int = self .. { firstIndexOfOr(value, otherValue, startIndex, endIndex) }
+	): Int = self { firstIndexOfOr(value, otherValue, startIndex, endIndex) }
 
 	override fun o_LastIndexOf(
 		self: AvailObject,
 		value: A_BasicObject,
 		startIndex: Int,
 		endIndex: Int
-	): Int = self .. { lastIndexOf(value, startIndex, endIndex) }
+	): Int = self { lastIndexOf(value, startIndex, endIndex) }
 
 	override fun o_PermutedPhrases(self: AvailObject): List<A_Phrase> =
-		self .. { permutedPhrases }
+		self { permutedPhrases }
 
 	override fun o_SetNamesIndexRecordIndex(
 		self: AvailObject,
 		recordNumber: Long
-	) = self .. { setNamesIndexRecordIndex(recordNumber) }
+	) = self { setNamesIndexRecordIndex(recordNumber) }
 
 	override fun o_NamesIndexRecord(self: AvailObject): NamesIndex =
-		self .. { namesIndexRecord() }
+		self { namesIndexRecord() }
 
 	override fun o_RecursivelyUpdate(
 		self: AvailObject,
 		indices: Iterator<AvailObject>,
 		update: (AvailObject)->A_BasicObject
-	): A_BasicObject = self .. { recursivelyUpdate(indices, update) }
+	): A_BasicObject = self { recursivelyUpdate(indices, update) }
 }

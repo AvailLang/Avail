@@ -126,7 +126,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self[STATEMENTS]
 		return when(statements.tupleSize) {
-			0 -> TOP.o
+			0 -> TOP()
 			else -> statements.tupleAt(statements.tupleSize)
 				.phraseExpressionType
 		}

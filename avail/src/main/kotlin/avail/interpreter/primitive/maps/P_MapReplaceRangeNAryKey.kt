@@ -113,10 +113,10 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 		functionType(
 			tuple(
 				mostGeneralMapType(),
-				oneOrMoreOf(ANY.o),
+				oneOrMoreOf(ANY()),
 				naturalNumbers,
 				wholeNumbers,
-				zeroOrMoreOf(ANY.o)),
+				zeroOrMoreOf(ANY())),
 			mostGeneralMapType())
 
 	override fun privateFailureVariableType(): A_Type =

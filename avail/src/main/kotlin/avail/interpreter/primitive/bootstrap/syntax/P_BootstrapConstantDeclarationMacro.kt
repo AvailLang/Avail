@@ -106,9 +106,9 @@ object P_BootstrapConstantDeclarationMacro
 		functionType(
 			tuple(
 				/* Constant name token as a literal phrase */
-				LITERAL_PHRASE.create(TOKEN.o),
+				LITERAL_PHRASE.create(TOKEN()),
 				/* Initialization expression */
-				EXPRESSION_PHRASE.create(ANY.o)),
+				EXPRESSION_PHRASE.create(ANY())),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType)
 
 	override fun bootstrapStyler() = P_BootstrapStatementStyler

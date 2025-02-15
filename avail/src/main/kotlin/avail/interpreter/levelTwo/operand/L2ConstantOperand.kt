@@ -77,4 +77,15 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 		}
 		append(")")
 	}
+
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>
+	) = simpleAppendConstant(constant, commands, sources)
+
+	override fun equivalentTo(other: L2Operand) =
+		other is L2ConstantOperand && constant.equals(other.constant)
+
+	override val equivalentHash: Int get() = constant.hash()
 }

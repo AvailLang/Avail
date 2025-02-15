@@ -26,4 +26,4 @@ enum class Scheme constructor(val prefix: String)
 	JAR("jar://");
 
 	open val optionalPrefix: String get() = prefix
- }
+}

@@ -49,6 +49,9 @@ import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable.Companion.clearValue
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailRuntimeException
@@ -164,6 +167,11 @@ class PojoFieldDescriptor private constructor(
 	override fun o_GetValueClearing(self: AvailObject): AvailObject =
 		self.getValue().also { self.clearValue() }
 
+	/** Simplified to always make the value immutable. */
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearingIfMutable(self: AvailObject): AvailObject =
+		self.getValue().makeImmutable()
+
 	override fun o_Hash(self: AvailObject): Int = combine3(
 		self[FIELD].hash(),
 		self[RECEIVER].hash(),
@@ -229,6 +237,12 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = throw UnsupportedOperationException(
+		"Pojo fields can't be local variables")
+
 	override fun o_Value(self: AvailObject): AvailObject
 	{
 		val receiver = self[RECEIVER].javaObjectNotNull<Any>()
@@ -262,7 +276,7 @@ class PojoFieldDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		val field = self[FIELD].javaObjectNotNull<Field>()

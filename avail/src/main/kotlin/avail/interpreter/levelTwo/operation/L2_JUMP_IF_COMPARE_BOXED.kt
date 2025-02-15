@@ -37,16 +37,17 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
-import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -63,7 +64,7 @@ import org.objectweb.asm.Opcodes
  *   The [NumericComparator] on which this [L2_JUMP_IF_COMPARE_BOXED] is based.
  */
 class L2_JUMP_IF_COMPARE_BOXED(
-	private val numericComparator: NumericComparator,
+	var numericComparator: L2ArbitraryConstantOperand<NumericComparator>,
 	var number1: L2ReadBoxedOperand,
 	var number2: L2ReadBoxedOperand,
 	@On(SUCCESS) var ifTrue: L2PcOperand,
@@ -82,7 +83,7 @@ class L2_JUMP_IF_COMPARE_BOXED(
 		{
 			// Restrict both values along both branches.
 			val (rest1, rest2, rest3, rest4) =
-				numericComparator.computeRestrictions(
+				numericComparator.constant.computeRestrictions(
 					restriction1, restriction2)
 			ifTrue.manifest().setRestriction(number1.semanticValue(), rest1)
 			ifTrue.manifest().setRestriction(number2.semanticValue(), rest2)
@@ -91,38 +92,35 @@ class L2_JUMP_IF_COMPARE_BOXED(
 		}
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(number1.registerString())
-		builder.append(" ")
-		builder.append(numericComparator.comparatorName)
-		builder.append(" ")
-		builder.append(number2.registerString())
+		renderPreamble()
+		append(' ')
+		append(number1.registerString())
+		append(" ")
+		append(numericComparator.constant.comparatorName)
+		append(" ")
+		append(number2.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::number1, ::number2)
+			desiredOperandTypes, ::number1, ::number2)
 	}
 
 	override val name: String
-		get() = "${super.name} (${numericComparator.comparatorName})"
+		get() = "${super.name} (${numericComparator.constant.comparatorName})"
 
-	override fun interestingConditions(): List<L2SplitCondition?>
-	{
-		val conditions = mutableListOf<L2SplitCondition?>()
+	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
 		if (number1.restriction().intersectsType(i32)
 			&& number2.restriction().intersectsType(i32))
 		{
 			// Both values could be in int registers at some point in the past.
 			// A conjunction mechanism would be very hard to use, and harder to
 			// implement, so we split on each register instead.
-			conditions.add(unboxedIntCondition(listOf(number1.register())))
-			conditions.add(unboxedIntCondition(listOf(number2.register())))
+			addAll(unboxedIntConditions(listOf(number1.register())))
+			addAll(unboxedIntConditions(listOf(number2.register())))
 		}
-		number2.restriction().constantOrNull?.let { constant ->
+		number2.constantOrNull?.let { constant ->
 			// If the constant is an integer, and if the argument is an extended
 			// integer, we can try to leverage that by keeping the code split
 			// whenever the comparison would have been always true or always
@@ -137,41 +135,33 @@ class L2_JUMP_IF_COMPARE_BOXED(
 				val restriction1 = boxedRestrictionForType(integers)
 				val restriction2 = boxedRestrictionForConstant(constant)
 				val (rest1, _, rest3, _) =
-					numericComparator.computeRestrictions(
+					numericComparator.constant.computeRestrictions(
 						restriction1, restriction2)
 				// First, wish it was true, but only if the true path isn't
 				// cold.
 				if (!ifTrue.targetBlock().isCold)
 				{
-					conditions.add(
-						typeRestrictionCondition(
-							setOf(number1.register()),
-							rest1))
+					addAll(
+						typeRestrictionConditions(
+							setOf(number1.register()), rest1))
 				}
 				// Also wish it was false, but only if the false path isn't
 				// cold.
 				if (!ifFalse.targetBlock().isCold)
 				{
-					conditions.add(
-						typeRestrictionCondition(
-							setOf(number1.register()),
-							rest3))
+					addAll(
+						typeRestrictionConditions(
+							setOf(number1.register()), rest3))
 				}
 			}
 		}
-		return conditions
 	}
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		// Use the basic generator to check if the branch can be elided.
-		regenerator.compareAndBranchBoxed(
-			numericComparator,
-			number1,
-			number2,
-			ifTrue,
-			ifFalse)
+		compareAndBranchBoxed(
+			numericComparator.constant, number1, number2, ifTrue, ifFalse)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
@@ -182,9 +172,9 @@ class L2_JUMP_IF_COMPARE_BOXED(
 	{
 		// :: if (num1 op num2) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, number1.register())
-		translator.load(method, number2.register())
-		numericComparator.comparatorMethod.generateCall(method)
+		translator.load(method, number1)
+		translator.load(method, number2)
+		numericComparator.constant.comparatorMethod.generateCall(method)
 		// The boolean is now on the stack.  See if we can emit a single branch
 		// and fall-through, versus having to emit a branch and a jump.
 		when (offset + 1)

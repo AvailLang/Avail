@@ -66,12 +66,12 @@ import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.exceptions.SignatureException
 import avail.exceptions.unsupported
 import avail.utility.stackToString
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -116,7 +116,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 	mutability: Mutability,
 	private var parsingInstructions: List<ParsingOperation>
 ) : Descriptor(
-	mutability, TypeTag.PARSING_PLAN_TAG, ObjectSlots::class.java, null
+	mutability, TypeTag.OTHER_NONTYPE_TAG, ObjectSlots::class.java, null
 ) {
 	/**
 	 * The layout of object slots for my instances.
@@ -221,29 +221,19 @@ class DefinitionParsingPlanDescriptor private constructor(
 	override fun o_Definition(self: AvailObject): A_Definition =
 		self[DEFINITION]
 
-	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
-		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o)) {
-			return false
-		}
-		val strongAnother = another as A_DefinitionParsingPlan
-		return (self[DEFINITION] === strongAnother.definition
-			&& self[BUNDLE] === strongAnother.bundle)
-	}
-
 	override fun o_Hash(self: AvailObject) = combine3(
 		self[DEFINITION].hash(),
 		self[BUNDLE].hash(),
 		-0x6d5d9ebe)
 
-	override fun o_Kind(self: AvailObject): A_Type =
-		DEFINITION_PARSING_PLAN.o
+	override fun o_Kind(self: AvailObject): A_Type = Types.OTHER_NONTYPE()
 
 	override fun o_ParsingInstructions(self: AvailObject) = parsingInstructions
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	): Unit = with(builder) {
 		// The existing definitions are also printed in parentheses to help

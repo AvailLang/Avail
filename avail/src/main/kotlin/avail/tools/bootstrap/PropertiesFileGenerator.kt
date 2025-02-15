@@ -32,10 +32,12 @@
 package avail.tools.bootstrap
 
 import avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
+import avail.tools.bootstrap.Resources.Key
+import avail.tools.bootstrap.Resources.Key.generatedPropertiesNotice
+import avail.tools.bootstrap.Resources.Key.propertiesCopyright
 import avail.tools.bootstrap.Resources.localName
 import avail.tools.bootstrap.Resources.preambleBaseName
 import avail.tools.bootstrap.Resources.sourceBaseName
-import avail.utility.UTF8ResourceBundleControl
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -45,6 +47,7 @@ import java.io.PrintWriter
 import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.Locale
+import java.util.MissingFormatArgumentException
 import java.util.Properties
 import java.util.ResourceBundle
 
@@ -73,14 +76,21 @@ abstract class PropertiesFileGenerator protected constructor(
 	protected val locale: Locale)
 {
 	/**
-	 * The [resource bundle][ResourceBundle] that contains file preamble
-	 * information.
+	 * The [ResourceAccess] protecting the [ResourceBundle] that contains
+	 * preamble resources.
 	 */
-	protected val preambleBundle: ResourceBundle = ResourceBundle.getBundle(
-		preambleBaseName,
-		locale,
-		Resources::class.java.classLoader,
-		UTF8ResourceBundleControl())
+	internal val preamble = object : ResourceAccess<Key>(
+		preambleBaseName, locale, Key::name) { }
+
+	/**
+	 * A checked version of MessageFormat, that ensures each supplied argument
+	 * gets plugged into the resulting string at least once.
+	 */
+	@Throws(MissingFormatArgumentException::class)
+	fun checkedFormat(
+		pattern: String,
+		vararg arguments: Any?
+	): String = checkedFormat(locale, pattern, *arguments)
 
 	/**
 	 * Generate the preamble for the properties file. This includes the
@@ -92,14 +102,12 @@ abstract class PropertiesFileGenerator protected constructor(
 	protected fun generatePreamble(writer: PrintWriter) = with(writer) {
 		println(
 			checkedFormat(
-				preambleBundle.getString(
-					Resources.Key.propertiesCopyright.name),
+				preamble[propertiesCopyright],
 				localName(baseName) + "_" + locale.language,
 				Date()))
 		println(
 			checkedFormat(
-				preambleBundle.getString(
-					Resources.Key.generatedPropertiesNotice.name),
+				preamble[generatedPropertiesNotice],
 				javaClass.name,
 				Date()))
 	}

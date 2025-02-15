@@ -48,6 +48,7 @@ import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
@@ -87,6 +88,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFuncti
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.getValueClearing
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
@@ -369,7 +373,7 @@ class L2Simple_GetOuter(
  * `registers[0]`, and write it to `registers[stackp]`.  If the variable is
  * mutable, clear that variable, otherwise make the value immutable.
  */
-class L2Simple_GetOuterClearing(
+class L2Simple_GetLastOuter(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
@@ -1181,7 +1185,7 @@ constructor(
 			if (reifier.actuallyReify())
 			{
 				reifier.pushAction {
-					registers[stackp] = TOP.o
+					registers[stackp] = TOP()
 					val continuation = createContinuation(
 						it.getReifiedContinuation()!!,
 						registers,
@@ -1246,7 +1250,7 @@ constructor(
 			args.clear()
 			args.add(function as AvailObject)
 			args.add(expectedType as AvailObject)
-			val wrappedReturnValue = newVariableWithContentType(ANY.o)
+			val wrappedReturnValue = newVariableWithContentType(ANY())
 			if (result.notNil) wrappedReturnValue.setValueNoCheck(result)
 			args.add(wrappedReturnValue)
 			reifier = interpreter.invokeFunction(
@@ -1322,7 +1326,7 @@ constructor(
 			args.clear()
 			args.add(registers[0])
 			args.add(expectedType as AvailObject)
-			val wrappedReturnValue = newVariableWithContentType(ANY.o)
+			val wrappedReturnValue = newVariableWithContentType(ANY())
 			if (result.notNil) wrappedReturnValue.setValueNoCheck(result)
 			args.add(wrappedReturnValue)
 			val reifier = interpreter.invokeFunction(
@@ -1522,7 +1526,9 @@ class L2Simple_GeneralCall(
 		val matching: A_Definition = try
 		{
 			bundle.bundleMethod
-				.lookupByValuesFromList(interpreter.argsBuffer)
+				.lookupByValuesFromList(
+					interpreter.argsBuffer,
+					interpreter.function?.code()?.lookupStat)
 				.also {
 					when
 					{

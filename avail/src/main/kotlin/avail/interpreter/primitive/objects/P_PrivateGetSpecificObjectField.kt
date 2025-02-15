@@ -50,7 +50,9 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Given an [object][ObjectDescriptor], extract the field
@@ -94,12 +96,12 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		return rawFunction!!.functionType().returnType
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper
 	): Boolean {
 		// This primitive is private, and the function *should* only have been
 		// constructed by P_CreateObjectFieldGetter.  Play it safe if the
@@ -110,38 +112,46 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		val objectType = argumentTypes[0]
 		val fieldAtom = function.outerVarAt(1)
 		val fieldType = objectType.fieldTypeAt(fieldAtom)
-		val constant = objectReg.restriction().constantOrNull
+		val constant = objectReg.constantOrNull
 
-		val translator = callSiteHelper.translator
-		when {
+		val semanticFieldValue = P_GetObjectField.semanticInvocation(
+			objectReg.semanticValue(),
+			constant(fieldAtom))
+
+		when
+		{
 			// Do the folding here.  If we made this primitive CanFold, it would
-			// attempt to access the interpreter.function during evaluation,
+			// attempt to access the interpreter's function during evaluation,
 			// which is not available during folding.
 			constant !== null ->
-				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(
-						constant.fieldAt(fieldAtom)))
+			{
+				moveBoxedRegister(
+					boxedConstant(constant.fieldAt(fieldAtom)).semanticValue(),
+					setOf(semanticFieldValue))
+			}
 
 			fieldType.isEnumeration
-					&& !fieldType.isInstanceMeta
-					&& fieldType.instanceCount.equalsInt(1) ->
-				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(fieldType.instance))
+				&& !fieldType.isInstanceMeta
+				&& fieldType.instanceCount.equalsInt(1) ->
+			{
+				moveBoxedRegister(
+					boxedConstant(fieldType.instance).semanticValue(),
+					setOf(semanticFieldValue))
+			}
 
-			else -> {
-				val write = translator.generator.boxedWriteTemp(
-					boxedRestrictionForType(fieldType))
-				translator.addInstruction(
-					L2_GET_OBJECT_FIELD(
-						objectReg,
-						L2ConstantOperand(fieldAtom),
-						write))
-				callSiteHelper.useAnswer(translator.readBoxed(write))
+			else ->
+			{
+				+L2_GET_OBJECT_FIELD(
+					objectReg,
+					L2ConstantOperand(fieldAtom),
+					boxedWrite(
+						semanticFieldValue, boxedRestrictionForType(fieldType)))
 				// TODO - Generate L2 code to collect statistics on the variants
 				// that are encountered, then at the next reoptimization, inline
 				// L2 instructions that access the field by index.
 			}
 		}
+		callSiteHelper.useAnswer(readBoxed(semanticFieldValue), false)
 		return true
 	}
 }

@@ -53,11 +53,12 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Generator
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
@@ -82,8 +83,8 @@ import org.objectweb.asm.MethodVisitor
  * @constructor
  * Construct an `L2_MOVE_CONSTANT` operation.
  */
-abstract class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
-private constructor(
+sealed class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
+protected constructor(
 ): L2Instruction()
 {
 	/** Subclasses should answer the appropriate [RegisterKind]. */
@@ -127,38 +128,35 @@ private constructor(
 			manifest)
 	}
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		// If the constant is already present in the manifest, we *must*
 		// do a move from the existing synonym, otherwise it will get
 		// confused later, when it sees a definition with an overlapping
 		// synonym.
-		val manifest = regenerator.currentManifest
 		val semanticConstant = getConstantSemanticValue()
-		if (manifest.hasSemanticValue(semanticConstant)
-			&& manifest.getDefinitions(semanticConstant).isNotEmpty())
+		if (currentManifest.hasSemanticValue(semanticConstant)
+			&& currentManifest.getDefinitions(semanticConstant).isNotEmpty())
 		{
 			val newValues = destination().semanticValues()
-				.filterNot(manifest::hasSemanticValue)
+				.filterNot(currentManifest::hasSemanticValue)
 			if (newValues.isNotEmpty())
 			{
-				regenerator.moveRegister(semanticConstant, newValues)
+				moveRegister(semanticConstant, newValues)
 			}
 			return
 		}
-		super.emitTransformedInstruction(regenerator)
+		+this@L2_MOVE_CONSTANT
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		destination().appendWithWarningsTo(builder, 0, warningStyleChange)
-		builder.append(" ← ")
-		builder.brief {
+		renderPreamble()
+		destination().run { appendWithWarningsTo(0, warningStyleChange) }
+		append(" ← ")
+		brief {
 			this.append(increaseIndentation(constant().toString(), 2))
 		}
 	}
@@ -171,94 +169,101 @@ private constructor(
 		pushConstant(translator, method)
 		translator.store(method, destination().register())
 	}
+}
 
-	class L2_MOVE_CONSTANT_BOXED
-	constructor(
-		var source: L2ConstantOperand,
-		var destination: L2WriteBoxedOperand
-	): L2_MOVE_CONSTANT<L2ConstantOperand, BOXED_KIND>()
+class L2_MOVE_CONSTANT_BOXED
+constructor(
+	var source: L2ConstantOperand,
+	var destination: L2WriteBoxedOperand
+): L2_MOVE_CONSTANT<L2ConstantOperand, BOXED_KIND>()
+{
+	override val kind: BOXED_KIND get() = BOXED_KIND
+
+	override fun constant(): L2ConstantOperand = source
+
+	override fun destination(): L2WriteBoxedOperand = destination
+
+	override fun getConstantSemanticValue() = constant(source.constant)
+
+	override fun pushConstant(
+		translator: JVMTranslator,
+		method: MethodVisitor
+	) = translator.loadLiteralObject(method, constant().constant)
+
+	override fun L2GeneratorInterface.extractFunctionOuter(
+		functionRegister: L2ReadBoxedOperand,
+		outerIndex: Int,
+		outerType: A_Type
+	): L2ReadBoxedOperand
 	{
-		override val kind: BOXED_KIND get() = BOXED_KIND
-
-		override fun constant(): L2ConstantOperand = source
-
-		override fun destination(): L2WriteBoxedOperand = destination
-
-		override fun getConstantSemanticValue() = constant(source.constant)
-
-		override fun pushConstant(
-			translator: JVMTranslator,
-			method: MethodVisitor
-		) = translator.literal(method, constant().constant)
-
-		override fun extractFunctionOuter(
-			functionRegister: L2ReadBoxedOperand,
-			outerIndex: Int,
-			outerType: A_Type,
-			generator: L2Generator): L2ReadBoxedOperand
-		{
-			// The exact function is known statically.
-			val constantFunction: A_Function = constant().constant
-			return generator.boxedConstant(
-				constantFunction.outerVarAt(outerIndex))
-		}
-
-		override fun extractTupleElement(
-			tupleRead: L2ReadBoxedOperand,
-			index: Int,
-			destinationSemanticValues: Set<L2SemanticBoxedValue>,
-			generator: L2Generator)
-		{
-			// Extract the element from the constant right now.
-			val tupleElement = constant().constant.tupleAt(index)
-			generator.moveBoxedRegister(
-				generator.boxedConstant(tupleElement).semanticValue(),
-				destinationSemanticValues)
-		}
-
-		/** The constant must be a function at this point. */
-		override val constantCode: A_RawFunction get() = source.constant.code()
+		// The exact function is known statically.
+		val constantFunction: A_Function = constant().constant
+		return boxedConstant(constantFunction.outerVarAt(outerIndex))
 	}
 
-	class L2_MOVE_CONSTANT_INT
-	constructor(
-		var source: L2IntImmediateOperand,
-		var destination: L2WriteIntOperand
-	): L2_MOVE_CONSTANT<L2IntImmediateOperand, INTEGER_KIND>()
+	override fun extractTupleElement(
+		tupleRead: L2ReadBoxedOperand,
+		index: Int,
+		destinationSemanticValues: Set<L2SemanticBoxedValue>,
+		generator: L2Generator)
 	{
-		override val kind: INTEGER_KIND get() = INTEGER_KIND
-
-		override fun constant(): L2IntImmediateOperand = source
-
-		override fun destination(): L2WriteIntOperand = destination
-
-		override fun getConstantSemanticValue() =
-			constant(source.value).unboxedInt
-
-		override fun pushConstant(
-			translator: JVMTranslator,
-			method: MethodVisitor
-		) = translator.intConstant(method, constant().value)
+		// Extract the element from the constant right now.
+		val tupleElement = constant().constant.tupleAt(index)
+		generator.moveBoxedRegister(
+			generator.boxedConstant(tupleElement).semanticValue(),
+			destinationSemanticValues)
 	}
 
-	class L2_MOVE_CONSTANT_FLOAT
-	constructor(
-		var source: L2FloatImmediateOperand,
-		var destination: L2WriteFloatOperand
-	): L2_MOVE_CONSTANT<L2FloatImmediateOperand, FLOAT_KIND>()
+
+	override fun propagateMutability(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>)
 	{
-		override val kind: FLOAT_KIND get() = FLOAT_KIND
-
-		override fun constant(): L2FloatImmediateOperand = source
-
-		override fun destination(): L2WriteFloatOperand = destination
-
-		override fun getConstantSemanticValue(): L2SemanticUnboxedFloat =
-			constant(fromDouble(source.value)).unboxedFloat
-
-		override fun pushConstant(
-			translator: JVMTranslator,
-			method: MethodVisitor
-		) = translator.doubleConstant(method, constant().value)
+		// Constants are always immutable.
 	}
+
+	/** The constant must be a function at this point. */
+	override val constantCode: A_RawFunction get() = source.constant.code()
+}
+
+class L2_MOVE_CONSTANT_INT
+constructor(
+	var source: L2IntImmediateOperand,
+	var destination: L2WriteIntOperand
+): L2_MOVE_CONSTANT<L2IntImmediateOperand, INTEGER_KIND>()
+{
+	override val kind: INTEGER_KIND get() = INTEGER_KIND
+
+	override fun constant(): L2IntImmediateOperand = source
+
+	override fun destination(): L2WriteIntOperand = destination
+
+	override fun getConstantSemanticValue() =
+		constant(source.value).unboxedInt
+
+	override fun pushConstant(
+		translator: JVMTranslator,
+		method: MethodVisitor
+	) = translator.intConstant(method, constant().value)
+}
+
+class L2_MOVE_CONSTANT_FLOAT
+constructor(
+	var source: L2FloatImmediateOperand,
+	var destination: L2WriteFloatOperand
+): L2_MOVE_CONSTANT<L2FloatImmediateOperand, FLOAT_KIND>()
+{
+	override val kind: FLOAT_KIND get() = FLOAT_KIND
+
+	override fun constant(): L2FloatImmediateOperand = source
+
+	override fun destination(): L2WriteFloatOperand = destination
+
+	override fun getConstantSemanticValue(): L2SemanticUnboxedFloat =
+		constant(fromDouble(source.value)).unboxedFloat
+
+	override fun pushConstant(
+		translator: JVMTranslator,
+		method: MethodVisitor
+	) = translator.doubleConstant(method, constant().value)
 }

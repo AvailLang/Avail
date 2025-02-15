@@ -36,7 +36,7 @@ package avail.annotations
  * not be presented in the default print representation.  The annotation
  * [HideFieldInDebugger] *also* hides the field for printing, but that
  * annotation also prevents the field from showing up in the debugger when using
- * the Eclipse debugger's "Show Logical Structure".
+ * the IntelliJ debugger's "Show Logical Structure".
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

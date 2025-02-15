@@ -78,7 +78,7 @@ object P_CurrentMacroName : Primitive(0, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			emptyTuple,
-			ATOM.o)
+			ATOM())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NOT_EVALUATING_MACRO))

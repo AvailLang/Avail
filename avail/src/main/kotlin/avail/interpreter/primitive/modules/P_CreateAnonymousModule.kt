@@ -100,5 +100,5 @@ object P_CreateAnonymousModule : Primitive(1, CanInline)
 										zeroOrOneOf(nonemptyStringType))),
 								// Wildcard.
 								booleanType))))),
-			MODULE.o)
+			MODULE())
 }

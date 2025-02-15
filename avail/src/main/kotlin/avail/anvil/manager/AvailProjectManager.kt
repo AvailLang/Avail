@@ -42,8 +42,6 @@ import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.KNOWN_PROJECTS
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.SettingsView
-import avail.anvil.versions.MavenCentralAPI
-import avail.anvil.versions.SearchResponse
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Desktop
@@ -52,9 +50,6 @@ import java.awt.Taskbar
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.lang.UnsupportedOperationException
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JFileChooser
@@ -355,31 +350,31 @@ class AvailProjectManager constructor(
 	init
 	{
 		draw()
-		MavenCentralAPI.searchAvailStdLib(
-		{
-			val rsp = SearchResponse.parse(it)
-			if (rsp == null)
-			{
-				System.err.println(
-					"Failed to refresh latest Avail Standard Library version from " +
-						"Maven Central, couldn't parse response:\n$it")
-				return@searchAvailStdLib
-			}
-			latestVersion = rsp.latestLibVersion
-		}
-		){ c, m, e ->
-			StringWriter().apply {
-				this.write(
-					"Failed to refresh latest Avail Standard Library version " +
-						"from Maven Central:\n\tResponse Code:$c\n\tResponse " +
-						"Message$m\n")
-				e?.let {
-					val pw = PrintWriter(this)
-					it.printStackTrace(pw)
-				}
-				System.err.println(this.toString())
-			}
-		}
+		//MavenCentralAPI.searchAvailStdLib(
+		//{
+		//	val rsp = SearchResponse.parse(it)
+		//	if (rsp == null)
+		//	{
+		//		System.err.println(
+		//			"Failed to refresh latest Avail Standard Library version from " +
+		//				"Maven Central, couldn't parse response:\n$it")
+		//		return@searchAvailStdLib
+		//	}
+		//	latestVersion = rsp.latestLibVersion
+		//}
+		//){ c, m, e ->
+		//	StringWriter().apply {
+		//		this.write(
+		//			"Failed to refresh latest Avail Standard Library version " +
+		//				"from Maven Central:\n\tResponse Code:$c\n\tResponse " +
+		//				"Message$m\n")
+		//		e?.let {
+		//			val pw = PrintWriter(this)
+		//			it.printStackTrace(pw)
+		//		}
+		//		System.err.println(this.toString())
+		//	}
+		//}
 	}
 
 	/**

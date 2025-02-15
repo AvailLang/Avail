@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
@@ -57,10 +58,11 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
@@ -89,7 +91,6 @@ import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
-import avail.utility.isNullOr
 import avail.utility.mapToSet
 
 /**
@@ -126,10 +127,6 @@ import avail.utility.mapToSet
  *   [L2SemanticValue]s that are in common among incoming edges at merge points.
  *   This is generally [ByRegister] when phis have already been replaced with
  *   non-SSA moves.
- * @property isRemovingDeadCode
- *   True iff this regenerator is being used to strip dead code from the
- *   graph, in which case even if [shouldSanityCheck] is true, we shouldn't
- *   attempt to check that synonyms have been reconstituted completely.
  *
  * @constructor
  *   Construct a new `L2Regenerator`.
@@ -137,8 +134,7 @@ import avail.utility.mapToSet
 abstract class L2Regenerator
 constructor(
 	private val targetGenerator: L2Generator,
-	override val mode: GenerationMode,
-	private val isRemovingDeadCode: Boolean
+	override val mode: GenerationMode
 ) : L2GeneratorInterface by targetGenerator
 {
 	/**
@@ -154,45 +150,6 @@ constructor(
 		 * and read afterward, allowing the dispatch operation to replace it.
 		 */
 		var currentOperand: L2Operand? = null
-
-		/**
-		 * Transform the given [L2BasicBlock].  Use the [blockMap], adding an
-		 * entry if necessary.  Always produce the block representing the
-		 * default code splitting path, the one with no conditions.
-		 *
-		 * @param block
-		 *   The basic block to look up.
-		 * @return
-		 *   The looked up or created-and-stored basic block.
-		 */
-		open fun mapBlock(block: L2BasicBlock): L2BasicBlock
-		{
-			val special = inverseSpecialBlockMap[block]
-			val submap = blockMap.computeIfAbsent(block) { mutableMapOf() }
-			// Here we always select the block representing the unconstrained
-			// path.  The optimizer will tweak this after the whole instruction
-			// has been translated, so that the manifests will be available on
-			// the outgoing edges.
-			return submap.computeIfAbsent(emptySet()) {
-				val newBlock = L2BasicBlock(
-					name = block.name(),
-					zone = block.zone,
-					isLoopHead = block.isLoopHead,
-					isCold = block.isCold)
-				if (block.debugNote.isNotEmpty())
-				{
-					newBlock.debugNote.append(block.debugNote)
-				}
-				if (block.isIrremovable) newBlock.makeIrremovable()
-				if (special !== null)
-				{
-					// Don't split special blocks.
-					assert(targetGenerator.specialBlocks[special] == null)
-					targetGenerator.specialBlocks[special] = newBlock
-				}
-				newBlock
-			}
-		}
 
 		/**
 		 * Transform the given [L2SemanticValue] into another.  This is a
@@ -227,8 +184,6 @@ constructor(
 			oldSemanticValue: L2SemanticValue<K>
 		): L2SemanticValue<K> = oldSemanticValue
 
-		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) = Unit
-
 		override fun doOperand(operand: L2CommentOperand) = Unit
 
 		override fun doOperand(operand: L2ConstantOperand) = Unit
@@ -236,6 +191,8 @@ constructor(
 		override fun doOperand(operand: L2IntImmediateOperand) = Unit
 
 		override fun doOperand(operand: L2FloatImmediateOperand) = Unit
+
+		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) = Unit
 
 		override fun doOperand(operand: L2PcOperand)
 		{
@@ -266,8 +223,7 @@ constructor(
 					semanticValuesInNewGraph.first())!!
 				// Restrict the new edge's manifest the same way.
 				manifestCopy.updateRestriction(equivalentInNewGraph) {
-					intersection(
-						manifestInOldGraph.restrictionFor(equivalentInOldGraph))
+					manifestInOldGraph.restrictionFor(equivalentInOldGraph)
 				}
 			}
 			operand.instruction.readOperands
@@ -286,34 +242,41 @@ constructor(
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadBoxedVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadIntVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadFloatVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
+		}
+
+		override fun doOperand(operand: L2ReadMixedVectorOperand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = L2ReadMixedVectorOperand(
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2WriteBoxedVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2WriteBoxedVectorOperand(
-				operand.elements.map(::transformOperand).cast())
+				operand.elements.map(::transformOperand))
 		}
 
 		override fun doOperand(operand: L2PcVectorOperand)
 		{
 			currentOperand = L2PcVectorOperand(
-				operand.edges.map(this@L2Regenerator::transformOperand))
+				operand.edges.map(::transformOperand))
 		}
 	}
 
@@ -331,9 +294,9 @@ constructor(
 		{
 			val equivalent = currentManifest
 				.equivalentPopulatedSemanticValue(oldSemanticValue)
-			if (equivalent === null)
-				throw NullPointerException()
-			return equivalent
+			if (equivalent !== null) return equivalent
+			assert(oldSemanticValue in currentManifest.postponedInstructions())
+			return oldSemanticValue
 		}
 
 		override fun doOperand(operand: L2ReadIntOperand)
@@ -343,8 +306,7 @@ constructor(
 				equivalent,
 				currentManifest
 					.restrictionFor(equivalent)
-					.intersection(operand.restriction()),
-				currentManifest)
+					.intersection(operand.restriction()))
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
@@ -354,8 +316,7 @@ constructor(
 				equivalent,
 				currentManifest
 					.restrictionFor(equivalent)
-					.intersection(operand.restriction()),
-				currentManifest)
+					.intersection(operand.restriction()))
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
@@ -365,8 +326,7 @@ constructor(
 				equivalent,
 				currentManifest
 					.restrictionFor(equivalent)
-					.intersection(operand.restriction()),
-				currentManifest)
+					.intersection(operand.restriction()))
 		}
 
 		override fun doOperand(operand: L2WriteIntOperand)
@@ -394,8 +354,7 @@ constructor(
 		{
 			currentOperand = L2WriteBoxedOperand(
 				operand.semanticValues().mapToSet { mapWriteSemanticValue(it) },
-				operand.restriction().restrictingKindsTo(BOXED_FLAG.mask),
-				L2BoxedRegister(nextUnique()))
+				operand.restriction().restrictingKindsTo(BOXED_FLAG.mask))
 		}
 	}
 
@@ -424,14 +383,14 @@ constructor(
 				{
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
-					currentOperand = L2ReadIntOperand(
+					currentOperand = INTEGER_KIND.readOperand(
 						constant(operand.constantOrNull!!).unboxedInt,
 						operand.restriction(),
-						operand.register() as L2IntRegister)
+						operand.register())
 				}
 				else ->
 				{
-					currentOperand = L2ReadIntOperand(
+					currentOperand = INTEGER_KIND.readOperand(
 						operand.semanticValue(),
 						operand.restriction(),
 						registerMap[operand.register()] as L2IntRegister)
@@ -447,14 +406,14 @@ constructor(
 				{
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
-					currentOperand = L2ReadFloatOperand(
+					currentOperand = FLOAT_KIND.readOperand(
 						constant(operand.constantOrNull!!).unboxedFloat,
 						operand.restriction(),
-						operand.register() as L2FloatRegister)
+						operand.register())
 				}
 				else ->
 				{
-					currentOperand = L2ReadFloatOperand(
+					currentOperand = FLOAT_KIND.readOperand(
 						operand.semanticValue(),
 						operand.restriction(),
 						registerMap[operand.register()] as L2FloatRegister)
@@ -470,14 +429,14 @@ constructor(
 				{
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
-					currentOperand = L2ReadBoxedOperand(
+					currentOperand = BOXED_KIND.readOperand(
 						constant(operand.constantOrNull!!),
 						operand.restriction(),
-						operand.register() as L2BoxedRegister)
+						operand.register())
 				}
 				else ->
 				{
-					currentOperand = L2ReadBoxedOperand(
+					currentOperand = BOXED_KIND.readOperand(
 						operand.semanticValue(),
 						operand.restriction(),
 						registerMap[operand.register()] as L2BoxedRegister)
@@ -540,7 +499,7 @@ constructor(
 	 */
 	fun startBlock(
 		block: L2BasicBlock
-	): Unit = targetGenerator.startBlock(block, this)
+	): Unit = startBlock(block, this)
 
 	/** This regenerator's reusable [AbstractOperandTransformer]. */
 	private val operandInlineTransformer = when (val m = mode)
@@ -555,9 +514,24 @@ constructor(
 	 * [L2BasicBlock]s in the target graph, keyed by the set of required
 	 * [L2SplitCondition]s.
 	 */
-	val blockMap = mutableMapOf<
+	private val blockMap = mutableMapOf<
 		L2BasicBlock,
 		MutableMap<Set<L2SplitCondition>, L2BasicBlock>>()
+
+	/**
+	 * Transform the given [L2BasicBlock].  Use the [blockMap], adding an entry
+	 * if necessary.  Always produce the block representing the default code
+	 * splitting path, the one with no conditions.
+	 *
+	 * @param block
+	 *   The basic block to look up.
+	 * @return
+	 *   The looked up or created-and-stored basic block.
+	 */
+	open fun mapBlock(block: L2BasicBlock): L2BasicBlock
+	{
+		return blockMap[block]!![emptySet()]!!
+	}
 
 	/**
 	 * An inverse mapping from source block to [SpecialBlock].  This is used
@@ -620,22 +594,24 @@ constructor(
 		val firstSourceBlock = oldGraph.basicBlockOrder[0]
 		val start = L2BasicBlock(firstSourceBlock.name())
 		start.makeIrremovable()
+		oldGraph.basicBlockOrder.forEach { originalBlock ->
+			val newBlock = L2BasicBlock(
+				name = originalBlock.name(),
+				zone = originalBlock.zone,
+				isLoopHead = originalBlock.isLoopHead,
+				isCold = originalBlock.isCold)
+			newBlock.debugNote.append(originalBlock.debugNote)
+			blockMap[originalBlock] = mutableMapOf(
+				emptySet<L2SplitCondition>() to newBlock)
+			inverseSpecialBlockMap[originalBlock]?.let { special ->
+				specialBlocks[special] = newBlock
+			}
+		}
 		blockMap[firstSourceBlock] = mutableMapOf(
 			emptySet<L2SplitCondition>() to start)
 		oldGraph.forwardVisit { originalBlock ->
 			// All predecessors must have already been processed.
-			val submap = blockMap.computeIfAbsent(originalBlock) {
-				mutableMapOf(
-					emptySet<L2SplitCondition>() to
-						L2BasicBlock(
-							name = originalBlock.name(),
-							zone = originalBlock.zone,
-							isLoopHead = originalBlock.isLoopHead,
-							isCold = originalBlock.isCold
-						).also {
-							it.debugNote.append(originalBlock.debugNote)
-						})
-			}
+			val submap = blockMap[originalBlock]!!
 			val noConditionBlock = submap[emptySet()]!!
 			// If true, force each incoming edge to go to a new version of the
 			// target block, even if there was no benefit to splitting.  This is
@@ -673,8 +649,7 @@ constructor(
 						val suffix = when (reduced.size)
 						{
 							0 -> "\n(no split)"
-							1 ->
-								"\nsplit: ${reduced.single().toString()}"
+							1 -> "\nsplit: ${reduced.single().toString()}"
 							else -> reduced
 								.joinToString(",", "\nsplits:") { "\n\t$it" }
 						}
@@ -704,24 +679,16 @@ constructor(
 					// Since the incoming edges in the old graph are the only
 					// place where a relevant manifest still exists, we take the
 					// intersection of the sets of semantic values that were
-					// present along these edges.
-					val allLive = mutableSetOf<L2SemanticValue<*>>()
-					currentManifest.synonymsArray()
-						.forEach { allLive.addAll(it.semanticValues()) }
+					// present along these edges.  And in case we're removing
+					// dead code, narrow this to the semantic values that are
+					// live here.
+					val commonSemanticValues = currentManifest.synonymsArray()
+						.flatMapTo(mutableSetOf(), L2Synonym<*>::semanticValues)
 					val manifests = originalBlock.predecessorEdges()
 						.map(L2PcOperand::manifest)
-					var commonSemanticValues = when
-					{
-						manifests.isEmpty() -> emptySet()
-						else -> manifests
-							.map(L2ValueManifest::liveOrPostponedSemanticValues)
-							.reduce(Set<L2SemanticValue<*>>::intersect)
-							.intersect(allLive)
+					manifests.forEach { m ->
+						commonSemanticValues.retainAll(m::hasSemanticValue)
 					}
-					// In case we're removing dead code, narrow this to the
-					// semantic values that have already survived here.
-					commonSemanticValues =
-						commonSemanticValues.intersect(allLive)
 					// For each semantic value, determine all other semantic
 					// values that are in the same synonym with it in all
 					// predecessors.  We'll use that to reconstitute any
@@ -774,7 +741,7 @@ constructor(
 								sv, otherSv)
 						}
 						currentManifest.updateRestriction(sv) {
-							intersection(commonRestrictions[sv]!!)
+							commonRestrictions[sv]!!
 						}
 					}
 				}
@@ -827,8 +794,9 @@ constructor(
 			// There wasn't an equivalent register handy.  Fall back to emitting
 			// a copy of this instruction.
 		}
-		basicTransformInstruction(sourceInstruction)
-			.emitTransformedInstruction(this)
+		basicTransformInstruction(sourceInstruction).run {
+			emitTransformedInstruction()
+		}
 	}
 
 	/**
@@ -851,135 +819,15 @@ constructor(
 			for (read in transformed.readOperands)
 			{
 				val semanticValue = read.semanticValue()
-				val register = read.register()
-				if (!register.isConstant && mode == BySemanticValue)
+				if (read.constantOrNull == null && mode == BySemanticValue)
 				{
-					assert(currentManifest.hasSemanticValue(semanticValue))
- 					assert(currentManifest.synonymsForRegister(register)
-						.isNotEmpty())
+					assert(
+						currentManifest.hasSemanticValue(semanticValue) ||
+							semanticValue in
+								currentManifest.postponedInstructions())
 				}
 			}
 		}
 		return transformed.cast()
-	}
-
-	/**
-	 * A helper method for instruction postponement.  Given an [L2Instruction]
-	 * from the old graph being regenerated, emit a translated version of that
-	 * instruction.  If the instruction uses values that are not yet available
-	 * in registers due to postponement, first translate the instructions that
-	 * produce those values.
-	 *
-	 * The instruction must not currently be in the current
-	 * `postponedInstructions` map.
-	 *
-	 * TODO Make this iterative instead of recursive.
-	 */
-	fun forcePostponedTranslationNow(sourceInstruction: L2Instruction)
-	{
-		assert(
-			!shouldSanityCheck ||
-			sourceInstruction.writeOperands
-				.flatMap(L2WriteOperand<*>::semanticValues)
-				.all { sv ->
-					currentManifest.postponedInstructions()[sv].isNullOr {
-						!contains(sourceInstruction)
-					}
-				}
-		) {
-			"instruction should have been removed from postponed map"
-		}
-		sourceInstruction.readOperands.forEach { read ->
-			forceTranslationForRead(read.semanticValue())
-		}
-		basicTransformInstruction(sourceInstruction)
-			.emitTransformedInstruction(this)
-	}
-
-	/**
-	 * Force all postponed instructions for any semantic value synonymous with
-	 * the given one.
-	 */
-	fun <K: RegisterKind<K>> forceTranslationForRead(
-		semanticValue: L2SemanticValue<K>)
-	{
-		// If there's a postponed instruction that produces the needed value,
-		// always use that, even if the value appears to be available in a
-		// register.
-		val postponedMap = currentManifest.postponedInstructions()
-		while (semanticValue in postponedMap)
-		{
-			val postponedInstruction = postponedMap[semanticValue]!!.last()
-			currentManifest.removePostponedSourceInstruction(
-				postponedInstruction)
-			forcePostponedTranslationNow(postponedInstruction)
-		}
-		// At this point there must not be any other postponed instructions for
-		// the semantic value.
-		assert(semanticValue !in postponedMap)
-	}
-
-	/**
-	 * Force all postponed instructions to be generated now.  Some of these may
-	 * end up being considered dead code, and will be removed by a later pass.
-	 *
-	 * If [omitConstantMoves] is true, don't translate [L2_MOVE_CONSTANT]
-	 * instructions unless the value is needed by some other instruction being
-	 * translated here.
-	 */
-	fun forceAllPostponedTranslationsExceptConstantMoves(
-		semanticValue: L2SemanticValue<*>? = null,
-		omitConstantMoves: Boolean)
-	{
-		val manifest = currentManifest
-		// Copy the map but not the contained mutable lists.
-		if (semanticValue == null)
-		{
-			manifest.postponedInstructions().keys.toList().forEach { sv ->
-				// We're modifying postponedInstructions, so check if it's still
-				// present.
-				if (sv in manifest.postponedInstructions())
-				{
-					forceAllPostponedTranslationsExceptConstantMoves(
-						sv, omitConstantMoves)
-				}
-			}
-			if (shouldSanityCheck)
-			{
-				manifest.postponedInstructions().values.forEach { sub ->
-					sub.forEach { instruction ->
-						assert(instruction is L2_MOVE<*> ||
-							instruction is L2_MOVE_CONSTANT<*, *>)
-					}
-				}
-			}
-			return
-		}
-		forceTranslationForRead(semanticValue)
-	}
-
-	/**
-	 * During a control flow merge, the phi creation mechanism detected that the
-	 * incoming edges all provided a particular [L2SemanticValue] for a
-	 * [RegisterKind], at least one source was a postponed instruction, and *not
-	 * all* of the incoming edges had their values postponed by the same
-	 * instruction.
-	 *
-	 * Go back to just before the edge (safe because it's in edge-split SSA
-	 * form), and generate the postponed instruction responsible for the given
-	 * kind and semantic value.  It's safe to generate these just prior to the
-	 * last (control-flow altering) instruction of a predecessor block, because
-	 * the control flow instruction didn't produce the desired semantic value,
-	 * and new instructions won't interfere.  Update the edge's manifest during
-	 * this code generation.
-	 */
-	fun forcePostponedTranslationBeforeEdge(
-		edge: L2PcOperand,
-		semanticValue: L2SemanticValue<*>)
-	{
-		targetGenerator.generateRetroactivelyBeforeEdge(edge) {
-			forceAllPostponedTranslationsExceptConstantMoves(
-				semanticValue, false)
-		}
 	}
 }

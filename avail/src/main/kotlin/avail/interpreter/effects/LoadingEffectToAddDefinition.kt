@@ -89,7 +89,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(ABSTRACT_DEFINER.bundle),
-						addLiteral(TOP.o))
+						addLiteral(TOP()))
 				}
 				definition.isForwardDefinition() -> {
 					// Push the bundle's atom.
@@ -107,7 +107,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(FORWARD_DEFINER.bundle),
-						addLiteral(TOP.o))
+						addLiteral(TOP()))
 				}
 				else -> {
 					assert(definition.isMethodDefinition())
@@ -131,7 +131,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(METHOD_DEFINER.bundle),
-						addLiteral(TOP.o))
+						addLiteral(TOP()))
 				}
 			}
 		}

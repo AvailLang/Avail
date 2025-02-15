@@ -130,5 +130,5 @@ object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
 										// Final ellipsis (import all the rest)
 										LITERAL_PHRASE.create(
 											booleanType)))))))),
-			TOP.o)
+			TOP())
 }

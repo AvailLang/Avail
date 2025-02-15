@@ -52,10 +52,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_FLOAT
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT
+import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_PHI_BOXED
 import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT
@@ -149,7 +149,7 @@ constructor (
 	 * kind of register.
 	 *
 	 * @param semanticValue
-	 *   The [L2SemanticValue] being read.
+	 *   The [L2SemanticValue] being read.2
 	 * @param manifest
 	 *   The [L2ValueManifest] from which to extract the semantic value.
 	 */
@@ -162,24 +162,26 @@ constructor (
 	 * Synthesize an [L2WriteOperand] of the appropriately strengthened [Self]
 	 * kind of register.
 	 *
-	 * @param uniqueGenerator
-	 *   A source of unique [Int]s.
 	 * @param semanticValues
 	 *   The [L2SemanticValue]s to populate.
 	 * @param restriction
 	 *   The [TypeRestriction] that the stored values will satisfy.
-	 * @param forceRegister
-	 *   If specified and non-null, this is the register to be written.
-	 *   Otherwise, a new one will be allocated.
 	 * @return
 	 *   A new [L2WriteOperand] of the appropriate [Self] kind of register.
 	 */
 	abstract fun createWrite(
-		uniqueGenerator: ()->Int,
 		semanticValues: Set<L2SemanticValue<Self>>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<Self>? = null
 	): L2WriteOperand<Self>
+
+	/**
+	 * Create a register of this kind with the given unique id.
+	 *
+	 * @param id
+	 *   The unique id number for the new [L2Register].
+	 */
+	abstract fun createRegister(id: Int): L2Register<Self>
 
 	/**
 	 * Create an [L2ReadVectorOperand] suitable for the [RegisterKind].
@@ -208,6 +210,33 @@ constructor (
 	): L2_MOVE<Self>
 
 	/**
+	 * Synthesize an [L2_MOVE] instruction for this [RegisterKind], but delaying
+	 * the type check to runtime.
+	 *
+	 * @param source
+	 *   An [L2SemanticValue] supplying the value.
+	 * @param destinations
+	 *   The [L2SemanticValue]s to write.
+	 * @param manifest
+	 *   The current [L2ValueManifest].
+	 * @param restriction
+	 *   The [TypeRestriction] indicating what type of value is being moved.
+	 */
+	fun dynamicMove(
+		source: L2SemanticValue<*>,
+		destinations: Set<L2SemanticValue<*>>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction
+	): L2_MOVE<Self>
+	{
+		assert(source.kind == this)
+		assert(destinations.all { it.kind == this })
+		return move(
+			createRead(source.cast(), manifest),
+			createWrite(destinations.cast(), restriction))
+	}
+
+	/**
 	 * Synthesize a suitable [L2_MOVE_CONSTANT] if the value is not already in a
 	 * register of this kind, and answer an [L2ReadOperand] that extracts it.
 	 *
@@ -233,7 +262,7 @@ constructor (
 	 * related [L2SemanticValue]s are populated with values from the given
 	 * sources.
 	 *
-	 * @param generator
+	 * @receiver
 	 *   The [L2GeneratorInterface] on which to write instructions.
 	 * @param relatedSemanticValues
 	 *   The [List] of [L2SemanticValue]s that should constitute a synonym in
@@ -249,12 +278,12 @@ constructor (
 	 * @param sourceManifests
 	 *   A [List] of [L2ValueManifest]s, one for each incoming edge.
 	 */
-	fun generatePhi(
-		generator: L2GeneratorInterface,
+	fun L2GeneratorInterface.generatePhi(
 		relatedSemanticValues: List<L2SemanticValue<Self>>,
 		forcePhiCreation: Boolean,
 		typeRestriction: TypeRestriction,
-		sourceManifests: List<L2ValueManifest>)
+		sourceManifests: List<L2ValueManifest>
+	): Unit
 	{
 		// Keep registers that are common to all incoming manifests.  Register
 		// coloring will shorten chains of moves, and besides, they'll all be
@@ -264,40 +293,33 @@ constructor (
 		val registers = sourceManifests
 			.map { m -> m.getDefinitions(pickSemanticValue).toSet() }
 			.reduce(Set<L2Register<Self>>::intersect)
-		val restriction = sourceManifests
-			.map { m -> m.restrictionFor(pickSemanticValue) }
-			.reduce(TypeRestriction::union)
-			.intersection(typeRestriction)
-		// We've already done all the synonym extensions for moves as they were
-		// recorded as postponed instructions.  So be delicate when extending
-		// synonyms in general.  Adding actual move instructions will normally
-		// turn into an extension of the latest write if it's in the same block,
-		// but we couldn't do that for postponed instructions, because we don't
-		// know what block(s) they'll end up in.
-		val manifest = generator.currentManifest
-		val (inSynonym, notInSynonym) =
-			relatedSemanticValuesSet.partition(manifest::hasSemanticValue)
-		val existingSynonyms =
-			inSynonym.mapToSet(transform = manifest::semanticValueToSynonym)
+		val (inSynonym, notInSynonym) = relatedSemanticValuesSet
+			.partition(currentManifest::hasSemanticValue)
+		val existingSynonyms = inSynonym
+			.mapToSet(transform = currentManifest::semanticValueToSynonym)
 		if (existingSynonyms.isNotEmpty())
 		{
 			// There's at least one synonym.  Merge them, then add any new
 			// semantic values.
 			val pick = existingSynonyms.first().pickSemanticValue()
 			existingSynonyms.forEach {
-				manifest.mergeExistingSemanticValues(
+				currentManifest.mergeExistingSemanticValues(
 					pick, it.pickSemanticValue())
 			}
 			notInSynonym.forEach {
-				manifest.extendSynonym(
-					manifest.semanticValueToSynonym(pick), it)
+				currentManifest.extendSynonym(
+					currentManifest.semanticValueToSynonym(pick), it)
 			}
 		}
 		else
 		{
 			// None of the semantic values is in a synonym yet, so create it in
 			// one step.
-			manifest.introduceSynonym(
+			val restriction = sourceManifests
+				.map { m -> m.restrictionFor(pickSemanticValue) }
+				.reduce(TypeRestriction::union)
+				.intersection(typeRestriction)
+			currentManifest.introduceSynonym(
 				L2Synonym(relatedSemanticValues), restriction)
 		}
 		when
@@ -307,8 +329,26 @@ constructor (
 				// At least one register is common to all predecessors.  Expose
 				// them all directly.  The updateConstraint() works whether the
 				// synonym exists yet or not.
-				manifest.updateDefinitions(pickSemanticValue) {
-					this@updateDefinitions + registers
+				currentManifest.updateDefinitions(pickSemanticValue) {
+					this + registers
+				}
+				// Remove any postponed instructions that the common register
+				// was able to supply already.
+				currentManifest.removePostponedInstructionFor(pickSemanticValue)
+				// If any semantic value is in the situation that none of the
+				// common incoming registers has a definition that populates it,
+				// we'll need to introduce a move to ensure that semantic value
+				// has a visible definition point.
+				val valuesSetInRegisters = registers
+					.map { r -> r.definition().semanticValues() }
+					.reduce(Set<L2SemanticValue<Self>>::intersect)
+				val valuesNotSetInRegisters =
+					relatedSemanticValuesSet - valuesSetInRegisters
+				if (valuesNotSetInRegisters.isNotEmpty())
+				{
+					// Indeed, these semantic values have no visible writes in
+					// all historiess.  Move to them.
+					moveRegister(pickSemanticValue, valuesNotSetInRegisters)
 				}
 			}
 			else ->
@@ -316,27 +356,47 @@ constructor (
 				// None of the registers was present in all incoming edges.
 				// Introduce a phi function to get it into a new register for
 				// the required synonym.
-				val sources = sourceManifests.map {
-					createRead(pickSemanticValue, it)
+				val sources = sourceManifests.map { man ->
+					readOperand(
+						pickSemanticValue,
+						man.restrictionFor(pickSemanticValue),
+						man.getDefinition(pickSemanticValue))
 				}
-				generator.addInstruction(
-					createPhi(
-						createVector(sources),
-						createWrite(
-							generator::nextUnique,
-							setOf(pickSemanticValue),
-							typeRestriction)))
+				+createPhi(
+					createVector(sources),
+					createWrite(setOf(pickSemanticValue), typeRestriction))
 				if (relatedSemanticValuesSet.size > 1)
 				{
 					// Note: Subsequent phis will be inserted before moves like
 					// this.
-					generator.moveRegister(
+					moveRegister(
 						pickSemanticValue,
 						relatedSemanticValuesSet - pickSemanticValue)
 				}
 			}
 		}
-		manifest.check()
+		typeRestriction.constantOrNull?.let { constant ->
+			// The value is constrained down to a constant, so make sure the
+			// semantic constant with that value (and kind) is in the new
+			// synonym. Either it's already present, it neeeds to be added to
+			// the new synonym, or an existing synonym containing it has to be
+			// merged with the new synonym.
+			val semanticConstant = createSemanticConstant(constant)
+			when
+			{
+				// Already in the new synonym.
+				semanticConstant in relatedSemanticValues -> { }
+				// Already in the manifest for another synonym.  Merge them.
+				currentManifest.hasSemanticValue(semanticConstant) ->
+					currentManifest.mergeExistingSemanticValues(
+						pickSemanticValue, semanticConstant)
+				// Not yet in the manifest.  Augment the new synonym.
+				else -> currentManifest.extendSynonym(
+					currentManifest.semanticValueToSynonym(pickSemanticValue),
+					semanticConstant)
+			}
+		}
+		currentManifest.check()
 	}
 
 	/**
@@ -383,11 +443,9 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		semanticValue: L2SemanticValue<BOXED_KIND>,
 		restriction: TypeRestriction,
 		register: L2Register<BOXED_KIND>
-	): L2ReadBoxedOperand =
-		L2ReadBoxedOperand(
-			semanticValue as L2SemanticBoxedValue,
-			restriction,
-			register as L2BoxedRegister)
+	) = L2ReadBoxedOperand(semanticValue, restriction).apply {
+		setRegister(register)
+	}
 
 	override fun createRead(
 		semanticValue: L2SemanticValue<BOXED_KIND>,
@@ -397,18 +455,16 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		semanticValue as L2SemanticBoxedValue
 		val restriction = manifest.restrictionFor(semanticValue)
 		assert(restriction.isBoxed)
-		return L2ReadBoxedOperand(semanticValue, restriction, manifest)
+		return L2ReadBoxedOperand(semanticValue, restriction)
 	}
 
 	override fun createWrite(
-		uniqueGenerator: ()->Int,
 		semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<BOXED_KIND>?
-	) = L2WriteBoxedOperand(
-		semanticValues,
-		restriction,
-		forceRegister?.cast() ?: L2BoxedRegister(uniqueGenerator()))
+	) = L2WriteBoxedOperand(semanticValues, restriction, forceRegister)
+
+	override fun createRegister(id: Int) = L2BoxedRegister(id)
 
 	override fun createVector(
 		elements: List<L2ReadOperand<BOXED_KIND>>
@@ -454,11 +510,9 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		semanticValue: L2SemanticValue<INTEGER_KIND>,
 		restriction: TypeRestriction,
 		register: L2Register<INTEGER_KIND>
-	): L2ReadIntOperand =
-		L2ReadIntOperand(
-			semanticValue as L2SemanticUnboxedInt,
-			restriction,
-			register as L2IntRegister)
+	) = L2ReadIntOperand(semanticValue, restriction).apply {
+		setRegister(register)
+	}
 
 	override fun createRead(
 		semanticValue: L2SemanticValue<INTEGER_KIND>,
@@ -468,22 +522,20 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		semanticValue as L2SemanticUnboxedInt
 		val restriction = manifest.restrictionFor(semanticValue)
 		assert(restriction.isUnboxedInt)
-		return L2ReadIntOperand(semanticValue, restriction, manifest)
+		return L2ReadIntOperand(semanticValue, restriction)
 	}
 
 	override fun createWrite(
-		uniqueGenerator: ()->Int,
 		semanticValues: Set<L2SemanticValue<INTEGER_KIND>>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<INTEGER_KIND>?
 	): L2WriteIntOperand
 	{
 		assert(restriction.isUnboxedInt)
-		return L2WriteIntOperand(
-			semanticValues,
-			restriction,
-			forceRegister ?: L2IntRegister(uniqueGenerator()))
+		return L2WriteIntOperand(semanticValues, restriction, forceRegister)
 	}
+
+	override fun createRegister(id: Int) = L2IntRegister(id)
 
 	override fun createVector(
 		elements: List<L2ReadOperand<INTEGER_KIND>>
@@ -529,11 +581,9 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		semanticValue: L2SemanticValue<FLOAT_KIND>,
 		restriction: TypeRestriction,
 		register: L2Register<FLOAT_KIND>
-	): L2ReadFloatOperand =
-		L2ReadFloatOperand(
-			semanticValue as L2SemanticUnboxedFloat,
-			restriction,
-			register as L2FloatRegister)
+	) = L2ReadFloatOperand(semanticValue, restriction).apply {
+		setRegister(register)
+	}
 
 	override fun createRead(
 		semanticValue: L2SemanticValue<FLOAT_KIND>,
@@ -543,22 +593,20 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		semanticValue as L2SemanticUnboxedFloat
 		val restriction = manifest.restrictionFor(semanticValue)
 		assert(restriction.isUnboxedFloat)
-		return L2ReadFloatOperand(semanticValue, restriction, manifest)
+		return L2ReadFloatOperand(semanticValue, restriction)
 	}
 
 	override fun createWrite(
-		uniqueGenerator: ()->Int,
 		semanticValues: Set<L2SemanticValue<FLOAT_KIND>>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<FLOAT_KIND>?
 	): L2WriteFloatOperand
 	{
 		assert(restriction.isUnboxedFloat)
-		return L2WriteFloatOperand(
-			semanticValues,
-			restriction,
-			forceRegister ?: L2FloatRegister(uniqueGenerator()))
+		return L2WriteFloatOperand(semanticValues, restriction, forceRegister)
 	}
+
+	override fun createRegister(id: Int) = L2FloatRegister(id)
 
 	override fun createVector(
 		elements: List<L2ReadOperand<FLOAT_KIND>>
@@ -588,9 +636,3 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		generator: L2GeneratorInterface
 	) = L2SemanticDummy(generator.nextUnique()).unboxedFloat
 }
-
-//		/**
-//		 * The kind of register that holds the value of some variable prior to
-//		 * the variable having escaped, if ever.  TODO Implement this.
-//		 */
-//		UNESCAPED_VARIABLE_VALUE

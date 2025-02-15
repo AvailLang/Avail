@@ -62,7 +62,6 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
-import avail.interpreter.levelOne.L1Operation.L1_doExtension
 import avail.io.NybbleOutputStream
 import java.util.Collections.addAll
 
@@ -245,27 +244,11 @@ class L1InstructionWriter constructor(
 	fun createLocal(localType: A_Type): Int
 	{
 		assert(localType.isInstanceOf(topMeta))
-		assert(constantTypes.size == 0) {
+		assert(constantTypes.isEmpty()) {
 			"Must declare local types before allocating constants"
 		}
 		localTypes.add(localType)
 		return argumentTypes.size + localTypes.size
-	}
-
-	/**
-	 * Declare a local constant with the specified type.  Answer its index.  The
-	 * index is relative to the start of the arguments.
-	 *
-	 * @param constantType
-	 *   The [type][TypeDescriptor] of the local constant.
-	 * @return
-	 *   The index of the local constant.
-	 */
-	fun createConstant(constantType: A_Type): Int
-	{
-		assert(constantType.isInstanceOf(topMeta))
-		constantTypes.add(constantType)
-		return argumentTypes.size + localTypes.size + constantTypes.size
 	}
 
 	/**
@@ -366,7 +349,7 @@ class L1InstructionWriter constructor(
 		}
 		else
 		{
-			stream.write(L1_doExtension.ordinal)
+			stream.write(L1_doExtension_ord)
 			stream.write(opcode - 16)
 		}
 		operands.forEach(this::writeOperand)
@@ -406,7 +389,10 @@ class L1InstructionWriter constructor(
 	fun compiledCode(): AvailObject
 	{
 		val p = primitive
-		assert(p === null || p.hasFlag(Flag.CannotFail) || localTypes.size > 0) {
+		assert(p === null
+			|| p.hasFlag(Flag.CannotFail)
+			|| localTypes.isNotEmpty())
+		{
 			"Fallible primitive needs a primitive failure variable"
 		}
 		val names = mutableListOf<String>()

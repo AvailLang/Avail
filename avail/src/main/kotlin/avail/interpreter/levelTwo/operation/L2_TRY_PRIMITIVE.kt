@@ -32,7 +32,9 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
@@ -47,14 +49,14 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * Expect the [AvailObject] (pointers) array and int array to still
- * reflect the caller. Expect [Interpreter.argsBuffer] to have been
- * loaded with the arguments to this primitive function, and expect the
- * code/function/chunk to have been updated for this primitive function.
- * Try to execute a primitive, setting the [Interpreter.returnNow] flag
- * and [latestResult][Interpreter.setLatestResult] if
- * successful. The caller always has the responsibility of checking the return
- * value, if applicable at that call site.
+ * Expect the [AvailObject] (pointers) array and int array to still reflect the
+ * caller. Expect [Interpreter.argsBuffer] to have been loaded with the
+ * arguments to this primitive function, and expect the code/function/chunk to
+ * have been updated for this primitive function. Try to execute a primitive,
+ * setting the [Interpreter.returnNow] flag and
+ * [latestResult][Interpreter.setLatestResult] if successful. The caller always
+ * has the responsibility of checking the return value, if applicable at that
+ * call site.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -72,6 +74,8 @@ class L2_TRY_PRIMITIVE(
 	// It could fail and jump.
 	override val hasSideEffect get() = true
 
+	override fun equivalentTo(other: L2Instruction) = unsupported
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
@@ -82,9 +86,9 @@ class L2_TRY_PRIMITIVE(
 		// interpreter, interpreter
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// interpreter, fn
-		translator.literal(method, primitive.constant)
+		translator.loadLiteralObject(method, primitive.constant)
 		// interpreter, fn, prim
-		if (primitive.constant.hasFlag(Primitive.Flag.CanInline))
+		if (primitive.constant.hasFlag(CanInline))
 		{
 			// :: return interpreter.attemptInlinePrimitive(function, primitive)
 			attemptTheInlinePrimitiveMethod.generateCall(method)

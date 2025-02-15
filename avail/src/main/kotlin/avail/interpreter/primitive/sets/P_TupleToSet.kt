@@ -62,6 +62,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
 /**
@@ -114,18 +115,17 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		return setTypeForSizesContentType(setSizes, unionType)
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val tupleReg = arguments[0]
 
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		if (!generator.currentlyReachable())
+		if (!currentlyReachable())
 		{
 			// Generator is not at a live position, so pretend we generated the
 			// code for this primitive invocation.
@@ -136,21 +136,19 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		val size = sizeRange.lowerBound
 		if (!size.isInt || !sizeRange.upperBound.equals(size)) return false
 		val sizeInt = size.extractInt
-		val elementRegs = generator.explodeTupleIfPossible(
-			tupleReg, tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+		val elementRegs = explodeTupleIfPossible(
+			tupleReg,
+			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
 
 		// Create the set directly from the values.  This may turn the tuple
 		// creation instruction into dead code.
 		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val semanticResult = semanticInvocation(tupleReg.semanticValue())
-		val write = generator.boxedWrite(
+		val write = boxedWrite(
 			semanticResult, boxedRestrictionForType(restriction))
-		generator.addInstruction(
-			L2_CREATE_SET(
-				L2ReadBoxedVectorOperand(elementRegs),
-				write))
-		callSiteHelper.useAnswer(translator.readBoxed(write))
+		+L2_CREATE_SET(L2ReadBoxedVectorOperand(elementRegs), write)
+		callSiteHelper.useAnswer(readBoxed(write), false)
 		return true
 	}
 }

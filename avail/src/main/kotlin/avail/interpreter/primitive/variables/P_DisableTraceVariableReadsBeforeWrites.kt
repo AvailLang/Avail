@@ -34,7 +34,7 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.fiber.A_Fiber.Companion.variablesReadBeforeWritten
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -47,6 +47,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.Primitive
@@ -57,11 +58,10 @@ import avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Disable variable
  * [read-before-write&#32;tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]
- * for the [current&#32;fiber][FiberDescriptor.currentFiber]. To each
- * [variable][A_Variable] that survived tracing, add a
- * [write&#32;reactor][VariableAccessReactor] that wraps the specified
- * [function][FunctionDescriptor], associating it with the specified
- * [atom][A_Atom] (for potential pre-activation removal).
+ * for the [current&#32;fiber][currentFiber]. To each [variable][A_Variable]
+ * that survived tracing, add a [write&#32;reactor][VariableAccessReactor] that
+ * wraps the specified [function][FunctionDescriptor], associating it with the
+ * specified [atom][A_Atom] (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -89,12 +89,19 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * If the reactorFunction captured a local variable, it will become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
-				functionType(emptyTuple, TOP.o)),
-			TOP.o)
+				ATOM(),
+				functionType(emptyTuple, TOP())),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

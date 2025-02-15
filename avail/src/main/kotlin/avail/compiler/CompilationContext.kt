@@ -153,6 +153,7 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.effects.LoadingEffect
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
@@ -635,7 +636,7 @@ class CompilationContext constructor(
 		val fiber = newLoaderFiber(function.kind().returnType, loader)
 		{
 			formatString(
-				"Eval fn=%s, in %s:%d",
+				"Eval fn=%s in %s:%d",
 				code.methodName,
 				code.module.shortModuleNameNative,
 				code.codeStartingLineNumber)
@@ -652,7 +653,7 @@ class CompilationContext constructor(
 			shouldSerialize -> fiber.fiberHelper.fiberTime().let { before ->
 				{ successValue ->
 					val after = fiber.fiberHelper.fiberTime()
-					Interpreter.current().recordTopStatementEvaluation(
+					currentInterpreter.recordTopStatementEvaluation(
 						(after - before).toDouble(), module)
 					loader.stopRecordingEffects()
 					serializeAfterRunning(function)
@@ -809,8 +810,8 @@ class CompilationContext constructor(
 		val writer = L1InstructionWriter(
 			module, effects.first().first, effects.first().second)
 		writer.argumentTypes()
-		writer.returnType = TOP.o
-		writer.returnTypeIfPrimitiveFails = TOP.o
+		writer.returnType = TOP()
+		writer.returnTypeIfPrimitiveFails = TOP()
 		effects.forEachIndexed { i, (line, _, effect) ->
 			if (i > 0) writer.write(0, L1Operation.L1_doPop)
 			effect.writeEffectTo(writer, line)
@@ -1133,13 +1134,13 @@ class CompilationContext constructor(
 						token.generatingLexer.notNil &&
 						getStylerFunction(token.generatingLexer.lexerMethod)
 							.notNil -> null
-					yieldType.isSubtypeOf(NUMBER.o) ->
+					yieldType.isSubtypeOf(NUMBER()) ->
 						SystemStyle.NUMERIC_LITERAL
-					yieldType.isSubtypeOf(CHARACTER.o) ->
+					yieldType.isSubtypeOf(CHARACTER()) ->
 						SystemStyle.CHARACTER_LITERAL
 					yieldType.isSubtypeOf(booleanType) ->
 						SystemStyle.BOOLEAN_LITERAL
-					yieldType.isSubtypeOf(ATOM.o) ->
+					yieldType.isSubtypeOf(ATOM()) ->
 						SystemStyle.ATOM_LITERAL
 					else ->
 						yieldType.systemStyleForType ?:

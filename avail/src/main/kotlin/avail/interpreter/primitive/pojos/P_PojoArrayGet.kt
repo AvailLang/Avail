@@ -97,7 +97,7 @@ object P_PojoArrayGet : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				mostGeneralPojoArrayType(),
 				naturalNumbers),
-			ANY.o)
+			ANY())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -36,8 +36,8 @@ import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
 import avail.optimizer.StackReifier
 import avail.performance.ReportingUnit.BYTES
-import avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import avail.performance.ReportingUnit.NANOSECONDS
+import avail.performance.StatisticReport.entries
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.ifZero
 import java.text.Collator
@@ -80,13 +80,6 @@ enum class StatisticReport constructor(
 	/** A breakdown of the time spent in L2 optimization phases. */
 	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
 
-	/** A breakdown of the time spent in L2 optimization phases. */
-	L1_NAIVE_TRANSLATION_TIME(
-		"L1 -> L2 Naive translation by nybblecode", NANOSECONDS),
-
-	/** Dimensionless values related to L2Chunk creation. */
-	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
-
 	/** A breakdown of final generation phases of L2->JVM. */
 	FINAL_JVM_TRANSLATION_TIME("Final JVM Translation time", NANOSECONDS),
 
@@ -97,7 +90,10 @@ enum class StatisticReport constructor(
 	PRIMITIVES("Primitives", NANOSECONDS),
 
 	/** A report of how long and deep dynamic lookups are. */
-	DYNAMIC_LOOKUP("Dynamic Lookup", NANOSECONDS),
+	DYNAMIC_LOOKUP_BY_TARGET("Dynamic lookup by target", NANOSECONDS),
+
+	/** A report of how long and deep dynamic lookups are. */
+	DYNAMIC_LOOKUP_BY_CALLER("Dynamic lookup by caller", NANOSECONDS),
 
 	/** The Primitive Return Type Checks report. */
 	PRIMITIVE_RETURNER_TYPE_CHECKS("Primitive Return Type Checks", NANOSECONDS),

@@ -63,4 +63,16 @@ class L2FloatImmediateOperand constructor(val value: Double) : L2Operand()
 		builder.append("#").append(value)
 	}
 
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		sources.add(value.toString())
+	}
+
+	override fun equivalentTo(other: L2Operand) =
+		other is L2FloatImmediateOperand && value.equals(other.value)
+
+	override val equivalentHash: Int get() = value.hashCode()
 }

@@ -59,10 +59,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
@@ -85,13 +84,13 @@ import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
- * specified [handle][A_Atom] to an [IPv4&#32;address][Inet4Address] and
- * port. Create a new [fiber][FiberDescriptor] to respond to the asynchronous
+
+ * specified [handle][A_Atom] to an [IPv4&#32;address][Inet4Address] and port.
+ * Create a new [fiber][FiberDescriptor] to respond to the asynchronous
  * completion of the operation; the fiber will run at the specified
- * [priority][IntegerRangeTypeDescriptor.u8]. If the operation succeeds, then
- * eventually start the new fiber to apply the
- * [success&#32;function][FunctionDescriptor]. If the operation fails, then
- * eventually start the new fiber to apply the
+ * [priority][u8]. If the operation succeeds, then eventually start the new
+ * fiber to apply the [success&#32;function][FunctionDescriptor]. If the
+ * operation fails, then eventually start the new fiber to apply the
  * [failure&#32;function][FunctionDescriptor] to the numeric
  * [error&#32;code][AvailErrorCode]. Answer the new fiber.
  *
@@ -186,7 +185,7 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				ATOM.o,
+				ATOM(),
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(4),
 					emptyTuple,
@@ -194,10 +193,10 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 				u16,
 				functionType(
 					emptyTuple,
-					TOP.o),
+					TOP()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o),
+					TOP()),
 				u8),
 			mostGeneralFiberType())
 

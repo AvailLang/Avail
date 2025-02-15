@@ -73,7 +73,7 @@ object P_FloatTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(FLOAT.o), extendedIntegers)
+		functionType(tuple(FLOAT()), extendedIntegers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))

@@ -126,8 +126,8 @@ object P_SealMethodsAtExistingDefinitions : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
-			TOP.o)
+			tuple(setTypeForSizesContentType(wholeNumbers, ATOM())),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

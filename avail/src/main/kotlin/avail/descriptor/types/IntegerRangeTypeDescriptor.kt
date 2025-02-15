@@ -160,7 +160,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = with(builder) {
 		when (self)
@@ -347,7 +347,7 @@ private constructor(
 			typeToRemove.isEnumeration &&
 				!typeToRemove.instanceCount.equalsInt(1) -> self
 			(!lowerInclusive
-					&& typeToRemove.lowerBound.equals(negativeInfinity))
+					&& typeToRemove.lowerBound.equalsInfinity(NEGATIVE))
 				|| self.lowerBound.isInstanceOf(typeToRemove) ->
 			{
 				// The x&&y part of the condition means it starts at -∞
@@ -371,7 +371,7 @@ private constructor(
 				).typeIntersection(self)
 			}
 			(!upperInclusive
-					&& typeToRemove.upperBound.equals(positiveInfinity))
+					&& typeToRemove.upperBound.equalsInfinity(POSITIVE))
 				|| self.upperBound.isInstanceOf(typeToRemove) ->
 			{
 				// By symmetry on the other bound.

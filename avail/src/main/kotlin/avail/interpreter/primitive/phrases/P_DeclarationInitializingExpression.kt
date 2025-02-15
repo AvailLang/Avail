@@ -79,7 +79,7 @@ object P_DeclarationInitializingExpression : Primitive(
 		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType),
-			EXPRESSION_PHRASE.create(ANY.o))
+			EXPRESSION_PHRASE.create(ANY()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

@@ -75,16 +75,16 @@ import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE
@@ -158,7 +158,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		if (self[TYPE_TUPLE].tupleSize == 0)
@@ -168,12 +168,12 @@ private constructor(
 			{
 				wholeNumbers ->
 				{
-					if (self[DEFAULT_TYPE].equals(ANY.o))
+					if (self[DEFAULT_TYPE].equals(ANY()))
 					{
 						builder.append("tuple")
 						return
 					}
-					if (self[DEFAULT_TYPE].equals(CHARACTER.o))
+					if (self[DEFAULT_TYPE].equals(CHARACTER()))
 					{
 						builder.append("string")
 						return
@@ -192,7 +192,7 @@ private constructor(
 				naturalNumbers ->
 				{
 					// Okay, it's homogeneous and nonempty…
-					builder.brief {
+					builder.run {
 						self.defaultType.printOnAvoidingIndent(
 							this,
 							recursionMap,
@@ -205,7 +205,7 @@ private constructor(
 				u1 ->
 				{
 					// It's an optional.
-					builder.brief {
+					builder.run {
 						self.defaultType.printOnAvoidingIndent(
 							this,
 							recursionMap,
@@ -217,7 +217,7 @@ private constructor(
 				}
 				else ->
 				{
-					builder.brief {
+					builder.run {
 						self.defaultType.printOnAvoidingIndent(
 							this,
 							recursionMap,
@@ -235,7 +235,7 @@ private constructor(
 			}
 		}
 		// Handle the complex case.
-		builder.brief {
+		builder.run {
 			append('<')
 			val end = self[TYPE_TUPLE].tupleSize
 			for (i in 1 .. end)
@@ -960,13 +960,13 @@ private constructor(
 		private val shared = TupleTypeDescriptor(Mutability.SHARED)
 
 		/** The most general tuple type. */
-		val mostGeneralTupleType: A_Type = zeroOrMoreOf(ANY.o).makeShared()
+		val mostGeneralTupleType: A_Type = zeroOrMoreOf(ANY()).makeShared()
 
 		/** The most general string type (i.e., tuples of characters). */
-		val stringType: A_Type = zeroOrMoreOf(CHARACTER.o).makeShared()
+		val stringType: A_Type = zeroOrMoreOf(CHARACTER()).makeShared()
 
 		/** The most general string type (i.e., tuples of characters). */
-		val nonemptyStringType: A_Type = oneOrMoreOf(CHARACTER.o).makeShared()
+		val nonemptyStringType: A_Type = oneOrMoreOf(CHARACTER()).makeShared()
 
 		/** The metatype for all tuple types. */
 		val tupleMeta: A_Type = instanceMeta(mostGeneralTupleType).makeShared()

@@ -33,8 +33,6 @@ package avail.interpreter.levelTwo.register
 
 import avail.descriptor.representation.AvailObject
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
-import avail.optimizer.L2Generator
-import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * `L2IntRegister` models the conceptual usage of a register that can store a
@@ -59,19 +57,6 @@ constructor(
 ) : L2Register<INTEGER_KIND>(debugValue, constant)
 {
 	override val kind get() = INTEGER_KIND
-
-	override fun copyForTranslator(generator: L2Generator): L2IntRegister =
-		L2IntRegister(generator.nextUnique())
-
-	override fun copyAfterColoring(): L2IntRegister
-	{
-		val result = L2IntRegister(finalIndex)
-		result.finalIndex = finalIndex
-		return result
-	}
-
-	override fun copyForRegenerator(regenerator: L2Regenerator) =
-		L2IntRegister(regenerator.nextUnique())
 
 	override val primaryVisualSortKey
 		get() = PrimaryVisualSortKey.UNBOXED_INT_REGISTER

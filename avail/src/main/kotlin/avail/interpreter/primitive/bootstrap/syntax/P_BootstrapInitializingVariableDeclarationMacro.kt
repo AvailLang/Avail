@@ -127,11 +127,11 @@ object P_BootstrapInitializingVariableDeclarationMacro
 		functionType(
 			tuple(
 				/* Variable name token */
-				LITERAL_PHRASE.create(TOKEN.o),
+				LITERAL_PHRASE.create(TOKEN()),
 				/* Variable type */
 				LITERAL_PHRASE.create(anyMeta),
 				/* Initialization expression */
-				EXPRESSION_PHRASE.create(ANY.o)),
+				EXPRESSION_PHRASE.create(ANY())),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType)
 
 	override fun bootstrapStyler() = P_BootstrapStatementStyler

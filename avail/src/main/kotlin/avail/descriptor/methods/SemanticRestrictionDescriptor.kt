@@ -44,6 +44,8 @@ import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.primitive.compiler.P_RejectParsing
 
@@ -101,6 +103,8 @@ private constructor(mutability: Mutability) : Descriptor(
 		 */
 		DEFINITION_MODULE
 	}
+
+	override fun o_Kind(self: AvailObject): A_Type = Types.ANY()
 
 	override fun o_Hash(self: AvailObject) = combine3(
 		self[FUNCTION].hash(),

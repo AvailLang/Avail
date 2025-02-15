@@ -66,11 +66,19 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstance
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
+import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
-import avail.descriptor.tuples.TupleDescriptor.IntegerSlots
+import avail.descriptor.tuples.TupleDescriptor.Companion.preToggle
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticAppendToTuple
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticConcatenateTuples
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleAt
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCodepointAt
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleIntAt
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleSize
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.A_Type
@@ -91,6 +99,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.Strings.newlineTab
 import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
 import java.util.IdentityHashMap
@@ -185,7 +194,7 @@ protected constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		val size = self.tupleSize
@@ -202,9 +211,7 @@ protected constructor(
 		val strings = mutableListOf<String>()
 		var totalChars = 0
 		var anyBreaks = false
-		for (i in 1 .. size)
-		{
-			val element: A_BasicObject = self.tupleAt(i)
+		self.forEach { element ->
 			val localBuilder = StringBuilder()
 			element.printOnAvoidingIndent(
 				localBuilder,
@@ -224,19 +231,9 @@ protected constructor(
 			if (i > 0)
 			{
 				builder.append(",")
-				if (!breakElements)
-				{
-					builder.append(" ")
-				}
+				if (!breakElements) builder.append(" ")
 			}
-			if (breakElements)
-			{
-				builder.append("\n")
-				for (j in indent downTo 1)
-				{
-					builder.append("\t")
-				}
-			}
+			if (breakElements) builder.newlineTab(indent)
 			builder.append(strings[i])
 		}
 		builder.append('>')
@@ -1404,13 +1401,11 @@ protected constructor(
 				val maxValue = list.maxOrNull()!!
 				if (maxValue <= 15)
 				{
-					return NybbleTupleDescriptor
-						.generateNybbleTupleFrom(list.size) { list[it - 1] }
+					return generateNybbleTupleFrom(list.size) { list[it - 1] }
 				}
 				if (maxValue <= 255)
 				{
-					return ByteTupleDescriptor.generateByteTupleFrom(list.size)
-					{ list[it - 1] }
+					return generateByteTupleFrom(list.size) { list[it - 1] }
 				}
 			}
 			return generateIntTupleFrom(list.size) { list[it - 1] }
@@ -1578,6 +1573,56 @@ protected constructor(
 			TupleDescriptor::class.java,
 			::staticTupleAt.name,
 			AvailObject::class.java,
+			A_Tuple::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		/**
+		 * Answer the specified [Int] element of the tuple.
+		 *
+		 * @param tuple
+		 *   The tuple from which to extract an [Int].  The tuple *must* contain
+		 *   an [Int] at the specified [index].
+		 * @param index
+		 *   Which element should be extracted as an [Int].
+		 * @return
+		 *   The [Int] element of the tuple.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticTupleIntAt(tuple: A_Tuple, index: Int): Int =
+			tuple.tupleIntAt(index)
+
+		/** The [CheckedMethod] for [staticTupleIntAt]. */
+		val tupleIntAtMethod = staticMethod(
+			TupleDescriptor::class.java,
+			::staticTupleIntAt.name,
+			Int::class.javaPrimitiveType!!,
+			A_Tuple::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		/**
+		 * Answer the codepoint [Int] of the character element of the tuple.
+		 *
+		 * @param tuple
+		 *   The tuple from which to extract a character's codepoint [Int].  The
+		 *   tuple *must* contain a character at the specified [index].
+		 * @param index
+		 *   Which character element should have its codepoint extracted as an
+		 *   [Int].
+		 * @return
+		 *   The [Int] codepoint of the specified character element of the
+		 *   tuple.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticTupleCodepointAt(tuple: A_Tuple, index: Int): Int =
+			tuple.tupleCodePointAt(index)
+
+		/** The [CheckedMethod] for [staticTupleCodepointAt]. */
+		val tupleCodePointAtMethod = staticMethod(
+			TupleDescriptor::class.java,
+			::staticTupleCodepointAt.name,
+			Int::class.javaPrimitiveType!!,
 			A_Tuple::class.java,
 			Int::class.javaPrimitiveType!!)
 

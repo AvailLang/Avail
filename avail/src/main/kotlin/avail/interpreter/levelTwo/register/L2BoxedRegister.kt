@@ -33,8 +33,6 @@ package avail.interpreter.levelTwo.register
 
 import avail.descriptor.representation.AvailObject
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
-import avail.optimizer.L2Generator
-import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * `L2BoxedRegister` models the conceptual usage of a register that can store an
@@ -60,19 +58,6 @@ constructor(
 ) : L2Register<BOXED_KIND>(debugValue, constant)
 {
 	override val kind get() = BOXED_KIND
-
-	override fun copyForTranslator(generator: L2Generator): L2BoxedRegister =
-		L2BoxedRegister(generator.nextUnique())
-
-	override fun copyAfterColoring(): L2BoxedRegister
-	{
-		val result = L2BoxedRegister(finalIndex)
-		result.finalIndex = finalIndex
-		return result
-	}
-
-	override fun copyForRegenerator(regenerator: L2Regenerator) =
-		L2BoxedRegister(regenerator.nextUnique())
 
 	override val primaryVisualSortKey
 		get() = PrimaryVisualSortKey.BOXED_REGISTER

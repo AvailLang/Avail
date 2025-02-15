@@ -36,6 +36,7 @@ package avail.anvil
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
 import avail.AvailTask
+import avail.anvil.AvailWorkbench.Companion.darkMode
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
 import avail.anvil.SystemStyleClassifier.INPUT_TEXT
@@ -156,7 +157,7 @@ import avail.compiler.ModuleManifestEntry
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.tuples.A_String.SurrogateIndexConverter
@@ -196,6 +197,10 @@ import avail.utility.parallelMapThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import com.thizzer.jtouchbar.JTouchBar
+import com.thizzer.jtouchbar.item.TouchBarItem
+import com.thizzer.jtouchbar.item.view.TouchBarButton
+import com.thizzer.jtouchbar.item.view.action.TouchBarViewAction
 import org.availlang.artifact.AvailArtifact
 import org.availlang.artifact.ResourceType
 import org.availlang.artifact.environment.AvailEnvironment
@@ -353,7 +358,7 @@ class AvailWorkbench internal constructor(
 
 	/**
 	 * The directory which is the root of the project.
- 	 */
+	 */
 	val projectHomeDirectory =
 		availProjectFilePath.substringBeforeLast(File.separator)
 
@@ -572,7 +577,7 @@ class AvailWorkbench internal constructor(
 	val moduleTree: JTree
 
 	/**
-	 * The [tree][JTree] of module [entry&#32;points][A_Module.entryPoints].
+	 * The [tree][JTree] of module [entry&#32;points][entryPoints].
 	 */
 	val entryPointsTree: JTree
 
@@ -1760,7 +1765,7 @@ class AvailWorkbench internal constructor(
 		moduleSize: Long,
 		position: Long,
 		line: Int,
-		@Suppress("UNUSED_PARAMETER") phrase: ()->A_Phrase?)
+		@Suppress("unused") phrase: ()->A_Phrase?)
 	{
 		perModuleProgressLock.safeWrite {
 			if (position == moduleSize)
@@ -2441,6 +2446,25 @@ class AvailWorkbench internal constructor(
 				).image
 				setIconBadge(activeVersionSummary)
 			}
+
+			// Populate the Mac TouchBar, if it exists on the device.
+			//TODO – test on other hardware, and detect its absence.
+			val touchBar = JTouchBar()
+			touchBar.setCustomizationIdentifier("MySwingJavaTouchBar");
+			touchBar.addItem(
+				TouchBarItem(
+					"Build",
+					TouchBarButton().apply {
+						title = "Build"
+						action = TouchBarViewAction {
+							println("(Performing build)")
+							buildAction.actionPerformed(
+								ActionEvent(
+									this, ActionEvent.ACTION_PERFORMED, null))
+						}
+					},
+					true))
+			touchBar.show(this)
 		}
 		// Select an initial module if specified.
 		validate()
@@ -2672,7 +2696,7 @@ class AvailWorkbench internal constructor(
 	 *   [Pair]s.
 	 */
 	private fun allRelevantCompilationsDoThen(
-		@Suppress("UNUSED_PARAMETER") // Eventually use in Bloom filter search.
+		@Suppress("unused") // Eventually use in Bloom filter search.
 		nameInModule: NameInModule,
 		after: (List<Pair<ResolvedModuleName, ModuleCompilation>>)->Unit)
 	{
@@ -3571,8 +3595,8 @@ class AvailWorkbench internal constructor(
 		 * independent of any [AvailProjectManager].
 		 *
 		 * @param globalEnvironmentSettings
-		 * 	 The [GlobalEnvironmentSettings] for the environment this
-		 * 	 [AvailWorkbench] is being launched in.
+		 *   The [GlobalEnvironmentSettings] for the environment this
+		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
 		 * @param availProjectFilePath

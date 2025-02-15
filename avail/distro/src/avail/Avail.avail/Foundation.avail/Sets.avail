@@ -299,7 +299,7 @@ Public method "a set iteration prefix function" is
  *
  * @method "set body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
+ *      macro builds
  * @param "baseReturnType" "type" the base return type of the method
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ set,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
@@ -339,8 +339,11 @@ Public method "set body function(_,_)" is
 				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ set,
-     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+] : [
+	literal phrase ⇒ token,
+	expression phrase ⇒ set,
+	block phrase ⇒ []→ ⊤
+]→send phrase ⇒ ⊤;
 
 /**
  * Set iterating-loop that invokes {@param "action"} once for every

@@ -89,7 +89,7 @@ object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o),
+				TOKEN()),
 			enumerationWith(
 				set(
 					END_OF_FILE.atom,

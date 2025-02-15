@@ -62,8 +62,8 @@ internal class L2SemanticCaller constructor(frame: Frame)
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue =
-		frameTransformer(frame).let {
-			if (it == frame) this else L2SemanticCaller(it)
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this else L2SemanticCaller(newFrame)
 		}
 
 	/**
@@ -74,7 +74,7 @@ internal class L2SemanticCaller constructor(frame: Frame)
 	override val defaultRestriction: TypeRestriction
 		get() = continuationRestriction
 
-	override val isUsefulForGlobalValueNumbering: Boolean = true
+	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override val primaryVisualSortKey get() = PrimaryVisualSortKey.CALLER
 

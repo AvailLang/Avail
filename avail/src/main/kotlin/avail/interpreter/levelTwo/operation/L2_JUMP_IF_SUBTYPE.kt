@@ -38,8 +38,8 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -57,33 +57,25 @@ class L2_JUMP_IF_SUBTYPE(
 	@On(FAILURE) var ifNotSubtype: L2PcOperand
 ): L2ConditionalJump()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(firstType.registerString())
-		builder.append(" ⊆ ")
-		builder.append(seccondType.registerString())
+		renderPreamble()
+		append(' ')
+		append(firstType.registerString())
+		append(" ⊆ ")
+		append(seccondType.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::firstType, ::seccondType)
+			desiredOperandTypes, ::firstType, ::seccondType)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifSubtype.targetBlock() == ifNotSubtype.targetBlock())
-		{
-			regenerator.jumpTo(ifSubtype.targetBlock())
-			return
-		}
-		super.emitTransformedInstruction(regenerator)
+		if (replaceWithJumpIfPossible(this)) return
+		+this@L2_JUMP_IF_SUBTYPE
 	}
 
 	override fun translateToJVM(
@@ -92,8 +84,8 @@ class L2_JUMP_IF_SUBTYPE(
 	{
 		// :: if (first.isSubtypeOf(second)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, firstType.register())
-		translator.load(method, seccondType.register())
+		translator.load(method, firstType)
+		translator.load(method, seccondType)
 		A_Type.isSubtypeOfMethod.generateCall(method)
 		emitBranch(
 			translator, method, this, Opcodes.IFNE, ifSubtype, ifNotSubtype)

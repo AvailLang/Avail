@@ -31,6 +31,29 @@
  */
 package avail.descriptor.numbers
 
+import avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.divideIntoInfinityCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.divideStatic
+import avail.descriptor.numbers.A_Number.Companion.extractDoubleStatic
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isDouble
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.minusStatic
+import avail.descriptor.numbers.A_Number.Companion.multiplyByInfinityCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.numericCompare
+import avail.descriptor.numbers.A_Number.Companion.numericEqualStatic
+import avail.descriptor.numbers.A_Number.Companion.numericGreaterOrEqualStatic
+import avail.descriptor.numbers.A_Number.Companion.numericGreaterThanStatic
+import avail.descriptor.numbers.A_Number.Companion.numericLessOrEqualStatic
+import avail.descriptor.numbers.A_Number.Companion.numericLessThanStatic
+import avail.descriptor.numbers.A_Number.Companion.numericNotEqualStatic
+import avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAtPut
+import avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
+import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.representation.A_BasicObject
@@ -69,7 +92,22 @@ interface A_Number : A_BasicObject
 		 *   Whether the receiver represents that integer.
 		 */
 		fun A_Number.equalsInt(theInt: Int): Boolean =
-			dispatch { o_EqualsInt(it, theInt) }
+			dispatch { o_EqualsLong(it, theInt.toLong()) }
+
+		/**
+		 * Determine if the receiver is an Avail integer equivalent to the
+		 * specified Kotlin [Long].  Note that a non-integer should simply
+		 * answer false, not fail.  This operation was placed in A_Number for
+		 * organizational reasons, not type restriction.
+		 *
+		 * @param theLong
+		 *   The Java [Long] to compare against.
+		 * @return
+		 *   Whether the receiver represents that integer.
+		 */
+		fun A_Number.equalsLong(theLong: Long): Boolean =
+			dispatch { o_EqualsLong(it, theLong) }
+
 
 		/**
 		 * Subtract the receiver from the given [integer][IntegerDescriptor],
@@ -1288,7 +1326,7 @@ interface A_Number : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun equalsIntStatic(self: AvailObject, intValue: Int): Boolean =
-			self.descriptor().o_EqualsInt(self, intValue)
+			self.descriptor().o_EqualsLong(self, intValue.toLong())
 
 		/** The [CheckedMethod] for [isInt]. */
 		val equalsIntMethod = staticMethod(

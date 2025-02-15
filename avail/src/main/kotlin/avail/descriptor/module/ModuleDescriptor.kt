@@ -572,7 +572,7 @@ class ModuleDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("module ")
@@ -1101,7 +1101,7 @@ class ModuleDescriptor private constructor(
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(moduleName.hash(), -0x20c7c074)
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o
+	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE()
 
 	override fun o_ModuleAddGrammaticalRestriction(
 		self: AvailObject,
@@ -1402,7 +1402,7 @@ class ModuleDescriptor private constructor(
 		// Asserted because only the compiler should do this directly, and
 		// never for a closed module.
 		assertState(Loading)
-		assert(forwardDefinition.isInstanceOfKind(Types.FORWARD_DEFINITION.o))
+		assert(forwardDefinition.isInstanceOfKind(Types.FORWARD_DEFINITION()))
 		self.updateSlotShared(METHOD_DEFINITIONS_SET) {
 			assert(hasElement(forwardDefinition))
 			setWithoutElementCanDestroy(forwardDefinition, false)

@@ -35,7 +35,6 @@ import org.availlang.artifact.AvailArtifactType.LIBRARY
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme.FILE
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
 	id("java")
@@ -150,7 +149,7 @@ tasks {
 }
 
 val isReleaseVersion =
-	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
+	!version.toString().uppercase().endsWith("SNAPSHOT")
 
 signing {
 	useGpgCmd()

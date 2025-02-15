@@ -109,10 +109,17 @@ object P_CreateSendExpression : Primitive(3, CanInline)
 		}
 	}
 
+	/**
+	 * The returnType might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
+				ATOM(),
 				LIST_PHRASE.mostGeneralType,
 				topMeta),
 			SEND_PHRASE.mostGeneralType)

@@ -148,5 +148,5 @@ class CompoundIcon constructor(
 			icon.paintIcon(c, g, x + dx, y + dy)
 			dx += icon.iconWidth + xGap
 		}
-	 }
- }
+	}
+}

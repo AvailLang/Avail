@@ -374,7 +374,7 @@ internal enum class SerializerOperandEncoding
 	 * constant that indicates which representation should be used when decoding
 	 * later.  The constant is:
 	 *  * 0 - use ByteString.  Code points are bytes, uncompressed.
-	 *  * 1 - use TwoByteString.  Code points are in SMP, write them compressed.
+	 *  * 1 - use TwoByteString.  Code points are in BMP, write them compressed.
 	 *  * 2 - use TwentyOneBitString.
 	 *  * 3 - Not used, invalid if it occurs.
 	 * Then write the sequence of code points, either compressed or uncompressed
@@ -669,7 +669,7 @@ internal enum class SerializerOperandEncoding
 	 * @return
 	 *   The new operand.
 	 */
-	fun named(roleName: String): SerializerOperand
+	operator fun invoke(roleName: String): SerializerOperand
 	{
 		return SerializerOperand(this, roleName)
 	}

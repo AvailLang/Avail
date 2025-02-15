@@ -34,6 +34,7 @@ package avail.descriptor.types
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.maps.A_Map.Companion.mapSize
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -48,10 +49,12 @@ import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.contentType
 import avail.descriptor.types.A_Type.Companion.functionType
 import avail.descriptor.types.A_Type.Companion.keyType
+import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
@@ -65,10 +68,12 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
@@ -77,14 +82,20 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import avail.descriptor.types.TypeTag.Companion.restrictionsByTagRange
 import avail.descriptor.types.TypeTag.Modifier
 import avail.descriptor.types.TypeTag.Modifier.Abstract
 import avail.descriptor.types.TypeTag.Modifier.Co
 import avail.descriptor.types.TypeTag.Modifier.Contra
 import avail.descriptor.types.TypeTag.Modifier.Sup
 import avail.descriptor.types.TypeTag.Modifier.Unique
+import avail.descriptor.types.TypeTag.entries
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * `TypeTag` is an enumeration that corresponds with the basic type structure of
@@ -122,27 +133,25 @@ constructor(
 	instance: TypeTag? = null,
 	vararg modifiers: Modifier)
 {
-	UNKNOWN_TAG(null, instance = UNKNOWN_TAG, Abstract, Sup { Types.TOP.o }),
-	TOP_TAG(null, null, Abstract, Sup { Types.TOP.o }),
-	NIL_TAG(TOP_TAG, null, Unique { nil }, Sup { Types.TOP.o }),
-	NONTYPE_TAG(TOP_TAG, null, Sup { Types.NONTYPE.o }),
-	ATOM_TAG(NONTYPE_TAG, null, Sup { Types.ATOM.o }),
+	UNKNOWN_TAG(null, null /*UNKNOWN_TAG*/, Abstract, Sup { Types.TOP() }),
+	TOP_TAG(null, null, Abstract, Sup { Types.TOP() }),
+	NIL_TAG(TOP_TAG, null, Unique { nil }, Sup { Types.TOP() }),
+	ANY_TAG(TOP_TAG, null, Abstract, Sup { Types.ANY() }),
+	NONTYPE_TAG(ANY_TAG, null, Sup { Types.NONTYPE() }),
+	ATOM_TAG(NONTYPE_TAG, null, Sup { Types.ATOM() }),
 	BOOLEAN_TAG(ATOM_TAG, null, Abstract, Sup { booleanType }),
 	TRUE_TAG(BOOLEAN_TAG, null, Unique { trueObject }),
 	FALSE_TAG(BOOLEAN_TAG, null, Unique { falseObject }),
-	BUNDLE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE.o }),
-	BUNDLE_TREE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE_TREE.o }),
-	CHARACTER_TAG(NONTYPE_TAG, null, Sup { Types.CHARACTER.o }),
+	BUNDLE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE() }),
+	CHARACTER_TAG(NONTYPE_TAG, null, Sup { Types.CHARACTER() }),
 	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType }),
-	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION.o }),
+	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION() }),
 	FIBER_TAG(NONTYPE_TAG, null, Sup { mostGeneralFiberType() }),
 	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType() }),
-	LEXER_TAG(NONTYPE_TAG, null, Sup { Types.LEXER.o }),
-	MACRO_TAG(NONTYPE_TAG, null, Sup { Types.MACRO_DEFINITION.o }),
+	LEXER_TAG(NONTYPE_TAG, null, Sup { Types.LEXER() }),
 	MAP_TAG(NONTYPE_TAG, null, Sup { mostGeneralMapType() }),
-	METHOD_TAG(NONTYPE_TAG, null, Sup { Types.METHOD.o }),
-	MODULE_TAG(NONTYPE_TAG, null, Sup { Types.MODULE.o }),
-	NUMBER_TAG(NONTYPE_TAG, null, Abstract, Sup { Types.NUMBER.o }),
+	MODULE_TAG(NONTYPE_TAG, null, Sup { Types.MODULE() }),
+	NUMBER_TAG(NONTYPE_TAG, null, Abstract, Sup { Types.NUMBER() }),
 	EXTENDED_INTEGER_TAG(NUMBER_TAG, null, Abstract, Sup { extendedIntegers }),
 	INTEGER_TAG(EXTENDED_INTEGER_TAG, null, Sup { integers }),
 	WHOLE_NUMBER_TAG(INTEGER_TAG, null, Sup { wholeNumbers }),
@@ -151,13 +160,9 @@ constructor(
 		EXTENDED_INTEGER_TAG, null, Unique { negativeInfinity }),
 	POSITIVE_INFINITY_TAG(
 		EXTENDED_INTEGER_TAG, null, Unique { positiveInfinity }),
-	FLOAT_TAG(NUMBER_TAG, null, Sup { Types.FLOAT.o }),
-	DOUBLE_TAG(NUMBER_TAG, null, Sup { Types.DOUBLE.o }),
+	FLOAT_TAG(NUMBER_TAG, null, Sup { Types.FLOAT() }),
+	DOUBLE_TAG(NUMBER_TAG, null, Sup { Types.DOUBLE() }),
 	OBJECT_TAG(NONTYPE_TAG, null, Sup { mostGeneralObjectType }),
-	PARSING_PLAN_TAG(
-		NONTYPE_TAG, null, Sup { Types.DEFINITION_PARSING_PLAN.o }),
-	PARSING_PLAN_IN_PROGRESS_TAG(
-		NONTYPE_TAG, null, Sup {Types.PARSING_PLAN_IN_PROGRESS.o }),
 	PHRASE_TAG(
 		NONTYPE_TAG,
 		null,
@@ -268,23 +273,26 @@ constructor(
 	POJO_TAG(NONTYPE_TAG, null, Sup { mostGeneralPojoType() }),
 	RAW_FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralCompiledCodeType() }),
 	SET_TAG(NONTYPE_TAG, null, Sup { mostGeneralSetType() }),
-	TOKEN_TAG(NONTYPE_TAG, null, Sup { Types.TOKEN.o }),
+	TOKEN_TAG(NONTYPE_TAG, null, Sup { Types.TOKEN() }),
 	LITERAL_TOKEN_TAG(TOKEN_TAG, null, Sup { mostGeneralLiteralTokenType() }),
 	TUPLE_TAG(NONTYPE_TAG, null, Sup { mostGeneralTupleType }),
 	VARIABLE_TAG(NONTYPE_TAG, null, Sup { mostGeneralVariableType }),
+	METHOD_TAG(NONTYPE_TAG, null, Sup { Types.METHOD() }),
+	OTHER_NONTYPE_TAG(NONTYPE_TAG, null, Sup { Types.OTHER_NONTYPE() }),
 
 	// All the rest are the tags for types...
 	TOP_TYPE_TAG(
-		TOP_TAG, instance = TOP_TAG, Sup { instanceMeta(Types.TOP.o) }),
-	ANY_TYPE_TAG(TOP_TYPE_TAG, null, Sup { instanceMeta(Types.ANY.o) }),
+		ANY_TAG, instance = TOP_TAG, Sup { instanceMeta(Types.TOP()) }),
+	ANY_TYPE_TAG(
+		TOP_TYPE_TAG, instance = ANY_TAG, Sup { instanceMeta(Types.ANY()) }),
 	NONTYPE_TYPE_TAG(
 		ANY_TYPE_TAG,
 		instance = NONTYPE_TAG,
-		Sup { instanceMeta(Types.NONTYPE.o) }),
+		Sup { instanceMeta(Types.NONTYPE()) }),
 	ATOM_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = ATOM_TAG,
-		Sup { instanceMeta(Types.ATOM.o) }),
+		Sup { instanceMeta(Types.ATOM()) }),
 	BOOLEAN_TYPE_TAG(
 		ATOM_TYPE_TAG,
 		instance = BOOLEAN_TAG,
@@ -310,7 +318,7 @@ constructor(
 	NUMBER_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = NUMBER_TAG,
-		Sup { instanceMeta(Types.NUMBER.o) }),
+		Sup { instanceMeta(Types.NUMBER()) }),
 	EXTENDED_INTEGER_TYPE_TAG(
 		NUMBER_TYPE_TAG,
 		instance = EXTENDED_INTEGER_TAG,
@@ -350,7 +358,7 @@ constructor(
 	TOKEN_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = TOKEN_TAG,
-		Sup { instanceMeta(Types.TOKEN.o) }),
+		Sup { instanceMeta(Types.TOKEN()) }),
 	LITERAL_TOKEN_TYPE_TAG(
 		TOKEN_TYPE_TAG,
 		instance = LITERAL_TOKEN_TAG,
@@ -379,7 +387,7 @@ constructor(
 	META_TAG(
 		ANY_TYPE_TAG,
 		instance = TOP_TYPE_TAG,
-		Sup { instanceMeta(instanceMeta(Types.TOP.o)) }),
+		Sup { instanceMeta(instanceMeta(Types.TOP())) }),
 	BOTTOM_TYPE_TAG(
 		TOP_TYPE_TAG,
 		NIL_TAG,
@@ -427,7 +435,7 @@ constructor(
 	 * use that tag.  After initialization, this property has the least upper
 	 * bound [A_Type] that constrains all those values.
 	 */
-	val supremum by lazy { supremumProducer() }
+	val supremum by lazy { supremumProducer().makeShared() }
 
 	/**
 	 * The array of [Co]variant relationships defined during construction.
@@ -514,7 +522,7 @@ constructor(
 		 *   types), the set type's element type can be extracted by running the
 		 *   [traverse] function of the "element" covariant type parameter.
 		 */
-		abstract class Variant constructor(
+		sealed class Variant constructor(
 			val name: String,
 			val traverse: A_Type.()->A_Type
 		) : Modifier()
@@ -610,7 +618,51 @@ constructor(
 	 * Answer the integer range [type][IntegerRangeTypeDescriptor] that contains
 	 * the values of the ordinals of this tag and its children.
 	 */
-	fun tagRangeType(): A_Type = inclusive(ordinal, highOrdinal)
+	val tagRangeType: A_Type by lazy {
+		inclusive(ordinal, highOrdinal).makeShared()
+	}
+
+	/**
+	 * Add types to [excludedTags] corresponding to suprema of tags that are
+	 * completely excluded from the [tagRestriction].
+	 */
+	private fun collectExclusions(
+		tagRestriction: TypeRestriction,
+		excludedTags: MutableSet<TypeTag>)
+	{
+		var allIn = true
+		var allOut = true
+		for (i in ordinal..highOrdinal)
+		{
+			when
+			{
+				tagFromOrdinal(i).isAbstract -> continue
+				tagRestriction.intersectsType(instanceType(fromInt(i))) ->
+					allOut = false
+				else -> allIn = false
+			}
+		}
+		if (allIn) return
+		if (allOut)
+		{
+			excludedTags.add(this)
+			return
+		}
+		// It's a mix, so scan the children.
+		var scan = ordinal + 1
+		while (scan <= highOrdinal)
+		{
+			val tag = tagFromOrdinal(scan)
+			tag.collectExclusions(tagRestriction, excludedTags)
+			scan = tag.highOrdinal + 1
+		}
+		// Special case for bottom.
+		if (!tagRestriction.containsEntireType(
+				singleInt(BOTTOM_TYPE_TAG.ordinal)))
+		{
+			excludedTags.add(BOTTOM_TYPE_TAG)
+		}
+	}
 
 	companion object
 	{
@@ -623,8 +675,67 @@ constructor(
 		/** Look up the [TypeTag] with the given ordinal. */
 		fun tagFromOrdinal(ordinal: Int) = all[ordinal]
 
+		/**
+		 * A map keyed by an unboxed int [TypeRestriction] over tag ordinals
+		 * that caches the [TypeRestriction] that would be applied to a boxed
+		 * value whose tag is restricted to the key.
+		 */
+		private val restrictionsByTagRange =
+			ConcurrentHashMap<TypeRestriction, TypeRestriction>()
+
+		/**
+		 * Compute what to store for [givenTagRestriction] in
+		 * [restrictionsByTagRange].
+		 */
+		private fun computeRestrictionForTagRestriction(
+			givenTagRestriction: TypeRestriction
+		): TypeRestriction
+		{
+			givenTagRestriction.makeShared()
+			if (givenTagRestriction.isImpossible)
+				return bottomRestriction
+			val tagRestriction = givenTagRestriction.intersectionWithType(
+				inclusive(TOP_TAG.ordinal, TypeTag.count - 1))
+			// If the bottom tag is omitted, exclude it from the result.
+			assert(tagRestriction.isUnboxedInt)
+			tagRestriction.makeShared()
+			val tagRange = tagRestriction.type
+			val low = tagRange.lowerBound.extractInt
+			val high = tagRange.upperBound.extractInt
+			val lowTag = tagFromOrdinal(low)
+			val highTag = tagFromOrdinal(high)
+			val baseTag = lowTag.commonAncestorWith(highTag)
+			assert(baseTag.ordinal <= low && high <= baseTag.highOrdinal)
+			// Now scan the tag tree, excluding suprema of tags that are
+			// entirely excluded from the tagRange.
+			val excludedTags = mutableSetOf<TypeTag>()
+			baseTag.collectExclusions(tagRestriction, excludedTags)
+			var baseRestriction = boxedRestrictionForType(baseTag.supremum)
+			return excludedTags
+				.map(TypeTag::supremum)
+				.fold(baseRestriction, TypeRestriction::minusType)
+				.makeShared()
+		}
+
+		/**
+		 * Given a [TypeRestriction] whose instances tag orginals of some value,
+		 * look up or create a [TypeRestriction] that can be applied to the
+		 * value that has those possible tag ordinals.
+		 */
+		fun restrictionForTagRestriction(
+			tagRestriction: TypeRestriction
+		): TypeRestriction = restrictionsByTagRange.computeIfAbsent(
+			tagRestriction, ::computeRestrictionForTagRestriction)
+
 		init
 		{
+			/**
+			 * Interestingly, this can't be done any more in the constructor.
+			 * It used to pass UNKNOWN_TAG as an argument to its own
+			 * constructor, which Kotlin now forbids (and detects).
+			 */
+			UNKNOWN_TAG.metaTag = UNKNOWN_TAG
+
 			all.forEach { tag ->
 				if (tag.metaTag === null && tag != UNKNOWN_TAG)
 				{

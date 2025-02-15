@@ -52,6 +52,7 @@ import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
@@ -90,6 +91,9 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.getValue
+import avail.descriptor.variables.A_Variable.Companion.getValueClearing
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
@@ -99,30 +103,30 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.assignmentFunction
 import avail.interpreter.execution.Interpreter.Companion.log
+import avail.interpreter.levelOne.L1Ext_doDuplicate_ord
+import avail.interpreter.levelOne.L1Ext_doGetLiteral_ord
+import avail.interpreter.levelOne.L1Ext_doPermute_ord
+import avail.interpreter.levelOne.L1Ext_doPushLabel_ord
+import avail.interpreter.levelOne.L1Ext_doSetLiteral_ord
+import avail.interpreter.levelOne.L1Ext_doSetLocalSlot_ord
+import avail.interpreter.levelOne.L1Ext_doSuperCall_ord
 import avail.interpreter.levelOne.L1Operation
-import avail.interpreter.levelOne.L1Operation.L1Ext_doDuplicate
-import avail.interpreter.levelOne.L1Operation.L1Ext_doGetLiteral
-import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
-import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
-import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
-import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
-import avail.interpreter.levelOne.L1Operation.L1Ext_doSuperCall
-import avail.interpreter.levelOne.L1Operation.L1_doCall
-import avail.interpreter.levelOne.L1Operation.L1_doClose
-import avail.interpreter.levelOne.L1Operation.L1_doExtension
-import avail.interpreter.levelOne.L1Operation.L1_doGetLocal
-import avail.interpreter.levelOne.L1Operation.L1_doGetLocalClearing
-import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
-import avail.interpreter.levelOne.L1Operation.L1_doGetOuterClearing
-import avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
-import avail.interpreter.levelOne.L1Operation.L1_doPop
-import avail.interpreter.levelOne.L1Operation.L1_doPushLastLocal
-import avail.interpreter.levelOne.L1Operation.L1_doPushLastOuter
-import avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
-import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
-import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
-import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
-import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
+import avail.interpreter.levelOne.L1_doCall_ord
+import avail.interpreter.levelOne.L1_doClose_ord
+import avail.interpreter.levelOne.L1_doExtension_ord
+import avail.interpreter.levelOne.L1_doGetLastOuter_ord
+import avail.interpreter.levelOne.L1_doGetLocalClearing_ord
+import avail.interpreter.levelOne.L1_doGetLocal_ord
+import avail.interpreter.levelOne.L1_doGetOuter_ord
+import avail.interpreter.levelOne.L1_doMakeTuple_ord
+import avail.interpreter.levelOne.L1_doPop_ord
+import avail.interpreter.levelOne.L1_doPushLastLocal_ord
+import avail.interpreter.levelOne.L1_doPushLastOuter_ord
+import avail.interpreter.levelOne.L1_doPushLiteral_ord
+import avail.interpreter.levelOne.L1_doPushLocal_ord
+import avail.interpreter.levelOne.L1_doPushOuter_ord
+import avail.interpreter.levelOne.L1_doSetLocal_ord
+import avail.interpreter.levelOne.L1_doSetOuter_ord
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.AFTER_REIFICATION
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
@@ -298,7 +302,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							returnNow = false
 							exitNow = true
 							offset = Int.MAX_VALUE
-							setLatestResult(null)
+							clearLatestResult()
 							levelOneStepper.wipeRegisters()
 							f.lock {
 								synchronized(f) {
@@ -358,7 +362,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			}
 			when (operationOrdinal)
 			{
-				L1_doCall.ordinal ->
+				L1_doCall_ord ->
 				{
 					val bundle: A_Bundle =
 						code.literalAt(instructionDecoder.getOperand())
@@ -370,7 +374,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
-							"{0}         L1 call ({1})",
+							"{0}\tL1 call ({1})",
 							interpreter.debugModeString,
 							bundle.message.atomName)
 					}
@@ -388,7 +392,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					val method: A_Method = bundle.bundleMethod
 					val matching: A_Definition = try
 					{
-						method.lookupByValuesFromList(interpreter.argsBuffer)
+						method.lookupByValuesFromList(
+							interpreter.argsBuffer,
+							code.lookupStat)
 					}
 					catch (e: MethodDefinitionException)
 					{
@@ -422,11 +428,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// Replace the stack slot.
 					pointerAtPut(stackp, result)
 				}
-				L1_doPushLiteral.ordinal ->
+				L1_doPushLiteral_ord ->
 				{
 					push(code.literalAt(instructionDecoder.getOperand()))
 				}
-				L1_doPushLastLocal.ordinal ->
+				L1_doPushLastLocal_ord ->
 				{
 					val localIndex = instructionDecoder.getOperand()
 					val local = pointerAt(localIndex)
@@ -434,13 +440,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					pointerAtPut(localIndex, nil)
 					push(local)
 				}
-				L1_doPushLocal.ordinal ->
+				L1_doPushLocal_ord ->
 				{
 					val local = pointerAt(instructionDecoder.getOperand())
 					assert(local.notNil)
 					push(local.makeImmutable())
 				}
-				L1_doPushLastOuter.ordinal ->
+				L1_doPushLastOuter_ord ->
 				{
 					val outerIndex = instructionDecoder.getOperand()
 					val outer: A_BasicObject = function.outerVarAt(outerIndex)
@@ -451,7 +457,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						else -> push(outer.makeImmutable())
 					}
 				}
-				L1_doClose.ordinal ->
+				L1_doClose_ord ->
 				{
 					val numCopiedVars = instructionDecoder.getOperand()
 					val codeToClose =
@@ -476,13 +482,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					push(newFunction)
 				}
-				L1_doSetLocal.ordinal ->
+				L1_doSetLocal_ord ->
 				{
 					val reifier = setVariable(
 						pointerAt(instructionDecoder.getOperand()), pop())
 					if (reifier !== null) return reifier
 				}
-				L1_doGetLocalClearing.ordinal ->
+				L1_doGetLocalClearing_ord ->
 				{
 					val localVariable: A_Variable =
 						pointerAt(instructionDecoder.getOperand())
@@ -491,18 +497,18 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					if (valueOrReifier is StackReifier) return valueOrReifier
 					push(valueOrReifier as AvailObject)
 				}
-				L1_doPushOuter.ordinal ->
+				L1_doPushOuter_ord ->
 				{
 					val outer =
 						function.outerVarAt(instructionDecoder.getOperand())
 					assert(outer.notNil)
 					push(outer.makeImmutable())
 				}
-				L1_doPop.ordinal ->
+				L1_doPop_ord ->
 				{
 					pop()
 				}
-				L1_doGetOuterClearing.ordinal ->
+				L1_doGetLastOuter_ord ->
 				{
 					val outerVariable: A_Variable =
 						function.outerVarAt(instructionDecoder.getOperand())
@@ -512,21 +518,21 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					val value = valueOrReifier as AvailObject
 					push(value.makeImmutable())
 				}
-				L1_doSetOuter.ordinal ->
+				L1_doSetOuter_ord ->
 				{
 					val reifier = setVariable(
 						function.outerVarAt(instructionDecoder.getOperand()),
 						pop())
 					if (reifier !== null) return reifier
 				}
-				L1_doGetLocal.ordinal ->
+				L1_doGetLocal_ord ->
 				{
 					val valueOrReifier =
 						getVariable(pointerAt(instructionDecoder.getOperand()))
 					if (valueOrReifier is StackReifier) return valueOrReifier
 					push(valueOrReifier as AvailObject)
 				}
-				L1_doMakeTuple.ordinal ->
+				L1_doMakeTuple_ord ->
 				{
 					when (val size = instructionDecoder.getOperand())
 					{
@@ -535,7 +541,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						else -> push(generateReversedFrom(size) { pop() })
 					}
 				}
-				L1_doGetOuter.ordinal ->
+				L1_doGetOuter_ord ->
 				{
 					val valueOrReifier = getVariable(
 						function.outerVarAt(instructionDecoder.getOperand()))
@@ -545,11 +551,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					push(valueOrReifier as AvailObject)
 				}
-				L1_doExtension.ordinal ->
+				L1_doExtension_ord ->
 				{
 					throw AssertionError("Illegal dispatch nybblecode")
 				}
-				L1Ext_doPushLabel.ordinal ->
+				L1Ext_doPushLabel_ord ->
 				{
 					val numArgs = code.numArgs()
 					assert(code.codePrimitive() === null)
@@ -643,7 +649,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						}
 					}
 				}
-				L1Ext_doGetLiteral.ordinal ->
+				L1Ext_doGetLiteral_ord ->
 				{
 					val valueOrReifier = getVariable(
 						code.literalAt(instructionDecoder.getOperand()))
@@ -653,16 +659,16 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					push(valueOrReifier as AvailObject)
 				}
-				L1Ext_doSetLiteral.ordinal ->
+				L1Ext_doSetLiteral_ord ->
 				{
 					setVariable(
 						code.literalAt(instructionDecoder.getOperand()), pop())
 				}
-				L1Ext_doDuplicate.ordinal ->
+				L1Ext_doDuplicate_ord ->
 				{
 					push(pointerAt(stackp).makeImmutable())
 				}
-				L1Ext_doPermute.ordinal ->
+				L1Ext_doPermute_ord ->
 				{
 					val permutation: A_Tuple =
 						code.literalAt(instructionDecoder.getOperand())
@@ -678,7 +684,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						pointerAtPut(stackp + size - i, values[i - 1]!!)
 					}
 				}
-				L1Ext_doSuperCall.ordinal ->
+				L1Ext_doSuperCall_ord ->
 				{
 					val bundle: A_Bundle =
 						code.literalAt(instructionDecoder.getOperand())
@@ -747,7 +753,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// Replace the stack slot.
 					pointerAtPut(stackp, result)
 				}
-				L1Ext_doSetLocalSlot.ordinal ->
+				L1Ext_doSetLocalSlot_ord ->
 				{
 					pointerAtPut(instructionDecoder.getOperand(), pop())
 				}
@@ -1077,8 +1083,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedPointers = pointers
 			val savedPc = pc()
 			val savedStackp = stackp
-			val reportedResult = newVariableWithContentType(Types.ANY.o)
-			reportedResult.setValueNoCheck(result)
+			val reportedResult = newVariableWithContentType(Types.ANY(), result)
 			val argsBuffer = interpreter.argsBuffer
 			argsBuffer.clear()
 			argsBuffer.add(returner as AvailObject)

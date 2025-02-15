@@ -52,18 +52,17 @@ class L2_TYPE_UNION(
 	var outputType: L2WriteBoxedOperand
 ) : L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(outputType.registerString())
-		builder.append(" ← ")
-		builder.append(firstType.registerString())
-		builder.append(" ∪ ")
-		builder.append(secondType.registerString())
+		renderPreamble()
+		append(' ')
+		append(outputType.registerString())
+		append(" ← ")
+		append(firstType.registerString())
+		append(" ∪ ")
+		append(secondType.registerString())
 	}
 
 	override fun translateToJVM(
@@ -71,8 +70,8 @@ class L2_TYPE_UNION(
 		method: MethodVisitor)
 	{
 		// :: unionType = firstInputType.typeUnion(secondInputType);
-		translator.load(method, firstType.register())
-		translator.load(method, secondType.register())
+		translator.load(method, firstType)
+		translator.load(method, secondType)
 		A_Type.typeUnionMethod.generateCall(method)
 		translator.store(method, outputType.register())
 	}

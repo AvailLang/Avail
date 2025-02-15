@@ -35,9 +35,9 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
-import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
 import java.util.Collections.unmodifiableList
@@ -54,7 +54,7 @@ constructor(
 ) : L2Operand()
 {
 	/** The [List] of [L2WriteBoxedOperand]s. */
-	protected val privateElements: List<L2WriteBoxedOperand> =
+	val privateElements: List<L2WriteBoxedOperand> =
 		unmodifiableList(elements)
 
 	/** The [List] of [L2WriteBoxedOperand]s. */
@@ -133,42 +133,67 @@ constructor(
 		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
+	override fun adjustCloneForInstruction(
+		theInstruction: L2Instruction,
+		generator: L2GeneratorInterface)
+	{
+		super.adjustCloneForInstruction(theInstruction, generator)
+		elements.forEach {
+			it.adjustCloneForInstruction(theInstruction, generator)
+		}
+	}
+
+	override fun transformEachWrite(
+		transformer: (L2WriteOperand<*>)->L2WriteOperand<*>
+	): L2WriteBoxedVectorOperand =
+		clone(elements.map { it.transformEachWrite(transformer).cast() })
+
 	override fun appendTo(builder: StringBuilder): Unit = with(builder)
 	{
 		append("→@<")
+		val big = elements.size > 4
 		var first = true
 		for (write in elements)
 		{
-			if (!first)
-			{
-				append(", ")
-			}
+			if (!first) append(",")
+			if (big) append("\n\t\t") else append (" ")
 			append(write.registerString())
 			first = false
 		}
+		if (big) append("\n\t")
 		append(">")
+	}
+
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		targets.add(
+			elements.joinToString(", ", "[", "]") {
+				it.register().toString()
+			})
+	}
+
+	override fun equivalentTo(other: L2Operand) =
+		other is L2WriteBoxedVectorOperand
+			&& elements.size == other.elements.size
+			&& elements.zip(other.elements).all { (a, b) -> a.equivalentTo(b) }
+
+	override val equivalentHash: Int get() =
+		elements.sumOf { it.equivalentHash }
+
+	override fun mergeFromOperands(operands: List<L2Operand>)
+	{
+		assert(operands.all(::equivalentTo))
+		@Suppress("UNCHECKED_CAST")
+		operands as List<L2WriteBoxedVectorOperand>
+		elements.forEachIndexed { elementIndex, element ->
+			element.mergeFromOperands(
+				operands.map { it.elements[elementIndex] })
+		}
 	}
 
 	override fun postOptimizationCleanup() =
 		elements.forEach(L2WriteBoxedOperand::postOptimizationCleanup)
-
-	/**
-	 * This vector operand is the input to an [L2_PHI]
-	 * instruction that has just been added.  Update it specially, to take into
-	 * account the correspondence between vector elements and predecessor edges.
-	 *
-	 * @param predecessorEdges
-	 *   The [List] of predecessor edges ([L2PcOperand]s) that correspond
-	 *   positionally with the elements of the vector.
-	 */
-	fun instructionWasAddedForPhi(predecessorEdges: List<L2PcOperand>)
-	{
-		val fanIn = elements.size
-		assert(fanIn == predecessorEdges.size)
-		for (i in 0 until fanIn)
-		{
-			// The read operand should use the corresponding incoming manifest.
-			elements[i].instructionWasAdded(predecessorEdges[i].manifest())
-		}
-	}
 }

@@ -174,7 +174,7 @@ class LexerDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		self.lexerMethod.bundles
@@ -198,7 +198,7 @@ class LexerDescriptor private constructor(
 
 	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
-	override fun o_Kind(self: AvailObject): A_Type = LEXER.o
+	override fun o_Kind(self: AvailObject): A_Type = LEXER()
 
 	/**
 	 * Answer either `null` if the filter has not yet run for this Latin1
@@ -287,7 +287,7 @@ class LexerDescriptor private constructor(
 	companion object
 	{
 		private val lexerFilterFunctionType: A_Type = functionType(
-			tuple(Types.CHARACTER.o),
+			tuple(Types.CHARACTER()),
 			booleanType
 		).makeShared()
 
@@ -300,7 +300,7 @@ class LexerDescriptor private constructor(
 				naturalNumbers),
 			setTypeForSizesContentType(
 				wholeNumbers,
-				oneOrMoreOf(Types.TOKEN.o))
+				oneOrMoreOf(Types.TOKEN()))
 		).makeShared()
 
 		fun lexerBodyFunctionType(): A_Type = lexerBodyFunctionType

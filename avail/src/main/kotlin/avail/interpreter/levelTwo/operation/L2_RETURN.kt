@@ -36,6 +36,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -53,14 +54,23 @@ class L2_RETURN(
 {
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(returnValue.registerString())
+		renderPreamble()
+		append(' ')
+		append(returnValue.registerString())
+	}
+
+	/**
+	 * If a local variable has been created, ensure any final write will really
+	 * happen before returning from the function.
+	 */
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		forcePostponedWritesToLocals()
+		basicRegenerateForPostponement()
 	}
 
 	override fun translateToJVM(
@@ -70,7 +80,7 @@ class L2_RETURN(
 		// :: interpreter.setLatestResult(value);
 		translator.loadInterpreter(method)
 		method.visitInsn(Opcodes.DUP)
-		translator.load(method, returnValue.register())
+		translator.load(method, returnValue)
 		Interpreter.setLatestResultMethod.generateCall(method)
 		// :: interpreter.returnNow = true;
 		method.visitInsn(Opcodes.DUP)

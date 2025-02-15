@@ -45,18 +45,19 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import java.lang.String.format
 
 /**
- * This is a [DecisionStep] which tests a particular argument position
- * against some constant type.
+ * This is a [DecisionStep] which tests a particular argument position against
+ * some constant type.
  *
  * @constructor
  * Construct the new instance.
@@ -169,7 +170,7 @@ constructor(
 		list.add(ifCheckFails)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -179,9 +180,7 @@ constructor(
 			LookupTree<A_Definition, A_Tuple>,
 			List<L2SemanticBoxedValue>>>
 	{
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		if (!generator.currentlyReachable())
+		if (!currentlyReachable())
 		{
 			// If no paths lead here, don't generate code.  This can happen
 			// when we short-circuit type-tests into unconditional jumps,
@@ -190,9 +189,9 @@ constructor(
 			return emptyList()
 		}
 		val counter = callSiteHelper.branchLabelCounter++
-		val passBlock = generator.createBasicBlock(
+		val passBlock = createBasicBlock(
 			"Pass #$counter for ${callSiteHelper.quotedBundleName}")
-		val failBlock = generator.createBasicBlock(
+		val failBlock = createBasicBlock(
 			"Fail #$counter for ${callSiteHelper.quotedBundleName}")
 		val result = listOf(
 			Triple(
@@ -205,7 +204,7 @@ constructor(
 				extraSemanticArguments))
 		val semanticArgument =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val argRead = generator.readBoxed(semanticArgument)
+		val argRead = readBoxed(semanticArgument)
 		val argRestriction = argRead.restriction()
 
 		// Tricky here.  We have the type we want to test for, and we have
@@ -214,8 +213,7 @@ constructor(
 		// might be a combination of restrictions and bottoms.  Deal with
 		// the easy, common cases first.
 		val superUnionElementType =
-			callSiteHelper.superUnionType.typeAtIndex(
-				argumentPositionToTest)
+			callSiteHelper.superUnionType.typeAtIndex(argumentPositionToTest)
 		if (superUnionElementType.isBottom)
 		{
 			// It's not a super call, or at least this test isn't related to
@@ -225,13 +223,13 @@ constructor(
 			if (intersection === TypeRestriction.bottomRestriction)
 			{
 				// It will always fail the test.
-				generator.jumpTo(failBlock)
+				jumpTo(failBlock)
 				return result
 			}
 			if (argRestriction.type.isSubtypeOf(argumentTypeToTest))
 			{
 				// It will always pass the test.
-				generator.jumpTo(passBlock)
+				jumpTo(passBlock)
 				return result
 			}
 
@@ -247,19 +245,18 @@ constructor(
 				var instance: A_BasicObject = iterator.next()
 				while (iterator.hasNext())
 				{
-					val nextCheckOrFail = generator.createBasicBlock(
+					val nextCheckOrFail = createBasicBlock(
 						"test next case of enumeration")
-					generator.jumpIfEqualsConstant(
+					jumpIfEqualsConstant(
 						argRead, instance, passBlock, nextCheckOrFail)
-					generator.startBlock(nextCheckOrFail)
+					startBlock(nextCheckOrFail)
 					instance = iterator.next()
 				}
-				generator.jumpIfEqualsConstant(
-					argRead, instance, passBlock, failBlock)
+				jumpIfEqualsConstant(argRead, instance, passBlock, failBlock)
 				return result
 			}
 			// A runtime test is needed, and it's not a small enumeration.
-			generator.jumpIfKindOfConstant(
+			jumpIfKindOfConstant(
 				argRead, argumentTypeToTest, passBlock, failBlock)
 			return result
 		}
@@ -274,8 +271,8 @@ constructor(
 			when
 			{
 				superUnionElementType.isSubtypeOf(argumentTypeToTest) ->
-					generator.jumpTo(passBlock)
-				else -> generator.jumpTo(failBlock)
+					jumpTo(passBlock)
+				else -> jumpTo(failBlock)
 			}
 			return result
 		}
@@ -289,23 +286,23 @@ constructor(
 		// generate a more complex collection of branches – but this is already
 		// a pretty rare case.
 		val argMeta = instanceMeta(argRestriction.type)
-		val argTypeWrite =
-			generator.boxedWriteTemp(argRestriction.metaRestriction())
-		generator.addInstruction(L2_GET_TYPE(argRead, argTypeWrite))
-		val superUnionReg = generator.boxedConstant(superUnionElementType)
-		val unionReg = generator.boxedWriteTemp(
+		val argTypeWrite = boxedWriteTemp(
+			"original arg type",
+			argRestriction.metaRestriction())
+		+L2_GET_TYPE(argRead, argTypeWrite)
+		val superUnionReg = boxedConstant(superUnionElementType)
+		val unionReg = boxedWriteTemp(
+			"supercast arg type",
 			boxedRestrictionForType(argMeta.typeUnion(superUnionReg.type())))
-		generator.addInstruction(
-			L2_TYPE_UNION(
-				generator.readBoxed(argTypeWrite),
-				superUnionReg,
-				unionReg))
-		generator.addInstruction(
-			L2_JUMP_IF_SUBTYPE(
-				generator.readBoxed(unionReg),
-				generator.boxedConstant(argumentTypeToTest),
-				edgeTo(passBlock),
-				edgeTo(failBlock)))
+		+L2_TYPE_UNION(
+			readBoxed(argTypeWrite),
+			superUnionReg,
+			unionReg)
+		+L2_JUMP_IF_SUBTYPE(
+			readBoxed(unionReg),
+			boxedConstant(argumentTypeToTest),
+			edgeTo(passBlock),
+			edgeTo(failBlock))
 		return result
 	}
 }

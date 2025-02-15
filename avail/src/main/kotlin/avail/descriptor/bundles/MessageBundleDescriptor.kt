@@ -38,7 +38,6 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
 import avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS
 import avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
 import avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MACROS_TUPLE
@@ -61,6 +60,7 @@ import avail.descriptor.methods.A_Sendable
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.methods.MethodDescriptor.Companion.runtimeDispatcher
 import avail.descriptor.module.A_Module.Companion.addBundle
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
@@ -210,7 +210,7 @@ class MessageBundleDescriptor private constructor(
 		if (tree === null) {
 			val method = self[METHOD]
 			val numArgs = method.numArgs
-			val newTree = MethodDescriptor.runtimeDispatcher.createRoot(
+			val newTree = runtimeDispatcher.createRoot(
 				toList(self[MACROS_TUPLE]),
 				nCopies(
 					numArgs,
@@ -331,7 +331,7 @@ class MessageBundleDescriptor private constructor(
 	override fun o_Hash(self: AvailObject) =
 		combine2(self.message.hash(), 0x0312CAB9)
 
-	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o
+	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE()
 
 	override fun o_LookupMacroByPhraseTuple(
 		self: AvailObject,
@@ -340,11 +340,12 @@ class MessageBundleDescriptor private constructor(
 	{
 		val methodDescriptor =
 			self.bundleMethod.traversed().descriptor() as MethodDescriptor
-		return MethodDescriptor.runtimeDispatcher.lookupByValues(
+		return runtimeDispatcher.lookupByValues(
 			macroTestingTree(self),
 			argumentPhraseTuple.toList(),
 			Unit,
-			methodDescriptor.dynamicLookupStats())
+			methodDescriptor.dynamicLookupStats(),
+			null)
 	}
 
 	override fun o_MacrosTuple(self: AvailObject): A_Tuple
@@ -410,7 +411,7 @@ class MessageBundleDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		// The existing definitions are also printed in parentheses to help

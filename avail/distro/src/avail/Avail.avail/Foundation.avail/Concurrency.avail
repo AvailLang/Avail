@@ -102,7 +102,7 @@ Names
 
 	/* Exceptions. */
 	"worker exception",
-	
+
 	/* Stylers. */
 	"concurrent loop styler"
 Body
@@ -2341,9 +2341,9 @@ styled by concurrent loop styler;
  * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples"
  *           "Transformers"
  */
- Public macro "reject each…,…from_§in parallel«_-way»where_" is
- a two-input tuple iteration prefix function,
- [
+Public macro "reject each…,…from_§in parallel«_-way»where_" is
+	a two-input tuple iteration prefix function,
+[
 	elementPhrase : literal phrase ⇒ token,
 	indexPhrase : literal phrase ⇒ token,
 	aTuple : expression phrase ⇒ tuple,
@@ -2511,9 +2511,9 @@ a set iteration prefix function,
  * @category "Concurrency" "Control Structures" "Loops" "Collections" "Maps"
  *           "Transformers"
  */
- Public macro "reject each…→…from_§in parallel«_-way»where_" is
- a map iteration prefix function,
- [
+Public macro "reject each…→…from_§in parallel«_-way»where_" is
+	a map iteration prefix function,
+[
 	keyPhrase : literal phrase ⇒ token,
 	valuePhrase : literal phrase ⇒ token,
 	aMap : expression phrase ⇒ map,

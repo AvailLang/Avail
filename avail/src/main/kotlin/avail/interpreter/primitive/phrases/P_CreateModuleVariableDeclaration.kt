@@ -67,10 +67,17 @@ object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 			newModuleVariable(token, variable, nil, nil))
 	}
 
+	/**
+	 * The variable might be an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				mostGeneralVariableType,
-				TOKEN.o),
+				TOKEN()),
 			MODULE_VARIABLE_PHRASE.mostGeneralType)
 }

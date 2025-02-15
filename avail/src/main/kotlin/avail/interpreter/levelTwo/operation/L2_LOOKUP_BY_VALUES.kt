@@ -36,10 +36,12 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.encounteredFallbackLookup
+import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
 import avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
-import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.toSet
@@ -55,20 +57,19 @@ import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_NO_METHOD
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import avail.exceptions.AvailException.Companion.numericCodeMethod
-import avail.exceptions.MethodDefinitionException
-import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
-import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
+import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES.Companion.lookup
+import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES.Companion.lookupWithTracking
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -77,23 +78,43 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 import java.util.logging.Level
 
 /**
  * Look up the method to invoke. Use the provided vector of arguments to
  * perform a polymorphic lookup. Write the resulting function into the
- * specified destination register. If the lookup fails, then branch to the
- * specified [offset][Interpreter.setOffset].
+ * specified destination register. If the lookup fails, then branch to
+ * [ifLookupFailed].
+ *
+ * @constructor
+ * Build the instruction.
+ *
+ * @property messageBundle
+ *   The [A_Bundle] in which to look up a method definition.
+ * @property arguments
+ *   The arguments supplied ot the lookup site.
+ * @property trackForReoptimzation
+ *   If true, generate code that calls [A_RawFunction.encounteredFallbackLookup]
+ *   for the calling raw function, eventually leading to reoptimization of the
+ *   chunk.  This is set to false when the complexity of the call indicates the
+ *   dispatch should not be inlined, and any attempt to track it would be wasted
+ *   effort, since it would be reoptimized into the same code.
+ * @property lookedUpFunction
+ *   Where to write the looked up function if successful.
+ * @property ifLookupSucceeded
+ *   Where to jump if successful.
+ * @property ifLookupFailed
+ *   Where to jump if the lookup was unsuccessful.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_LOOKUP_BY_VALUES(
+class L2_LOOKUP_BY_VALUES
+constructor(
 	var messageBundle: L2ConstantOperand,
 	var arguments: L2ReadBoxedVectorOperand,
+	var trackForReoptimzation: L2ArbitraryConstantOperand<Boolean>,
 	@On(SUCCESS) var lookedUpFunction: L2WriteBoxedOperand,
-	@On(FAILURE) var errorCode: L2WriteBoxedOperand,
 	@On(SUCCESS) var ifLookupSucceeded: L2PcOperand,
 	@On(FAILURE) var ifLookupFailed: L2PcOperand
 ) : L2ControlFlowInstruction()
@@ -104,11 +125,6 @@ class L2_LOOKUP_BY_VALUES(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-
-		// If the lookup failed, it supplies the reason to the errorCodeReg.
-		ifLookupFailed.manifest().setRestriction(
-			errorCode.pickSemanticValue(),
-			errorCode.restriction())
 
 		// If the lookup succeeds, the functionReg will be set, and we can also
 		// conclude that the arguments satisfied at least one of the found
@@ -157,43 +173,48 @@ class L2_LOOKUP_BY_VALUES(
 		}
 	}
 
+	/** Lookups must not clobber the arguments. */
+	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
+		get() = emptyList()
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		// :: try {
-		val tryStart = Label()
-		val catchStart = Label()
-		method.visitTryCatchBlock(
-			tryStart,
-			catchStart,
-			catchStart,
-			Type.getInternalName(MethodDefinitionException::class.java))
-		method.visitLabel(tryStart)
-		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method)
-		translator.literal(method, messageBundle.constant)
+		// :: interpreter
+		translator.loadLiteralObject(method, messageBundle.constant)
+		// :: interpreter, bundle
 		translator.objectArray(
 			method, arguments.elements, AvailObject::class.java)
-		lookupMethod.generateCall(method)
+		// :: interpreter, bundle, argsArray
+		if (trackForReoptimzation.constant)
+		{
+			lookupWithTrackingMethod.generateCall(method)
+		}
+		else
+		{
+			lookupMethod.generateCall(method)
+		}
+
+		// :: function?
+		method.visitInsn(Opcodes.DUP)
+		// :: function?, function?
+		val ifFound = Label()
+		method.visitJumpInsn(Opcodes.IFNONNULL, ifFound)
+
+		// The function was null, indicating a lookup failure.
+		// :: null
+		method.visitInsn(Opcodes.POP)
+		// ::
+		translator.jump(method, ifLookupFailed)
+
+		method.visitLabel(ifFound)
+		// The function was not null, indicating a lookup success.
+		// :: function
 		translator.store(method, lookedUpFunction.register())
-		// ::    goto lookupSucceeded;
-		// Note that we cannot potentially eliminate this branch with a
-		// fall through, because the next instruction expects a
-		// MethodDefinitionException to be pushed onto the stack. So always do
-		// the jump.
-		translator.jump(method, ifLookupSucceeded)
-		// :: } catch (MethodDefinitionException e) {
-		method.visitLabel(catchStart)
-		// ::    errorCode = e.numericCode();
-		numericCodeMethod.generateCall(method)
-		method.visitTypeInsn(
-			Opcodes.CHECKCAST,
-			Type.getInternalName(AvailObject::class.java))
-		translator.store(method, errorCode.register())
-		// ::    goto lookupFailed;
-		translator.jumpOrFallThrough(method, ifLookupFailed)
-		// :: }
+		// ::
+		translator.jumpOrFallThrough(method, ifLookupSucceeded)
 	}
 
 	companion object
@@ -211,7 +232,9 @@ class L2_LOOKUP_BY_VALUES(
 				E_FORWARD_METHOD_DEFINITION))
 
 		/**
-		 * Perform the lookup.
+		 * Perform the lookup.  Answer the looked-up function if found and
+		 * unique, otherwise `null`.  This is invoked by fallback dispatch logic
+		 * in L2 chunks.
 		 *
 		 * @param interpreter
 		 *   The [Interpreter].
@@ -220,17 +243,15 @@ class L2_LOOKUP_BY_VALUES(
 		 * @param values
 		 *   The [values][AvailObject] for the lookup.
 		 * @return
-		 *   The unique [function][A_Function].
-		 * @throws MethodDefinitionException
-		 *   If the lookup did not resolve to a unique executable function.
+		 *   The unique [function][A_Function], or `null`.
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		@Throws(MethodDefinitionException::class)
 		fun lookup(
 			interpreter: Interpreter,
 			bundle: A_Bundle,
-			values: Array<AvailObject>): A_Function
+			values: Array<AvailObject>
+		): A_Function?
 		{
 			if (Interpreter.debugL2)
 			{
@@ -241,15 +262,50 @@ class L2_LOOKUP_BY_VALUES(
 					interpreter.debugModeString,
 					bundle.message.atomName)
 			}
-			val definitionToCall =
-				bundle.bundleMethod.lookupByValuesFromList(listOf(*values))
-			when
+			val definitionToCall = bundle.bundleMethod.lookupByValuesFromList(
+				listOf(*values),
+				interpreter.function?.code()?.lookupStat)
+			if (!definitionToCall.isMethodDefinition()) return null
+			return definitionToCall.bodyBlock()
+		}
+
+		/**
+		 * Perform the lookup.  Answer the looked-up function if found and
+		 * unique, otherwise `null`.  This is invoked by fallback dispatch logic
+		 * in L2 chunks.
+		 *
+		 * @param interpreter
+		 *   The [Interpreter].
+		 * @param bundle
+		 *   The [A_Bundle].
+		 * @param values
+		 *   The [values][AvailObject] for the lookup.
+		 * @return
+		 *   The unique [function][A_Function], or `null`.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun lookupWithTracking(
+			interpreter: Interpreter,
+			bundle: A_Bundle,
+			values: Array<AvailObject>
+		): A_Function?
+		{
+			if (Interpreter.debugL2)
 			{
-				definitionToCall.isAbstractDefinition() ->
-					throw abstractMethod()
-				definitionToCall.isForwardDefinition() -> throw forwardMethod()
-				else -> return definitionToCall.bodyBlock()
+				log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}Lookup {1}",
+					interpreter.debugModeString,
+					bundle.message.atomName)
 			}
+			val definitionToCall = bundle.bundleMethod.lookupByValuesFromList(
+				listOf(*values),
+				interpreter.function?.code()?.lookupStat)
+			if (!definitionToCall.isMethodDefinition()) return null
+			interpreter.chunk!!.code!!.encounteredFallbackLookup()
+			return definitionToCall.bodyBlock()
 		}
 
 		/**
@@ -258,6 +314,17 @@ class L2_LOOKUP_BY_VALUES(
 		private val lookupMethod = staticMethod(
 			L2_LOOKUP_BY_VALUES::class.java,
 			::lookup.name,
+			A_Function::class.java,
+			Interpreter::class.java,
+			A_Bundle::class.java,
+			Array<AvailObject>::class.java)
+
+		/**
+		 * The [CheckedMethod] for [lookupWithTracking].
+		 */
+		private val lookupWithTrackingMethod = staticMethod(
+			L2_LOOKUP_BY_VALUES::class.java,
+			::lookupWithTracking.name,
 			A_Function::class.java,
 			Interpreter::class.java,
 			A_Bundle::class.java,

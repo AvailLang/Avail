@@ -46,11 +46,17 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
  * @property uniqueId
  *   An integer which should be unique across all other instances for the same
  *   [Frame].
+ * @property name
+ *   An optional short name that describes the purpose of this temp.  It does
+ *   not need to be unique.
  * @constructor
  * Create a new `L2SemanticTemp` semantic value.
  *
  * @param frame
  *   The frame for which this represents a temporary value.
+ * @param name
+ *   An optional short name that describes the purpose of this temp.  It does
+ *   not need to be unique.
  * @param uniqueId
  *   An integer which should be unique across all other instances of this class
  *   created for this [Frame].
@@ -58,6 +64,7 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
 internal class L2SemanticTemp
 constructor(
 	frame: Frame,
+	val name: String?,
 	val uniqueId: Int
 ) : L2FrameSpecificSemanticValue(frame, uniqueId xor -0x5d6360e4)
 {
@@ -71,18 +78,22 @@ constructor(
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue =
-		frameTransformer(frame).let {
-			if (it == frame) this else L2SemanticTemp(it, uniqueId)
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this
+			else L2SemanticTemp(newFrame, name, uniqueId)
 		}
 
 	override val defaultRestriction: TypeRestriction
 		get() = TypeRestriction.topRestriction
 
-	override val primaryVisualSortKey get() = PrimaryVisualSortKey.TEMP
+	override val primaryVisualSortKey get() =
+		if (name == null) PrimaryVisualSortKey.TEMP
+		else PrimaryVisualSortKey.NAMED_TEMP
 
 	override fun toString() = buildString {
 			append("T")
 			append(uniqueId)
-			if (frame.depth() > 1) append("in $frame")
+			name?.let { append("($it)") }
+			if (frame.depth() > 1) append(" in $frame")
 		}
 }

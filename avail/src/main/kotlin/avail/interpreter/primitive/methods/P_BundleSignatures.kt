@@ -73,6 +73,6 @@ object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				MESSAGE_BUNDLE.o),
-			setTypeForSizesContentType(wholeNumbers, DEFINITION.o))
+				MESSAGE_BUNDLE()),
+			setTypeForSizesContentType(wholeNumbers, DEFINITION()))
 }

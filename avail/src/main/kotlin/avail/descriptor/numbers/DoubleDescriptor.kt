@@ -111,7 +111,7 @@ class DoubleDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		builder.append(getDouble(self))
@@ -256,7 +256,7 @@ class DoubleDescriptor private constructor(
 			!isInfinite(it) && !isNaN(it) && floor(it) == it
 		}
 
-	override fun o_Kind(self: AvailObject): A_Type = DOUBLE.o
+	override fun o_Kind(self: AvailObject): A_Type = DOUBLE()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,

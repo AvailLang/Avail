@@ -65,10 +65,17 @@ object P_CreateVariableUse : Primitive(2, CannotFail, CanInline)
 		return interpreter.primitiveSuccess(newUse(token, decl))
 	}
 
+	/**
+	 * The token might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType,
-				TOKEN.o),
+				TOKEN()),
 			VARIABLE_USE_PHRASE.mostGeneralType)
 }

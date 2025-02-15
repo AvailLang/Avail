@@ -580,7 +580,7 @@ class L1Decompiler constructor(
 			}
 		}
 
-		override fun L1_doGetOuterClearing()
+		override fun L1_doGetLastOuter()
 		{
 			L1_doGetOuter()
 		}

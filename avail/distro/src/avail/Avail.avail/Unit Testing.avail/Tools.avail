@@ -205,28 +205,81 @@ Public macro "Require:_(_)" is
 styled by assertion styler;
 
 /**
+ * The arguments were supposed to be equal, but weren't, so raise an exception.
+ *
+ * @method "Failed equality requirement with message_"
+ * @param "actual" "any"
+ * @param "expected" "any"
+ * @param "message" "string"
+ * @returns "⊥"
+ * @raises "failed-requirement exception"
+ *         Always.
+ * @category "Unit Testing"
+ */
+Private method "Failed equality requirement with message_" is
+[
+	message : string
+|
+	Raise a descriptive failed-requirement exception with
+		error message ::= message
+] : ⊥;
+
+/**
  * Require that the arguments are equal.
  *
  * @method "Require:_=_"
- * @param "actual" "any"
- * @param "expected" "any"
+ * @param "actual" "expression phrase ⇒ any"
+ * @param "expected" "expression phrase ⇒ any"
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "expected"} ≠ {@param "value"}.
  * @category "Unit Testing"
  */
-Public method "Require:_=_" is
+Public macro "Require:_=_" is
 [
-	actual : any,
-	expected : any
+	actual : expression phrase ⇒ any,
+	expected : expression phrase ⇒ any
 |
-	If actual ≠ expected then
-	[
-		Raise a descriptive failed-requirement exception with
-			error message ::=
-				format "expected=“①”, actual=“②”" with expected, actual
-	];
-] : ⊤
+	sequence-as-expression «
+		seq «
+			⟦
+				[
+					tempActual1 ::= ⦊actual⦉;
+					tempExpected1 ::= ⦊expected⦉;
+					Unless tempActual1 = tempExpected1 then
+					[
+						Failed equality requirement with message
+							format "expected=“①”, actual=“②”"
+							with tempExpected1, tempActual1
+					];
+				]
+			⟧'s statements
+		»
+	»
+]
+styled by assertion styler;
+
+Public macro "Require:_=_(_)" is
+[
+	actual : expression phrase ⇒ any,
+	expected : expression phrase ⇒ any,
+	message : expression phrase ⇒ string
+|
+	sequence-as-expression «
+		seq «
+			⟦
+				[
+					tempActual1 ::= ⦊actual⦉;
+					tempExpected1 ::= ⦊expected⦉;
+					Unless tempActual1 = tempExpected1 then
+					[
+						Failed equality requirement with message ⦊message⦉
+					];
+				]
+			⟧'s statements
+		»
+	»
+]
 styled by assertion styler;
 
 /**
@@ -245,62 +298,41 @@ Semantic restriction "Require:_=_" is
 	If actual ∩ expected = ⊥ then
 	[
 		Reject parse, expected:
-			format "a predicate that could ever be true (because \
-				\|\n\t\t\t(“①”)\n\t\tdoesn't intersect\n\t\t\t(“②”)"
+			format "a predicate that could ever be true (because
+				\|\t\t\t(“①”)
+				\|\t\tdoesn't intersect
+				\|\t\t\t(“②”)"
 			with actual, expected
 	];
 	⊤
 ];
 
-Private method "Require:_=__" is
-[
-	actual : any,
-	expected : any,
-	message : []→string
-|
-	If actual ≠ expected then
-	[
-		Raise a descriptive failed-requirement exception with
-			error message ::=
-				format "“①”: expected=“②”, actual=“③”"
-				with message(), expected, actual
-	];
-] : ⊤
-styled by assertion styler;
-
 /**
- * Require that the arguments are equal.
+ * Reject the current parse if the arguments are guaranteed unequal.
  *
- * @macro "Require:_=_(_)"
- * @param "actual" "expression phrase ⇒ any"
- * @param "expected" "expression phrase ⇒ any"
- * @param "message" "expression phrase ⇒ string"
- *        Additional information that should be attached to the exception in the
- *        event of failure. It is only evaluated if the arguments are unequal.
- * @returns "send phrase ⇒ ⊤"
+ * @method "Require:_=_(_)"
+ * @restricts "any's type"
+ * @restricts "any's type"
+ * @restricts "string's type"
  * @category "Unit Testing"
  */
-Public macro "Require:_=_(_)" is
+Semantic restriction "Require:_=_(_)" is
 [
-	actual : expression phrase ⇒ any,
-	expected : expression phrase ⇒ any,
-	message : expression phrase ⇒ string
+	actual : any's type,
+	expected : any's type,
+	message : string's type
 |
-	If actual's semantic type ∩ expected's semantic type = ⊥ then
+	If actual ∩ expected = ⊥ then
 	[
 		Reject parse, expected:
-			format "a predicate that could ever be true (because \
-				\|\n\t\t\t(“①”)\n\t\tdoesn't intersect\n\t\t\t(“②”)"
-			with actual's semantic type, expected's semantic type
+			format "a predicate that could ever be true (because
+				\|\t\t\t(“①”)
+				\|\t\tdoesn't intersect
+				\|\t\t\t(“②”)"
+			with actual, expected
 	];
-	restricted send $"Require:_=__" with
-		«<
-			actual,
-			expected,
-			«[<message>] : message's semantic type»
-		>» : ⊤
-]
-styled by assertion styler;
+	⊤
+];
 
 /**
  * Require that the {@param "aFunction"} raises an exception of type
@@ -613,10 +645,9 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 	/**
 	 * @method "Require:_=_"
 	 * @forbids 1 "_≤_" "_<_" "_②≥_①" "_②>_①" "_=_" "«_‡=»" "«_‡«=|≤|<»!»"
-	 * 		"«_‡«=|≥|>»!»"
+	 *      "«_‡«=|≥|>»!»"
 	 * @forbids 2 "_≤_" "_<_" "_②≥_①" "_②>_①" "_=_" "«_‡=»" "«_‡«=|≤|<»!»"
-	 * 		"«_‡«=|≥|>»!»"
-	 * @forbids 3 "∅"
+	 *      "«_‡«=|≥|>»!»"
 	 */
 	Grammatical restriction "Require:_=_" is <comparisons, comparisons>;
 

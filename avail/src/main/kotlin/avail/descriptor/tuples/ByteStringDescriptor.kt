@@ -112,7 +112,32 @@ class ByteStringDescriptor private constructor(
 		 * [byte string][ByteStringDescriptor].  The bytes occur in Little
 		 * Endian order within each long.
 		 */
-		RAW_LONGS_;
+		RAW_LONGS_
+		{
+			override fun describeIntegerSlot(
+				self: AvailObject,
+				value: Long,
+				subscript: Int,
+				bitFields: List<BitField>,
+				builder: StringBuilder)
+			{
+				assert(bitFields.isEmpty())
+				super.describeIntegerSlot(
+					self, value, subscript, bitFields, builder)
+				builder.append("  |  ")
+				val offset = (subscript - 1) shl 3
+				for (i in offset + 1 .. min(self.tupleSize, offset + 8))
+				{
+					val c = self.byteSlot(this, i).toInt()
+					builder.appendCodePoint(
+						when
+						{
+							Character.isISOControl(c) -> '.'.code
+							else -> c
+						})
+				}
+			}
+		};
 
 		companion object
 		{

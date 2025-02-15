@@ -100,5 +100,5 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), TOP.o)
+		functionType(tuple(mostGeneralFiberType()), TOP())
 }

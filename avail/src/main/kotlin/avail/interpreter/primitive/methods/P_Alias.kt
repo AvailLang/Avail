@@ -142,8 +142,8 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				stringType,
-				ATOM.o),
-			TOP.o)
+				ATOM()),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

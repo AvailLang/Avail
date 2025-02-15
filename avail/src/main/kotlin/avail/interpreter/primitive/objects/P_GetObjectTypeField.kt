@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.objects
 
+import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.hasKey
@@ -38,6 +40,7 @@ import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
@@ -57,6 +60,9 @@ import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 /**
  * **Primitive:** Extract the specified [field's][AtomDescriptor] type from the
@@ -78,7 +84,7 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralObjectMeta, ATOM.o), anyMeta)
+		functionType(tuple(mostGeneralObjectMeta, ATOM()), anyMeta)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
@@ -129,4 +135,18 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SUCH_FIELD))
+
+	override fun printSemanticInvocation(
+		invocation: L2SemanticPrimitiveInvocation
+	): String
+	{
+		assert(invocation.primitive == this)
+		val (obj, field) = invocation.argumentSemanticValues
+		if (!field.isConstant) return super.printSemanticInvocation(invocation)
+		val fieldAtom: A_Atom = field.constant!!
+		val fieldName = fieldAtom.atomName.asNativeString()
+		var objString = obj.toString()
+		if (obj.requiresParentheses()) objString = "($objString)"
+		return "$objString.$fieldName"
+	}
 }

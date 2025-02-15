@@ -47,6 +47,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
@@ -99,10 +100,10 @@ object P_CatchException : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				functionType(emptyTuple, TOP.o),
-				zeroOrMoreOf(functionType(tuple(bottom), TOP.o)),
-				functionType(emptyTuple, TOP.o)),
-			TOP.o)
+				functionType(emptyTuple, TOP()),
+				zeroOrMoreOf(functionType(tuple(bottom), TOP())),
+				functionType(emptyTuple, TOP())),
+			bottom)
 
 	override fun privateFailureVariableType(): A_Type =
 		// Note: The failure value is itself a new variable stuffed into the

@@ -36,12 +36,12 @@ import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedObjectAt
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -72,12 +72,11 @@ class L2_ENTER_L2_CHUNK(
 
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
+		renderPreamble()
 	}
 
 	override fun translateToJVM(
@@ -91,7 +90,7 @@ class L2_ENTER_L2_CHUNK(
 		{
 			// :: if (!checkValidity()) {
 			translator.loadInterpreter(method)
-			translator.literal(method, entryPointOffsetInDefaultChunk.value)
+			translator.intConstant(method, entryPointOffsetInDefaultChunk.value)
 			Interpreter.checkValidityMethod.generateCall(method)
 			val isValidLabel = Label()
 			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
@@ -106,10 +105,7 @@ class L2_ENTER_L2_CHUNK(
 		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set
 		// up for us the lists of registers that were saved.  The interpreter
 		// should have extracted the registerDump for us already.
-		val localNumberLists =
-			translator.liveLocalNumbersByKindPerEntryPoint[this]
-		if (localNumberLists !== null)
-		{
+		translator.entryPointLiveInfo[offset]?.let { localNumberLists ->
 			val boxedList = localNumberLists[BOXED_KIND]!!
 			val intsList = localNumberLists[INTEGER_KIND]!!
 			val floatsList = localNumberLists[FLOAT_KIND]!!

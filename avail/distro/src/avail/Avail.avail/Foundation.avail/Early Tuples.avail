@@ -1195,7 +1195,7 @@ Public method "serialize_" is
 	value : any
 |
 	Primitive Serialize (failureCode : serialization-failed code's type);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : byte+;
 
 /**
@@ -1218,7 +1218,7 @@ Public method "deserialize_based on_" is
 	context : module
 |
 	Primitive Deserialize (failureCode : deserialization-failed code's type);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : any*;
 
 /**

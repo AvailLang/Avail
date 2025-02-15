@@ -53,7 +53,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Or
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import kotlin.math.max
 
@@ -111,22 +112,26 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers, integers), integers)
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
-	): Boolean = Or.generateBinaryIntOperation(
-		this,
-		arguments,
-		argumentTypes,
-		callSiteHelper,
-		typeGuaranteeFunction = { restrictedArgTypes ->
-			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
-		},
-		fallbackBody = {
-			generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
-		})
+		callSiteHelper: CallSiteHelper
+	): Boolean = Or.run {
+		generateBinaryIntOperation(
+			this@P_BitwiseOr,
+			arguments,
+			argumentTypes,
+			callSiteHelper,
+			typeGuaranteeFunction = { restrictedArgTypes ->
+				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+			},
+			fallbackBody = {
+				generateGeneralFunctionInvocation(
+					functionToCallReg, false, callSiteHelper, arguments)
+			})
+	}
+
+	override val semanticinfixOperatorString: String? get() = "Or"
 }

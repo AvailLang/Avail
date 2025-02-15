@@ -44,7 +44,6 @@ import avail.descriptor.types.A_Type.Companion.typeIntersectionOfVariableType
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfVariableType
 import avail.descriptor.types.A_Type.Companion.writeType
-import avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots
 import avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.READ_TYPE
 import avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.WRITE_TYPE
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
@@ -99,7 +98,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("read ")

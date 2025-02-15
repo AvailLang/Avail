@@ -49,7 +49,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -71,7 +72,7 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o, topMeta),
+			tuple(ANY(), topMeta),
 			booleanType)
 
 	/**
@@ -85,33 +86,31 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 	 * subtype) and x1' ∉ y'.
 	 *  1. The test is always true if y = ⊤.
 	 */
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (xReg, yTypeReg) = arguments
 
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		if (xReg.restriction().metaRestriction().intersection(
-			yTypeReg.restriction()).type.isVacuousType)
+				yTypeReg.restriction()).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
-			callSiteHelper.useAnswer(
-				generator.boxedConstant(falseObject))
+			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
 			return true
 		}
 
-		val ifInstance = generator.createBasicBlock("if instance")
-		val ifNotInstance = generator.createBasicBlock("not instance")
+		val ifInstance = createBasicBlock("if instance")
+		val ifNotInstance = createBasicBlock("not instance")
 
 		val constantYType = yTypeReg.constantOrNull
 		if (constantYType !== null)
 		{
-			generator.jumpIfKindOfConstant(
+			jumpIfKindOfConstant(
 				xReg,
 				constantYType.typeIntersection(xReg.type()),
 				ifInstance,
@@ -119,22 +118,21 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		else
 		{
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT(
-					xReg,
-					yTypeReg,
-					edgeTo(ifInstance),
-					edgeTo(ifNotInstance)))
+			+L2_JUMP_IF_KIND_OF_OBJECT(
+				xReg,
+				yTypeReg,
+				edgeTo(ifInstance),
+				edgeTo(ifNotInstance))
 		}
-		generator.startBlock(ifInstance)
-		if (generator.currentlyReachable())
+		startBlock(ifInstance)
+		if (currentlyReachable())
 		{
-			callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
+			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
 		}
-		generator.startBlock(ifNotInstance)
-		if (generator.currentlyReachable())
+		startBlock(ifNotInstance)
+		if (currentlyReachable())
 		{
-			callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
 		}
 		return true
 	}

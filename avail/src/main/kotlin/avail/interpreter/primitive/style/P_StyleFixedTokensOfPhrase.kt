@@ -105,5 +105,5 @@ object P_StyleFixedTokensOfPhrase : Primitive(
 			PARSE_PHRASE.mostGeneralType,
 			stringType,
 			booleanType),
-		Types.TOP.o)
+		Types.TOP())
 }

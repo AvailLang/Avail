@@ -31,13 +31,14 @@
  */
 package avail.interpreter.primitive.variables
 
-import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.hasValue
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
@@ -45,7 +46,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer [true][AtomDescriptor.trueObject] if the
+ * **Primitive:** Answer [true][trueObject] if the
  * [variable][VariableDescriptor] is unassigned (has no value).
  */
 @Suppress("unused")

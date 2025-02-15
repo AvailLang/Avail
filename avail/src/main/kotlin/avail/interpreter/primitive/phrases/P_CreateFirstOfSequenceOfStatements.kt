@@ -73,7 +73,7 @@ object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanInline)
 		{
 			statements.tupleAt(i).flattenStatementsInto(flat)
 		}
-		if (!containsOnlyStatements(flat, TOP.o))
+		if (!containsOnlyStatements(flat, TOP()))
 		{
 			return interpreter.primitiveFailure(
 				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)

@@ -33,7 +33,6 @@
 package avail.serialization
 
 import avail.AvailRuntime
-import avail.descriptor.atoms.A_Atom
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -175,18 +174,4 @@ class Deserializer constructor(
 	 */
 	fun serializedObjects(): A_Tuple =
 		tupleFromList(serializedObjects).makeShared()
-
-	companion object
-	{
-		/**
-		 * Look up the [special&#32;atom][AvailRuntime.specialAtoms].
-		 *
-		 * @param index
-		 *   The special atom's ordinal.
-		 * @return
-		 *   The special atom known to the virtual machine's runtime.
-		 */
-		internal fun specialAtom(index: Int): A_Atom =
-			AvailRuntime.specialAtoms[index]
-	}
 }

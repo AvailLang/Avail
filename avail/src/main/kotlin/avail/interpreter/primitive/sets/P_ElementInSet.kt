@@ -31,9 +31,13 @@
  */
 package avail.interpreter.primitive.sets
 
+import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.hasElement
+import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -46,6 +50,11 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_CREATE_SET
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Check if the [object][AvailObject] is an element of the
@@ -67,9 +76,72 @@ object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o,
+				ANY(),
 				mostGeneralSetType()),
 			booleanType)
 
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		callSiteHelper: CallSiteHelper): Boolean
+	{
+		val (value, set) = arguments
+		val setSource = set.definitionSkippingMoves()
+		val allSources = when
+		{
+			setSource is L2_CREATE_SET -> setSource.values.elements
+			(setSource is L2_MOVE_CONSTANT_BOXED
+				&& setSource.constant().constant.setSize <=
+					largestChainedTest * 3
+			) -> setSource.constant().constant.map(::boxedConstant)
+			else -> return false
+		}
+		// We can see the instruction that created the set, so we can just
+		// check if any of the elements equals the value being tested.  We
+		// can even eliminate the tests for values in the set whose type is
+		// disjoint from the test value's type.
+		if (allSources.size > largestChainedTest * 3)
+		{
+			// Don't even bother scanning for vacuous type intersections.
+			return false
+		}
+		val possibleElements = allSources.filterNot { element ->
+			element.restriction().intersection(value.restriction())
+				.isImpossible
+		}
+		if (possibleElements.size > largestChainedTest)
+		{
+			return false
+		}
+		// There are few enough elements that we can just test them.  This
+		// has a potential advantage of not constructing the set, but also
+		// perhaps exposing splittable paths where a particular semantic
+		// value of the set is known to match or not match the test value at
+		// the test site.
+		val anyMatched = createBasicBlock("matched element")
+		possibleElements.forEachIndexed { i, possible ->
+			val notMatched = createBasicBlock("didn't match #${i+1}")
+			jumpIfEqualsObjects(value, possible, anyMatched, notMatched)
+			startBlock(notMatched)
+		}
+		// Code generation is at the point where nothing matched.
+		callSiteHelper.useConstantAnswer(falseObject)
+		startBlock(anyMatched)
+		if (currentlyReachable())
+		{
+			callSiteHelper.useConstantAnswer(trueObject)
+		}
+		return true
+	}
+
 	override val canDestroyArguments get() = false
+
+	/**
+	 * If we know the set creation instruction that created the set under test,
+	 * we can replace it with a chain of tests, but only if the chain would be
+	 * no longer than this.
+ 	 */
+	const val largestChainedTest = 5
 }

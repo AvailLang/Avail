@@ -100,7 +100,7 @@ class FloatDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		builder.append(self.extractFloat)
@@ -237,7 +237,7 @@ class FloatDescriptor private constructor(
 				&& floor(it.toDouble()) == it.toDouble()
 		}
 
-	override fun o_Kind(self: AvailObject): A_Type = FLOAT.o
+	override fun o_Kind(self: AvailObject): A_Type = FLOAT()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,

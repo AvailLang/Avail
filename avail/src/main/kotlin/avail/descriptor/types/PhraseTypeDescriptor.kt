@@ -212,7 +212,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.LITERAL_PHRASE_TAG)
 		{
-			override fun produceMostGeneralYieldType(): A_Type = ANY.o
+			override fun produceMostGeneralYieldType(): A_Type = ANY()
 		},
 
 		/**
@@ -235,7 +235,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.SUPER_CAST_PHRASE_TAG)
 		{
-			override fun produceMostGeneralYieldType(): A_Type = ANY.o
+			override fun produceMostGeneralYieldType(): A_Type = ANY()
 		},
 
 		/** The kind of a [send&#32;phrase][SendPhraseDescriptor]. */
@@ -303,7 +303,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.VARIABLE_USE_PHRASE_TAG)
 		{
-			override fun produceMostGeneralYieldType(): A_Type = ANY.o
+			override fun produceMostGeneralYieldType(): A_Type = ANY()
 		},
 
 		/**
@@ -315,7 +315,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.SEQUENCE_AS_EXPRESSION_PHRASE_TAG)
 		{
-			override fun produceMostGeneralYieldType(): A_Type = TOP.o
+			override fun produceMostGeneralYieldType(): A_Type = TOP()
 		},
 
 		/** A phrase that does not produce a result. */
@@ -424,7 +424,7 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   The most general inner type for this kind of phrase.
 		 */
-		protected open fun produceMostGeneralYieldType(): A_Type = TOP.o
+		protected open fun produceMostGeneralYieldType(): A_Type = TOP()
 
 		/**
 		 * The most general inner type for this kind of phrase.  Computed lazily
@@ -851,7 +851,7 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		if (kind === PhraseKind.PARSE_PHRASE)

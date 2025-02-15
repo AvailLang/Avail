@@ -43,7 +43,8 @@ import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.interpreter.levelTwo.L2Chunk.Generation
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.createDefaultChunk
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
 import avail.interpreter.primitive.controlflow.P_RestartContinuation

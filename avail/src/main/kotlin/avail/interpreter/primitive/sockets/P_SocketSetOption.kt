@@ -59,7 +59,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.sockets.P_ServerSocketSetOption.privateBlockTypeRestriction
+import avail.interpreter.primitive.sockets.P_SocketSetOption.privateBlockTypeRestriction
 import avail.utility.cast
 import java.io.IOException
 import java.net.SocketOption
@@ -132,12 +132,12 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
+				ATOM(),
 				mapTypeForSizesKeyTypeValueType(
 					inclusive(0, Options.socketOptions.size - 1),
 					inclusive(1, Options.socketOptions.size - 1),
-					ANY.o)),
-			TOP.o)
+					ANY())),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

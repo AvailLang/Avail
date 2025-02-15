@@ -40,11 +40,10 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
@@ -62,34 +61,6 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 	override val operandType: L2OperandType get() = READ_BOXED
 
 	/**
-	 * Construct a new `L2ReadBoxedOperand` for the specified [L2SemanticValue]
-	 * and [TypeRestriction], using information from the given
-	 * [L2ValueManifest].
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
-	 *   this [L2Operand].
-	 * @param restriction
-	 *   The [TypeRestriction] to constrain this particular read. This
-	 *   restriction has been guaranteed by the VM at the point where this
-	 *   operand's instruction occurs.
-	 * @param manifest
-	 *   The [L2ValueManifest] from which to extract a suitable definition
-	 *   instruction.
-	 */
-	constructor(
-		semanticValue: L2SemanticValue<BOXED_KIND>,
-		restriction: TypeRestriction,
-		manifest: L2ValueManifest
-	) : super(
-		semanticValue,
-		restriction,
-		manifest.getDefinition(semanticValue))
-	{
-		assert(restriction.isBoxed)
-	}
-
-	/**
 	 * Construct a new `L2ReadBoxedOperand` with an explicit definition
 	 * register [L2WriteBoxedOperand].
 	 *
@@ -98,24 +69,20 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 	 *   this [L2Operand].
 	 * @param restriction
 	 *   The [TypeRestriction] that bounds the value being read.
-	 * @param register
-	 *   The [L2BoxedRegister] being read by this operand.
 	 */
 	constructor(
 		semanticValue: L2SemanticValue<BOXED_KIND>,
 		restriction: TypeRestriction,
-		register: L2Register<BOXED_KIND>
+		register: L2Register<BOXED_KIND>? = null
 	) : super(semanticValue, restriction, register)
 
 	override fun semanticValue(): L2SemanticBoxedValue =
 		super.semanticValue().cast()
 
-	override fun copyForRegister(
-		newRegister: L2Register<BOXED_KIND>
-	) = L2ReadBoxedOperand(semanticValue(), restriction(), newRegister)
+	override fun register(): L2BoxedRegister = super.register().cast()
 
 	override fun createConstantRegister() =
-		L2BoxedRegister(-999, restriction().constantOrNull!!)
+		L2BoxedRegister(-999, constantOrNull!!)
 
 	override fun createSemanticConstant() = constant(register().constant!!)
 

@@ -468,6 +468,18 @@ Method "_[_]" is
 Method "_[_]" is stable at
 	function accepting <tuple, natural number> and returning any;
 
+/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
+ * of the former.
+ */
+Invoke
+[
+	cast ::= [ t : {string|natural number} | t ];
+	names ::= cast <"∪_">→set into cast;
+	exclusions ::= cast <"_[_.._]">→set into cast;
+	Grammatical restriction names is <exclusions>;
+]
+with <>;
+
 /**
  * Strengthen the tuple subscript operation. The strongest available static type
  * is the type union of the elements within the slice indicated by the range of
@@ -498,18 +510,10 @@ Semantic restriction "_[_]" is
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
 	];
-	union : type := ⊥;
 	limit ::= |aTupleType's leading types| + 1;
 	startIndex ::= ⌊index⌋ min limit;
 	endIndex ::= ⌈index⌉ min limit;
-	From startIndex to endIndex do
-	[
-		i : natural number
-	|
-		union := union ∪ aTupleType[i];
-		true
-	];
-	union
+	∪ aTupleType[startIndex .. endIndex]
 ];
 
 /**
@@ -544,31 +548,12 @@ Semantic restriction "_[_]" is
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
 	];
-	union : type := ⊥;
 	limit ::= |aTupleType's leading types| + 1;
 	startIndex ::= ⌊index⌋ min limit;
 	endIndex ::= ⌈index⌉ min limit;
-	From startIndex to endIndex do
-	[
-		i : natural number
-	|
-		union := union ∪ aTupleType[i];
-		true
-	];
+	union ::= ∪ aTupleType [startIndex .. endIndex];
 	union's type
 ];
-
-/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
- * of the former.
- */
-Invoke
-[
-	cast ::= [ t : {string|natural number} | t ];
-	names ::= cast <"∪_">→set into cast;
-	exclusions ::= cast <"_[_.._]">→set into cast;
-	Grammatical restriction names is <exclusions>;
-]
-with <>;
 
 /**
  * If a lexical set is built only from expressions with statically well-known

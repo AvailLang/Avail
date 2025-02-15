@@ -283,6 +283,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.dispatch.LookupStatistics
 import avail.exceptions.AvailEmergencyExitException
@@ -808,8 +810,8 @@ class AvailCompiler constructor(
 			compilationContext.loader)
 		{
 			formatString(
-				"Semantic restriction %s, in %s:%d",
-				restriction.definitionMethod().bundles.first().message,
+				"Semantic restriction %s in %s:%d",
+				restriction.definitionMethod().bundles.first().message.atomName,
 				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
@@ -862,8 +864,8 @@ class AvailCompiler constructor(
 			val code = function.code()
 			val mod = code.module
 			formatString(
-				"Macro evaluation %s, in %s:%d",
-				macro.definitionBundle().message,
+				"Macro evaluation %s in %s:%d",
+				macro.definitionBundle().message.atomName,
 				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
@@ -1024,7 +1026,7 @@ class AvailCompiler constructor(
 									syntheticLiteralNodeFor(trueObject),
 									syntheticLiteralNodeFor(
 										objectFromBoolean(canSummarize)))),
-							TOP.o)
+							TOP())
 						val creationFunction = createFunctionForPhrase(
 							creationSend,
 							module,
@@ -1036,7 +1038,7 @@ class AvailCompiler constructor(
 						// batched with their initialization.
 						compilationContext.flushDelayedSerializedEffects()
 						val variable = createGlobal(varType, module, name, true)
-						variable.setValueWasStablyComputed(canSummarize)
+						variable.valueWasStablyComputed = canSummarize
 						module.addConstantBinding(name, variable)
 						// Update the map so that the local constant goes to a
 						// module constant.  Then subsequent statements in this
@@ -1115,7 +1117,7 @@ class AvailCompiler constructor(
 							syntheticLiteralNodeFor(varType),
 							syntheticLiteralNodeFor(falseObject),
 							syntheticLiteralNodeFor(falseObject))),
-					TOP.o)
+					TOP())
 				val creationFunction = createFunctionForPhrase(
 					creationSend, module, replacement.token.lineNumber())
 				creationFunction.makeImmutable()
@@ -2041,7 +2043,7 @@ class AvailCompiler constructor(
 		// Macro bodies return phrases, but that's not what we want here.
 		var intersection: A_Type = if (macroOrNil.isNil)
 		{
-			satisfyingDefinitions.fold(TOP.o) { type: A_Type, def ->
+			satisfyingDefinitions.fold(TOP()) { type: A_Type, def ->
 				type.typeIntersection(def.bodySignature().returnType)
 			}
 		}
@@ -3092,7 +3094,7 @@ class AvailCompiler constructor(
 					nameLiteral,
 					syntheticLiteralNodeFor(function),
 					emptyListNode())),
-			TOP.o)
+			TOP())
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),
 			state,
@@ -3166,7 +3168,7 @@ class AvailCompiler constructor(
 					newListNode(tupleFromList(functionLiterals)),
 					bodyLiteral,
 					emptyListNode())),
-			TOP.o)
+			TOP())
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),
 			state,
@@ -3288,7 +3290,7 @@ class AvailCompiler constructor(
 					syntheticLiteralNodeFor(filterFunction),
 					syntheticLiteralNodeFor(bodyFunction),
 					emptyListNode())),
-			TOP.o)
+			TOP())
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),
 			state,
@@ -3826,7 +3828,7 @@ class AvailCompiler constructor(
 		// Imports section (all Extends/Uses subsections)
 		for ((importKindToken, importEntries) in allImportsPart)
 		{
-			assert(importKindToken.isInstanceOfKind(TOKEN.o))
+			assert(importKindToken.isInstanceOfKind(TOKEN()))
 			val importKind = importKindToken.literal()
 			val importKindInt = importKind.extractInt
 			assert(importKindInt in 1 .. 2)
@@ -4219,12 +4221,13 @@ class AvailCompiler constructor(
 				compilationContext.module.importedNames
 			else
 				compilationContext.module.privateNames
+		// A map from module to set of atoms imported from that module.
 		var namesByModule = emptyMap
 		sourceNames.forEach { _, atoms ->
 			namesByModule = namesByModule.mapAtEachReplacingCanDestroy(
-				atoms.iterator(), {it}, emptySet, true
-			) { atom, set ->
-				set.setWithElementCanDestroy(atom.issuingModule, true)
+				atoms.iterator(), {it.issuingModule}, emptySet, true
+			) { atom, _, set ->
+				set.setWithElementCanDestroy(atom, true)
 			}
 		}
 		var completeModuleNames = emptySet
@@ -4257,10 +4260,9 @@ class AvailCompiler constructor(
 							stringFrom("(complete module imports)")),
 						syntheticLiteralNodeFor(
 							objectFromBoolean(isPublic)))),
-				TOP.o)
-			val function = createFunctionForPhrase(
-				send, compilationContext.module, 0)
-			privateSerializeFunction(function.makeImmutable())
+				TOP())
+			privateSerializeFunction(
+				createFunctionForPhrase(send, compilationContext.module, 0))
 		}
 		if (leftovers.setSize > 0)
 		{
@@ -4276,11 +4278,9 @@ class AvailCompiler constructor(
 							leftovers,
 							stringFrom("(${leftovers.setSize} atoms)")),
 						syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
-				TOP.o)
-			val function = createFunctionForPhrase(
-				send, compilationContext.module, 0)
-			function.makeImmutable()
-			privateSerializeFunction(function)
+				TOP())
+			privateSerializeFunction(
+				createFunctionForPhrase(send, compilationContext.module, 0))
 		}
 	}
 
@@ -4292,7 +4292,7 @@ class AvailCompiler constructor(
 	 */
 	@Synchronized
 	private fun privateSerializeFunction(function: A_Function) =
-		compilationContext.serializer.serialize(function)
+		compilationContext.serializer.serialize(function.makeImmutable())
 
 	companion object
 	{
@@ -4632,7 +4632,7 @@ class AvailCompiler constructor(
 		private val endOfFileMarkerPhrase =
 			newMarkerNode(
 				stringFrom("End of file marker"),
-				TOP.o
+				TOP()
 			).makeShared()
 
 		/**
@@ -4897,7 +4897,7 @@ class AvailCompiler constructor(
 		 */
 		private fun stringFromToken(token: A_Token): A_String
 		{
-			assert(token.isInstanceOfKind(TOKEN.o))
+			assert(token.isInstanceOfKind(TOKEN()))
 			val innerToken = token.literal()
 			val literal = innerToken.literal()
 			assert(literal.isInstanceOfKind(stringType))

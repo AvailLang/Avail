@@ -32,7 +32,7 @@
 
 package avail.interpreter.primitive.variables
 
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -50,7 +50,7 @@ import avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Enable variable
  * [read-before-write][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] tracing for
- * the [current&#32;fiber][FiberDescriptor.currentFiber].
+ * the [current&#32;fiber][currentFiber].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -71,7 +71,7 @@ object P_TraceVariableReadsBeforeWrites : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, TOP.o)
+		functionType(emptyTuple, TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

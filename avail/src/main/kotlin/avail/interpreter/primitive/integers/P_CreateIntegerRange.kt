@@ -34,7 +34,6 @@ package avail.interpreter.primitive.integers
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
@@ -50,8 +49,8 @@ import avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Answer the [integer&#32;range][IntegerRangeTypeDescriptor]
  * constrained by the specified upper and lower bounds. The provided
- * [booleans][EnumerationTypeDescriptor.booleanType] indicate whether their
- * corresponding bounds are inclusive (`true`) or exclusive (`false`).
+ * [booleans][booleanType] indicate whether their corresponding bounds are
+ * inclusive (`true`) or exclusive (`false`).
  */
 @Suppress("unused")
 object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)

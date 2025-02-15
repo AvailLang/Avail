@@ -129,9 +129,9 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
-				ATOM.o),
-			TOP.o)
+				ATOM(),
+				ATOM()),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

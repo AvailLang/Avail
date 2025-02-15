@@ -63,7 +63,7 @@ class L2WriteFloatOperand
 constructor(
 	semanticValues: Set<L2SemanticValue<FLOAT_KIND>>,
 	restriction: TypeRestriction,
-	register: L2Register<FLOAT_KIND>
+	register: L2Register<FLOAT_KIND>? = null
 ) : L2WriteOperand<FLOAT_KIND>(semanticValues, restriction, register)
 {
 	override val operandType: L2OperandType get() = WRITE_FLOAT
@@ -78,6 +78,9 @@ constructor(
 
 	override fun semanticValues(): Set<L2SemanticUnboxedFloat> =
 		super.semanticValues().cast()
+
+	override fun pickSemanticValue(): L2SemanticUnboxedFloat =
+		semanticValues().first()
 
 	override fun register(): L2FloatRegister = super.register().cast()
 

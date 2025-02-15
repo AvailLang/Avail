@@ -101,7 +101,7 @@
             var line = $('<div class="numberedtextarea-number numberedtextarea-number-' + i + '">' + i + '</div>').appendTo(linesDiv);
             
             if(i === count) {
-            	line.css('margin-bottom', paddingBottom + 'px');
+				line.css('margin-bottom', paddingBottom + 'px');
             }
         }
     }

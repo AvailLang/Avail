@@ -101,12 +101,12 @@ class TemplateExpansionsManager constructor(
 	init
 	{
 		workbench.availProject.roots.forEach {
-			 tabs.addTab(
-				 it.key,
-				 TemplatesPanel(workbench, it.value.templateGroup)
-				 {
-					 it.value.saveTemplatesToDisk()
-				 }.redrawTemplates())
+			tabs.addTab(
+				it.key,
+				TemplatesPanel(workbench, it.value.templateGroup)
+				{
+					it.value.saveTemplatesToDisk()
+				}.redrawTemplates())
 		}
 		tabs.addTab(
 			"${workbench.availProject.name} (project)",

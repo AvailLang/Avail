@@ -41,6 +41,8 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TypeTag
 
 /**
@@ -105,6 +107,8 @@ abstract class MapBinDescriptor protected constructor(
 			val VALUES_HASH_OR_ZERO = BitField(COMBINED_HASHES, 32, 32) { null }
 		}
 	}
+
+	override fun o_Kind(self: AvailObject): A_Type = ANY()
 
 	override fun o_MapBinKeysHash(self: AvailObject) =
 		self[KEYS_HASH]

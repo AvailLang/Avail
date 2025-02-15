@@ -67,9 +67,9 @@ interface L1OperationDispatcher
 
 	/**
 	 * `n` - Push the argument (actual value) or local variable (the variable
-	 * itself) indexed by `n`. Since this is known to be the last use
-	 * (non-debugger) of the argument or local, void that slot of the current
-	 * continuation.
+	 * itself), or local constant, indexed by `n`. Since this is known to be the
+	 * last use (non-debugger) of the argument or local, void that slot of the
+	 * current continuation.
 	 */
 	fun L1_doPushLastLocal()
 
@@ -120,9 +120,9 @@ interface L1OperationDispatcher
 	/**
 	 * `n` - Push the value of the outer variable indexed by `n` in the current
 	 * function. If the variable itself is mutable, clear it at this time -
-	 * nobody will know.
+	 * nobody will know.  In this case the retrieved value can stay mutable.
 	 */
-	fun L1_doGetOuterClearing()
+	fun L1_doGetLastOuter()
 
 	/**
 	 * `n` - Pop the stack and assign this value to the outer variable indexed

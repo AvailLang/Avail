@@ -32,6 +32,9 @@
 package avail.descriptor.character
 
 import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
+import avail.descriptor.character.CharacterDescriptor.Companion.characterCache
+import avail.descriptor.character.CharacterDescriptor.Companion.staticFromByteCodePoint
+import avail.descriptor.character.CharacterDescriptor.Companion.staticFromCodePoint
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.CODE_POINT
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.numbers.IntegerDescriptor
@@ -51,6 +54,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MarshalingException
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
@@ -108,7 +114,7 @@ class CharacterDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	): Unit = with(builder) {
 		append("¢")
@@ -159,7 +165,7 @@ class CharacterDescriptor private constructor(
 
 	override fun o_IsCharacter(self: AvailObject): Boolean = true
 
-	override fun o_Kind(self: AvailObject): A_Type = CHARACTER.o
+	override fun o_Kind(self: AvailObject): A_Type = CHARACTER()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
@@ -218,7 +224,7 @@ class CharacterDescriptor private constructor(
 		 * @param codePoint
 		 *   A Unicode code point.
 		 * @return
-		 *   THe character's hashed [Int].
+		 *   The character's hashed [Int].
 		 */
 		fun computeHashOfCharacterWithCodePoint(codePoint: Int): Int =
 			computeHashOfInt(codePoint xor -0x297166b9)
@@ -255,7 +261,8 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		fun fromCodePoint(codePoint: Int): A_Character {
+		fun fromCodePoint(codePoint: Int): A_Character
+		{
 			if (codePoint in 0..255) {
 				return byteCharacters[codePoint]
 			}
@@ -277,6 +284,18 @@ class CharacterDescriptor private constructor(
 			}
 		}
 
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticFromCodePoint(codePoint: Int): AvailObject =
+			fromCodePoint(codePoint) as AvailObject
+
+		/** The [CheckedMethod] for [staticFromCodePoint]. */
+		val staticFromCodePointMethod = staticMethod(
+			CharacterDescriptor::class.java,
+			::staticFromCodePoint.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
+
 		/**
 		 * Answer an already instantiated Avail [character][A_Character] for the
 		 * specified unsigned 8-bit Unicode code point.
@@ -286,10 +305,22 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		fun fromByteCodePoint(codePoint: Short): A_Character? {
+		fun fromByteCodePoint(codePoint: Short): A_Character {
 			assert(codePoint in 0..255)
 			return byteCharacters[codePoint.toInt()]
 		}
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticFromByteCodePoint(codePoint: Int): AvailObject =
+			byteCharacters[codePoint]
+
+		/** The [CheckedMethod] for [staticFromByteCodePoint]. */
+		val staticFromByteCodePointMethod = staticMethod(
+			CharacterDescriptor::class.java,
+			::staticFromByteCodePoint.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
 
 		/** The first 256 Unicode characters. */
 		private val byteCharacters = Array(256) {

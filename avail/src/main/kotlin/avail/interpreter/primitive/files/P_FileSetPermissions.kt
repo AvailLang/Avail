@@ -125,7 +125,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 					inclusive(0, 9),
 					inclusive(1, 9)),
 				booleanType),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

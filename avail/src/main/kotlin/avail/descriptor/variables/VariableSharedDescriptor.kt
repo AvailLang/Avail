@@ -58,6 +58,8 @@ import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.KIND
@@ -190,19 +192,12 @@ open class VariableSharedDescriptor protected constructor(
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
 		recordReadFromSharedVariable(self)
-		try
-		{
-			Interpreter.currentOrNull()?.let { interpreter ->
-				if (interpreter.traceVariableReadsBeforeWrites())
-				{
-					val fiber = interpreter.fiber()
-					fiber.recordVariableAccess(self, true)
-				}
+		Interpreter.currentOrNull()?.let { interpreter ->
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
 			}
-		}
-		catch (e: ClassCastException)
-		{
-			// No implementation required.
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
@@ -215,23 +210,16 @@ open class VariableSharedDescriptor protected constructor(
 		return value
 	}
 
-	@Throws(VariableGetException::class)
+	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetValueClearing(self: AvailObject): AvailObject
 	{
 		recordReadFromSharedVariable(self)
-		try
-		{
-			Interpreter.currentOrNull()?.let { interpreter ->
-				if (interpreter.traceVariableReadsBeforeWrites())
-				{
-					val fiber = interpreter.fiber()
-					fiber.recordVariableAccess(self, true)
-				}
+		Interpreter.currentOrNull()?.let { interpreter ->
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
 			}
-		}
-		catch (e: ClassCastException)
-		{
-			// No implementation required.
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
@@ -247,22 +235,40 @@ open class VariableSharedDescriptor protected constructor(
 		return value
 	}
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_GetValueClearingIfMutable(self: AvailObject): AvailObject
+	{
+		recordReadFromSharedVariable(self)
+		Interpreter.currentOrNull()?.let { interpreter ->
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
+			}
+		}
+		// Answer the current value of the variable. Fail if no value is
+		// currently assigned.
+		val value = self.volatileSlot(VALUE)
+		if (value.isNil)
+		{
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+		}
+		assert(value.descriptor().isShared)
+		handleVariableWriteTracing(self)
+		recordWriteToSharedVariable()
+		assert(!isMutable)
+		return value
+	}
+
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		recordReadFromSharedVariable(self)
-		try
-		{
-			Interpreter.currentOrNull()?.let { interpreter ->
-				if (interpreter.traceVariableReadsBeforeWrites())
-				{
-					val fiber = interpreter.fiber()
-					fiber.recordVariableAccess(self, true)
-				}
+		Interpreter.currentOrNull()?.let { interpreter ->
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
 			}
-		}
-		catch (e: ClassCastException)
-		{
-			// No implementation required.
 		}
 		return self.volatileSlot(VALUE).notNil
 	}
@@ -290,6 +296,12 @@ open class VariableSharedDescriptor protected constructor(
 		self.setVolatileSlot(VALUE, newValue.makeShared())
 		recordWriteToSharedVariable()
 	}
+
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = throw UnsupportedOperationException(
+		"Local variable should have been disqualified because it's now shared.")
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
@@ -595,7 +607,7 @@ open class VariableSharedDescriptor protected constructor(
 			val loader = AvailLoader.currentLoaderOrNull() ?: return
 			if (loader.statementCanBeSummarized()
 				&& self.volatileSlot(VALUE).notNil
-				&& !self.valueWasStablyComputed())
+				&& !self.valueWasStablyComputed)
 			{
 				loader.statementCanBeSummarized(false)
 			}

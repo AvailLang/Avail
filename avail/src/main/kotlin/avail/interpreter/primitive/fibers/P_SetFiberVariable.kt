@@ -81,6 +81,11 @@ object P_SetFiberVariable : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/** The value could contain an escaped variable that becomes shared. */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o, ANY.o), TOP.o)
+		functionType(tuple(ATOM(), ANY()), TOP())
 }

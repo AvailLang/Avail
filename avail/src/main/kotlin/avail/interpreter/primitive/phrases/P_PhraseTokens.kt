@@ -67,5 +67,5 @@ object P_PhraseTokens : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				PARSE_PHRASE.mostGeneralType),
-			zeroOrMoreOf(TOKEN.o))
+			zeroOrMoreOf(TOKEN()))
 }

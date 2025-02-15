@@ -31,9 +31,13 @@
  */
 package avail.descriptor.functions
 
+import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RawFunction.Companion.nybbles
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.methods.A_Method
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -41,11 +45,13 @@ import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
+import avail.dispatch.LookupStatistics
 import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Operation
@@ -133,19 +139,22 @@ interface A_RawFunction : A_BasicObject {
 
 		/**
 		 * Atomically decrement the countdown to reoptimization by the
-		 * [L2Generator]. If the count reaches zero (`0`), then lock this raw
-		 * function, thereby blocking concurrent applications of [A_Function]s
-		 * derived from this raw function, and then evaluate the argument in
-		 * order to effect reoptimization.
-		 *
-		 * @param continuation
-		 *   The action responsible for reoptimizing this function
-		 *   implementation in the event that the countdown reaches zero (`0`).
+		 * [L2Generator]. Answer whether the count reached exactly zero, which
+		 * indicates the caller has the responsibility to reoptimize and reset
+		 * the countdown to something positive.
 		 */
-		fun A_RawFunction.decrementCountdownToReoptimize(
-			continuation: (Boolean) -> Unit
-		): Boolean =
-			dispatch { o_DecrementCountdownToReoptimize(it, continuation) }
+		fun A_RawFunction.decrementCountdownToReoptimize(): Boolean =
+			dispatch { o_DecrementCountdownToReoptimize(it) }
+
+		/**
+		 * A chunk associated with this [A_RawFunction] had to fall back to a
+		 * dynamic lookup. If this happens enough times, the raw function will
+		 * be reoptimized to include any cases that have fallen back – possibly
+		 * more, if we're not tracking per-caller statistics of which method
+		 * definitions were retrieved.
+		 */
+		fun A_RawFunction.encounteredFallbackLookup() =
+			dispatch { o_EncounteredFallbackLookup(it) }
 
 		/**
 		 * This raw function was found to be running in an interpreter during a
@@ -394,6 +403,15 @@ interface A_RawFunction : A_BasicObject {
 			get() = dispatch { o_ReturneeCheckStat(it) }
 
 		/**
+		 * Answer a [Statistic] for recording dynamic lookups from a caller.
+		 *
+		 * @return
+		 *   The statistic.
+		 */
+		val A_RawFunction.lookupStat: LookupStatistics
+			get() = dispatch { o_LookupStat(it) }
+
+		/**
 		 * Answer the type that this raw function will produce if there is no
 		 * primitive, or if the primitive fails and the nybblecodes run.
 		 */
@@ -428,6 +446,24 @@ interface A_RawFunction : A_BasicObject {
 		 */
 		val A_RawFunction.startingChunk: L2Chunk
 			get() = dispatch { o_StartingChunk(it) }
+
+		/**
+		 * Answer a short descriptive name of this raw function, including the
+		 * information about the method, the module, and the starting line
+		 * number.
+		 */
+		val A_RawFunction.shortMethodName: String
+			get()
+			{
+				val mod = module
+				val moduleName = when
+				{
+					mod.isNil -> "NoModule"
+					else -> mod.shortModuleNameNative
+				}
+				val baseName = methodName.asNativeString()
+				return "$baseName ($moduleName:$codeStartingLineNumber)"
+			}
 
 		/**
 		 * Atomically increment the total number of invocations of [A_Function]s

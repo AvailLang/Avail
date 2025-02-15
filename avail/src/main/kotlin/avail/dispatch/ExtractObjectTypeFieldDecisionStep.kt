@@ -50,8 +50,9 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_TYPE_FIELD
 import avail.interpreter.primitive.objects.P_GetObjectTypeField
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.PrefixSharingList.Companion.append
@@ -124,7 +125,7 @@ constructor(
 		}
 		// baseMeta is known to be an objectMeta, but the element we're looking
 		// up might use a variant that doesn't have that field.
-		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
+		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
 		return extraValues.append(instanceMeta(baseFieldType))
 	}
 
@@ -142,7 +143,7 @@ constructor(
 		}
 		// baseMeta is known to be an objectMeta, but the element we're looking
 		// up might use a variant that doesn't have that field.
-		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
+		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
 		return extraValues.append(instanceMeta(baseFieldType))
 	}
 
@@ -179,7 +180,7 @@ constructor(
 				// The object type that will be looked up is known to have a
 				// suitable variant.
 				val fieldType =
-					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
+					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
 				val fieldMeta = instanceMeta(fieldType)
 				optionalBaseType to extrasList.append(fieldMeta)
 			}
@@ -194,7 +195,7 @@ constructor(
 				// suitable variant, but the element we're looking up might use
 				// a variant that doesn't have that field.
 				val fieldType =
-					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
+					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
 				val fieldMeta = instanceMeta(fieldType)
 				optionalBaseType to extrasList.append(fieldMeta)
 				baseType to extrasList.append(fieldMeta)
@@ -272,7 +273,7 @@ constructor(
 		list.add(childNode)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -282,22 +283,19 @@ constructor(
 			LookupTree<A_Definition, A_Tuple>,
 			List<L2SemanticBoxedValue>>>
 	{
-		val generator = callSiteHelper.generator
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val baseRestriction =
-			generator.currentManifest.restrictionFor(baseSemanticValue)
+		val baseRestriction = currentManifest.restrictionFor(baseSemanticValue)
 		val fieldRestriction = boxedRestrictionForType(
 			instanceMeta(baseRestriction.type.instance.fieldTypeAt(field)))
 		val fieldSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
-		generator.addInstruction(
-			L2_GET_OBJECT_TYPE_FIELD(
-				generator.readBoxed(baseSemanticValue),
-				L2ConstantOperand(field),
-				generator.boxedWrite(fieldSemanticValue, fieldRestriction)))
+		+L2_GET_OBJECT_TYPE_FIELD(
+			readBoxed(baseSemanticValue),
+			L2ConstantOperand(field),
+			boxedWrite(fieldSemanticValue, fieldRestriction))
 		val target = L2BasicBlock("after extracting object type's field")
-		generator.jumpTo(target)
+		jumpTo(target)
 		return listOf(
 			Triple(
 				target,

@@ -102,7 +102,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			tuple(
 				mostGeneralTupleType,
 				naturalNumbers,
-				ANY.o),
+				ANY()),
 			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(

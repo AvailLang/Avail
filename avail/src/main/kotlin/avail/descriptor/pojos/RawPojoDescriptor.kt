@@ -114,7 +114,7 @@ open class RawPojoDescriptor protected constructor(
 	override fun <T : Any> o_JavaObject(self: AvailObject): T? =
 		javaObject.cast()
 
-	override fun o_Kind(self: AvailObject): A_Type = RAW_POJO.o
+	override fun o_Kind(self: AvailObject): A_Type = RAW_POJO()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
@@ -139,7 +139,7 @@ open class RawPojoDescriptor protected constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		// This is not a thread-safe read of the slot, but this method is just

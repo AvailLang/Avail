@@ -66,5 +66,5 @@ object P_SendBundle : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				SEND_PHRASE.mostGeneralType),
-			MESSAGE_BUNDLE.o)
+			MESSAGE_BUNDLE())
 }

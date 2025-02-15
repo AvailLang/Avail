@@ -43,6 +43,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
@@ -53,7 +54,6 @@ import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.StackReifier
-import avail.utility.Strings.tabs
 import java.util.logging.Level
 import kotlin.math.max
 
@@ -130,10 +130,10 @@ constructor(
 				savedArguments = interpreter.argsBuffer.toList()
 				val reifier = interpreter.attemptThePrimitive(
 					interpreter.function!!, primitive)
-				// Reified during the primitive invocation, or while setting up a
-				// non-inline primitive to be in the right setup to run. Either way,
-				// what should happen next is already captured inside the reifier's
-				// action.
+				// Reified during the primitive invocation, or while setting up
+				// a non-inline primitive to be in the right setup to run.
+				// Either way, what should happen next is already captured
+				// inside the reifier's action.
 				reifier?.let { return it }
 				// Exit right away if the primitive was successful.
 				if (interpreter.returnNow) return null
@@ -142,7 +142,7 @@ constructor(
 				// Put the arguments back, for the fallback nybblecodes to use.
 				interpreter.argsBuffer.run {
 					clear()
-					addAll(savedArguments!!)
+					addAll(savedArguments)
 				}
 			}
 		}
@@ -150,25 +150,19 @@ constructor(
 		if (offset <= 0)
 		{
 			// Decrement the countdown to reoptimization, possibly reoptimizing.
-			val chunkChanged = code.decrementCountdownToReoptimize {
-					optimize: Boolean ->
+			if (code.decrementCountdownToReoptimize())
+			{
 				savedArguments ?: run {
 					savedArguments = interpreter.argsBuffer.toList()
 				}
-				if (optimize)
-				{
-					OptimizationLevel.optimizationLevel(
-						nextOptimizationLevel.ordinal
-					).optimize(code, interpreter)
-				}
+				OptimizationLevel.optimizationLevel(
+					nextOptimizationLevel.ordinal
+				).optimize(code, interpreter)
 				// Enter the newly constructed chunk, after ensuring the
 				// arguments have been handed back to the interpreter.
 				val chunk = code.startingChunk
 				interpreter.chunk = chunk
 				interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
-			}
-			if (chunkChanged)
-			{
 				interpreter.argsBuffer.run {
 					clear()
 					addAll(savedArguments!!)
@@ -224,10 +218,6 @@ constructor(
 					depth++
 					pointer = pointer.caller
 				}
-				val prefix = interpreter.interpreterIndex.toString() +
-					"-" + tabs(depth) +
-					"|" + tabs(interpreter.unreifiedCallDepth())
-				println("$prefix${offset - 1}: (reentering)")
 				Interpreter.log(
 					Interpreter.loggerDebugL2,
 					Level.FINER,
@@ -266,18 +256,9 @@ constructor(
 				depth++
 				pointer = pointer.caller
 			}
-			val prefix = interpreter.interpreterIndex.toString() +
-				"-" + tabs(depth) +
-				"|" + tabs(interpreter.unreifiedCallDepth())
 			while (off < size)
 			{
 				val instruction = instructions[off++]
-				println(
-					"$prefix${off - 1}: " +
-						instruction.toString().replace(
-							"\n",
-							"\n" + tabs(
-								depth + interpreter.unreifiedCallDepth() + 1)))
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
@@ -287,9 +268,6 @@ constructor(
 				val reifier = instruction.step(registers, interpreter)
 				if (reifier !== null)
 				{
-					println(
-						"$prefix${off - 1}: " +
-							"(reifying, actual=${reifier.actuallyReify()})")
 					return reifier
 				}
 			}

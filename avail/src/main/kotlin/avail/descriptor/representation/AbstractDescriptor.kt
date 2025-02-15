@@ -32,7 +32,6 @@
 package avail.descriptor.representation
 
 import avail.AvailDebuggerModel
-import avail.annotations.EnumField
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
@@ -107,6 +106,7 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
@@ -153,6 +153,7 @@ import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
+import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
@@ -164,6 +165,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
@@ -193,7 +195,6 @@ import kotlin.math.min
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
-import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
@@ -649,7 +650,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun printObjectOnAvoidingIndent (
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = with(builder)
 	{
@@ -714,9 +715,13 @@ abstract class AbstractDescriptor protected constructor (
 				newlineTab(indent)
 				val slotName = intSlot.fieldName
 				val bitFields = bitFieldsFor(intSlot)
-				if (slotName[slotName.length - 1] == '_')
+				val subscript = when (slotName[slotName.length - 1] == '_')
 				{
-					val subscript = i - intSlots.size + 1
+					true -> i - intSlots.size + 1
+					else -> -1
+				}
+				if (subscript != -1)
+				{
 					append(slotName, 0, slotName.length - 1)
 					append('[')
 					append(subscript)
@@ -733,8 +738,8 @@ abstract class AbstractDescriptor protected constructor (
 					}
 					else
 					{
-						describeIntegerSlot(
-							self, value, slot, bitFields, builder)
+						slot.describeIntegerSlot(
+							self, value, subscript, bitFields, builder)
 					}
 				}
 			}
@@ -815,33 +820,30 @@ abstract class AbstractDescriptor protected constructor (
 		members.remove(AbstractDescriptor::numberOfFixedObjectSlots)
 		members.remove(AbstractDescriptor::isMutable)
 		members.remove(AbstractDescriptor::isShared)
-		return javaClass.simpleName +
-			members.joinToString(", ", "(", ")") { m ->
-				"${m.name}=" +
-					try
+		return members
+			.map { m ->
+				try
+				{
+					m.name to m.get(this@AbstractDescriptor)
+				}
+				catch (e: Exception)
+				{
+					when (e)
 					{
-						when (val value = m.get(this@AbstractDescriptor))
-						{
-							is AvailObject -> "(AvailObject)"
-							else -> value.toString().truncateTo(20)
-						}
+						is InvocationTargetException ->
+							m.name to "$e: TRACE=${e.stackTraceToString()}"
+						else -> null
 					}
-					catch (e: IllegalArgumentException)
-					{
-						"(inaccessible)"
-					}
-					catch (e: IllegalAccessException)
-					{
-						"(inaccessible)"
-					}
-					catch (e: IllegalCallableAccessException)
-					{
-						"(inaccessible)"
-					}
-					catch (e: InvocationTargetException)
-					{
-						"$e: TRACE=${e.stackTraceToString()}"
-					}
+				}
+			}
+			.filterNotNull()
+			.joinToString(", ", "${javaClass.simpleName}(", ")")
+			{ (name, value) ->
+				when (value)
+				{
+					is AvailObject -> "$name=(AvailObject)"
+					else -> "$name=${value.toString().truncateTo(20)}"
+				}
 			}
 	}
 
@@ -1632,12 +1634,15 @@ abstract class AbstractDescriptor protected constructor (
 	@Throws(MethodDefinitionException::class)
 	abstract fun o_LookupByTypesFromTuple (
 		self: AvailObject,
-		argumentTypeTuple: A_Tuple): A_Definition
+		argumentTypeTuple: A_Tuple
+	): A_Definition
 
 	@Throws(MethodDefinitionException::class)
 	abstract fun o_LookupByValuesFromList (
 		self: AvailObject,
-		argumentList: List<A_BasicObject>): A_Definition
+		argumentList: List<A_BasicObject>,
+		callerLookupStat: LookupStatistics?
+	): A_Definition
 
 	abstract fun o_MapAtOrNull (
 		self: AvailObject,
@@ -1662,7 +1667,8 @@ abstract class AbstractDescriptor protected constructor (
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject): A_Map
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
+	): A_Map
 
 	abstract fun o_MapWithoutKeyCanDestroy (
 		self: AvailObject,
@@ -1844,6 +1850,10 @@ abstract class AbstractDescriptor protected constructor (
 		newValue: A_BasicObject)
 
 	abstract fun o_SetValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject)
+
+	abstract fun o_SetUnescapedLocalValueNoCheck (
 		self: AvailObject,
 		newValue: A_BasicObject)
 
@@ -2215,6 +2225,9 @@ abstract class AbstractDescriptor protected constructor (
 	@Throws(VariableGetException::class)
 	abstract fun o_GetValueClearing (self: AvailObject): AvailObject
 
+	@Throws(VariableGetException::class)
+	abstract fun o_GetValueClearingIfMutable (self: AvailObject): AvailObject
+
 	abstract fun o_HashOrZero (self: AvailObject): Int
 
 	abstract fun o_HasGrammaticalRestrictions (self: AvailObject): Boolean
@@ -2223,14 +2236,13 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_LazyIncomplete (self: AvailObject): A_Map
 
-	abstract fun o_DecrementCountdownToReoptimize (
-		self: AvailObject,
-		continuation: (Boolean) -> Unit
-	): Boolean
+	abstract fun o_DecrementCountdownToReoptimize (self: AvailObject): Boolean
 
 	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
 		delta: Long)
+
+	abstract fun o_EncounteredFallbackLookup(self: AvailObject)
 
 	abstract fun o_IsAbstract (self: AvailObject): Boolean
 
@@ -3244,12 +3256,13 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_MapBinAtHashReplacingLevelCanDestroy (
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin
 
 	abstract fun o_MapBinKeyUnionKind (self: AvailObject): A_Type
@@ -3561,7 +3574,10 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_FiberResult (self: AvailObject): AvailObject
 
-	abstract fun o_SetFiberResult (self: AvailObject, result: A_BasicObject)
+	abstract fun o_SetFiberResultAndState (
+		self: AvailObject,
+		result: A_BasicObject,
+		state: ExecutionState)
 
 	abstract fun o_JoiningFibers (self: AvailObject): A_Set
 
@@ -3802,7 +3818,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_MacroOriginalSendNode (self: AvailObject): A_Phrase
 
-	abstract fun o_EqualsInt (self: AvailObject, theInt: Int): Boolean
+	abstract fun o_EqualsLong (self: AvailObject, theLong: Long): Boolean
 
 	abstract fun o_Tokens (self: AvailObject): A_Tuple
 
@@ -3939,6 +3955,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ReturneeCheckStat (self: AvailObject): Statistic
 
+	abstract fun o_LookupStat(self: AvailObject): LookupStatistics
+
 	abstract fun o_NumNybbles (self: AvailObject): Int
 
 	abstract fun o_LineNumberEncodedDeltas (self: AvailObject): A_Tuple
@@ -3996,12 +4014,16 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ReturnTypeIfPrimitiveFails (self: AvailObject): A_Type
 
+	abstract fun o_EncodedElidedLocals(self: AvailObject): A_Tuple
+
 	abstract fun o_ExtractDumpedObjectAt (
 		self: AvailObject,
 		index: Int
 	): AvailObject
 
 	abstract fun o_ExtractDumpedLongAt (self: AvailObject, index: Int): Long
+
+	abstract fun o_FallbackEntryPoint(self: AvailObject): ChunkEntryPoint
 
 	abstract fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
 
@@ -4176,29 +4198,6 @@ abstract class AbstractDescriptor protected constructor (
 		 *   The amount to shift left. If negative, shift right by the
 		 *   corresponding positive amount.
 		 * @return
-		 *   The shifted integer, modulus 2^32 then cast to `int`.
-		 */
-		fun bitShiftInt (value: Int, leftShift: Int): Int
-		{
-			return when
-			{
-				leftShift >= 32 -> 0
-				leftShift >= 0 -> value shl leftShift
-				leftShift > -32 -> value ushr -leftShift
-				else -> 0
-			}
-		}
-
-		/**
-		 * Note: This is a logical shift *without* Java's implicit modulus on
-		 * the shift amount.
-		 *
-		 * @param value
-		 *   The value to shift.
-		 * @param leftShift
-		 *   The amount to shift left. If negative, shift right by the
-		 *   corresponding positive amount.
-		 * @return
 		 *   The shifted integer, modulus 2^64 then cast to `long`.
 		 */
 		fun bitShiftLong (value: Long, leftShift: Int): Long
@@ -4281,95 +4280,6 @@ abstract class AbstractDescriptor protected constructor (
 			ConcurrentHashMap<IntegerSlotsEnum, List<BitField>>()
 
 		/**
-		 * Describe the integer field onto the provided [StringBuilder]. The
-		 * pre-extracted `long` value is provided, as well as the containing
-		 * [AvailObject] and the [IntegerSlotsEnum] instance. Take into account
-		 * annotations on the slot enumeration object which may define the way
-		 * it should be described.
-		 *
-		 * @param self
-		 *   The object containing the `int` value in some slot.
-		 * @param value
-		 *   The `long` value of the slot.
-		 * @param slot
-		 *   The [integer&#32;slot][IntegerSlotsEnum] definition.
-		 * @param bitFields
-		 *   The slot's [BitField]s, if any.
-		 * @param builder
-		 *   Where to write the description.
-		 */
-		fun describeIntegerSlot (
-			self: AvailObject,
-			value: Long,
-			slot: IntegerSlotsEnum,
-			bitFields: List<BitField>,
-			builder: StringBuilder)
-		{
-			try
-			{
-				val slotName = slot.fieldName
-				if (bitFields.isEmpty())
-				{
-					val slotMirror = slot.javaClass.getField(slotName)
-					val enumAnnotation =
-						slotMirror.getAnnotation(EnumField::class.java)
-					var numBits = 64
-					if (enumAnnotation !== null)
-					{
-						val enumClass = enumAnnotation.describedBy.java
-						val enumValues = enumClass.enumConstants
-						numBits =
-							64 - enumValues.size.toLong().countLeadingZeroBits()
-					}
-					builder.append(" = ")
-					describeIntegerField(
-						value, numBits, enumAnnotation, builder)
-				}
-				else
-				{
-					builder.append("(")
-					var first = true
-					for (bitField in bitFields)
-					{
-						val fieldValue = self[bitField]
-						val string = when (val presenter = bitField.presenter)
-						{
-							null -> buildString {
-								describeIntegerField(
-									fieldValue.toLong(),
-									bitField.bits,
-									bitField.enumField,
-									this)
-							}
-							else -> presenter(fieldValue) ?: continue
-						}
-						if (!first)
-						{
-							builder.append(", ")
-						}
-						builder.append(bitField.name)
-						builder.append("=")
-						builder.append(string)
-						first = false
-					}
-					builder.append(")")
-				}
-			}
-			catch (e: SecurityException)
-			{
-				throw RuntimeException(e)
-			}
-			catch (e: IllegalArgumentException)
-			{
-				throw RuntimeException(e)
-			}
-			catch (e: ReflectiveOperationException)
-			{
-				throw RuntimeException(e)
-			}
-		}
-
-		/**
 		 * Extract the [integer&#32;slot][IntegerSlotsEnum]'s [List] of
 		 * [BitField]s, excluding ones marked with the annotation
 		 * @[HideFieldInDebugger].
@@ -4422,115 +4332,6 @@ abstract class AbstractDescriptor protected constructor (
 				else bitFields.sorted()
 			bitFieldsCache[slot] = sorted
 			return sorted
-		}
-
-		/**
-		 * Write a description of an integer field to the [StringBuilder].
-		 *
-		 * @param value
-		 *   The value of the field, a `long`.
-		 * @param numBits
-		 *   The number of bits to show for this field.
-		 * @param enumAnnotation
-		 *   The optional [EnumField] annotation that was found on the field.
-		 * @param builder
-		 *   Where to write the description.
-		 * @throws ReflectiveOperationException
-		 *   If the [EnumField.lookupMethodName] is incorrect.
-		 */
-		@Throws(ReflectiveOperationException::class)
-		private fun describeIntegerField (
-			value: Long,
-			numBits: Int,
-			enumAnnotation: EnumField?,
-			builder: StringBuilder) =
-		with(builder) {
-			if (enumAnnotation !== null)
-			{
-				val describingClass = enumAnnotation.describedBy.java
-				val lookupName = enumAnnotation.lookupMethodName
-				if (lookupName.isEmpty())
-				{
-					// Look it up by ordinal (must be an actual Enum).
-					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-						describingClass.enumConstants.cast()
-					if (value in allValues.indices)
-					{
-						append(allValues[value.toInt()].fieldName)
-					}
-					else
-					{
-						append("(enum out of range: ")
-						describeLong(value, numBits, builder)
-						append(")")
-					}
-				}
-				else
-				{
-					// Look it up via the specified static lookup method.  It's
-					// only required to be an IntegerEnumSlotDescriptionEnum in
-					// this case, not necessarily an Enum.
-					val lookupMethod = describingClass.getMethod(
-						lookupName, Int::class.javaPrimitiveType)
-					when (val lookedUp = lookupMethod(null, value.toInt()))
-					{
-						is IntegerEnumSlotDescriptionEnum ->
-							append(lookedUp.fieldName)
-						else -> append("null")
-					}
-				}
-			}
-			else
-			{
-				describeLong(value, numBits, builder)
-			}
-		}
-
-		/**
-		 * Write a description of this [Long] to the builder, taking note that
-		 * the value is constrained to contain only numBits of content.  Use
-		 * conventions such as grouping into groups of at most four hex digits.
-		 *
-		 * @param value
-		 *   The [Long] to output.
-		 * @param numBits
-		 *   The number of bits contained in value.
-		 * @param builder
-		 *   Where to describe the number.
-		 */
-		fun describeLong (
-			value: Long,
-			numBits: Int,
-			builder: StringBuilder): Unit =
-		with(builder) {
-			// Present signed byte as unsigned, and unsigned byte unchanged.
-			if (numBits <= 8 && -0x80 <= value && value <= 0xFF)
-			{
-				append(String.format("0x%02X", value and 0xFF))
-				return
-			}
-			// Present signed short as unsigned, and unsigned short unchanged.
-			if (numBits <= 16 && -0x8000 <= value && value <= 0xFFFF)
-			{
-				append(String.format("0x%04X", value and 0xFFFF))
-				return
-			}
-			// Present signed int as unsigned, and unsigned int unchanged.
-			if (numBits <= 32 && -0x80000000 <= value && value <= 0xFFFFFFFFL)
-			{
-				append(String.format(
-					"0x%04X_%04X",
-					value ushr 16 and 0xFFFF,
-					value and 0xFFFF))
-				return
-			}
-			// Present a long as unsigned.
-			append(String.format(
-				"0x%04X_%04X_%04X_%04X",
-				value ushr 48 and 0xFFFF,
-				value ushr 32 and 0xFFFF,
-				value ushr 16 and 0xFFFF,
-				value and 0xFFFF))
 		}
 
 		/**

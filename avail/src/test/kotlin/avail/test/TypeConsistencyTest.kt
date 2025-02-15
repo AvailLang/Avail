@@ -250,7 +250,7 @@ class TypeConsistencyTest
 						null -> emptyArray()
 						else -> arrayOf(tempMap[parent]!!)
 					}
-					Node(type.name, type.o, *parents).also {
+					Node(type.name, type(), *parents).also {
 						tempMap[type] = it
 					}
 				}
@@ -266,7 +266,7 @@ class TypeConsistencyTest
 			/** The type of `nontype`. */
 			private val NONTYPE_META = Node(
 				"NONTYPE_META",
-				instanceMeta(Types.NONTYPE.o),
+				instanceMeta(Types.NONTYPE()),
 				ANY_META)
 
 			/** The type `tuple`. */
@@ -392,7 +392,7 @@ class TypeConsistencyTest
 				objectTypeFromMap(
 					emptyMap.mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t.instance,
-						Types.ANY.o,
+						Types.ANY(),
 						false)),
 				OBJECT_TYPE)
 
@@ -416,7 +416,7 @@ class TypeConsistencyTest
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
 						ANOTHER_ATOM_TYPE.t.instance,
-						Types.ANY.o,
+						Types.ANY(),
 						false)),
 				OBJECT_TYPE)
 
@@ -594,7 +594,7 @@ class TypeConsistencyTest
 			 */
 			private val BOTTOM_VARIABLE = Node(
 				"BOTTOM_VARIABLE",
-				variableReadWriteType(bottom, Types.TOP.o),
+				variableReadWriteType(bottom, Types.TOP()),
 				INT_VARIABLE,
 				SOME_ATOM_VARIABLE)
 
@@ -1550,7 +1550,7 @@ class TypeConsistencyTest
 		checkContravariance("function argument") {
 			functionType(
 				tuple(it),
-				Types.TOP.o)
+				Types.TOP())
 		}
 
 	/**

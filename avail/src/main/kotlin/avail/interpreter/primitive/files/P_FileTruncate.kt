@@ -158,16 +158,16 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
+				ATOM(),
 				wholeNumbers,
 				functionType(
 					emptyTuple,
-					TOP.o),
+					TOP()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o),
+					TOP()),
 				u8),
-			fiberType(TOP.o))
+			fiberType(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

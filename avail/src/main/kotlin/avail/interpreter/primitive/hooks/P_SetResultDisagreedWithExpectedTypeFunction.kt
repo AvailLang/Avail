@@ -71,6 +71,14 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The function outers could contain an escaped variable that becomes
+	 * shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
@@ -78,7 +86,7 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 					tuple(
 						mostGeneralFunctionType(),
 						topMeta,
-						variableTypeFor(ANY.o)),
+						variableTypeFor(ANY())),
 					bottom)),
-			TOP.o)
+			TOP())
 }

@@ -68,10 +68,11 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Mul
-import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
+import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -96,7 +97,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
+		functionType(tuple(NUMBER(), NUMBER()), NUMBER())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
@@ -281,7 +282,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
@@ -294,16 +295,16 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		arguments,
 		argumentTypes,
 		ifOutputIsInt = {
-			generator.addInstruction(
-				L2_BIT_LOGIC_OP(Mul, intA, intB, intWrite))
+			+L2_BIT_LOGIC_OP(Mul, intA, intB, intWrite)
 		},
 		ifOutputIsPossiblyInt = {
-			generator.addInstruction(
-				L2_MULTIPLY_INT_BY_INT(
-					intA,
-					intB,
-					intWrite,
-					edgeTo(intFailure),
-					edgeTo(intSuccess)))
+			+L2_MULTIPLY_INT_BY_INT(
+				intA,
+				intB,
+				intWrite,
+				edgeTo(intFailure),
+				edgeTo(intSuccess))
 		})
+
+	override val semanticinfixOperatorString: String? get() = "Multiplication"
 }

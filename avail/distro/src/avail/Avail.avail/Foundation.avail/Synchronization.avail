@@ -68,6 +68,7 @@ Names
 	"monitor",
 	"non-reentrant mutex",
 	"reentrant mutex",
+	"_'s⁇owner or zero",
 	"_'s⁇owner's name",
 
 	/* Mutex construction. */
@@ -366,8 +367,24 @@ Public class "non-reentrant mutex" extends synchronization device
 	with fields
 		mutex name : nonempty string ("_'s⁇name")
 	with mutable fields
-		owner : any,
+		referable owner : fiber,
 		referable parked fibers : parking queue;
+
+/**
+ * Answer the {@type "non-reentrant mutex" mutex}'s {@type "fiber" owner}, or
+ * the integer `0` if unowned.
+ *
+ * @method "_'⁇s owner or zero"
+ * @param "mutex" "non-reentrant mutex"
+ * @returns "any" (either a fiber or the value 0)
+ * @category "Synchronization" "Queries"
+ */
+Public method "_'s⁇owner or zero" is
+[
+	mutex : non-reentrant mutex
+|
+	↓↑mutex's owner else 0
+] : any;
 
 /**
  * Answer the {@type "non-reentrant mutex" mutex}'s {@type "fiber" owner}'s
@@ -382,7 +399,7 @@ Public method "_'s⁇owner's name" is
 [
 	mutex : non-reentrant mutex
 |
-	cast mutex's owner
+	cast mutex's owner or zero
 		into [f : fiber | f's name]
 		else ["«unowned»"]
 ] : string;
@@ -432,7 +449,6 @@ Public method "a non-reentrant mutex«named_»" is
 	 */
 	a non-reentrant mutex with
 		mutex name ::= myName,
-		owner := 0,
 		parked fibers := <>
 ] : non-reentrant mutex;
 
@@ -491,7 +507,7 @@ Private method "Schedule next parked fiber or release_" is
 	 * then the lock is de facto released (the ownership memento is not
 	 * canonical).
 	 */
-	mutex's owner := 0;
+	Clear ↑mutex's owner;
 	lockReleased ::= dequeue current fiber from queue;
 	/* If any fibers are queued, then grab the first one (without removing
 	 * it from the queue), establish it as the owner, and unpark it.
@@ -536,7 +552,7 @@ Private method "Acquire_" is
 	 */
 	else
 	[
-		Until mutex's owner = current fiber do
+		Until mutex's owner or zero = current fiber do
 		[
 			Park current fiber;
 			If termination requested then
@@ -570,7 +586,7 @@ Public method "Lock|lock_for_" is
 	mutex : non-reentrant mutex,
 	criticalSection : []→⊤
 |
-	If mutex's owner = current fiber then
+	If mutex's owner or zero = current fiber then
 	[
 		Raise a reentry exception with
 			reentered mutex ::= mutex,
@@ -578,7 +594,7 @@ Public method "Lock|lock_for_" is
 	];
 	Acquire mutex;
 	/* The current fiber now holds the lock, so run the critical section. */
-	Assert: mutex's owner = current fiber;
+	Assert: mutex's owner or zero = current fiber;
 	Guard criticalSection
 	ensure [Schedule next parked fiber or release mutex;];
 ] : ⊤;
@@ -632,7 +648,6 @@ Public method "a reentrant mutex«named_»" is
 	 */
 	a reentrant mutex with
 		mutex name ::= myName,
-		owner := 0,
 		parked fibers := <>
 ] : reentrant mutex;
 
@@ -671,10 +686,10 @@ Public method "Lock|lock_for_" is
 	 * onto the parking queue.
 	 */
 	shouldUnlock ::=
-		if mutex's owner ≠ current fiber then [Acquire mutex; true]
+		if mutex's owner or zero ≠ current fiber then [Acquire mutex; true]
 		else [false];
 	/* The current fiber now holds the lock, so run the critical section. */
-	Assert: mutex's owner = current fiber;
+	Assert: mutex's owner or zero = current fiber;
 	Guard criticalSection
 	ensure
 	[
@@ -745,7 +760,6 @@ Public method "a monitor«named_»" is
 	 */
 	a monitor with
 		mutex name ::= myName,
-		owner := 0,
 		parked fibers := <>,
 		signaler fibers := <>
 ] : monitor;
@@ -779,7 +793,7 @@ Private method "Schedule next parked fiber or release_" is
 	 * then the monitor is de facto released (the ownership memento is not
 	 * canonical).
 	 */
-	mutex's owner := 0;
+	Clear ↑mutex's owner;
 	queue ::= ↑mutex's parked fibers;
 	signalers ::= ↑mutex's signaler fibers;
 	/* If there are any signaler fibers waiting, then remove the first one from
@@ -895,7 +909,7 @@ Public method "Await_" is
 	/* If the current fiber is not the owner of the condition's originating
 	 * monitor, then raise an appropriate exception.
 	 */
-	If aCondition's originating monitor's owner ≠ current fiber then
+	If aCondition's originating monitor's owner or zero ≠ current fiber then
 	[
 		Raise a cannot-await-condition exception with
 			misused condition ::= aCondition
@@ -910,7 +924,7 @@ Public method "Await_" is
 		Ignore: priority enqueue current fiber on ↑aCondition's parked fibers;
 		Schedule next parked fiber or release mutex;
 
-		Until mutex's owner = current fiber do
+		Until mutex's owner or zero = current fiber do
 			[Park current fiber, then honor a termination request;];
 
 		/* The current fiber owns the lock again, and has been signaled that the
@@ -968,7 +982,7 @@ Public method "Signal_" is
 	/* If the current fiber is not the owner of the condition's originating
 	 * monitor, then raise an appropriate exception.
 	 */
-	If aCondition's originating monitor's owner ≠ current fiber then
+	If aCondition's originating monitor's owner or zero ≠ current fiber then
 	[
 		Raise a cannot-signal-condition exception with
 			misused condition ::= aCondition
@@ -1000,7 +1014,7 @@ Public method "Signal_" is
 		mutex's owner := head;
 		Unpark head;
 		/* Park the current fiber. */
-		Until mutex's owner = current fiber do
+		Until mutex's owner or zero = current fiber do
 			[Park current fiber, then honor a termination request;];
 	];
 ] : ⊤;

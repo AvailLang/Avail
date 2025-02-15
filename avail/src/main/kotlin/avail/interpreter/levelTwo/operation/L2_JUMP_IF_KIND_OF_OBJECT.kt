@@ -43,12 +43,12 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
-import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -65,64 +65,50 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 	@On(FAILURE) var ifNotKind: L2PcOperand
 ): L2ConditionalJump()
 {
+	override fun StringBuilder.appendToWithWarnings(
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
+	{
+		renderPreamble()
+		append(' ')
+		append(value.registerString())
+		append(" ∈ ")
+		append(type.registerString())
+		renderOperandsExcludingFields(
+			desiredOperandTypes, ::value, ::type)
+	}
+
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		// Restrict the value to the type along the ifKind branch
-		ifKind.manifest().intersectType(value, type.type().instance)
-		type.restriction().constantOrNull?.let { constantType ->
+		ifKind.manifest()
+			.intersectType(value.semanticValue(), type.type().instance)
+		type.constantOrNull?.let { constantType ->
 			// The type is a constant, so we can exclude it along the ifNotkind
 			// path.
-			ifNotKind.manifest().subtractType(value, constantType)
+			ifNotKind.manifest()
+				.subtractType(value.semanticValue(), constantType)
 		}
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
-		desiredOperandTypes: Set<L2OperandType>,
-		warningStyleChange: (Boolean)->Unit)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(value.registerString())
-		builder.append(" ∈ ")
-		builder.append(type.registerString())
-		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::value, ::type)
-	}
-
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
-	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		if (ifKind.targetBlock() == ifNotKind.targetBlock())
-		{
-			regenerator.jumpTo(ifKind.targetBlock())
-			return
-		}
-		type.restriction().constantOrNull?.let { constantType ->
-			regenerator.jumpIfKindOfConstant(
+		if (replaceWithJumpIfPossible(this)) return
+		type.constantOrNull?.let { constantType ->
+			jumpIfKindOfConstant(
 				value,
 				constantType,
 				ifKind.targetBlock(),
 				ifNotKind.targetBlock())
 			return
 		}
-		ifKind.manifest().intersectType(value, type.type().instance)
-		type.restriction().constantOrNull?.let { constantType ->
-			// The type is a constant, so we can exclude it along the ifNotkind
-			// path.
-			ifNotKind.manifest().subtractType(value, constantType)
-		}
-		super.emitTransformedInstruction(regenerator)
+		+this@L2_JUMP_IF_KIND_OF_OBJECT
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?>
-	{
+	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
 		val constantType = type.constantOrNull ?: return emptyList()
-		val conditions = mutableListOf<L2SplitCondition?>()
 		if (!ifKind.targetBlock().isCold)
 		{
 			// The ifKind target is warm, so allow a split back to a point where
@@ -130,10 +116,10 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			val constantTypeWhenInt = constantType.typeIntersection(i32)
 			if (!constantTypeWhenInt.isVacuousType)
 			{
-				conditions.add(unboxedIntCondition(listOf(value.register())))
+				addAll(unboxedIntConditions(listOf(value.register())))
 			}
-			conditions.add(
-				typeRestrictionCondition(
+			addAll(
+				typeRestrictionConditions(
 					listOf(value.register()),
 					boxedRestrictionForType(constantType)))
 		}
@@ -141,12 +127,11 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		{
 			// The ifNotKind target is warm, so allow a split back to a point
 			// where the value is known *not* to be an instance.
-			conditions.add(
-				typeRestrictionCondition(
+			addAll(
+				typeRestrictionConditions(
 					listOf(value.register()),
-					boxedRestrictionForType(ANY.o).minusType(constantType)))
+					boxedRestrictionForType(ANY()).minusType(constantType)))
 		}
-		return conditions
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
@@ -157,8 +142,8 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 	{
 		// :: if (value.isInstanceOf(type)) goto isKind;
 		// :: else goto isNotKind;
-		translator.load(method, value.register())
-		translator.load(method, type.register())
+		translator.load(method, value)
+		translator.load(method, type)
 		A_BasicObject.isInstanceOfMethod.generateCall(method)
 		emitBranch(translator, method, this, Opcodes.IFNE, ifKind, ifNotKind)
 	}

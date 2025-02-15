@@ -49,16 +49,15 @@ class L2_GET_PHRASE_EXPRESSION_TYPE(
 	var expressionType: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(expressionType.registerString())
-		builder.append(" ← yield type of ")
-		builder.append(phrase)
+		renderPreamble()
+		append(' ')
+		append(expressionType.registerString())
+		append(" ← yield type of ")
+		append(phrase)
 	}
 
 	override fun translateToJVM(
@@ -66,7 +65,7 @@ class L2_GET_PHRASE_EXPRESSION_TYPE(
 		method: MethodVisitor)
 	{
 		// :: phrase.
-		translator.load(method, phrase.register())
+		translator.load(method, phrase)
 		A_Phrase.phraseExpressionTypeMethod.generateCall(method)
 		translator.store(method, expressionType.register())
 	}

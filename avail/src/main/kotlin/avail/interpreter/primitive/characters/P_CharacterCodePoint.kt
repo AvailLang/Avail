@@ -71,7 +71,7 @@ object P_CharacterCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 	): A_Type
 	{
 		val charType = argumentTypes[0]
-		if (charType.equals(CHARACTER.o)) return characterCodePoints
+		if (charType.equals(CHARACTER())) return characterCodePoints
 		var codePoints = emptySet
 		for (char in charType.instances)
 		{
@@ -84,7 +84,7 @@ object P_CharacterCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				CHARACTER.o),
+				CHARACTER()),
 			characterCodePoints)
 
 	override val canDestroyArguments get() = false

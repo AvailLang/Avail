@@ -194,7 +194,7 @@ class ModuleImport
 					+ "negative imports (the redundant name")
 				if (redundantExclusions.setSize == 1) append(" is ")
 				else append("s are ")
-				redundantExclusions.joinTo(this@buildString, ", ")
+				redundantExclusions.joinTo(this, ", ")
 				append(')')
 			}
 			throw ImportValidationException(message)

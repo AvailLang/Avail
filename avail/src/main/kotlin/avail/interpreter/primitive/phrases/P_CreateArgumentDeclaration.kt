@@ -65,10 +65,18 @@ object P_CreateArgumentDeclaration : Primitive(2, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newArgument(token, type, nil))
 	}
 
+	/**
+	 * The type might contain an instance type on escaped variables,
+	 * making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o,
+				TOKEN(),
 				anyMeta),
 			ARGUMENT_PHRASE.mostGeneralType)
 }

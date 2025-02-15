@@ -63,7 +63,7 @@ object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType(), u8), TOP.o)
+		functionType(tuple(mostGeneralFiberType(), u8), TOP())
 
 	override val canDestroyArguments get() = false
 }

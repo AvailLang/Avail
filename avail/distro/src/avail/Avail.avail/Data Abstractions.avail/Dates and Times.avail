@@ -119,6 +119,7 @@ Names
 	"no-such-day-in-month exception"
 Body
 
+
 "Epoch milliseconds" is a new field atom;
 
 /**
@@ -402,7 +403,8 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 		trueName[month days] := days;
 		months ++= <trueName>;
 	];
-	Public stable method "months" is [months];
+	monthsSet ::= months;
+	Public stable method "months" is [monthsSet];
 ]();
 
 /**
@@ -1127,7 +1129,7 @@ Alias "private timestamp_____" to $"timestamp_/_/_«_:_:_«._»»««+|-»!_:_»
  * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
  *      days_from_civil}
  */
-Public method "timestamp__,_«_:_:_«._»»««+|-»!_:_»" is
+Public stable method "timestamp__,_«_:_:_«._»»««+|-»!_:_»" is
 [
 	m : month,
 	dom : [1..31],

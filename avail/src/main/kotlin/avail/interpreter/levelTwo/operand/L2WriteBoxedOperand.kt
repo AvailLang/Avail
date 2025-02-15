@@ -62,7 +62,7 @@ class L2WriteBoxedOperand
 constructor(
 	semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
 	restriction: TypeRestriction,
-	register: L2Register<BOXED_KIND>
+	register: L2Register<BOXED_KIND>? = null
 ) : L2WriteOperand<BOXED_KIND>(semanticValues, restriction, register)
 {
 	override val operandType: L2OperandType get() = WRITE_BOXED
@@ -77,6 +77,9 @@ constructor(
 
 	override fun semanticValues(): Set<L2SemanticBoxedValue> =
 		super.semanticValues().cast()
+
+	override fun pickSemanticValue(): L2SemanticBoxedValue =
+		semanticValues().first()
 
 	override fun register(): L2BoxedRegister = super.register().cast()
 

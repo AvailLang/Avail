@@ -324,7 +324,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		self[CONTENT_TYPE].printOnAvoidingIndent(
@@ -467,6 +467,6 @@ private constructor(
 
 		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor]. */
 		val mostGeneralType: A_Type =
-			pojoArrayType(Types.ANY.o, wholeNumbers).makeShared()
+			pojoArrayType(Types.ANY(), wholeNumbers).makeShared()
 	}
 }

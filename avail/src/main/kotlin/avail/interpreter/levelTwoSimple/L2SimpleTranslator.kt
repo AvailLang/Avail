@@ -173,12 +173,13 @@ constructor(
 			"One value should have been left on stack"
 		}
 		val chunk = L2SimpleChunk.allocate(
-			code,
+			code = code,
 			// See L2SimpleExecutableChunk.runChunk()
-			if (code.codePrimitive() == null) 0 else -1,
-			instructions,
-			setFromCollection(contingentValues),
-			nextOptimizationLevel)
+			offsetAfterInitialTryPrimitive =
+				if (code.codePrimitive() == null) 0 else -1,
+			theInstructions = instructions,
+			contingentValues = setFromCollection(contingentValues),
+			nextOptimizationLevel = nextOptimizationLevel)
 		code.setStartingChunkAndReoptimizationCountdown(
 			chunk, nextOptimizationLevel.countdown)
 		return chunk
@@ -525,11 +526,11 @@ constructor(
 		restrictions[stackp - 1] = nilRestriction
 	}
 
-	override fun L1_doGetOuterClearing()
+	override fun L1_doGetLastOuter()
 	{
 		val outer = instructionDecoder.getOperand()
 		add(
-			L2Simple_GetOuterClearing(
+			L2Simple_GetLastOuter(
 				--stackp,
 				pc,
 				instructions.size + 1,
@@ -620,7 +621,7 @@ constructor(
 						L2Simple_MakeIntTupleN(size, stackp)
 					else -> L2Simple_MakeLongTupleN(size, stackp)
 				}
-				elementType.isSubtypeOf(Types.CHARACTER.o) ->
+				elementType.isSubtypeOf(Types.CHARACTER()) ->
 					L2Simple_MakeCharacterTupleN(size, stackp)
 				size == 1 -> L2Simple_MakeTuple1(stackp)
 				size == 2 -> L2Simple_MakeTuple2(stackp)

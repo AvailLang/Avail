@@ -88,7 +88,7 @@ object P_BootstrapAssignmentStatementCheckMacro
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
-		assert(actualToken.isInstanceOf(TOKEN.o))
+		assert(actualToken.isInstanceOf(TOKEN()))
 		val variableNameString = actualToken.string()
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
@@ -128,6 +128,6 @@ object P_BootstrapAssignmentStatementCheckMacro
 		functionType(
 			tuple(
 				/* Leading variable name for assignment */
-				LITERAL_PHRASE.create(TOKEN.o)),
-			TOP.o)
+				LITERAL_PHRASE.create(TOKEN())),
+			TOP())
 }

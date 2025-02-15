@@ -93,7 +93,7 @@ object P_BootstrapSuperCastMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				EXPRESSION_PHRASE.create(ANY.o),
+				EXPRESSION_PHRASE.create(ANY()),
 				LITERAL_PHRASE.create(anyMeta)),
 			SUPER_CAST_PHRASE.mostGeneralType)
 }

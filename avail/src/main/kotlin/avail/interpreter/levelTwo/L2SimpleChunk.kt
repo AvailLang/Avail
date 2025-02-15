@@ -40,7 +40,7 @@ import avail.interpreter.levelTwoSimple.L2SimpleExecutableChunk
 import avail.interpreter.levelTwoSimple.L2SimpleInstruction
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.JVMChunk
-import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
 
 /**
  * A Level Two chunk represents a simply optimized implementation of an
@@ -83,9 +83,8 @@ class L2SimpleChunk private constructor(
 	 * Dump the chunk to disk for debugging. This is expected to be called
 	 * directly from the Kotlin debugger, and should result in the production of
 	 * three files: `JVMChunk_«uuid».l1`, `JVMChunk_«uuid».l2`, and
-	 * `JVMChunk_«uuid».class`. This momentarily sets the
-	 * [JVMTranslator.debugJVM] flag to `true`, but restores it to its original
-	 * value on return.
+	 * `JVMChunk_«uuid».class`. This momentarily sets the [debugJVM] flag to
+	 * `true`, but restores it to its original value on return.
 	 *
 	 * NOTE: [L2SimpleChunk] currently does not dump anything.
 	 *

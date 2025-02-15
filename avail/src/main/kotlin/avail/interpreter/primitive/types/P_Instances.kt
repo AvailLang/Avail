@@ -44,7 +44,6 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
@@ -56,20 +55,19 @@ import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.L2SplitCondition.Companion.existsCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
 /**
- * **Primitive:** Obtain the instances of the specified
- * [type][InstanceMetaDescriptor.topMeta].
+ * **Primitive:** Obtain the instances of the specified [type][topMeta].
  */
 @Suppress("unused")
 object P_Instances : Primitive(1, CanFold, CanInline)
@@ -93,27 +91,27 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 	override fun interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>,
 		rawFunction: A_RawFunction
-	): List<L2SplitCondition?>
-	{
+	): List<L2SplitCondition?> = buildList {
 		// It would be nice to know the number of instances.  For now, split on
 		// whether the given type is bottom – and therefore has ∅ as its
 		// instances.
-		val register = readBoxedOperands[0].register()
-		return listOf(
-			typeRestrictionCondition(
-				setOf(register),
+		val typeRegister = readBoxedOperands[0].register()
+		addAll(
+			typeRestrictionConditions(
+				setOf(typeRegister),
 				boxedRestrictionForConstant(bottom)))
+		// Knowing the instance count can help constrain the set size.
+		add(existsCondition(setOf(P_InstanceCount.semanticInvocation())))
 	}
 
-	override fun emitTransformedInfalliblePrimitive(
+	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand,
-		regenerator: L2Regenerator)
+		result: L2WriteBoxedOperand)
 	{
 		val argument = arguments.elements[0]
 
-		val manifest = regenerator.currentManifest
+		val manifest = currentManifest
 		val countSemanticValue =
 			P_InstanceCount.semanticInvocation(argument.semanticValue())
 		manifest.equivalentSemanticValue(countSemanticValue)?.let {
@@ -122,8 +120,8 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 			if (countRange.isSubtypeOf(inclusive(zero, zero)))
 			{
 				// The input must be bottom, so the output should be ∅.
-				regenerator.moveBoxedRegister(
-					regenerator.boxedConstant(emptySet).semanticValue(),
+				moveBoxedRegister(
+					boxedConstant(emptySet).semanticValue(),
 					result.semanticValues())
 				return
 			}
@@ -131,22 +129,20 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 			{
 				// We've deduced the possible sizes of the set of instances.  We
 				// also proved it's finite, so the primitive won't fail.
-				regenerator.addInstruction(
-					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-						L2ConstantOperand(rawFunction),
-						L2ArbitraryConstantOperand(this),
-						arguments,
-						regenerator.boxedWrite(
-							result.semanticValues(),
-							result.restriction().intersectionWithType(
-								setTypeForSizesContentType(
-									countRange,
-									argument.restriction().type)))))
+				+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+					L2ConstantOperand(rawFunction),
+					this@P_Instances,
+					arguments,
+					boxedWrite(
+						result.semanticValues(),
+						result.restriction().intersectionWithType(
+							setTypeForSizesContentType(
+								countRange,
+								argument.restriction().type))))
 				return
 			}
 		}
-		super.emitTransformedInfalliblePrimitive(
-			rawFunction, arguments, result, regenerator)
+		emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 	}
 
 	override fun fallibilityForArgumentTypes(

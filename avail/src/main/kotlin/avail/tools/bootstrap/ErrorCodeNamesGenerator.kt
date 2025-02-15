@@ -233,7 +233,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 			if (allErrorCodesAreReachableFromPrimitives())
 			{
 				languages.forEach { language ->
-					ErrorCodeNamesGenerator(Locale(language)).generate()
+					ErrorCodeNamesGenerator(Locale.of(language)).generate()
 				}
 			}
 		}

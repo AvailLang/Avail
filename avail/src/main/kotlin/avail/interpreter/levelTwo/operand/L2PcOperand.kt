@@ -31,17 +31,25 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.functions.ContinuationRegisterDumpDescriptor
+import avail.descriptor.functions.A_RegisterDump
+import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDumpMethod
+import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
+import avail.exceptions.unsupported
 import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -51,6 +59,7 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Entity
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
@@ -121,7 +130,7 @@ class L2PcOperand constructor (
 	 * flow cycles, allowing a simple liveness algorithm to be used, instead of
 	 * iterating (backward) through loops until the live set has converged.
 	 */
-	var forcedClampedEntities: MutableSet<L2Entity<*>>? = null
+	var forcedClampedEntities: Set<L2Entity<*>>? = null
 
 	/**
 	 * A counter of how many times this edge has been traversed.  This will be
@@ -137,14 +146,16 @@ class L2PcOperand constructor (
 	 */
 	var counter: LongAdder? = null
 
-	override fun adjustCloneForInstruction(theInstruction: L2Instruction)
+	override val operandType: L2OperandType get() = PC
+
+	override fun adjustCloneForInstruction(
+		theInstruction: L2Instruction,
+		generator: L2GeneratorInterface)
 	{
-		super.adjustCloneForInstruction(theInstruction)
+		super.adjustCloneForInstruction(theInstruction, generator)
 		manifest = null
 		counter = null
 	}
-
-	override val operandType: L2OperandType get() = PC
 
 	override fun addEdgesTo(list: MutableList<L2PcOperand>)
 	{
@@ -168,6 +179,14 @@ class L2PcOperand constructor (
 	 *   Either this edge's value manifest or `null`.
 	 */
 	fun manifestOrNull(): L2ValueManifest? = manifest
+
+	/**
+	 * Write a clone of the given manifest into this edge.
+	 */
+	fun setManifestToCloneOf(newManifest: L2ValueManifest)
+	{
+		manifest = L2ValueManifest(newManifest)
+	}
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
@@ -211,6 +230,22 @@ class L2PcOperand constructor (
 	fun targetBlock(): L2BasicBlock = targetBlock
 
 	/**
+	 * Answer the [targetBlock] that's pointed to by this edge, after skipping
+	 * through any blocks that contain only an [L2_JUMP].
+	 */
+	fun targetBlockSkippingBareJumps(): L2BasicBlock
+	{
+		var target = targetBlock
+		while (true)
+		{
+			if (target.isIrremovable || target.isLoopHead) return target
+			val soleInstruction = target.instructions().singleOrNull()
+			if (soleInstruction !is L2_JUMP) return target
+			target = soleInstruction.target.targetBlock
+		}
+	}
+
+	/**
 	 * Answer the L2 offset at the start of the [L2BasicBlock] that this operand
 	 * refers to.
 	 *
@@ -243,14 +278,15 @@ class L2PcOperand constructor (
 	 * write an [L2_JUMP] into the new block to jump to the old target of this
 	 * edge.  Be careful to maintain predecessor order at the target block.
 	 *
-	 * @param controlFlowGraph
-	 *   The [L2ControlFlowGraph] being updated.
+	 * @param generator
+	 *   The [L2GeneratorInterface] holding the [L2ControlFlowGraph] being
+	 *   updated.
 	 * @return
 	 *   The new [L2BasicBlock] that splits the given edge. This block has not
 	 *   yet been added to the controlFlowGraph, and the client should do this
 	 *   to keep the graph consistent.
 	 */
-	fun splitEdgeWith(controlFlowGraph: L2ControlFlowGraph): L2BasicBlock
+	fun splitEdgeWith(generator: L2GeneratorInterface): L2BasicBlock
 	{
 		assert(instructionHasBeenEmitted)
 
@@ -264,11 +300,11 @@ class L2PcOperand constructor (
 				+ "${targetBlock.name()}]",
 			source.basicBlock().zone,
 			isCold = targetBlock().isCold)
-		controlFlowGraph.startBlock(newBlock)
+		generator.startBlock(newBlock)
 		val manifestCopy = L2ValueManifest(manifest())
 		val jumpToInsert =
 			L2_JUMP(L2PcOperand(newBlock, isBackward, manifestCopy))
-				.cloneFor(newBlock)
+				.cloneFor(generator, newBlock)
 				as L2_JUMP
 		jumpToInsert.target.manifest = manifestCopy
 		newBlock.insertInstruction(0, jumpToInsert)
@@ -309,6 +345,12 @@ class L2PcOperand constructor (
 		isBackward = isBackwardFlag
 	}
 
+	/**
+	 * Alter the target of this edge, updating the graph as needed.
+	 *
+	 * @param newTarget
+	 *   The new target of this edge.
+	 */
 	fun changeUngeneratedTarget(
 		newTarget: L2BasicBlock)
 	{
@@ -321,75 +363,120 @@ class L2PcOperand constructor (
 	}
 
 	/**
-	 * Write JVM bytecodes to the JVMTranslator which will push:
-	 *
-	 *  1. An [Array] of [AvailObject]s containing the value of each live boxed
-	 *     register, and
-	 *  1. A [LongArray] containing encoded data from each live unboxed
-	 *     register.
+	 * Write JVM bytecodes to the JVMTranslator which will push a
+	 * [A_RegisterDump].  The register dump includes information that a
+	 * continuation needs to create elided variables should it become immutable
+	 * or shared.
 	 *
 	 * Also, associate within the [JVMTranslator] the information needed to
 	 * extract these live registers when the target [L2_ENTER_L2_CHUNK] is
-	 * reached.
+	 * reached – from resumption of a continuation (using this register dump)
+	 * that is still mutable.
 	 *
-	 * These arrays are suitable arguments for creating a
-	 * [ContinuationRegisterDumpDescriptor] instance.
-	 *
-	 *  If [skipIfEmpty] is true, and both of the arrays would be empty, don't
-	 *  generate anything, but answer `false`.  Otherwise answer `true`.
+	 * Note that this also gets invoked when creating the initial reification
+	 * edge, from something other than [L2_SAVE_ALL_AND_PC_TO_INT], but it only
+	 * has to save registers, not deal with capturing local variable
+	 * initialization values.  That's because it's a dummy continuation that
+	 * gets created at that point, to allow reification to proceed in the right
+	 * direction (earliest calls first).  So there is no L1 progress during the
+	 * lifetime of a dummy continuation, and no way for that continuation to
+	 * become immutable or shared.
 	 *
 	 * @param translator
-	 *   The [JVMTranslator] in which to record the saved register layout.
+	 *   The [JVMTranslator] in which to record the saved register dump.
 	 * @param method
 	 *   The [MethodVisitor] on which to write code to push the register dump.
-	 * @param skipIfEmpty
-	 *   Whether we can skip generating code to push the two arrays, if they
-	 *   would be empty.
-	 * @return
-	 *   Whether code to push two arrays was generated.
+	 * @param fallbackChunkEntry
+	 *   The [ChunkEntryPoint] to jump to in the [unoptimizedChunk] if the
+	 *   continuation becomes immutable or shared and later resumed.
 	 */
-	fun createAndPushRegisterDumpArrays(
+	fun createAndPushRegisterDump(
 		translator: JVMTranslator,
 		method: MethodVisitor,
-		skipIfEmpty: Boolean
-	): Boolean
+		fallbackChunkEntry: ChunkEntryPoint)
 	{
 		// Capture both the constant L2 offset of the target, and a register
 		// dump containing the state of all live registers.  A subsequent
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
-		val liveMap = RegisterKind.all
-			.associateWithTo(mutableMapOf()) { mutableListOf<L2Register<*>>() }
+		val liveMap =
+			RegisterKind.all.associateWith { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
-			((alwaysLiveInEntities ?: emptySet())
-					+ (sometimesLiveInEntities ?: emptySet()))
+			listOfNotNull(alwaysLiveInEntities, sometimesLiveInEntities)
+				.flatten()
 				.filterIsInstance<L2Register<*>>()
 				.sortedBy(L2Register<*>::finalIndex)
+				.distinct()
 		liveRegistersList.forEach {
 			liveMap[it.kind]!!.add(it)
 		}
-		val targetInstruction = targetBlock.instructions()[0]
-		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
-			liveMap.mapValues { (_, list) ->
-				list.map(translator::localNumberFromRegister)
-			}
-		when
+		val liveLocalsByKind = liveMap.mapValues { (_, list) ->
+			list.map(translator::localNumberFromRegister).distinct()
+		}
+		when (val targetInstruction = targetBlock.instructions()[0])
 		{
-			targetInstruction is L2_ENTER_L2_CHUNK -> { }
-			targetInstruction is L2_ENTER_L2_CHUNK_FOR_CALL -> {
+			is L2_ENTER_L2_CHUNK ->
+			{
+				translator.entryPointLiveInfo[targetInstruction.offset] =
+					liveLocalsByKind
+			}
+			is L2_ENTER_L2_CHUNK_FOR_CALL ->
+			{
 				// There should be no live registers on the edge back to the
 				// start due to a surviving L2_VIRTUAL_CREATE_LABEL.
 				assert(liveMap.values.all(List<*>::isEmpty))
 			}
 			else -> throw AssertionError("Invalid target of $this")
 		}
-
-		if (skipIfEmpty && liveMap.values.all(List<*>::isEmpty))
+		if (liveMap.values.all(List<*>::isEmpty))
 		{
-			// The stack was not affected.
-			return false
+			// Nothing needs to be saved, so we can reuse the empty register
+			// dump object.  Note that since there are no saved values, it's
+			// also the case that there are no saved values that would be used
+			// to initialize new variables if the continuation becomes immutable
+			// or shared.
+			translator.loadLiteralObject(
+				method,
+				emptyRegisterDump(fallbackChunkEntry))
+			return
 		}
-		// Emit code to save those registers' values.  Start with the objects.
+		// The stack is now AvailObject[], long[].  At least one of the arrays
+		// is non-empty.  Create the encoded tuple of local/source info for
+		// initializing variables.  See ENCODED_ELIDED_LOCALS in
+		// RegisterDumpDescriptor.
+		translator.loadLiteralObject(method, fallbackChunkEntry)
+		val sourceInstruction = instruction
+		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
+		{
+			// This is a real continuation that can become immutable or shared,
+			// so we have to capture the local initialization plan.  That takes
+			// the form of a tuple of Ints, alternating between L1 local index
+			// and its source in the object array or long array, as specified
+			// in RegisterDumpDescriptor.ENCODED_ELIDED_LOCALS.
+			assert(sourceInstruction.dirtyLocals.elements.size
+				== sourceInstruction.dirtyLocalIndices.constant.size)
+			val ints = mutableListOf<Int>()
+			sourceInstruction.dirtyLocals.elements.forEachIndexed { i, read ->
+				ints.add(sourceInstruction.dirtyLocalIndices.constant[i])
+				val liveIndexInKind =
+					liveMap[read.kind]!!.indexOf(read.register())
+				ints.add(
+					A_RegisterDump.encodeLocalValue(read.kind, liveIndexInKind))
+			}
+			val intTuple = tupleFromIntegerList(ints).makeShared()
+			translator.loadLiteralObject(method, intTuple)
+			// :: encodedInitTuple
+		}
+		else
+		{
+			// This is a dummy continuation created to allow L2 code to handle
+			// reification itself, when it's its turn to run (oldest calls
+			// first).  A dummy continuation only survivess during the chain of
+			// reifications, and no L1 progress can be made during that time, so
+			// it cannot become immutable or shared.
+			translator.loadLiteralObject(method, nil)
+		}
+		// Emit code to save live registers' values.  Start with the objects.
 		// :: array = new «arrayClass»[«limit»];
 		// :: array[0] = ...; array[1] = ...;
 		val boxedLocal: List<L2BoxedRegister> = liveMap[BOXED_KIND]!!.cast()
@@ -431,9 +518,17 @@ class L2PcOperand constructor (
 				i++
 			}
 		}
-		// The stack is now AvailObject[], long[].
-		return true
+		createRegisterDumpMethod.generateCall(method)
 	}
+
+	/** Instructions that branch are not eligible for postponement. */
+	override fun equivalentTo(other: L2Operand) = unsupported
+
+	/** Instructions that branch are not eligible for postponement. */
+	override val equivalentHash: Int get() = unsupported
+
+	/** Instructions that branch are not eligible for postponement. */
+	override fun mergeFromOperands(operands: List<L2Operand>) = unsupported
 
 	/**
 	 * Create and install a [LongAdder] to count visits through this edge in the
@@ -450,6 +545,8 @@ class L2PcOperand constructor (
 		manifest = null
 		alwaysLiveInEntities = null
 		sometimesLiveInEntities = null
-		forcedClampedEntities?.retainAll { it is L2Register<*> }
+		forcedClampedEntities = forcedClampedEntities
+			?.filterIsInstance<L2Register<*>>()
+			?.toSet()
 	}
 }

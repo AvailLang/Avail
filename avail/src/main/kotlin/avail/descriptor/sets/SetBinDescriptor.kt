@@ -44,6 +44,7 @@ import avail.descriptor.sets.SetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import avail.descriptor.sets.SetDescriptor.SetIterator
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -98,6 +99,8 @@ abstract class SetBinDescriptor protected constructor(
 			val BIN_HASH = BitField(BIN_HASH_AND_MORE, 0, 32) { null }
 		}
 	}
+
+	override fun o_Kind(self: AvailObject): A_Type = unsupported
 
 	override fun o_SetBinHash(self: AvailObject): Int =
 		self[BIN_HASH]

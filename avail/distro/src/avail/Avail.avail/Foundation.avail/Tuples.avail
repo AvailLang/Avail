@@ -451,8 +451,8 @@ Public method "a two-input tuple prefix function" is
 ]→⊤;
 
 /*The following methods,
- * 	"return type(_,_,_,_)"
- * 	"index return type(_,_,_,_)"
+ *     "return type(_,_,_,_)"
+ *     "index return type(_,_,_,_)"
  * evaluate the return types of methods given a tuple input to a block.*/
 Public method "«two-input»?«indexed»?return type(_,_,_,_)" is
 [
@@ -490,7 +490,7 @@ Public method "«two-input»?«indexed»?return type(_,_,_,_)" is
  *
  * @method "tuple body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
+ *      macro builds
  * @param "baseReturnType" "type" the base return type of the method
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple,
  *   block phrase ⇒ []→⊤]→send phrase ⇒ ⊤"
@@ -535,7 +535,7 @@ Public method "tuple body function(_,_)" is
  *
  * @method "two-input tuple body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
+ *      macro builds
  * @param "baseReturnType" "type" the base return type of the method
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
@@ -2076,7 +2076,7 @@ Public method "right fold_through_" is
 		nextAccumulator ::=
 			innerTransformer(innerTuple[strongIndex], accumulator);
 		Restart loop with <
-			index - 1,
+			index - 1 ?→ whole number,
 			nextAccumulator,
 			innerTuple,
 			innerTransformer>
@@ -2284,7 +2284,7 @@ styled by loop styler;
  *
  * @method "all indices of_where_"
  * @param "aTuple" "tuple"
- * 		The tuple to search
+ *      The tuple to search
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the tuple.
  * @returns "natural number*"
@@ -2480,7 +2480,7 @@ Method "_to_by_" is
 	end : integer,
 	delta : 0's type
 |
-	early failure function(incorrect-argument-type code)
+	Failed primitive with incorrect-argument-type code
 ] : ⊥;
 
 /**
@@ -2961,25 +2961,25 @@ Semantic restriction "split_before_" is
 */
 Public stable method "explode_at element_«,⁇skipping empties»?" is
 [
-  aTuple : tuple,
-  delimiter : any,
-  skipEmpties : boolean
+	aTuple : tuple,
+	delimiter : any,
+	skipEmpties : boolean
 |
-  accumulator : tuple* := <>;
-  lastCut : natural number := 1;
-  For each item, index in aTuple do
-  [
-     If item = delimiter then
-     [
-        If index > lastCut ∨ ¬skipEmpties then
-        [
-           accumulator := accumulator ++ <aTuple[lastCut..index - 1]>;
-        ];
-        lastCut := index + 1;
-     ];
-  ];
-  if skipEmpties ∧ lastCut = |aTuple| then [accumulator] else
-     [accumulator ++ <aTuple[lastCut..]>]
+	accumulator : tuple* := <>;
+	lastCut : natural number := 1;
+	For each item, index in aTuple do
+	[
+		If item = delimiter then
+		[
+			If index > lastCut ∨ ¬skipEmpties then
+			[
+				accumulator := accumulator ++ <aTuple[lastCut..index - 1]>;
+			];
+			lastCut := index + 1;
+		];
+	];
+	if skipEmpties ∧ lastCut = |aTuple| then [accumulator]
+	else [accumulator ++ <aTuple[lastCut..]>]
 ];
 
 /**
@@ -2998,31 +2998,31 @@ Public stable method "explode_at element_«,⁇skipping empties»?" is
 */
 Semantic restriction "explode_at element_«,⁇skipping empties»?" is
 [
-  tupleType : tuple meta,
-  delimiterType : any's type,
-  skipType : boolean's type
+	tupleType : tuple meta,
+	delimiterType : any's type,
+	skipType : boolean's type
 |
-  Assert: |skipType| = 1;
-  tupleMemberType ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-  Unless delimiterType ⊆ tupleMemberType then
-  [
-     Reject parse, expected:
-        "delimiter of type " ++ “delimiterType” ++
-        " to be a subtype of the smeared tuple union type" ++
-        “tupleMemberType”
-  ];
-  if skipType's instance then
-  [
-    /* Since we throw away delimiters, the maximum number of *non-empty*
-     * sub-tuples is half the original tuple length rounded up.
-	 */
-    maxSlices ::= (⌈tupleType⌉ + 1) ÷ 2;
-    <<tupleMemberType…|1..⌈tupleType⌉>…|1..maxSlices>
-  ]
-  else
-  [
-     <<tupleMemberType…|0..⌈tupleType⌉>…|1..⌈tupleType⌉>
-  ]
+	Assert: |skipType| = 1;
+	tupleMemberType ::= ∪ tupleType[1..|tupleType's leading types| + 1];
+	Unless delimiterType ⊆ tupleMemberType then
+	[
+		Reject parse, expected:
+			"delimiter of type " ++ “delimiterType” ++
+			" to be a subtype of the smeared tuple union type" ++
+			“tupleMemberType”
+	];
+	if skipType's instance then
+	[
+		/* Since we throw away delimiters, the maximum number of *non-empty*
+		 * sub-tuples is half the original tuple length rounded up.
+		 */
+		maxSlices ::= (⌈tupleType⌉ + 1) ÷ 2;
+		<<tupleMemberType…|1..⌈tupleType⌉>…|1..maxSlices>
+	]
+	else
+	[
+		<<tupleMemberType…|0..⌈tupleType⌉>…|1..⌈tupleType⌉>
+	]
 ];
 
 /**

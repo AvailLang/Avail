@@ -108,7 +108,7 @@ class LiteralPhraseDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append(
@@ -244,7 +244,7 @@ class LiteralPhraseDescriptor(
 		{
 			// The literal phrase's token's literal is also a token.
 			// Answer both.
-			literal.isInstanceOf(Types.TOKEN.o) -> tuple(token, literal)
+			literal.isInstanceOf(Types.TOKEN()) -> tuple(token, literal)
 			// Answer just the literal phrase's token.
 			else -> tuple(token)
 		}

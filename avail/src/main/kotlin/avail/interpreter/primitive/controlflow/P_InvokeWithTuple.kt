@@ -72,7 +72,8 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import java.util.Collections.nCopies
 
@@ -121,7 +122,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			tuple(
 				mostGeneralFunctionType(),
 				mostGeneralTupleType),
-			TOP.o)
+			TOP())
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
@@ -232,17 +233,15 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	 * If the call will always fail, just invoke this primitive normally, and
 	 * let it fail.
 	 */
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (functionReg, tupleReg) = arguments
-
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 
 		// Examine the function type.
 		val functionType = functionReg.type()
@@ -260,9 +259,9 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// Note: Uses any as each type, since we're going to do strengthening
 		// checks ourselves, below.
 		val explodedArgumentRegisters =
-			generator.explodeTupleIfPossible(
+			explodeTupleIfPossible(
 				tupleReg,
-				nCopies(argsSize, Types.ANY.o))
+				nCopies(argsSize, Types.ANY()))
 
 		// Fall back if we couldn't even pin down the argument count.
 		explodedArgumentRegisters ?: return false
@@ -270,26 +269,25 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 
 		// Fall back if the count will always be wrong.
 		if (functionArgTypes.tupleSize != argsSize) return false
-		val failurePath = generator.createBasicBlock(
+		val failurePath = createBasicBlock(
 			"Failed dynamic type check for P_InvokeWithTuple",
 			isCold = true)
-		for (i in 1..argsSize)
+		for (i in 1 .. argsSize)
 		{
 			val argReg = explodedArgumentRegisters[i - 1]
 			val argType = argReg.type()
-			val exactTypeReg = generator.extractParameterTypeFromFunction(
-				functionReg, i)
-			val constantExactArgType = exactTypeReg.restriction().constantOrNull
+			val exactTypeReg = extractParameterTypeFromFunction(functionReg, i)
+			val constantExactArgType = exactTypeReg.constantOrNull
 			if (constantExactArgType === null
 				|| !argType.isSubtypeOf(constantExactArgType))
 			{
 				// This argument has to be checked at runtime.
-				val passedAnother = generator.createBasicBlock(
+				val passedAnother = createBasicBlock(
 					"Passed check for argument #$i")
 				if (constantExactArgType !== null)
 				{
 					// We have a known exact type to compare against.
-					generator.jumpIfKindOfConstant(
+					jumpIfKindOfConstant(
 						argReg,
 						constantExactArgType,
 						passedAnother,
@@ -298,37 +296,36 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 				else
 				{
 					// The arg type was extracted at runtime from the function.
-					generator.addInstruction(
-						L2_JUMP_IF_KIND_OF_OBJECT(
-							argReg,
-							exactTypeReg,
-							edgeTo(passedAnother),
-							edgeTo(failurePath)))
+					+L2_JUMP_IF_KIND_OF_OBJECT(
+						argReg,
+						exactTypeReg,
+						edgeTo(passedAnother),
+						edgeTo(failurePath))
 				}
-				generator.startBlock(passedAnother)
+				startBlock(passedAnother)
 			}
 		}
 
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
-		translator.generateGeneralFunctionInvocation(
+		generateGeneralFunctionInvocation(
 			functionReg,
-			explodedArgumentRegisters,
 			true,
-			callSiteHelper)
+			callSiteHelper,
+			explodedArgumentRegisters)
 
-		generator.startBlock(failurePath)
+		startBlock(failurePath)
 		// At least one argument disagreed with the required type, so call the
 		// actual invoker function (i.e., the one with this primitive) with the
 		// function to invoke and the tuple of arguments.
-		if (generator.currentlyReachable())
+		if (currentlyReachable())
 		{
-			translator.generateGeneralFunctionInvocation(
+			generateGeneralFunctionInvocation(
 				functionToCallReg,
-				arguments,
 				false,
-				callSiteHelper)
+				callSiteHelper,
+				arguments)
 		}
 		return true
 	}

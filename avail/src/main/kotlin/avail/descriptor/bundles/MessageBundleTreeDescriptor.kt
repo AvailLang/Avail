@@ -194,7 +194,7 @@ class MessageBundleTreeDescriptor private constructor(
 	var latestBackwardJump: A_BundleTree
 ) : Descriptor(
 	mutability,
-	TypeTag.BUNDLE_TREE_TAG,
+	TypeTag.OTHER_NONTYPE_TAG,
 	null,
 	IntegerSlots::class.java)
 {
@@ -411,7 +411,7 @@ class MessageBundleTreeDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	): Unit = with(builder) {
 		append("BundleTree(")
@@ -782,7 +782,7 @@ class MessageBundleTreeDescriptor private constructor(
 
 	override fun o_Hash(self: AvailObject) = self[HASH]
 
-	override fun o_Kind(self: AvailObject) = Types.MESSAGE_BUNDLE_TREE.o
+	override fun o_Kind(self: AvailObject) = Types.OTHER_NONTYPE()
 
 	override fun o_LazyActions(self: AvailObject) = lock.read { lazyActions }
 
@@ -862,7 +862,7 @@ class MessageBundleTreeDescriptor private constructor(
 	 *   Which [A_BundleTree] to invalidate.
 	 */
 	private fun invalidate(
-		@Suppress("UNUSED_PARAMETER")
+		@Suppress("unused")
 		self: A_BundleTree
 	) = invalidationsStat.record {
 		lock.safeWrite {

@@ -42,6 +42,7 @@ import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
 import avail.anvil.actions.FindAction
 import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.shortcuts.RebuildShortcut
 import avail.anvil.text.AvailEditorKit
 import avail.anvil.text.CodePane
 import avail.anvil.text.MarkToDotRange
@@ -65,6 +66,10 @@ import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.persistence.cache.record.StylingRecord
 import avail.utility.notNullAnd
+import com.thizzer.jtouchbar.JTouchBar
+import com.thizzer.jtouchbar.item.TouchBarItem
+import com.thizzer.jtouchbar.item.view.TouchBarButton
+import com.thizzer.jtouchbar.item.view.action.TouchBarViewAction
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -767,6 +772,30 @@ class AvailEditor constructor(
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()
+
+		// Populate the Mac TouchBar, if it exists on the device.
+		//TODO – test on other hardware, and detect its absence.
+		val touchBar = JTouchBar()
+		touchBar.setCustomizationIdentifier("MySwingJavaTouchBar");
+		touchBar.addItem(
+			TouchBarItem(
+				"Build",
+				TouchBarButton().apply {
+					title = "Build"
+					action = TouchBarViewAction {
+						println("(Building module)")
+						sourcePane.actionMap[RebuildShortcut.actionMapKey]
+							.actionPerformed(
+								ActionEvent(
+									sourcePane,
+									ActionEvent.ACTION_PERFORMED,
+									null))
+					}
+				},
+				true))
+		touchBar.show(this)
+
+
 		if (workbench.structureViewIsOpen)
 		{
 			updatePhraseStructure()

@@ -99,6 +99,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.getValueForDebugger
 import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
@@ -243,7 +244,7 @@ class AvailDebugger internal constructor (
 
 	private val inspectFrame = object : AbstractDebuggerAction(
 		this,
-		"Inspect")
+		"Inspect frame")
 	{
 		override fun updateIsEnabled(busy: Boolean)
 		{
@@ -254,6 +255,23 @@ class AvailDebugger internal constructor (
 		{
 			stackListPane.selectedValue?.let {
 				inspect(it.function.code().toString(), it as AvailObject)
+			}
+		}
+	}
+
+	private val inspectFiber = object : AbstractDebuggerAction(
+		this,
+		"Inspect fiber")
+	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
+		override fun actionPerformed(e: ActionEvent)
+		{
+			fiberListPane.selectedValue?.let {
+				inspect(it.fiberName.asNativeString(), it as AvailObject)
 			}
 		}
 	}
@@ -276,10 +294,10 @@ class AvailDebugger internal constructor (
 			depth > 3 -> "***depth***"
 			value.isNil -> "nil"
 			value.isString && value.tupleSize < 80 -> value.toString()
-			value.isInstanceOf(Types.NUMBER.o) -> value.toString()
-			value.isInstanceOf(Types.MESSAGE_BUNDLE.o) ->
+			value.isInstanceOf(Types.NUMBER()) -> value.toString()
+			value.isInstanceOf(Types.MESSAGE_BUNDLE()) ->
 				value.message.atomName.asNativeString()
-			value.isInstanceOf(Types.METHOD.o) -> value.toString()
+			value.isInstanceOf(Types.METHOD()) -> value.toString()
 			value.isAtom -> value.toString()
 			value.isCharacter -> value.toString()
 			value.isInstanceOf(mostGeneralVariableType) ->
@@ -397,7 +415,7 @@ class AvailDebugger internal constructor (
 			val map = mutableMapOf<Int, IntRange>()
 			val string = buildString {
 				L1Disassembler(code).printInstructions(
-					IdentityHashMap<A_BasicObject, Void>(10), 0)
+					IdentityHashMap<A_BasicObject, Unit>(10), 0)
 				{ pc, line, string ->
 					val before = length
 					append("$pc. [:$line] $string")
@@ -1276,6 +1294,9 @@ class AvailDebugger internal constructor (
 			DefaultHighlightPainter(washedOut)
 		}
 
+		fiberListPane.componentPopupMenu = JPopupMenu("Fiber").apply {
+			add(inspectFiber)
+		}
 		stackListPane.componentPopupMenu = JPopupMenu("Stack").apply {
 			add(inspectFrame)
 		}
@@ -1349,7 +1370,7 @@ class AvailDebugger internal constructor (
  * Helper function to minimize which variables will be presented in scope when
  * using the "inspect" action.
  */
-@Suppress("UNUSED_PARAMETER")
+@Suppress("unused")
 fun inspect(name: String, value: AvailObject)
 {
 	// Put a Kotlin debugger breakpoint on the next line.

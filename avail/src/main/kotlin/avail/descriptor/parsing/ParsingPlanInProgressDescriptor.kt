@@ -41,6 +41,7 @@ import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
+import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.isParsingPlanInProgress
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
@@ -56,9 +57,9 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -85,7 +86,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(
 	mutability,
-	TypeTag.PARSING_PLAN_IN_PROGRESS_TAG,
+	TypeTag.OTHER_NONTYPE_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java
 ) {
@@ -124,18 +125,15 @@ class ParsingPlanInProgressDescriptor private constructor(
 		self[PARSING_PLAN]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
-		if (!another.kind().equals(PARSING_PLAN_IN_PROGRESS.o)) {
-			return false
-		}
 		val strongAnother = another as A_ParsingPlanInProgress
+		if (!strongAnother.isParsingPlanInProgress) return false
 		return (self[PARSING_PLAN].equals(strongAnother.parsingPlan)
 			&& self[PARSING_PC] == strongAnother.parsingPc)
 	}
 
 	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
-	override fun o_Kind(self: AvailObject): A_Type =
-		PARSING_PLAN_IN_PROGRESS.o
+	override fun o_Kind(self: AvailObject): A_Type = Types.OTHER_NONTYPE()
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean
 	{
@@ -173,7 +171,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = with(builder) {
 		append("plan @")

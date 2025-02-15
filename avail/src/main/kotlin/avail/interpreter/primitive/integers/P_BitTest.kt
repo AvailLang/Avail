@@ -38,6 +38,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.bitTest
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
@@ -67,13 +68,15 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
-import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.operation.NumericComparator.Equal
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.SelectBit
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import kotlin.math.min
 
@@ -153,12 +156,12 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		return booleanType
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
 		val (a, b) = arguments
@@ -171,71 +174,66 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 			// One of the arguments is never within range, so fall back.
 			return false
 		}
-		val translator = callSiteHelper.translator
-		val generator = callSiteHelper.generator
 		val fallback = L2BasicBlock("fallback for bit test")
-		val aInt = generator.readInt(
-			a.semanticValue().unboxedInt, fallback)
-		val bInt = generator.readInt(
-			b.semanticValue().unboxedInt, fallback)
-		// Fall back if bInt is > 31.  We already know it's non-negative.
-		val inRange = L2BasicBlock("bit position is in 0..31")
-		NumericComparator.LessOrEqual.compareAndBranchInt(
-			generator,
-			bInt,
-			generator.unboxedIntConstant(31),
-			edgeTo(inRange),
-			edgeTo(fallback))
-		generator.startBlock(inRange)
-		val shifted: L2ReadIntOperand = if (bType.upperBound.equals(zero))
-		{
-			// No need to shift it.
-			aInt
+		val aInt = readInt(a.semanticValue().unboxedInt, fallback) {
+			return false
 		}
-		else
-		{
-			val shiftedWrite = generator.intWriteTemp(
-				intRestrictionForType(i32))
-			generator.addInstruction(
-				L2_BIT_LOGIC_OP(
-					Shr,
-					aInt,
-					bInt,
-					shiftedWrite))
-			L2ReadIntOperand(
-				shiftedWrite.pickSemanticValue(),
-				shiftedWrite.restriction(),
-				generator.currentManifest)
+		// At this point we have the i32 under test, and know from the primitive
+		// signature that the bit position is >= 0.  If the bit position we're
+		// selecting is >31, it'll just be a copy of the sign bit.
+		val bit = intWriteTemp("bit", intRestrictionForType(u1))
+		val bigShift = L2BasicBlock("shift is huge")
+		val hasBit = L2BasicBlock("bit was extracted")
+		run {
+			val bInt = readInt(
+				b.semanticValue().unboxedInt, bigShift
+			) {
+				// We're shifting by an amount that *always* exceeds an i32, so
+				// we just use the sign bit (31) unconditionally.
+				jumpTo(bigShift)
+				return@run
+			}
+			if (bType.upperBound.equalsInt(0))
+			{
+				// Common case: no shift is needed because we're extracting the
+				// low bit.
+				+L2_BIT_LOGIC_OP(And, aInt, unboxedIntConstant(1), bit)
+			}
+			else
+			{
+				+L2_BIT_LOGIC_OP(SelectBit, aInt, bInt, bit)
+			}
+			jumpTo(hasBit)
 		}
-		val maskedWrite = generator.intWriteTemp(intRestrictionForType(u1))
-		generator.addInstruction(
-			L2_BIT_LOGIC_OP(
-				And,
-				shifted,
-				generator.unboxedIntConstant(1),
-				maskedWrite))
-		val isZeroLabel = generator.createBasicBlock("bit is zero")
-		val isOneLabel = generator.createBasicBlock("bit is one")
-		NumericComparator.Equal.compareAndBranchInt(
-			generator,
+		assert(!currentlyReachable())
+		startBlock(bigShift)
+		if (currentlyReachable())
+		{
+			+L2_BIT_LOGIC_OP(SelectBit, aInt, unboxedIntConstant(31), bit)
+			jumpTo(hasBit)
+		}
+		assert(!currentlyReachable())
+		startBlock(hasBit)
+		// We have now populated `bit` with either 0 or 1.
+		val isZeroLabel = createBasicBlock("bit is zero")
+		val isOneLabel = createBasicBlock("bit is one")
+		compareAndBranchInt(
+			Equal,
 			L2ReadIntOperand(
-				maskedWrite.pickSemanticValue(),
-				maskedWrite.restriction(),
-				generator.currentManifest),
-			generator.unboxedIntConstant(0),
-			edgeTo(isZeroLabel),
-			edgeTo(isOneLabel))
-		generator.startBlock(isZeroLabel)
-		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(falseObject))
-		generator.startBlock(isOneLabel)
-		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(trueObject))
-		generator.startBlock(fallback)
+				bit.pickSemanticValue(),
+				bit.restriction()),
+			unboxedIntConstant(0),
+			ifTrue = edgeTo(isZeroLabel),
+			ifFalse = edgeTo(isOneLabel))
+		startBlock(isZeroLabel)
+		callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+		startBlock(isOneLabel)
+		callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+		startBlock(fallback)
 		// If the fallback is reachable, return false to indicate general
 		// infallible primitive invocation code should be generated for it,
 		// otherwise return true to suppress this.
-		return !generator.currentlyReachable()
+		return !currentlyReachable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

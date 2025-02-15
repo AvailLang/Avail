@@ -33,8 +33,6 @@ package avail.interpreter.levelTwo.register
 
 import avail.descriptor.representation.AvailObject
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
-import avail.optimizer.L2Generator
-import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * `L2FloatRegister` models the conceptual usage of a register that can store a
@@ -59,22 +57,6 @@ constructor(
 ) : L2Register<FLOAT_KIND>(debugValue, constant)
 {
 	override val kind get() = FLOAT_KIND
-
-	override fun copyForTranslator(
-		generator: L2Generator): L2FloatRegister
-	{
-		return L2FloatRegister(generator.nextUnique())
-	}
-
-	override fun copyAfterColoring(): L2FloatRegister
-	{
-		val result = L2FloatRegister(finalIndex)
-		result.finalIndex = finalIndex
-		return result
-	}
-
-	override fun copyForRegenerator(regenerator: L2Regenerator) =
-		L2FloatRegister(regenerator.nextUnique())
 
 	override val primaryVisualSortKey
 		get() = PrimaryVisualSortKey.UNBOXED_FLOAT_REGISTER

@@ -98,5 +98,5 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 				literalTokenType(wholeNumbers),
 				literalTokenType(wholeNumbers),
 				literalTokenType(integers)),
-			DOUBLE.o)
+			DOUBLE())
 }

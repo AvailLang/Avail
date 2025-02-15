@@ -35,7 +35,6 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
-import avail.descriptor.objects.ObjectLayoutVariant.Companion.allVariants
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsCounter
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
 import avail.descriptor.representation.Mutability
@@ -45,6 +44,8 @@ import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.utility.safeWrite
+import org.apache.commons.collections4.map.ReferenceMap
+import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
 import java.lang.ref.SoftReference
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -170,7 +171,7 @@ class ObjectLayoutVariant private constructor(
 				ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_,
 				1,
 				type.variableObjectSlotsCount(),
-				ANY.o)
+				ANY())
 			type.makeShared()
 		}
 	}
@@ -202,10 +203,23 @@ class ObjectLayoutVariant private constructor(
 		 * this counter will be astronomically safer.
 		 */
 		@GuardedBy("variantsLock")
-		private val allVariants =
+		private val variantsByFieldSet =
 			WeakHashMap<A_Set, SoftReference<ObjectLayoutVariant>>()
 
-		/** The lock used to protect access to the [allVariants] map. */
+		/**
+		 * A secondary indexing of the extant variants, keyed by variant id, but
+		 * in a weak-valued map.  When a variant is no longer strongly reachable
+		 * (and the soft reference in [variantsByFieldSet] decides to let it
+		 * be collected), this map will first null its weakreference (the map
+		 * entry's value), and soon after remove the entry itself.
+		 */
+		@GuardedBy("variantsLock")
+		private val variantsById = ReferenceMap<Int, ObjectLayoutVariant>(
+			ReferenceStrength.HARD,
+			ReferenceStrength.WEAK,
+			true)
+
+		/** The lock used to protect access to the [variantsByFieldSet] map. */
 		private val variantsLock = ReentrantReadWriteLock()
 
 		/**
@@ -231,7 +245,7 @@ class ObjectLayoutVariant private constructor(
 		fun variantForFields(allFields: A_Set): ObjectLayoutVariant {
 			variantsLock.read {
 				// By far the most likely path.
-				allVariants[allFields]?.get()?.let { return it }
+				variantsByFieldSet[allFields]?.get()?.let { return it }
 			}
 			// Didn't find it while holding the read lock.  We could create it
 			// outside of the lock, then test for its presence again inside the
@@ -239,12 +253,23 @@ class ObjectLayoutVariant private constructor(
 			// Instead, hold the write lock, test again, and create and add if
 			// necessary.
 			return variantsLock.safeWrite {
-				when (val theirVariant = allVariants[allFields]?.get()) {
+				when (val theirVariant = variantsByFieldSet[allFields]?.get()) {
 					null -> ObjectLayoutVariant(allFields, ++variantsCounter)
-						.also { allVariants[allFields] = SoftReference(it) }
+						.also { newVariant ->
+							variantsByFieldSet[allFields] = SoftReference(newVariant)
+							variantsById[newVariant.variantId] = newVariant
+						}
 					else -> theirVariant
 				}
 			}
 		}
+
+		/**
+		 * Answer the [ObjectLayoutVariant] having the given [variantId] (which
+		 * are allocated sequentially as needed).  If the variant is no longer
+		 * strongly reachable, null can be returned.
+		 */
+		fun variantFromId(variantId: Int): ObjectLayoutVariant? =
+			variantsLock.read { variantsById[variantId] }
 	}
 }

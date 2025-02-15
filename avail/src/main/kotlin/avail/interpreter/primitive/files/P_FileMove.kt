@@ -39,11 +39,10 @@ import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_FILE_EXISTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -66,7 +65,7 @@ import java.nio.file.StandardCopyOption
 
 /**
  * **Primitive:** Move the source [path][Path] to the destination path. Use the
- * supplied [boolean][EnumerationTypeDescriptor.booleanType] to decide whether
+ * supplied [boolean][booleanType] to decide whether
  * to permit the destination to be overwritten.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -134,7 +133,7 @@ object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType, stringType, booleanType), TOP.o)
+		functionType(tuple(stringType, stringType, booleanType), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

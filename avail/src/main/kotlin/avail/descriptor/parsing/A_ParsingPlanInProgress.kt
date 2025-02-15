@@ -51,7 +51,11 @@ import avail.descriptor.representation.AvailObject
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_ParsingPlanInProgress : A_BasicObject {
-	companion object {
+	companion object
+	{
+		val A_ParsingPlanInProgress.isParsingPlanInProgress: Boolean
+			get() = traversed().descriptor() is ParsingPlanInProgressDescriptor
+
 		/**
 		 * Answer whether this plan-in-progress is at a backward jump
 		 * instruction.

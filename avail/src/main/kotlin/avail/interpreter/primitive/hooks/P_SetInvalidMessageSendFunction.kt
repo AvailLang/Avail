@@ -65,6 +65,14 @@ object P_SetInvalidMessageSendFunction
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The function outers could contain an escaped variable that becomes
+	 * shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(INVALID_MESSAGE_SEND.functionType), TOP.o)
+		functionType(tuple(INVALID_MESSAGE_SEND.functionType), TOP())
 }

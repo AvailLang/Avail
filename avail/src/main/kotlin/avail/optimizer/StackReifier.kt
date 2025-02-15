@@ -165,7 +165,7 @@ class StackReifier constructor(
 					dummyContinuation.levelTwoChunk.executableChunk,
 					dummyContinuation.levelTwoOffset,
 					"Starting a reifier action",
-					"")
+					emptyArray())
 			}
 			// The call stack reflects what the dummyContinuation expects to
 			// see reified so far.  Push the dummyContinuation.
@@ -193,7 +193,7 @@ class StackReifier constructor(
 					dummyContinuation.levelTwoOffset,
 					"Finished a reifier action (offset is for "
 						+ "instruction that queued it)",
-					"")
+					emptyArray())
 			}
 		}
 		return this

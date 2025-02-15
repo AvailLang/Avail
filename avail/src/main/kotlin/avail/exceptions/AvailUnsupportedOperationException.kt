@@ -78,6 +78,8 @@ private fun unsupportedOperation (problemClass: Class<*>): Nothing
 		}
 		catch (e: Exception)
 		{
+			e.printStackTrace()
+
 			var name = e.stackTrace[1].methodName
 			if (name == "getUnsupported")  // property name
 			{
@@ -93,5 +95,5 @@ private fun unsupportedOperation (problemClass: Class<*>): Nothing
  * Using the getter produces almost the same diagnostic stack trace when
  * executed, but is a much shorter expression.
  */
-val Any.unsupported: Nothing
-	get() = unsupportedOperation(this::class.java)
+val Any.unsupported: Nothing get() =
+	unsupportedOperation(this::class.java)

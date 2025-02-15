@@ -47,7 +47,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Run the zero-argument [function][FunctionDescriptor], ignoring
@@ -75,15 +76,16 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o, functionType(emptyTuple, TOP.o)),
-			TOP.o)
+			tuple(ANY(), functionType(emptyTuple, TOP())),
+			TOP())
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the passed function in the 2nd (=args[1]) argument, instead.  The
@@ -92,8 +94,8 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 		val functionReg = arguments[1]
 		// the function in the 2nd (=args[1]) argument.
 		// takes no arguments.
-		callSiteHelper.translator.generateGeneralFunctionInvocation(
-			functionReg, emptyList(), true, callSiteHelper)
+		generateGeneralFunctionInvocation(
+			functionReg, true, callSiteHelper, emptyList())
 		return true
 	}
 }

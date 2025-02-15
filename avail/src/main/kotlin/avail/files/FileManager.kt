@@ -132,42 +132,27 @@ open class FileManager
 	protected val fileCache = LRUCache<UUID, Mutable<AbstractFileWrapper?>>(
 		SOFT_CAPACITY,
 		STRONG_CAPACITY,
-		{
-			var reference: ResolverReference? = null
-			resolverRefToId.forEach { (k, v) ->
-				if (v == it)
-				{
-					reference = k
-					return@forEach
-				}
-			}
+		transformer = { uuid ->
+			var reference: ResolverReference? =
+				resolverRefToId.entries.first { (k, v) -> v == uuid }.key
 			val wrapper: AbstractFileWrapper? =
 				try
 				{
-					if (reference === null)
-					{
-						null
-					}
-					else
-					{
-						fileWrapper(it, reference!!)
-					}
+					reference?.let { fileWrapper(uuid, it) }
 				}
 				catch (e: NoSuchFileException)
 				{
-					ErrorFileWrapper(
-						it, reference!!, this, e, FILE_NOT_FOUND)
+					ErrorFileWrapper(uuid, reference!!, this, e, FILE_NOT_FOUND)
 					null
 				}
 				catch (e: Throwable)
 				{
-					ErrorFileWrapper(
-						it, reference!!, this, e, UNSPECIFIED)
+					ErrorFileWrapper(uuid, reference!!, this, e, UNSPECIFIED)
 					null
 				}
 			Mutable(wrapper)
 		},
-		{ _, value ->
+		retirementAction = { _, value ->
 			try
 			{
 				value.value?.close()
@@ -190,8 +175,8 @@ open class FileManager
 	 */
 	protected fun fileWrapper(
 		id: UUID,
-		reference: ResolverReference): AbstractFileWrapper =
-			reference.resolver.fileWrapper(id, reference)
+		reference: ResolverReference
+	): AbstractFileWrapper = reference.resolver.fileWrapper(id, reference)
 
 	/**
 	 * Fully remove the file associated with the provided [fileCache] id. This
@@ -222,7 +207,7 @@ open class FileManager
 	 */
 	fun deregisterInterest (
 		id: UUID,
-		@Suppress("UNUSED_PARAMETER")
+		@Suppress("unused")
 		interestedPartId: UUID? = null)
 	{
 		// TODO does interested party id matter?

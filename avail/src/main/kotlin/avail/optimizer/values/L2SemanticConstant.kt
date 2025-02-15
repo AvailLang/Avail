@@ -78,7 +78,7 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 	override val defaultRestriction: TypeRestriction
 		get() = boxedRestrictionForConstant(value)
 
-	override val isUsefulForGlobalValueNumbering: Boolean = true
+	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override fun toString(): String
 	{

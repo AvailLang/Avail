@@ -52,9 +52,12 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
+import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Answer the size of the [tuple][TupleDescriptor].
@@ -80,17 +83,16 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>
 	): A_Type = argumentTypes[0].sizeRange.typeIntersection(i31)
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val tupleReg = arguments[0]
 
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val lower = returnType.lowerBound
 		val upper = returnType.upperBound
@@ -99,7 +101,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that
 				// information to produce a constant.
-				callSiteHelper.useAnswer(generator.boxedConstant(lower))
+				callSiteHelper.useAnswer(boxedConstant(lower), false)
 			else ->
 			{
 				// The exact size of the tuple isn't known, so generate code to
@@ -107,10 +109,29 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 				// register.  If the boxed form isn't needed, that instruction
 				// will be eliminated later.
 				val restriction = intRestrictionForType(returnType)
-				val writer = generator.intWriteTemp(restriction)
-				generator.addInstruction(L2_TUPLE_SIZE(tupleReg, writer))
+				val sizeBoxed = primitiveInvocation(
+					P_TupleSize,
+					listOf(tupleReg.semanticValue()))
+				val sizeInt = sizeBoxed.unboxedInt
+				val equivalent =
+					currentManifest.equivalentSemanticValue(sizeInt)
+				if (equivalent !== null)
+				{
+					// It already exists, so reuse it.
+					if (equivalent != sizeInt)
+					{
+						moveIntRegister(equivalent, setOf(sizeInt))
+					}
+				}
+				else
+				{
+					// It's not yet available, so compute it.
+					val writer = intWrite(setOf(sizeInt), restriction)
+					+L2_TUPLE_SIZE(tupleReg, writer)
+				}
 				callSiteHelper.useAnswer(
-					generator.readBoxed(writer.onlySemanticValue().boxed))
+					readBoxed(sizeInt.boxed),
+					false)
 			}
 		}
 		return true

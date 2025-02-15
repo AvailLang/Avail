@@ -50,15 +50,16 @@ import org.objectweb.asm.Opcodes
 
 /**
  * Explicitly decrement the current compiled code's countdown via
- * [A_RawFunction.countdownToReoptimize].  If it reaches zero then re-optimize the
- * code and jump to its [L2Chunk.offsetAfterInitialTryPrimitive], which expects
- * the arguments to still be set up in the [Interpreter].
+ * [A_RawFunction.countdownToReoptimize].  If it reaches zero then re-optimize
+ * the code and jump to its [L2Chunk.offsetAfterInitialTryPrimitive], which
+ * expects the arguments to still be set up in the [Interpreter].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
-	var newOptimizationLevel: L2IntImmediateOperand,
+class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
+constructor(
+	var currentOptimizationLevel: L2IntImmediateOperand,
 	var isEntryPointFlag: L2IntImmediateOperand
 ): L2Instruction()
 {
@@ -73,7 +74,7 @@ class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		translator.loadInterpreter(method)
-		translator.literal(method, newOptimizationLevel.value)
+		translator.intConstant(method, currentOptimizationLevel.value)
 		decrementMethod.generateCall(method)
 		val didNotOptimize = Label()
 		method.visitJumpInsn(Opcodes.IFEQ, didNotOptimize)
@@ -105,16 +106,16 @@ class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
 		): Boolean
 		{
 			val code = interpreter.function!!.code()
-			return code.decrementCountdownToReoptimize { optimize: Boolean ->
-				if (optimize)
-				{
-					OptimizationLevel.optimizationLevel(targetOptimizationLevel)
-						.optimize(code, interpreter)
-				}
+			val hitZero = code.decrementCountdownToReoptimize()
+			if (hitZero)
+			{
+				OptimizationLevel.optimizationLevel(targetOptimizationLevel)
+					.optimize(code, interpreter)
 				val chunk = code.startingChunk
 				interpreter.chunk = chunk
 				interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
 			}
+			return hitZero
 		}
 
 		/**

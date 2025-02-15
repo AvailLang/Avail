@@ -382,55 +382,55 @@ protected constructor(
 
 	override fun o_TypeUnionOfFiberType(
 		self: AvailObject,
-		aFiberType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aFiberType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aFunctionType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfVariableType(
 		self: AvailObject,
-		aVariableType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aVariableType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfContinuationType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aContinuationType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,
-		aCompiledCodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aCompiledCodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfIntegerRangeType(
 		self: AvailObject,
-		anIntegerRangeType: A_Type): A_Type = self.typeUnion(Types.NUMBER.o)
+		anIntegerRangeType: A_Type): A_Type = self.typeUnion(Types.NUMBER())
 
 	override fun o_TypeUnionOfListNodeType(
 		self: AvailObject,
-		aListNodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aListNodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfTokenType(
 		self: AvailObject,
-		aTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN.o)
+		aTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN())
 
 	override fun o_TypeUnionOfLiteralTokenType(
 		self: AvailObject,
-		aLiteralTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN.o)
+		aLiteralTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN())
 
 	override fun o_TypeUnionOfMapType(
 		self: AvailObject,
-		aMapType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aMapType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfObjectType(
 		self: AvailObject,
-		anObjectType: AvailObject): A_Type = self.typeUnion(Types.NONTYPE.o)
+		anObjectType: AvailObject): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfPhraseType(
 		self: AvailObject,
-		aPhraseType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aPhraseType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfPojoType(
 		self: AvailObject,
-		aPojoType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aPojoType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
@@ -439,9 +439,9 @@ protected constructor(
 		var anotherAncestor = primitiveTypeEnum
 		while (true)
 		{
-			if (self.isSubtypeOf(anotherAncestor.o))
+			if (self.isSubtypeOf(anotherAncestor()))
 			{
-				return anotherAncestor.o
+				return anotherAncestor()
 			}
 			anotherAncestor = anotherAncestor.parent!!
 		}
@@ -449,11 +449,11 @@ protected constructor(
 
 	override fun o_TypeUnionOfSetType(
 		self: AvailObject,
-		aSetType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aSetType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_TypeUnionOfTupleType(
 		self: AvailObject,
-		aTupleType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
+		aTupleType: A_Type): A_Type = self.typeUnion(Types.NONTYPE())
 
 	override fun o_UnionOfTypesAtThrough(
 		self: AvailObject,

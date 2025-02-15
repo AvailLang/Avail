@@ -76,7 +76,7 @@ object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o), booleanType)
+		functionType(tuple(ATOM()), booleanType)
 
 	override val canDestroyArguments get() = false
 }

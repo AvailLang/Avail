@@ -71,11 +71,18 @@ object P_CreateInitializingVariableDeclaration : Primitive(
 			newVariable(token, type, nil, initializer))
 	}
 
+	/**
+	 * The type might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o,
+				TOKEN(),
 				anyMeta,
-				EXPRESSION_PHRASE.create(ANY.o)),
+				EXPRESSION_PHRASE.create(ANY())),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType)
 }

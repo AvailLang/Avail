@@ -1,6 +1,6 @@
 /*
  * Infallible Primitives.avail
- * Copyright © 1993-2024, The Avail Foundation, LLC.
+ * Copyright © 1993-2025, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/6/24, 3:01 PM
+ * * Last Generated: 2/14/25, 12:19 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -215,6 +215,7 @@ Uses
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
+		"↓_else_",
 		"∪_",
 		"∪_[_.._]",
 		"⌈_⌉",
@@ -4280,6 +4281,28 @@ Primitive "`↑_" is
 |
 	Primitive CreateVariableType;
 ] : variable meta;
+
+/**
+ * Answer the value contained within the specified variable, or if it's
+ * unassigned, answer the provided {@param "default"}.
+ *
+ * @category "Primitives" "Variables" "Queries"
+ * @method "↓_else_"
+ * @param "var" "read ⊤/write ⊥"
+ *        A variable.
+ * @param "default" "any"
+ *        A default value to answer if the variable is unassigned.
+ * @returns "any"
+ *    The value contained within the specified variable, or a default if it was
+ *    unassigned.
+ */
+Primitive "↓_else_" is
+[
+	var : write-only variable,
+	default : any
+|
+	Primitive GetValueElse;
+] : any;
 
 /**
  * Is the specified variable unassigned?

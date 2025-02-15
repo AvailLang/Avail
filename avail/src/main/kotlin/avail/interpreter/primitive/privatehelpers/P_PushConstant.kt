@@ -51,7 +51,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
 import avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** The first literal is being returned. Extract the first literal
@@ -82,19 +83,19 @@ object P_PushConstant : Primitive(
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val value = rawFunction!!.literalAt(1)
-		return if (value.isNil) TOP.o else instanceTypeOrMetaOn(value)
+		return if (value.isNil) TOP() else instanceTypeOrMetaOn(value)
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val constant = rawFunction.literalAt(1)
-		val translator = callSiteHelper.translator
-		callSiteHelper.useAnswer(translator.generator.boxedConstant(constant))
+		callSiteHelper.useAnswer(boxedConstant(constant), false)
 		return true
 	}
 

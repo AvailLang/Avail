@@ -44,7 +44,6 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -57,14 +56,13 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
 /**
- * **Primitive:** How many instances does the specified
- * [type][InstanceMetaDescriptor.topMeta] have?
+ * **Primitive:** How many instances does the specified [type][topMeta] have?
  */
 @Suppress("unused")
 object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
@@ -105,37 +103,39 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>,
 		rawFunction: A_RawFunction
-	): List<L2SplitCondition?>
-	{
+	): List<L2SplitCondition?> = buildList {
 		// If we can separate knowledge of whether the argument is bottomMeta,
 		// we can produce 0 along that path.
 		val argument = readBoxedOperands[0]
 		if (argument.restriction().intersectsType(bottomMeta))
 		{
-			return listOf(
-				typeRestrictionCondition(
+			addAll(
+				typeRestrictionConditions(
 					setOf(argument.register()),
 					boxedRestrictionForConstant(bottom)))
 		}
-		return super.interestingSplitConditions(readBoxedOperands, rawFunction)
+		else
+		{
+			addAll(
+				super.interestingSplitConditions(
+					readBoxedOperands, rawFunction))
+		}
 	}
 
-	override fun emitTransformedInfalliblePrimitive(
+	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand,
-		regenerator: L2Regenerator)
+		result: L2WriteBoxedOperand)
 	{
 		val instanceTypeRead = arguments.elements[0]
 		val restriction = instanceTypeRead.restriction()
 		restriction.constantOrNull?.let { constant ->
-			regenerator.addInstruction(
-				L2_MOVE_BOXED(
-					regenerator.boxedConstant(constant.instanceCount),
-					result))
+			+L2_MOVE_BOXED(boxedConstant(constant.instanceCount), result)
 			return
 		}
-		val canBeBottom = restriction.intersectsType(bottomMeta)
+		val minCount =
+			if (restriction.intersectsType(bottomMeta)) zero
+			else one
 		val instanceType = restriction.type
 		if (instanceType.isInstanceMeta)
 		{
@@ -149,32 +149,30 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 				// the argument typed as boolean's type, then it may be called
 				// at runtime with boolean, {true}ᵀ, {false}ᵀ, or ⊥. These would
 				// have an instance count of 2, 1, 1, and 0, respectively.
-				var range = inclusive(
-					if (canBeBottom) zero else one,
-					innerType.instanceCount)
+				var range = inclusive(minCount, innerType.instanceCount)
 				if (range.lowerBound.equals(range.upperBound))
 				{
 					// There's only one value it can be.
-					regenerator.addInstruction(
-						L2_MOVE_BOXED(
-							regenerator.boxedConstant(range.lowerBound),
-							result))
+					+L2_MOVE_BOXED(boxedConstant(range.lowerBound), result)
 					return
 				}
 				// At least we can narrow (possibly) the result type.
-				super.emitTransformedInfalliblePrimitive(
+				emitBasicInfalliblePrimitive(
 					rawFunction,
 					arguments,
 					L2WriteBoxedOperand(
 						result.semanticValues(),
-						result.restriction().intersectionWithType(range),
-						result.register()),
-					regenerator)
+						result.restriction().intersectionWithType(range)))
 				return
 			}
 		}
-		super.emitTransformedInfalliblePrimitive(
-			rawFunction, arguments, result, regenerator)
+		emitBasicInfalliblePrimitive(
+			rawFunction,
+			arguments,
+			L2WriteBoxedOperand(
+				result.semanticValues(),
+				result.restriction().intersectionWithType(
+					inclusive(minCount, positiveInfinity))))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

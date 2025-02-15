@@ -166,10 +166,10 @@ Public method "_'s⁇next«value in»⁇_" is
 	/*Determine if a boundary condition is reached.  A boundary condition is
 	 * known to have been reached if the following conditions are met:
 	 *
-	 * 		1. (((result + 1) ÷ boundaryMultiple)'s whole number part
-	 * 			-  (result ÷ boundaryMultiple)'s whole number part) > 0
+	 *      1. (((result + 1) ÷ boundaryMultiple)'s whole number part
+	 *          -  (result ÷ boundaryMultiple)'s whole number part) > 0
 	 *
-	 * 		2. (result ÷ boundaryMultiple)'s fraction > 0
+	 *      2. (result ÷ boundaryMultiple)'s fraction > 0
 	 */
 	resultRangeValue ::= randomValue ÷ boundaryMultiple;
 	incrementedResultRangeValue ::= (randomValue + 1) ÷ boundaryMultiple;

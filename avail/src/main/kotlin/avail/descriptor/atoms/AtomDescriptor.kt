@@ -184,7 +184,7 @@ open class AtomDescriptor protected constructor (
 	override fun printObjectOnAvoidingIndent (
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = with(builder) {
 		val nativeName = self.atomName.asNativeString()
@@ -239,7 +239,7 @@ open class AtomDescriptor protected constructor (
 	override fun o_IssuingModule (self: AvailObject): A_Module =
 		self[ISSUING_MODULE]
 
-	override fun o_Kind(self: AvailObject): AvailObject = Types.ATOM.o
+	override fun o_Kind(self: AvailObject): AvailObject = Types.ATOM()
 
 	/**
 	 * Convert to use an [AtomWithPropertiesSharedDescriptor], replacing self

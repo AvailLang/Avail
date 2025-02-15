@@ -134,5 +134,5 @@ object P_StyleSpanOfPhrase : Primitive(3, CanInline, WritesToHiddenGlobalState)
 			PARSE_PHRASE.mostGeneralType,
 			stringType,
 			booleanType),
-		Types.TOP.o)
+		Types.TOP())
 }

@@ -70,7 +70,7 @@ object P_CreateSequenceOfStatements : Primitive(1, CanInline)
 		{
 			statement.flattenStatementsInto(flat)
 		}
-		if (!containsOnlyStatements(flat, TOP.o))
+		if (!containsOnlyStatements(flat, TOP()))
 		{
 			return interpreter.primitiveFailure(
 				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)

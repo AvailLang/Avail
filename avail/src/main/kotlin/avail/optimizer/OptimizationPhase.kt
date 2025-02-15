@@ -36,7 +36,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
-import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
+import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
@@ -105,7 +105,7 @@ internal enum class OptimizationPhase constructor(
 	 */
 	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
 	@Clears(IS_EDGE_SPLIT::class)
-	DO_CODE_SPLITTING(L2Optimizer::doCodeSplitting),
+	DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Code splitting preserves SSA, but can lose the edge-split property.
@@ -113,7 +113,7 @@ internal enum class OptimizationPhase constructor(
 	 */
 	@Requires(IS_SSA::class)
 	@Sets(IS_EDGE_SPLIT::class)
-	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING(
+	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING_1(
 		L2Optimizer::transformToEdgeSplitSSA),
 
 	/**
@@ -136,8 +136,41 @@ internal enum class OptimizationPhase constructor(
 	 * redundancies, which are dead code.  Remove them for clarity before we
 	 * replace placeholder instructions.
 	 */
-	REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS(
+	REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS_1(
 		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
+
+	/**
+	 * Postponements may have exposed new opportunities for useful splitting.
+	 * For example, variable elision can allow i32 values to stay in int
+	 * registers longer without needing to be boxed as often.
+	 */
+	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
+	@Clears(IS_EDGE_SPLIT::class)
+	DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
+
+	/**
+	 * Code splitting preserves SSA, but can lose the edge-split property.
+	 * Restore it by explicitly splitting the appropriate edges.
+	 */
+	@Requires(IS_SSA::class)
+	@Sets(IS_EDGE_SPLIT::class)
+	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING_2(
+		L2Optimizer::transformToEdgeSplitSSA),
+
+	/**
+	 * Try to move any side-effect-less instructions to later points in the
+	 * control flow graph.  If such an instruction defines a register that's
+	 * used in the same basic block, don't bother moving it.  Also don't
+	 * attempt to move it if it's always-live-in at each successor block,
+	 * since the point of moving it forward is to avoid inessential
+	 * computations.
+	 *
+	 * Note that this breaks SSA by duplicating defining instructions.
+	 * It also always recomputes liveness after each change, so there's no
+	 * need to recompute it after this phase.
+	 */
+	POSTPONE_CONDITIONALLY_USED_VALUES_2(
+		L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
@@ -163,7 +196,7 @@ internal enum class OptimizationPhase constructor(
 	 * If [REPLACE_PLACEHOLDER_INSTRUCTIONS] made any changes, give one more try
 	 * at pushing conditionally used values.  Otherwise do nothing.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_2(
+	POSTPONE_CONDITIONALLY_USED_VALUES_3(
 		L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
@@ -231,13 +264,6 @@ internal enum class OptimizationPhase constructor(
 	 * we don't jump past irremovable phi moves.
 	 */
 	ADJUST_EDGES_LEADING_TO_JUMPS(L2Optimizer::adjustEdgesLeadingToJumps),
-
-	/**
-	 * Find each branch instruction that has both of its outbound edges going to
-	 * the same target block.  Replace each such branch with a jump. Repeat
-	 * until there are no more such spurious branches remaining.
-	 */
-//	REMOVE_SPURIOUS_BRANCHING(L2Optimizer::removeSpuriousBranching),
 
 	/**
 	 * Having adjusted edges to avoid landing on [L2_JUMP]s, some blocks may

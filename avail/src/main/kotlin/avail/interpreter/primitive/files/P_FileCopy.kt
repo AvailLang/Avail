@@ -128,12 +128,12 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 				{
 					@Throws(IOException::class)
 					override fun preVisitDirectory(
-						dir: Path?,
-						unused: BasicFileAttributes?): FileVisitResult
+						dir: Path,
+						unused: BasicFileAttributes
+					): FileVisitResult
 					{
-						assert(dir !== null)
-						val dstDir = destinationPath.resolve(
-							sourcePath.relativize(dir!!))
+						val dstDir =
+							destinationPath.resolve(sourcePath.relativize(dir))
 						try
 						{
 							Files.copy(dir, dstDir, *options)
@@ -151,12 +151,11 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 
 					@Throws(IOException::class)
 					override fun visitFile(
-						file: Path?,
-						unused: BasicFileAttributes?): FileVisitResult
+						file: Path,
+						unused: BasicFileAttributes): FileVisitResult
 					{
-						assert(file !== null)
 						Files.copy(
-							file!!,
+							file,
 							destinationPath.resolve(
 								sourcePath.relativize(file)),
 							*options)
@@ -164,21 +163,20 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 					}
 
 					override fun visitFileFailed(
-						file: Path?,
-						unused: IOException?): FileVisitResult
+						file: Path,
+						unused: IOException
+					): FileVisitResult
 					{
 						partialSuccess.value = true
 						return CONTINUE
 					}
 
 					override fun postVisitDirectory(
-						dir: Path?,
-						e: IOException?): FileVisitResult
+						dir: Path,
+						e: IOException?
+					): FileVisitResult
 					{
-						if (e !== null)
-						{
-							partialSuccess.value = true
-						}
+						e?.let { partialSuccess.value = true }
 						return CONTINUE
 					}
 				})
@@ -211,7 +209,7 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 				booleanType,
 				booleanType,
 				booleanType),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

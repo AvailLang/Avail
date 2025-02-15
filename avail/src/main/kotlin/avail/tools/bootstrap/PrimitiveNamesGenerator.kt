@@ -34,7 +34,10 @@ package avail.tools.bootstrap
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
-import avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
+import avail.tools.bootstrap.Resources.Key.methodCommentParameterTemplate
+import avail.tools.bootstrap.Resources.Key.methodCommentRaisesTemplate
+import avail.tools.bootstrap.Resources.Key.methodCommentReturnsTemplate
+import avail.tools.bootstrap.Resources.Key.methodCommentTemplate
 import avail.tools.bootstrap.Resources.escape
 import avail.tools.bootstrap.Resources.primitiveCommentKey
 import avail.tools.bootstrap.Resources.primitiveParameterNameKey
@@ -60,6 +63,30 @@ import java.util.ResourceBundle
 class PrimitiveNamesGenerator constructor(locale: Locale)
 	: PropertiesFileGenerator(primitivesBaseName, locale)
 {
+	/**
+	 * The [ResourceAccess] protecting the [ResourceBundle] that contains the
+	 * Avail names of the [Primitive]s.
+	 */
+	private val primitiveBundle = object : ResourceAccess<Primitive>(
+		primitivesBaseName, locale, Primitive::simpleName) { }
+
+	/**
+	 * The [ResourceAccess] protecting the [ResourceBundle] that contains the
+	 * Avail [Primitive] comments.
+	 */
+	private val primitiveCommentBundle = object : ResourceAccess<Primitive>(
+		primitiveBundle.bundle, ::primitiveCommentKey) { }
+
+	/**
+	 * The [ResourceAccess] protecting the [ResourceBundle] that contains the
+	 * Avail names of the [Primitive]s' parameters.
+	 */
+	private val primitiveParameterNameBundle =
+		object : ResourceAccess<Pair<Primitive, Int>>(
+			primitiveBundle.bundle,
+			{ (prim, arg) -> primitiveParameterNameKey(prim, arg) }
+		) { }
+
 	/**
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding [primitives][Primitive].
@@ -126,15 +153,13 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					// the final value to 1, to account for the @method tag of
 					// methodCommentTemplate.
 					var templateParameters = 1
-					val commentTemplate =
-						preambleBundle.getString(
-							Resources.Key.methodCommentTemplate.name)
+					val commentTemplate = preamble[methodCommentTemplate]
 					val parameters: String
 					val argCount = primitive.argCount
 					if (argCount > 0)
 					{
-						val parameterTemplate = preambleBundle.getString(
-							Resources.Key.methodCommentParameterTemplate.name)
+						val parameterTemplate =
+							preamble[methodCommentParameterTemplate]
 						val builder = StringBuilder(500)
 						for (i in 0 until primitive.argCount)
 						{
@@ -153,8 +178,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					}
 					// The return contributes one argument to the final
 					// template.
-					val returnsTemplate = preambleBundle.getString(
-						Resources.Key.methodCommentReturnsTemplate.name)
+					val returnsTemplate = preamble[methodCommentReturnsTemplate]
 					val returns = checkedFormat(
 						returnsTemplate, "{$templateParameters}")
 					templateParameters++
@@ -166,8 +190,8 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					val raises = buildString {
 						if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 						{
-							val raisesTemplate = preambleBundle.getString(
-								Resources.Key.methodCommentRaisesTemplate.name)
+							val raisesTemplate =
+								preamble[methodCommentRaisesTemplate]
 							val failureType = primitive.failureVariableType
 							if (failureType.isEnumeration)
 							{
@@ -224,7 +248,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 				if (args.isNotEmpty()) args
 				else arrayOf(System.getProperty("user.language"))
 			languages.forEach { language ->
-				PrimitiveNamesGenerator(Locale(language)).generate()
+				PrimitiveNamesGenerator(Locale.of(language)).generate()
 			}
 		}
 	}

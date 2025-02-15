@@ -32,8 +32,9 @@
 
 package avail.serialization
 
+import avail.AllSpecialAtoms
 import avail.AvailRuntime
-import avail.AvailRuntime.Companion.specialObject
+import avail.SpecialObject.Companion.specialObject
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -288,6 +289,12 @@ import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.globalModule
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.isGlobal
+import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
@@ -596,7 +603,7 @@ enum class SerializerOperation constructor(
 	 * An Avail integer in the range 11..255.  Note that 0..10 have their own
 	 * special cases already which require very little space.
 	 */
-	BYTE_INTEGER(false, 11, BYTE.named("only byte"))
+	BYTE_INTEGER(false, 11, BYTE("only byte"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -625,7 +632,7 @@ enum class SerializerOperation constructor(
 	 * own special cases already which require less space.  Don't try to
 	 * compress the short value for this reason.
 	 */
-	SHORT_INTEGER(false, 12, UNCOMPRESSED_SHORT.named("the unsigned short"))
+	SHORT_INTEGER(false, 12, UNCOMPRESSED_SHORT("the unsigned short"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -653,7 +660,7 @@ enum class SerializerOperation constructor(
 	 * An Avail integer in the range -2<sup>31</sup> through `2^31-1`, except
 	 * the range 0..65535 which have their own special cases already.
 	 */
-	INT_INTEGER(false, 13, SIGNED_INT.named("int's value"))
+	INT_INTEGER(false, 13, SIGNED_INT("int's value"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -680,7 +687,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * An Avail integer that cannot be represented as an [Int].
 	 */
-	BIG_INTEGER(14, BIG_INTEGER_DATA.named("constituent ints"))
+	BIG_INTEGER(14, BIG_INTEGER_DATA("constituent ints"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -728,7 +735,7 @@ enum class SerializerOperation constructor(
 	 * This special opcode causes a previously built object to be produced as an
 	 * actual checkpoint output from the [Deserializer].
 	 */
-	CHECKPOINT(false, 16, OBJECT_REFERENCE.named("object to checkpoint"))
+	CHECKPOINT(false, 16, OBJECT_REFERENCE("object to checkpoint"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -751,7 +758,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * One of the special objects that the [AvailRuntime] maintains.
 	 */
-	SPECIAL_OBJECT(false, 17, COMPRESSED_SHORT.named("special object number"))
+	SPECIAL_OBJECT(false, 17, COMPRESSED_SHORT("special object number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -783,7 +790,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * One of the special atoms that the [AvailRuntime] maintains.
 	 */
-	SPECIAL_ATOM(false, 18, COMPRESSED_SHORT.named("special atom number"))
+	SPECIAL_ATOM(false, 18, COMPRESSED_SHORT("special atom number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -797,7 +804,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return Deserializer.specialAtom(subobjects[0].extractInt)
+			return AllSpecialAtoms.specialAtom(subobjects[0].extractInt)
 		}
 
 		override fun describe(describer: DeserializerDescriber)
@@ -808,7 +815,8 @@ enum class SerializerOperation constructor(
 			describer.append(" (")
 			describer.append(specialIndex.toString())
 			describer.append(") = ")
-			describer.append(Deserializer.specialAtom(specialIndex).toString())
+			describer.append(
+				AllSpecialAtoms.specialAtom(specialIndex).toString())
 		}
 	},
 
@@ -816,7 +824,7 @@ enum class SerializerOperation constructor(
 	 * A [character][CharacterDescriptor] whose code point fits in an
 	 * unsigned byte (0..255).
 	 */
-	BYTE_CHARACTER(false, 19, BYTE.named("Latin-1 code point"))
+	BYTE_CHARACTER(false, 19, BYTE("Latin-1 code point"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -837,7 +845,7 @@ enum class SerializerOperation constructor(
 	 * A [character][CharacterDescriptor] whose code point requires an
 	 * unsigned short (256..65535).
 	 */
-	SHORT_CHARACTER(false, 20, UNCOMPRESSED_SHORT.named("BMP code point"))
+	SHORT_CHARACTER(false, 20, UNCOMPRESSED_SHORT("BMP code point"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -861,9 +869,9 @@ enum class SerializerOperation constructor(
 	LARGE_CHARACTER(
 		false,
 		21,
-		BYTE.named("SMP codepoint high byte"),
-		BYTE.named("SMP codepoint middle byte"),
-		BYTE.named("SMP codepoint low byte"))
+		BYTE("SMP codepoint high byte"),
+		BYTE("SMP codepoint middle byte"),
+		BYTE("SMP codepoint low byte"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -891,7 +899,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [float][FloatDescriptor].  Convert the raw bits to an int for writing.
 	 */
-	FLOAT(false, 22, SIGNED_INT.named("raw bits"))
+	FLOAT(false, 22, SIGNED_INT("raw bits"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -928,8 +936,8 @@ enum class SerializerOperation constructor(
 	DOUBLE(
 		false,
 		23,
-		SIGNED_INT.named("upper raw bits"),
-		SIGNED_INT.named("lower raw bits"))
+		SIGNED_INT("upper raw bits"),
+		SIGNED_INT("lower raw bits"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -971,7 +979,7 @@ enum class SerializerOperation constructor(
 	 * A [tuple][TupleDescriptor] of arbitrary objects.  Write the size of the
 	 * tuple then the elements as object identifiers.
 	 */
-	GENERAL_TUPLE(24, TUPLE_OF_OBJECTS.named("tuple elements"))
+	GENERAL_TUPLE(24, TUPLE_OF_OBJECTS("tuple elements"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -993,7 +1001,7 @@ enum class SerializerOperation constructor(
 	 * Latin-1.  Write the size of the tuple then the sequence of character
 	 * bytes.
 	 */
-	BYTE_STRING(25, BYTE_CHARACTER_TUPLE.named("Latin-1 string"))
+	BYTE_STRING(25, BYTE_CHARACTER_TUPLE("Latin-1 string"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1017,7 +1025,7 @@ enum class SerializerOperation constructor(
 	 */
 	SHORT_STRING(
 		26,
-		COMPRESSED_SHORT_CHARACTER_TUPLE.named(
+		COMPRESSED_SHORT_CHARACTER_TUPLE(
 			"Basic Multilingual Plane string"))
 	{
 		override fun decompose(
@@ -1042,7 +1050,7 @@ enum class SerializerOperation constructor(
 	 */
 	ARBITRARY_STRING(
 		27,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("arbitrary string"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE("arbitrary string"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1063,7 +1071,7 @@ enum class SerializerOperation constructor(
 	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
 	 * `0..2^31-1`.
 	 */
-	INT_TUPLE(28, COMPRESSED_INT_TUPLE.named("tuple of ints"))
+	INT_TUPLE(28, COMPRESSED_INT_TUPLE("tuple of ints"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1084,7 +1092,7 @@ enum class SerializerOperation constructor(
 	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
 	 * 0..255.
 	 */
-	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.named("tuple of bytes"))
+	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE("tuple of bytes"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1104,7 +1112,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [tuple][TupleDescriptor] whose values fall in the range 0..15.
 	 */
-	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.named("tuple of nybbles"))
+	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE("tuple of nybbles"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1126,7 +1134,7 @@ enum class SerializerOperation constructor(
 	 * key```[N]```, value```[N]```) and work with that, converting it back to a
 	 * map when deserializing.
 	 */
-	MAP(31, GENERAL_MAP.named("map contents"))
+	MAP(31, GENERAL_MAP("map contents"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1147,7 +1155,7 @@ enum class SerializerOperation constructor(
 	 * An Avail [object][ObjectDescriptor], written as a map from field keys
 	 * ([A_Atom]s) to field values.
 	 */
-	OBJECT(32, GENERAL_MAP.named("field map"))
+	OBJECT(32, GENERAL_MAP("field map"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1168,7 +1176,7 @@ enum class SerializerOperation constructor(
 	 * An Avail [object type][ObjectTypeDescriptor], written as a map from field
 	 * keys ([A_Atom]s) to field types.
 	 */
-	OBJECT_TYPE(33, GENERAL_MAP.named("field type map"))
+	OBJECT_TYPE(33, GENERAL_MAP("field type map"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1193,8 +1201,8 @@ enum class SerializerOperation constructor(
 	 */
 	ATOM(
 		34,
-		OBJECT_REFERENCE.named("atom name"),
-		OBJECT_REFERENCE.named("module name"))
+		OBJECT_REFERENCE("atom name"),
+		OBJECT_REFERENCE("module name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1228,8 +1236,8 @@ enum class SerializerOperation constructor(
 	 */
 	HERITABLE_ATOM(
 		35,
-		OBJECT_REFERENCE.named("atom name"),
-		OBJECT_REFERENCE.named("module name"))
+		OBJECT_REFERENCE("atom name"),
+		OBJECT_REFERENCE("module name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1263,20 +1271,20 @@ enum class SerializerOperation constructor(
 	 */
 	COMPILED_CODE(
 		36,
-		COMPRESSED_SHORT.named("Total number of frame slots"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("Primitive name"),
-		OBJECT_REFERENCE.named("Type if primitive fails"),
-		OBJECT_REFERENCE.named("Function type"),
-		UNCOMPRESSED_NYBBLE_TUPLE.named("Level one nybblecodes"),
-		TUPLE_OF_OBJECTS.named("Regular literals"),
-		TUPLE_OF_OBJECTS.named("Local types"),
-		TUPLE_OF_OBJECTS.named("Constant types"),
-		TUPLE_OF_OBJECTS.named("Outer types"),
-		OBJECT_REFERENCE.named("Module name"),
-		UNSIGNED_INT.named("Line number"),
-		COMPRESSED_INT_TUPLE.named("Encoded line number deltas"),
-		OBJECT_REFERENCE.named("Originating phrase or index"),
-		OBJECT_REFERENCE.named("Packed declaration names"))
+		COMPRESSED_SHORT("Total number of frame slots"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE("Primitive name"),
+		OBJECT_REFERENCE("Type if primitive fails"),
+		OBJECT_REFERENCE("Function type"),
+		UNCOMPRESSED_NYBBLE_TUPLE("Level one nybblecodes"),
+		TUPLE_OF_OBJECTS("Regular literals"),
+		TUPLE_OF_OBJECTS("Local types"),
+		TUPLE_OF_OBJECTS("Constant types"),
+		TUPLE_OF_OBJECTS("Outer types"),
+		OBJECT_REFERENCE("Module name"),
+		UNSIGNED_INT("Line number"),
+		COMPRESSED_INT_TUPLE("Encoded line number deltas"),
+		OBJECT_REFERENCE("Originating phrase or index"),
+		OBJECT_REFERENCE("Packed declaration names"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1397,7 +1405,7 @@ enum class SerializerOperation constructor(
 	 * A [function][FunctionDescriptor] with no outer (lexically captured)
 	 * variables.
 	 */
-	CLEAN_FUNCTION(37, OBJECT_REFERENCE.named("Compiled code"))
+	CLEAN_FUNCTION(37, OBJECT_REFERENCE("Compiled code"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1423,8 +1431,8 @@ enum class SerializerOperation constructor(
 	 */
 	GENERAL_FUNCTION(
 		38,
-		OBJECT_REFERENCE.named("Compiled code"),
-		TUPLE_OF_OBJECTS.named("Outer values"))
+		OBJECT_REFERENCE("Compiled code"),
+		TUPLE_OF_OBJECTS("Outer values"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1451,7 +1459,7 @@ enum class SerializerOperation constructor(
 	 * reconstructs a new one, since there's no way to know where the original
 	 * one came from.
 	 */
-	LOCAL_VARIABLE(39, OBJECT_REFERENCE.named("variable type"))
+	LOCAL_VARIABLE(39, OBJECT_REFERENCE("variable type"))
 	{
 		override val isVariableCreation: Boolean
 			// This was a local variable, so answer true, indicating that we
@@ -1465,7 +1473,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(!obj.isGlobal())
+			assert(!obj.isGlobal)
 			return array(obj.kind())
 		}
 
@@ -1496,23 +1504,23 @@ enum class SerializerOperation constructor(
 	 */
 	GLOBAL_VARIABLE(
 		40,
-		OBJECT_REFERENCE.named("variable type"),
-		OBJECT_REFERENCE.named("module name"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("variable name"),
-		BYTE.named("flags"))
+		OBJECT_REFERENCE("variable type"),
+		OBJECT_REFERENCE("module name"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE("variable name"),
+		BYTE("flags"))
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isGlobal())
+			assert(obj.isGlobal)
 			val flags =
 				(if (obj.isInitializedWriteOnceVariable) 1 else 0) +
-					if (obj.valueWasStablyComputed()) 2 else 0
+					if (obj.valueWasStablyComputed) 2 else 0
 			return array(
 				obj.kind(),
-				obj.globalModule(),
-				obj.globalName(),
+				obj.globalModule,
+				obj.globalName,
 				fromInt(flags))
 		}
 
@@ -1528,7 +1536,7 @@ enum class SerializerOperation constructor(
 			val variable =
 				if (writeOnce) module.constantBindings.mapAt(varName)
 				else module.variableBindings.mapAt(varName)
-			if (stablyComputed != variable.valueWasStablyComputed())
+			if (stablyComputed != variable.valueWasStablyComputed)
 			{
 				throw RuntimeException(
 					"Disagreement about whether a module constant was stably" +
@@ -1547,7 +1555,7 @@ enum class SerializerOperation constructor(
 	 * A [set][SetDescriptor].  Convert it to a tuple and work with that,
 	 * converting it back to a set when deserializing.
 	 */
-	SET(41, TUPLE_OF_OBJECTS.named("tuple of objects"))
+	SET(41, TUPLE_OF_OBJECTS("tuple of objects"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1569,10 +1577,10 @@ enum class SerializerOperation constructor(
 	 */
 	TOKEN(
 		42,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("token string"),
-		SIGNED_INT.named("start position"),
-		SIGNED_INT.named("line number"),
-		BYTE.named("token type code"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE("token string"),
+		SIGNED_INT("start position"),
+		SIGNED_INT("line number"),
+		BYTE("token type code"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1604,10 +1612,10 @@ enum class SerializerOperation constructor(
 	 */
 	LITERAL_TOKEN(
 		43,
-		OBJECT_REFERENCE.named("token string"),
-		OBJECT_REFERENCE.named("literal value"),
-		SIGNED_INT.named("start position"),
-		SIGNED_INT.named("line number"))
+		OBJECT_REFERENCE("token string"),
+		OBJECT_REFERENCE("literal value"),
+		SIGNED_INT("start position"),
+		SIGNED_INT("line number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1635,9 +1643,9 @@ enum class SerializerOperation constructor(
 	 */
 	COMMENT_TOKEN(
 		44,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("token string"),
-		SIGNED_INT.named("start position"),
-		SIGNED_INT.named("line number"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE("token string"),
+		SIGNED_INT("start position"),
+		SIGNED_INT("line number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1667,8 +1675,8 @@ enum class SerializerOperation constructor(
 	ASSIGN_TO_VARIABLE(
 		false,
 		45,
-		OBJECT_REFERENCE.named("variable to assign"),
-		OBJECT_REFERENCE.named("value to assign"))
+		OBJECT_REFERENCE("variable to assign"),
+		OBJECT_REFERENCE("value to assign"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1694,11 +1702,11 @@ enum class SerializerOperation constructor(
 	 */
 	CONTINUATION(
 		46,
-		OBJECT_REFERENCE.named("calling continuation"),
-		OBJECT_REFERENCE.named("continuation's function"),
-		TUPLE_OF_OBJECTS.named("continuation frame slots"),
-		COMPRESSED_SHORT.named("program counter"),
-		COMPRESSED_SHORT.named("stack pointer"))
+		OBJECT_REFERENCE("calling continuation"),
+		OBJECT_REFERENCE("continuation's function"),
+		TUPLE_OF_OBJECTS("continuation frame slots"),
+		COMPRESSED_SHORT("program counter"),
+		COMPRESSED_SHORT("stack pointer"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1749,13 +1757,13 @@ enum class SerializerOperation constructor(
 	 * is an atom, and if that atom has a bundle associated with it, that
 	 * bundle's method is used.
 	 */
-	METHOD(47, TUPLE_OF_OBJECTS.named("module name / atom name pairs"))
+	METHOD(47, TUPLE_OF_OBJECTS("module name / atom name pairs"))
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isInstanceOf(Types.METHOD.o))
+			assert(obj.isInstanceOf(Types.METHOD()))
 			val pairs = mutableListOf<A_Tuple>()
 			for (bundle in obj.bundles)
 			{
@@ -1822,8 +1830,8 @@ enum class SerializerOperation constructor(
 	 */
 	METHOD_DEFINITION(
 		48,
-		OBJECT_REFERENCE.named("method"),
-		OBJECT_REFERENCE.named("signature"))
+		OBJECT_REFERENCE("method"),
+		OBJECT_REFERENCE("signature"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1855,8 +1863,8 @@ enum class SerializerOperation constructor(
 	 */
 	MACRO_DEFINITION(
 		49,
-		OBJECT_REFERENCE.named("bundle"),
-		OBJECT_REFERENCE.named("signature"))
+		OBJECT_REFERENCE("bundle"),
+		OBJECT_REFERENCE("signature"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1885,8 +1893,8 @@ enum class SerializerOperation constructor(
 	 */
 	ABSTRACT_DEFINITION(
 		50,
-		OBJECT_REFERENCE.named("method"),
-		OBJECT_REFERENCE.named("signature"))
+		OBJECT_REFERENCE("method"),
+		OBJECT_REFERENCE("signature"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1918,8 +1926,8 @@ enum class SerializerOperation constructor(
 	 */
 	FORWARD_DEFINITION(
 		51,
-		OBJECT_REFERENCE.named("method"),
-		OBJECT_REFERENCE.named("signature"))
+		OBJECT_REFERENCE("method"),
+		OBJECT_REFERENCE("signature"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1949,7 +1957,7 @@ enum class SerializerOperation constructor(
 	 * A reference to a [message&#32;bundle][MessageBundleDescriptor],
 	 * which should be reconstructed by looking it up.
 	 */
-	MESSAGE_BUNDLE(52, OBJECT_REFERENCE.named("message atom"))
+	MESSAGE_BUNDLE(52, OBJECT_REFERENCE("message atom"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -1981,7 +1989,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A reference to a module, possibly the one being constructed.
 	 */
-	MODULE(53, OBJECT_REFERENCE.named("module name"))
+	MODULE(53, OBJECT_REFERENCE("module name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2015,8 +2023,8 @@ enum class SerializerOperation constructor(
 	 */
 	EXPLICIT_SUBCLASS_ATOM(
 		54,
-		OBJECT_REFERENCE.named("atom name"),
-		OBJECT_REFERENCE.named("module name"))
+		OBJECT_REFERENCE("atom name"),
+		OBJECT_REFERENCE("module name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2070,7 +2078,7 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_NONPRIMITIVE_JAVA_CLASS(
 		56,
-		OBJECT_REFERENCE.named("class name"))
+		OBJECT_REFERENCE("class name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2098,9 +2106,9 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_POJO_METHOD(
 		57,
-		OBJECT_REFERENCE.named("declaring class pojo"),
-		OBJECT_REFERENCE.named("method name string"),
-		OBJECT_REFERENCE.named("marshaled argument pojo types"))
+		OBJECT_REFERENCE("declaring class pojo"),
+		OBJECT_REFERENCE("method name string"),
+		OBJECT_REFERENCE("marshaled argument pojo types"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2146,8 +2154,8 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_POJO_CONSTRUCTOR(
 		58,
-		OBJECT_REFERENCE.named("declaring class pojo"),
-		OBJECT_REFERENCE.named("marshaled argument pojo types"))
+		OBJECT_REFERENCE("declaring class pojo"),
+		OBJECT_REFERENCE("marshaled argument pojo types"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2190,7 +2198,7 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_PRIMITIVE_JAVA_CLASS(
 		59,
-		OBJECT_REFERENCE.named("primitive class name"))
+		OBJECT_REFERENCE("primitive class name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2230,9 +2238,9 @@ enum class SerializerOperation constructor(
 	 */
 	ASSIGNMENT_PHRASE(
 		60,
-		BYTE.named("flags"),
-		OBJECT_REFERENCE.named("variable"),
-		OBJECT_REFERENCE.named("expression"))
+		BYTE("flags"),
+		OBJECT_REFERENCE("variable"),
+		OBJECT_REFERENCE("expression"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2260,12 +2268,12 @@ enum class SerializerOperation constructor(
 	 */
 	BLOCK_PHRASE(
 		61,
-		TUPLE_OF_OBJECTS.named("arguments tuple"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("primitive name"),
-		TUPLE_OF_OBJECTS.named("statements tuple"),
-		OBJECT_REFERENCE.named("result type"),
-		TUPLE_OF_OBJECTS.named("declared exceptions"),
-		UNSIGNED_INT.named("starting line number"))
+		TUPLE_OF_OBJECTS("arguments tuple"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE("primitive name"),
+		TUPLE_OF_OBJECTS("statements tuple"),
+		OBJECT_REFERENCE("result type"),
+		TUPLE_OF_OBJECTS("declared exceptions"),
+		UNSIGNED_INT("starting line number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2315,12 +2323,12 @@ enum class SerializerOperation constructor(
 	 */
 	DECLARATION_PHRASE(
 		62,
-		BYTE.named("declaration kind ordinal"),
-		OBJECT_REFERENCE.named("token"),
-		OBJECT_REFERENCE.named("declared type"),
-		OBJECT_REFERENCE.named("type expression"),
-		OBJECT_REFERENCE.named("initialization expression"),
-		OBJECT_REFERENCE.named("literal object"))
+		BYTE("declaration kind ordinal"),
+		OBJECT_REFERENCE("token"),
+		OBJECT_REFERENCE("declared type"),
+		OBJECT_REFERENCE("type expression"),
+		OBJECT_REFERENCE("initialization expression"),
+		OBJECT_REFERENCE("literal object"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2367,7 +2375,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * An [expression-as-statement][ExpressionAsStatementPhraseDescriptor].
 	 */
-	EXPRESSION_AS_STATEMENT_PHRASE(63, OBJECT_REFERENCE.named("expression"))
+	EXPRESSION_AS_STATEMENT_PHRASE(63, OBJECT_REFERENCE("expression"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2388,7 +2396,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [first-of-sequence&#32;phrase][FirstOfSequencePhraseDescriptor].
 	 */
-	FIRST_OF_SEQUENCE_PHRASE(64, TUPLE_OF_OBJECTS.named("statements"))
+	FIRST_OF_SEQUENCE_PHRASE(64, TUPLE_OF_OBJECTS("statements"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2409,7 +2417,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [list&#32;phrase][ListPhraseDescriptor].
 	 */
-	LIST_PHRASE(65, TUPLE_OF_OBJECTS.named("expressions"))
+	LIST_PHRASE(65, TUPLE_OF_OBJECTS("expressions"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2430,7 +2438,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [literal&#32;phrase][LiteralPhraseDescriptor].
 	 */
-	LITERAL_PHRASE(66, OBJECT_REFERENCE.named("literal token"))
+	LITERAL_PHRASE(66, OBJECT_REFERENCE("literal token"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2453,8 +2461,8 @@ enum class SerializerOperation constructor(
 	 */
 	MACRO_SUBSTITUTION_PHRASE(
 		67,
-		OBJECT_REFERENCE.named("original phrase"),
-		OBJECT_REFERENCE.named("output phrase"))
+		OBJECT_REFERENCE("original phrase"),
+		OBJECT_REFERENCE("output phrase"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2479,8 +2487,8 @@ enum class SerializerOperation constructor(
 	 */
 	PERMUTED_LIST_PHRASE(
 		68,
-		OBJECT_REFERENCE.named("list phrase"),
-		TUPLE_OF_OBJECTS.named("permutation"))
+		OBJECT_REFERENCE("list phrase"),
+		TUPLE_OF_OBJECTS("permutation"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2503,7 +2511,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor].
 	 */
-	REFERENCE_PHRASE(69, OBJECT_REFERENCE.named("variable use"))
+	REFERENCE_PHRASE(69, OBJECT_REFERENCE("variable use"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2526,11 +2534,11 @@ enum class SerializerOperation constructor(
 	 */
 	SEND_PHRASE(
 		70,
-		OBJECT_REFERENCE.named("bundle"),
-		OBJECT_REFERENCE.named("arguments list phrase"),
-		OBJECT_REFERENCE.named("return type"),
-		TUPLE_OF_OBJECTS.named("tokens"),
-		COMPRESSED_INT_TUPLE.named("token indices in name"))
+		OBJECT_REFERENCE("bundle"),
+		OBJECT_REFERENCE("arguments list phrase"),
+		OBJECT_REFERENCE("return type"),
+		TUPLE_OF_OBJECTS("tokens"),
+		COMPRESSED_INT_TUPLE("token indices in name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2558,7 +2566,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [sequence&#32;phrase][SequencePhraseDescriptor].
 	 */
-	SEQUENCE_PHRASE(71, TUPLE_OF_OBJECTS.named("statements"))
+	SEQUENCE_PHRASE(71, TUPLE_OF_OBJECTS("statements"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2581,8 +2589,8 @@ enum class SerializerOperation constructor(
 	 */
 	SUPER_CAST_PHRASE(
 		72,
-		OBJECT_REFERENCE.named("expression"),
-		OBJECT_REFERENCE.named("type for lookup"))
+		OBJECT_REFERENCE("expression"),
+		OBJECT_REFERENCE("type for lookup"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2607,8 +2615,8 @@ enum class SerializerOperation constructor(
 	 */
 	VARIABLE_USE_PHRASE(
 		73,
-		OBJECT_REFERENCE.named("use token"),
-		OBJECT_REFERENCE.named("declaration"))
+		OBJECT_REFERENCE("use token"),
+		OBJECT_REFERENCE("declaration"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2635,8 +2643,8 @@ enum class SerializerOperation constructor(
 	 */
 	MARKER_PHRASE(
 		74,
-		OBJECT_REFERENCE.named("value"),
-		OBJECT_REFERENCE.named("yield type"))
+		OBJECT_REFERENCE("value"),
+		OBJECT_REFERENCE("yield type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2665,7 +2673,7 @@ enum class SerializerOperation constructor(
 	ARBITRARY_PRIMITIVE_TYPE(
 		false,
 		75,
-		BYTE.named("primitive type ordinal"))
+		BYTE("primitive type ordinal"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2678,7 +2686,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return Types.all[subobjects[0].extractInt].o
+			return Types.entries[subobjects[0].extractInt]()
 		}
 	},
 
@@ -2687,8 +2695,8 @@ enum class SerializerOperation constructor(
 	 */
 	STATIC_POJO_FIELD(
 		76,
-		OBJECT_REFERENCE.named("class name"),
-		OBJECT_REFERENCE.named("field name"))
+		OBJECT_REFERENCE("class name"),
+		OBJECT_REFERENCE("field name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2736,7 +2744,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [sequence-as-expression][SequenceAsExpressionPhraseDescriptor] phrase.
 	 */
-	SEQUENCE_AS_EXPRESSION_PHRASE(77, OBJECT_REFERENCE.named("sequence"))
+	SEQUENCE_AS_EXPRESSION_PHRASE(77, OBJECT_REFERENCE("sequence"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2797,7 +2805,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [fiber&#32;type][FiberTypeDescriptor].
 	 */
-	FIBER_TYPE(80, OBJECT_REFERENCE.named("Result type"))
+	FIBER_TYPE(80, OBJECT_REFERENCE("Result type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2820,9 +2828,9 @@ enum class SerializerOperation constructor(
 	 */
 	FUNCTION_TYPE(
 		81,
-		OBJECT_REFERENCE.named("Arguments tuple type"),
-		OBJECT_REFERENCE.named("Return type"),
-		TUPLE_OF_OBJECTS.named("Checked exceptions"))
+		OBJECT_REFERENCE("Arguments tuple type"),
+		OBJECT_REFERENCE("Return type"),
+		TUPLE_OF_OBJECTS("Checked exceptions"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2849,9 +2857,9 @@ enum class SerializerOperation constructor(
 	 */
 	TUPLE_TYPE(
 		82,
-		OBJECT_REFERENCE.named("Tuple sizes"),
-		TUPLE_OF_OBJECTS.named("Leading types"),
-		OBJECT_REFERENCE.named("Default type"))
+		OBJECT_REFERENCE("Tuple sizes"),
+		TUPLE_OF_OBJECTS("Leading types"),
+		OBJECT_REFERENCE("Default type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2878,9 +2886,9 @@ enum class SerializerOperation constructor(
 	 */
 	INTEGER_RANGE_TYPE(
 		83,
-		BYTE.named("Inclusive flags"),
-		OBJECT_REFERENCE.named("Lower bound"),
-		OBJECT_REFERENCE.named("Upper bound"))
+		BYTE("Inclusive flags"),
+		OBJECT_REFERENCE("Lower bound"),
+		OBJECT_REFERENCE("Upper bound"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2924,9 +2932,9 @@ enum class SerializerOperation constructor(
 	 */
 	UNFUSED_POJO_TYPE(
 		84,
-		OBJECT_REFERENCE.named("class name"),
-		TUPLE_OF_OBJECTS.named("class parameterization"),
-		BYTE.named("class loader (0=runtime, 1=primitives, 2=library)"))
+		OBJECT_REFERENCE("class name"),
+		TUPLE_OF_OBJECTS("class parameterization"),
+		BYTE("class loader (0=runtime, 1=primitives, 2=library)"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3017,7 +3025,7 @@ enum class SerializerOperation constructor(
 	 * type into a tuple of size one, containing the name of the java class or
 	 * interface name.  This is enough to reconstruct the self pojo type.
 	 */
-	FUSED_POJO_TYPE(85, GENERAL_MAP.named("ancestor parameterizations map"))
+	FUSED_POJO_TYPE(85, GENERAL_MAP("ancestor parameterizations map"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3094,8 +3102,8 @@ enum class SerializerOperation constructor(
 	 */
 	ARRAY_POJO_TYPE(
 		86,
-		OBJECT_REFERENCE.named("content type"),
-		OBJECT_REFERENCE.named("size range"))
+		OBJECT_REFERENCE("content type"),
+		OBJECT_REFERENCE("size range"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3125,7 +3133,7 @@ enum class SerializerOperation constructor(
 	 * need is a way to get to the raw Java classes involved, so we serialize
 	 * their names.
 	 */
-	SELF_POJO_TYPE_REPRESENTATIVE(87, TUPLE_OF_OBJECTS.named("class names"))
+	SELF_POJO_TYPE_REPRESENTATIVE(87, TUPLE_OF_OBJECTS("class names"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3171,7 +3179,7 @@ enum class SerializerOperation constructor(
 	 */
 	COMPILED_CODE_TYPE(
 		89,
-		OBJECT_REFERENCE.named("function type for code type"))
+		OBJECT_REFERENCE("function type for code type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3194,7 +3202,7 @@ enum class SerializerOperation constructor(
 	 */
 	CONTINUATION_TYPE(
 		90,
-		OBJECT_REFERENCE.named("function type for continuation type"))
+		OBJECT_REFERENCE("function type for continuation type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3215,7 +3223,7 @@ enum class SerializerOperation constructor(
 	 * An Avail [enumeration][EnumerationTypeDescriptor], a type that has an
 	 * explicit finite list of its instances.
 	 */
-	ENUMERATION_TYPE(91, TUPLE_OF_OBJECTS.named("set of instances"))
+	ENUMERATION_TYPE(91, TUPLE_OF_OBJECTS("set of instances"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3236,7 +3244,7 @@ enum class SerializerOperation constructor(
 	 * An Avail [singular&#32;enumeration][InstanceTypeDescriptor], a type that
 	 * has a single (non-type) instance.
 	 */
-	INSTANCE_TYPE(92, OBJECT_REFERENCE.named("type's instance"))
+	INSTANCE_TYPE(92, OBJECT_REFERENCE("type's instance"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3258,7 +3266,7 @@ enum class SerializerOperation constructor(
 	 * instance `i`, which is itself a type.  Subtypes of type `i` are also
 	 * considered instances of this instance meta.
 	 */
-	INSTANCE_META(93, OBJECT_REFERENCE.named("meta's instance"))
+	INSTANCE_META(93, OBJECT_REFERENCE("meta's instance"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3280,8 +3288,8 @@ enum class SerializerOperation constructor(
 	 */
 	SET_TYPE(
 		94,
-		OBJECT_REFERENCE.named("size range"),
-		OBJECT_REFERENCE.named("element type"))
+		OBJECT_REFERENCE("size range"),
+		OBJECT_REFERENCE("element type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3306,9 +3314,9 @@ enum class SerializerOperation constructor(
 	 */
 	MAP_TYPE(
 		95,
-		OBJECT_REFERENCE.named("size range"),
-		OBJECT_REFERENCE.named("key type"),
-		OBJECT_REFERENCE.named("value type"))
+		OBJECT_REFERENCE("size range"),
+		OBJECT_REFERENCE("key type"),
+		OBJECT_REFERENCE("value type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3333,7 +3341,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [token&#32;type][TokenTypeDescriptor].
 	 */
-	TOKEN_TYPE(96, OBJECT_REFERENCE.named("literal type"))
+	TOKEN_TYPE(96, OBJECT_REFERENCE("literal type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3353,7 +3361,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [literal&#32;token&#32;type][LiteralTokenTypeDescriptor].
 	 */
-	LITERAL_TOKEN_TYPE(97, OBJECT_REFERENCE.named("literal type"))
+	LITERAL_TOKEN_TYPE(97, OBJECT_REFERENCE("literal type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3375,8 +3383,8 @@ enum class SerializerOperation constructor(
 	 */
 	PHRASE_TYPE(
 		98,
-		BYTE.named("kind"),
-		OBJECT_REFERENCE.named("expression type"))
+		BYTE("kind"),
+		OBJECT_REFERENCE("expression type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3402,9 +3410,9 @@ enum class SerializerOperation constructor(
 	 */
 	LIST_NODE_TYPE(
 		99,
-		BYTE.named("list phrase kind"),
-		OBJECT_REFERENCE.named("expression type"),
-		OBJECT_REFERENCE.named("subexpressions tuple type"))
+		BYTE("list phrase kind"),
+		OBJECT_REFERENCE("expression type"),
+		OBJECT_REFERENCE("subexpressions tuple type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3433,7 +3441,7 @@ enum class SerializerOperation constructor(
 	 * A [variable&#32;type][VariableTypeDescriptor] for which the read type and
 	 * write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE(100, OBJECT_REFERENCE.named("content type"))
+	SIMPLE_VARIABLE_TYPE(100, OBJECT_REFERENCE("content type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3458,8 +3466,8 @@ enum class SerializerOperation constructor(
 	 */
 	READ_WRITE_VARIABLE_TYPE(
 		101,
-		OBJECT_REFERENCE.named("read type"),
-		OBJECT_REFERENCE.named("write type"))
+		OBJECT_REFERENCE("read type"),
+		OBJECT_REFERENCE("write type"))
 	{
 		override fun decompose(
 			obj: AvailObject,

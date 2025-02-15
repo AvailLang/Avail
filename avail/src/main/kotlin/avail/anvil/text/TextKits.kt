@@ -62,8 +62,8 @@ import avail.anvil.shortcuts.OpenStructureViewShortcut
 import avail.anvil.shortcuts.OutdentShortcut
 import avail.anvil.shortcuts.PascalCaseShortcut
 import avail.anvil.shortcuts.PrintAllRenderingSolutionsShortcut
-import avail.anvil.shortcuts.RedoShortcut
 import avail.anvil.shortcuts.RebuildShortcut
+import avail.anvil.shortcuts.RedoShortcut
 import avail.anvil.shortcuts.RefreshStylesheetShortcut
 import avail.anvil.shortcuts.SaveShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
@@ -85,6 +85,7 @@ import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.awt.event.ActionEvent
 import javax.swing.Action
+import javax.swing.JOptionPane
 import javax.swing.JTextPane
 import javax.swing.JViewport
 import javax.swing.LookAndFeel
@@ -482,6 +483,15 @@ private object Rebuild: TextAction(RebuildShortcut.actionMapKey)
 		val editor = e.editor
 		editor.forceWrite()
 		val workbench = editor.workbench
+		workbench.backgroundTask?.let {
+			JOptionPane.showMessageDialog(
+				editor,
+				"Could not recompiled at the moment.\n" +
+					"An Anvil background task is still running.",
+				"Warning",
+				JOptionPane.WARNING_MESSAGE)
+			return
+		}
 		workbench.clearTranscript()
 		val buildTask = BuildTask(workbench, editor.resolvedName)
 		workbench.backgroundTask = buildTask
@@ -1038,38 +1048,51 @@ fun Document.codePointAt(position: Int) =
 	getText(position, 1).codePointAt(0)
 
 /**
- * @return
- *  The [DotPosition] of the [JTextPane.caret] in this [JTextPane].
+ * Given an offset, use the receiver, a [JTextComponent], to convert it into a
+ * zero-based line nubber, a zero-based column (where tabs align to multiples
+ * of 4 characters), and the offset itself, passing them to a provided function.
+ *
+ * @param Pos
+ *   The type of [DocumentPosition] to construct.
+ * @param offset
+ *   The given offset to convert.
+ * @param build
+ *   A function taking the zero-based line number, zero-based column number
+ *   (where tabs align to multiples of 4), and the [offset], producing a [Pos].
  */
-fun JTextComponent.dotPosition(): DotPosition
+private inline fun <
+	reified Pos: DocumentPosition
+> JTextComponent.extractPositionForOffset(
+	offset: Int,
+	build: (Int, Int, Int) -> Pos
+): Pos
 {
-	val offset = caret.dot
 	val root = document.defaultRootElement
 	val line = root.getElementIndex(offset)
 	val element = root.getElement(line)
 
-	return DotPosition(
-		line,
-		offset - element.startOffset,
-		offset)
+	val lineText = document.getText(
+		element.startOffset, offset - element.startOffset)
+	// Treat tabs as moving to the next multiple of 4 (zero-based coordinates).
+	val adjustedColumn = lineText.fold(0) {col, char ->
+		if (char == '\t') (col + 4) / 4 * 4 else col + 1
+	}
+	return build(line, adjustedColumn, offset)
 }
+
+/**
+ * @return
+ *  The [DotPosition] of the [JTextPane.caret] in this [JTextPane].
+ */
+fun JTextComponent.dotPosition(): DotPosition =
+	extractPositionForOffset(caret.dot, ::DotPosition)
 
 /**
  * @return
  *  The [MarkPosition] of the [JTextPane.caret] in this [JTextPane].
  */
-fun JTextComponent.markPosition(): MarkPosition
-{
-	val offset = caret.mark
-	val root = document.defaultRootElement
-	val line = root.getElementIndex(offset)
-	val element = root.getElement(line)
-
-	return MarkPosition(
-		line,
-		offset - element.startOffset,
-		offset)
-}
+fun JTextComponent.markPosition(): MarkPosition =
+	extractPositionForOffset(caret.mark, ::MarkPosition)
 
 /**
  * @return

@@ -77,7 +77,7 @@ class TemplateGroup constructor(
 	/**
 	 * The [TemplateExpansion]s that should be available when editing Avail
 	 * source module in the workbench.
- 	 */
+	 */
 	val templates = map
 
 	/**

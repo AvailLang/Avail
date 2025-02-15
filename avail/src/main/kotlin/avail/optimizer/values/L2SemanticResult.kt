@@ -61,12 +61,12 @@ constructor(
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue =
-		frameTransformer(frame()).let {
-			if (it == frame) this else L2SemanticResult(it)
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this else L2SemanticResult(newFrame)
 		}
 
 	override val defaultRestriction: TypeRestriction
 		get() = boxedRestrictionForType(frame.code.functionType().returnType)
 
-	override fun toString(): String = "Result of ${frame()}"
+	override fun toString(): String = "Result of $frame"
 }

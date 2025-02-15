@@ -32,7 +32,6 @@
 package avail.optimizer.values
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.interpreter.levelTwo.L2Chunk
@@ -63,6 +62,10 @@ import avail.utility.iterableWith
  *   occurred, or `null` if this is the outermost frame.
  * @param code
  *   The actual [A_RawFunction] that has the L1 code for this frame.
+ * @param callerPc
+ *   The L1 [A_Continuation.pc] at which the call to this frame was made.  This
+ *   is always the pc of the L1 instruction after the call, even if the result
+ *   has to be dynamically checked.
  * @param codeName
  *   A [String] to output to describe the scope of this inlining level.
  * @param debugName
@@ -71,6 +74,7 @@ import avail.utility.iterableWith
 class Frame constructor(
 	val outerFrame: Frame?,
 	val code: A_RawFunction,
+	val callerPc: Int,
 	val codeName: String,
 	val debugName: String)
 {
@@ -152,6 +156,9 @@ class Frame constructor(
 	/**
 	 * Answer the semantic value representing a new temporary value.
 	 *
+	 * @param name
+	 *   An optional short name that describes the purpose of this temp.  It
+	 *   does not need to be unique.
 	 * @param uniqueId
 	 *   The unique identifier used to identify this temporary value within its
 	 *   frame.
@@ -159,8 +166,8 @@ class Frame constructor(
 	 *   An [L2SemanticTemp] representing the temporary value, generalized to an
 	 *   [L2SemanticValue].
 	 */
-	fun temp(uniqueId: Int): L2SemanticBoxedValue =
-		L2SemanticTemp(this, uniqueId)
+	fun temp(name: String?, uniqueId: Int): L2SemanticBoxedValue =
+		L2SemanticTemp(this, name, uniqueId)
 
 	/**
 	 * Answer an [L2SemanticValue] that represents the reified caller
@@ -189,7 +196,7 @@ class Frame constructor(
 		if (outerFrame === null) return topFrameReplacement
 		val newOuterFrame = frameTransformer(outerFrame)
 		if (newOuterFrame == outerFrame) return this
-		return Frame(newOuterFrame, code, codeName, "$debugName (inlined)")
+		return Frame(
+			newOuterFrame, code, callerPc, codeName, "$debugName (inlined)")
 	}
-
 }

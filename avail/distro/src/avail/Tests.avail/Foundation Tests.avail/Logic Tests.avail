@@ -66,7 +66,7 @@ Test "negation" in logic test suite is
 
 Test "logical conjunction" in logic test suite is
 [
-  	Require: true ∧ true;
+	Require: true ∧ true;
 	Require: (false ∧ true) = false;
 	Require: (true ∧ false) = false;
 	Require: (false ∧ false) = false;
@@ -83,7 +83,7 @@ Test "logical conjunction" in logic test suite is
 
 Test "logical disjunction" in logic test suite is
 [
-  	Require: true ∨ true;
+	Require: true ∨ true;
 	Require: (false ∨ true) = true;
 	Require: (true ∨ false) = true;
 	Require: (false ∨ false) = false;
@@ -102,7 +102,7 @@ Test "logical disjunction" in logic test suite is
 
 Test "logical exclusive disjunction" in logic test suite is
 [
-  	Require: true ⊕ false;
+	Require: true ⊕ false;
 	Require: false ⊕ true;
 	Require: (true ⊕ true) = false;
 	Require: (false ⊕ false) = false;

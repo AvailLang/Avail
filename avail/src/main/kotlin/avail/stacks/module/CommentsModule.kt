@@ -1247,10 +1247,10 @@ class CommentsModule constructor(
 	private fun writeAmbiguousAliasJSONFiles(
 		outputPath: Path,
 		runtime: AvailRuntime,
-		@Suppress("UNUSED_PARAMETER")
+		@Suppress("unused")
 		ambiguousMethodFileMap:
 			MutableMap<A_String, MutableMap<String, CommentGroup>>,
-		@Suppress("UNUSED_PARAMETER")
+		@Suppress("unused")
 		topLevelLinkFolderPath: String,
 		linkingFileMap: LinkingFileMap)
 	{

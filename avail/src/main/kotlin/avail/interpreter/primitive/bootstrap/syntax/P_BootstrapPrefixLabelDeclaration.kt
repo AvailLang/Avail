@@ -171,7 +171,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o,
+								TOKEN(),
 								/* Argument type. */
 								anyMeta)))),
 				/* Macro argument is a phrase. */
@@ -181,13 +181,13 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o,
+							TOKEN(),
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o,
+									TOKEN(),
 									/* Primitive failure variable type */
 									anyMeta))))),
 				/* Macro argument is a phrase. */
@@ -197,10 +197,10 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 						/* Label parts. */
 						tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o,
+							TOKEN(),
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
 								topMeta))))),
-			TOP.o)
+			TOP())
 }

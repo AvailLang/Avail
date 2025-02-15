@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.functions.A_Continuation
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
@@ -39,13 +40,20 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.L2Chunk
 
 /**
  * **Primitive:** Answer the currently running [fiber][FiberDescriptor].
+ *
+ * It's marked with [HasSideEffect] because an [L2Chunk] that captures the
+ * current fiber and stores it in a saved register in an [A_Continuation] *must
+ * not* use that cached value in place of a subsequent call if the continuation
+ * is restarted or resumed in a different fiber.
  */
 @Suppress("unused")
-object P_CurrentFiber : Primitive(0, CanInline, CannotFail)
+object P_CurrentFiber : Primitive(0, CanInline, CannotFail, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

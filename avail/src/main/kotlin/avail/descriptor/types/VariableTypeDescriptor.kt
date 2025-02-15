@@ -47,7 +47,6 @@ import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.VariableTypeDescriptor.ObjectSlots
 import avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import avail.descriptor.variables.VariableDescriptor
 import avail.serialization.SerializerOperation
@@ -95,7 +94,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("↑")
@@ -290,7 +289,7 @@ private constructor(
 		 * The most general [variable][ReadWriteVariableTypeDescriptor] type.
 		 */
 		val mostGeneralVariableType: A_Type =
-			variableReadWriteType(TOP.o, bottom).makeShared()
+			variableReadWriteType(TOP(), bottom).makeShared()
 
 		/**
 		 * The (instance) type of the most general variable metatype.

@@ -43,7 +43,6 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
@@ -57,14 +56,15 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 
 /**
  * **Primitive:** Compare two extended integers and answer a
- * [boolean][EnumerationTypeDescriptor.booleanType].
+ * [boolean][booleanType].
  */
 @Suppress("unused")
 object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
@@ -78,7 +78,7 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o, NUMBER.o), booleanType)
+		functionType(tuple(NUMBER(), NUMBER()), booleanType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
@@ -104,32 +104,28 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>,
 		rawFunction: A_RawFunction
-	): List<L2SplitCondition?>
-	{
+	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
 		if (arg1.restriction().intersectsType(i32)
 			&& arg2.restriction().intersectsType(i32))
 		{
-			return listOf(
-				unboxedIntCondition(listOf(arg1.register())),
-				unboxedIntCondition(listOf(arg2.register())))
+			addAll(unboxedIntConditions(listOf(arg1.register())))
+			addAll(unboxedIntConditions(listOf(arg2.register())))
 		}
-		return emptyList()
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (firstReg, secondReg) = arguments
 		val firstType = firstReg.type()
 		val secondType = secondReg.type()
 
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val possible =
 			possibleOrdersWhenComparingInstancesOf(firstType, secondType)
 		val canBeTrue = possible.contains(LESS)
@@ -142,21 +138,21 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The branch direction has been statically proven.
 			callSiteHelper.useAnswer(
-				generator.boxedConstant(objectFromBoolean(canBeTrue)))
+				boxedConstant(objectFromBoolean(canBeTrue)), false)
 			return true
 		}
-		val truePath = generator.createBasicBlock("true path")
-		val falsePath = generator.createBasicBlock("false path")
-		NumericComparator.Less.compareAndBranchBoxed(
-			generator,
+		val truePath = createBasicBlock("true path")
+		val falsePath = createBasicBlock("false path")
+		compareAndBranchBoxed(
+			NumericComparator.Less,
 			firstReg,
 			secondReg,
 			edgeTo(truePath),
 			edgeTo(falsePath))
-		generator.startBlock(truePath)
-		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
-		generator.startBlock(falsePath)
-		callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+		startBlock(truePath)
+		callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+		startBlock(falsePath)
+		callSiteHelper.useAnswer(boxedConstant(falseObject), false)
 		return true
 	}
 

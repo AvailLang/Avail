@@ -171,7 +171,7 @@ class CallbackTest
 			stringFrom(harnessModuleName),
 			stringFrom("Invoke Once_with_"))
 		val fiber = createFiber(
-			Types.NUMBER.o,
+			Types.NUMBER(),
 			helper.runtime,
 			null,
 			helper.runtime.textInterface(),
@@ -263,9 +263,9 @@ class CallbackTest
 			return createCallbackFunctionInJava(
 				functionType(
 					tuple(
-						Types.NUMBER.o,
-						Types.NUMBER.o),
-					Types.NUMBER.o),
+						Types.NUMBER(),
+						Types.NUMBER()),
+					Types.NUMBER()),
 				callback)
 		}
 	}

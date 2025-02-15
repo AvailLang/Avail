@@ -62,6 +62,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
 /**
@@ -124,12 +125,12 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		return CallSiteCannotFail
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
 		val (functionTypeRead, _) = arguments
@@ -148,7 +149,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		// function, the resulting argument type can't be top or bottom.
 		val read = callSiteHelper.generator.extractParameterTypeFromFunction(
 			functionTypeDefinition.value, exactIndex.extractInt)
-		callSiteHelper.useAnswer(read)
+		callSiteHelper.useAnswer(read, false)
 		return true
 	}
 }

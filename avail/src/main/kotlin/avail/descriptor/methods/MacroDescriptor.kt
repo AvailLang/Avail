@@ -108,7 +108,12 @@ import org.availlang.json.JSONWriter
  */
 class MacroDescriptor private constructor(
 	mutability: Mutability
-) : Descriptor(mutability, TypeTag.MACRO_TAG, ObjectSlots::class.java, null) {
+) : Descriptor(
+	mutability,
+	TypeTag.OTHER_NONTYPE_TAG,
+	ObjectSlots::class.java,
+	null
+) {
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -178,7 +183,7 @@ class MacroDescriptor private constructor(
 
 	override fun o_IsMethodDefinition(self: AvailObject): Boolean = false
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION.o
+	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION()
 
 	override fun o_ParsingSignature(self: AvailObject): A_Type
 	{

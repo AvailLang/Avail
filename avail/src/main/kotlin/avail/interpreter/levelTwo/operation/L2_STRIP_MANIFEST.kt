@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
@@ -85,6 +86,19 @@ class L2_STRIP_MANIFEST(
 	 */
 	override val hasSideEffect get() = true
 
+	override fun StringBuilder.appendToWithWarnings(
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
+	{
+		renderPreamble()
+		inputs.elements.zip(outputs.elements)
+			.forEachIndexed { i, (input, output) ->
+				append(
+					"\n\t#${i+1}: ${output.registerString()}" +
+						" ← ${input.registerString()}")
+			}
+	}
+
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
@@ -103,6 +117,16 @@ class L2_STRIP_MANIFEST(
 				read.finalIndex == -1 || read.finalIndex != write.finalIndex
 			}
 
+	override fun sourceOfMoveToRegister(
+		destinationRegister: L2Register<*>
+	): L2Register<*>?
+	{
+		// The inputs are considered moved to the corresponding outputs.
+		val index = destinationRegisters.indexOf(destinationRegister)
+		assert(index != -1)
+		return sourceRegisters[index]
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
@@ -110,20 +134,7 @@ class L2_STRIP_MANIFEST(
 		// Transfer from the sources to the corresponding destinations.  Most of
 		// these pairs will have been assigned to the same register, and can be
 		// elided.
-		val transferPairs = (inputs.registers() zip outputs.registers())
-			.filter { (read, write) -> read.finalIndex != write.finalIndex }
-		// It's possible that the read registers and write registers overlap
-		// with each other, so use the JVM operand stack as temp storage.
-		if (transferPairs.isNotEmpty())
-		{
-			// First push each (non-elided) read.
-			transferPairs.forEach { (read, _) ->
-				translator.load(method, read)
-			}
-			// Now pop into each corresponding write register in reverse order.
-			transferPairs.reversed().forEach { (_,  write) ->
-				translator.store(method, write)
-			}
-		}
+		translator.transferPairwise(
+			method, inputs.registers(), outputs.registers())
 	}
 }

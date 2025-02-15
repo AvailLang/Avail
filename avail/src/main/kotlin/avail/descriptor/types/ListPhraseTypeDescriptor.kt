@@ -56,7 +56,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.ListPhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
@@ -332,7 +331,7 @@ class ListPhraseTypeDescriptor internal constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		super.printObjectOnAvoidingIndent(

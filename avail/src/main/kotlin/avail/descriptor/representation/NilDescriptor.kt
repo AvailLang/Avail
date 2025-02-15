@@ -69,7 +69,7 @@ private constructor() : Descriptor(
 	}
 
 	@ThreadSafe
-	override fun o_Kind(self: AvailObject): A_Type = TOP.o
+	override fun o_Kind(self: AvailObject): A_Type = TOP()
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -79,7 +79,7 @@ private constructor() : Descriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("nil")

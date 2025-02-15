@@ -50,13 +50,14 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
-import avail.interpreter.levelTwo.L2Chunk.Generation
+import avail.interpreter.levelTwo.L2Chunk.Companion.invalidationLock
+import avail.interpreter.levelTwo.L2Chunk.Generation.Companion.generations
+import avail.interpreter.levelTwo.L2Chunk.Generation.Companion.maximumNewestGenerationSize
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.EVICTION
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.jvm.JVMChunk
-import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.safeWrite
@@ -311,7 +312,6 @@ abstract class L2Chunk protected constructor(
 	 * synchronization (and therefore memory coherence) before it can start
 	 * running again.
 	 */
-	@get:ReferencedInGeneratedCode
 	var isValid = true
 		private set
 
@@ -381,16 +381,18 @@ abstract class L2Chunk protected constructor(
 		 * The chunk is being invalidated because a method it depends on has
 		 * changed.
 		 */
-		DEPENDENCY_CHANGED(200),
+		DEPENDENCY_CHANGED(200L),
 
 		/**
 		 * The chunk is being invalidated due to it being evicted due to too
 		 * many chunks being in existence.
 		 */
-		EVICTION(20000),
+		EVICTION(20_000L),
 
 		/** The chunk is being invalidated to collect code coverage stats. */
-		CODE_COVERAGE(200);
+		CODE_COVERAGE(200L)
+
+		;
 
 		/**
 		 * [Statistic] for tracking the cost of invalidating chunks due to this
@@ -450,9 +452,8 @@ abstract class L2Chunk protected constructor(
 	 * Dump the chunk to disk for debugging. This is expected to be called
 	 * directly from the debugger, and should result in the production of three
 	 * files: `JVMChunk_«uuid».l1`, `JVMChunk_«uuid».l2`, and
-	 * `JVMChunk_«uuid».class`. This momentarily sets the
-	 * [JVMTranslator.debugJVM] flag to `true`, but restores it to its original
-	 * value on return.
+	 * `JVMChunk_«uuid».class`. This momentarily sets the [debugJVM] flag to
+	 * `true`, but restores it to its original value on return.
 	 *
 	 * @return
 	 *   The base name, i.e., `JVMChunk_«uuid»`, to allow location of the

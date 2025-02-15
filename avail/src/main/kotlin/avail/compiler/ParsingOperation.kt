@@ -89,9 +89,9 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
-import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.defaultType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.variables.VariableDescriptor
 import avail.performance.Statistic
@@ -156,7 +156,7 @@ sealed class ParsingOperation constructor(
 	 *   The [A_BundleTree]s at which to continue parsing.
 	 * @return
 	 *   The requested description.
- 	 */
+	 */
 	internal open fun compilerStepsDebuggerDescription(
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree
@@ -299,9 +299,8 @@ object Placeholder: ParsingOperation(false, false), ParsingOperationStatistics
 }
 
 /**
- * Push a new [list][ListPhraseDescriptor] that contains an
- * [empty&#32;tuple][TupleDescriptor.emptyTuple] of [phrases][PhraseDescriptor]
- * onto the parse stack.
+ * Push a new [list][ListPhraseDescriptor] that contains an [emptyTuple] of
+ * [phrases][PhraseDescriptor] onto the parse stack.
  */
 object EmptyList: ParsingOperation(true, true), ParsingOperationStatistics
 {
@@ -1654,8 +1653,7 @@ class PrepareToRunPrefixFunction constructor(override val operand: Int):
 		var stackCopy = stepState.argsSoFar
 		// Only do N-1 steps.  We simply couldn't encode zero as an operand, so
 		// we always bias by one automatically.
-		for (i in operand downTo 2)
-		{
+		(operand downTo 2).forEach {
 			// Pop the last element and append it to the second last.
 			val value = stackCopy.last()
 			val poppedOnce = stackCopy.withoutLast()
@@ -1850,7 +1848,7 @@ class CheckAtMost constructor(
  * bundle trees.  Those message bundle trees are filtered by the allowable leaf
  * argument type.  This test is *precise*, and requires repeated groups to be
  * unrolled for the tuple type specific to that argument slot of that
- * definition, or at least until the [A_Type.defaultType] of the tuple type has
+ * definition, or at least until the [defaultType] of the tuple type has
  * been reached.
  */
 class TypeCheckArgument constructor(operand: A_BasicObject):

@@ -58,7 +58,8 @@ import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RETURN
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Exit the given [continuation][ContinuationDescriptor]
@@ -116,50 +117,47 @@ object P_ExitContinuationWithResultIf : Primitive(
 		functionType(
 			tuple(
 				mostGeneralContinuationType,
-				ANY.o,
+				ANY(),
 				booleanType),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_CONTINUATION_EXPECTED_STRONGER_TYPE))
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (continuationReg, valueReg, conditionReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val manifest = generator.currentManifest
-		val synonym = manifest.semanticValueToSynonym(
-			continuationReg.semanticValue())
-		val label = generator.topFrame.label()
+		val manifest = currentManifest
+		val synonym =
+			manifest.semanticValueToSynonym(continuationReg.semanticValue())
+		val label = topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
 			// We're conditionally exiting the current frame.
-			val exit = generator.createBasicBlock("Exit")
-			val noExit = generator.createBasicBlock("Don't exit")
-			generator.jumpIfEqualsConstant(
-				generator.readBoxed(
-					conditionReg.originalBoxedWriteSkippingMoves()),
+			val exit = createBasicBlock("Exit")
+			val noExit = createBasicBlock("Don't exit")
+			jumpIfEqualsConstant(
+				readBoxed(conditionReg.originalBoxedWriteSkippingMoves()),
 				trueObject,
 				exit,
 				noExit)
-			generator.startBlock(exit)
-			generator.addInstruction(L2_RETURN(valueReg))
-			generator.startBlock(noExit)
-			if (generator.currentlyReachable())
+			startBlock(exit)
+			+L2_RETURN(valueReg)
+			startBlock(noExit)
+			if (currentlyReachable())
 			{
-				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(nil))
+				callSiteHelper.useAnswer(boxedConstant(nil), false)
 			}
 			return true
 		}

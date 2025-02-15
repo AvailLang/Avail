@@ -109,7 +109,7 @@ class MethodDefinitionDescriptor private constructor(
 		combine2(self.bodyBlock().hash(), 0x70B2B1A9)
 
 	override fun o_Kind(self: AvailObject): A_Type {
-		return METHOD_DEFINITION.o
+		return METHOD_DEFINITION()
 	}
 
 	override fun o_IsMethodDefinition(self: AvailObject) = true

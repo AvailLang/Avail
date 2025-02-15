@@ -61,4 +61,11 @@ class L2CommentOperand constructor(val comment: String) : L2Operand()
 	{
 		builder.append("// ").append(comment)
 	}
+
+	/** Don't bother comparing the content. */
+	override fun equivalentTo(other: L2Operand) =
+		other is L2CommentOperand
+
+	// Ignore the constant entirely.
+	override val equivalentHash: Int get() = 0
 }

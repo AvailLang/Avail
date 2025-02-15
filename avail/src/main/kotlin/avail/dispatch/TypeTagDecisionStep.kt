@@ -45,16 +45,19 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.TypeTag
+import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
-import avail.interpreter.levelTwo.operation.TagSplitter
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_TAG_ORDINAL
+import avail.interpreter.levelTwo.operation.dispatch.TagSplitter
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
@@ -63,10 +66,7 @@ import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import avail.utility.isNullOr
 import avail.utility.partitionRunsBy
-import avail.utility.removeLast
 import java.lang.String.format
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * This is a [DecisionStep] which dispatches to subtrees by looking up the
@@ -103,7 +103,8 @@ constructor(
 		argValues: List<A_BasicObject>,
 		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
+		memento: AdaptorMemento
+	): LookupTree<Element, Result>
 	{
 		val argument = extractArgument(argValues, extraValues)
 		var tag = argument.typeTag
@@ -118,7 +119,8 @@ constructor(
 		argTypes: List<A_Type>,
 		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
+		memento: AdaptorMemento
+	): LookupTree<Element, Result>
 	{
 		val argumentType = extractArgumentType(argTypes, extraValues)
 		var tag = argumentType.instanceTag
@@ -133,7 +135,8 @@ constructor(
 		argTypes: A_Tuple,
 		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
+		memento: AdaptorMemento
+	): LookupTree<Element, Result>
 	{
 		val argumentType = extractArgumentType(argTypes, extraValues)
 		var tag = argumentType.instanceTag
@@ -246,7 +249,7 @@ constructor(
 			else restrictionUnion)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -260,8 +263,7 @@ constructor(
 		// They're *very* difficult to reason about.
 		if (callSiteHelper.isSuper)
 		{
-			callSiteHelper.generator.jumpTo(
-				callSiteHelper.onFallBackToSlowLookup)
+			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 
@@ -270,9 +272,7 @@ constructor(
 		// outstanding, to know when to resume or finish them.
 		val semanticSource =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val generator = callSiteHelper.generator
-		val currentRestriction =
-			generator.currentManifest.restrictionFor(semanticSource)
+		val currentRestriction = currentManifest.restrictionFor(semanticSource)
 		val couldBeBottom = currentRestriction.intersectsType(bottomMeta)
 		val restrictionTag = currentRestriction.type.instanceTag
 		// Keep the entries that are both valid solutions (1 method def) and
@@ -297,7 +297,7 @@ constructor(
 		{
 			// This condition shouldn't be possible at runtime, so force an
 			// actual bottom type coming in to be looked up the slow way.
-			reducedMap.remove(TypeTag.BOTTOM_TYPE_TAG)
+			reducedMap -= BOTTOM_TYPE_TAG
 		}
 		val runs = mutableListOf(
 			Span(
@@ -362,7 +362,7 @@ constructor(
 			val low = restrictionTag.ordinal +
 				(if (restrictionTag.isAbstract) 1 else 0)
 			val high = restrictionTag.highOrdinal
-			val bottomOrdinal = TypeTag.BOTTOM_TYPE_TAG.ordinal
+			val bottomOrdinal = BOTTOM_TYPE_TAG.ordinal
 			if (couldBeBottom && high != bottomOrdinal)
 			{
 				intRestrictionForType(inclusive(low, bottomOrdinal))
@@ -381,25 +381,21 @@ constructor(
 					val tag = tagFromOrdinal(ord)
 					tag.isAbstract
 						|| !currentRestriction.intersectsType(tag.supremum)
-						|| run {
-							val newRestriction = reducedMap.keys
-								.filter { subtag ->
-									subtag != tag && subtag.isSubtagOf(tag) }
-								.map(TypeTag::supremum)
-								.fold(
-									currentRestriction
-										.intersectionWithType(tag.supremum),
-									TypeRestriction::minusType)
-							newRestriction.isImpossible
-						}
+						|| reducedMap.keys
+							.filter { subtag ->
+								subtag != tag && subtag.isSubtagOf(tag) }
+							.map(TypeTag::supremum)
+							.fold(
+								currentRestriction
+									.intersectionWithType(tag.supremum),
+								TypeRestriction::minusType)
+							.isImpossible
 				}
 		if (impossibleOrdinals.isNotEmpty())
 		{
 			ordinalRestriction = ordinalRestriction.minusValues(
 				impossibleOrdinals.map(::fromInt))
 		}
-		val ordinalLow = ordinalRestriction.type.lowerBound.extractInt
-		val ordinalHigh = ordinalRestriction.type.upperBound.extractInt
 		val reachableSpans = runs.filter { (low, high, _, _, restriction) ->
 			// Keep the span if it has a possible tag and a possible type.
 			ordinalRestriction.intersectsType(inclusive(low, high))
@@ -411,7 +407,7 @@ constructor(
 		{
 			// Just jump to the slow lookup, and don't continue down any more
 			// lookup subtrees.
-			generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
+			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 		// Expand the ranges through the don't-cares that were removed, so
@@ -442,83 +438,72 @@ constructor(
 			// Only one path is reachable.
 			val span = reducedSpans[0]
 			span.restriction?.let { r ->
-				generator.currentManifest.updateRestriction(semanticSource) {
-					intersection(r)
-				}
+				currentManifest.updateRestriction(semanticSource) { r }
 			}
 			val target = L2BasicBlock("Sole target")
-			generator.jumpTo(target)
+			jumpTo(target)
 			return listOf(
 				Triple(target, span.subtree!!, extraSemanticArguments))
 		}
 		// Generate a multi-way branch.
 		val splits = reducedSpans.drop(1).map(Span::low)
 		val semanticTag = L2SemanticExtractedTag(semanticSource).unboxedInt
-		return generator.run {
-			if (!currentManifest.hasSemanticValue(semanticTag))
+		if (!currentManifest.hasSemanticValue(semanticTag))
+		{
+			// Assume the base type is sufficient to limit the possible tag
+			// ordinals.
+			+L2_EXTRACT_TAG_ORDINAL(
+				readBoxed(semanticSource),
+				intWrite(setOf(semanticTag), ordinalRestriction))
+		}
+		val edges = reducedSpans.map {
+				(givenLow, givenHigh, subtree, _, restriction) ->
+			val edgeManifest = L2ValueManifest(currentManifest)
+			edgeManifest.updateRestriction(semanticTag) {
+				intersectionWithType(inclusive(givenLow, givenHigh))
+			}
+			val narrowedRestriction = edgeManifest.restrictionFor(semanticTag)
+			val lowOrd = narrowedRestriction.type.lowerBound.extractInt
+			val highOrd = narrowedRestriction.type.upperBound.extractInt
+			val lowName = tagFromOrdinal(lowOrd).shorterName
+			val highName = tagFromOrdinal(highOrd).shorterName
+			val spanName =
+				if (lowOrd == highOrd) lowName
+				else "$lowName..$highName"
+			when (subtree)
 			{
-				// Assume the base type is sufficient to limit the possible tag
-				// ordinals.
-				addInstruction(
-					L2_EXTRACT_TAG_ORDINAL(
-						readBoxed(semanticSource),
-						intWrite(setOf(semanticTag), ordinalRestriction)))
-			}
-			val edges = reducedSpans.mapIndexed {
-					index, (low, high, subtree, _, restriction) ->
-				val nameLow =
-					if (index == 0) ordinalLow
-					else splits[index - 1]
-				val nameHigh =
-					if (index == splits.size) ordinalHigh
-					else splits[index] - 1
-				val lowName = tagFromOrdinal(nameLow).shorterName
-				val highName = tagFromOrdinal(nameHigh).shorterName
-				val spanName =
-					if (nameLow == nameHigh) lowName
-					else "$lowName..$highName"
-				val edgeManifest = L2ValueManifest(currentManifest)
-				edgeManifest.updateRestriction(semanticTag) {
-					intersectionWithType(inclusive(low, high))
-				}
-				when (subtree)
+				null ->
+					L2PcOperand(
+						callSiteHelper[FallBackToSlowLookup],
+						false,
+						edgeManifest,
+						"Fallback: $lowOrd..$highOrd, $spanName")
+				else ->
 				{
-					null ->
-						L2PcOperand(
-							callSiteHelper.onFallBackToSlowLookup,
-							false,
-							edgeManifest,
-							"Fallback: $nameLow..$nameHigh, $spanName")
-					else ->
-					{
-						val target = L2BasicBlock(
-							"Tag in [${max(low, ordinalLow)}.." +
-								"${min(high, ordinalHigh)}]")
-						restriction?.let { r ->
-							edgeManifest.updateRestriction(semanticSource) {
-								intersection(r)
-							}
-						}
-						L2PcOperand(
-							target,
-							false,
-							edgeManifest,
-							"$nameLow..$nameHigh, $spanName")
+					val target = L2BasicBlock(
+						"Tag in [$lowOrd..$highOrd]")
+					restriction?.let { r ->
+						edgeManifest.updateRestriction(semanticSource) { r }
 					}
+					L2PcOperand(
+						target,
+						false,
+						edgeManifest,
+						"$lowOrd..$highOrd, $spanName")
 				}
 			}
-			val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
-//			splitter.cloneForReducedEdges(edges, edges, splitter.splitPoints)
-			splitter.emitInstruction(
-				currentManifest.readInt(semanticTag), edges, this@run)
-			reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
-				subtree?.let {
-					// No need to further restrict the type.
-					Triple(
-						edges[index].targetBlock(),
-						subtree,
-						extraSemanticArguments)
-				}
+		}
+		val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
+		splitter.run {
+			emitSplitterInstruction(currentManifest.readInt(semanticTag), edges)
+		}
+		return reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
+			subtree?.let {
+				// No need to further restrict the type.
+				Triple(
+					edges[index].targetBlock(),
+					subtree,
+					extraSemanticArguments)
 			}
 		}
 	}

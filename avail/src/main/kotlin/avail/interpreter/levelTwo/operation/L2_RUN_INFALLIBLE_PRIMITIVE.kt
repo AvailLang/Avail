@@ -47,11 +47,11 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
@@ -144,28 +144,31 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 				|| prim.hasFlag(Flag.Unknown))
 		}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	/** Defer to the primitive. */
+	override fun mightMakeEscapedVariableShared(): Boolean =
+		primitive.constant.mightMakeEscapedVariableShared(
+			arguments.elements.map(L2ReadBoxedOperand::type))
+
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
-		renderPreamble(builder)
-		builder.append("\n\t")
-		builder.append(result.registerString())
-		builder.append(" ← ")
-		builder.append(primitive)
-		builder.append('(')
-		builder.append(arguments.elements)
-		builder.append(')')
+		renderPreamble()
+		append("\n\t")
+		append(result.registerString())
+		append(" ← ")
+		append(primitive)
+		append('(')
+		append(arguments.elements)
+		append(')')
 	}
 
 	/**
 	 * Give the primitive another chance to produce something more specific
 	 * than a basic infallible primitive invocation.
 	 */
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val strongerResultType =
 			primitive.constant.returnTypeGuaranteedByVM(
@@ -174,33 +177,31 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		val strongerRestriction =
 			result.restriction().intersectionWithType(strongerResultType)
 		val strongerResult = L2WriteBoxedOperand(
-			result.semanticValues(),
-			strongerRestriction,
-			result.register())
+			result.semanticValues(), strongerRestriction)
 		strongerRestriction.constantOrNull?.let { constant ->
 			if (primitive.constant.hasFlag(CanFold))
 			{
 				// This invocation is now known to produce a constant that can
 				// be folded.  Generate a constant move instead.
-				regenerator.moveBoxedRegister(
-					regenerator.boxedConstant(constant).semanticValue(),
+				moveBoxedRegister(
+					boxedConstant(constant).semanticValue(),
 					strongerResult.semanticValues())
 				return
 			}
 		}
-		primitive.constant.emitTransformedInfalliblePrimitive(
-			rawFunction.constant, arguments, strongerResult, regenerator)
+		primitive.constant.run {
+			emitTransformedInfalliblePrimitive(
+				rawFunction.constant, arguments, strongerResult)
+		}
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?>
-	{
-		val conditions = primitive.constant.interestingSplitConditions(
-			arguments.elements,
-			rawFunction.constant
-		).toMutableList()
+	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
+		addAll(
+			primitive.constant.interestingSplitConditions(
+				arguments.elements, rawFunction.constant))
 		// Split based on whether a value for an equivalent primitive invocation
 		// already exists in some history.
-		conditions.add(existsCondition(result.semanticValues()))
+		add(existsCondition(result.semanticValues()))
 		// We can't quite split based on whether *all* inputs to the primitive
 		// are simultaneously true, so we check if each argument *could* be
 		// constant, and if the product of the argument constant counts is
@@ -222,11 +223,10 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 				// they will *probably* lead to folded primitives, and hopefully
 				// not lead to too much nearby code being duplicated.
 				constantConditionsByArgument.forEach { argConditions ->
-					conditions.addAll(argConditions)
+					addAll(argConditions)
 				}
 			}
 		}
-		return conditions
 	}
 
 	override fun translateToJVM(
@@ -258,7 +258,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		@JvmStatic
 		fun createInstruction(
 			rawFunction: L2ConstantOperand,
-			primitive: L2ArbitraryConstantOperand<Primitive>,
+			primitive: Primitive,
 			arguments: L2ReadBoxedVectorOperand,
 			result: L2WriteBoxedOperand
 		): L2_RUN_INFALLIBLE_PRIMITIVE
@@ -266,26 +266,26 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 			// Until we have all primitives annotated with global read/write
 			// flags, pay attention to other flags that we expect to prevent
 			// commutation of invocations.
-			val prim = primitive.constant
-			if (prim.hasFlag(Flag.HasSideEffect)
-				|| prim.hasFlag(Flag.Unknown))
+			val primitiveConstant = L2ArbitraryConstantOperand(primitive)
+			if (primitive.hasFlag(Flag.HasSideEffect)
+				|| primitive.hasFlag(Flag.Unknown))
 			{
 				return L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency(
-					rawFunction, primitive, arguments, result)
+					rawFunction, primitiveConstant, arguments, result)
 			}
-			val read = prim.hasFlag(Flag.ReadsFromHiddenGlobalState)
-			val write = prim.hasFlag(Flag.WritesToHiddenGlobalState)
+			val read = primitive.hasFlag(Flag.ReadsFromHiddenGlobalState)
+			val write = primitive.hasFlag(Flag.WritesToHiddenGlobalState)
 			return when
 			{
 				read && write ->
 					L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency(
-						rawFunction, primitive, arguments, result)
+						rawFunction, primitiveConstant, arguments, result)
 				read -> L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency(
-					rawFunction, primitive, arguments, result)
+					rawFunction, primitiveConstant, arguments, result)
 				write -> L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency(
-					rawFunction, primitive, arguments, result)
+					rawFunction, primitiveConstant, arguments, result)
 				else -> L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency(
-					rawFunction, primitive, arguments, result)
+					rawFunction, primitiveConstant, arguments, result)
 			}
 		}
 

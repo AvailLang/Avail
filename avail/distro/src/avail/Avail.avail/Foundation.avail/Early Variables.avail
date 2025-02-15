@@ -98,6 +98,22 @@ Semantic restriction "`↑_↑" is
 	varType
 ];
 
+/**
+ * Strengthen the type to the union of the variable's read type and the default
+ * value's type.
+ *
+ * @method "↓_else_"
+ * @restricts "variable's type"
+ * @restricts "any"
+ */
+Semantic restriction "↓_else_" is
+[
+	varType : variable meta,
+	defaultType : any's type
+|
+	varType's read type ∪ defaultType
+];
+
 Method "observe function" is
 [
 	function accepting <[…]→⊤, tuple> and returning ⊤
@@ -161,7 +177,7 @@ variableFailureFunction ::=
 		]
 		else
 		[
-			Invoke early failure function with <failureCode>
+			Failed primitive with failureCode
 		];
 	] : ⊤;
 

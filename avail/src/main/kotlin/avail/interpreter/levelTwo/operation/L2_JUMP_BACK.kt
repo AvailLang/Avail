@@ -31,8 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -52,7 +50,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_JUMP_BACK(
-	@On(SUCCESS) var target: L2PcOperand,
+	var target: L2PcOperand,
 	var registersToKeep: L2ReadBoxedVectorOperand
 ): L2ControlFlowInstruction()
 {
@@ -68,7 +66,7 @@ class L2_JUMP_BACK(
 		val registersToKeep = mutableSetOf<L2Register<*>>()
 		this.registersToKeep.elements.forEach { read: L2ReadBoxedOperand ->
 			semanticValuesToKeep.add(read.semanticValue())
-			read.restriction().constantOrNull?.let { constant ->
+			read.constantOrNull?.let { constant ->
 				// Also include any associated semantic constant, to ensure the
 				// invariant of the manifest is maintained – i.e., that any
 				// synonym of boxed values constrained to a constant must
@@ -82,7 +80,7 @@ class L2_JUMP_BACK(
 		manifest.retainRegisters(registersToKeep)
 		target.instructionWasAdded(manifest)
 		target.forcedClampedEntities =
-			(semanticValuesToKeep + registersToKeep).toMutableSet()
+			(semanticValuesToKeep + registersToKeep).toSet()
 	}
 
 	override fun replaceConstantReads(

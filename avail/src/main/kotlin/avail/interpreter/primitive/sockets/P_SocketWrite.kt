@@ -61,7 +61,6 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -80,13 +79,13 @@ import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Initiate an asynchronous write from the
+
  * [socket][AsynchronousSocketChannel] referenced by the specified
  * [handle][A_Atom]. Create a new [fiber][FiberDescriptor] to respond to the
  * asynchronous completion of the operation; the fiber will run at the specified
- * [priority][IntegerRangeTypeDescriptor.u8]. If the operation succeeds, then
- * eventually start the new fiber to apply the
- * [success&#32;function][FunctionDescriptor]. If the operation fails, then
- * eventually start the new fiber to apply the
+ * [priority][u8]. If the operation succeeds, then eventually start the new
+ * fiber to apply the [success&#32;function][FunctionDescriptor]. If the
+ * operation fails, then eventually start the new fiber to apply the
  * [failure&#32;function][FunctionDescriptor] to the
  * [numeric][IntegerDescriptor] [error&#32;code][AvailErrorCode]. Answer the new
  * fiber.
@@ -179,13 +178,13 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				zeroOrMoreOf(u8),
-				ATOM.o,
+				ATOM(),
 				functionType(
 					emptyTuple,
-					TOP.o),
+					TOP()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o),
+					TOP()),
 				u8),
 			mostGeneralFiberType())
 

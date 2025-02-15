@@ -82,7 +82,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("⊥")
@@ -260,7 +260,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 			return aType.enumerationIncludesInstance(self)
 		}
 		// Bottom is an instance of top and any.
-		return if (aType.isTop || aType.equals(ANY.o))
+		return if (aType.isTop || aType.equals(ANY()))
 		{
 			true
 		}
@@ -372,7 +372,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	// answer ⊥.
 	override fun o_ValueType(self: AvailObject): A_Type = self
 
-	override fun o_ReadType(self: AvailObject): A_Type = Types.TOP.o
+	override fun o_ReadType(self: AvailObject): A_Type = Types.TOP()
 
 	// Answer the tuple of types over the given range of indices.  Any
 	// indices out of range for this tuple type will be ⊥.

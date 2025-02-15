@@ -404,7 +404,7 @@ protected constructor(
 	abstract override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 
 	companion object
@@ -877,7 +877,7 @@ protected constructor(
 				// If type represents java.lang.Object, then answer any.
 				if (type == Any::class.java)
 				{
-					return Types.ANY.o
+					return Types.ANY()
 				}
 				// If type represents a Java primitive, then unmarshal it.
 				if (type.isPrimitive)
@@ -885,7 +885,7 @@ protected constructor(
 					// If type represents Java void, then answer top.
 					return when (type)
 					{
-						Void.TYPE -> Types.TOP.o
+						Void.TYPE -> Types.TOP()
 						java.lang.Boolean::class.javaPrimitiveType ->
 							booleanType
 						java.lang.Byte::class.javaPrimitiveType -> byteRange()
@@ -893,9 +893,9 @@ protected constructor(
 						java.lang.Integer::class.javaPrimitiveType -> intRange()
 						java.lang.Long::class.javaPrimitiveType -> longRange()
 						java.lang.Float::class.javaPrimitiveType ->
-							Types.FLOAT.o
+							Types.FLOAT()
 						java.lang.Double::class.javaPrimitiveType ->
-							Types.DOUBLE.o
+							Types.DOUBLE()
 						java.lang.Character::class.javaPrimitiveType ->
 							charRange()
 						else -> throw AssertionError(
@@ -904,14 +904,14 @@ protected constructor(
 				}
 				when (type)
 				{
-					Void::class.java -> return Types.TOP.o
+					Void::class.java -> return Types.TOP()
 					java.lang.Boolean::class.java -> return booleanType
 					java.lang.Byte::class.java -> return byteRange()
 					java.lang.Short::class.java -> return shortRange()
 					java.lang.Integer::class.java -> return intRange()
 					java.lang.Long::class.java -> return longRange()
-					java.lang.Float::class.java -> return Types.FLOAT.o
-					java.lang.Double::class.java -> return Types.DOUBLE.o
+					java.lang.Float::class.java -> return Types.FLOAT()
+					java.lang.Double::class.java -> return Types.DOUBLE()
 					java.lang.Character::class.java -> return charRange()
 					String::class.java -> return TupleTypeDescriptor.stringType
 					else ->
@@ -994,9 +994,9 @@ protected constructor(
 					{
 						val resolved = resolvePojoType(javaClass, emptyMap)
 						return if (!allowMetas && resolved.equals(
-								Types.ANY.o))
+								Types.ANY()))
 						{
-							Types.NONTYPE.o
+							Types.NONTYPE()
 						}
 						else resolved
 					}
@@ -1222,7 +1222,7 @@ protected constructor(
 			return pojoTypeForClassWithTypeArguments(
 				target,
 				createRepeatedElementTuple(
-					target.typeParameters.size, Types.ANY.o))
+					target.typeParameters.size, Types.ANY()))
 		}
 
 		/**

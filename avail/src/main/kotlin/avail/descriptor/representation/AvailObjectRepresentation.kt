@@ -39,6 +39,7 @@ import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import avail.descriptor.representation.AvailObjectRepresentation.Companion.shouldCheckSlots
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -1111,7 +1112,8 @@ sealed class AvailObjectRepresentation constructor(
 		checkWriteForField(field)
 		var slotIndex = field.fieldOrdinal + startSubscript - 1
 		var listIndex = zeroBasedStartSourceSubscript
-		for (i in 0 until count) {
+		repeat(count)
+		{
 			objectSlots[slotIndex++] = sourceList[listIndex++] as AvailObject
 		}
 	}
@@ -1296,7 +1298,7 @@ sealed class AvailObjectRepresentation constructor(
 		checkWriteForField(targetField)
 		var slotIndex = targetField.fieldOrdinal + startTargetSubscript - 1
 		var tupleIndex = startSourceSubscript
-		for (i in 0 until count)
+		repeat(count)
 		{
 			objectSlots[slotIndex++] = sourceTuple.tupleAt(tupleIndex++)
 		}
@@ -1972,27 +1974,6 @@ sealed class AvailObjectRepresentation constructor(
 			if (longVal.toInt() == key) return endIndex
 		}
 		return 0
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * This comparison operation takes an [Object] as its argument to avoid
-	 * accidentally calling this with, say, a [String] literal. We mark it as
-	 * deprecated to ensure we don't accidentally invoke this method when we
-	 * really mean the version that takes an `AvailObject` as an argument.
-	 *
-	 * IntelliJ conveniently shows such invocations with a struck-through font.
-	 * That's a convenient warning for the programmer, even though it actually
-	 * works correctly.
-	 */
-	@Deprecated(
-		message = "Don't compare AvailObject and arbitrary Object",
-		replaceWith = ReplaceWith("equals(AvailObject)"))
-	override fun equals(other: Any?): Boolean
-	{
-		return other is AvailObject
-			&& currentDescriptor.o_Equals(this as AvailObject, other)
 	}
 
 	/** Redirect Kotlin's [hashCode] to [AbstractDescriptor.o_Hash]. */

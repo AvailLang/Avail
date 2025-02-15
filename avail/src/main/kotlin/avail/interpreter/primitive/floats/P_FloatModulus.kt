@@ -67,5 +67,5 @@ object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(FLOAT.o, FLOAT.o), FLOAT.o)
+		functionType(tuple(FLOAT(), FLOAT()), FLOAT())
 }

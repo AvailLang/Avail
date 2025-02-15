@@ -60,7 +60,6 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -84,11 +83,10 @@ import java.nio.channels.AsynchronousSocketChannel
  * [name][StringDescriptor] for a newly connected
  * [socket][AsynchronousSocketChannel]. Create a new [fiber][FiberDescriptor] to
  * respond to the asynchronous completion of the operation; the fiber will run
- * at the specified [priority][IntegerRangeTypeDescriptor.u8]. If the
- * operation succeeds, then eventually start the new fiber to apply the
- * [success&#32;function][FunctionDescriptor] to a handle on the new socket. If
- * the operation fails, then eventually start the new fiber to apply the
- * [failure&#32;function][FunctionDescriptor] to the
+ * at the specified [priority][u8]. If the operation succeeds, then eventually
+ * start the new fiber to apply the [success&#32;function][FunctionDescriptor]
+ * to a handle on the new socket. If the operation fails, then eventually start
+ * the new fiber to apply the [failure&#32;function][FunctionDescriptor] to the
  * [numeric][IntegerDescriptor] [error&#32;code][AvailErrorCode]. Answer the new
  * fiber.
  *
@@ -164,14 +162,14 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
+				ATOM(),
 				nonemptyStringType,
 				functionType(
-					tuple(ATOM.o),
-					TOP.o),
+					tuple(ATOM()),
+					TOP()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o),
+					TOP()),
 				u8),
 			mostGeneralFiberType())
 

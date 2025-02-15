@@ -191,7 +191,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 					List(
 						0,
 						-1,
-						Phrase(Types.ANY.o))))
+						Phrase(Types.ANY()))))
 			return Case(message, listPhraseType, tokens, instructions)
 		}
 
@@ -394,7 +394,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 					List(
 						2,
 						2,
-						Phrase(NUMBER.o)),
+						Phrase(NUMBER())),
 					A(
 						"_",
 						"+",
@@ -404,11 +404,11 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						// Hoisted before the checks.
 						ParsePart(2),
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						// See wrap/concatenate below
 						ParseArgument,
 						CheckArgument(2),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						WrapInList(2),
 						Concatenate
 					)),
@@ -417,7 +417,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 					List(
 						3,
 						3,
-						Phrase(NUMBER.o)),
+						Phrase(NUMBER())),
 					A(
 						"_",
 						"+",
@@ -429,17 +429,17 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						// Hoisted before arg 1 checks
 						ParsePart(2),
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						// See wrap/concatenate below
 						ParseArgument,
 						// Hoisted before arg 2 checks
 						ParsePart(4),
 						CheckArgument(2),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						// See wrap/concatenate below
 						ParseArgument,
 						CheckArgument(3),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						WrapInList(3),
 						Concatenate)),
 				C(
@@ -447,14 +447,14 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 					List(
 						1,
 						1,
-						Phrase(Phrase(TOP.o))),
+						Phrase(Phrase(TOP()))),
 					A("_", ";"),
 					A(
 						ParseArgument,
 						// Hoisted before checks
 						ParsePart(2),
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(Phrase(TOP.o)),
+						typeCheckEncodingForPhrase(Phrase(TOP())),
 						AppendArgument)),
 				C(
 					"__",
@@ -584,7 +584,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 					List(
 						1,
 						1,
-						Phrase(NUMBER.o)),
+						Phrase(NUMBER())),
 					A(
 						"`",
 						"|",
@@ -602,7 +602,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParsePart(7), // Hoisted before checks
 						ParsePart(9), // Also hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument)),
 				/* Repeated groups. */
 				C(
@@ -611,7 +611,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							zeroOrMoreOf(NUMBER.o))),
+							zeroOrMoreOf(NUMBER()))),
 					A(
 						"«",
 						"_",
@@ -623,14 +623,14 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(3), // Hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument,
 						BranchForward(16), // Maybe that's all
 						// 9: Top of loop.
 						ParseArgument,
 						ParsePart(3), // Hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument,
 						BranchForward(16), // Maybe that's all
 						JumpBackward(9), // To top of loop
@@ -707,7 +707,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							Phrase(NUMBER.o))),
+							Phrase(NUMBER()))),
 					A(
 						"«",
 						"x",
@@ -725,7 +725,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(4), // Hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument, // save it and parse more.
 						BranchForward(18), // done after one?
 						//10: Start of loop after unrolled iteration.
@@ -733,7 +733,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(4), // Hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument, // save it and parse more.
 						BranchForward(18), // exit loop?
 						JumpBackward(10),
@@ -750,7 +750,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 							List(
 								2,
 								2,
-								Phrase(NUMBER.o)))),
+								Phrase(NUMBER())))),
 					A(
 						"«",
 						"_",
@@ -766,10 +766,10 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(3), // Hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						ParseArgument,
 						CheckArgument(2),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						WrapInList(2),
 						BranchForward(24), // done after one?
 						AppendArgument, // save it and parse more.
@@ -777,10 +777,10 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(3), // Hoisted before checks
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						ParseArgument,
 						CheckArgument(2),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						WrapInList(2),
 						BranchForward(24), // exit loop?
 						AppendArgument, // save it and parse more.
@@ -832,7 +832,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							Phrase(NUMBER.o))),
+							Phrase(NUMBER()))),
 					A(
 						"«",
 						"_",
@@ -845,7 +845,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						//3: Unrolled first occurrence
 						ParseArgument,
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument,
 						BranchForward(16), // Try single occurrence
 						//8: after double dagger.
@@ -853,7 +853,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						//9: second and later occurrences.
 						ParseArgument,
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument,
 						BranchForward(16), // Try solution
 						//14: after double dagger
@@ -873,7 +873,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 							List(
 								2,
 								2,
-								Phrase(NUMBER.o),
+								Phrase(NUMBER()),
 								Phrase(
 									stringType)))),
 					A(
@@ -897,7 +897,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(6),  // "=" read-ahead
 						CheckArgument(2),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						ParseArgument,
 						CheckArgument(3),
 						typeCheckEncodingForPhrase(stringType),
@@ -909,7 +909,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParseArgument,
 						ParsePart(6),  // "=" read-ahead
 						CheckArgument(2),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						ParseArgument,
 						CheckArgument(3),
 						typeCheckEncodingForPhrase(stringType),
@@ -1104,7 +1104,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 					List(
 						1,
 						1,
-						Phrase(NUMBER.o)),
+						Phrase(NUMBER())),
 					A(
 						"the",
 						"~",
@@ -1113,7 +1113,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 						ParsePartCaseInsensitively(1),
 						ParseArgument,
 						CheckArgument(1),
-						typeCheckEncodingForPhrase(NUMBER.o),
+						typeCheckEncodingForPhrase(NUMBER()),
 						AppendArgument)),
 				C(
 					"«x~»",
@@ -1283,7 +1283,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 				//			C("««fruit bats»|sloths|carp|«breakfast cereals»»",
 				//				List(0, 0),
 				//				A("«", "«", "fruit", "bats", "»", "|", "sloths", "|", "carp",
-				//				  "|", "«", "breakfast", "cereals", "»", "»"),
+				//					"|", "«", "breakfast", "cereals", "»", "»"),
 				//				A(
 				//					BRANCH_FORWARD(5),
 				//					PARSE_PART(3), // fruit
@@ -1366,7 +1366,7 @@ class MessageAbstractMultiWaySplitterTest private constructor ()
 		splitter.checkImplementationSignature(
 			functionType(
 				typeTuple,
-				TOP.o))
+				TOP()))
 		val instructionsList =
 			splitter.instructionsFor(splitCase.listPhraseType)
 		if (splitCase.instructions.toString() != instructionsList.toString())

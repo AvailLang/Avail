@@ -50,6 +50,8 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TypeTag
 
 /**
@@ -144,6 +146,8 @@ class GrammaticalRestrictionDescriptor private constructor(
 		 */
 		DEFINITION_MODULE
 	}
+
+	override fun o_Kind(self: AvailObject): A_Type = ANY()
 
 	override fun o_Hash(self: AvailObject): Int = self[HASH]
 

@@ -84,7 +84,7 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 		functionType(
 			tuple(
 				wholeNumbers,
-				ANY.o),
+				ANY()),
 			mostGeneralTupleType)
 
 	override fun privateFailureVariableType(): A_Type =

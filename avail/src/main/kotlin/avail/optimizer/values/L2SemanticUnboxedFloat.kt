@@ -75,12 +75,14 @@ constructor(
 			if (it == privateBoxed) this else it.unboxedFloat
 		}
 
+	override val toBoxed: L2SemanticBoxedValue get() = boxed
+
 	override val isConstant: Boolean get() = privateBoxed.isConstant
 
 	override val defaultRestriction: TypeRestriction
 		get() = constantRestrictionOrNull ?: floatRestriction
 
-	override val isUsefulForGlobalValueNumbering: Boolean =
+	override val isUsefulForGlobalValueNumbering: Boolean get() =
 		privateBoxed.isUsefulForGlobalValueNumbering
 
 	override val constantRestrictionOrNull: TypeRestriction?
@@ -95,7 +97,7 @@ constructor(
 			get() = (this as L2SemanticUnboxedFloat).privateBoxed
 
 		/** Default resstriction for float semanticc values. */
-		private val floatRestriction =
-			boxedRestrictionForType(Types.DOUBLE.o).forUnboxedFloat()
+		val floatRestriction =
+			boxedRestrictionForType(Types.DOUBLE()).forUnboxedFloat()
 	}
 }

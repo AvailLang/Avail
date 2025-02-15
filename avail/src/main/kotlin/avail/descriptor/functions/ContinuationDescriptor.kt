@@ -32,6 +32,7 @@
 package avail.descriptor.functions
 
 import avail.AvailRuntime
+import avail.AvailThread
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
@@ -47,11 +48,16 @@ import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithoutOuters
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
+import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import avail.descriptor.functions.CompiledCodeDescriptor.*
+import avail.descriptor.functions.A_RawFunction.Companion.shortMethodName
+import avail.descriptor.functions.A_RegisterDump.Companion.decodeBoxedValueFromDump
+import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
+import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -62,9 +68,9 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FRAME_AT_
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
-import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -80,6 +86,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -89,20 +96,27 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.TypeTag
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
+import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.debugL2
+import avail.interpreter.execution.Interpreter.Companion.log
+import avail.interpreter.execution.Interpreter.Companion.loggerDebugL2
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.io.TextInterface
+import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -110,6 +124,7 @@ import avail.serialization.SerializerOperation
 import avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
+import java.util.logging.Level
 
 /**
  * A [continuation][ContinuationDescriptor] acts as an immutable execution
@@ -213,12 +228,12 @@ class ContinuationDescriptor private constructor(
 		LEVEL_TWO_CHUNK,
 
 		/**
-		 * An instance of [ContinuationRegisterDumpDescriptor], which holds a
-		 * collection of [AvailObject] and [Long] values. These values are
-		 * stored in the continuation for an [L2Chunk] to use as it wishes, but
-		 * it's simply ignored when a chunk becomes invalid, since the
-		 * [unoptimizedChunk] and its [L1InstructionStepper] always rely
-		 * solely on the pure L1 state.
+		 * An instance of [RegisterDumpDescriptor], which holds a collection of
+		 * [AvailObject] and [Long] values. These values are stored in the
+		 * continuation for an [L2Chunk] to use as it wishes, but it's simply
+		 * ignored when a chunk becomes invalid, since the [unoptimizedChunk]
+		 * and its [L1InstructionStepper] always rely solely on the pure L1
+		 * state.
 		 *
 		 * This slot can be [nil] if it's not needed.
 		 */
@@ -295,6 +310,7 @@ class ContinuationDescriptor private constructor(
 		return lineNumber
 	}
 
+	@Deprecated("unused")
 	override fun o_DeoptimizeForDebugger(self: AvailObject)
 	{
 		if (self.levelTwoChunk != unoptimizedChunk)
@@ -323,7 +339,7 @@ class ContinuationDescriptor private constructor(
 			{
 				"Frame[$i]"
 			}
-			if (i == self.stackp) name = "Stackp ==> $name"
+			if (i == self.stackp) name = "\uD83D\uDC49 $name"  // Pointing hand.
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
@@ -497,6 +513,48 @@ class ContinuationDescriptor private constructor(
 	override fun o_LevelTwoOffset(self: AvailObject) =
 		self.mutableSlot(LEVEL_TWO_OFFSET)
 
+	/**
+	 * To assist with variable elision, the [L2Optimizer] avoids creating
+	 * variables until they're about to escape.  If a continuation is created
+	 * while a variable has not yet been created, a nil is written to that slot.
+	 * If it becomes immutable (via this very method) before being resumed, any
+	 * missing variables are created, and its [o_LevelTwoChunk] and
+	 * [o_LevelTwoOffset] are set so that execution will continue in the L1
+	 * interpreter instead.
+	 */
+	override fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+	{
+		assert(mutability == Mutability.IMMUTABLE) {
+			"The descriptor should have been switched to immutable already"
+		}
+		self.createElidedVariables()
+		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
+	}
+
+	/**
+	 * To assist with variable elision, the [L2Optimizer] avoids creating
+	 * variables until they're about to escape.  If a continuation is created
+	 * while a variable has not yet been created, a nil is written to that slot.
+	 * If it becomes immutable (via this very method) before being resumed, any
+	 * missing variables are created, and its [o_LevelTwoChunk] and
+	 * [o_LevelTwoOffset] are set so that execution will continue in the L1
+	 * interpreter instead.
+	 */
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+	{
+		assert(mutability == Mutability.SHARED) {
+			"The descriptor should have been switched to shared already"
+		}
+		self.createElidedVariables()
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+	}
+
 	override fun o_NameForDebugger(self: AvailObject) =
 		buildString {
 			append(super.o_NameForDebugger(self))
@@ -641,8 +699,8 @@ class ContinuationDescriptor private constructor(
 		 * @param caller
 		 *   The calling continuation of this continuation.
 		 * @param registerDump
-		 *   Either `nil` or a [ContinuationRegisterDumpDescriptor] instance
-		 *   that an [L2Chunk] will use upon resumption.
+		 *   Either [nil] or a [RegisterDumpDescriptor] instance that an
+		 *   [L2Chunk] will use upon resumption.
 		 * @param pc
 		 *   The level one program counter.
 		 * @param stackp
@@ -701,8 +759,8 @@ class ContinuationDescriptor private constructor(
 		 * @param caller
 		 *   The calling continuation of this continuation.
 		 * @param registerDump
-		 *   Either [nil] or a [ContinuationRegisterDumpDescriptor] instance
-		 *   that an [L2Chunk] will use upon resumption.
+		 *   Either [nil] or a [RegisterDumpDescriptor] instance that an
+		 *   [L2Chunk] will use upon resumption.
 		 * @param pc
 		 *   The level one program counter.
 		 * @param stackp
@@ -752,10 +810,10 @@ class ContinuationDescriptor private constructor(
 		 * @param function
 		 *   The [A_Function] that was running when this dummy continuation was
 		 *   made.
-		 * @param boxedRegisters
-		 *   An [AvailObject] containing values to save in a register dump.
-		 * @param unboxedRegisters
-		 *   A `long[]` containing values to save in a register dump.
+		 * @param registerDump
+		 *   The [A_RegisterDump] containing values to restore when resuming
+		 *   this continuation, and information about how to create elided local
+		 *   variables if the continuation is made immutable or shared.
 		 * @param levelTwoChunk
 		 *   The [level&#32;two&#32;chunk][L2Chunk] to execute.
 		 * @param levelTwoOffset
@@ -768,16 +826,13 @@ class ContinuationDescriptor private constructor(
 		@JvmStatic
 		fun createDummyContinuation(
 			function: A_Function,
-			boxedRegisters: Array<AvailObject>,
-			unboxedRegisters: LongArray,
+			registerDump: A_RegisterDump,
 			levelTwoChunk: L2Chunk,
 			levelTwoOffset: Int
 		): AvailObject = mutable.create {
 			setSlot(CALLER, nil)
 			setSlot(FUNCTION, function)
-			setSlot(
-				LEVEL_TWO_REGISTER_DUMP,
-				createRegisterDump(boxedRegisters, unboxedRegisters))
+			setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump)
 			setSlot(PROGRAM_COUNTER, -1)
 			setSlot(STACK_POINTER, -1)
 			setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
@@ -790,8 +845,7 @@ class ContinuationDescriptor private constructor(
 			::createDummyContinuation.name,
 			AvailObject::class.java,
 			A_Function::class.java,
-			Array<AvailObject>::class.java,
-			LongArray::class.java,
+			A_RegisterDump::class.java,
 			L2Chunk::class.java,
 			Int::class.javaPrimitiveType!!)
 
@@ -819,6 +873,90 @@ class ContinuationDescriptor private constructor(
 		 *   An immutable bottom-typed variable.
 		 */
 		fun nilSubstitute() = nilSubstitute
+
+		/**
+		 * The receiver is becoming immutable or shared from a mutable state, or
+		 * is being returned into after an L2 invalidation.
+		 *
+		 * Create any elided variables, using the information stored in the
+		 * [LEVEL_TWO_REGISTER_DUMP].  Also switch this continuation's
+		 * resumption chunk to the L1 interpreter, at the
+		 * [A_RegisterDump.fallbackEntryPoint], if the register dump is present
+		 * (otherwise it's the caller's responsibility to ensure this is set).
+		 */
+		fun AvailObject.createElidedVariables()
+		{
+			// Unoptimized chunks don't elide variables.  If it's transitioning
+			// from immutable to shared, the earlier transition to immutable
+			// would have set levelTwoChunk to the unoptimizedChunk already when
+			// it created the elided variables.
+			val chunk = levelTwoChunk
+			if (chunk === unoptimizedChunk) return
+			// L2Simple chunks don't postpone variable creation either.
+			if (chunk is L2SimpleChunk) return
+
+			val code = this[FUNCTION].code()
+			// There are no local variables, so this frame can stay optimized.
+			if (code.numLocals == 0) return
+			// This is a tuple of ints, taken two at a time, where the first is
+			// the local number into which the new variable is to be written,
+			// and the second numuber is signed, where
+			//  - a positive integer means an index into the saved object
+			//    register array, or
+			//  - a negative even number -2×N, where the Nth entry in the long
+			//    array contains an [Int] to box and store in the new variable,
+			//    or
+			//  - a negative odd number -2×N+1, where the Nth entry in the long
+			//    array contains a [Long] whose bit pattern can produce a
+			//    [Double] to box and store in the new variable.
+			val dump = this[LEVEL_TWO_REGISTER_DUMP]
+			dump.ifNotNil<A_RegisterDump> {
+				val encoded: A_Tuple = dump.encodedElidedLocals
+				for (i in 1 .. encoded.tupleSize step 2)
+				{
+					val localIndex = encoded.tupleIntAt(i)
+					val sourceInt = encoded.tupleIntAt(i + 1)
+					val value = decodeBoxedValueFromDump(dump, sourceInt)
+					// We must not create the same variable twice, and the L2
+					// code should have ensured this, so verify the sentinel `0`
+					// in the local slot.
+					assert(this[FRAME_AT_, localIndex].equalsInt(0))
+
+					if (debugL2)
+					{
+						AvailThread.currentOrNull?.interpreter?.run {
+							log(
+								loggerDebugL2,
+								Level.FINER,
+								"{0}CREATE ELIDED local #{1} of {2}",
+								debugModeString,
+								localIndex,
+								code.shortMethodName)
+						}
+					}
+
+					this[FRAME_AT_, localIndex] = newVariableWithOuterType(
+						code.localTypeAt(localIndex), value)
+				}
+			}
+			// Any locals that weren't mentioned, and that happen to have `0`
+			// sentinel slots in the continuation, should be created with nil as
+			// their value.
+			val numArgs = code.numArgs()
+			for (i in 1 .. code.numLocals)
+			{
+				if (this[FRAME_AT_, numArgs + i].equalsInt(0))
+				{
+					this[FRAME_AT_, numArgs + i] =
+						newVariableWithOuterType(code.localTypeAt(i), nil)
+				}
+			}
+			dump.ifNotNil<A_RegisterDump> {
+				this[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
+				this[LEVEL_TWO_OFFSET] =
+					dump.fallbackEntryPoint.offsetInDefaultChunk
+			}
+		}
 
 		/**
 		 * Create a list of descriptions of the stack frames ([A_Continuation]s)

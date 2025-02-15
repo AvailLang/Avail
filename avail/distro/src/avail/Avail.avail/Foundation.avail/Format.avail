@@ -163,18 +163,18 @@ Private stable method "format sites for_" is
 			[
 				If index > |template| then
 				[
-					early failure function(runaway-format-variable code)
+					Failed primitive with runaway-format-variable code
 				];
 				template[index] ≠ closeDelimiter
 			];
 			If index - start = 1 then
 			[
-				early failure function(empty-format-variable code)
+				Failed primitive with empty-format-variable code
 			];
 			varName ::= template[start + 1..index - 1];
 			sites := eject sites ++ <<varName, interpType, start, index>>;
 		];
-	invalid ::= [early failure function(invalid-format-metacharacter-use code)];
+	invalid ::= [Failed primitive with invalid-format-metacharacter-use code];
 	While index ≤ |template| do
 	[
 		/* Handle a metacharacter. */
@@ -192,8 +192,8 @@ Private stable method "format sites for_" is
 						∨ ¬template[index] ∈ format metacharacters
 					then
 					[
-						early failure function(
-							invalid-format-metacharacter-escape code)
+						Failed primitive with
+							invalid-format-metacharacter-escape code
 					];
 					escaped ::= <template[index]>;
 					sites := eject sites ++ <<escaped, escape, start, index>>;
@@ -269,7 +269,7 @@ Public stable method "partially format_with_" is
 	sites ::= format sites for template;
 	formatted : string := "";
 	badType ::=
-		[early failure function(format-variable-interpolation-failed code)];
+		[Failed primitive with format-variable-interpolation-failed code];
 	index : natural number := 1;
 	For each site of sites do
 	[
@@ -386,9 +386,9 @@ Public stable method "format_with_" is
 |
 	sites ::= format sites for template;
 	formatted : string := "";
-	missing ::= [early failure function(missing-format-variable-binding code)];
+	missing ::= [Failed primitive with missing-format-variable-binding code];
 	badType ::=
-		[early failure function(format-variable-interpolation-failed code)];
+		[Failed primitive with format-variable-interpolation-failed code];
 	index : natural number := 1;
 	For each site of sites do
 	[
@@ -717,10 +717,10 @@ Public stable method "format_with unchecked_" is
 |
 	sites ::= format sites for template;
 	formatted : string := "";
-	badName ::= [early failure function(invalid-format-variable code)];
-	missing ::= [early failure function(missing-format-variable-binding code)];
+	badName ::= [Failed primitive with invalid-format-variable code];
+	missing ::= [Failed primitive with missing-format-variable-binding code];
 	badType ::=
-		[early failure function(format-variable-interpolation-failed code)];
+		[Failed primitive with format-variable-interpolation-failed code];
 	index : natural number := 1;
 	For each site of sites do
 	[

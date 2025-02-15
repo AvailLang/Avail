@@ -45,7 +45,7 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
 import avail.exceptions.PrimitiveThrownException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.current
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 
 /**
  * An `AvailTask` extends [Runnable] with a priority. Instances are intended to
@@ -132,7 +132,7 @@ class AvailTask constructor(
 				SynchronizationFlag.SCHEDULED, true)
 			assert(!scheduled)
 			return {
-				val interpreter = current()
+				val interpreter = currentInterpreter
 				assert(interpreter.fiberOrNull() === null)
 				fiber.lock {
 					assert(fiber.executionState.indicatesSuspension)
@@ -241,7 +241,7 @@ class AvailTask constructor(
 					fiber.executionState = ABORTED
 					(fiber.failureContinuation)(e)
 				}
-				assert(current().fiberOrNull() === null)
+				assert(currentInterpreter.fiberOrNull() === null)
 			}
 		}
 	}

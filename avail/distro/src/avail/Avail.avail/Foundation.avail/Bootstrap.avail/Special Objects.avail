@@ -1,6 +1,6 @@
 /*
  * Special Objects.avail
- * Copyright © 1993-2024, The Avail Foundation, LLC.
+ * Copyright © 1993-2025, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/6/24, 3:01 PM
+ * * Last Generated: 2/14/25, 12:19 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,15 +49,15 @@ Names
 	/* 111 */ "Euler's number",
 	/*  82 */ "Java null",
 	/*  21 */ "VM error codes",
-	/*  44 */ "abstract definition",
+	/*  43 */ "abstract definition",
 	/* 145 */ "all tokens key",
 	/*   1 */ "any",
 	/*  69 */ "any meta",
 	/*  62 */ "argument phrase",
 	/* 122 */ "argument tuple",
-	/*  53 */ "assignment phrase",
+	/*  52 */ "assignment phrase",
 	/*  11 */ "atom",
-	/*  54 */ "block phrase",
+	/*  53 */ "block phrase",
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
 	/*   3 */ "character",
@@ -70,7 +70,7 @@ Names
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
-	/*  43 */ "definition",
+	/*  42 */ "definition",
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
@@ -78,7 +78,7 @@ Names
 	/*  24 */ "exception",
 	/* 155 */ "explicit subclassing key",
 	/* 150 */ "expression as statement phrase",
-	/*  52 */ "expression phrase",
+	/*  51 */ "expression phrase",
 	/* 126 */ "expression yielding any",
 	/*  13 */ "extended integer",
 	/*  18 */ "extended integer meta",
@@ -91,7 +91,7 @@ Names
 	/* 119 */ "field type tuple",
 	/* 140 */ "first of sequence phrase",
 	/*  15 */ "float",
-	/*  45 */ "forward definition",
+	/*  44 */ "forward definition",
 	/*   4 */ "function",
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
@@ -106,13 +106,13 @@ Names
 	/* 157 */ "lexer filter function",
 	/*  59 */ "list phrase",
 	/* 163 */ "literal",
-	/*  55 */ "literal phrase",
+	/*  54 */ "literal phrase",
 	/* 116 */ "literal token",
 	/*  58 */ "literal token meta",
 	/*  65 */ "local constant phrase",
 	/*  64 */ "local variable phrase",
 	/* 154 */ "macro bundle key",
-	/*  47 */ "macro definition",
+	/*  46 */ "macro definition",
 	/* 109 */ "macro function",
 	/*  39 */ "map",
 	/* 153 */ "map from string to atom",
@@ -120,9 +120,8 @@ Names
 	/* 156 */ "map variable",
 	/* 175 */ "marker phrase",
 	/*  40 */ "message bundle",
-	/*  41 */ "message bundle tree",
-	/*  42 */ "method",
-	/*  46 */ "method definition",
+	/*  41 */ "method",
+	/*  45 */ "method definition",
 	/*  20 */ "module",
 	/*  67 */ "module constant phrase",
 	/* 176 */ "module imports tuple",
@@ -135,7 +134,7 @@ Names
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
 	/* 137 */ "nonempty tuple",
-	/* 181 */ "nonempty tuple of string",
+	/* 180 */ "nonempty tuple of string",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
 	/*  90 */ "nullary procedure",
@@ -145,13 +144,13 @@ Names
 	/*  23 */ "object meta",
 	/* 164 */ "operator",
 	/* 171 */ "optional send phrase and report string",
-	/* 179 */ "optionalPhrase",
-	/* 178 */ "optionalStylerFunction",
+	/* 178 */ "optionalPhrase",
+	/* 177 */ "optionalStylerFunction",
 	/* 143 */ "parse map key",
 	/* 167 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
-	/*  50 */ "phrase",
+	/*  49 */ "phrase",
 	/* 113 */ "phrase meta",
 	/* 121 */ "phrase tuple",
 	/*  80 */ "pojo",
@@ -170,21 +169,21 @@ Names
 	/* 144 */ "scope map key",
 	/* 149 */ "scope stack key",
 	/* 107 */ "semantic restriction function",
-	/*  57 */ "send phrase",
-	/*  51 */ "sequence phrase",
-	/* 177 */ "sequence-as-expression phrase",
+	/*  56 */ "send phrase",
+	/*  50 */ "sequence phrase",
+	/*  57 */ "sequence-as-expression phrase",
 	/*  26 */ "set",
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
-	/* 182 */ "set of nonempty strings",
+	/* 181 */ "set of nonempty strings",
 	/*  75 */ "set of string",
-	/*  49 */ "stack dump key",
+	/*  48 */ "stack dump key",
 	/* 148 */ "statement phrase",
 	/* 160 */ "static token indices in name key",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
-	/* 180 */ "string literal phrase",
+	/* 179 */ "string literal phrase",
 	/* 172 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -196,7 +195,7 @@ Names
 	/* 117 */ "tuple of any meta",
 	/* 152 */ "tuple of definition",
 	/* 125 */ "tuple of expressions yielding any",
-	/*  48 */ "tuple of function",
+	/*  47 */ "tuple of function",
 	/* 138 */ "tuple of integer",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
@@ -216,7 +215,7 @@ Names
 	/* 103 */ "unsigned short",
 	/* 124 */ "variable",
 	/*   8 */ "variable meta",
-	/*  56 */ "variable reference phrase",
+	/*  55 */ "variable reference phrase",
 	/*  60 */ "variable use phrase",
 	/* 166 */ "whitespace",
 	/*  36 */ "whole number",
@@ -1029,21 +1028,11 @@ Special object "message bundle" is special object 40;
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "message bundle tree"
- * @supertype "nontype"
- * @see "http://www.availlang.org/about-avail/documentation/type-system/types-message-bundle-tree.html"
- */
-Special object "message bundle tree" is special object 41;
-
-/**
- * TODO: Special object description goes here.
- *
- * @category "Primitives" "Types"
  * @type "method"
  * @supertype "nontype"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-method.html"
  */
-Special object "method" is special object 42;
+Special object "method" is special object 41;
 
 /**
  * TODO: Special object description goes here.
@@ -1053,7 +1042,7 @@ Special object "method" is special object 42;
  * @supertype "type"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-definition.html"
  */
-Special object "definition" is special object 43;
+Special object "definition" is special object 42;
 
 /**
  * TODO: Special object description goes here.
@@ -1063,7 +1052,7 @@ Special object "definition" is special object 43;
  * @supertype "definition"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-abstract-definition.html"
  */
-Special object "abstract definition" is special object 44;
+Special object "abstract definition" is special object 43;
 
 /**
  * TODO: Special object description goes here.
@@ -1073,7 +1062,7 @@ Special object "abstract definition" is special object 44;
  * @supertype "definition"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-forward-definition.html"
  */
-Special object "forward definition" is special object 45;
+Special object "forward definition" is special object 44;
 
 /**
  * TODO: Special object description goes here.
@@ -1083,7 +1072,7 @@ Special object "forward definition" is special object 45;
  * @supertype "definition"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-method-definition.html"
  */
-Special object "method definition" is special object 46;
+Special object "method definition" is special object 45;
 
 /**
  * TODO: Special object description goes here.
@@ -1093,7 +1082,7 @@ Special object "method definition" is special object 46;
  * @supertype "definition"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-macro-definition.html"
  */
-Special object "macro definition" is special object 47;
+Special object "macro definition" is special object 46;
 
 /**
  * TODO: Special object description goes here.
@@ -1102,7 +1091,7 @@ Special object "macro definition" is special object 47;
  * @type "tuple of function"
  * @alias "<[…]→⊤…|>"
  */
-Special object "tuple of function" is special object 48;
+Special object "tuple of function" is special object 47;
 
 /**
  * The {@code atom} under which the stack is captured within an
@@ -1113,7 +1102,7 @@ Special object "tuple of function" is special object 48;
  * @alias "atom"
  * @returns "stack dump key's type"
  */
-Special object "stack dump key" is special object 49;
+Special object "stack dump key" is special object 48;
 
 /**
  * TODO: Special object description goes here.
@@ -1124,7 +1113,7 @@ Special object "stack dump key" is special object 49;
  * @supertype "nontype"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-phrase.html"
  */
-Special object "phrase" is special object 50;
+Special object "phrase" is special object 49;
 
 /**
  * TODO: Special object description goes here.
@@ -1135,7 +1124,7 @@ Special object "phrase" is special object 50;
  * @supertype "phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-sequence-phrase.html"
  */
-Special object "sequence phrase" is special object 51;
+Special object "sequence phrase" is special object 50;
 
 /**
  * TODO: Special object description goes here.
@@ -1146,7 +1135,7 @@ Special object "sequence phrase" is special object 51;
  * @supertype "phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-expression-phrase.html"
  */
-Special object "expression phrase" is special object 52;
+Special object "expression phrase" is special object 51;
 
 /**
  * TODO: Special object description goes here.
@@ -1157,7 +1146,7 @@ Special object "expression phrase" is special object 52;
  * @supertype "expression phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-assignment-phrase.html"
  */
-Special object "assignment phrase" is special object 53;
+Special object "assignment phrase" is special object 52;
 
 /**
  * TODO: Special object description goes here.
@@ -1168,7 +1157,7 @@ Special object "assignment phrase" is special object 53;
  * @supertype "expression phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-block-phrase.html"
  */
-Special object "block phrase" is special object 54;
+Special object "block phrase" is special object 53;
 
 /**
  * TODO: Special object description goes here.
@@ -1179,7 +1168,7 @@ Special object "block phrase" is special object 54;
  * @supertype "expression phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-literal-phrase.html"
  */
-Special object "literal phrase" is special object 55;
+Special object "literal phrase" is special object 54;
 
 /**
  * TODO: Special object description goes here.
@@ -1190,7 +1179,7 @@ Special object "literal phrase" is special object 55;
  * @supertype "expression phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable-reference-phrase.html"
  */
-Special object "variable reference phrase" is special object 56;
+Special object "variable reference phrase" is special object 55;
 
 /**
  * TODO: Special object description goes here.
@@ -1201,7 +1190,16 @@ Special object "variable reference phrase" is special object 56;
  * @supertype "expression phrase"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-send-phrase.html"
  */
-Special object "send phrase" is special object 57;
+Special object "send phrase" is special object 56;
+
+/**
+ * The most general sequence-as-expression phrase type.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "sequence-as-expression phrase"
+ */
+Special object "sequence-as-expression phrase" is special object 57;
 
 /**
  * TODO: Special object description goes here.
@@ -2357,22 +2355,13 @@ Special object "marker phrase" is special object 175;
 Special object "module imports tuple" is special object 176;
 
 /**
- * The most general sequence-as-expression phrase type.
- *
- * @category "Primitives" "Types"
- * @type "{1}"
- * @alias "sequence-as-expression phrase"
- */
-Special object "sequence-as-expression phrase" is special object 177;
-
-/**
  * A tuple with zero or one occurrences of a styler function.
  *
  * @category "Primitives" "Types"
  * @type "{1}"
  * @alias "optionalStylerFunction"
  */
-Special object "optionalStylerFunction" is special object 178;
+Special object "optionalStylerFunction" is special object 177;
 
 /**
  * A tuple with either zero or one phrase.
@@ -2381,7 +2370,7 @@ Special object "optionalStylerFunction" is special object 178;
  * @type "{1}"
  * @alias "optionalPhrase"
  */
-Special object "optionalPhrase" is special object 179;
+Special object "optionalPhrase" is special object 178;
 
 /**
  * A literal phrase on a string literal.
@@ -2390,7 +2379,7 @@ Special object "optionalPhrase" is special object 179;
  * @type "{1}"
  * @alias "string literal phrase"
  */
-Special object "string literal phrase" is special object 180;
+Special object "string literal phrase" is special object 179;
 
 /**
  * A non-empty tuple of nonempty strings.
@@ -2399,7 +2388,7 @@ Special object "string literal phrase" is special object 180;
  * @type "<string…|1..∞>"
  * @alias "nonempty tuple of string"
  */
-Special object "nonempty tuple of string" is special object 181;
+Special object "nonempty tuple of string" is special object 180;
 
 /**
  * A set of non-empty strings.
@@ -2408,5 +2397,5 @@ Special object "nonempty tuple of string" is special object 181;
  * @type "{nonempty string|}"
  * @alias "set of nonempty strings"
  */
-Special object "set of nonempty strings" is special object 182;
+Special object "set of nonempty strings" is special object 181;
 

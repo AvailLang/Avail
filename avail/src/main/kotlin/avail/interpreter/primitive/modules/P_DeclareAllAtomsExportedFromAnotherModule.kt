@@ -33,7 +33,8 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.addPrivateNames
 import avail.descriptor.module.A_Module.Companion.exportedNames
@@ -44,13 +45,12 @@ import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
@@ -64,9 +64,8 @@ import avail.interpreter.execution.Interpreter
  * each such module should have all of its exported names included in the
  * current module's [public&nbsp;names][ObjectSlots.IMPORTED_NAMES] or
  * [private&nbsp;names][ObjectSlots.PRIVATE_NAMES], depending on the value of
- * the supplied [boolean][EnumerationTypeDescriptor.booleanType]
- * ([true][AtomDescriptor.trueObject] for public,
- * [false][AtomDescriptor.falseObject] for private).
+ * the supplied [boolean][booleanType] ([true][trueObject] for public,
+ * [false][falseObject] for private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -99,7 +98,7 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 			tuple(
 				setTypeForSizesContentType(
 					naturalNumbers,
-					Types.ANY.o  /* stringType - weakened for performance. */),
+					Types.ANY()  /* stringType - weakened for performance. */),
 				booleanType),
-			TOP.o)
+			TOP())
 }

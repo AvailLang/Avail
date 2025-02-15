@@ -115,7 +115,7 @@ class AvailDebuggerModel constructor (
 	 */
 	fun doSingleStep(
 		fiber: A_Fiber,
-		@Suppress("UNUSED_PARAMETER") selectedContinuation: A_Continuation)
+		@Suppress("unused") selectedContinuation: A_Continuation)
 	{
 		var allow = true
 		fiber.fiberHelper.debuggerRunCondition = {

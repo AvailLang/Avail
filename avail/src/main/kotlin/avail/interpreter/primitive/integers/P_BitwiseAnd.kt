@@ -35,32 +35,52 @@ package avail.interpreter.primitive.integers
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitwiseAnd
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.numbers.A_Number.Companion.equalsLong
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import avail.dispatch.TestForConstantsDecisionStep
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
+import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.primitive.general.P_Hash
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.PatternBuilder.Companion.pattern
 import kotlin.math.min
 
 /**
@@ -129,7 +149,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		return integerRangeType(zero, true, fromLong(maxValue), true)
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
@@ -137,13 +157,11 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val bound = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		if (bound.lowerBound.equals(bound.upperBound))
 		{
 			// Constant result.
-			callSiteHelper.useAnswer(generator.boxedConstant(bound.lowerBound))
+			callSiteHelper.useAnswer(boxedConstant(bound.lowerBound), false)
 			return true
 		}
 		val (range1, range2) = argumentTypes
@@ -161,7 +179,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			{
 				// range2 is a constant power of two big enough to include all
 				// non-zero bits of the first argument.
-				callSiteHelper.useAnswer(arguments[0])
+				callSiteHelper.useAnswer(arguments[0], false)
 				return true
 			}
 		}
@@ -177,23 +195,109 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			{
 				// range1 is a constant power of two big enough to include all
 				// non-zero bits of the second argument.
-				callSiteHelper.useAnswer(arguments[1])
+				callSiteHelper.useAnswer(arguments[1], false)
 				return true
 			}
 		}
-		return And.generateBinaryIntOperation(
-			this,
-			arguments,
-			argumentTypes,
-			callSiteHelper,
-			typeGuaranteeFunction = { restrictedArgTypes ->
-				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
-			},
-			fallbackBody = {
-				generateGeneralFunctionInvocation(
-					functionToCallReg, arguments, false, callSiteHelper)
-			})
+		return And.run {
+			generateBinaryIntOperation(
+				this@P_BitwiseAnd,
+				arguments,
+				argumentTypes,
+				callSiteHelper,
+				typeGuaranteeFunction = { restrictedArgTypes ->
+					returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+				},
+				fallbackBody = {
+					generateGeneralFunctionInvocation(
+						functionToCallReg, false, callSiteHelper, arguments)
+				})
+		}
 	}
+
+	/**
+	 * The [manifest] has just gotten a narrower [TypeRestriction] set for a
+	 * semantic invocation of this primitive with the given semantic
+	 * [arguments].
+	 *
+	 * When there's an enumeration type involved in a dispatch, the tree may be
+	 * expanded to include a [TestForConstantsDecisionStep].  That part of the
+	 * tree translateds to code that hashes the value, conceptually masks it
+	 * against 0xFFFF_FFFF (i.e., treats it as unsigned), optionally shifts it
+	 * right, and masks it to some number of low bits,  That [i32] value is used
+	 * in an [L2_MULTIWAY_JUMP] using a [ShiftedHashSplitter] to choose among
+	 * 2^n branch targets with what eventually becomes a `lookupswitch` JVM
+	 * bytecode.  The code at each target can then be checked against the
+	 * expected value(s) that hashed to that entry.
+	 *
+	 * @param arguments
+	 *   The two [L2SemanticBoxedValue]s fed to this [P_BitwiseAnd] primitive.
+	 */
+	override fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		// Only attempt to do the propagation if the value is an enumeration,
+		// so that some entries might be eliminated by their hash.
+		if (!restriction.type.isEnumeration) return
+		val (premask, mask) = arguments
+		// See if the second argmuent of the bitwise-and is a constant.
+		if (!mask.isConstant) return
+		val maskConstant = mask.constant!!
+		// Is the mask an int?
+		if (!maskConstant.isInt) return
+		val maskInt = maskConstant.extractInt
+		// Is the mask a power of two?
+		if (maskInt and (maskInt + 1) != 0) return
+		// First look for this being a bitwise-and of the hash of some value.
+		pattern {
+			P_Hash(capture(0))
+		}.matchForEach(premask, manifest) { (valueToHash) ->
+			val equivalentIntValueToHash =
+				manifest.equivalentSemanticValue(valueToHash.unboxedInt)
+					?: return@matchForEach
+			val type = manifest.restrictionFor(equivalentIntValueToHash).type
+			if (type.isEnumeration)
+			{
+				val values = type.instances.filter { v ->
+					restriction.containsValue(fromInt(v.hash() and maskInt))
+				}
+				manifest.intersectType(
+					equivalentIntValueToHash,
+					enumerationWith(setFromCollection(values)))
+			}
+		}
+		pattern {
+			P_BitShiftRight(
+				P_BitwiseAnd(
+					P_Hash(capture(0)),
+					captureConstant(1)),
+				captureConstant(2))
+		}.matchForEach(premask, manifest) {
+				(valueToHash, unsignedMask, shift) ->
+			if (!unsignedMask.constant!!.equalsLong(0xFFFF_FFFFL))
+				return@matchForEach
+			val shiftVal = shift.constant!!
+			if (!shiftVal.isInt) return@matchForEach
+			val shiftInt = shiftVal.extractInt
+			if (shiftInt !in 0..31) return@matchForEach
+			val equivalentIntValueToHash =
+				manifest.equivalentSemanticValue(valueToHash)
+					?: return@matchForEach
+			val type = manifest.restrictionFor(equivalentIntValueToHash).type
+			if (!type.isEnumeration) return@matchForEach
+			val values = type.instances.filter { v ->
+				restriction.containsValue(
+					fromInt((v.hash() ushr shiftInt) and maskInt))
+			}
+			manifest.intersectType(
+				equivalentIntValueToHash,
+				enumerationWith(setFromCollection(values)))
+		}
+	}
+
+	override val semanticinfixOperatorString: String? get() = "And"
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers, integers), integers)

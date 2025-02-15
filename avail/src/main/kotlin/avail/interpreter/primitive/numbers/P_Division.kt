@@ -74,17 +74,19 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Div
-import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
+import avail.interpreter.levelTwo.operation.NumericComparator.LessOrEqual
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
+import avail.interpreter.levelTwo.operation.numbers.L2_DIVIDE_INT_BY_INT
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
-import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 
 /**
  * **Primitive:** Divide a number by another number.
@@ -112,7 +114,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
+		functionType(tuple(NUMBER(), NUMBER()), NUMBER())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -202,8 +204,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 	{
 		val (aType, bType) = argumentTypes
 
-		val bTypeIncludesZero = zero.isInstanceOf(bType)
-		if (bTypeIncludesZero)
+		if (zero.isInstanceOf(bType))
 		{
 			return when
 			{
@@ -226,129 +227,94 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper): Boolean
-	{
-		val (a, b) = arguments
-		val (aType, bType) = argumentTypes
-
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
-
-		// Division by one works whether boxed or not, and even if the numerator
-		// is negative or infinity.
-		if (bType.isSubtypeOf(singleInt(1)))
-		{
-			callSiteHelper.useAnswer(a)
-			return true
-		}
-
-		// If either of the argument types does not intersect with the
-		// non-negative range i31, then fall back to boxed division, since Java
-		// does division of negatives differently than Avail.  Also fall back if
-		// the denominator can't be strictly positive.
-		val aIntersectInt31 = aType.typeIntersection(i31)
-		val bIntersectPos31 = bType.typeIntersection(positiveI31)
-		if (aIntersectInt31.isBottom || bIntersectPos31.isBottom)
-		{
-			return false
-		}
-
-		// Extract int32s, falling back if the actual values aren't in range.
-		val fallback = generator.createBasicBlock("fall back to boxed division")
-		val intA = generator.readInt(
-			a.semanticValue().unboxedInt, fallback)
-		val intB = generator.readInt(
-			b.semanticValue().unboxedInt, fallback)
-		// We've checked that both arguments intersected int32, so now we're on
-		// the happy path where we've extracted two ints.
-		assert(generator.currentlyReachable())
-		val returnTypeIfInts = returnTypeGuaranteedByVM(
-			rawFunction,
-			listOf(aIntersectInt31, bIntersectPos31))
-		val semanticQuotient = semanticInvocation(
-			a.semanticValue(), b.semanticValue())
-		val quotientWriter = generator.intWrite(
-			setOf(semanticQuotient.unboxedInt),
-			intRestrictionForType(returnTypeIfInts))
-
-		val nonnegativeNumerator = L2BasicBlock("nonnegative numerator")
-		NumericComparator.GreaterOrEqual.compareAndBranchInt(
-			generator,
-			intA,
-			generator.unboxedIntConstant(0),
-			edgeTo(nonnegativeNumerator),
-			edgeTo(fallback))
-		assert(nonnegativeNumerator.currentlyReachable())
-
-		generator.startBlock(nonnegativeNumerator)
-		val notZeroDenominator = L2BasicBlock("fast path division")
-		NumericComparator.Greater.compareAndBranchInt(
-			generator,
-			intB,
-			generator.unboxedIntConstant(0),
-			edgeTo(notZeroDenominator),
-			edgeTo(fallback))
-
-		assert(notZeroDenominator.currentlyReachable())
-		generator.startBlock(notZeroDenominator)
-		// At this point the numerator is ≥ 0 and the denominator is > 0.
-		// At this point the result will not throw division-by-zero or overflow
-		// an int32.
-		translator.addInstruction(
-			L2_BIT_LOGIC_OP(Div, intA, intB, quotientWriter))
-		// Even though we're just using the boxed value again, the unboxed
-		// form is also still available for use by subsequent primitives,
-		// which could allow the boxing instruction to evaporate.
-		callSiteHelper.useAnswer(generator.readBoxed(semanticQuotient))
-
-		if (fallback.currentlyReachable())
-		{
-			// The fallback block is reachable, so generate the slow case within
-			// it.  Fallback may happen from conversion of non-int32 arguments,
-			// or from int32 overflow calculating the product.
-			generator.startBlock(fallback)
-			translator.generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
-		}
-		return true
-	}
+		callSiteHelper: CallSiteHelper
+	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
+		callSiteHelper,
+		functionToCallReg,
+		rawFunction,
+		arguments,
+		argumentTypes,
+		ifOutputIsInt = {
+			val positiveDenominator = createBasicBlock("positive denominator")
+			compareAndBranchInt(
+				comparator = LessOrEqual,
+				int1Reg = intB,
+				int2Reg = unboxedIntConstant(0),
+				ifTrue = edgeTo(intFailure),
+				ifFalse = edgeTo(positiveDenominator))
+			startBlock(positiveDenominator)
+			if (!currentlyReachable())
+				return@attemptToGenerateTwoIntToIntPrimitive
+			val nonnegativeNumerator =
+				createBasicBlock("non-negative numerator")
+			compareAndBranchInt(
+				comparator = GreaterOrEqual,
+				int1Reg = intA,
+				int2Reg = unboxedIntConstant(0),
+				ifTrue = edgeTo(nonnegativeNumerator),
+				ifFalse = edgeTo(intFailure))
+			startBlock(nonnegativeNumerator)
+			if (!currentlyReachable())
+				return@attemptToGenerateTwoIntToIntPrimitive
+			val strongerType = returnTypeGuaranteedByVM(
+				null,
+				listOf(
+					currentManifest.restrictionFor(intA).type,
+					currentManifest.restrictionFor(intB).type))
+			+L2_BIT_LOGIC_OP(
+				Div,
+				intA,
+				intB,
+				intWrite(
+					intWrite.semanticValues(),
+					intRestrictionForType(strongerType)))
+		},
+		ifOutputIsPossiblyInt = {
+			+L2_DIVIDE_INT_BY_INT(
+				dividend = intA,
+				divisor = intB,
+				quotient = intWrite,
+				outOfRangeOrZeroDiv = edgeTo(intFailure),
+				success = edgeTo(intSuccess))
+		})
 
 	override fun interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction): List<L2SplitCondition?>
-	{
+		rawFunction: A_RawFunction
+	): List<L2SplitCondition?> = buildList {
 		val (aRead, bRead) = readBoxedOperands
 		if (!aRead.restriction().intersectsType(i31)) return emptyList()
 		if (!bRead.restriction().intersectsType(positiveI31)) return emptyList()
 		// The division is possible in 32-bit math.
-		return buildList {
-			if (!aRead.restriction().containedByType(i31))
-			{
-				add(
-					typeRestrictionCondition(
-						setOf(aRead.register()), intRestrictionForType(i31)))
-			}
-			if (!bRead.restriction().containedByType(positiveI31))
-			{
-				add(
-					typeRestrictionCondition(
-						setOf(bRead.register()), intRestrictionForType(
-							positiveI31)))
-			}
-			// Since we've already excluded the case that the values are always
-			// out of range, we can still wish for the values to be in int
-			// registers already, since the range test will be quicker if the
-			// values are already unboxed.
-			add(unboxedIntCondition(listOf(aRead.register())))
-			add(unboxedIntCondition(listOf(bRead.register())))
+		if (!aRead.restriction().containedByType(i31))
+		{
+			addAll(
+				typeRestrictionConditions(
+					setOf(aRead.register()),
+					boxedRestrictionForType(i31)))
 		}
+		if (!bRead.restriction().containedByType(positiveI31))
+		{
+			addAll(
+				typeRestrictionConditions(
+					setOf(bRead.register()),
+					boxedRestrictionForType(positiveI31)))
+		}
+		// Since we've already excluded the case that the values are always
+		// out of range, we can still wish for the values to be in int
+		// registers already, since the range test will be quicker if the
+		// values are already unboxed.
+		addAll(unboxedIntConditions(listOf(aRead.register())))
+		addAll(unboxedIntConditions(listOf(bRead.register())))
 	}
 
 	/** The type for strictly positive 32-bit integers. */
-	private val positiveI31 = inclusive(1, Int.MAX_VALUE)
+	val positiveI31 = inclusive(1, Int.MAX_VALUE)
+
+	override val semanticinfixOperatorString: String? get() = "Div"
 }

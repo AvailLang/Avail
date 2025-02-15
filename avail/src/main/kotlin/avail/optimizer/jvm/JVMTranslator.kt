@@ -36,8 +36,10 @@ import avail.AvailThread
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
@@ -47,11 +49,13 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.JavaLibrary.getClassLoader
+import avail.interpreter.JavaLibrary.javaUnboxDoubleMethod
 import avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import avail.interpreter.JavaLibrary.longAdderIncrement
 import avail.interpreter.Primitive
@@ -61,6 +65,7 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -77,6 +82,8 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -91,9 +98,12 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.StackReifier
+import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
+import avail.optimizer.jvm.JVMTranslator.GenerationPhase.entries
 import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
 import avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
@@ -119,7 +129,6 @@ import org.objectweb.asm.Opcodes.BIPUSH
 import org.objectweb.asm.Opcodes.CHECKCAST
 import org.objectweb.asm.Opcodes.DCONST_0
 import org.objectweb.asm.Opcodes.DCONST_1
-import org.objectweb.asm.Opcodes.DSTORE
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.FCONST_0
 import org.objectweb.asm.Opcodes.FCONST_1
@@ -248,31 +257,26 @@ class JVMTranslator constructor(
 	private var classBytes: ByteArray? = null
 
 	/**
-	 * The [entry&#32;points][L2Instruction.isEntryPoint] into the [L2Chunk],
-	 * mapped to their [Label]s.
+	 * A map from each offset of [entry&#32;points][L2Instruction.isEntryPoint]
+	 * into the [L2Chunk], to their [Label].
 	 */
 	private val entryPoints = mutableMapOf<Int, Label>()
 
 	/**
-	 * As the code is being generated and we encounter an
-	 * [L2_SAVE_ALL_AND_PC_TO_INT], we examine its corresponding target block to
-	 * figure out which registers actually have to be captured at the save, and
-	 * restored at the [L2_ENTER_L2_CHUNK].  At that point, we look up the
-	 * *local numbers* from the [JVMTranslator] and record them by
-	 * [RegisterKind] in this field.
+	 * A map from each offset of [entry&#32;points][L2Instruction.isEntryPoint]
+	 * into the [L2Chunk] to a [Map].  The map is from [RegisterKind] to a
+	 * [List] of live [L2Register] numbers of that kind.  The registers are
+	 * restored from an [A_RegisterDump] during re-entry.  This all gets set up
+	 * during generation of the preceding [L2_SAVE_ALL_AND_PC_TO_INT].
 	 *
-	 * During optimization, an edge from an [L2_SAVE_ALL_AND_PC_TO_INT] to its
-	 * target [L2_ENTER_L2_CHUNK] is treated as though the jump happens
-	 * immediately, so that liveness information can be kept accurate. The final
-	 * code generation knows better, and simply saves and restores the locals
-	 * that back registers that are considered live across this gap.
-	 *
-	 * The key of this map is the target [L2_ENTER_L2_CHUNK] instruction, and
-	 * the value is a map from [RegisterKind] to the [List] of live *local
-	 * numbers*.
+	 * During initial generation and optimization of the [L2ControlFlowGraph],
+	 * the edge from the [L2_SAVE_ALL_AND_PC_TO_INT] to its [L2_ENTER_L2_CHUNK]
+	 * is treated as an immediate jump, but during JVM translation, the former
+	 * instruction captures the live registers into an [A_RegisterDump] and the
+	 * latter instruction restores them.
 	 */
-	val liveLocalNumbersByKindPerEntryPoint =
-		mutableMapOf<L2Instruction, Map<RegisterKind<*>, List<Int>>>()
+	val entryPointLiveInfo =
+		mutableMapOf<Int, Map<RegisterKind<*>, List<Int>>>()
 
 	/**
 	 * We're at a point where reification has been requested.  A [StackReifier]
@@ -304,14 +308,17 @@ class JVMTranslator constructor(
 		loadInterpreter(method)
 		// [reifier, interpreter]
 		Interpreter.interpreterFunctionField.generateRead(method)
-		// [reifier, function]
-		onReification.createAndPushRegisterDumpArrays(this, method, false)
-		// [reifier, function, AvailObject[], long[]]
+		// [reifier, fn]
+		onReification.createAndPushRegisterDump(
+			this,
+			method,
+			L2JVMChunk.ChunkEntryPoint.TO_RESUME)
+		// [reifier, fn, dump]
 		loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
-		// [reifier, function, AvailObject[], long[], chunk]
+		// [reifier, fn, dump, chunk]
 		intConstant(method, onReification.offset())
-		// [reifier, function, AvailObject[], long[], chunk, offset]
+		// [reifier, fn, dump, chunk, offset]
 		createDummyContinuationMethod.generateCall(method)
 		// [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
@@ -390,52 +397,6 @@ class JVMTranslator constructor(
 	 * the translated [JVMChunk], mapped to their [accessors][LiteralAccessor].
 	 */
 	val literals = mutableMapOf<Any, LiteralAccessor>()
-
-	/**
-	 * Emit code to push the specified literal on top of the stack.
-	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
-	 * @param any
-	 *   The literal.
-	 */
-	fun literal(method: MethodVisitor, any: Any)
-	{
-		literals[any]!!.getter(method)
-	}
-
-	/**
-	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
-	 * [L2Operand] as a JVM literal, so this method is marked as [Deprecated] to
-	 * protect against code cloning and refactoring errors by a programmer.
-	 *
-	 * @param method
-	 *   Unused.
-	 * @param operand
-	 *   Unused.
-	 */
-	@Deprecated("")
-	fun literal(method: MethodVisitor?, operand: L2Operand)
-	{
-		throw UnsupportedOperationException()
-	}
-
-	/**
-	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
-	 * [L2Register] as a Java literal, so this method is marked as [Deprecated]
-	 * to protect against code cloning and refactoring errors by a programmer.
-	 *
-	 * @param method
-	 *   Unused.
-	 * @param reg
-	 *   Unused.
-	 */
-	@Deprecated("")
-	fun literal(method: MethodVisitor?, reg: L2Register<*>?)
-	{
-		throw UnsupportedOperationException()
-	}
 
 	/**
 	 * The start of the runChunk method, where the offset is used to jump to the
@@ -534,17 +495,31 @@ class JVMTranslator constructor(
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
+	 * @param read
+	 *   An [L2ReadOperand] providing the value to push.
+	 */
+	fun load(method: MethodVisitor, read: L2ReadOperand<*>)
+	{
+		loadRegister(method, read.register())
+	}
+
+	/**
+	 * Generate a load of the local associated with the specified [L2Register].
+	 *
+	 * @param method
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun load(method: MethodVisitor, register: L2Register<*>)
+	fun loadRegister(method: MethodVisitor, register: L2Register<*>)
 	{
 		if (register.isConstant)
 		{
 			val constant = register.constant!!
 			when (register)
 			{
-				is L2BoxedRegister -> literal(method, constant)
+				is L2BoxedRegister -> loadLiteralObject(method, constant)
 				is L2IntRegister -> intConstant(method, constant.extractInt)
 				is L2FloatRegister ->
 					doubleConstant(method, constant.extractDouble)
@@ -575,241 +550,155 @@ class JVMTranslator constructor(
 			register.kind.storeInstruction,
 			localNumberFromRegister(register))
 	}
+
 	/**
-	 * A `JVMTranslationPreparer` acts upon its enclosing [JVMTranslator] and an
-	 * [L2Operand] to map [L2Register]s to JVM [locals][nextLocal], map
-	 * [literals][AvailObject] to `private static final` fields, and map
-	 * [program&#32;counters][L2PcOperand] to [Label]s.
-	 *
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 * Convert the [A_String] into a suitable suffix for a symbolic static
+	 * constant name in Java decompilation and the debugger.
 	 */
-	internal inner class JVMTranslationPreparer : L2OperandDispatcher
+	private fun tidy(string: A_String): String =
+		tidy(string.asNativeString())
+
+	/**
+	 * Convert the [String] into a suitable suffix for a symbolic static
+	 * constant name in Java decompilation and the debugger.
+	 */
+	private fun tidy(string: String): String
 	{
-		/**
-		 * The next unallocated index into the [JVMChunkClassLoader]'s
-		 * [parameters][JVMChunkClassLoader.parameters] array at which a
-		 * [literal][AvailObject] will be stored.
-		 */
-		private var nextClassLoaderIndex = 0
-
-		override fun doOperand(operand: L2ArbitraryConstantOperand<*>)
-		{
-			recordLiteralObject(operand.constant)
-		}
-
-		override fun doOperand(operand: L2CommentOperand)
-		{
-			// Ignore comments; there's nowhere to put them in the translated
-			// code, and not much to do with them even if we could.
-		}
-
-		override fun doOperand(operand: L2ConstantOperand)
-		{
-			recordLiteralObject(operand.constant)
-		}
-
-		override fun doOperand(operand: L2IntImmediateOperand)
-		{
-			literals.computeIfAbsent(operand.value) {
-				LiteralAccessor(
-					invalidIndex,
-					null,
-					{ method: MethodVisitor -> intConstant(method, it as Int) },
-					null)
-			}
-		}
-
-		override fun doOperand(operand: L2FloatImmediateOperand)
-		{
-			literals.computeIfAbsent(operand.value) { constant: Any ->
-				LiteralAccessor(
-					invalidIndex,
-					null,
-					{ method: MethodVisitor ->
-						doubleConstant(method, constant as Double) },
-					null)
-			}
-		}
-
-		override fun doOperand(operand: L2PcOperand)
-		{
-			operand.counter?.let(this::recordLiteralObject)
-			labels.computeIfAbsent(operand.offset()) { Label() }
-		}
-
-		override fun doOperand(operand: L2ReadIntOperand)
-		{
-			if (operand.isConstantRead)
-			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
-		}
-
-		override fun doOperand(operand: L2ReadFloatOperand)
-		{
-			locals[FLOAT_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex) { nextLocal(Type.DOUBLE_TYPE) }
-		}
-
-		override fun doOperand(operand: L2ReadBoxedOperand)
-		{
-			if (operand.isConstantRead)
-			{
-				recordLiteralObject(operand.constantOrNull!!)
-			}
-			else
-			{
-				locals[BOXED_KIND]!!.computeIfAbsent(
-					operand.register().finalIndex
-				) { nextLocal(Type.getType(AvailObject::class.java)) }
-			}
-		}
-
-		override fun doOperand(vector: L2ReadBoxedVectorOperand)
-		{
-			vector.elements.forEach(this::doOperand)
-		}
-
-		override fun doOperand(vector: L2ReadIntVectorOperand)
-		{
-			vector.elements.forEach(this::doOperand)
-		}
-
-		override fun doOperand(vector: L2ReadFloatVectorOperand)
-		{
-			vector.elements.forEach { doOperand(it) }
-		}
-
-		override fun doOperand(operand: L2WriteIntOperand)
-		{
-			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex)
-			{ nextLocal(Type.INT_TYPE) }
-		}
-
-		override fun doOperand(operand: L2WriteFloatOperand)
-		{
-			locals[FLOAT_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex)
-			{ nextLocal(Type.DOUBLE_TYPE) }
-		}
-
-		override fun doOperand(operand: L2WriteBoxedOperand)
-		{
-			locals[BOXED_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex)
-			{ nextLocal(Type.getType(AvailObject::class.java)) }
-		}
-
-		override fun doOperand(vector: L2WriteBoxedVectorOperand)
-		{
-			vector.elements.forEach { doOperand(it) }
-		}
-
-		override fun doOperand(operand: L2PcVectorOperand)
-		{
-			operand.edges.forEach(this::doOperand)
-		}
-
-		/**
-		 * Convert the [A_String] into a suitable suffix for a symbolic static
-		 * constant name in Java decompilation and the debugger.
-		 */
-		private fun tidy(string: A_String): String =
-			tidy(string.asNativeString())
-
-		/**
-		 * Convert the [String] into a suitable suffix for a symbolic static
-		 * constant name in Java decompilation and the debugger.
-		 */
-		private fun tidy(string: String): String
-		{
-			val trimmed =
-				if (string.length > 30) string.take(30) + "…"
-				else string
-			return buildString {
-				trimmed.forEach { c ->
-					@Suppress("SpellCheckingInspection")
-					when (c)
-					{
-						'.' -> append("dot")
-						';' -> append("semicolon")
-						'[' -> append("opensquare")
-						'/' -> append("slash")
-						'\\' -> append("backslash")
-						in '\u0000'..'\u0020' -> append("__")
-						else -> append(c)
-					}
-				}
-			}
-		}
-
-		/**
-		 * Create a literal slot for the given arbitrary [Object].
-		 *
-		 * @param value
-		 *   The actual literal value to capture.
-		 */
-		private fun recordLiteralObject(value: Any)
-		{
-			literals.computeIfAbsent(value) { constant: Any ->
-				// Choose an index and name for the literal.
-				val index = nextClassLoaderIndex++
-				var name: String = when
+		val trimmed =
+			if (string.length > 50) string.take(40) + "…"
+			else string
+		return buildString {
+			trimmed.forEach { c ->
+				@Suppress("SpellCheckingInspection")
+				when (c)
 				{
-					value is Primitive -> value.name
-					value !is AvailObject -> value.javaClass.simpleName
-					value.isInstanceOf(stringType) ->
-						"STRING_${tidy(value.asNativeString())}"
-					value.isInstanceOfKind(Types.ATOM.o) ->
-						"ATOM_${tidy(value.atomName)}"
-					value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
-						"BUNDLE_${tidy(value.message.atomName)}"
-					value.isInstanceOfKind(mostGeneralFunctionType()) ->
-						"FUNCTION_${tidy(value.code().methodName)}"
-					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
-						"CODE_${tidy(value.methodName)}"
-					else -> "literal_" + value.makeShared().typeTag.shorterName
+					'.' -> append("dot")
+					';' -> append("semicolon")
+					'[' -> append("opensquare")
+					'/' -> append("slash")
+					'\\' -> append("backslash")
+					in '\u0000'..'\u0020' -> append("__")
+					else -> append(c)
 				}
-				name += "_$index"
-				val type: Class<*> = constant.javaClass
-				// Generate a field that will hold the literal at runtime.
-				val field = classNode.visitField(
-					ACC_PRIVATE or ACC_STATIC or ACC_FINAL,
-					name,
-					Type.getDescriptor(type),
-					null,
-					null)
-				field.visitAnnotation(
-					Type.getDescriptor(Nonnull::class.java), true)
-				field.visitEnd()
-				LiteralAccessor(
-					index,
-					name,
-					{ method: MethodVisitor ->
-						method.visitFieldInsn(
-							GETSTATIC,
-							classInternalName,
-							name,
-							Type.getDescriptor(type))
-					},
-					{ method: MethodVisitor ->
-						method.visitTypeInsn(
-							CHECKCAST,
-							Type.getInternalName(type))
-						method.visitFieldInsn(
-							PUTSTATIC,
-							classInternalName,
-							name,
-							Type.getDescriptor(type))
-					})
 			}
 		}
 	}
 
+	/**
+	 * The next unallocated index into the [JVMChunkClassLoader]'s
+	 * [parameters][JVMChunkClassLoader.parameters] array at which a
+	 * [literal][AvailObject] will be stored.
+	 */
+	private var nextClassLoaderIndex = 0
 
 	/**
-	 * Prepare for JVM translation by [visiting][JVMTranslationPreparer] each of
-	 * the [L2Instruction]s to be translated.
+	 * Emit code to load the literal onto the stack.  If this literal has not
+	 * yet been used, a static field is created, and arrangements are made to
+	 * set it up during class initialization.  This is accomplished by storing
+	 * an [Array] of objects in the [JVMChunkClassLoader] instance, and having
+	 * the class initializer read it and write to each static field.
+	 *
+	 * @param method
+	 *   The [MethodVisitor] for the JVM method being generated.
+	 * @param value
+	 *   The actual literal value to push.  Unboxed forms of [Int] and [Double]
+	 *   have their own separate methods, since objectweb provides automatic
+	 *   constant tracking for those.
+	 */
+	fun loadLiteralObject(
+		method: MethodVisitor,
+		value: Any)
+	{
+		val accessor = literals.computeIfAbsent(value) { constant: Any ->
+			// Choose an index and name for the literal.
+			val index = nextClassLoaderIndex++
+			var name: String = when
+			{
+				value is Primitive -> value.name
+				value !is AvailObject -> value.javaClass.simpleName
+				value.isInstanceOf(stringType) && value.tupleSize > 0 ->
+					"STRING_${tidy(value.asNativeString())}"
+				value.isInstanceOfKind(Types.ATOM()) ->
+					"ATOM_${tidy(value.atomName)}"
+				value.isInstanceOfKind(Types.MESSAGE_BUNDLE()) ->
+					"BUNDLE_${tidy(value.message.atomName)}"
+				value.isInstanceOfKind(mostGeneralFunctionType()) ->
+					"FUNCTION_${tidy(value.code().methodName)}"
+				value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
+					"CODE_${tidy(value.methodName)}"
+				else -> "literal_" + value.makeShared().typeTag.shorterName
+			}
+			name += "_$index"
+			val type: Class<*> = constant.javaClass
+			// Generate a field that will hold the literal at runtime.
+			val field = classNode.visitField(
+				ACC_PRIVATE or ACC_STATIC or ACC_FINAL,
+				name,
+				Type.getDescriptor(type),
+				null,
+				null)
+			field.visitAnnotation(
+				Type.getDescriptor(Nonnull::class.java), true)
+			field.visitEnd()
+			LiteralAccessor(
+				index,
+				name,
+				{ method: MethodVisitor ->
+					method.visitFieldInsn(
+						GETSTATIC,
+						classInternalName,
+						name,
+						Type.getDescriptor(type))
+				},
+				{ method: MethodVisitor ->
+					method.visitTypeInsn(
+						CHECKCAST,
+						Type.getInternalName(type))
+					method.visitFieldInsn(
+						PUTSTATIC,
+						classInternalName,
+						name,
+						Type.getDescriptor(type))
+				})
+		}
+		accessor.getter(method)
+	}
+
+
+	/**
+	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
+	 * [L2Operand] as a JVM literal, so this method is marked as [Deprecated] to
+	 * protect against code cloning and refactoring errors by a programmer.
+	 *
+	 * @param method
+	 *   Unused.
+	 * @param operand
+	 *   Unused.
+	 */
+	@Deprecated("L2Operands should not be captured as literals")
+	fun loadLiteralObject(method: MethodVisitor?, operand: L2Operand)
+	{
+		throw UnsupportedOperationException()
+	}
+
+	/**
+	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
+	 * [L2Register] as a Java literal, so this method is marked as [Deprecated]
+	 * to protect against code cloning and refactoring errors by a programmer.
+	 *
+	 * @param method
+	 *   Unused.
+	 * @param reg
+	 *   Unused.
+	 */
+	@Deprecated("L2Registers should not be captured as literals")
+	fun loadLiteralObject(method: MethodVisitor?, reg: L2Register<*>?)
+	{
+		throw UnsupportedOperationException()
+	}
+
+	/**
+	 * Prepare for JVM translation.
 	 */
 	fun prepare()
 	{
@@ -832,6 +721,106 @@ class JVMTranslator constructor(
 				labels[instruction.offset] = label
 			}
 			instruction.operands.forEach { it.dispatchOperand(preparer) }
+		}
+	}
+
+	/**
+	 * A `JVMTranslationPreparer` acts upon its enclosing [JVMTranslator] and an
+	 * [L2Operand] to map [L2Register]s to JVM [locals][nextLocal], map
+	 * [literals][AvailObject] to `private static final` fields, and map
+	 * [program&#32;counters][L2PcOperand] to [Label]s.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	internal inner class JVMTranslationPreparer : L2OperandDispatcher
+	{
+		override fun doOperand(operand: L2CommentOperand) { }
+
+		override fun doOperand(operand: L2ConstantOperand) { }
+
+		override fun doOperand(operand: L2IntImmediateOperand) { }
+
+		override fun doOperand(operand: L2FloatImmediateOperand) { }
+
+		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) { }
+
+		override fun doOperand(operand: L2PcOperand)
+		{
+			labels.computeIfAbsent(operand.offset()) { Label() }
+		}
+
+		override fun doOperand(operand: L2ReadIntOperand)
+		{
+			if (operand.isConstantRead) return
+			locals[INTEGER_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
+		}
+
+		override fun doOperand(operand: L2ReadFloatOperand)
+		{
+			if (operand.isConstantRead) return
+			locals[FLOAT_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.DOUBLE_TYPE) }
+		}
+
+		override fun doOperand(operand: L2ReadBoxedOperand)
+		{
+			if (operand.isConstantRead) return
+			locals[BOXED_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.getType(AvailObject::class.java)) }
+		}
+
+		override fun doOperand(vector: L2ReadBoxedVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(vector: L2ReadIntVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(vector: L2ReadFloatVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(vector: L2ReadMixedVectorOperand)
+		{
+			vector.elements.forEach { it.dispatchOperand(this) }
+		}
+
+		override fun doOperand(operand: L2WriteIntOperand)
+		{
+			locals[INTEGER_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.INT_TYPE) }
+		}
+
+		override fun doOperand(operand: L2WriteFloatOperand)
+		{
+			locals[FLOAT_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.DOUBLE_TYPE) }
+		}
+
+		override fun doOperand(operand: L2WriteBoxedOperand)
+		{
+			locals[BOXED_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.getType(AvailObject::class.java)) }
+		}
+
+		override fun doOperand(vector: L2WriteBoxedVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(operand: L2PcVectorOperand)
+		{
+			operand.edges.forEach(::doOperand)
 		}
 	}
 
@@ -929,8 +918,7 @@ class JVMTranslator constructor(
 			method.visitInsn(DUP)
 			JVMChunkClassLoader.parametersField.generateRead(method)
 			val limit = accessors.size
-			for ((i, accessor) in accessors.withIndex())
-			{
+			accessors.forEachIndexed { i, accessor ->
 				// :: literal_«i» = («typeof(literal_«i»)») parameters[«i»];
 				if (i < limit - 1)
 				{
@@ -1112,9 +1100,43 @@ class JVMTranslator constructor(
 		arrayClass: Class<out A_BasicObject>)
 	{
 		objectArrayFromRegisters(
-			method,
-			readOperands.map { it.register() as L2BoxedRegister },
-			arrayClass)
+			method, readOperands.map { it.register() }, arrayClass)
+	}
+
+
+	/**
+	 * Emit code to store each of the [L2Register]s, boxing into *Java* boxed
+	 * values as needed, into a new array. Leave the new array on top of the
+	 * stack.
+	 *
+	 * @param method
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
+	 * @param registers
+	 *   The [L2Register]s holding values to put in the array, boxing into
+	 *   *Java* boxed values if needed.
+	 */
+	fun arbitraryValueArrayFromRegisters(
+		method: MethodVisitor,
+		registers: List<L2Register<*>>)
+	{
+		val size = registers.size
+		intConstant(method, size)
+		method.visitTypeInsn(
+			Opcodes.ANEWARRAY,
+			Type.getInternalName(Any::class.java))
+		registers.forEachIndexed { i, register ->
+			method.visitInsn(Opcodes.DUP)
+			intConstant(method, i)
+			loadRegister(method, register)
+			when (register.kind)
+			{
+				INTEGER_KIND -> javaUnboxIntegerMethod.generateCall(method)
+				FLOAT_KIND -> javaUnboxDoubleMethod.generateCall(method)
+				else -> { }
+			}
+			method.visitInsn(Opcodes.AASTORE)
+		}
 	}
 
 	/**
@@ -1125,7 +1147,7 @@ class JVMTranslator constructor(
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
 	 * @param registers
-	 *   The [L2Register]s holding values to put in the array.
+	 *   The [L2BoxedRegister]s holding values to put in the array.
 	 * @param arrayClass
 	 *   The element type of the new array.
 	 */
@@ -1156,7 +1178,7 @@ class JVMTranslator constructor(
 				registers.forEachIndexed { i, register ->
 					method.visitInsn(Opcodes.DUP)
 					intConstant(method, i)
-					load(method, register)
+					loadRegister(method, register)
 					method.visitInsn(Opcodes.AASTORE)
 				}
 				return
@@ -1164,7 +1186,7 @@ class JVMTranslator constructor(
 		}
 		for (local in registers)
 		{
-			load(method, local)
+			loadRegister(method, local)
 		}
 		factory.generateCall(method)
 	}
@@ -1238,7 +1260,23 @@ class JVMTranslator constructor(
 		method: MethodVisitor,
 		operand: L2PcOperand)
 	{
-		val pc = operand.offset()
+		jump(method, operand.targetBlock())
+	}
+
+	/**
+	 * Emit code to unconditionally branch to the specified [L2BasicBlock].
+	 *
+	 * @param method
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
+	 * @param target
+	 *   The [L2BasicBlock] to jump to.
+	 */
+	fun jump(
+		method: MethodVisitor,
+		target: L2BasicBlock)
+	{
+		val pc = target.offset()
 		if (debugNicerJavaDecompilation)
 		{
 			intConstant(method, pc)
@@ -1380,11 +1418,11 @@ class JVMTranslator constructor(
 	{
 		val logNotTaken = Label()
 		method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken)
-		literal(method, takenCounter)
+		loadLiteralObject(method, takenCounter)
 		longAdderIncrement.generateCall(method)
 		jump(method, takenEdge)
 		method.visitLabel(logNotTaken)
-		literal(method, notTakenCounter)
+		loadLiteralObject(method, notTakenCounter)
 		longAdderIncrement.generateCall(method)
 	}
 
@@ -1464,6 +1502,9 @@ class JVMTranslator constructor(
 	 * Dump the [visualized][L2ControlFlowGraphVisualizer] [L2ControlFlowGraph]
 	 * for the [L2Chunk] to an appropriately named file.
 	 *
+	 * @param full
+	 *   Whether to produce a graph with full detail.  The alternative (`false`)
+	 *   indicates it should leave off details of instructions and manifests.
 	 * @param fileName
 	 *   A [Path] to the file that should be written to.  The directory has been
 	 *   created already.
@@ -1471,7 +1512,10 @@ class JVMTranslator constructor(
 	 *   The absolute path of the resultant file, for inclusion in a
 	 *   [JVMChunkL2Source] annotation of the generated [JVMChunk] subclass.
 	 */
-	private fun dumpL2GraphToFile(fileName: Path): String? =
+	private fun dumpL2GraphToFile(
+		full: Boolean,
+		fileName: Path
+	): String? =
 		try
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
@@ -1481,9 +1525,9 @@ class JVMTranslator constructor(
 				name = chunkName,
 				charactersPerLine = 80,
 				controlFlowGraph = controlFlowGraph,
-				visualizeLiveness = true,
-				visualizeManifest = true,
-				visualizeRegisterDescriptions = true,
+				visualizeLiveness = full,
+				visualizeManifest = full,
+				visualizeRegisterDescriptions = full,
 				accumulator = builder)
 			visualizer.visualize()
 			val buffer = StandardCharsets.UTF_8.encode(builder.toString())
@@ -1540,8 +1584,13 @@ class JVMTranslator constructor(
 			val pkg = classInternalName.substring(0, lastSlash)
 			val tempDir = Paths.get("debug", "jvm")
 			val dir = tempDir.resolve(Paths.get(pkg))
-			Files.createDirectories(dir)
+			runCatching { Files.createDirectories(dir) }
 			var baseFileName = classInternalName.substring(lastSlash + 1)
+			code?.let {
+				baseFileName = "%04d %s".format(
+					it.codeStartingLineNumber,
+					baseFileName)
+			}
 			if (baseFileName.length > 100)
 			{
 				// Protect against overly long filenames.
@@ -1552,7 +1601,9 @@ class JVMTranslator constructor(
 			// for the constant pool.
 			if (code !== null)
 			{
-				val l1Path = dumpL1SourceToFile(dir.resolve("$baseFileName.l1"))
+				val l1Path = runCatching {
+					dumpL1SourceToFile(dir.resolve("$baseFileName.l1"))
+				}.getOrNull()
 				if (l1Path !== null)
 				{
 					val annotation = method.visitAnnotation(
@@ -1562,8 +1613,9 @@ class JVMTranslator constructor(
 					annotation.visitEnd()
 				}
 			}
-			val l2GraphPath =
-				dumpL2GraphToFile(dir.resolve("$baseFileName.dot"))
+			val l2GraphPath = runCatching {
+				dumpL2GraphToFile(true, dir.resolve("$baseFileName.dot"))
+			}.getOrNull()
 			if (l2GraphPath !== null)
 			{
 				val annotation = method.visitAnnotation(
@@ -1571,6 +1623,10 @@ class JVMTranslator constructor(
 					true)
 				annotation.visit("sourcePath", l2GraphPath)
 				annotation.visitEnd()
+			}
+			runCatching {
+				dumpL2GraphToFile(
+					false, dir.resolve("$baseFileName.simple.dot"))
 			}
 			val l2TextPath = dir.resolve("$baseFileName.l2")
 			l2LineTableByL2 = mutableListOf()
@@ -1595,7 +1651,9 @@ class JVMTranslator constructor(
 				builder.append(instructionText).append('\n')
 				line += instructionText.count { it == '\n' } + 1
 			}
-			l2TextPath.writeText(builder.toString())
+			runCatching {
+				l2TextPath.writeText(builder.toString())
+			}
 			classNode.sourceFile = l2TextPath.fileName.toString()
 		}
 		val endLabel = Label()
@@ -1643,19 +1701,11 @@ class JVMTranslator constructor(
 				.forEach { (kind, finalIndex, localIndex) ->
 					when (kind)
 					{
-						BOXED_KIND -> {
-							method.visitInsn(ACONST_NULL)
-							method.visitVarInsn(ASTORE, localIndex)
-						}
-						INTEGER_KIND -> {
-							intConstant(method, 0)
-							method.visitVarInsn(ISTORE, localIndex)
-						}
-						FLOAT_KIND -> {
-							doubleConstant(method, 0.0)
-							method.visitVarInsn(DSTORE, localIndex)
-						}
+						BOXED_KIND -> method.visitInsn(ACONST_NULL)
+						INTEGER_KIND -> intConstant(method, 0)
+						FLOAT_KIND -> doubleConstant(method, 0.0)
 					}
+					method.visitVarInsn(kind.storeInstruction, localIndex)
 					method.visitLocalVariable(
 						kind.prefix + finalIndex,
 						kind.jvmTypeString,
@@ -1701,29 +1751,8 @@ class JVMTranslator constructor(
 						.split("\\n".toRegex(), 2).toTypedArray()[0])
 
 				// Output the first read operand's value, as an Object, or null.
-				run pushOneObject@
-				{
-					for (operand in instruction.operands)
-					{
-						if (operand is L2ReadBoxedOperand)
-						{
-							load(
-								method,
-								operand.register())
-							return@pushOneObject
-						}
-						if (operand is L2ReadIntOperand)
-						{
-							load(
-								method,
-								operand.register())
-							javaUnboxIntegerMethod.generateCall(method)
-							return@pushOneObject
-						}
-					}
-					// No suitable operands were found.  Use null.
-					method.visitInsn(ACONST_NULL)
-				}
+				arbitraryValueArrayFromRegisters(
+					method, instruction.sourceRegisters)
 				Interpreter.traceL2Method.generateCall(method)
 			}
 			instruction.translateToJVM(this, method)
@@ -1856,9 +1885,6 @@ class JVMTranslator constructor(
 		/** Prepare to generate the JVM translation. */
 		PREPARE(JVMTranslator::prepare),
 
-		/** Create the static &lt;clinit&gt; method for capturing constants. */
-		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
-
 		/** Prepare the default constructor, invoked once via reflection. */
 		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
 
@@ -1867,6 +1893,13 @@ class JVMTranslator constructor(
 
 		/** Generate the runChunk() method. */
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
+
+		/**
+		 * Create the static &lt;clinit&gt; method for capturing constants.
+		 * This must happen after the method has created any [LiteralAccessor]
+		 * entries in the [literals] map.
+		 */
+		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
 
 		/** Indicate code emission has completed. */
 		VISIT_END(JVMTranslator::classVisitEnd),
@@ -1893,8 +1926,7 @@ class JVMTranslator constructor(
 			 */
 			fun executeAll(jvmTranslator: JVMTranslator)
 			{
-				val thread = AvailThread.currentOrNull()
-				val interpreter = thread?.interpreter
+				val interpreter = AvailThread.currentOrNull?.interpreter
 				for (phase in all)
 				{
 					val before = AvailRuntimeSupport.captureNanos()
@@ -1924,6 +1956,37 @@ class JVMTranslator constructor(
 			null)
 		classNode.visitSource(sourceFileName, null)
 		GenerationPhase.executeAll(this)
+	}
+
+	/**
+	 * Given a list of input registers and list of corresponding output
+	 * registers, move from each input to each output, but through temps to
+	 * avoid clobbering them if the lists overlap.
+	 */
+	fun transferPairwise(
+		method: MethodVisitor,
+		inputs: List<L2Register<*>>,
+		outputs: List<L2Register<*>>)
+	{
+		// Transfer from the sources to the corresponding destinations.  Most of
+		// these pairs will have been assigned to the same register, and can be
+		// elided.
+		val transferPairs = (inputs zip outputs)
+			.filter { (read, write) -> read.finalIndex != write.finalIndex }
+		// It's possible that the read registers and write registers overlap
+		// with each other, so use the JVM operand stack as temp storage.
+		if (transferPairs.isNotEmpty())
+		{
+			// First push each (non-elided) read.
+			transferPairs.forEach { (read, _) ->
+				loadRegister(method, read)
+			}
+			// Now pop into each corresponding write register in reverse order.
+			transferPairs.reversed().forEach { (_,  write) ->
+				store(method, write)
+			}
+		}
+
 	}
 
 	companion object
@@ -2051,10 +2114,10 @@ class JVMTranslator constructor(
 				.replaceAll("\\%")
 		cleanFunctionName =
 			classNameSpaceReplacement.matcher(cleanFunctionName).replaceAll("_")
-		if (cleanFunctionName.length > 30)
+		if (cleanFunctionName.length > 50)
 		{
-			cleanFunctionName = cleanFunctionName.take(15) + "%%%" +
-				cleanFunctionName.takeLast(15)
+			cleanFunctionName = cleanFunctionName.take(25) + "%%%" +
+				cleanFunctionName.takeLast(25)
 		}
 		val classDirPrefix =
 			"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
@@ -2062,8 +2125,9 @@ class JVMTranslator constructor(
 			.computeIfAbsent(classDirPrefix) { AtomicInteger(1) }
 		val counterValue = counter.getAndIncrement()
 		val counterString = " ($counterValue)"
+		val lineString = "%04d_".format(code?.codeStartingLineNumber ?: 0)
 		className = "avail.optimizer.jvm.generated." +
-			"$moduleName.$cleanFunctionName$counterString.$cleanFunctionName"
+			"$moduleName.$lineString$cleanFunctionName$counterString.$cleanFunctionName"
 		classInternalName = className.replace('.', '/')
 	}
 }

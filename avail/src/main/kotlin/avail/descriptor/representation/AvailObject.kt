@@ -82,11 +82,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
-import avail.exceptions.AvailException
-import avail.exceptions.VariableGetException
-import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -94,7 +91,6 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.Strings.traceFor
 import avail.utility.stackToString
 import org.availlang.json.JSONWriter
-import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
 import java.util.Spliterator
 
@@ -119,9 +115,6 @@ import java.util.Spliterator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Renderer(
-	text = "nameForDebugger",
-	childrenArray = "describeForDebugger")
 class AvailObject private constructor(
 	descriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
@@ -160,7 +153,8 @@ class AvailObject private constructor(
 	A_Token,
 	A_Tuple,
 	A_Type,
-	A_Variable
+	A_Variable,
+	DebugRenderer
 {
 	/**
 	 * Recursively print the receiver to the [StringBuilder], unless it is
@@ -181,7 +175,7 @@ class AvailObject private constructor(
 	 */
 	override fun printOnAvoidingIndent(
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	): Unit = with(builder) {
 		try
@@ -228,7 +222,7 @@ class AvailObject private constructor(
 	 *   An array of `AvailObjectFieldHelper` objects that help describe the
 	 *   logical structure of the receiver to the debugger.
 	 */
-	override fun describeForDebugger(): Array<AvailObjectFieldHelper> =
+	override fun describeForDebugger(): Array<*> =
 		try
 		{
 			descriptor().o_DescribeForDebugger(this)
@@ -278,7 +272,7 @@ class AvailObject private constructor(
 		descriptor().o_ShowValueInNameForDebugger(this)
 
 	override fun toString() = buildString {
-		val recursionMap = IdentityHashMap<A_BasicObject, Void>(10)
+		val recursionMap = IdentityHashMap<A_BasicObject, Unit>(10)
 		printOnAvoidingIndent(this@buildString, recursionMap, 1)
 		assert(recursionMap.size == 0)
 	}
@@ -358,9 +352,26 @@ class AvailObject private constructor(
 	override fun addDependentChunk(chunk: L2Chunk) =
 		descriptor().o_AddDependentChunk(this, chunk)
 
-	override fun clearValue() = descriptor().o_ClearValue(this)
-
 	override fun function() = descriptor().o_Function(this)
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * This comparison operation takes an [Object] as its argument to avoid
+	 * accidentally calling this with, say, a [String] literal. We mark it as
+	 * deprecated to ensure we don't accidentally invoke this method when we
+	 * really mean the version that takes an `AvailObject` as an argument.
+	 *
+	 * IntelliJ conveniently shows such invocations with a struck-through font.
+	 * That's a convenient warning for the programmer, even though it actually
+	 * works correctly.
+	 */
+	//Deprecated in inherited interface A_BasicObject
+	override fun equals(other: Any?): Boolean
+	{
+		return other is AvailObject
+			&& currentDescriptor.o_Equals(this, other)
+	}
 
 	/**
 	 * Answer whether the receiver and the argument, both [AvailObject]s, are
@@ -621,15 +632,6 @@ class AvailObject private constructor(
 
 	override fun fieldMap() = descriptor().o_FieldMap(this)
 
-	@Throws(VariableGetException::class)
-	override fun getValue() = descriptor().o_GetValue(this)
-
-	@Throws(VariableGetException::class)
-	override fun getValueClearing() = descriptor().o_GetValueClearing(this)
-
-	override fun getValueForDebugger() =
-		descriptor().o_GetValueForDebugger(this)
-
 	override fun hashOrZero() = descriptor().o_HashOrZero(this)
 
 	override fun setHashOrZero(value: Int) =
@@ -827,14 +829,6 @@ class AvailObject private constructor(
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
-	@Throws(VariableSetException::class)
-	override fun setValue(newValue: A_BasicObject) =
-		descriptor().o_SetValue(this, newValue)
-
-	@Throws(VariableSetException::class)
-	override fun setValueNoCheck(newValue: A_BasicObject) =
-		descriptor().o_SetValueNoCheck(this, newValue)
-
 	override fun start() = descriptor().o_Start(this)
 
 	override fun string() = descriptor().o_String(this)
@@ -850,8 +844,6 @@ class AvailObject private constructor(
 		descriptor().o_TraversedWhileMakingShared(this)
 
 	override fun kind() = descriptor().o_Kind(this)
-
-	override fun value() = descriptor().o_Value(this)
 
 	override fun resultType() = descriptor().o_ResultType(this)
 
@@ -972,26 +964,6 @@ class AvailObject private constructor(
 
 	override fun <T> lock(body: () -> T): T = descriptor().o_Lock(this, body)
 
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun getAndSetValue(newValue: A_BasicObject) =
-		descriptor().o_GetAndSetValue(this, newValue)
-
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun compareAndSwapValues(
-		reference: A_BasicObject,
-		newValue: A_BasicObject
-	) = descriptor().o_CompareAndSwapValues(this, reference, newValue)
-
-	@Throws(VariableSetException::class)
-	override fun compareAndSwapValuesNoCheck(
-		reference: A_BasicObject,
-		newValue: A_BasicObject
-	) = descriptor().o_CompareAndSwapValuesNoCheck(this, reference, newValue)
-
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun fetchAndAddValue(addend: A_Number) =
-		descriptor().o_FetchAndAddValue(this, addend)
-
 	override fun equalsByteBufferTuple(aByteBufferTuple: A_Tuple) =
 		descriptor().o_EqualsByteBufferTuple(this, aByteBufferTuple)
 
@@ -1012,23 +984,11 @@ class AvailObject private constructor(
 
 	override val isTwoByteString get() = descriptor().o_IsTwoByteString(this)
 
-	override fun addWriteReactor(key: A_Atom, reactor: VariableAccessReactor) =
-		descriptor().o_AddWriteReactor(this, key, reactor)
-
-	@Throws(AvailException::class)
-	override fun removeWriteReactor(key: A_Atom) =
-		descriptor().o_RemoveWriteReactor(this, key)
-
-	override fun validWriteReactorFunctions() =
-		descriptor().o_ValidWriteReactorFunctions(this)
-
 	override val isBottom get() = descriptor().o_IsBottom(this)
 
 	override val isVacuousType get() = descriptor().o_IsVacuousType(this)
 
 	override val isTop get() = descriptor().o_IsTop(this)
-
-	override fun hasValue() = descriptor().o_HasValue(this)
 
 	override val isInitializedWriteOnceVariable get() =
 		descriptor().o_IsInitializedWriteOnceVariable(this)
@@ -1038,12 +998,6 @@ class AvailObject private constructor(
 
 	override fun writeSummaryTo(writer: JSONWriter) =
 		descriptor().o_WriteSummaryTo(this, writer)
-
-	override fun valueWasStablyComputed() =
-		descriptor().o_ValueWasStablyComputed(this)
-
-	override fun setValueWasStablyComputed(wasStablyComputed: Boolean) =
-		descriptor().o_SetValueWasStablyComputed(this, wasStablyComputed)
 
 	override fun equalsListNodeType(listNodeType: A_Type) =
 		descriptor().o_EqualsListNodeType(this, listNodeType)
@@ -1075,30 +1029,6 @@ class AvailObject private constructor(
 	override fun fieldTypeAtOrNull(field: A_Atom) =
 		descriptor().o_FieldTypeAtOrNull(this, field)
 
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject) =
-		descriptor().o_AtomicAddToMap(this, key, value)
-
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun atomicAddToMapNoCheck(
-		key: A_BasicObject,
-		value: A_BasicObject
-	) = descriptor().o_AtomicAddToMapNoCheck(this, key, value)
-
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun atomicRemoveFromMap(key: A_BasicObject) =
-		descriptor().o_AtomicRemoveFromMap(this, key)
-
-	@Throws(VariableGetException::class)
-	override fun variableMapHasKey(key: A_BasicObject) =
-		descriptor().o_VariableMapHasKey(this, key)
-
-	override fun isGlobal() = descriptor().o_IsGlobal(this)
-
-	override fun globalModule() = descriptor().o_GlobalModule(this)
-
-	override fun globalName() = descriptor().o_GlobalName(this)
-
 	override fun nextLexingState(): LexingState =
 		descriptor().o_NextLexingState(this)
 
@@ -1115,6 +1045,9 @@ class AvailObject private constructor(
 
 	override fun extractDumpedLongAt(index: Int): Long =
 		descriptor().o_ExtractDumpedLongAt(this, index)
+
+	override val fallbackEntryPoint: ChunkEntryPoint
+		get() = descriptor().o_FallbackEntryPoint(this)
 
 	override fun synthesizeCurrentLexingState(): LexingState =
 		descriptor().o_SynthesizeCurrentLexingState(this)
@@ -1325,19 +1258,6 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
 			Iterator::class.java)
-
-		@ReferencedInGeneratedCode
-		@JvmStatic
-		fun frameAtStatic(self: AvailObject, index: Int): AvailObject =
-			self.descriptor().o_FrameAt(self, index)
-
-		/** Access the [frameAtStatic] method. */
-		val frameAtMethod = staticMethod(
-			AvailObject::class.java,
-			::frameAtStatic.name,
-			AvailObject::class.java,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic

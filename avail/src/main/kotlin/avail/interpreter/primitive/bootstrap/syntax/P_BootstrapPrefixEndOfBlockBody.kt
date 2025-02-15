@@ -140,7 +140,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o,
+								TOKEN(),
 								/* Argument type. */
 								anyMeta)))),
 				/* Macro argument is a phrase. */
@@ -150,13 +150,13 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o,
+							TOKEN(),
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o,
+									TOKEN(),
 									/* Primitive failure variable type */
 									anyMeta))))),
 				/* Macro argument is a phrase. */
@@ -166,7 +166,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 						/* Label parts. */
 						tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o,
+							TOKEN(),
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
@@ -177,14 +177,14 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 					zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
-						 * TOP.o.
+						 * TOP.
 						 */
 						STATEMENT_PHRASE.mostGeneralType)),
 				/* Optional return expression */
 				LIST_PHRASE.create(
 					zeroOrOneOf(
-						PARSE_PHRASE.create(ANY.o)))),
-			TOP.o)
+						PARSE_PHRASE.create(ANY())))),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION))

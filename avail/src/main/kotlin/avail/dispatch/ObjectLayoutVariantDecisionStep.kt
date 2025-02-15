@@ -45,16 +45,16 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
-import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
-import avail.interpreter.levelTwo.operation.VariantSplitter
+import avail.interpreter.levelTwo.operation.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_VARIANT_ID
+import avail.interpreter.levelTwo.operation.dispatch.VariantSplitter
 import avail.interpreter.levelTwo.register.INTEGER_KIND
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
@@ -62,7 +62,6 @@ import avail.optimizer.values.L2SemanticObjectVariantId
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
-import avail.utility.removeLast
 import java.lang.String.format
 import java.util.concurrent.ConcurrentHashMap
 
@@ -113,10 +112,10 @@ constructor(
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
 	/**
-	 * A [Map] from [ObjectLayoutVariant.variantId] to the child
-	 * [LookupTree] that should be visited if the given
-	 * [ObjectLayoutVariant] occurs during lookup.  If the provided variant
-	 * is not present, it will be added dynamically.
+	 * A [Map] from [ObjectLayoutVariant.variantId] to the child [LookupTree]
+	 * that should be visited if the given [ObjectLayoutVariant] occurs during
+	 * lookup.  If the provided variant is not present, it will be added
+	 * dynamically.
 	 */
 	private val variantToSubtree: ConcurrentHashMap
 			<ObjectLayoutVariant, LookupTree<Element, Result>> =
@@ -260,7 +259,7 @@ constructor(
 		list.addAll(variantToSubtree.values)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -274,63 +273,61 @@ constructor(
 		// always fall back.  They're *very* difficult to reason about.
 		if (callSiteHelper.isSuper)
 		{
-			callSiteHelper.generator.jumpTo(
-				callSiteHelper.onFallBackToSlowLookup)
+			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 
 		// Create a multi-way branch using an object's variant.  Any variant
 		// that wasn't present during generation will jump to the slower,
 		// general lookup.  The slow lookup will populate the map with a new
-		// subtree, which (TODO) should increase pressure to reoptimize the
-		// calling method, specifically to include the new variant.
-		val generator = callSiteHelper.generator
-		val manifest = generator.currentManifest
-		val semanticSource = manifest.equivalentSemanticValue(
+		// subtree, and also increase pressure to reoptimize the chunk to avoid
+		// subsequent slow lookups for that variant.
+		val semanticSource = currentManifest.equivalentSemanticValue(
 			sourceSemanticValue(semanticArguments, extraSemanticArguments))!!
-		val currentRestriction = manifest.restrictionFor(semanticSource)
+		val currentRestriction = currentManifest.restrictionFor(semanticSource)
 		val restrictionType = currentRestriction.type.traversed()
 		val restrictionVariant = restrictionType.objectTypeVariant
-		// Only keep relevant variants, and only if they lead to at least
-		// one success.
+		// Only keep relevant variants, and only if they lead to at least one
+		// success.
 		val applicableEntries = variantToSubtree.entries
 			.filter { (variant, subtree) ->
 				variant.isSubvariantOf(restrictionVariant)
-					&& containsAnyValidLookup(subtree.castForGenerator())
+					&& avail.dispatch.DecisionStep.Companion.containsAnyValidLookup(
+					subtree.castForGenerator())
 			}
 			.sortedBy { (variant, _) -> variant.variantId }
 		if (applicableEntries.isEmpty())
 		{
-			// Just jump to the slow lookup, and don't continue down any
-			// more lookup subtrees.
-			generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
+			// Just jump to the slow lookup, and don't continue down any more
+			// lookup subtrees.
+			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
 		var semanticVariantId: L2SemanticValue<INTEGER_KIND> =
 			L2SemanticObjectVariantId(semanticSource).unboxedInt
-		manifest.equivalentSemanticValue(semanticVariantId)?.let {
+		currentManifest.equivalentSemanticValue(semanticVariantId)?.let {
 			semanticVariantId = it
 		}
 
-		val exactVariantId = currentRestriction
-			.positiveGroup.objectVariants?.single()?.variantId
+		val exactVariantId =
+			currentRestriction.positiveGroup.objectVariants?.single()?.variantId
 		when
 		{
-			manifest.hasSemanticValue(semanticVariantId) -> { }
-			exactVariantId === null -> generator.addInstruction(
-				L2_EXTRACT_OBJECT_VARIANT_ID(
-					generator.readBoxed(semanticSource),
-					generator.intWrite(
+			currentManifest.hasSemanticValue(semanticVariantId) -> Unit
+			exactVariantId === null ->
+				+L2_EXTRACT_OBJECT_VARIANT_ID(
+					readBoxed(semanticSource),
+					intWrite(
 						setOf(semanticVariantId),
-						intRestrictionForType(i31))))
+						intRestrictionForType(i31)))
 			// The exact variant is known, which can make dispatching
 			// particularly fast.
-			else -> generator.addInstruction(
-				L2_MOVE_INT(
-					generator.unboxedIntConstant(exactVariantId),
-					generator.intWrite(
+			else ->
+				+L2_MOVE_INT(
+					unboxedIntConstant(exactVariantId),
+					intWrite(
 						setOf(semanticVariantId),
-						intRestrictionForConstant(exactVariantId))))
+						intRestrictionForConstant(exactVariantId)))
 		}
 		// There are at least two variants that can lead to valid solutions,
 		// so create a multi-way branch.
@@ -372,28 +369,30 @@ constructor(
 			val highName =
 				if (index == splits.size) "∞"
 				else (splits[index] - 1).toString()
-			val edgeManifest = L2ValueManifest(manifest)
+			val edgeManifest = L2ValueManifest(currentManifest)
 			pair?.let { (edgeVariant, _) ->
 				edgeManifest.updateRestriction(semanticVariantId) {
 					intRestrictionForConstant(edgeVariant.variantId)
 				}
 				edgeManifest.updateRestriction(semanticSource) {
-					this.intersectionWithObjectVariant(edgeVariant)
+					intersectionWithObjectVariant(edgeVariant)
 				}
 			}
 			variants.add(pair?.first)
 			L2PcOperand(
-				pair?.second ?: callSiteHelper.onFallBackToSlowLookup,
+				pair?.second ?: callSiteHelper[FallBackToSlowLookup],
 				false,
 				edgeManifest,
-				"$low..$highName")
+				if (low.toString() == highName) highName
+				else "$low..$highName")
 		}
 		// Generate the multi-way branch.
-		generator.addInstruction(
-			L2_MULTIWAY_JUMP(
-				manifest.readInt(semanticVariantId),
-				VariantSplitter(true, splits, variants),
-				L2PcVectorOperand(graphEdges)))
+		val splitter = VariantSplitter(true, splits, variants)
+		splitter.run {
+			emitSplitterInstruction(
+				currentManifest.readInt(semanticVariantId),
+				graphEdges)
+		}
 		return triples.map { (block, subtree, _) ->
 			Triple(block, subtree, extraSemanticArguments)
 		}

@@ -59,12 +59,11 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.SetTypeDescriptor.ObjectSlots
 import avail.descriptor.types.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE
 import avail.descriptor.types.SetTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.serialization.SerializerOperation
@@ -119,10 +118,10 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
-		if (self[CONTENT_TYPE].equals(ANY.o)
+		if (self[CONTENT_TYPE].equals(ANY())
 			&& self[SIZE_RANGE].equals(wholeNumbers))
 		{
 			builder.append("set")
@@ -428,7 +427,7 @@ private constructor(
 
 		/** The most general set type. */
 		private val mostGeneralType: A_Type =
-			setTypeForSizesContentType(wholeNumbers, ANY.o)
+			setTypeForSizesContentType(wholeNumbers, ANY())
 				.makeShared()
 
 		/**

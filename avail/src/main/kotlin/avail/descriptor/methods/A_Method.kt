@@ -44,6 +44,7 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.TupleTypeDescriptor
+import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.MethodDefinitionException
@@ -168,8 +169,9 @@ interface A_Method : A_ChunkDependable {
 		@Throws(MethodDefinitionException::class)
 		fun A_Method.lookupByTypesFromTuple(
 			argumentTypeTuple: A_Tuple
-		): A_Definition =
-			dispatch { o_LookupByTypesFromTuple(it, argumentTypeTuple) }
+		): A_Definition = dispatch {
+			o_LookupByTypesFromTuple(it, argumentTypeTuple)
+		}
 
 		/**
 		 * Answer the [definition][A_Definition] of this [A_Method] that should
@@ -179,6 +181,9 @@ interface A_Method : A_ChunkDependable {
 		 *
 		 * @param argumentList
 		 *   The [List] of arguments, ordered by position.
+		 * @param callerLookupStat
+		 *   An optional [LookupStatistics] for the calling raw function to
+		 *   record lookups that are performed within it.
 		 * @return
 		 *   The selected definition if it's unique.
 		 * @throws MethodDefinitionException
@@ -189,9 +194,11 @@ interface A_Method : A_ChunkDependable {
 		 */
 		@Throws(MethodDefinitionException::class)
 		fun A_Method.lookupByValuesFromList(
-			argumentList: List<A_BasicObject>
-		): A_Definition =
-			dispatch { o_LookupByValuesFromList(it, argumentList) }
+			argumentList: List<A_BasicObject>,
+			callerLookupStat: LookupStatistics?
+		): A_Definition = dispatch {
+			o_LookupByValuesFromList(it, argumentList, callerLookupStat)
+		}
 
 		/**
 		 * Remove the specified [definition][A_Definition] from this [A_Method].

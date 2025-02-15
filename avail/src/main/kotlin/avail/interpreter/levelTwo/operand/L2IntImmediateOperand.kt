@@ -62,4 +62,17 @@ class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
 	{
 		builder.append("#").append(value)
 	}
+
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		sources.add(value.toString())
+	}
+
+	override fun equivalentTo(other: L2Operand) =
+		other is L2IntImmediateOperand && value.equals(other.value)
+
+	override val equivalentHash: Int get() = value
 }

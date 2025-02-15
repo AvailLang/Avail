@@ -115,7 +115,7 @@ class ForwardDefinitionDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = builder.brief {
 		self[DEFINITION_METHOD]
@@ -136,7 +136,7 @@ class ForwardDefinitionDescriptor private constructor(
 		0x17d95098)
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		FORWARD_DEFINITION.o
+		FORWARD_DEFINITION()
 
 	override fun o_IsForwardDefinition(self: AvailObject) = true
 

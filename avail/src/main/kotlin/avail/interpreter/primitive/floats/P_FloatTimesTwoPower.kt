@@ -81,8 +81,8 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				FLOAT.o,
+				FLOAT(),
 				instanceType(two),
 				integers),
-			FLOAT.o)
+			FLOAT())
 }

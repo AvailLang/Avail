@@ -38,6 +38,7 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
@@ -55,12 +56,10 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
@@ -83,13 +82,11 @@ import java.nio.channels.AsynchronousSocketChannel
  * [socket][AsynchronousSocketChannel] referenced by the specified
  * [handle][AtomDescriptor]. Create a new [fiber][FiberDescriptor] to respond to
  * the asynchronous completion of the operation; the fiber will run at the
- * specified [priority][IntegerRangeTypeDescriptor.u8]. If the operation
- * succeeds, then eventually start the new fiber to apply the
- * [success&#32;function][FunctionDescriptor] to the
- * [result&#32;tuple][ByteBufferTupleDescriptor] and a
- * [boolean][EnumerationTypeDescriptor.booleanType] that is
- * [true][AtomDescriptor.trueObject] if the socket is exhausted. If the
- * operation fails, then eventually start the new fiber to apply the
+ * specified [priority][u8]. If the operation succeeds, then eventually start
+ * the new fiber to apply the [success&#32;function][FunctionDescriptor] to the
+ * [result&#32;tuple][ByteBufferTupleDescriptor] and a [boolean][booleanType]
+ * that is [true][trueObject] if the socket is exhausted. If the operation
+ * fails, then eventually start the new fiber to apply the
  * [failure&#32;function][FunctionDescriptor] to the numeric
  * [error&#32;code][AvailErrorCode]. Answer the new fiber.
  *
@@ -170,15 +167,15 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				inclusive(0, Int.MAX_VALUE),
-				ATOM.o,
+				ATOM(),
 				functionType(
 					tuple(
 						zeroOrMoreOf(u8),
 						booleanType),
-					TOP.o),
+					TOP()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o),
+					TOP()),
 				u8),
 			mostGeneralFiberType())
 

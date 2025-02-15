@@ -647,6 +647,11 @@ sizesIncompatibleMessage ::=
 	"size of argument tuple to be compatible with size of \
 	\|continuation's parameter tuple";
 
+/* An error message for "Restart_with_". */
+argumentsIncompatibleMessage ::=
+	"argument tuple to be compatible with continuation's parameter tuple type";
+
+
 /**
  * Reject the current parse if the argument tuple cannot possibly match the
  * continuation's parameter tuple.
@@ -674,6 +679,10 @@ Semantic restriction "Restart_with_" is
 		If validSizes = ⊥ then
 		[
 			Reject parse, expected: sizesIncompatibleMessage
+		];
+		If argumentsType ⊆ parametersType = false then
+		[
+			Reject parse, expected: argumentsIncompatibleMessage
 		];
 	];
 	⊥
@@ -710,6 +719,10 @@ Semantic restriction "Restart_with_if_" is
 		If validSizes = ⊥ then
 		[
 			Reject parse, expected: sizesIncompatibleMessage
+		];
+		If argumentsType ⊆ parametersType = false then
+		[
+			Reject parse, expected: argumentsIncompatibleMessage
 		];
 	];
 	⊤

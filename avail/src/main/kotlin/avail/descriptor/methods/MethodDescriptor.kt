@@ -116,8 +116,8 @@ import avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TypeDescriptor
@@ -181,7 +181,7 @@ import avail.interpreter.primitive.variables.P_AtomicRemoveFromMap
 import avail.interpreter.primitive.variables.P_GetValue
 import avail.optimizer.L2Generator
 import avail.performance.Statistic
-import avail.performance.StatisticReport.DYNAMIC_LOOKUP
+import avail.performance.StatisticReport.DYNAMIC_LOOKUP_BY_TARGET
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.Collections.emptyList
@@ -270,7 +270,7 @@ class MethodDescriptor private constructor(
 				1 -> bundles.single().message.toString()
 				else -> bundles.first().toString() + " & aliases"
 			}
-			val stat = LookupStatistics(name, DYNAMIC_LOOKUP)
+			val stat = LookupStatistics(name, DYNAMIC_LOOKUP_BY_TARGET)
 			dynamicLookupStats = stat
 			stat
 		}
@@ -439,7 +439,7 @@ class MethodDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = builder.brief {
 		when (val size = self.definitionsTuple.tupleSize)
@@ -607,7 +607,7 @@ class MethodDescriptor private constructor(
 			&& owningBundles.get().all { it.macrosTuple.tupleSize == 0 }
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
+	override fun o_Kind(self: AvailObject): A_Type = Types.METHOD()
 
 	override fun o_Lexer(self: AvailObject): A_Lexer =
 		synchronized(self) { self[LEXER_OR_NIL] }
@@ -635,10 +635,15 @@ class MethodDescriptor private constructor(
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByValuesFromList(
 		self: AvailObject,
-		argumentList: List<A_BasicObject>
+		argumentList: List<A_BasicObject>,
+		callerLookupStat: LookupStatistics?
 	) = extractUniqueMethod(
 		runtimeDispatcher.lookupByValues(
-			methodTestingTree(self), argumentList, Unit, dynamicLookupStats()))
+			methodTestingTree(self),
+			argumentList,
+			Unit,
+			dynamicLookupStats(),
+			callerLookupStat))
 
 	override fun o_MethodAddBundle(
 		self: AvailObject,
@@ -1176,8 +1181,8 @@ class MethodDescriptor private constructor(
 		 *
 		 * @see methodTestingTree
 		 */
-		val runtimeDispatcher =
-			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
+		object runtimeDispatcher :
+			LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
 				override val emptyLeaf =
 					LeafLookupTree<A_Definition, A_Tuple>(emptyTuple)

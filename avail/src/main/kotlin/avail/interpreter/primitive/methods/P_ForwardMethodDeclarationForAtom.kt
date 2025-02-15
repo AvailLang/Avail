@@ -88,9 +88,16 @@ object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 			}
 		}
 	}
+	/**
+	 * The signature might include instance types on variables that are escaped,
+	 * and those instance types get added to the forward definition.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o, functionMeta()), TOP.o)
+		functionType(tuple(ATOM(), functionMeta()), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

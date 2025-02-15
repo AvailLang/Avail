@@ -304,9 +304,9 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					// Update one buffer.
 					val consumedThisTime = min(
 						alignment - offsetInBuffer,
-						totalBytes - subscriptInTuple) + 1
-					val key = BufferKey(
-						handle, startOfBuffer)
+						totalBytes - subscriptInTuple
+					) + 1
+					val key = BufferKey(handle, startOfBuffer)
 					val bufferHolder = ioSystem.getBuffer(key)
 					var tuple = bufferHolder.value
 					if (offsetInBuffer == 1 && consumedThisTime == alignment)
@@ -346,7 +346,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							tuple = tuple!!.concatenateWith(
 								parts.removeAt(0), true)
 						}
-						assert(tuple!!.tupleSize == alignment)
+						assert(tuple.tupleSize == alignment)
 					}
 					// Otherwise we're attempting to update a subregion of
 					// an uncached buffer.  Just drop it in that case and
@@ -375,12 +375,12 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 			tupleFromArray(
 				naturalNumbers,
 				oneOrMoreOf(u8),
-				ATOM.o,
-				functionType(emptyTuple, TOP.o),
+				ATOM(),
+				functionType(emptyTuple, TOP()),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP()),
 				u8),
-			fiberType(TOP.o))
+			fiberType(TOP()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

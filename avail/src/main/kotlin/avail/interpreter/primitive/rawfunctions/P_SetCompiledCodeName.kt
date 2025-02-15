@@ -77,7 +77,7 @@ object P_SetCompiledCodeName : Primitive(
 			tuple(
 				mostGeneralCompiledCodeType(),
 				nonemptyStringType),
-			Types.TOP.o)
+			Types.TOP())
 
 	override val canDestroyArguments get() = false
 }

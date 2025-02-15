@@ -49,8 +49,9 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.interpreter.primitive.objects.P_GetObjectField
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.PrefixSharingList.Companion.append
@@ -119,7 +120,7 @@ constructor(
 			inExtras > 0 -> extraValues[inExtras - 1]
 			else -> types[i - 1]
 		}
-		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY.o
+		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY()
 		return extraValues.append(newValue.cast())
 	}
 
@@ -135,7 +136,7 @@ constructor(
 			inExtras > 0 -> extraValues[inExtras - 1]
 			else -> argTypes.tupleAt(i)
 		}
-		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY.o
+		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY()
 		return extraValues.append(newValue.cast())
 	}
 
@@ -173,7 +174,7 @@ constructor(
 				// position at this point, but the *type* might be talking about
 				// a super-variant which does not have that field.  Handle that
 				// here.
-				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY.o
+				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY()
 				optionalBaseType to extrasList.append(fieldType)
 			}
 			else -> { element ->
@@ -187,7 +188,7 @@ constructor(
 				// position at this point, but the *type* might be talking about
 				// a super-variant which does not have that field.  Handle that
 				// here.
-				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY.o
+				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY()
 				optionalBaseType to extrasList.append(fieldType)
 				baseType to extrasList.append(fieldType)
 			}
@@ -264,7 +265,7 @@ constructor(
 		list.add(childNode)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -274,22 +275,19 @@ constructor(
 			LookupTree<A_Definition, A_Tuple>,
 			List<L2SemanticBoxedValue>>>
 	{
-		val generator = callSiteHelper.generator
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val baseRestriction =
-			generator.currentManifest.restrictionFor(baseSemanticValue)
+		val baseRestriction = currentManifest.restrictionFor(baseSemanticValue)
 		val fieldRestriction = boxedRestrictionForType(
 			baseRestriction.type.fieldTypeAt(field))
 		val fieldSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
-		generator.addInstruction(
-			L2_GET_OBJECT_FIELD(
-				generator.readBoxed(baseSemanticValue),
-				L2ConstantOperand(field),
-				generator.boxedWrite(fieldSemanticValue, fieldRestriction)))
+		+L2_GET_OBJECT_FIELD(
+			readBoxed(baseSemanticValue),
+			L2ConstantOperand(field),
+			boxedWrite(fieldSemanticValue, fieldRestriction))
 		val target = L2BasicBlock("after extracting field")
-		generator.jumpTo(target)
+		jumpTo(target)
 		return listOf(
 			Triple(
 				target,

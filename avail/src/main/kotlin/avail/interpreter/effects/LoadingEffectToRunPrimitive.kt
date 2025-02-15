@@ -84,6 +84,6 @@ internal class LoadingEffectToRunPrimitive constructor(
 			if (arguments.isEmpty()) startLine else 0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(specialMethodAtom.bundle),
-			writer.addLiteral(TOP.o))
+			writer.addLiteral(TOP()))
 	}
 }

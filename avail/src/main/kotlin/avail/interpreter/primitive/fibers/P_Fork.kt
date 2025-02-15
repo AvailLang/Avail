@@ -129,10 +129,15 @@ object P_Fork : Primitive(
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
+	/** The function or its arguments could become shared. */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				functionTypeReturning(TOP.o),
+				functionTypeReturning(TOP()),
 				mostGeneralTupleType,
 				u8),
 			mostGeneralFiberType())

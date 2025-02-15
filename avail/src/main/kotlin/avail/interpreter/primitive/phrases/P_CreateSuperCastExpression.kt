@@ -85,10 +85,17 @@ object P_CreateSuperCastExpression : Primitive(2, CanInline)
 		}
 	}
 
+	/**
+	 * The lookupType might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				EXPRESSION_PHRASE.create(ANY.o),
+				EXPRESSION_PHRASE.create(ANY()),
 				anyMeta),
 			SUPER_CAST_PHRASE.mostGeneralType)
 

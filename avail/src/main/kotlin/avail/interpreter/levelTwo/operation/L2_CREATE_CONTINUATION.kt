@@ -31,19 +31,28 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithoutOuters
+import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrameMethod
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2CommentOperand
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.utility.notNullAnd
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -55,8 +64,10 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_CREATE_CONTINUATION(
+class L2_CREATE_CONTINUATION
+constructor (
 	var function: L2ReadBoxedOperand,
+	var code: L2ConstantOperand,
 	var caller: L2ReadBoxedOperand,
 	var levelOnePc: L2IntImmediateOperand,
 	var levelOneStackp: L2IntImmediateOperand,
@@ -67,41 +78,54 @@ class L2_CREATE_CONTINUATION(
 	var comment: L2CommentOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(destination)
-		builder.append(" ← $[")
-		builder.append(function)
-		builder.append("]\n\tpc=")
-		builder.append(levelOnePc)
-		builder.append("\n\tstack=[")
-		var first = true
-		for (slot in slotValues.elements)
-		{
-			if (!first)
+		renderPreamble()
+		append(' ')
+		append(destination)
+		append(" ← $[")
+		append(function)
+		append("]\n\tpc=")
+		append(levelOnePc.value)
+		append("\n\tstack=[")
+		val code = this@L2_CREATE_CONTINUATION.code.constant
+		val slotNames = code.declarationNamesWithoutOuters
+		val localRange = code.numArgs() + 1 .. code.numArgs() + code.numLocals
+		slotValues.elements.forEachIndexed { zeroIndex, slot ->
+			val slotIndex = zeroIndex + 1
+			append(
+				when (slotIndex == levelOneStackp.value)
+				{
+					true -> "\n\t->\t"
+					else -> "\n\t\t"
+				})
+			append(slotIndex)
+			if (slotIndex <= slotNames.tupleSize)
 			{
-				builder.append(",")
+				append(" ")
+				if (slotIndex in localRange) append("↑")
+				append(slotNames.tupleAt(slotIndex).asNativeString())
 			}
-			first = false
-			builder.append("\n\t\t")
-			builder.append(slot.registerString())
+			append(": ")
+			append(slot.registerString())
+			//if (slotIndex < slotValues.elements.size) append(",")
+			if (slotIndex in localRange
+				&& slot.constantOrNull.notNullAnd { equalsInt(0) })
+			{
+				append("  (elided local)")
+			}
 		}
-		builder.append("]\n\tstackp=")
-		builder.append(levelOneStackp)
-		builder.append("\n\tcaller=")
-		builder.append(caller)
+		append("]\n\tstackp=")
+		append(levelOneStackp.value)
+		append("\n\tcaller=")
+		append(caller)
 		renderOperandsExcludingFields(
-			builder,
 			desiredOperandTypes,
 			::function,
+			::code,
 			::caller,
-			::levelOnePc,
-			::levelOneStackp,
 			::slotValues,
 			::destination,
 			::comment)
@@ -119,14 +143,14 @@ class L2_CREATE_CONTINUATION(
 		// ::    levelOneStackp,
 		// ::    interpreter.chunk,
 		// ::    onRampOffset);
-		translator.load(method, function.register())
-		translator.load(method, caller.register())
-		translator.load(method, registerDump.register())
-		translator.literal(method, levelOnePc.value)
-		translator.literal(method, levelOneStackp.value)
+		translator.load(method, function)
+		translator.load(method, caller)
+		translator.load(method, registerDump)
+		translator.intConstant(method, levelOnePc.value)
+		translator.intConstant(method, levelOneStackp.value)
 		translator.loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
-		translator.load(method, labelAddress.register())
+		translator.load(method, labelAddress)
 		createContinuationExceptFrameMethod.generateCall(method)
 		val slotCount = slotValues.elements.size
 		var pushed = 0
@@ -141,7 +165,7 @@ class L2_CREATE_CONTINUATION(
 				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
 				// [continuation]
 				translator.intConstant(method, i + 1)
-				translator.load(method, slotValues.elements[i].register())
+				translator.load(method, slotValues.elements[i])
 				if (++pushed == 6)
 				{
 					AvailObject.frameAtPut6Method.generateCall(method)

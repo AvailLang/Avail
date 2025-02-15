@@ -68,6 +68,14 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfIntegerObject
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.hashesOfSmallIntegers
+import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
+import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegerLimit
+import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegers
+import avail.descriptor.numbers.IntegerDescriptor.Companion.squaresOfQuintillionLock
 import avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -75,6 +83,7 @@ import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.IntegerSlotsEnum
+import avail.descriptor.representation.IntegerSlotsEnum.Companion.describeLong
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.MUTABLE
@@ -145,7 +154,7 @@ import kotlin.random.Random
  */
 class IntegerDescriptor private constructor(
 	mutability: Mutability,
-	val unusedIntsOfLastLong: Byte
+	val unusedIntsOfLastLong: Int
 ) : ExtendedIntegerDescriptor(
 	mutability,
 	TypeTag.UNKNOWN_TAG,
@@ -153,7 +162,7 @@ class IntegerDescriptor private constructor(
 	IntegerSlots::class.java)
 {
 	init {
-		assert((unusedIntsOfLastLong.toInt() and 1.inv()) == 0)
+		assert((unusedIntsOfLastLong and 1.inv()) == 0)
 	}
 
 	/**
@@ -179,7 +188,7 @@ class IntegerDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		if (self.isLong)
@@ -260,10 +269,10 @@ class IntegerDescriptor private constructor(
 	 *
 	 * Assume it's normalized (trimmed).
 	 */
-	override fun o_EqualsInt(
+	override fun o_EqualsLong(
 		self: AvailObject,
-		theInt: Int
-	) = self.intSlot(RAW_LONG_SLOTS_, 1) == theInt && intCount(self) == 1
+		theLong: Long
+	) = intCount(self) <= 2 && self.extractLong == theLong
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -518,11 +527,16 @@ class IntegerDescriptor private constructor(
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number {
-		// This routine would be much quicker with access to machine carry
-		// flags, but Java doesn't let us actually go down to the metal (nor do
-		// C and C++). Our best recourse without reverting to assembly language
-		// is to use 64-bit.
-		val objectSize = intCount(self)
+		if (self.isLong && anInteger.isLong)
+		{
+			val x = anInteger.extractLong
+			val y = self.extractLong
+			val sum = x + y
+			// Detect 64-bit overflow for addition.
+			if (((x xor sum) and (y xor sum)) >= 0)
+				return fromLongRecycling(sum, self, anInteger, canDestroy)
+		}
+ 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
 		var output = largerMutableOf(
 			self, anInteger, objectSize, anIntegerSize, canDestroy)
@@ -619,25 +633,6 @@ class IntegerDescriptor private constructor(
 		else -> positiveInfinity
 	}
 
-	/**
-	 * Choose a mutable [argument][AvailObject].
-	 *
-	 * @param self
-	 *   An Avail integer whose descriptor is the receiver.
-	 * @param another
-	 *   An integer.
-	 * @return
-	 *   One of the arguments, or `null` if neither argument is mutable.
-	 */
-	private fun mutableOf(
-		self: AvailObject,
-		another: AvailObject
-	): AvailObject? = when {
-		isMutable -> self
-		another.descriptor().isMutable -> another
-		else -> null
-	}
-
 	override fun o_DivideIntoIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -645,13 +640,11 @@ class IntegerDescriptor private constructor(
 	): A_Number
 	{
 		// Compute anInteger / self. Round towards negative infinity.
+		if (self.equals(zero))
+			throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
 		if (self.isLong)
 		{
 			var denominator = self.extractLong
-			if (denominator == 0L)
-			{
-				throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
-			}
 			if (anInteger.isLong)
 			{
 				// Two longs - by far the most common case.
@@ -667,20 +660,24 @@ class IntegerDescriptor private constructor(
 						numerator = -numerator
 					}
 					// assert(denominator > 0)
-					return if (numerator < 0)
+					val quotient = if (numerator < 0)
 					{
 						// n/d for n<0, d>0:  use -1-(-1-n)/d
 						// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
 						// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
 						// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
-						fromLong(-1 - (-1 - numerator) / denominator)
+						-1 - (-1 - numerator) / denominator
 					}
 					else
 					{
 						// This won't overflow, because the numerator isn't
 						// Long.MIN_VALUE.
-						fromLong(numerator / denominator)
+						numerator / denominator
 					}
+					// Overflow can't have happened, since Long.MIN_VALUE was
+					// already excluded from the numerator.
+					return fromLongRecycling(
+						quotient, self, anInteger, canDestroy)
 				}
 			}
 		}
@@ -774,24 +771,17 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		var output: AvailObject?
-		if (self.isInt && anInteger.isInt) {
-			// See if the (signed) product will fit in 32 bits, the most common
-			// case by far.
-			val prod = (self.extractInt.toLong()
-				* anInteger.extractInt.toLong())
-			if (prod == prod.toInt().toLong())
+		if (self.isLong && anInteger.isLong)
+		{
+			val x = self.extractLong
+			val y = anInteger.extractLong
+			val low = x * y
+			val high = Math.multiplyHigh(x, y)
+			if (high == low shr 63)
 			{
-				// Yes, it fits.  Clobber one of the inputs, or create a new
-				// int-sized object if they were both immutable...
-				output = if (canDestroy) mutableOf(self, anInteger) else null
-				output = output ?: createUninitializedInteger(1)
-				assert(intCount(output) == 1)
-				output.rawSignedIntegerAtPut(1, prod.toInt())
-				return output
+				// High is just a repetition of low's sign bit.
+				return fromLongRecycling(low, self, anInteger, canDestroy)
 			}
-			// Doesn't fit.  Worst case: -2^31 * -2^31 = +2^62, which fits in 64
-			// bits, even with the sign.
-			return fromLong(prod)
 		}
 		if (self.equals(zero) || anInteger.equals(zero)) return zero
 		var shift = self.whichPowerOfTwo
@@ -922,10 +912,15 @@ class IntegerDescriptor private constructor(
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number {
-		// This routine would be much quicker with access to machine carry
-		// flags, but Java doesn't let us actually go down to the metal (nor do
-		// C and C++). Our best recourse without reverting to assembly language
-		// is to use 64-bit arithmetic.
+		if (self.isLong && anInteger.isLong)
+		{
+			val x = anInteger.extractLong
+			val y = self.extractLong
+			val diff = x - y
+			// Detect 64-bit overflow for subtraction.
+			if (((x xor y) and (x xor diff)) >= 0)
+				return fromLongRecycling(diff, self, anInteger, canDestroy)
+		}
 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
 		var output = largerMutableOf(
@@ -1614,7 +1609,7 @@ class IntegerDescriptor private constructor(
 					return
 				}
 				val digits = value.toString()
-				for (i in digits.length until minDigits) {
+				repeat(minDigits - digits.length) {
 					aStream.append('0')
 				}
 				aStream.append(digits)
@@ -1695,6 +1690,42 @@ class IntegerDescriptor private constructor(
 				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
 				setIntSlot(RAW_LONG_SLOTS_, 2, (aLong shr 32).toInt())
 			}
+		}
+
+		/**
+		 * Create an Avail boxed integer with the given [Long] as its value. One
+		 * of the two recyclable values, which *must* have an
+		 * [IntegerDescriptor], can be reused to hold the value if it's mutable
+		 * and its [intCount] is <= 2.
+		 */
+		fun fromLongRecycling(
+			aLong: Long,
+			recyclable1: AvailObject,
+			recyclable2: AvailObject,
+			canDestroy: Boolean
+		): AvailObject
+		{
+			if (!canDestroy) return fromLong(aLong)
+			if (aLong in 0 until smallIntegerLimit) return fromLong(aLong)
+			val intCount = if (aLong.toInt().toLong() == aLong) 1 else 2
+			val output = when
+			{
+				(recyclable1.descriptor().isMutable
+					&& intCount(recyclable1) <= 2
+				) -> recyclable1
+				(recyclable1.descriptor().isMutable
+					&& intCount(recyclable1) <= 2
+				) -> recyclable2
+				else -> return fromLong(aLong)
+			}
+			output.setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
+			// Ints *require* a spare int slot to be 0.
+			output.setIntSlot(
+				RAW_LONG_SLOTS_,
+				2,
+				if (intCount == 1) 0 else (aLong shr 32).toInt())
+			output.setDescriptor(mutableFor(intCount))
+			return output
 		}
 
 		/**
@@ -1780,7 +1811,7 @@ class IntegerDescriptor private constructor(
 			}
 		}
 
-		/** The [CheckedMethod] for [IntegerDescriptor.fromInt]. */
+		/** The [CheckedMethod] for [fromInt]. */
 		val fromIntMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
@@ -1873,14 +1904,14 @@ class IntegerDescriptor private constructor(
 		private const val initialHashValue = 0x13592884
 
 		/**
-		 * The value to xor with after multiplying by the
-		 * [AvailObject.multiplier] for each [Int] slot of the integer.
+		 * The value to xor with after multiplying by the [multiplier] for each
+		 * [Int] slot of the integer.
 		 */
 		private const val postMultiplyHashToggle = -0x6a004a61
 
 		/**
 		 * The value to add after performing a final extra multiply by
-		 * [AvailObject.multiplier].
+		 * [multiplier].
 		 */
 		private const val finalHashAddend = 0x5127ee66
 
@@ -1989,7 +2020,7 @@ class IntegerDescriptor private constructor(
 		 */
 		private val descriptors = EnumMap.enumMap { mut: Mutability ->
 			Array(2) { unusedInts ->
-				IntegerDescriptor(mut, unusedInts.toByte())
+				IntegerDescriptor(mut, unusedInts)
 			}
 		}
 
@@ -2112,10 +2143,10 @@ class IntegerDescriptor private constructor(
 	}
 
 	override fun mutable() =
-		descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
+		descriptors[MUTABLE]!![unusedIntsOfLastLong]
 
 	override fun immutable() =
-		descriptors[IMMUTABLE]!![unusedIntsOfLastLong.toInt()]
+		descriptors[IMMUTABLE]!![unusedIntsOfLastLong]
 
-	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong.toInt()]
+	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong]
 }

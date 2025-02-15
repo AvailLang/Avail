@@ -260,7 +260,7 @@ class AvailProjectRoot constructor(
 			projectFileName: String,
 			projectDirectory: String,
 			obj: JSONObject,
-			@Suppress("UNUSED_PARAMETER") serializationVersion: Int
+			@Suppress("unused") serializationVersion: Int
 		): AvailProjectRoot
 		{
 			val rootName = obj.getString(AvailProjectRoot::name.name)

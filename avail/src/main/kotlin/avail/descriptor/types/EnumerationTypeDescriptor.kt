@@ -191,7 +191,7 @@ private constructor(
 			for (instance in getInstances(self))
 			{
 				cached = cached.typeUnion(instance.kind())
-				if (cached.equals(ANY.o))
+				if (cached.equals(ANY()))
 				{
 					break
 				}
@@ -237,7 +237,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		// Print boolean specially.

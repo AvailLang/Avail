@@ -31,13 +31,17 @@
  */
 package avail.interpreter.primitive.objects
 
+import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
@@ -58,8 +62,13 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
+import avail.optimizer.values.L2SemanticValue
 
 /**
  * **Primitive:** Extract the specified [field][AtomDescriptor] from the
@@ -80,9 +89,6 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralObjectType, ATOM.o), ANY.o)
-
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
@@ -100,13 +106,16 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 			{
 				val newType = fieldTypeMap.mapAtOrNull(possibleField) ?:
 					// Unknown field, so the type could be anything.
-					return ANY.o
+					return ANY()
 				union = union.typeUnion(newType)
 			}
 			return union
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
+
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralObjectType, ATOM()), ANY())
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
@@ -128,39 +137,70 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		return CallSiteCanFail
 	}
 
-	override fun emitTransformedInfalliblePrimitive(
+	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand,
-		regenerator: L2Regenerator)
+		result: L2WriteBoxedOperand)
 	{
 		val (objectRead, fieldTypeRead) = arguments.elements
-		val fieldAtom = fieldTypeRead.restriction().constantOrNull
+		val fieldAtom = fieldTypeRead.constantOrNull
 		if (fieldAtom === null)
 		{
 			// It can't be an arbitrary atom that may or may not be a field, but
 			// it could be a choice between multiple atoms that are known to be
 			// fields of the object.  Fall back.
-			super.emitTransformedInfalliblePrimitive(
-				rawFunction, arguments, result, regenerator)
+			emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 			return
 		}
 		objectRead.constantOrNull?.let { exactObject ->
 			val fieldValue = exactObject.fieldAt(fieldAtom)
-			regenerator.moveBoxedRegister(
-				regenerator.boxedConstant(fieldValue).semanticValue(),
+			moveBoxedRegister(
+				boxedConstant(fieldValue).semanticValue(),
 				result.semanticValues())
 			return
 		}
 		val objectType = objectRead.type()
 		assert(objectType.fieldTypeAtOrNull(fieldAtom) !== null)
-		regenerator.addInstruction(
-			L2_GET_OBJECT_FIELD(
-				objectRead,
-				L2ConstantOperand(fieldAtom),
-				result))
+		+L2_GET_OBJECT_FIELD(
+			objectRead,
+			L2ConstantOperand(fieldAtom),
+			result)
+	}
+
+	override fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		// We've narrowed a field of some object.  Narrow the type of that
+		// object accordingly.
+		val (containingObject, field) = arguments
+		// Only works if we know which field statically.
+		val fieldAtom = field.constant ?: return
+		assert(fieldAtom.isAtom)
+		// See if the object that we represent the field of is listed under an
+		// equivalent semantic value.
+		val equivalentObject =
+			manifest.equivalentSemanticValue(containingObject) ?: return
+		manifest.intersectType(
+			equivalentObject,
+			objectTypeFromTuple(tuple(tuple(fieldAtom, restriction.type))))
 	}
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SUCH_FIELD))
+
+	override fun printSemanticInvocation(
+		invocation: L2SemanticPrimitiveInvocation
+	): String
+	{
+		assert(invocation.primitive == this)
+		val (obj, field) = invocation.argumentSemanticValues
+		if (!field.isConstant) return super.printSemanticInvocation(invocation)
+		val fieldAtom: A_Atom = field.constant!!
+		val fieldName = fieldAtom.atomName.asNativeString()
+		var objString = obj.toString()
+		if (obj.requiresParentheses()) objString = "($objString)"
+		return "$objString.$fieldName"
+	}
 }

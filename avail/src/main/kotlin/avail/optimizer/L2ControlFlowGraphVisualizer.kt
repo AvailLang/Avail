@@ -37,21 +37,24 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
-import avail.interpreter.levelTwo.OperandTypeMap
+import avail.interpreter.levelTwo.L2OperandType.Companion.allOperandTypes
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.repeated
 import avail.utility.Strings.tag
@@ -62,6 +65,7 @@ import avail.utility.dot.DotWriter
 import avail.utility.dot.DotWriter.AttributeWriter
 import avail.utility.dot.DotWriter.Companion.node
 import avail.utility.dot.DotWriter.CompassPoint
+import avail.utility.dot.DotWriter.DecoratedNode
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType
 import avail.utility.dot.DotWriter.GraphWriter
 import avail.utility.mapToSet
@@ -147,7 +151,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 */
 	val duplicateManifests = controlFlowGraph.basicBlockOrder
 		.flatMap(L2BasicBlock::successorEdges)
-		.map(L2PcOperand::manifest)
+		.mapNotNull(L2PcOperand::manifestOrNull)
 		// Map from manifest to a list of its occurrences.
 		.groupBy { it }
 		.entries
@@ -206,6 +210,12 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 
 	/**
+	 * A map from each edge (accumulated during basicBlock emission) to the name
+	 * of the port in the source block that it should originate from.
+	 */
+	private val sourcePortNamesByEdge = mutableMapOf<L2PcOperand, String>()
+
+	/**
 	 * Answer a descriptive, not necessarily unique name for the specified
 	 * [L2BasicBlock].
 	 *
@@ -246,21 +256,39 @@ class L2ControlFlowGraphVisualizer constructor(
 				"cellspacing" to "0"
 			) {
 				val instructions = basicBlock.instructions()
-				var (fillcolor: String, fontcolor: String) = when
+				var (fill: String, grid: String, font: String) = when
 				{
-					isCurrent -> currentBlockBackColor to currentBlockForeColor
-					!started -> "#202080/303000" to "#ffffff/e0e0e0"
+					isCurrent -> Triple(
+						currentBlockBackColor,
+						currentBlockGridColor,
+						currentBlockForeColor)
+					!started -> Triple(
+						"#202080/303000",
+						"#ffffff/e0e0e0",
+						"#ffffff/e0e0e0")
 					basicBlock.instructions().any {
 						it is L2_UNREACHABLE_CODE
-					} -> "#400000/600000" to "#ffffff/ffffff"
-					basicBlock.isLoopHead ->
-						"#9070ff/302090" to "#000000/f0f0f0"
-					basicBlock.entryPointOrNull() !== null ->
-						"#ffd394/604000" to "#000000/e0e0e0"
-					else -> "#c1f0f6/104048" to "#000000/e0e0e0"
+					} -> Triple(
+						"#400000/600000",
+						"#ffffff/ffffff",
+						"#ffffff/ffffff")
+					basicBlock.isLoopHead -> Triple(
+						"#9070ff/302090",
+						"#c0c0c0/404040",
+						"#000000/f0f0f0")
+					basicBlock.entryPointOrNull() !== null -> Triple(
+						"#ffd394/604000",
+						"#c0c0c0/404040",
+						"#000000/e0e0e0")
+					else -> Triple(
+						"#c1f0f6/104048",
+						"#c0c0c0/404040",
+						"#000000/e0e0e0")
 				}
-				fillcolor = writer.adjust(fillcolor)
-				fontcolor = writer.adjust(fontcolor)
+				val fillcolor = writer.adjust(fill)
+				val gridcolor = writer.adjust(grid)
+				val fontcolor = writer.adjust(font)
+				// Block heading.
 				tag("tr") {
 					tag(
 						"td",
@@ -288,7 +316,8 @@ class L2ControlFlowGraphVisualizer constructor(
 							{
 								basicBlock.debugNote.lines().joinTo(
 									this@buildString,
-									"<br/>",
+									separator = "<br/>",
+									prefix = "<br/>",
 									transform = ::escape)
 							}
 						}
@@ -310,31 +339,9 @@ class L2ControlFlowGraphVisualizer constructor(
 				}
 				if (instructions.isNotEmpty())
 				{
-					basicBlock.instructions().forEachIndexed {
-						port, instruction ->
-						tag("tr") {
-							val cellAttributes = mutableListOf(
-								"colspan" to "2",
-								"align" to "left",
-								"balign" to "left",
-								"border" to "1",
-								"port" to (port + 1).toString(),
-								"valign" to "top")
-							if (instruction.isPlaceholder) {
-								cellAttributes.add(
-									"bgcolor" to
-										writer.adjust("#ffC090/#604800"))
-							}
-							else if (basicBlock.isCold)
-							{
-								cellAttributes.add(
-									"bgcolor" to
-										writer.adjust(coldInstructionBackColor))
-							}
-							tag("td", *cellAttributes.toTypedArray()) {
-								append(instruction(instruction, writer))
-							}
-						}
+					instructions.forEachIndexed { port, instruction ->
+						instructionTableRow(
+							gridcolor, instruction, writer, basicBlock)
 					}
 				}
 				else
@@ -396,6 +403,98 @@ class L2ControlFlowGraphVisualizer constructor(
 		catch (e: IOException)
 		{
 			throw UncheckedIOException(e)
+		}
+	}
+
+	private fun StringBuilder.instructionTableRow(
+		gridcolor: String,
+		instruction: L2Instruction,
+		writer: GraphWriter,
+		basicBlock: L2BasicBlock)
+	{
+		tag("tr") {
+			val cellAttributes = mutableMapOf(
+				"colspan" to "2",
+				"align" to "left",
+				"balign" to "left",
+				"border" to "1",
+				"color" to gridcolor,
+				"valign" to "top")
+			when
+			{
+				instruction is L2_NOP ->
+					cellAttributes["bgcolor"] = writer.adjust("#ff90ff/#602860")
+				instruction.isPlaceholder ->
+					cellAttributes["bgcolor"] = writer.adjust("#ffC090/#604800")
+				basicBlock.isCold ->
+				{
+					cellAttributes["bgcolor"] =
+						writer.adjust(coldInstructionBackColor)
+					cellAttributes["color"] = coldInstructionGridColor
+				}
+			}
+			if (!instruction.altersControlFlow
+				|| instruction.targetEdges.size <= 1)
+			{
+				tagIf(true, "td", cellAttributes) {
+					append(instruction(instruction, writer))
+				}
+			}
+			else
+			{
+				// Add outbound connection ports in a table
+				// nested in its own row.  Have the final
+				// instruction produce the port labels.
+				var portNamesByEdge = instruction.suggestVisualPortNames()
+				assert(portNamesByEdge.size
+					== portNamesByEdge.values.toSet().size)
+				if (portNamesByEdge.isNotEmpty())
+				{
+					tag(
+						"td",
+						"colspan" to "2",
+						"border" to "0",
+						"cellspacing" to "0",
+						"cellpadding" to "0"
+					) {
+						tag(
+							"table",
+							"border" to "0",
+							"cellspacing" to "0"
+						) {
+							tag("tr") {
+								cellAttributes["colspan"] =
+									portNamesByEdge.size.toString()
+								tagIf(true, "td", cellAttributes) {
+									append(instruction(instruction, writer))
+								}
+							}
+							tag("tr") {
+								var leftmost = true
+								portNamesByEdge.forEach { edge, port ->
+									sourcePortNamesByEdge[edge] = port
+									tag(
+										"td",
+										"border" to "1",
+										"color" to gridcolor,
+										"sides" to
+											(if (leftmost) "BLR" else "BR"),
+										"port" to port
+									) {
+										font(
+											italic = true,
+											size = 10)
+										{
+											append(escape(port))
+										}
+									}
+									leftmost = false
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -541,13 +640,14 @@ class L2ControlFlowGraphVisualizer constructor(
 			val sourceSubscript =
 				sourceBlock.instructions().indexOf(sourceInstruction) + 1
 			writer.edge(
-				if (edge.isBackward) node(
+				if (edge.isBackward) DecoratedNode(
 					basicBlockName(sourceBlock),
 					sourceSubscript.toString(),
 					CompassPoint.E)
-				else node(
+				else DecoratedNode(
 					basicBlockName(sourceBlock),
-					sourceSubscript.toString()),
+					sourcePortNamesByEdge[edge],
+					null),
 				if (edge.isBackward)
 				{
 					node(basicBlockName(targetBlock), "1")
@@ -584,10 +684,11 @@ class L2ControlFlowGraphVisualizer constructor(
 				}
 				else
 				{
-					when (namedOperandType!!.purpose!!)
+					when (namedOperandType!!.purpose)
 					{
 						// Nothing. The default styling will be fine.
-						Purpose.SUCCESS -> Unit
+						null -> Unit
+						SUCCESS -> Unit
 						Purpose.FAILURE ->
 							attr.attribute("color", "#e54545/c03030")
 						Purpose.OFF_RAMP ->
@@ -608,7 +709,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				if (targetBlock.instructions().any { it is L2_PHI<*> })
 				{
 					// The target includes phi instructions, so label this
-					// inccoming edge with its index within the target's list of
+					// incoming edge with its index within the target's list of
 					// predecessors, which corresponds with the phis' vectors
 					// of source values.
 					val predecessors = edge.targetBlock().predecessorEdges()
@@ -661,7 +762,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					writer,
 					synonym,
 					manifest.restrictionFor(pick),
-					manifest.getDefinitions(pick),
+					manifest.getAllDefinitions(pick),
 					predecessorEdges)
 			}
 		}
@@ -673,41 +774,44 @@ class L2ControlFlowGraphVisualizer constructor(
 			append("<br/>")
 		}
 		val sortedSubmap = postponements.entries.sortedBy { it.key }
-		sortedSubmap.forEach { (semanticValue, oldInstructions) ->
-			if (oldInstructions.all {
-				it is L2_MOVE<*>
-					&& it.source.restriction().constantOrNull
-						.notNullAnd { equals(nil) }
-				})
+		// Group the postponements by instruction, capturing the list of
+		// semantic values that would be written.
+		val grouped = sortedSubmap.groupBy(
+			keySelector = Map.Entry<*, L2Instruction>::value,
+			valueTransform = Map.Entry<L2SemanticValue<*>, *>::key)
+		grouped.forEach { (instruction, semanticValues) ->
+			if (instruction is L2_MOVE<*>
+				&& instruction.source.constantOrNull
+					.notNullAnd(nil::equals))
 			{
 				// Skip propagations of nil, since they're noisy.
 				return@forEach
 			}
 			font(color = writer.adjust(
-				if (semanticValue.kind == BOXED_KIND) postponementsColor
+				if (semanticValues[0].kind == BOXED_KIND) postponementsColor
 				else unboxedSynonymColor))
 			{
-				append(indentString)
-				append(semanticValue.kind.kindName)
-				append("/")
-				append(escape(semanticValue))
-				append(" = ")
-				when (oldInstructions.size)
+				for (semanticValue in semanticValues)
 				{
-					0 -> append("ERROR: No instructions")
-					1 -> append(escape(
-						increaseIndentation(oldInstructions[0].toString(), 2)))
-					else ->
-					{
-						oldInstructions.forEach { instruction ->
-							append("<br/>")
-							append(indent2String)
-							append(
-								escape(
-									increaseIndentation(
-										instruction.toString(), 2)))
-						}
-					}
+					append(indentString)
+					append(semanticValue.kind.kindName)
+					append("/")
+					append(escape(semanticValue))
+					append("<br/>")
+				}
+				append(indent2String)
+				val badReads = instruction.readOperands
+					.filter { it.restriction().isImpossible }
+				val badWrites = instruction.writeOperands
+					.filter { it.restriction().isImpossible }
+				if (badReads.isNotEmpty() || badWrites.isNotEmpty())
+				{
+					append(escape("PROBLEMS: ${badReads + badWrites}\n"))
+					append(escape(increaseIndentation(instruction.toString(), 2)))
+				}
+				else
+				{
+					append(escape(increaseIndentation(instruction.toString(), 2)))
 				}
 				append("<br/>")
 			}
@@ -766,12 +870,15 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		val isError = (kindsOfRegisters.size != 1 || restriction.isImpossible)
 		val isUnboxed = kindsOfRegisters != setOf(BOXED_KIND)
+		val noRegs = definitions.toList().isEmpty()
 		val (synonymColor, restrictionColor, definitionsColor) = when
 		{
-			isError -> listOf(errorTextColor, errorTextColor, errorTextColor)
-			newSynonym -> listOf(newEntryColor, newEntryColor, newEntryColor)
+			isError -> Triple(errorTextColor, errorTextColor, errorTextColor)
+			newSynonym -> Triple(newEntryColor, newEntryColor, newEntryColor)
+			noRegs ->
+				Triple(noRegistersColor, noRegistersColor, noRegistersColor)
 			else ->
-				listOf(
+				Triple(
 					when
 					{
 						changedSynonym -> changedEntryColor
@@ -797,7 +904,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		font(color = writer.adjust(restrictionColor ?: "")) {
 			append(indent2String)
 			append(":&nbsp;")
-			append(escape(restriction))
+			append(escape(increaseIndentation(restriction.toString(), 2)))
 		}
 		append("<br/>")
 		font(color = writer.adjust(definitionsColor ?: "")) {
@@ -987,11 +1094,12 @@ class L2ControlFlowGraphVisualizer constructor(
 				append("<br/>")
 			}
 		}
+		// An L2_NOP emits just the comment (on a suitable background color).
+		if (instruction is L2_NOP) return@buildString
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
 		val escapeIndex = length
-		val desiredTypes = OperandTypeMap.allOperandTypes -
-			listOf(PC, PC_VECTOR, COMMENT)
+		val desiredTypes = allOperandTypes - listOf(PC, PC_VECTOR, COMMENT)
 		if (!instruction.producesAnyJvmCode)
 		{
 			// Show instructions that generate no code in gray.
@@ -1006,7 +1114,9 @@ class L2ControlFlowGraphVisualizer constructor(
 				val escapableStart = length
 				if (visualizeRegisterDescriptions)
 				{
-					instruction.appendToWithWarnings(this, desiredTypes) { }
+					instruction.run {
+						appendToWithWarnings(desiredTypes) { }
+					}
 				}
 				else
 				{
@@ -1025,9 +1135,11 @@ class L2ControlFlowGraphVisualizer constructor(
 			val styleChanges = ArrayDeque<Int>()
 			if (visualizeRegisterDescriptions)
 			{
-				instruction.appendToWithWarnings(this, desiredTypes) {
-					assert(it == (styleChanges.size % 2 == 0))
-					styleChanges.add(length)
+				instruction.run {
+					appendToWithWarnings(desiredTypes) {
+						assert(it == (styleChanges.size % 2 == 0))
+						styleChanges.add(length)
+					}
 				}
 			}
 			else
@@ -1086,6 +1198,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		 */
 		private const val currentBlockForeColor = "#200000/ffd0d0"
 
+		private const val currentBlockGridColor = "#a08080/a86060"
+
 		private const val commentTextColor = "#404040/a0a0a0"
 
 		private const val unboxedSynonymColor = "#4040c0/a0a0f0"
@@ -1094,9 +1208,13 @@ class L2ControlFlowGraphVisualizer constructor(
 
 		private const val newEntryColor = "#209020/b0ffb0"
 
+		private const val noRegistersColor = "#404040/c0c0c0"
+
 		private const val changedEntryColor = "#909020/e0e0a0"
 
 		private const val coldInstructionBackColor = "#e0ffff/407070"
+
+		private const val coldInstructionGridColor = "#405050/98b0b0"
 
 		/** Characters that should be removed outright from class names. */
 		private val matchUglies = Pattern.compile("[\"\\\\]")
@@ -1129,44 +1247,64 @@ class L2ControlFlowGraphVisualizer constructor(
 			}
 		}
 
+		/**
+		 * Apply font attributes to the text defined in the [body].
+		 *
+		 * @receiver
+		 *   The [StringBuilder] on which to generate the styled text.
+		 * @param face
+		 *   The optional font face name.
+		 * @param size
+		 *   The optional font size.
+		 * @param bold
+		 *   Whether the text should be bold. Defaults to false.
+		 * @param italic
+		 *   Whether the text should be italic. Defaults to false.
+		 * @param color
+		 *   The optional font color.
+		 * @param body
+		 *   A function that produces the text to style.  Its receiver is the
+		 *   [StringBuilder].
+		 */
+		fun StringBuilder.font(
+			face: String? = null,
+			size: Int? = null,
+			bold: Boolean = false,
+			italic: Boolean = false,
+			color: String? = null,
+			body: StringBuilder.()->Unit)
+		{
+			if (face === null
+				&& size === null
+				&& !bold
+				&& !italic
+				&& (color === null || color.isEmpty()))
+			{
+				body()
+				return
+			}
+			val attributes = mutableMapOf<String, String>()
+			if (face !== null || bold || italic)
+			{
+				var adjustedFace = face ?: "Arial"
+				if (bold) adjustedFace += " bold"
+				if (italic) adjustedFace += " italic"
+				attributes["face"] = adjustedFace
+			}
+			size?.let { attributes["point-size"] = size.toString() }
+			if (color.notNullAnd(String::isNotEmpty))
+				attributes["color"] = color!!
+			tagIf(
+				attributes.isNotEmpty(),
+				"font",
+				attributes,
+				body = body)
+		}
+
 		/** Four non-breaking spaces, escaped. */
 		private val indentString = repeated("&nbsp;", 4)
 
 		/** Eight non-breaking spaces, escaped. */
 		private val indent2String = repeated("&nbsp;", 8)
 	}
-}
-
-fun StringBuilder.font(
-	face: String? = null,
-	size: Int? = null,
-	bold: Boolean = false,
-	italic: Boolean = false,
-	color: String? = null,
-	body: StringBuilder.()->Unit)
-{
-	if (face === null
-		&& size === null
-		&& !bold
-		&& !italic
-		&& (color === null || color.isEmpty()))
-	{
-		body()
-		return
-	}
-	val attributes = mutableListOf<Pair<String, String>>()
-	if (face !== null || bold || italic)
-	{
-		var adjustedFace = face ?: "Arial"
-		if (bold) adjustedFace += " bold"
-		if (italic) adjustedFace += " italic"
-		attributes.add("face" to adjustedFace)
-	}
-	size?.let { attributes.add("point-size" to size.toString()) }
-	if (color.notNullAnd(String::isNotEmpty)) attributes.add("color" to color!!)
-	tagIf(
-		attributes.isNotEmpty(),
-		"font",
-		*attributes.toTypedArray(),
-		body = body)
 }

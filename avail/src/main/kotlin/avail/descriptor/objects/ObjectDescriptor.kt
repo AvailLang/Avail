@@ -91,6 +91,7 @@ import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2Optimizer
@@ -522,7 +523,7 @@ class ObjectDescriptor internal constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = builder.brief {
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self.kind())

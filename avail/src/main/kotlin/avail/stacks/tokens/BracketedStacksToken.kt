@@ -976,7 +976,7 @@ class BracketedStacksToken @Throws(StacksScannerException::class) constructor(
 			 */
 			internal fun linkBuilderNolink(
 				aLexeme: String,
-				@Suppress("UNUSED_PARAMETER") linkingFileMap: LinkingFileMap,
+				@Suppress("unused") linkingFileMap: LinkingFileMap,
 				hashID: Int): String =
 				"<a href=\"#$aLexeme$hashID\">$aLexeme</a>"
 		}

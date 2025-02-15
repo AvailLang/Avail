@@ -302,4 +302,3 @@ Test "implicit observe (Clear_↑)" in observation test suite is
 	For each i from 1 to |ref| do [If i is odd then [x ?= i;] else [Clear x;];];
 	Require: t = ref;
 ];
-

@@ -42,6 +42,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.getAndSetValue
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
@@ -82,12 +83,20 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable is shared and a local variable is captured inside the
+	 * newValue, it could become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				mostGeneralVariableType,
-				ANY.o),
-			ANY.o)
+				ANY()),
+			ANY())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
@@ -95,7 +104,7 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType
-		return if (readType.isTop) ANY.o else readType
+		return if (readType.isTop) ANY() else readType
 	}
 
 	override fun privateFailureVariableType(): A_Type =

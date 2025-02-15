@@ -44,6 +44,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.fetchAndAddValue
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
@@ -91,6 +92,14 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(e)
 		}
 	}
+
+	/**
+	 * If the variable had a reactor, adjusting it can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

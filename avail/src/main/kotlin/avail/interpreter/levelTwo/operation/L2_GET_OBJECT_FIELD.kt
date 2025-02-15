@@ -41,10 +41,8 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import org.objectweb.asm.MethodVisitor
@@ -60,23 +58,38 @@ class L2_GET_OBJECT_FIELD(
 	var fieldValue: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(fieldValue.registerString())
-		builder.append(" ← ")
-		builder.append(sourceObject)
-		builder.append("[")
-		builder.append(fieldAtom)
-		builder.append("]")
+		renderPreamble()
+		append(' ')
+		append(fieldValue.registerString())
+		append(" ← ")
+		append(sourceObject)
+		append("[")
+		append(fieldAtom)
+		sourceObject.restriction().positiveGroup.objectVariants
+			?.singleOrNull()
+			?.let { variant ->
+				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+				append(" =#$fieldIndex")
+			}
+		append("]")
 	}
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun simpleAppendTo(builder: StringBuilder)
+	{
+		super.simpleAppendTo(builder)
+		sourceObject.restriction().positiveGroup.objectVariants
+			?.singleOrNull()
+			?.let { variant ->
+				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+				builder.append("(#$fieldIndex)")
+			}
+	}
+
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val originalWrite = sourceObject.originalBoxedWriteSkippingMoves()
 		val originalWriteInstruction = originalWrite.instruction
@@ -87,14 +100,13 @@ class L2_GET_OBJECT_FIELD(
 			if (fieldIndex == 0)
 			{
 				// A zero indicates the field is an atom that maps to itself.
-				regenerator.addInstruction(
-					L2_MOVE_CONSTANT_BOXED(
-						L2ConstantOperand(fieldAtom.constant), fieldValue))
+				+L2_MOVE_CONSTANT_BOXED(
+					L2ConstantOperand(fieldAtom.constant), fieldValue)
 				return
 			}
 			val fieldSource =
 				originalWriteInstruction.fieldValues.elements[fieldIndex - 1]
-			regenerator.addInstruction(L2_MOVE_BOXED(fieldSource, fieldValue))
+			+L2_MOVE_BOXED(fieldSource, fieldValue)
 			return
 		}
 		if (originalWriteInstruction is L2_MOVE_CONSTANT_BOXED)
@@ -106,16 +118,14 @@ class L2_GET_OBJECT_FIELD(
 			val constantObject = originalWriteInstruction.constant().constant
 			assert(constantObject.isInstanceOf(mostGeneralObjectType))
 			val objectFieldValue = constantObject.fieldAt(fieldAtom.constant)
-			regenerator.addInstruction(
-				L2_MOVE_CONSTANT_BOXED(
-					L2ConstantOperand(objectFieldValue), fieldValue))
+			+L2_MOVE_CONSTANT_BOXED(
+				L2ConstantOperand(objectFieldValue), fieldValue)
 			return
 		}
 		// Strengthen the field value's type in case the incoming object type is
 		// now stronger, perhaps due to code splitting.
-		val manifest = regenerator.currentManifest
 		val objectRestriction = sourceObject.restriction().intersection(
-			manifest.restrictionFor(sourceObject.semanticValue()))
+			currentManifest.restrictionFor(sourceObject.semanticValue()))
 		val objectType = objectRestriction.type
 		val fieldType = objectType.fieldTypeAt(fieldAtom.constant)
 		val fieldRestriction =
@@ -123,24 +133,21 @@ class L2_GET_OBJECT_FIELD(
 		if (fieldType.instanceCount.equalsInt(1) && !fieldType.isInstanceMeta)
 		{
 			// The field holds a known (non-type) constant.
-			regenerator.addInstruction(
-				L2_MOVE_CONSTANT_BOXED(
-					L2ConstantOperand(fieldType.instance), fieldValue))
+			+L2_MOVE_CONSTANT_BOXED(
+				L2ConstantOperand(fieldType.instance), fieldValue)
 			return
 		}
-		val newFieldWrite = L2WriteBoxedOperand(
-			fieldValue.semanticValues(),
-			fieldRestriction,
-			fieldValue.register())
-		regenerator.addInstruction(
-			L2_GET_OBJECT_FIELD(sourceObject, fieldAtom, newFieldWrite))
+		+L2_GET_OBJECT_FIELD(
+			sourceObject,
+			fieldAtom,
+			L2WriteBoxedOperand(fieldValue.semanticValues(), fieldRestriction))
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		translator.load(method, sourceObject.register())
+		translator.load(method, sourceObject)
 		val variants = sourceObject.restriction().positiveGroup.objectVariants
 		val indices = variants
 			?.mapToSet { it.fieldToSlotIndex[fieldAtom.constant]!! }
@@ -153,7 +160,7 @@ class L2_GET_OBJECT_FIELD(
 		}
 		else
 		{
-			translator.literal(method, fieldAtom.constant)
+			translator.loadLiteralObject(method, fieldAtom.constant)
 			AvailObject.fieldAtMethod.generateCall(method)
 		}
 		translator.store(method, fieldValue.register())

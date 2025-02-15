@@ -51,9 +51,10 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
 /**
  * **Primitive:** Answer the type union of the specified
@@ -87,59 +88,59 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>,
 		rawFunction: A_RawFunction
-	): List<L2SplitCondition?>
-	{
+	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
 		// Since we can optimize based on whether or not ⊥ is possible for one
 		// or the other argument, and also whether only ⊥ is present, try to
 		// avoid merges that destroy that information.
-		return listOf(
-			typeRestrictionCondition(
+		addAll(
+			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),
-				boxedRestrictionForConstant(bottom)),
-			typeRestrictionCondition(
+				boxedRestrictionForConstant(bottom)))
+		addAll(
+			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),
 				boxedRestrictionForType(topMeta).minusValue(bottom)))
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
+		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
 		val (arg1, arg2) = arguments
 		val (argType1, argType2) = argumentTypes
-		val const1 = arg1.restriction().constantOrNull
-		val const2 = arg2.restriction().constantOrNull
+		val const1 = arg1.constantOrNull
+		val const2 = arg2.constantOrNull
 		var resultCanBeBottom = true
 		when
 		{
 			// ⊥ ∪ x = x
 			argType1.equals(bottomMeta) ->
 			{
-				callSiteHelper.useAnswer(arg2)
+				callSiteHelper.useAnswer(arg2, false)
 				return true
 			}
 			// x ∪ ⊥ = x
 			argType2.equals(bottomMeta) ->
 			{
-				callSiteHelper.useAnswer(arg1)
+				callSiteHelper.useAnswer(arg1, false)
 				return true
 			}
 			// fold constant types
 			const1 !== null && const2 !== null ->
 				callSiteHelper.useAnswer(
-					callSiteHelper.generator.boxedConstant(
-						const1.typeUnion(const2)))
+					boxedConstant(const1.typeUnion(const2)),
+					false)
 			// t ∪ x = t, if t is a constant type subsuming x
 			const1 !== null && argType2.instance.isSubtypeOf(const1) ->
-				callSiteHelper.useAnswer(arg1)
+				callSiteHelper.useAnswer(arg1, false)
 			// x ∪ t = t, if t is a constant type subsuming x
 			const2 !== null && argType1.instance.isSubtypeOf(const2) ->
-				callSiteHelper.useAnswer(arg2)
+				callSiteHelper.useAnswer(arg2, false)
 			// if x≠⊥ ∧ y≠⊥, then (x∪y)≠⊥.
 			!arg1.restriction().containsEntireType(bottomMeta) &&
 				!arg2.restriction().containsEntireType(bottomMeta) ->
@@ -156,11 +157,9 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			restriction = restriction.minusValue(bottom)
 		}
-		val translator = callSiteHelper.translator
-		val writer = translator.generator.boxedWriteTemp(restriction)
-		translator.addInstruction(
-			L2_TYPE_UNION(arg1, arg2, writer))
-		callSiteHelper.useAnswer(translator.readBoxed(writer))
+		val writer = boxedWriteTemp("type union", restriction)
+		+L2_TYPE_UNION(arg1, arg2, writer)
+		callSiteHelper.useAnswer(readBoxed(writer), false)
 		return true
 	}
 }

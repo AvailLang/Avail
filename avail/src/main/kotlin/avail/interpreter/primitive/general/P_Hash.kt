@@ -51,7 +51,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_HASH
+import avail.interpreter.levelTwo.operation.dispatch.L2_HASH
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
@@ -86,27 +87,26 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val valueReg = arguments[0]
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val restriction = intRestrictionForType(returnType)
-		val writer = generator.intWriteTemp(restriction)
-		generator.addInstruction(L2_HASH(valueReg, writer))
+		val writer = intWriteTemp("hash", restriction)
+		+L2_HASH(valueReg, writer)
 		callSiteHelper.useAnswer(
-			generator.readBoxed(writer.onlySemanticValue().boxed))
+			readBoxed(writer.onlySemanticValue().boxed), false)
 		return true
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o), i32)
+		functionType(tuple(ANY()), i32)
 
 	override val canDestroyArguments get() = false
 }

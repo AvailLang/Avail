@@ -31,7 +31,7 @@
  */
 package avail.interpreter.primitive.bootstrap
 
-import avail.AvailRuntime
+import avail.SpecialObject.Companion.specialObject
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.phrases.A_Phrase.Companion.token
@@ -52,8 +52,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.style.P_SpecialObjectStyler
 
 /**
- * **Primitive:** Retrieve the [special&#32;object][AvailRuntime.specialObject]
- * with the specified ordinal.
+ * **Primitive:** Retrieve the [special&#32;object][specialObject] with the
+ * specified ordinal.
  */
 @Suppress("unused")
 object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
@@ -71,7 +71,7 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 		val result: AvailObject
 		try
 		{
-			result = AvailRuntime.specialObject(i)
+			result = specialObject(i)
 		}
 		catch (e: ArrayIndexOutOfBoundsException)
 		{

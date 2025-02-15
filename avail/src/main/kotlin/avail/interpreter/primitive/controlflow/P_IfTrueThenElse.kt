@@ -47,7 +47,8 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Invoke the [trueBlock][FunctionDescriptor].
@@ -80,17 +81,18 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o,
-				functionType(emptyTuple, TOP.o),
-				functionType(emptyTuple, TOP.o)),
-			TOP.o)
+				ANY(),
+				functionType(emptyTuple, TOP()),
+				functionType(emptyTuple, TOP())),
+			TOP())
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the else function, instead.  The client will generate any needed type
@@ -98,9 +100,8 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		val thenFunction = arguments[1]
 		// 'then' function
 		// takes no arguments.
-		val translator = callSiteHelper.translator
-		translator.generateGeneralFunctionInvocation(
-			thenFunction, emptyList(), true, callSiteHelper)
+		generateGeneralFunctionInvocation(
+			thenFunction, true, callSiteHelper, emptyList())
 		return true
 	}
 }

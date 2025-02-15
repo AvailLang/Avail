@@ -140,7 +140,7 @@ internal abstract class L1StackTracker : L1OperationDispatcher
 		currentDepth--
 	}
 
-	override fun L1_doGetOuterClearing()
+	override fun L1_doGetLastOuter()
 	{
 		currentDepth++
 	}

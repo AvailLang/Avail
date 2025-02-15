@@ -71,15 +71,15 @@ class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
 			return restrictionForTag(baseRestriction.type.instanceTag)
 		}
 
-	override val isUsefulForGlobalValueNumbering: Boolean = true
+	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override fun transform(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue =
-		semanticValueTransformer(base).let {
-			if (it == base) this else L2SemanticExtractedTag(it)
+		semanticValueTransformer(base).let { newFrame ->
+			if (newFrame == base) this else L2SemanticExtractedTag(newFrame)
 		}
 
 	override fun toString(): String = "Tag($base)"

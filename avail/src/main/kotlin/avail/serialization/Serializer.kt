@@ -32,11 +32,13 @@
 
 package avail.serialization
 
-import avail.AvailRuntime
+import avail.AllSpecialAtoms
+import avail.SpecialObject
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.representation.A_BasicObject
@@ -45,9 +47,10 @@ import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.serialization.Serializer.Companion.specialAtoms
 import avail.serialization.SerializerOperation.ASSIGN_TO_VARIABLE
 import avail.serialization.SerializerOperation.CHECKPOINT
-import avail.serialization.SerializerOperation.SPECIAL_OBJECT
 import java.io.IOException
 import java.io.OutputStream
 import java.util.ArrayDeque
@@ -242,8 +245,10 @@ class Serializer constructor (
 	 */
 	private fun newInstruction(obj: A_BasicObject): SerializerInstruction
 	{
-		val operation = if (specialObjects.containsKey(obj)) SPECIAL_OBJECT
-		else obj.serializerOperation()
+		val index = indexOfSpecialObject(obj)
+		val operation =
+			if (index > -1) SerializerOperation.SPECIAL_OBJECT
+			else obj.serializerOperation()
 		return SerializerInstruction(operation, obj, this)
 	}
 
@@ -372,36 +377,34 @@ class Serializer constructor (
 	companion object
 	{
 		/**
-		 * The inverse of the [AvailRuntime]'s
-		 * [special&#32;objects][AvailRuntime.specialObjects] list.  Entries
-		 * that are `null` (i.e., unused entries} are not included.
+		 * The inverse of the [SpecialObject]s enumeration.  Entries that are
+		 * `null` (i.e., unused entries} are not included.
 		 */
-		private val specialObjects =
-			AvailRuntime.specialObjects.withIndex().associate {
-				it.value to it.index
+		private val specialObjects: Map<AvailObject, Int> =
+			SpecialObject.entries.withIndex().associate {
+				it.value.value to it.index
+			}
+
+		/**
+		 * Special system [atoms][A_Atom] that aren't already in the enumeration
+		 * of [AllSpecialAtoms].
+		 */
+		private val specialAtoms: Map<AvailObject, Int> =
+			AllSpecialAtoms.entries.withIndex().associate {
+				it.value.atom to it.index
 			}
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
-		 * list of [special&#32;atoms][AvailRuntime.specialAtoms].
+		 * list of [special&#32;atoms][specialAtoms], keyed by their [A_String],
+		 * where the value is the [A_Atom] itself.
 		 */
-		private val specialAtoms =
-			AvailRuntime.specialAtoms.withIndex().associate {
-				it.value to it.index
-			}
-
-		/**
-		 * Special system [atoms][AtomDescriptor] that aren't already in the
-		 * list of [special&#32;atoms][AvailRuntime.specialAtoms], keyed by
-		 * their [A_String], where the value is the [A_Atom] itself.
-		 */
-		internal val specialAtomsByName =
+		internal val specialAtomsByName: Map<A_String, AvailObject> =
 			specialAtoms.keys.associateBy { it.atomName }
 
 		/**
-		 * Look up the object.  If it is a
-		 * [special&#32;object][AvailRuntime.specialObjects], then answer which
-		 * special object it is, otherwise answer -1.
+		 * Look up the object.  If it is a [SpecialObject],, then answer its
+		 * ordinal, otherwise answer -1.
 		 *
 		 * @param obj
 		 *   The object to look up.
@@ -412,9 +415,8 @@ class Serializer constructor (
 			specialObjects[obj] ?: -1
 
 		/**
-		 * Look up the object.  If it is a
-		 * [special&#32;atom][AvailRuntime.specialAtoms], then answer which
-		 * special atom it is, otherwise answer `-1`.
+		 * Look up the object.  If it is a [special&#32;atom][SpecialAtom], then
+		 * answer which special atom it is, otherwise answer `-1`.
 		 *
 		 * @param
 		 *   object The object to look up.

@@ -39,7 +39,6 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Generator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.ifZero
 
 /**
@@ -180,34 +179,14 @@ constructor (
 	fun uses(): Set<L2ReadOperand<*>> = uses
 
 	/**
-	 * Answer a new register like this one.
-	 *
-	 * @param generator
-	 *   The [L2Generator] for which copying is requested.
-	 * @return
-	 *   The new `L2Register`.
-	 */
-	abstract fun copyForTranslator(generator: L2Generator): L2Register<K>
-
-	/**
 	 * Answer a new register like this one, but where the uniqueValue has been
 	 * set to the finalIndex.
 	 *
 	 * @return
 	 *   The new `L2Register`.
 	 */
-	abstract fun copyAfterColoring(): L2Register<K>
-
-	/**
-	 * Answer a copy of the receiver. Subclasses can be covariantly stronger in
-	 * the return type.
-	 *
-	 * @param regenerator
-	 *   The [L2Regenerator] for which copying is requested.
-	 * @return
-	 *   A copy of the receiver.
-	 */
-	abstract fun copyForRegenerator(regenerator: L2Regenerator): L2Register<K>
+	fun copyAfterColoring(): L2Register<K> =
+		kind.createRegister(finalIndex).also { it.finalIndex = finalIndex }
 
 	override fun toString() = buildString {
 		append(kind.prefix)

@@ -484,9 +484,9 @@ class SerializerTest
 	fun testFunctions()
 	{
 		val writer = L1InstructionWriter(nil, 0, nil)
-		writer.argumentTypes(Types.FLOAT.o)
+		writer.argumentTypes(Types.FLOAT())
 		writer.primitive = P_FloatFloor
-		writer.returnType = Types.FLOAT.o
+		writer.returnType = Types.FLOAT()
 		writer.returnTypeIfPrimitiveFails = bottom
 		val code: A_RawFunction = writer.compiledCode()
 		val function = createFunction(code, emptyTuple)

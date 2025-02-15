@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -51,27 +50,27 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_CREATE_OBJECT(
-	var variant: L2ArbitraryConstantOperand<ObjectLayoutVariant>,
+	variant: ObjectLayoutVariant,
 	var guaranteedType: L2ConstantOperand,
 	var fieldValues: L2ReadBoxedVectorOperand,
 	var newObject: L2WriteBoxedOperand
 ) : L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	var variant = L2ArbitraryConstantOperand(variant)
+
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(newObject.registerString())
-		builder.append(" ← {")
-		val variant: ObjectLayoutVariant = variant.constant.cast()
-		val realSlots = variant.realSlots
+		renderPreamble()
+		append(' ')
+		append(newObject.registerString())
+		append(" ← {")
+		val realSlots = variant.constant.realSlots
 		val fieldSources = fieldValues.elements
 		assert(realSlots.size == fieldSources.size)
 		var i = 0
-		realSlots.joinTo(builder, ",") { key ->
+		realSlots.joinTo(this, ",") { key ->
 			"$key: ${fieldSources[i++].registerString()}"
 		}
 	}
@@ -80,16 +79,15 @@ class L2_CREATE_OBJECT(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		val theVariant = variant.constant
-		translator.literal(method, theVariant)
-		translator.literal(method, guaranteedType.constant)
+		translator.loadLiteralObject(method, variant.constant)
+		translator.loadLiteralObject(method, guaranteedType.constant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldValues.elements
 		val limit = fieldSources.size
 		for (i in 0 until limit)
 		{
 			translator.intConstant(method, i + 1)
-			translator.load(method, fieldSources[i].register())
+			translator.load(method, fieldSources[i])
 			// Note: returns the object for chaining.
 			ObjectDescriptor.setFieldMethod.generateCall(method)
 		}

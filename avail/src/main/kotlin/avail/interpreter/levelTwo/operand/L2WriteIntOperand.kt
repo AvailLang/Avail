@@ -63,7 +63,7 @@ class L2WriteIntOperand
 constructor(
 	semanticValues: Set<L2SemanticValue<INTEGER_KIND>>,
 	restriction: TypeRestriction,
-	register: L2Register<INTEGER_KIND>
+	register: L2Register<INTEGER_KIND>? = null
 ) : L2WriteOperand<INTEGER_KIND>(semanticValues, restriction, register)
 {
 	override val operandType: L2OperandType get() = WRITE_INT
@@ -78,6 +78,9 @@ constructor(
 
 	override fun semanticValues(): Set<L2SemanticUnboxedInt> =
 		super.semanticValues().cast()
+
+	override fun pickSemanticValue(): L2SemanticUnboxedInt =
+		semanticValues().first()
 
 	override fun register(): L2IntRegister = super.register().cast()
 

@@ -556,7 +556,7 @@ abstract class AbstractStacksScanner internal constructor(
 			@Throws(StacksScannerException::class)
 			private fun parseUnicodeEscapes(
 				scanner: AbstractStacksScanner,
-				@Suppress("UNUSED_PARAMETER") stringBuilder: StringBuilder)
+				@Suppress("unused") stringBuilder: StringBuilder)
 			{
 				if (scanner.atEnd())
 				{

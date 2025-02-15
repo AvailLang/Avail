@@ -64,7 +64,7 @@ object P_ToJSON : Primitive(1, CanInline, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o), stringType)
+		functionType(tuple(ANY()), stringType)
 
 	override val canDestroyArguments get() = false
 }

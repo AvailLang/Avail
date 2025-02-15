@@ -151,7 +151,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("{")
@@ -221,7 +221,7 @@ private constructor(
 		{
 			another.isEnumeration && another.isInstanceMeta ->
 				// Union of an instance type and an instance meta is any.
-				ANY.o
+				ANY()
 			another.isEnumeration ->
 				// Create a new enumeration containing all elements from both
 				// enumerations.

@@ -96,7 +96,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				val option = Options.socketOptions[key.extractInt]!!
 				if (option.type() == java.lang.Boolean::class.java
 						&& value.isBoolean)
-						{
+				{
 					val booleanOption: SocketOption<Boolean> = option.cast()
 					socket.setOption(booleanOption, value.extractBoolean)
 				}
@@ -124,12 +124,12 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
+				ATOM(),
 				mapTypeForSizesKeyTypeValueType(
 					inclusive(0, Options.socketOptions.size - 1),
 					inclusive(1, Options.socketOptions.size - 1),
-					ANY.o)),
-			TOP.o)
+					ANY())),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

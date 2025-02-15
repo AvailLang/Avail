@@ -80,7 +80,7 @@ class ExpressionAsStatementPhraseDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = self[EXPRESSION].printOnAvoidingIndent(
 		builder, recursionMap, indent)
@@ -116,7 +116,7 @@ class ExpressionAsStatementPhraseDescriptor(
 		self[EXPRESSION]
 
 	/** Statements are always ⊤-valued. */
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP()
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE

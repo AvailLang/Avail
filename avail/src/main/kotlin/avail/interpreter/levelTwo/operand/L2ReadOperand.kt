@@ -36,11 +36,17 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
+import avail.utility.mapToSet
+import avail.utility.notNullAnd
 
 /**
  * `L2ReadOperand` abstracts the capabilities of actual register read operands.
@@ -69,14 +75,16 @@ import avail.utility.cast
  *   [L2Operand].
  * @param restriction
  *   The [TypeRestriction] that bounds the value being read.
- * @param register
- *   The [L2Register] being read by this operand.
+ * @param registerOrNull
+ *   The optional [L2Register] being read by this operand.  This may be null
+ *   until the containing [L2Instruction] is written to an [L2BasicBlock].
  */
 abstract class L2ReadOperand<K : RegisterKind<K>>
 protected constructor(
 	private var semanticValue: L2SemanticValue<K>,
 	private var restriction: TypeRestriction,
-	private var register: L2Register<K>) : L2Operand()
+	private var registerOrNull: L2Register<K>? = null
+) : L2Operand()
 {
 	/**
 	 * Answer the [RegisterKind] of register that is read by this
@@ -88,6 +96,22 @@ protected constructor(
 	abstract val kind: K
 
 	/**
+	 * Answer this read's [L2Register].
+	 *
+	 * @return
+	 *   The register.
+	 */
+	open fun register(): L2Register<K> = registerOrNull!!
+
+	/**
+	 * Set the [L2Register] that this instruction should read.
+	 */
+	fun setRegister(newRegister: L2Register<K>)
+	{
+		registerOrNull = newRegister
+	}
+
+	/**
 	 * Answer the [L2SemanticValue] being read.
 	 *
 	 * @return
@@ -96,18 +120,10 @@ protected constructor(
 	open fun semanticValue(): L2SemanticValue<K> = semanticValue
 
 	/**
-	 * Answer this read's [L2Register].
-	 *
-	 * @return
-	 *   The register.
-	 */
-	fun register(): L2Register<K> = register
-
-	/**
 	 * Answer whether this [L2ReadOperand] supplies a constant directly, rather
 	 * than consuming it from a prior point of definition (write).
 	 */
-	val isConstantRead get() = register.isConstant
+	val isConstantRead get() = registerOrNull.notNullAnd { isConstant }
 
 	/**
 	 * Answer a String that describes this operand for debugging.
@@ -115,18 +131,21 @@ protected constructor(
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String =
-		if (isConstantRead)
+	fun registerString(): String
+	{
+		val regString = registerOrNull?.let { it.toString() } ?: kind.prefix
+		return if (isConstantRead)
 		{
 			// The register has been replaced by a fresh one with no definition,
 			// which later passes recognize as being a constant read at the
 			// point of usage.
-			"const[${register.constant}]"
+			"const[${register().constant}]"
 		}
 		else
 		{
-			"$register[$semanticValue]"
+			"$regString[$semanticValue]"
 		}
+	}
 
 	/**
 	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].
@@ -187,7 +206,7 @@ protected constructor(
 	 * @return
 	 *   The defining [L2WriteOperand].
 	 */
-	fun definition(): L2WriteOperand<K> = register.definition().cast()
+	fun definition(): L2WriteOperand<K> = register().definition().cast()
 
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -201,22 +220,17 @@ protected constructor(
 			if (manifest.hasSemanticValue(semanticValue))
 			{
 				restrict { manifest.restrictionFor(this@L2ReadOperand) }
-				manifest.setRestriction(semanticValue(), restriction)
+				// Phi instructions pass in the manifest from the appropriate
+				// incoming edge, not the current manifest.  Don't write back to
+				// it in this case.
+				if (instruction !is L2_PHI<*>)
+				{
+					manifest.setRestriction(semanticValue(), restriction)
+				}
 			}
 		}
 		register().addUse(this)
 	}
-
-	/**
-	 * Create an `L2ReadOperand` like this one, but with a different
-	 * [register].
-	 *
-	 * @param newRegister
-	 *   The [L2Register] to use in the copy.
-	 * @return
-	 *   A duplicate of the receiver, but with a different [L2Register].
-	 */
-	abstract fun copyForRegister(newRegister: L2Register<K>): L2ReadOperand<K>
 
 	override fun instructionWasInserted(
 		newInstruction: L2Instruction
@@ -244,7 +258,33 @@ protected constructor(
 	override fun addSourceRegistersTo(
 		sourceRegisters: MutableList<L2Register<*>>)
 	{
-		sourceRegisters.add(register)
+		registerOrNull?.let(sourceRegisters::add)
+	}
+
+	override fun adjustCloneForInstruction(
+		theInstruction: L2Instruction,
+		generator: L2GeneratorInterface)
+	{
+		super.adjustCloneForInstruction(theInstruction, generator)
+		if (generator.mode == BySemanticValue)
+		{
+			if (theInstruction is L2_PHI<*>)
+			{
+				// Phi instructions are constructed with the incoming registers
+				// already set up.  Because otherwise the generator wouldn't be
+				// able to
+				assert(registerOrNull != null)
+			}
+			else
+			{
+				registerOrNull =
+					generator.currentManifest.getDefinition(semanticValue)
+			}
+		}
+		else
+		{
+			assert(registerOrNull != null)
+		}
 	}
 
 	override fun appendTo(builder: StringBuilder)
@@ -255,6 +295,17 @@ protected constructor(
 			// Don't redundantly print restriction information for constants.
 			builder.append(restriction.suffixString())
 		}
+	}
+
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		if (isConstantRead)
+			simpleAppendConstant(constantOrNull!!, commands, sources)
+		else
+			sources.add(register().toString())
 	}
 
 	/**
@@ -303,7 +354,7 @@ protected constructor(
 		// it must have come in along the edges, and is therefore in each
 		// incoming edge's manifest.
 		val thisBlock = instruction.basicBlock()
-		for (def in register.definitions())
+		for (def in register().definitions())
 		{
 			if (def.instruction.basicBlock() == thisBlock)
 			{
@@ -322,7 +373,7 @@ protected constructor(
 		val firstManifest = incoming.next().manifest()
 		val semanticValues = mutableSetOf<L2SemanticValue<K>>()
 		var typeRestriction: TypeRestriction? = null
-		for (syn in firstManifest.synonymsForRegister(register))
+		for (syn in firstManifest.synonymsForRegister(register()))
 		{
 			semanticValues.addAll(syn.semanticValues())
 			val nextRestriction =
@@ -336,7 +387,7 @@ protected constructor(
 		incoming.forEachRemaining {
 			val nextManifest = it.manifest()
 			val newSemanticValues = mutableSetOf<L2SemanticValue<K>>()
-			for (syn in nextManifest.synonymsForRegister(register))
+			for (syn in nextManifest.synonymsForRegister(register()))
 			{
 				newSemanticValues.addAll(syn.semanticValues())
 				typeRestriction = typeRestriction!!.union(
@@ -391,23 +442,47 @@ protected constructor(
 	abstract fun createSemanticConstant(): L2SemanticValue<K>
 
 	/**
-	 * This [L2ReadOperand] produces a constant value.  Replace its register
+	 * If this [L2ReadOperand] produces a constant value, replace its register
 	 * with a fresh one that has no definition, to break dependency chains from
 	 * its defining writes, allowing fewer registers to be live at the same
-	 * time.
+	 * time, and return true.  Otherwise return false.
+	 *
+	 * @return
+	 *   Whether the register was replaced because it's a constant read.
 	 */
-	fun replaceConstantRead()
+	fun replaceIfConstantRead(): Boolean
 	{
-		instruction.sourceRegisters.remove(register)
-		register.removeUse(this)
-		register = createConstantRegister()
+		if (constantOrNull === null) return false
+		instruction.sourceRegisters.remove(register())
+		register().removeUse(this)
+		registerOrNull = createConstantRegister()
 		semanticValue = createSemanticConstant()
-		register.addUse(this)
+		register().addUse(this)
 		// Simply rebuild the sourceRegisters.
 		instruction.sourceRegisters.clear()
 		instruction.readOperands.forEach { read ->
-			instruction.sourceRegisters.add(read.register)
+			instruction.sourceRegisters.add(read.register())
 		}
+		return true
+	}
+
+	/** Only pay attention to the semantic value. */
+	override fun equivalentTo(other: L2Operand) =
+		other is L2ReadOperand<*>
+			&& semanticValue == other.semanticValue
+
+	override val equivalentHash: Int get() = semanticValue.hashCode()
+
+	override fun mergeFromOperands(operands: List<L2Operand>)
+	{
+		assert(operands.all(::equivalentTo))
+		@Suppress("UNCHECKED_CAST")
+		operands as List<L2ReadOperand<*>>
+		val values = operands.mapToSet { it.semanticValue }
+		assert(values.size == 1)
+		restriction = operands
+			.map { it.restriction }
+			.reduce(TypeRestriction::union)
 	}
 
 	override fun postOptimizationCleanup()

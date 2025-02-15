@@ -31,13 +31,27 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.bundles.A_Bundle.Companion.message
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.types.TypeTag
+import avail.descriptor.types.TypeTag.BUNDLE_TAG
+import avail.descriptor.types.TypeTag.FUNCTION_TAG
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.utility.PublicCloneable
+import avail.utility.Strings
 import avail.utility.Strings.increaseIndentation
 import javax.annotation.OverridingMethodsMustInvokeSuper
 
@@ -143,16 +157,29 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	}
 
 	/**
-	 * Transform each L2ReadOperand through the given lambda, producing either a
-	 * new `L2Operand` of the same type, or the receiver.
+	 * Transform each [L2ReadOperand] through the given lambda, producing either
+	 * an operand of the same type, or the receiver.
 	 *
 	 * @param transformer
-	 *   The lambda to transform [L2ReadOperand]s.
+	 *   The function to transform [L2ReadOperand]s.
 	 * @return
 	 *   The transformed operand or the receiver.
 	 */
 	open fun transformEachRead(
 		transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>
+	) : L2Operand = this
+
+	/**
+	 * Transform each [L2WriteOperand] through the given lambda, producing
+	 * either an operand of the same type, or the receiver.
+	 *
+	 * @param transformer
+	 *   The function to transform [L2WriteOperand]s.
+	 * @return
+	 *   The transformed operand or the receiver.
+	 */
+	open fun transformEachWrite(
+		transformer: (L2WriteOperand<*>) -> L2WriteOperand<*>
 	) : L2Operand = this
 
 	/**
@@ -208,12 +235,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 */
 	open fun addEdgesTo(list: MutableList<L2PcOperand>) { }
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		appendWithWarningsTo(builder, 0) {  }
-		return builder.toString()
-	}
+	override fun toString() = buildString { appendWithWarningsTo(0) { } }
 
 	/**
 	 * Append a textual representation of this operand to the provided
@@ -221,7 +243,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * string, invoke the warningStyleChange lambda with `true` to enable
 	 * the warning style, and `false` to turn it off again.
 	 *
-	 * @param builder
+	 * @receiver
 	 *   The [StringBuilder] on which to describe this operand.
 	 * @param indent
 	 *   How much additional indentation to add to successive lines.
@@ -229,27 +251,26 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   A lambda to invoke to turn the warning style on or off, with a
 	 *   mechanism specified (or ignored) by the caller.
 	 */
-	fun appendWithWarningsTo(
-		builder: StringBuilder,
+	fun StringBuilder.appendWithWarningsTo(
 		indent: Int,
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		if (instructionOrNull === null)
 		{
 			warningStyleChange(true)
-			builder.append("DEAD-OPERAND: ")
+			append("DEAD-OPERAND: ")
 			warningStyleChange(false)
 		}
 		else if (isMisconnected)
 		{
 			warningStyleChange(true)
-			builder.append("MISCONNECTED: ")
+			append("MISCONNECTED: ")
 			warningStyleChange(false)
 		}
 		// Call the inner method that can be overridden.
 		val temp = StringBuilder()
 		appendTo(temp)
-		builder.append(increaseIndentation(temp.toString(), indent))
+		append(increaseIndentation(temp.toString(), indent))
 	}
 
 	/**
@@ -300,15 +321,82 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	abstract fun appendTo(builder: StringBuilder)
 
 	/**
+	 * Write a string if appropriate to either the [commands] list, the
+	 * [sources] list, or the [targets] list.
+	 */
+	open fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		// Ignore the operand by default.
+	}
+
+	/**
+	 * Given a constant [value], add a corresponding string to either the
+	 * [commands] list or the [sources] list.
+	 */
+	protected fun simpleAppendConstant(
+		value: AvailObject,
+		commands: MutableList<String>,
+		sources: MutableList<String>
+	): Unit
+	{
+		when (value.typeTag)
+		{
+			BUNDLE_TAG ->
+			{
+				commands.add(value.message.atomName.toString())
+			}
+			FUNCTION_TAG ->
+			{
+				val code: A_RawFunction = value.code()
+				var str = code.methodName.asNativeString()
+				val mod = code.module
+				if (mod.notNil)
+				{
+					val shortName = mod.shortModuleNameNative
+					val line = code.codeStartingLineNumber
+					str += "@$shortName:$line"
+				}
+				sources.add(str)
+			}
+			TypeTag.RAW_FUNCTION_TAG ->
+			{
+				val code: A_RawFunction = value
+				var str = code.methodName.asNativeString()
+				val mod = code.module
+				if (mod.notNil)
+				{
+					val shortName = mod.shortModuleNameNative
+					val line = code.codeStartingLineNumber
+					str += "@$shortName:$line"
+				}
+				sources.add(str)
+			}
+			else -> sources.add(
+				Strings.escape(value.toString().run {
+					if (length > 20) substring(0, 20) + "…"
+					else this
+				}).run { substring(1, length - 1) })
+		}
+	}
+
+
+	/**
 	 * This is a freshly cloned operand.  Adjust it for use in the given
 	 * [L2Instruction].  Note that the new instruction has not yet been
 	 * installed into an [L2BasicBlock].
 	 *
 	 * @param theInstruction
-	 *   The theInstruction that this operand is being installed in.
+	 *   The [L2Instruction] that this operand is being installed in.
+	 * @param generator
+	 *   The [L2GeneratorInterface] on which this instruction will be written.
 	 */
 	@OverridingMethodsMustInvokeSuper
-	open fun adjustCloneForInstruction(theInstruction: L2Instruction)
+	open fun adjustCloneForInstruction(
+		theInstruction: L2Instruction,
+		generator: L2GeneratorInterface)
 	{
 		// The instruction will be set correctly when this instruction is
 		// emitted to an L2BasicBlock.
@@ -324,6 +412,30 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	open fun setInstruction(theInstruction: L2Instruction?)
 	{
 		instructionOrNull = theInstruction
+	}
+
+	/**
+	 * Answer whether the receiver and [other] can be considered equivalent for
+	 * the purpose of merging postponed instructions at a merge point in the
+	 * control flow graph.
+	 */
+	abstract fun equivalentTo(other: L2Operand): Boolean
+
+	/**
+	 * Compute a hash value for this operand such that two instructions that are
+	 * [equivalentTo] each other have the same [equivalentHash].
+	 */
+	abstract val equivalentHash: Int
+
+	/**
+	 * Given a [List] of [L2Operand]s of the same type, representing operands
+	 * for the same field in different postponed instructions being merged at a
+	 * control flow merge point, update the receiver, a fresh clone, to be used
+	 * as a replacement [L2Operand] in the merged [L2Instruction].
+	 */
+	open fun mergeFromOperands(operands: List<L2Operand>)
+	{
+		assert(operands.all(::equivalentTo))
 	}
 
 	/**

@@ -273,7 +273,7 @@ Public stable method "_<«_‡,»>" is
 	Primitive CreatePojoType (failureCode : {
 		incorrect-number-of-arguments code,
 		Java-class-not-available code}ᵀ);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : any's type;
 
 /**

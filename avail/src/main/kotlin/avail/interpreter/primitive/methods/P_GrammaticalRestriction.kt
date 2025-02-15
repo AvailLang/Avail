@@ -93,16 +93,15 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		}
 		val excludedAtomSets =
 			generateObjectTupleFrom(excludedStringSets.tupleSize) {
-				excludedStringSets.tupleAt(it)
-					.fold(emptySet) { set, string ->
-						var atoms = loader.module.trueNamesForStringName(string)
-						if (atoms.setSize == 0)
-						{
-							// Auto-create it if it doesn't exist yet.
-							atoms = set(loader.lookupName(string))
-						}
-						set.setUnionCanDestroy(atoms, true)
+				excludedStringSets.tupleAt(it).fold(emptySet) { set, string ->
+					var atoms = loader.module.trueNamesForStringName(string)
+					if (atoms.setSize == 0)
+					{
+						// Auto-create it if it doesn't exist yet.
+						atoms = set(loader.lookupName(string))
 					}
+					set.setUnionCanDestroy(atoms, true)
+				}
 			}
 		try
 		{
@@ -139,7 +138,7 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 				setTypeForSizesContentType(naturalNumbers, stringType),
 				zeroOrMoreOf(
 					setTypeForSizesContentType(wholeNumbers, stringType))),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -105,7 +105,7 @@ object P_LookupMacro : Primitive(2, CanInline, ReadsFromHiddenGlobalState)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o,
+				ATOM(),
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType)),
 			functionTypeReturning(PARSE_PHRASE.mostGeneralType))
 

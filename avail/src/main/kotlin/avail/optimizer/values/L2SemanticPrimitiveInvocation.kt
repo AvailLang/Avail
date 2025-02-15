@@ -38,6 +38,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
+import avail.utility.cast
 
 /**
  * An [L2SemanticValue] which represents the result produced by a [Primitive]
@@ -54,7 +55,7 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
  * @property primitive
  *   The [Primitive] whose invocation is being represented.
  * @property argumentSemanticValues
- *   The [List] of [L2SemanticValue]s that represent the arguments to the
+ *   The [List] of [L2SemanticBoxedValue]s that represent the arguments to the
  *   invocation of the primitive.
  * @param primitive
  *   The primitive whose invocation is being represented.
@@ -64,7 +65,7 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
 class L2SemanticPrimitiveInvocation
 internal constructor(
 	val primitive: Primitive,
-	val argumentSemanticValues: List<L2SemanticValue<BOXED_KIND>>
+	val argumentSemanticValues: List<L2SemanticBoxedValue>
 ) : L2SemanticBoxedValue(computeHash(primitive, argumentSemanticValues))
 {
 	init
@@ -77,11 +78,7 @@ internal constructor(
 			&& primitive === other.primitive
 			&& argumentSemanticValues == other.argumentSemanticValues)
 
-	override fun toString(): String = buildString {
-		append(primitive.name)
-		append(argumentSemanticValues.joinToString(
-			separator = ", ", prefix = "(", postfix = ")" ))
-	}
+	override fun toString(): String = primitive.printSemanticInvocation(this)
 
 	override fun transform(
 		semanticValueTransformer:
@@ -93,24 +90,25 @@ internal constructor(
 		val newArguments = argumentSemanticValues.mapTo(mutableListOf()) {
 			it.transform(semanticValueTransformer, frameTransformer)
 		}
-
-		if ((0 until numArgs).all {
-			newArguments[it] == argumentSemanticValues[it]
-		})
+		if ((0 until numArgs)
+				.all { newArguments[it] == argumentSemanticValues[it] })
 		{
 			return this
 		}
-		return L2SemanticPrimitiveInvocation(primitive, newArguments)
+		return L2SemanticPrimitiveInvocation(primitive, newArguments.cast())
 	}
 
 	override val defaultRestriction: TypeRestriction
 		get() = boxedRestrictionForType(
 			primitive.blockTypeRestriction().returnType)
 
-	override val isUsefulForGlobalValueNumbering: Boolean = true
+	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.PRIMITIVE_INVOCATION
+
+	override fun requiresParentheses(): Boolean =
+		primitive.semanticinfixOperatorString !== null
 
 	companion object
 	{

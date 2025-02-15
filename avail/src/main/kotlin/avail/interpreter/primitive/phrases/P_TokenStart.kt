@@ -63,7 +63,7 @@ object P_TokenStart : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o),
+				TOKEN()),
 			wholeNumbers)
 
 	override val canDestroyArguments get() = false

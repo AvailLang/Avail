@@ -104,7 +104,7 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ATOM.o),
+			tuple(ATOM()),
 			tupleTypeForTypes(
 				tupleTypeForSizesTypesDefaultType(
 					inclusive(4, 16),

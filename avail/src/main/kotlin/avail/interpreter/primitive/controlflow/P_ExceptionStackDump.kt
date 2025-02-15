@@ -94,6 +94,10 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 		}
 	}
 
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(exceptionType), zeroOrMoreOf(stringType))
 

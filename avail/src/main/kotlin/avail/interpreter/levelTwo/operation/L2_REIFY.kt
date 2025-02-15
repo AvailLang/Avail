@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
@@ -38,9 +39,10 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.entries
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.jvm.JVMTranslator
@@ -52,10 +54,9 @@ import org.objectweb.asm.Opcodes
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will
- * reify the entire Java stack (or discard it if "capture frames" is false).
- * If "process interrupt" is true, then process an interrupt as soon as the
- * reification is complete.  Otherwise continue running at "on reification" with
- * the reified state captured in the
+ * reify the entire Java stack. If "process interrupt" is true, process an
+ * interrupt as soon as the reification is complete.  Otherwise continue running
+ * at "on reification" with the reified state captured in the
  * [Interpreter.getReifiedContinuation].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -63,9 +64,8 @@ import org.objectweb.asm.Opcodes
  */
 @WritesHiddenVariable(STACK_REIFIER::class)
 class L2_REIFY(
-	var captureFrames: L2IntImmediateOperand,
 	var processInterrupt: L2IntImmediateOperand,
-	var statistic: L2ArbitraryConstantOperand<Statistic>,
+	var statisticName: L2ConstantOperand,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
 ) : L2ControlFlowInstruction()
 {
@@ -119,38 +119,26 @@ class L2_REIFY(
 		}
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		val statistic = statistic.constant
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(statistic.name())
-		if (captureFrames.value != 0 || processInterrupt.value != 0)
+		renderPreamble()
+		if (statisticName.constant.notNil)
 		{
-			builder.append(" [")
-			if (captureFrames.value != 0)
-			{
-				builder.append("actually reify")
-				if (processInterrupt.value != 0)
-				{
-					builder.append(", ")
-				}
-			}
-			if (processInterrupt.value != 0)
-			{
-				builder.append("process interrupt")
-			}
-			builder.append(']')
+			append(' ')
+			append(statisticName.constant)
+		}
+		if (processInterrupt.value != 0)
+		{
+			append(" [process interrupt]")
 		}
 		if (PC in desiredOperandTypes)
 		{
-			builder.append("\n\t")
-			builder.append(::ifReification.name)
-			builder.append(" = ")
-			builder.append(increaseIndentation(ifReification.toString(), 1))
+			append("\n\t")
+			append(::ifReification.name)
+			append(" = ")
+			append(increaseIndentation(ifReification.toString(), 1))
 		}
 	}
 
@@ -158,12 +146,18 @@ class L2_REIFY(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		// :: reifier = interpreter.reify(
-		// ::    actuallyReify, processInterrupt, statistic);
+		// :: reifier = interpreter.reify(processInterrupt, statistic)
 		translator.loadInterpreter(method)
-		translator.literal(method, captureFrames.value)
-		translator.literal(method, processInterrupt.value)
-		translator.literal(method, statistic.constant)
+		translator.intConstant(method, processInterrupt.value)
+		val statistic = if (processInterrupt.value != 0)
+		{
+			StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic
+		}
+		else
+		{
+			Statistic(REIFICATIONS, statisticName.constant.asNativeString())
+		}
+		translator.loadLiteralObject(method, statistic)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an

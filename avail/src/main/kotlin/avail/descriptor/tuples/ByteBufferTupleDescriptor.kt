@@ -58,6 +58,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteBufferTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteBufferTupleDescriptor.ObjectSlots.BYTE_BUFFER
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.defaultType
@@ -154,10 +155,9 @@ private constructor(
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
-				val buffer = self[BYTE_BUFFER]
-					.javaObjectNotNull<ByteBuffer>()
+				val buffer = self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>()
 				val newSize = originalSize + 1
-				return ByteTupleDescriptor.generateByteTupleFrom(newSize) {
+				return generateByteTupleFrom(newSize) {
 					when
 					{
 						it < newSize -> buffer[it - 1].toInt() and 255
@@ -382,7 +382,7 @@ private constructor(
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		val originalBuffer = self.byteBuffer
-		val result = ByteTupleDescriptor.generateByteTupleFrom(size)
+		val result = generateByteTupleFrom(size)
 			{ originalBuffer[size - it].toInt() and 255 }
 		result.setHashOrZero(0)
 		return result
@@ -445,7 +445,7 @@ private constructor(
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			val originalBuffer = self.byteBuffer
-			val result = ByteTupleDescriptor.generateByteTupleFrom(size)
+			val result = generateByteTupleFrom(size)
 				{ originalBuffer[it + start - 2].toInt() and 255 }
 			if (canDestroy)
 			{

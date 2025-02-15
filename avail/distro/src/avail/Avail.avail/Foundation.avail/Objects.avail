@@ -359,14 +359,14 @@ Public stable method "{`#_`|⁇«_:_‡,»`#}" is
 		fieldAtoms ::= stripe newDefinitions at 1;
 		If |fieldAtoms→set| ≠ |fieldAtoms| then
 		[
-			early failure function(
-				object-type-extension-contains-duplicates code)
+			Failed primitive with
+				object-type-extension-contains-duplicates code
 		];
 		subtype ::= (supertype→tuple ++ newDefinitions)→object type;
 		If ¬subtype ⊆ supertype then
 		[
-			early failure function(
-				object-type-extension-did-not-produce-subtype code)
+			Failed primitive with
+				object-type-extension-did-not-produce-subtype code
 		];
 		subtype
 	]
@@ -404,13 +404,13 @@ Public stable method "extend_with«_:_‡,»" is
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object-type-extension-contains-duplicates code)
+		Failed primitive with object-type-extension-contains-duplicates code
 	];
 	subtype ::= (supertype→tuple ++ newDefinitions)→object type;
 	If ¬subtype ⊆ supertype then
 	[
-		early failure function(
-			object-type-extension-did-not-produce-subtype code)
+		Failed primitive with
+			object-type-extension-did-not-produce-subtype code
 	];
 	subtype
 ] : object meta;
@@ -528,7 +528,7 @@ Private method "generate immutable read for_,_" is
 |
 	Primitive CreateObjectFieldGetter(
 		failureCode : {no-such-field code}ᵀ);
-	Invoke early failure function with <failureCode>
+	Failed primitive with failureCode
 ] : [⊥] → any;
 
 /**
@@ -549,27 +549,24 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 	fieldType : any meta,
 	mutable : boolean
 |
+	readField ::= generate immutable read for objectType, fieldAtom;
 	if ¬mutable then
 	[
-		generate immutable read for objectType, fieldAtom
+		readField
 	]
 	else
 	[
-		args ::= <arg «(this token: obj) : objectType»>;
-		objectPhrase ::= «↓args[1]»;
-		getFieldSend ::= send $"_[_]"
-			with «<objectPhrase, ‘fieldAtom’>» : fieldType;
-		resultType ::=
-			unless mutable then [fieldType]
-			else
-			[
-				varType ::= cast fieldType into [t : variable's type | t];
-				varType's read type
-			];
-		last ::=
-			unless mutable then [getFieldSend]
-			else [send  $"↓_" with «<getFieldSend>» : resultType];
-		newBlock ::= «[args | <last>] : resultType»;
+		arg ::= arg «(this token: obj) : objectType»;
+		readFieldConstant ::=
+			`readField`("get " ++ fieldAtom's name) → literal phrase;
+		varType ::= fieldType ?→ variable's type;
+		objectPhrase ::= «↓arg»;
+		getFieldSend ::= send $"_(«_‡,»)"
+			with «<readFieldConstant, «<objectPhrase>»>»
+			: fieldType;
+		resultType ::= varType's read type;
+		last ::= send  $"↓_" with «<getFieldSend>» : resultType;
+		newBlock ::= «[<arg> | <last>] : resultType»;
 		newBlock→function
 	]
 ];
@@ -1241,7 +1238,7 @@ is
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object-type-extension-contains-duplicates code)
+		Failed primitive with object-type-extension-contains-duplicates code
 	];
 	/* If necessary, then generate a field definition that guarantees
 	 * uniqueness among object types.
@@ -1257,8 +1254,8 @@ is
 	subtype ::= (supertype→tuple ++ newDefinitions ++ explicitDef)→object type;
 	If ¬subtype ⊆ supertype then
 	[
-		early failure function(
-			object-type-extension-did-not-produce-subtype code)
+		Failed primitive with
+			object-type-extension-did-not-produce-subtype code
 	];
 	/* Define the class: give the object type a name, define a method that
 	 * answers the object type, and define methods that access the field
@@ -1292,7 +1289,7 @@ is
 			else [fieldAtom's default accessor name];
 		If |message accessorName's parameters| ≠ 1 then
 		[
-			early failure function(invalid-argument code)
+			Failed primitive with invalid-argument code
 		];
 		If ¬accessor name ∈ fieldAtom then
 		[
@@ -1300,8 +1297,8 @@ is
 		];
 		If fieldAtom's accessor name ≠ accessorName then
 		[
-			early failure function(
-				object-type-extension-changed-field-accessor-name code)
+			Failed primitive with
+				object-type-extension-changed-field-accessor-name code
 		];
 		Generate and install subtype accessor for fieldAtom;
 	];
@@ -1332,7 +1329,7 @@ is
 		accessorName ::= orderedNames[1];
 		If |message accessorName's parameters| ≠ 1 then
 		[
-			early failure function(invalid-argument code)
+			Failed primitive with invalid-argument code
 		];
 		If ¬accessor name ∈ fieldAtom then
 		[
@@ -1340,13 +1337,13 @@ is
 		];
 		If fieldAtom's accessor name ≠ accessorName then
 		[
-			early failure function(
-				object-type-extension-changed-field-accessor-name code)
+			Failed primitive with
+				object-type-extension-changed-field-accessor-name code
 		];
 		mutatorName ::= orderedNames[2];
 		If |message mutatorName's parameters| ≠ 2 then
 		[
-			early failure function(invalid-argument code)
+			Failed primitive with invalid-argument code
 		];
 		If ¬mutator name ∈ fieldAtom then
 		[
@@ -1354,13 +1351,13 @@ is
 		];
 		If fieldAtom's mutator name ≠ mutatorName then
 		[
-			early failure function(
-				object-type-extension-changed-field-mutator-name code)
+			Failed primitive with
+				object-type-extension-changed-field-mutator-name code
 		];
 		referrerName ::= orderedNames[3];
 		If |message referrerName's parameters| ≠ 1 then
 		[
-			early failure function(invalid-argument code)
+			Failed primitive with invalid-argument code
 		];
 		If ¬referrer name ∈ fieldAtom then
 		[
@@ -1368,8 +1365,8 @@ is
 		];
 		If fieldAtom's referrer name ≠ referrerName then
 		[
-			early failure function(
-				object-type-extension-changed-field-referrer-name code)
+			Failed primitive with
+				object-type-extension-changed-field-referrer-name code
 		];
 		/* Now install the accessor, referrer, and mutator, as appropriate. */
 		Generate and install subtype accessor for mutable fieldAtom;
@@ -1918,8 +1915,8 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 			fieldAtom ::= def[1];
 			If fieldAtom ∈ fieldAtoms then
 			[
-				early failure function(
-					object-instantiation-contains-duplicates code)
+				Failed primitive with
+					object-instantiation-contains-duplicates code
 			];
 			fieldAtoms := eject fieldAtoms + fieldAtom;
 			/* If the assignment form (:=) was used, then create a new variable
@@ -1990,8 +1987,8 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 	newObject ::= (assignments ++ syntheticAssignments)→object;
 	If ¬newObject ∈ objectType then
 	[
-		early failure function(
-			object-instantiation-did-not-produce-instance code)
+		Failed primitive with
+			object-instantiation-did-not-produce-instance code
 	];
 	newObject
 ] : object;
@@ -2266,7 +2263,7 @@ Public method "_as_«with«_::=_‡,»»" is
 	fieldAtoms ::= stripe assignments at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object-instantiation-contains-duplicates code)
+		Failed primitive with object-instantiation-contains-duplicates code
 	];
 	objectMap ::= objectType→map;
 	identityAssignments : <<atom, any…|2>…|> := <>;
@@ -2282,8 +2279,8 @@ Public method "_as_«with«_::=_‡,»»" is
 		(instance→map's bindings ++ assignments ++ identityAssignments)→object;
 	If ¬newObject ∈ objectType then
 	[
-		early failure function(
-			object-instantiation-did-not-produce-instance code)
+		Failed primitive with
+			object-instantiation-did-not-produce-instance code
 	];
 	newObject
 ] : object;

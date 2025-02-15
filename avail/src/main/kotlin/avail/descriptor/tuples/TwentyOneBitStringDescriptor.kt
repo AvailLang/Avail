@@ -112,7 +112,37 @@ class TwentyOneBitStringDescriptor private constructor(
 		 * [unusedEntriesOfLastLong], which indicates how many (0-2) of the
 		 * 21-bit subfields of the last long are unused.
 		 */
-		RAW_LONGS_;
+		RAW_LONGS_
+		{
+			override fun describeIntegerSlot(
+				self: AvailObject,
+				value: Long,
+				subscript: Int,
+				bitFields: List<BitField>,
+				builder: StringBuilder)
+			{
+				assert(bitFields.isEmpty())
+				super.describeIntegerSlot(
+					self, value, subscript, bitFields, builder)
+				builder.append("  |  ")
+				val offset = (subscript - 1) * 3
+				for (i in offset + 1 .. min(self.tupleSize, offset + 3))
+				{
+					val c = get21BitSlot(self, i)
+					builder.appendCodePoint(
+						when
+						{
+							Character.isISOControl(c) -> '.'.code
+							c == ' '.code -> c
+							Character.isWhitespace(c) -> '.'.code
+							!Character.isDefined(c) -> '.'.code
+							else -> c
+						})
+				}
+			}
+		}
+
+		;
 
 		companion object
 		{

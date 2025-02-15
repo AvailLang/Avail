@@ -31,10 +31,12 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
 
@@ -60,10 +62,14 @@ class L2PcVectorOperand constructor(
 	override fun clone(): L2PcVectorOperand =
 		L2PcVectorOperand(edges.map { it.clone().cast() })
 
-	override fun adjustCloneForInstruction(theInstruction: L2Instruction)
+	override fun adjustCloneForInstruction(
+		theInstruction: L2Instruction,
+		generator: L2GeneratorInterface)
 	{
-		super.adjustCloneForInstruction(theInstruction)
-		edges.forEach { it.adjustCloneForInstruction(theInstruction) }
+		super.adjustCloneForInstruction(theInstruction, generator)
+		edges.forEach {
+			it.adjustCloneForInstruction(theInstruction, generator)
+		}
 	}
 
 	override val operandType: L2OperandType get() = PC_VECTOR
@@ -114,6 +120,15 @@ class L2PcVectorOperand constructor(
 		}
 		append("\n>")
 	}
+
+	/** Instructions that branch are not eligible for postponement. */
+	override fun equivalentTo(other: L2Operand) = unsupported
+
+	/** Instructions that branch are not eligible for postponement. */
+	override val equivalentHash: Int get() = unsupported
+
+	/** Instructions that branch are not eligible for postponement. */
+	override fun mergeFromOperands(operands: List<L2Operand>) = unsupported
 
 	override fun postOptimizationCleanup(): Unit =
 		edges.forEach(L2PcOperand::postOptimizationCleanup)

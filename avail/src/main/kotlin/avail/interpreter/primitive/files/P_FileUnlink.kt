@@ -40,8 +40,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_DIRECTORY_NOT_EMPTY
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -149,25 +149,27 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 					object : FileVisitor<Path>
 					{
 						override fun preVisitDirectory(
-							dir: Path?,
-							unused: BasicFileAttributes?): FileVisitResult
+							dir: Path,
+							unused: BasicFileAttributes
+						): FileVisitResult
 						{
 							return CONTINUE
 						}
 
 						@Throws(IOException::class)
 						override fun visitFile(
-							file: Path?,
-							unused: BasicFileAttributes?): FileVisitResult
+							file: Path,
+							unused: BasicFileAttributes
+						): FileVisitResult
 						{
-							assert(file !== null)
-							Files.deleteIfExists(file!!)
+							Files.deleteIfExists(file)
 							return CONTINUE
 						}
 
 						override fun visitFileFailed(
-							file: Path?,
-							unused: IOException?): FileVisitResult
+							file: Path,
+							unused: IOException
+						): FileVisitResult
 						{
 							partialSuccess.value = true
 							return CONTINUE
@@ -175,17 +177,16 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 
 						@Throws(IOException::class)
 						override fun postVisitDirectory(
-							dir: Path?,
+							dir: Path,
 							e: IOException?): FileVisitResult
 						{
-							assert(dir !== null)
 							if (e !== null)
 							{
 								partialSuccess.value = true
 							}
 							else
 							{
-								Files.deleteIfExists(dir!!)
+								Files.deleteIfExists(dir)
 							}
 							return CONTINUE
 						}
@@ -211,7 +212,7 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(booleanType, stringType, booleanType, booleanType),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

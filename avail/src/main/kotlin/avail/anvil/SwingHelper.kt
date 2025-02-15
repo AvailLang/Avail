@@ -92,6 +92,7 @@ fun JTextPane.scrollTextWithLineNumbers(
 	getClientProperty(CodeOverlay::class.java.name)?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
 	scrollPane.setRowHeaderView(TextLineNumber(this))
+	scrollPane.revalidate()
 	val overlay = CodeOverlay(workbench, this, guideLines)
 	val guidePane = JLayer(scrollPane, overlay)
 	// Make sure that the font is available in several places, for convenience.

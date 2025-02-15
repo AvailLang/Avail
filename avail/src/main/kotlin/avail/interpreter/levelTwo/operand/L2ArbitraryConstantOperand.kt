@@ -31,42 +31,71 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import java.lang.reflect.Array.*
 
 /**
  * An [L2ArbitraryConstantOperand] is an operand of type
- * [L2OperandType.ARBITRARY_CONSTANT].  It also holds the actual Java object
- * that is the constant.  The object should not generally be an [AvailObject],
- * since that's supposed to be handled by an [L2ConstantOperand].
+ * [L2OperandType.ARBITRARY_CONSTANT].  It holds an arbitrary value as a
+ * constant constrained to a generic type [T].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- * Construct a new [L2ArbitraryConstantOperand] with the specified constant
- * [Object].
+ * Construct a new [L2ArbitraryConstantOperand] with the specified [constant].
  *
- * @property T
- *   The type constraining the [constant].
- * @property constant
+ * @param constant
  *   The constant value.
  */
-class L2ArbitraryConstantOperand<T: Any>(val constant: T) : L2Operand()
+class L2ArbitraryConstantOperand<T>(constant: T) : L2Operand()
 {
-	override val operandType: L2OperandType get() = ARBITRARY_CONSTANT
+	/**
+	 * The actual constant value.
+	 */
+	val constant: T = constant
+
+	override val operandType: L2OperandType get() = CONSTANT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
-	override fun appendTo(builder: StringBuilder): Unit = with(builder)
-	{
-		var string = constant.toString()
-		if (string.length > 40)
-		{
-			string = string.take(40) + "…"
+	override fun appendTo(builder: StringBuilder): Unit = with(builder) {
+		append("?(")
+		brief {
+			when
+			{
+				constant == null -> append("null")
+				constant.javaClass.isArray ->
+				{
+					(0 until getLength(constant)).asSequence()
+						.map { get(constant, it) }
+						.joinTo(
+							buffer = this,
+							separator = ", ",
+							prefix = "${constant.javaClass.simpleName}[",
+							postfix = "]",
+							limit = 10)
+				}
+				else -> append(constant)
+			}
 		}
-		append(string)
+		append(")")
 	}
+
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		sources.add(buildString { appendTo(this) })
+	}
+
+	override fun equivalentTo(other: L2Operand) =
+		other is L2ArbitraryConstantOperand<*>
+			&& constant == other.constant
+
+	override val equivalentHash: Int get() = constant.hashCode()
 }

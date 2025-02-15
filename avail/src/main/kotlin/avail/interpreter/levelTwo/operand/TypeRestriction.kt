@@ -33,6 +33,8 @@ package avail.interpreter.levelTwo.operand
 
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
@@ -57,17 +59,21 @@ import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.lowerInclusive
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.trimType
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -75,7 +81,6 @@ import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.OBJECT_TAG
 import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
@@ -87,6 +92,7 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Synonym
+import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
@@ -342,6 +348,9 @@ class TypeRestriction private constructor(
 	val constantOrNull: AvailObject?
 		get() = positiveGroup.constants?.firstOrNull().cast()
 
+	/** Answer whether this restriction represents a constant value. */
+	val isConstant: Boolean get() = constantOrNull != null
+
 	/**
 	 * Answer the base type of this restriction.
 	 */
@@ -393,7 +402,7 @@ class TypeRestriction private constructor(
 		}
 		// No object has exact type ⊥ or ⊤.
 		val resultExcludedValues = mutableSetOf<A_BasicObject>(
-			TOP.o,
+			TOP(),
 			BottomTypeDescriptor.bottom)
 		for (v in excludedValues)
 		{
@@ -444,6 +453,33 @@ class TypeRestriction private constructor(
 		// Therefore, find each intersection of an excluded type from the first
 		// restriction and an excluded type from the second restriction.
 		val mutualTypeIntersections = mutableSetOf<A_Type>()
+		// If the types are extended integers, add exclusions for the ends of
+		// the ranges out to ±∞ (if they're not included).  By doing so, we
+		// actually make such unions precise, if Swiss cheesy.
+		var selfExcluded = excludedTypes
+		type.run {
+			if (isExtendedInteger)
+			{
+				if (!lowerInclusive)
+					selfExcluded += integerRangeType(
+						negativeInfinity, true, lowerBound, false)
+				if (!upperInclusive)
+					selfExcluded += integerRangeType(
+						upperBound, false, positiveInfinity, true)
+			}
+		}
+		var otherExcluded = other.excludedTypes
+		other.type.run {
+			if (isExtendedInteger)
+			{
+				if (!lowerInclusive)
+					otherExcluded += integerRangeType(
+						negativeInfinity, true, lowerBound, false)
+				if (!upperInclusive)
+					otherExcluded += integerRangeType(
+						upperBound, false, positiveInfinity, true)
+			}
+		}
 		for (t1 in excludedTypes)
 		{
 			for (t2 in other.excludedTypes)
@@ -509,6 +545,7 @@ class TypeRestriction private constructor(
 	 */
 	fun intersection(other: TypeRestriction): TypeRestriction
 	{
+		if (this === other) return this
 		val c1 = constantOrNull
 		val c2 = other.constantOrNull
 		if (c1 !== null && c2 !== null && !c1.equals(c2))
@@ -633,6 +670,41 @@ class TypeRestriction private constructor(
 			givenType = type,
 			constantOrNull = constantOrNull,
 			givenExcludedTypes = excludedTypes + typeToExclude,
+			givenExcludedValues = excludedValues,
+			possibleVariants = positiveGroup.objectVariants,
+			excludedVariants = negativeGroup.objectVariants,
+			possibleTypeVariants = positiveGroup.objectTypeVariants,
+			excludedTypeVariants = negativeGroup.objectTypeVariants,
+			givenTag = tag,
+			excludedTags = excludedTags,
+			flags = flags)
+	}
+
+	/**
+	 * Create the asymmetric difference of the receiver and the given [A_Type]s.
+	 * This is the restriction that a register would have if it held a value
+	 * that satisfied the receiver, but failed a test against any of the given
+	 * types.
+	 *
+	 * @param typesToExclude
+	 *   The types to exclude from the receiver to create a new
+	 *   [TypeRestriction].
+	 * @return
+	 *   The new type restriction.
+	 */
+	fun minusTypes(typesToExclude: Collection<A_Type>): TypeRestriction
+	{
+		if (isImpossible) return this
+		if (tag.notNullAnd {
+			typesToExclude.any { t -> supremum.isSubtypeOf(t) }
+		})
+		{
+			return bottomRestriction
+		}
+		return restriction(
+			givenType = type,
+			constantOrNull = constantOrNull,
+			givenExcludedTypes = excludedTypes + typesToExclude,
 			givenExcludedValues = excludedValues,
 			possibleVariants = positiveGroup.objectVariants,
 			excludedVariants = negativeGroup.objectVariants,
@@ -866,6 +938,31 @@ class TypeRestriction private constructor(
 	}
 
 	/**
+	 * Determine whether an arbitrary [AvailObject] satisfies this restriction.
+	 */
+	fun containsValue(value: A_BasicObject): Boolean
+	{
+		value as AvailObject
+		if (constantOrNull.notNullAnd { equals(value) }) return true
+		if (!value.isInstanceOf(type)) return false
+		if (excludedValues.contains(value)) return false
+		if (excludedTypes.notNullAnd { any(value::isInstanceOf) }) return false
+		val tag = value.typeTag
+		if (positiveGroup.tags.notNullAnd { tag !in this }) return false
+		if (negativeGroup.tags.notNullAnd { tag in this }) return false
+		if (negativeGroup.objectVariants.notNullAnd {
+			value.isInstanceOf(mostGeneralObjectType)
+				&& value.objectVariant in this
+		}) return false
+		if (negativeGroup.objectTypeVariants.notNullAnd {
+				value.isInstanceOf(mostGeneralObjectMeta)
+					&& !(value as A_Type).isBottom
+					&& value.objectTypeVariant in this
+			}) return false
+		return true
+	}
+
+	/**
 	 * Answer true if this `TypeRestriction` only contains values that
 	 * are within the given testType.
 	 *
@@ -1000,7 +1097,7 @@ class TypeRestriction private constructor(
 	{
 		hasFlag(UNBOXED_FLOAT_FLAG) -> this
 		else -> restriction(
-			givenType = type.typeIntersection(Types.DOUBLE.o),
+			givenType = type.typeIntersection(Types.DOUBLE()),
 			constantOrNull = constantOrNull,
 			givenExcludedTypes = excludedTypes,
 			givenExcludedValues = excludedValues,
@@ -1171,6 +1268,8 @@ class TypeRestriction private constructor(
 		// I have to exclude at least every type excluded by the argument.
 		for (otherExcludedType in other.excludedTypes)
 		{
+			if (otherExcludedType.typeIntersection(type).isVacuousType)
+				continue
 			if (excludedTypes.none { otherExcludedType.isSubtypeOf(it) })
 			{
 				return false
@@ -1179,6 +1278,7 @@ class TypeRestriction private constructor(
 		// I also have to exclude every value excluded by the argument.
 		for (otherExcludedValue in other.excludedValues)
 		{
+			if (!otherExcludedValue.isInstanceOf(type)) continue
 			if (!excludedValues.contains(otherExcludedValue)
 				&& excludedTypes.none(otherExcludedValue::isInstanceOf))
 			{
@@ -1205,60 +1305,77 @@ class TypeRestriction private constructor(
 		{
 			return "=" + constant.typeTag.shorterName
 		}
-		return if (!type.equals(TOP.o))
+		return if (!type.equals(TOP()))
 		{
 			":" + (type as AvailObject).typeTag.shorterName
 		}
 		else ""
 	}
 
-	override fun toString(): String = buildString {
-		append("restriction(")
-		if (constantOrNull !== null)
-		{
-			append("c=")
-			var valueString = constantOrNull.toString()
-			if (valueString.length > 50)
-			{
-				valueString = valueString.substring(0, 50) + '…'
+	override fun toString(): String
+	{
+		val parts: Map<String, Collection<Any>?> = buildMap {
+			constantOrNull?.let { put("c", listOf(it)) }
+			constantOrNull ?: put("t", listOf(type))
+			put("ex.t", excludedTypes)
+			put("ex.v", excludedValues)
+			put("typeVariants", positiveGroup.objectTypeVariants)
+			put("variants", positiveGroup.objectVariants)
+			put("ex.typeVariants", negativeGroup.objectTypeVariants)
+			put("ex.variants", negativeGroup.objectVariants)
+			var flags = buildList {
+				if (isImmutable) add("imm")
+				if (isBoxed) add("box")
+				if (isUnboxedInt) add("int")
+				if (isUnboxedFloat) add("float")
 			}
-			valueString = valueString
-				.replace("\n", "\\n")
-				.replace("\t", "\\t")
-			append(valueString)
+			if (flags.size > 1) flags = listOf(flags.joinToString("+"))
+			put("flags", flags)
+		}
+		val strings = parts
+			.filterValues { v -> v.notNullAnd(Collection<*>::isNotEmpty) }
+			.mapValues { (_, v) -> v!!.map { it.toString().truncateTo(50)} }
+		val estimate = strings.entries.sumOf { (k, v) ->
+			k.length + v.sumOf(String::length)
+		}
+		return if (estimate < 100)
+		{
+			strings.entries.joinToString(", ", "restriction(", ")") { (k, v) ->
+				when (v.size)
+				{
+					1 -> "$k=${v[0]}"
+					else -> v.joinToString(", ", "$k=(", ")")
+				}
+			}
 		}
 		else
 		{
-			append("t=")
-			var typeString = type.toString()
-			if (typeString.length > 50)
-			{
-				typeString = typeString.substring(0, 50) + '…'
+			buildString {
+				append("restriction:")
+				strings.forEach { k, v ->
+					append("\n\t\t\t")
+					append(k)
+					when
+					{
+						v.size == 1 -> append("=${v[0]}")
+						v.sumOf { it.length } < 100 ->
+							v.joinTo(this, ", ", "=(", ")")
+						else -> v.joinTo(this, ",\n\t\t\t\t", ":\n\t\t\t\t")
+					}
+				}
 			}
-			append(typeString)
-			if (excludedTypes.isNotEmpty()) append(", ex.t=$excludedTypes")
-			if (excludedValues.isNotEmpty()) append(", ex.v=$excludedValues")
 		}
-		positiveGroup.objectTypeVariants?.let {
-			append(", typeVariants=$it") }
-		positiveGroup.objectVariants?.let {
-			append(", variants=$it") }
-		negativeGroup.objectTypeVariants?.let {
-			append(", ex.typeVariants=$it") }
-		negativeGroup.objectVariants?.let {
-			append(", ex.variants=$it") }
-		if (isImmutable) append(", imm")
-		if (isBoxed) append(", box")
-		if (isUnboxedInt) append(", int")
-		if (isUnboxedFloat) append(", float")
-		append(")")
 	}
 
-	/** Ensure all referenced [AvailObject]s are Shared. */
-	fun makeShared()
+	/**
+	 * Ensure all referenced [AvailObject]s are Shared.  Answer the receiver as
+	 * a convenience.
+	 */
+	fun makeShared(): TypeRestriction
 	{
 		positiveGroup.makeShared()
 		negativeGroup.makeShared()
+		return this
 	}
 
 	companion object
@@ -1272,13 +1389,13 @@ class TypeRestriction private constructor(
 		val nilRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = setOf(nil),
-				types = setOf(TOP.o),
+				types = setOf(TOP()),
 				objectVariants = null,
 				objectTypeVariants = null,
 				tags = setOf(TypeTag.NIL_TAG)),
 			negativeGroup = RestrictionGroup(
 				constants = emptySet(),
-				types = setOf(ANY.o),
+				types = setOf(ANY()),
 				objectVariants = null,
 				objectTypeVariants = null,
 				tags = null),
@@ -1294,7 +1411,7 @@ class TypeRestriction private constructor(
 		val topRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = null,
-				types = setOf(TOP.o),
+				types = setOf(TOP()),
 				objectVariants = null,
 				objectTypeVariants = null,
 				tags = null),
@@ -1316,7 +1433,7 @@ class TypeRestriction private constructor(
 		private val topRestrictionImmutable = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = null,
-				types = setOf(TOP.o),
+				types = setOf(TOP()),
 				objectVariants = null,
 				objectTypeVariants = null,
 				tags = null),
@@ -1338,7 +1455,7 @@ class TypeRestriction private constructor(
 		val anyRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = null,
-				types = setOf(ANY.o),
+				types = setOf(ANY()),
 				objectVariants = null,
 				objectTypeVariants = null,
 				tags = null),
@@ -1360,7 +1477,7 @@ class TypeRestriction private constructor(
 		private val anyRestrictionImmutable = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = null,
-				types = setOf(ANY.o),
+				types = setOf(ANY()),
 				objectVariants = null,
 				objectTypeVariants = null,
 				tags = null),
@@ -1596,13 +1713,13 @@ class TypeRestriction private constructor(
 							tags = excludedTags),
 						flags)
 				}
-				!anyVariantsMentioned && type.equals(TOP.o) -> when
+				!anyVariantsMentioned && type.equals(TOP()) -> when
 				{
 					flags and IMMUTABLE_FLAG.mask != 0 ->
 						topRestrictionImmutable
 					else -> topRestriction
 				}
-				!anyVariantsMentioned && type.equals(ANY.o) -> when
+				!anyVariantsMentioned && type.equals(ANY()) -> when
 				{
 					flags and IMMUTABLE_FLAG.mask != 0 ->
 						anyRestrictionImmutable
@@ -1808,7 +1925,7 @@ class TypeRestriction private constructor(
 			}
 			if (flags and UNBOXED_FLOAT_FLAG.mask != 0)
 			{
-				type = type.typeIntersection(Types.DOUBLE.o)
+				type = type.typeIntersection(Types.DOUBLE())
 			}
 			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance.isBottom))
@@ -1949,7 +2066,7 @@ class TypeRestriction private constructor(
 			}
 			return when
 			{
-				type.equals(TOP.o)
+				type.equals(TOP())
 						&& excludedTypes.isEmpty()
 						&& excludedValues.isEmpty() ->
 					topRestriction
@@ -2025,6 +2142,11 @@ class TypeRestriction private constructor(
 			restrictionForType(type, UNBOXED_INT_FLAG)
 
 		/**
+		 * The basic restriction that [Int] registers holding a code point have.
+		 */
+		val codePointIntRestriction = intRestrictionForType(characterCodePoints)
+
+		/**
 		 * Create or reuse a `TypeRestriction`, for which a constant is
 		 * specified.
 		 *
@@ -2052,7 +2174,7 @@ class TypeRestriction private constructor(
 			return restriction(
 				givenType = when
 				{
-					constant.isNil -> TOP.o
+					constant.isNil -> TOP()
 					else -> instanceTypeOrMetaOn(constant)
 				},
 				constantOrNull = constant,
@@ -2112,5 +2234,11 @@ class TypeRestriction private constructor(
 			constant: Int
 		): TypeRestriction =
 			restrictionForConstant(fromInt(constant), UNBOXED_INT_FLAG)
+
+		/**
+		 * The restriction that includes all boxed
+		 * [characters][Types.CHARACTER].
+		 */
+		val characterRestriction = boxedRestrictionForType(Types.CHARACTER())
 	}
 }

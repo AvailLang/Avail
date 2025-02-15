@@ -44,6 +44,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.setValue
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
@@ -56,9 +57,10 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_SET_VARIABLE
-import avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
@@ -84,59 +86,64 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable had a write reactor, writing can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				mostGeneralVariableType,
-				ANY.o),
-			TOP.o)
+				ANY()),
+			TOP())
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val (varReg, valueReg) = arguments
 		val varType = varReg.type()
 		val valueType = valueReg.type()
 		val varInnerType = varType.writeType
 
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val success = generator.createBasicBlock("set local success")
-		val failure = generator.createBasicBlock("set local failure/observe")
+		val success = createBasicBlock("set local success")
+		val failure = createBasicBlock("set local failure/observe")
 		// Emit the set-variable instruction.
 		if (valueType.isSubtypeOf(varInnerType))
 		{
-			translator.addInstruction(
-				L2_SET_VARIABLE_NO_CHECK(
-					varReg,
-					valueReg,
-					edgeTo(success),
-					edgeTo(failure)))
+			+L2_SET_VARIABLE_NO_CHECK(
+				varReg,
+				valueReg,
+				edgeTo(success),
+				edgeTo(failure))
 		}
 		else
 		{
-			translator.addInstruction(
-				L2_SET_VARIABLE(
-					varReg,
-					valueReg,
-					edgeTo(success),
-					edgeTo(failure)))
+			+L2_SET_VARIABLE(
+				varReg,
+				valueReg,
+				edgeTo(success),
+				edgeTo(failure))
 		}
 
 		// Emit the failure path.  Simply invoke the primitive function.
-		generator.startBlock(failure)
-		translator.generateGeneralFunctionInvocation(
-			functionToCallReg, arguments, false, callSiteHelper)
+		startBlock(failure)
+		generateGeneralFunctionInvocation(
+			functionToCallReg, false, callSiteHelper, arguments)
 
 		// End with the success block.  Note that the failure path could have
 		// also made it to the callSiteHelper's after-everything block if the
 		// call returns successfully.
-		generator.startBlock(success)
-		callSiteHelper.useAnswer(generator.boxedConstant(nil))
+		startBlock(success)
+		callSiteHelper.useAnswer(boxedConstant(nil), true)
 		return true
 	}
 

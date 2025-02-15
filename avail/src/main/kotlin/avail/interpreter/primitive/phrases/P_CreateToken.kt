@@ -127,7 +127,7 @@ object P_CreateToken : Primitive(4, CanFold, CanInline)
 				stringType,
 				wholeNumbers,
 				wholeNumbers),
-			TOKEN.o)
+			TOKEN())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_EXCEEDS_VM_LIMIT))

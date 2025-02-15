@@ -179,8 +179,23 @@ constructor(
 			while (true)
 			{
 				val heap = q.get()
-				if (heap.isEmpty) break
-				if (q.compareAndSet(heap, heap.withoutFirst)) return heap.first
+				val (taken, remains) = heap.split
+				if (taken.isEmpty) break
+				// We found something.  First try to replace the victim heap
+				// with the remains.
+				if (q.compareAndSet(heap, remains))
+				{
+					// We stole `taken` successfully.
+					val top = taken.first
+					val otherTaken = taken.withoutFirst
+					while (true)
+					{
+						val existing = localQueue.get()
+						val replacement = existing.merge(otherTaken)
+						if (localQueue.compareAndSet(existing, replacement))
+							return top
+					}
+				}
 			}
 		}
 		return null

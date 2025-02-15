@@ -52,7 +52,10 @@ import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.functions.A_RawFunction.Companion.shortMethodName
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.returneeCheckStatisticsByName
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.returnerCheckStatisticsByName
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_ARGS
@@ -72,6 +75,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.primitive
+import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.representation.A_BasicObject
@@ -110,6 +114,7 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.TypeTag
+import avail.dispatch.LookupStatistics
 import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.levelOne.L1Disassembler
@@ -119,11 +124,15 @@ import avail.interpreter.levelOne.L1Operation.Companion.lookup
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
 import avail.optimizer.OptimizationLevel
+import avail.optimizer.OptimizationLevel.Companion.countdownResetAfterEnoughFallbackLookups
+import avail.optimizer.OptimizationLevel.Companion.maxSlowLookupsBeforeReoptimization
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.performance.Statistic
+import avail.performance.StatisticReport.DYNAMIC_LOOKUP_BY_CALLER
 import avail.performance.StatisticReport.NON_PRIMITIVE_RETURNEE_TYPE_CHECKS
 import avail.performance.StatisticReport.NON_PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.serialization.SerializerOperation
@@ -355,6 +364,12 @@ open class CompiledCodeDescriptor protected constructor(
 		val countdownToReoptimize =
 			AtomicLong(OptimizationLevel.UNOPTIMIZED.countdown)
 
+		/**
+		 * A count of the number of [L2_LOOKUP_BY_VALUES] instructions in L2
+		 * code that have run for this chunk.
+		 */
+		val fallbackLookupsSinceOptimization = AtomicLong(0L)
+
 		/** A statistic for all functions that return. */
 		@Volatile
 		var returnerCheckStat: Statistic? = null
@@ -362,6 +377,13 @@ open class CompiledCodeDescriptor protected constructor(
 		/** A statistic for all functions that are returned into. */
 		@Volatile
 		var returneeCheckStat: Statistic? = null
+
+		/**
+		 * A statistic tracking the cost of fallback dynamic lookups performed
+		 * within this raw function.
+		 */
+		@Volatile
+		var lookupStat: LookupStatistics? = null
 
 		/**
 		 * A `boolean` indicating whether the current [A_RawFunction] has been
@@ -475,14 +497,14 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			val firstNybble = getNybble()
 			val encodeShift = firstNybble shl 2
-			var count = 15 and (-0x7bdeef0000000000L ushr encodeShift).toInt()
+			var count = (-0x7bdeef0000000000L ushr encodeShift).toInt() and 15
 			var value = 0
 			while (count-- > 0)
 			{
 				value = (value shl 4) + getNybble()
 			}
-			val lowOff = 15 and (0x00AAAA9876543210L ushr encodeShift).toInt()
-			val highOff = 15 and (0x0032100000000000L ushr encodeShift).toInt()
+			val lowOff = (0x00AAAA9876543210L ushr encodeShift).toInt() and 15
+			val highOff = (0x0032100000000000L ushr encodeShift).toInt() and 15
 			return value + lowOff + (highOff shl 4)
 		}
 
@@ -495,7 +517,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 */
 		fun atEnd() = longIndex == finalLongIndex && shift == finalShift
 
-		override fun toString() = super.toString() + "(pc=$pc)"
+		override fun toString() = "${javaClass.simpleName} (pc=$pc)"
 
 		companion object
 		{
@@ -569,7 +591,7 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		super.printObjectOnAvoidingIndent(self, builder, recursionMap, indent)
@@ -639,43 +661,47 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 	}
 
-	override fun o_DecrementCountdownToReoptimize(
-		self: AvailObject,
-		continuation: (Boolean)->Unit
-	): Boolean
+	override fun o_DecrementCountdownToReoptimize(self: AvailObject): Boolean
 	{
-		val newCount =
-			invocationStatistic.countdownToReoptimize.decrementAndGet()
-		if (newCount <= 0)
-		{
-			// Either we just decremented past zero or someone else did.  Race
-			// for a lock on the object.  First one through reoptimizes while
-			// the others wait.
-			synchronized(self) {
-				// If the counter is still negative then either (1) it hasn't
-				// been reset yet by reoptimization, or (2) it has been
-				// reoptimized, the counter was reset to something positive,
-				// but it has already been decremented back below zero.
-				// Either way, reoptimize now.
-				continuation(
-					invocationStatistic.countdownToReoptimize.get() <= 0)
-			}
-			return true
-		}
-		return false
+		val countdown = invocationStatistic.countdownToReoptimize
+		if (countdown.get() == Long.MAX_VALUE) return false
+		return countdown.decrementAndGet() == 0L
 	}
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
 		self: AvailObject,
 		delta: Long)
 	{
-		val counter = invocationStatistic.countdownToReoptimize
-		do
+		val countdown = invocationStatistic.countdownToReoptimize
+		val current = countdown.get()
+		when
 		{
-			val current = counter.get()
+			// Ignore this poll if it's max or already negative (or zero).
+			current == Long.MAX_VALUE || current <= 0 -> return
+			// It's positive.  Decrease it by delta, but not below 1.
+			current > 0L -> countdown.updateAndGet {
+				// We have to test again for max, so that we don't decrement it.
+				if (it == Long.MAX_VALUE) it else max(1L, it - delta)
+			}
 		}
-		while (current > 0
-			&& !counter.compareAndSet(current, max(1, current - delta)))
+	}
+
+	override fun o_EncounteredFallbackLookup(self: AvailObject)
+	{
+		val lookupsCount = invocationStatistic.fallbackLookupsSinceOptimization
+			.incrementAndGet()
+		// After many fallback lookups, we should always reoptimize the chunk,
+		// whether its countdown is Long.MAX_VALUE or any other positive value.
+		if (lookupsCount == maxSlowLookupsBeforeReoptimization)
+		{
+			// Reset the countdown to 1, but only if it was already positive.
+			// If it was negative, it's already being reoptimized (which will
+			// also zero this counter).
+			invocationStatistic.countdownToReoptimize.updateAndGet {
+				if (it > 0) countdownResetAfterEnoughFallbackLookups
+				else it
+			}
+		}
 	}
 
 	/**
@@ -814,8 +840,16 @@ open class CompiledCodeDescriptor protected constructor(
 	 */
 	override fun o_Module(self: AvailObject): A_Module = module
 
-	override fun o_NameForDebugger(self: AvailObject) =
-		super.o_NameForDebugger(self) + ": " + methodName
+	override fun o_NameForDebugger(self: AvailObject) = buildString {
+		append(super.o_NameForDebugger(self))
+		append(": ")
+		append(methodName)
+		val moduleAndLine = module.run {
+			if (isNil) "[No module]"
+			else "[$shortModuleNameNative:${self.startingLineNumber}]"
+		}
+		append(moduleAndLine)
+	}
 
 	override fun o_NumArgs(self: AvailObject) = self[NUM_ARGS]
 
@@ -949,6 +983,33 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 	}
 
+	/**
+	 * Answer the [Statistic] used to record the cost of fallback method lookups
+	 * from within this raw function.  These are also collected into the
+	 * [returneeCheckStatisticsByName], to ensure unloading/reloading a module
+	 * will reuse the same statistic objects.
+	 *
+	 * @param self
+	 *   The raw function.
+	 * @return
+	 *   A [Statistic], creating one if necessary.
+	 */
+	override fun o_LookupStat(self: AvailObject): LookupStatistics
+	{
+		invocationStatistic.lookupStat?.let { return it }
+		synchronized(invocationStatistic) {
+			invocationStatistic.lookupStat?.let { return it }
+			// Look it up by name, creating it if necessary.
+			val name = self.shortMethodName
+			val lookupStat =
+				dynamicLookupStatisticsByName.computeIfAbsent(name) {
+					LookupStatistics(name, DYNAMIC_LOOKUP_BY_CALLER)
+				}
+			invocationStatistic.lookupStat = lookupStat
+			return lookupStat
+		}
+	}
+
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		self.functionType().returnType
 
@@ -996,10 +1057,18 @@ open class CompiledCodeDescriptor protected constructor(
 		chunk: L2Chunk,
 		countdown: Long)
 	{
-		synchronized(self) { startingChunk = chunk }
-		// Must be outside the synchronized section to ensure the write of
-		// the new chunk is committed before the counter reset is visible.
+		// First update the chunk.
+		// Other threads may start running the new chunk, but they'll see a
+		// negative countdown, so they can't make it reach exactly 0 (assuming
+		// the 64-bit counter doesn't underflow).
+		startingChunk = chunk
+		// Now update the countdown to a positive value, allowing some future
+		// decrement to reach exactly zero.
 		invocationStatistic.countdownToReoptimize.set(countdown)
+		// This races with code encountering fallback lookups in other threads,
+		// failing to distinguish between fallbacks in the new chunk and
+		// fallbacks in the old chunk.  It's almost certainly benign.
+		invocationStatistic.fallbackLookupsSinceOptimization.set(0)
 	}
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
@@ -1325,7 +1394,7 @@ open class CompiledCodeDescriptor protected constructor(
 			assert(numConstants in 0 .. 0xFFFF)
 			assert(numLiterals in 0 .. 0xFFFF)
 			assert(numOuters in 0 .. 0xFFFF)
-			assert(module.isNil || module.isInstanceOf(MODULE.o))
+			assert(module.isNil || module.isInstanceOf(MODULE()))
 			assert(lineNumber >= 0)
 			val nybbleCount = nybbles.tupleSize
 			val code = newObjectIndexedIntegerIndexedDescriptor(
@@ -1415,17 +1484,24 @@ open class CompiledCodeDescriptor protected constructor(
 			Mutability.MUTABLE, nil, -1, nil, nil, -1, nil)
 
 		/**
-		 * A [ConcurrentMap] from A_String to Statistic, used to record type
+		 * A [ConcurrentMap] from [A_String] to [Statistic], used to record type
 		 * checks during returns from raw functions having the indicated name.
 		 */
 		val returnerCheckStatisticsByName: ConcurrentMap<A_String, Statistic> =
 			ConcurrentHashMap()
 
 		/**
-		 * A [ConcurrentMap] from A_String to Statistic, used to record type
+		 * A [ConcurrentMap] from [A_String] to [Statistic], used to record type
 		 * checks during returns into raw functions having the indicated name.
 		 */
 		val returneeCheckStatisticsByName: ConcurrentMap<A_String, Statistic> =
 			ConcurrentHashMap()
+
+		/**
+		 * A [ConcurrentMap] from [String] to [Statistic], used to record
+		 * dynamic lookups by calling raw function name.
+		 */
+		val dynamicLookupStatisticsByName =
+			ConcurrentHashMap<String, LookupStatistics>()
 	}
 }

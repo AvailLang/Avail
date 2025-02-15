@@ -79,5 +79,5 @@ object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, TOP.o)
+		functionType(emptyTuple, TOP())
 }

@@ -84,7 +84,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.variable
-import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PHRASE
 import avail.descriptor.representation.A_BasicObject
@@ -153,7 +152,7 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = self[OUTPUT_PHRASE].printOnAvoidingIndent(
 		builder, recursionMap, indent)

@@ -54,7 +54,8 @@ import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Restart the given [continuation][A_Continuation]. Make sure
@@ -103,37 +104,36 @@ object P_RestartContinuation : Primitive(
 		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0
 		interpreter.returnNow = false
-		interpreter.setLatestResult(null)
+		interpreter.clearLatestResult()
 		return CONTINUATION_CHANGED
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralContinuationType), bottom)
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val continuationReg = arguments[0]
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
-		val translator = callSiteHelper.translator
-		val generator = translator.generator
-		val manifest = generator.currentManifest
+		val manifest = currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
-		val label = generator.topFrame.label()
+		val label = topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
-			val numArgs = translator.code.numArgs()
+			val numArgs = code.numArgs()
 			val indices = 0 ..< numArgs
-			translator.generateRestartContinuation(
-				indices.map { translator.readSlot(it + 1) })
+			generateRestartContinuation(
+				indices.map { readSlot(it + 1) })
 			return true
 		}
 
@@ -141,8 +141,8 @@ object P_RestartContinuation : Primitive(
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
-		translator.addInstruction(L2_RESTART_CONTINUATION(continuationReg))
-		assert(!translator.generator.currentlyReachable())
+		+L2_RESTART_CONTINUATION(continuationReg)
+		assert(!currentlyReachable())
 		return true
 	}
 }

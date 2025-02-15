@@ -32,11 +32,11 @@
 package avail.optimizer
 
 import avail.AvailRuntimeSupport
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -45,18 +45,17 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
+import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -72,7 +71,7 @@ import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.Strings.increaseIndentation
 import avail.utility.cast
 import avail.utility.deepForEach
-import avail.utility.removeLast
+import avail.utility.mapToSet
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Deque
@@ -168,25 +167,14 @@ class L2Optimizer internal constructor(
 	 */
 	fun removeUnreachableBlocks(): Boolean
 	{
-		val blocksToVisit = blocks.filterTo(ArrayDeque()) { it.isIrremovable }
-		val reachableBlocks = mutableSetOf<L2BasicBlock?>()
-		while (!blocksToVisit.isEmpty())
-		{
-			val block = blocksToVisit.removeLast()
-			if (reachableBlocks.add(block))
-			{
-				block.successorEdges().mapTo(
-					blocksToVisit, L2PcOperand::targetBlock)
-			}
-		}
-		val unreachableBlocks = blocks.toMutableSet()
-		unreachableBlocks.removeAll(reachableBlocks)
-		for (block in unreachableBlocks)
+		val unreachable = blocks.toMutableSet()
+		controlFlowGraph.forwardVisit(unreachable::remove)
+		for (block in unreachable)
 		{
 			block.instructions().forEach(L2Instruction::justRemoved)
 			block.instructions().clear()
 		}
-		val changed = blocks.retainAll(reachableBlocks)
+		val changed = blocks.removeAll(unreachable)
 		// See if any blocks no longer need to be a loop head.
 		if (changed)
 		{
@@ -226,7 +214,7 @@ class L2Optimizer internal constructor(
 		) { sourceInstruction ->
 			if (sourceInstruction in liveInstructions)
 			{
-				addInstruction(basicTransformInstruction(sourceInstruction))
+				+basicTransformInstruction(sourceInstruction)
 			}
 		}
 	}
@@ -467,25 +455,77 @@ class L2Optimizer internal constructor(
 
 		regenerateGraph(
 			mode = BySemanticValue,
+			isSplitting = true,
 			interestingConditionsByOldBlock = splitConditions)
 		{ sourceInstruction ->
-			if (sourceInstruction is L2_PHI<*>) return@regenerateGraph
-			if (!sourceInstruction.hasSideEffect)
-			{
-				sourceInstruction.writeOperands.singleOrNull()?.let { write ->
-					val semanticValues = write.semanticValues()
-					semanticValues.firstNotNullOfOrNull {
-						currentManifest.equivalentSemanticValue(it)
-					}?.let { equivalent ->
-						moveRegister(equivalent, semanticValues.cast())
-						return@regenerateGraph
-					}
-				}
-			}
+			if (populateIfPossible(sourceInstruction)) return@regenerateGraph
 			// Fall back to having the instruction transform itself.
 			basicTransformInstruction(sourceInstruction)
-				.emitTransformedInstruction(this)
+				.cloneFor(generator)
+				.run { emitTransformedInstruction() }
 		}
+	}
+
+	/**
+	 * If the source instruction has no side effects and isn't a phi, check if
+	 * its sole write has a semantic value equivalent to a value already in the
+	 * manifest.  If so, emit a move into the not-yet-populated semantic values,
+	 * and answer `true`.  Otherwise answer `false`.
+	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which emission should occur if possible.
+	 * @param sourceInstruction
+	 *   The [L2Instruction] from a previous version of the graph.
+	 */
+	private fun L2GeneratorInterface.populateIfPossible(
+		sourceInstruction: L2Instruction
+	): Boolean
+	{
+		// If it's a phi, pretend we wrote something, since it will be
+		// automatically generated as needed.
+		if (sourceInstruction is L2_PHI<*>) return true
+		// If it has side effect, do the default processing.
+		if (sourceInstruction.hasSideEffect) return false
+		sourceInstruction.writeOperands.singleOrNull()?.let { write ->
+			// See if there's an equivalent value alredy computed, and
+			// if so just move it to the sole write, eliding the
+			// sourceInstruction.
+			val semanticValues = write.semanticValues()
+			val possibleSources = semanticValues.mapNotNull {
+				currentManifest.equivalentSemanticValue(it)
+			}
+			if (possibleSources.isNotEmpty())
+			{
+				val unpopulated = semanticValues - possibleSources
+				if (unpopulated.isEmpty())
+				{
+					// All destination semantic values are already populated, so
+					// there's no need to do anything else.  However, since we
+					// know they're supposed to be equivalent to each other, we
+					// merge their synonyms.  Note that since there won't be an
+					// instruction to repeat this in subsequent passes, we'll
+					// lose out on the values being synonymous, but at least we
+					// can cause them now to all to have the intersection of the
+					// restrictions.
+					val synonymRepresentatives = possibleSources.mapToSet {
+						currentManifest.semanticValueToSynonym(it)
+							.pickSemanticValue()
+					}.toList()
+					for (i in 1..<synonymRepresentatives.size)
+					{
+						currentManifest.dynamicMergeExistingSemanticValues(
+							synonymRepresentatives[0],
+							synonymRepresentatives[i])
+					}
+					return true
+				}
+				// Not all destinations have been filled, so populate them with
+				// a move.
+				moveRegister(possibleSources.first(), unpopulated.cast())
+				return true
+			}
+		}
+		return false
 	}
 
 	/**
@@ -504,7 +544,7 @@ class L2Optimizer internal constructor(
 					val targetBlock = edge.targetBlock()
 					if (targetBlock.predecessorEdges().size > 1)
 					{
-						val newBlock = edge.splitEdgeWith(controlFlowGraph)
+						val newBlock = edge.splitEdgeWith(generator)
 						// Add it somewhere that looks sensible for debugging,
 						// although we'll order the blocks later.
 						blocks.add(blocks.indexOf(targetBlock), newBlock)
@@ -608,7 +648,7 @@ class L2Optimizer internal constructor(
 						phiInstruction.destinationRegisters)
 					edgeAlwaysLiveIn.removeAll(
 						phiInstruction.destinationRegisters)
-					val sources = phiInstruction.sources().elements
+					val sources = phiInstruction.sources.elements
 					val source = sources[edgeIndex].register()
 					edgeSometimesLiveIn.add(source)
 					edgeAlwaysLiveIn.add(source)
@@ -671,101 +711,17 @@ class L2Optimizer internal constructor(
 		// Emit the transformation of the given instruction, emitting any
 		// necessary postponed instructions first.
 		regenerateGraph(BySemanticValue) { sourceInstruction ->
-			if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
-			{
-				// Don't allow instructions to be delayed across an instruction
-				// that goes both ways, since that would make the computation in
-				// one of the forks redundant with the computation in the other.
-				// Specifically, an L2_SAVE_ALL_AND_PC_TO_INT must act as a
-				// barrier against postponement, since values created after the
-				// fork will not affect the collection of registers that need to
-				// be saved in a register dump and restored on the second path.
-				// For simplicity, just recursively force all postponed
-				// instructions to be generated here.
-				forceAllPostponedTranslationsExceptConstantMoves(null, true)
+			val basicTransformed = basicTransformInstruction(sourceInstruction)
+			basicTransformed.run {
+				if (altersControlFlow)
+				{
+					// We've just reached the last instruction of a block in the
+					// original graph.  Now's probably a good time to reduce the
+					// postponed instructions.
+					currentManifest.rewriteAllPostponed()
+				}
+				regenerateForPostponement()
 			}
-			when
-			{
-				sourceInstruction is L2_PHI<*> ->
-				{
-					// Ignore it.
-				}
-				sourceInstruction.hasSideEffect ->
-				{
-					// Emit the translation right now.
-					forcePostponedTranslationNow(sourceInstruction)
-				}
-				sourceInstruction.basicBlock().successorEdges().size > 1 &&
-					sourceInstruction.destinationRegisters.all { writeReg ->
-						sourceInstruction.basicBlock().successorEdges().all {
-							edge -> writeReg in edge.alwaysLiveInEntities!!
-						}
-					} ->
-				{
-					// We're going to branch soon, but the result will be needed
-					// always along all the successor edges.  While we *could*
-					// postpone the instruction, we choose not to, since the
-					// increase of register pressure is minor compared to the
-					// cost of the duplicated code.
-					forcePostponedTranslationNow(sourceInstruction)
-				}
-				else ->
-				{
-					// At least one output is a constant.  Emit a constant move
-					// for each constant output, then postpone the instruction
-					// if any outputs were non-constant.
-					var anyNonconstant = false
-					for (write in sourceInstruction.writeOperands)
-					{
-						val constant = write.restriction().constantOrNull
-						when (constant)
-						{
-							null -> anyNonconstant = true
-							else -> moveConstantForWrite(constant, write)
-						}
-					}
-					if (anyNonconstant)
-					{
-						// At least one output was non-constant.  Postpone the
-						// instruction.
-						currentManifest.recordPostponedSourceInstruction(
-							sourceInstruction)
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Ensure the given constant is written to each of the [L2SemanticValue]s
-	 * of the given [L2WriteOperand].
-	 */
-	private fun <K: RegisterKind<K>> moveConstantForWrite(
-		constant: AvailObject,
-		write: L2WriteOperand<K>)
-	{
-		val kind = write.kind
-		val read = kind.readConstant(generator, constant)
-		// Populate the rest of the semantic values.
-		val (old, new) = write.semanticValues().partition(
-			generator.currentManifest::hasSemanticValue)
-		if (new.isNotEmpty())
-		{
-			generator.addInstruction(
-				kind.move(
-					read,
-					kind.createWrite(
-						generator::nextUnique,
-						new.toSet(),
-						restrictionForConstant(
-							constant, kind.restrictionFlag))))
-		}
-		// Ensure already-populated semantic values end up in the same synonym
-		// as the semantic constant.
-		for (oldValue in old)
-		{
-			generator.currentManifest.mergeExistingSemanticValues(
-				read.semanticValue(), oldValue)
 		}
 	}
 
@@ -805,6 +761,12 @@ class L2Optimizer internal constructor(
 	 *   to be [BySemanticValue], which constructs phis for matching
 	 *   [L2SemanticValue]s, but for later passes (after leaving SSA form),
 	 *   we'll match by [ByRegister], which only considers [L2Register]s.
+	 * @param isRemovingDeadCode
+	 *   Whether we're currently removing dead code.
+	 * @param isSplitting
+	 *   Whether we're doing code splitting, which duplicates portions of the
+	 *   graph to postpone the destruction of useful information at control
+	 *   flow merge points.
 	 * @param interestingConditionsByOldBlock
 	 *   A map that contains information about which conditions should be
 	 *   preserved through splitting of which original blocks (because the
@@ -816,6 +778,7 @@ class L2Optimizer internal constructor(
 	private fun regenerateGraph(
 		mode: GenerationMode,
 		isRemovingDeadCode: Boolean = false,
+		isSplitting: Boolean = false,
 		interestingConditionsByOldBlock:
 			Map<L2BasicBlock, Set<L2SplitCondition>> = emptyMap(),
 		transformer: L2Regenerator.(L2Instruction)->Unit)
@@ -825,16 +788,18 @@ class L2Optimizer internal constructor(
 		// into the emptied CFG.
 		val oldGraph = L2ControlFlowGraph()
 		controlFlowGraph.evacuateTo(oldGraph)
+		generator.mode = mode
+		generator.currentManifest.mode = mode
 		val inverseSpecialBlockMap =
 			generator.specialBlocks.entries.associate { (s, b) -> b to s }
-		val regenerator = object : L2Regenerator(
-			generator, mode, isRemovingDeadCode)
+		val regenerator = object : L2Regenerator(generator, mode)
 		{
 			/**
 			 * Collapsing unconditional jumps wouldn't preserve all blocks that
 			 * we're generating, which would break some simplifying assumptions.
 			 */
-			override val canCollapseUnconditionalJumps: Boolean get() = false
+			override val canCollapseUnconditionalJumps: Boolean get() =
+				!isSplitting
 
 			override fun processInstruction(
 				sourceInstruction: L2Instruction)
@@ -845,11 +810,10 @@ class L2Optimizer internal constructor(
 					!isRemovingDeadCode &&
 					!sourceInstruction.altersControlFlow)
 				{
-					// Make sure all the semantic values that were in the
-					// old graph have values in the new graph, even if some
-					// of them might be latent in the manifest's postponed
-					// instructions. We also have to be at a reachable place
-					// here.
+					// Make sure all the semantic values that were in the old
+					// graph have values in the new graph, even if some of them
+					// might be latent in the manifest's postponed instructions.
+					// We also have to be at a reachable place here.
 					assert(currentlyReachable())
 					sourceInstruction.writeOperands
 						.deepForEach(L2WriteOperand<*>::semanticValues)
@@ -883,30 +847,21 @@ class L2Optimizer internal constructor(
 		}
 		// Use an L2Regenerator to do the substitution.
 		regenerateGraph(BySemanticValue) { sourceInstruction ->
-			if (sourceInstruction is L2_PHI<*>) return@regenerateGraph
-			if (!sourceInstruction.hasSideEffect)
-			{
-				sourceInstruction.writeOperands.singleOrNull()?.let { write ->
-					val semanticValues = write.semanticValues()
-					semanticValues.firstNotNullOfOrNull {
-						currentManifest.equivalentSemanticValue(it)
-					}?.let { equivalent ->
-						moveRegister(equivalent, semanticValues.cast())
-						return@regenerateGraph
-					}
-				}
-			}
+			if (populateIfPossible(sourceInstruction)) return@regenerateGraph
 			// Fall back to having the instruction transform itself.
 			basicTransformInstruction(sourceInstruction)
-				.generateReplacement(this, sourceInstruction)
+				.cloneFor(this@regenerateGraph)
+				.run {
+					generateReplacement(sourceInstruction)
+				}
 		}
 	}
 
 	/**
 	 * For every phi operation, insert a move at the end of the block that leads
-	 * to it.  Because of our version of edge splitting, that block always
-	 * contains just a jump.  The CFG will no longer be in SSA form, because the
-	 * phi variables will have multiple defining instructions (the moves).
+	 * to it.  Because of our version of edge splitting, that predecessor block
+	 * always ends with a jump.  The CFG will no longer be in SSA form, because
+	 * the phi variables will have multiple defining instructions (the moves).
 	 *
 	 * Also eliminate the phi functions.
 	 */
@@ -915,28 +870,26 @@ class L2Optimizer internal constructor(
 		// First, collect move instruction to insert before the jumps that lead
 		// to phi instructions.
 		val inserts = mutableMapOf<L2Instruction, MutableList<L2_MOVE<*>>>()
-		blocks.forEach { block ->
-			block.instructions().forEach { phi ->
-				if (phi is L2_PHI<*>)
-				{
-					block.predecessorEdges().forEachIndexed { i, edge ->
-						val predBlock = edge.instruction.basicBlock()
-						inserts.computeIfAbsent(edge.instruction) {
-							mutableListOf()
-						}.add(phi.replacementMoveForIndex(i, predBlock))
-					}
-				}
+		blocks.deepForEach(L2BasicBlock::instructions) { phi ->
+			if (phi !is L2_PHI<*>) return@deepForEach
+			phi.basicBlock().predecessorEdges().forEachIndexed { i, edge ->
+				inserts.computeIfAbsent(edge.instruction) {
+					mutableListOf()
+				}.add(phi.replacementMoveForIndex(i))
 			}
 		}
 		// Now insert those instructions and remove the phis, while copying the
 		// graph.  Count this as removing dead code.
-		regenerateGraph(ByRegister, true) { sourceInstruction ->
+		regenerateGraph(
+			mode = ByRegister,
+			isRemovingDeadCode = true
+		) { sourceInstruction ->
 			assert (sourceInstruction !is L2_PHI<*>)
-			val movesToInsert = inserts[sourceInstruction]
-			if (movesToInsert != null)
-			{
+			inserts[sourceInstruction]?.let { movesToInsert ->
+				+L2_NOP(L2CommentOperand(
+					"Inserted ${movesToInsert.size} phi moves:"))
 				movesToInsert.forEach { newMove ->
-					addInstruction(basicTransformInstruction(newMove))
+					+basicTransformInstruction(newMove)
 				}
 				if (sourceInstruction is L2_JUMP_BACK)
 				{
@@ -948,20 +901,18 @@ class L2Optimizer internal constructor(
 						// we specialize loops, or maybe even just hoist
 						// invariant int values.
 						(move as L2_MOVE_BOXED).destination.run {
-							L2ReadBoxedOperand(
-								pickSemanticValue(),
-								restriction(),
-								register())
+							BOXED_KIND.readOperand(
+								pickSemanticValue(), restriction(), register())
 						}
 					}
 					val replacement = L2_JUMP_BACK(
 						sourceInstruction.target,
 						L2ReadBoxedVectorOperand(reads))
-					addInstruction(basicTransformInstruction(replacement))
+					+basicTransformInstruction(replacement)
 					return@regenerateGraph
 				}
 			}
-			addInstruction(basicTransformInstruction(sourceInstruction))
+			+basicTransformInstruction(sourceInstruction)
 		}
 	}
 
@@ -1053,7 +1004,10 @@ class L2Optimizer internal constructor(
 		generator.currentManifest.mode = mode
 		// Rebuild the graph with the new registers.  Also drop any same-color
 		// moves.
-		regenerateGraph(mode, true) { sourceInstruction ->
+		regenerateGraph(
+			mode = mode,
+			isRemovingDeadCode = true
+		) { sourceInstruction ->
 			val remapped = basicTransformInstruction(sourceInstruction)
 			// Drop it if it's a same-color move that doesn't introduce any new
 			// semantic values.
@@ -1061,11 +1015,14 @@ class L2Optimizer internal constructor(
 				// Keep if it's not a move.
 				if (this !is L2_MOVE<*>) return@run true
 				// Keep if it's not a same-color move.
-				if (source.register() != destination.register())
+				if (source.register().finalIndex
+					!= destination.register().finalIndex)
+				{
 					return@run true
+				}
 				val sourceSynonym = currentManifest.semanticValueToSynonym(
 					source.semanticValue())
-				// Keep if it doesn't introduce a new semantic value.
+				// Keep if it introduces a new semantic value.
 				if (!sourceSynonym.semanticValues().containsAll(
 						destination.semanticValues()))
 					return@run true
@@ -1074,7 +1031,7 @@ class L2Optimizer internal constructor(
 			}
 			if (keep)
 			{
-				addInstruction(remapped)
+				+remapped
 			}
 		}
 	}
@@ -1092,13 +1049,36 @@ class L2Optimizer internal constructor(
 	{
 		do
 		{
+			var changed = concatenateAcrossJumps()
+			while (skipTrampolineBlocks())
+			{
+				changed = true
+			}
+			if (removeUselessBranches())
+			{
+				changed = true
+			}
+		} while (changed)
+	}
+
+	/**
+	 * Part 1: For every jump from a normal block to a normal block having only
+	 * that predecessor, migrate the instructions (dropping the jump) forward
+	 * across the edge.  Replace edges leading to the first block with the
+	 * second.  Answer whether the graph was changed.
+	*/
+	private fun concatenateAcrossJumps(): Boolean
+	{
+		var changed = false
+		do
+		{
 			val blocksToRemove = mutableSetOf<L2BasicBlock>()
 			for (block in controlFlowGraph.basicBlockOrder)
 			{
 				assert(block !in blocksToRemove)
 				val jump = block.finalInstruction()
 				if (jump !is L2_JUMP) continue
-				val edge = jump.targetEdges.single()
+				val edge = jump.target
 				val target = edge.targetBlock()
 				// Don't remove the block if it's irremovable or a loop head.
 				if (block.isIrremovable || block.isLoopHead) continue
@@ -1127,51 +1107,112 @@ class L2Optimizer internal constructor(
 					predecessorEdge.switchTargetBlockNonSSA(
 						target, predecessorEdge.isBackward || edge.isBackward)
 				}
-				assert (block.predecessorEdges().isEmpty())
+				assert(block.predecessorEdges().isEmpty())
 				blocksToRemove.add(block)
+				changed = true
 			}
 			blocks.removeAll(blocksToRemove)
-		} while (blocksToRemove.isNotEmpty())
+		}
+		while (blocksToRemove.isNotEmpty())
+		return changed
+	}
 
-		// Part 2: redirect all edges that lead to blocks that contain only an
-		// unconditional jump.
-		var changed: Boolean
-		do
+	/**
+	 * Redirect all edges that lead to blocks that contain only an unconditional
+	 * jump.
+	 */
+	private fun skipTrampolineBlocks(): Boolean
+	{
+		var changed = false
+		val blockIterator = blocks.iterator()
+		for (block in blockIterator)
 		{
-			changed = false
-			val blockIterator = blocks.iterator()
-			for (block in blockIterator)
+			if (block.isLoopHead || block.instructions().size != 1)
 			{
-				if (block.isLoopHead || block.instructions().size != 1)
+				continue
+			}
+			val soleInstruction = block.finalInstruction()
+			val jumpEdge = when (soleInstruction)
+			{
+				is L2_JUMP -> soleInstruction.target
+				is L2_JUMP_BACK -> soleInstruction.target
+				else -> continue
+			}
+			// Redirect all predecessors through the jump.
+			val jumpTarget = jumpEdge.targetBlock()
+			val isBackward = jumpEdge.isBackward
+			// Copy it; the predecessorEdges list will change in the loop.
+			for (inEdge in block.predecessorEdges().toList())
+			{
+				changed = true
+				inEdge.switchTargetBlockNonSSA(jumpTarget, isBackward)
+			}
+			assert(block.predecessorEdges().isEmpty())
+			if (!block.isIrremovable)
+			{
+				block.instructions().clear()
+				soleInstruction.justRemoved()
+				blockIterator.remove()
+			}
+		}
+		return changed
+	}
+
+	/**
+	 * Replace any branches that lead to the same target with a simple jump.  If
+	 * any such replacements are made, we'll need to run all the passes again,
+	 * to allow the newly constructed jumps to be elided, if possible.
+	 */
+	private fun removeUselessBranches(): Boolean
+	{
+		var uselessBranches = mutableSetOf<L2ConditionalJump>()
+		for (block in blocks)
+		{
+			if (block.isIrremovable || block.isLoopHead) continue
+			val branch = block.instructions().last()
+			if (branch !is L2ConditionalJump) continue
+			// Preserve instructions that conditionally write to a register.
+			if (branch.writeOperands.isNotEmpty()) continue
+			if (branch.targetEdges.any { it.isBackward }) continue
+			val target = branch.targetEdges
+				.mapToSet { it.targetBlock() }
+				.singleOrNull()
+				?: continue
+			if (target.isIrremovable) continue
+			if (target.isLoopHead) continue
+			uselessBranches.add(branch)
+		}
+		if (uselessBranches.isEmpty())
+		{
+			return false
+		}
+		// Collect all registers that are in use.
+		val allRegisters = buildSet {
+			for (block in blocks)
+			{
+				for (instruction in block.instructions())
 				{
-					continue
-				}
-				val soleInstruction = block.finalInstruction()
-				val jumpEdge = when
-				{
-					soleInstruction is L2_JUMP -> soleInstruction.target
-					soleInstruction is L2_JUMP_BACK -> soleInstruction.target
-					else -> continue
-				}
-				// Redirect all predecessors through the jump.
-				val jumpTarget = jumpEdge.targetBlock()
-				val isBackward = jumpEdge.isBackward
-				// Copy it; the predecessorEdges list will change in the loop.
-				for (inEdge in block.predecessorEdges().toList())
-				{
-					changed = true
-					inEdge.switchTargetBlockNonSSA(jumpTarget, isBackward)
-				}
-				assert(block.predecessorEdges().isEmpty())
-				if (!block.isIrremovable)
-				{
-					block.instructions().clear()
-					soleInstruction.justRemoved()
-					blockIterator.remove()
+					addAll(instruction.sourceRegisters)
+					addAll(instruction.destinationRegisters)
 				}
 			}
 		}
-		while (changed)
+		val registerIdentityMap = allRegisters.associateWithTo(
+			mutableMapOf(), L2Register<*>::copyAfterColoring)
+		// Rewrite the graph with the useless branches replaced by jumps.
+		regenerateGraph(
+			WithFixedRegisterMap(registerIdentityMap),
+			isRemovingDeadCode = true
+		) { instruction ->
+			if (instruction in uselessBranches)
+				+L2_JUMP(instruction.targetEdges[0])
+					.transformedByRegenerator(this)
+			else
+			{
+				+instruction.transformedByRegenerator(this)
+			}
+		}
+		return true
 	}
 
 	/**
@@ -1284,21 +1325,19 @@ class L2Optimizer internal constructor(
 		// possibly mutable.
 		val mutablesByEdge = mutableMapOf<L2PcOperand, Set<L2BoxedRegister>>()
 		controlFlowGraph.forwardVisit { block ->
+			val insertions = mutableListOf<Pair<Int, L2ReadBoxedOperand>>()
+			val firstUses =
+				mutableMapOf<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>()
 			val mutables = mutableSetOf<L2BoxedRegister>()
 			block.predecessorEdges().forEach {
 				if (!it.isBackward) mutables.addAll(mutablesByEdge[it]!!)
 			}
-			val firstUses =
-				mutableMapOf<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>()
 			val instructions = block.instructions()
-			val insertions = Array(instructions.size) {
-				mutableListOf<L2ReadBoxedOperand>()
-			}
 			instructions.forEachIndexed { i, instruction ->
 				// Deal with the register reads.
 				if (instruction is L2_MOVE<*>
-					&& instruction.sourceRegisters.single()
-						== instruction.destinationRegisters.single())
+					&& instruction.source.register().finalIndex
+						== instruction.destination.register().finalIndex)
 				{
 					// Treat it as a pass-through, since it just moves from a
 					// register to itself.
@@ -1315,14 +1354,14 @@ class L2Optimizer internal constructor(
 					return@forEachIndexed
 				}
 				instruction.readsThatMightDestroy.forEach { read ->
-					val readReg = read.register() as L2BoxedRegister
+					val readReg = read.register()
 					val pair = firstUses[readReg]
 					when
 					{
 						pair !== null ->
 						{
 							// We just hit the second use within the block.
-							insertions[pair.first].add(pair.second)
+							insertions.add(pair)
 							// It's no longer mutable.
 							mutables.remove(readReg)
 							firstUses.remove(readReg)
@@ -1335,31 +1374,7 @@ class L2Optimizer internal constructor(
 					}
 				}
 				// Deal with the register writes.
-				instruction.destinationRegisters
-					.filterIsInstance<L2BoxedRegister>()
-					.forEach { writeReg ->
-						firstUses.remove(writeReg)
-						mutables.remove(writeReg)
-						when
-						{
-							instruction is L2_MOVE_CONSTANT<*, *> ->
-							{
-								// Constants are always immutable.
-							}
-							instruction is L2_GET_VARIABLE &&
-								instruction.variable.isConstantRead ->
-							{
-								// It's reading from a statically known
-								// (constant) variable, which must be shared, so
-								// the value is definitely already immutable.
-							}
-							// Note: Rely on register coloring's L2_MOVE
-							// elimination to minimize spurious make-immutables
-							// due to treating moves like a potentially
-							// destructive use of the value.
-							else -> mutables.add(writeReg)
-						}
-					}
+				instruction.propagateMutability(firstUses, mutables)
 			}
 			// We've processed the block's instructions.  Now use the live-in
 			// information on the outbound edges as additional uses, to
@@ -1376,7 +1391,7 @@ class L2Optimizer internal constructor(
 			{
 				firstUses[readReg]?.let { (i, read) ->
 					// It may be used after this block – make it immutable.
-					insertions[i].add(read)
+					insertions.add(i to read)
 					// It's no longer mutable.
 					mutables.remove(readReg)
 					firstUses.remove(readReg)
@@ -1384,8 +1399,9 @@ class L2Optimizer internal constructor(
 			}
 			// Now insert the L2_MAKE_IMMUTABLE instructions where we indicated,
 			// in descending order to bypass problems with indexing.
-			insertions.withIndex().reversed().forEach { (i, reads) ->
-				reads.forEach { read ->
+			insertions
+				.sortedByDescending { (i, _) -> i }
+				.forEach { (i, read) ->
 					block.insertInstruction(
 						i,
 						L2_MAKE_IMMUTABLE(
@@ -1394,9 +1410,8 @@ class L2Optimizer internal constructor(
 								setOf(read.semanticValue()),
 								read.restriction(),
 								read.register())
-						).cloneFor(block))
+						).cloneFor(generator, block))
 				}
-			}
 			// Add edges for the successor blocks to use.
 			block.successorEdges().forEach { edge ->
 				mutablesByEdge[edge] = mutables
@@ -1576,6 +1591,18 @@ class L2Optimizer internal constructor(
 				instruction.writeOperands.forEach {
 					definitions.getOrPut(it.register(), ::mutableSetOf).add(it)
 				}
+				if (generator.mode == BySemanticValue
+					&& instruction !is L2_PHI<*>
+					&& instruction !is L2_STRIP_MANIFEST)
+				{
+					// An instruction cannot read and write the same semantic
+					// value.
+					val written = instruction.writeOperands
+						.flatMap(L2WriteOperand<*>::semanticValues)
+					val read = instruction.readOperands
+						.map(L2ReadOperand<*>::semanticValue)
+					assert(written.intersect(read).isEmpty())
+				}
 			}
 			// Ensure the successorEdges of the block agree with the edges of
 			// the last instruction.  Also collect all successor and predecessor
@@ -1661,7 +1688,7 @@ class L2Optimizer internal constructor(
 							== block.predecessorEdges().size)
 					// Make sure each phi source is present in the corresponding
 					// incoming edge.
-					instruction.sources().elements.zip(block.predecessorEdges())
+					instruction.sources.elements.zip(block.predecessorEdges())
 						.forEach { (read, edge) ->
 							assert(
 								edge.manifest().synonymsForRegister(
@@ -1674,12 +1701,12 @@ class L2Optimizer internal constructor(
 					// so that we could later insert a backward jump to it, we
 					// must treat that 1-way phi as preventing its sole
 					// predeccessor edge's semantic value and register from
-					// being propagated (otherwise the wrong ssemantic value and
+					// being propagated (otherwise the wrong semantic value and
 					// register could be accessed downstream, after a backward
 					// jump is inserted).
-					if (instruction.sources().elements.size == 1)
+					if (instruction.sources.elements.size == 1)
 					{
-						val soleRead = instruction.sources().elements[0]
+						val soleRead = instruction.sources.elements[0]
 						values.remove(soleRead.semanticValue())
 						registers.remove(soleRead.register())
 					}
@@ -1793,9 +1820,9 @@ class L2Optimizer internal constructor(
 			{
 				if (instruction is L2_PHI<*>)
 				{
-					assert(instruction.sources().elements.size
+					assert(instruction.sources.elements.size
 						== block.predecessorEdges().size)
-					instruction.sources().elements.zip(block.predecessorEdges())
+					instruction.sources.elements.zip(block.predecessorEdges())
 						.forEach { (source, edge) ->
 							// Just ignore the back-edges for now.
 							if (!edge.isBackward)
@@ -1805,7 +1832,7 @@ class L2Optimizer internal constructor(
 							}
 						}
 					workingSet.writeRegister(
-						instruction.destination().register(),
+						instruction.destination.register(),
 						registerIdFunction)
 					continue
 				}
@@ -1833,25 +1860,23 @@ class L2Optimizer internal constructor(
 				{
 					// It's the last instruction of the block.  First apply the
 					// writes that don't specify a Purpose...
-					instruction.operandsWithNamedTypesDo { operand, namedType ->
-						if (operand is L2WriteOperand<*> &&
-							namedType.purpose === null)
+					instruction.writesAndPurposesDo { write, purpose ->
+						if (purpose === null)
 						{
 							workingSet.writeRegister(
-								operand.register(), registerIdFunction)
+								write.register(), registerIdFunction)
 						}
 					}
 					// Now produce variants for each mentioned purpose, if any.
-					instruction.operandsWithNamedTypesDo { operand, namedType ->
-						if (operand is L2WriteOperand<*> &&
-							namedType.purpose !== null)
+					instruction.writesAndPurposesDo { write, purpose ->
+						if (purpose !== null)
 						{
-							val purposeWorkingSet = workingSetByPurpose
-								.computeIfAbsent(namedType.purpose) {
+							val purposeWorkingSet =
+								workingSetByPurpose.computeIfAbsent(purpose) {
 									UsedRegisters(workingSet)
 								}
 							purposeWorkingSet.writeRegister(
-								operand.register(), registerIdFunction)
+								write.register(), registerIdFunction)
 						}
 					}
 				}
@@ -1970,25 +1995,26 @@ class L2Optimizer internal constructor(
 	 */
 	fun optimize(interpreter: Interpreter)
 	{
-		try
-		{
-			sanityCheck(interpreter)
+		sanityCheck(interpreter)
 
-			for (phase in OptimizationPhase.entries)
-			{
-				val before = AvailRuntimeSupport.captureNanos()
-				phase.run(this)
-				val after = AvailRuntimeSupport.captureNanos()
-				phase.stat.record(after - before, interpreter.interpreterIndex)
-				sanityCheck(interpreter)
-			}
-		}
-		catch (e: Throwable)
+		for (phase in OptimizationPhase.entries)
 		{
-			// Here's a good place for a breakpoint, to allow L2 translation to
-			// restart, since the outer catch is already too late.
-			System.err.println("Unrecoverable problem during optimization: $e")
-			throw e
+			val before = AvailRuntimeSupport.captureNanos()
+			try
+			{
+				phase.run(this)
+			}
+			catch (e: Throwable)
+			{
+				// Here's a good place for a breakpoint, to allow L2 translation
+				// to restart, since the outer catch is already too late.
+				System.err.println(
+					"Unrecoverable problem during optimization: $e")
+				throw e
+			}
+			val after = AvailRuntimeSupport.captureNanos()
+			phase.stat.record(after - before, interpreter.interpreterIndex)
+			sanityCheck(interpreter)
 		}
 	}
 

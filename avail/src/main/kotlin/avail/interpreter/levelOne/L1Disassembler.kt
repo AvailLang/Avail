@@ -43,6 +43,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -64,6 +65,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.globalName
+import avail.descriptor.variables.A_Variable.Companion.isGlobal
 import avail.utility.Strings
 import java.util.IdentityHashMap
 
@@ -110,8 +113,10 @@ class L1Disassembler constructor(
 		 *
 		 * @param operation
 		 *   The operation that we're ending.
+		 * @param pcAfter
+		 *   The program counter just after the entire instruction.
 		 */
-		fun endOperation(operation: L1Operation)
+		fun endOperation(operation: L1Operation, pcAfter: Int)
 	}
 
 	/**
@@ -149,7 +154,7 @@ class L1Disassembler constructor(
 				if (i > 0) visitor.betweenOperands()
 				operandType.dispatch(visitor, getOperand())
 			}
-			visitor.endOperation(operation)
+			visitor.endOperation(operation, pc)
 		}
 	}
 
@@ -168,7 +173,7 @@ class L1Disassembler constructor(
 	 */
 	fun print(
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int,
 		highlightPc: Int = -1)
 	{
@@ -200,7 +205,7 @@ class L1Disassembler constructor(
 	 *   disassembled instruction.
 	 */
 	fun printInstructions(
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int,
 		action: (Int, Int, String)->Unit)
 	{
@@ -227,7 +232,9 @@ class L1Disassembler constructor(
 				tempBuilder.append(", ")
 			}
 
-			override fun endOperation(operation: L1Operation)
+			override fun endOperation(
+				operation: L1Operation,
+				pcAfter: Int)
 			{
 				action(instructionPc, instructionLine, tempBuilder.toString())
 				tempBuilder.clear()
@@ -280,6 +287,7 @@ class L1Disassembler constructor(
 	{
 		val slots = mutableListOf<AvailObjectFieldHelper>()
 		var currentOperationPc: Int = Int.MIN_VALUE
+		var nybbles = code.nybbles
 		val operandValues = mutableListOf<AvailObject>()
 		val nameBuilder = StringBuilder()
 
@@ -297,7 +305,7 @@ class L1Disassembler constructor(
 				{
 					nameBuilder.append(" \uD83D\uDD35==> ")
 				}
-				nameBuilder.append("$pc. [:$line] ${operation.shortName()}")
+				nameBuilder.append("[:$line] ${operation.shortName()}")
 				if (operation.operandTypes.isNotEmpty())
 				{
 					nameBuilder.append(" (")
@@ -309,12 +317,22 @@ class L1Disassembler constructor(
 				nameBuilder.append(", ")
 			}
 
-			override fun endOperation(operation: L1Operation)
+			override fun endOperation(
+				operation: L1Operation,
+				pcAfter: Int)
 			{
 				if (operation.operandTypes.isNotEmpty())
 				{
 					nameBuilder.append(")")
 				}
+				val nybblesString = buildString {
+					for (i in currentOperationPc ..< pcAfter)
+						append(
+							Integer.toString(nybbles.tupleIntAt(i), 16)
+								.uppercase())
+				}
+				val adjustedName =
+					"$currentOperationPc. |$nybblesString| " + nameBuilder
 				slots.add(
 					AvailObjectFieldHelper(
 						code,
@@ -322,7 +340,7 @@ class L1Disassembler constructor(
 						currentOperationPc,
 						tupleFromList(operandValues),
 						slotName = "Instruction",
-						forcedName = nameBuilder.toString(),
+						forcedName = adjustedName,
 						forcedChildren = operandValues.toTypedArray()))
 			}
 
@@ -385,8 +403,10 @@ class L1Disassembler constructor(
 		{
 			// Allow
 			builder.append(" = var(")
-			val variableValue = value.value()
-			printIfSimple(variableValue, builder, null, depth + 1)
+			if (value.isGlobal)
+			{
+				builder.append(value.globalName)
+			}
 			builder.append(")")
 			return
 		}
@@ -434,10 +454,10 @@ class L1Disassembler constructor(
 				// Show some things textually.
 				value.isNil -> value to false
 				value.isString -> value to false
-				value.isInstanceOf(NUMBER.o) -> value to false
-				value.isInstanceOf(MESSAGE_BUNDLE.o) ->
+				value.isInstanceOf(NUMBER()) -> value to false
+				value.isInstanceOf(MESSAGE_BUNDLE()) ->
 					value.message.atomName to true
-				value.isInstanceOf(METHOD.o) -> value to true
+				value.isInstanceOf(METHOD()) -> value to true
 				value.isAtom -> value.atomName to true
 				value.isCharacter -> value to false
 				value.equals(mostGeneralTupleType) -> value to false

@@ -113,7 +113,9 @@ object Strings
 	/** Strings containing a reasonably small number of tabs. */
 	private val tabs = Array(10) {
 		i -> buildString {
-			repeat(i) { append('\t') }
+			repeat(i) {
+				append('\t')
+			}
 		}
 	}
 
@@ -123,14 +125,13 @@ object Strings
 	 * @param indent The number of tabs.
 	 * @return The string.
 	 */
-	fun tabs(indent: Int): String {
-		if (indent < tabs.size) return tabs[indent]
-		val builder = StringBuilder(indent)
-		for (i in 1..indent) {
-			builder.append('\t')
+	fun tabs(indent: Int): String =
+		if (indent < tabs.size) tabs[indent]
+		else buildString {
+			repeat(indent) {
+				append('\t')
+			}
 		}
-		return builder.toString()
-	}
 
 	/**
 	 * Append the specified number of tab ('\t') characters to the receiver, a
@@ -139,10 +140,10 @@ object Strings
 	 * @receiver A [StringBuilder].
 	 * @param indent The number of tabs to append.
 	 */
-	fun StringBuilder.tab(
-		indent: Int
-	) {
-		for (i in 1..indent) {
+	fun StringBuilder.tab(indent: Int)
+	{
+		repeat(indent)
+		{
 			append('\t')
 		}
 	}
@@ -166,7 +167,8 @@ object Strings
 	{
 		assert(count >= 0)
 		return buildString(string.length * count) {
-			repeat(count) {
+			repeat(count)
+			{
 				append(string)
 			}
 		}
@@ -270,7 +272,7 @@ object Strings
 	 *   The function that produces text to be wrapped (or not) with the tag.
 	 */
 	fun StringBuilder.tagIf(
-		condition: Boolean = true,
+		condition: Boolean,
 		tag: String,
 		vararg attributes: Pair<String, String>,
 		body: StringBuilder.()->Unit)
@@ -294,6 +296,20 @@ object Strings
 		{
 			append("</$tag>")
 		}
+	}
+
+	/**
+	 * This alternative form of [tag] takes a [Map] of [String] -> [String] for
+	 * its attributes, rather than a vararg of [Pair]s.
+	 */
+	fun StringBuilder.tagIf(
+		condition: Boolean,
+		tag: String,
+		attributes: Map<String, String>,
+		body: StringBuilder.()->Unit)
+	{
+		val pairs = attributes.map { (k, v) -> k to v}
+		tagIf(condition, tag, *pairs.toTypedArray(), body = body)
 	}
 
 	/**

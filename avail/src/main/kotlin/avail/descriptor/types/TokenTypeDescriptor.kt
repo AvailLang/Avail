@@ -90,7 +90,7 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append(String.format(
@@ -159,7 +159,7 @@ private constructor(
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
 			if (self.tokenType() === aTokenType.tokenType) self
-			else TOKEN.o
+			else TOKEN()
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,

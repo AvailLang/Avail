@@ -99,7 +99,8 @@ abstract class LookupTreeAdaptor<
 	 */
 	abstract fun constructResult(
 		elements: List<Element>,
-		memento: Memento): Result
+		memento: Memento
+	): Result
 
 	/**
 	 * Compare two types to produce a [TypeComparison].
@@ -114,7 +115,8 @@ abstract class LookupTreeAdaptor<
 	 */
 	abstract fun compareTypes(
 		argumentRestrictions: List<TypeRestriction>,
-		signatureType: A_Type): TypeComparison
+		signatureType: A_Type
+	): TypeComparison
 
 	/**
 	 * `true` if the tree uses whole type testing, or `false` if the tree tests
@@ -177,7 +179,8 @@ abstract class LookupTreeAdaptor<
 	fun createRoot(
 		allElements: Collection<Element>,
 		knownArgumentRestrictions: List<TypeRestriction>,
-		memento: Memento): LookupTree<Element, Result>
+		memento: Memento
+	): LookupTree<Element, Result>
 	{
 		// Do all type testing intersected with the known type bounds.
 		val bound = extractBoundingType(knownArgumentRestrictions)
@@ -324,7 +327,8 @@ abstract class LookupTreeAdaptor<
 		alreadyTestedConstants: A_Number,
 		alreadyEnumerationOfNontypeTested: A_Number,
 		alreadyExtractedFields: A_Map,
-		memento: Memento): LookupTree<Element, Result>
+		memento: Memento
+	): LookupTree<Element, Result>
 	{
 		if (undecided.isEmpty())
 		{
@@ -393,7 +397,8 @@ abstract class LookupTreeAdaptor<
 		root: LookupTree<Element, Result>,
 		argumentTypesTuple: A_Tuple,
 		memento: Memento,
-		lookupStats: LookupStatistics): Result
+		lookupStats: LookupStatistics
+	): Result
 	{
 		val before = captureNanos()
 		val numArgs = argumentTypesTuple.tupleSize
@@ -435,6 +440,8 @@ abstract class LookupTreeAdaptor<
 	 *   tree that have not yet been constructed.
 	 * @param lookupStats
 	 *   The [LookupStatistics] in which to record the lookup.
+	 * @param otherLookupStats
+	 *   An optional other [LookupStatistics] in which to record the lookup.
 	 * @return
 	 *   The [Result].
 	 */
@@ -442,7 +449,9 @@ abstract class LookupTreeAdaptor<
 		root: LookupTree<Element, Result>,
 		argValues: List<A_BasicObject>,
 		memento: Memento,
-		lookupStats: LookupStatistics): Result
+		lookupStats: LookupStatistics,
+		otherLookupStats: LookupStatistics? = null
+	): Result
 	{
 		val before = captureNanos()
 		val numArgs = argValues.size
@@ -464,8 +473,9 @@ abstract class LookupTreeAdaptor<
 			solution = tree.solutionOrNull
 			depth++
 		}
-		lookupStats.recordDynamicLookup(
-			(captureNanos() - before).toDouble(), depth)
+		val nanos = (captureNanos() - before).toDouble()
+		lookupStats.recordDynamicLookup(nanos, depth)
+		otherLookupStats?.recordDynamicLookup(nanos, depth)
 		return solution
 	}
 
@@ -488,7 +498,8 @@ abstract class LookupTreeAdaptor<
 		root: LookupTree<Element, Result>,
 		argValue: A_BasicObject,
 		memento: Memento,
-		lookupStats: LookupStatistics): Result
+		lookupStats: LookupStatistics
+	): Result
 	{
 		val before = captureNanos()
 		val numArgs = 1

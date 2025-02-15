@@ -59,11 +59,10 @@ import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.ObjectSlots
 import avail.descriptor.types.MapTypeDescriptor.ObjectSlots.KEY_TYPE
 import avail.descriptor.types.MapTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.descriptor.types.MapTypeDescriptor.ObjectSlots.VALUE_TYPE
@@ -133,11 +132,11 @@ private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
-		if (self[KEY_TYPE].equals(ANY.o)
-			&& self[VALUE_TYPE].equals(ANY.o)
+		if (self[KEY_TYPE].equals(ANY())
+			&& self[VALUE_TYPE].equals(ANY())
 			&& self[SIZE_RANGE].equals(wholeNumbers))
 		{
 			builder.append("map")
@@ -472,7 +471,7 @@ private constructor(
 		/** The most general map type. */
 		private val mostGeneralType: A_Type =
 			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, ANY.o, ANY.o
+				wholeNumbers, ANY(), ANY()
 			).makeShared()
 
 		/**

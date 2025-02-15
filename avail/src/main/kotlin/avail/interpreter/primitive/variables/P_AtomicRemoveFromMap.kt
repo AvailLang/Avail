@@ -45,6 +45,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.atomicRemoveFromMap
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableGetException
@@ -87,14 +88,22 @@ object P_AtomicRemoveFromMap : Primitive(2, CanInline, HasSideEffect) {
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * If the variable had a reactor, adjusting it can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				variableReadWriteType(
 					mostGeneralMapType(),
 					bottom),
-				ANY.o),
-			TOP.o)
+				ANY()),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

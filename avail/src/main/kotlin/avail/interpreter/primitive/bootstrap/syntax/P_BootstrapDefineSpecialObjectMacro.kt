@@ -122,7 +122,7 @@ object P_BootstrapDefineSpecialObjectMacro
 						emptySet,
 						0),
 					emptyListNode())),
-			TOP.o)
+			TOP())
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
 		val getValue =
@@ -173,7 +173,7 @@ object P_BootstrapDefineSpecialObjectMacro
 							emptySet,
 							0),
 						emptyListNode())),
-				TOP.o)
+				TOP())
 		return interpreter.primitiveSuccess(
 			newSequence(
 				tuple(
@@ -185,7 +185,7 @@ object P_BootstrapDefineSpecialObjectMacro
 		functionType(
 			tuple(
 				LITERAL_PHRASE.create(nonemptyStringType),
-				LITERAL_PHRASE.create(ANY.o)),
+				LITERAL_PHRASE.create(ANY())),
 			SEQUENCE_PHRASE.mostGeneralType)
 
 	override fun bootstrapStyler() = P_BootstrapDefineSpecialObjectMacroStyler

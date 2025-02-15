@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -40,6 +41,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.getValue
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
@@ -48,6 +50,12 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
+import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** There are two possibilities.  The
@@ -66,6 +74,11 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 		val variable = interpreter.argument(0)
 		return try
 		{
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(variable, true)
+			}
 			interpreter.primitiveSuccess(variable.getValue())
 		}
 		catch (e: VariableGetException)
@@ -74,11 +87,19 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable had a reactor, reading it can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				mostGeneralVariableType),
-			ANY.o)
+			ANY())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
@@ -86,7 +107,48 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType
-		return if (readType.isTop) ANY.o else readType
+		return if (readType.isTop) ANY() else readType
+	}
+
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		callSiteHelper: CallSiteHelper
+	): Boolean
+	{
+		val varReg = arguments[0]
+		val varType = varReg.type()
+		val varInnerType = varType.readType
+
+		val success = createBasicBlock("get value success")
+		val failure = createBasicBlock("get value failure/observe")
+		val extractedValue = boxedWriteTemp(
+			"extracted",
+			boxedRestrictionForType(varInnerType))
+		// Emit the get-variable instruction.
+		+L2_GET_VARIABLE(
+			varReg,
+			extractedValue,
+			edgeTo(success),
+			edgeTo(failure))
+
+		// Emit the failure path, which is the fallback to invoking the
+		// primitive function and having it fail (presumably) into its failure
+		// handling code.
+		startBlock(failure)
+		generateGeneralFunctionInvocation(
+			functionToCallReg, false, callSiteHelper, arguments)
+
+		// And now the success path.  Note that the failure path could have
+		// also made it to the callSiteHelper's after-everything block if the
+		// call returns successfully.
+		startBlock(success)
+		// Reading the variable can't cause any local variables to become shared
+		// or acquire reactors.
+		callSiteHelper.useAnswer(readBoxed(extractedValue), false)
+		return true
 	}
 
 	override fun privateFailureVariableType(): A_Type =

@@ -71,7 +71,7 @@ object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
-			zeroOrMoreOf(ANY.o))
+			zeroOrMoreOf(ANY()))
 
 	/** Raw functions are always shared. */
 	override val canDestroyArguments get() = false

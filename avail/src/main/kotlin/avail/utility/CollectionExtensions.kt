@@ -132,12 +132,6 @@ inline fun <A: Iterable<B>, B, C, D> A.deepForEach (
 }
 
 /**
- * Kotlin has one of these in experimental, which forces the Universe to say
- * it's also experimental.  So boo.
- */
-fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
-
-/**
  * For each element in the collection, execute the [action], passing a
  * zero-argument function to run exactly once afterward (in this [Thread] or
  * another).  When the last element's zero-argument function has been invoked,

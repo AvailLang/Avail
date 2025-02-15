@@ -84,7 +84,7 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 		val innerToken = when
 		{
 			token.tokenType() == TokenType.LITERAL
-				&& token.literal().isInstanceOf(Types.TOKEN.o)
+				&& token.literal().isInstanceOf(Types.TOKEN())
 			-> token.literal()
 			else -> token
 		}
@@ -111,8 +111,8 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 
 	override fun privateBlockTypeRestriction(): A_Type = functionType(
 		tuple(
-			Types.TOKEN.o,
+			Types.TOKEN(),
 			stringType,
 			booleanType),
-		Types.TOP.o)
+		Types.TOP())
 }

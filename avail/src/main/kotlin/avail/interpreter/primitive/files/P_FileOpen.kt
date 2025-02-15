@@ -174,7 +174,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 					wholeNumbers, inclusive(0, 9)),
 				setTypeForSizesContentType(
 					wholeNumbers, inclusive(1, 9))),
-			ATOM.o)
+			ATOM())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

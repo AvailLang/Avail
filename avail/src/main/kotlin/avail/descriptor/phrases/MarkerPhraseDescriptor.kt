@@ -109,13 +109,13 @@ class MarkerPhraseDescriptor private constructor(
 		 * A pre-built marker for this enumeration value.
 		 */
 		val marker: A_Phrase =
-			newMarkerNode(fromInt(ordinal), TOP.o).makeShared()
+			newMarkerNode(fromInt(ordinal), TOP()).makeShared()
 	}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		builder.append("Marker(")

@@ -134,7 +134,7 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = builder.brief {
 		append(self[VARIABLE].token.string().asNativeString())
@@ -151,7 +151,7 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		when {
 			isInline(self) -> self[EXPRESSION].phraseExpressionType
-			else -> TOP.o
+			else -> TOP()
 		}
 
 	override fun o_EqualsPhrase(

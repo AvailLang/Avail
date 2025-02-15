@@ -43,7 +43,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
@@ -51,6 +50,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCA
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.entries
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT
@@ -178,7 +178,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append(self.token.string().asNativeString())
@@ -208,7 +208,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append('$')
@@ -267,7 +267,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append(self.token.string().asNativeString())
@@ -304,7 +304,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append(self.token.string().asNativeString())
@@ -346,7 +346,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append(self.token.string().asNativeString())
@@ -374,7 +374,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append(self.token.string().asNativeString())
@@ -400,7 +400,7 @@ class DeclarationPhraseDescriptor(
 			override fun print(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) {
 				builder.append(self.token.string().asNativeString())
@@ -527,7 +527,7 @@ class DeclarationPhraseDescriptor(
 		abstract fun print(
 			self: A_Phrase,
 			builder: StringBuilder,
-			recursionMap: IdentityHashMap<A_BasicObject, Void>,
+			recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 			indent: Int)
 
 		companion object
@@ -564,7 +564,7 @@ class DeclarationPhraseDescriptor(
 			fun printTypePartOf(
 				self: A_Phrase,
 				builder: StringBuilder,
-				recursionMap: IdentityHashMap<A_BasicObject, Void>,
+				recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 				indent: Int
 			) = when (val typeExpression = self.typeExpression) {
 				nil -> self.declaredType
@@ -620,7 +620,7 @@ class DeclarationPhraseDescriptor(
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
 		declarationKind
 
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP()
 
 	/**
 	 * This is a declaration, so it was handled on a separate pass.  Do nothing.
@@ -709,7 +709,7 @@ class DeclarationPhraseDescriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = self.declarationKind().print(self, builder, recursionMap, indent)
 
@@ -746,10 +746,10 @@ class DeclarationPhraseDescriptor(
 			literalObject: A_BasicObject
 		): A_Phrase {
 			assert(declaredType.isType)
-			assert(token.isInstanceOf(Types.TOKEN.o))
+			assert(token.isInstanceOf(Types.TOKEN()))
 			assert(initializationExpression.isNil
 				|| initializationExpression.isInstanceOfKind(
-					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
+					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY())))
 			assert(literalObject.isNil
 				|| declarationKind === MODULE_VARIABLE
 				|| declarationKind === MODULE_CONSTANT)

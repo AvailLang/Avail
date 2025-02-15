@@ -59,7 +59,6 @@ import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag
 import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -69,7 +68,6 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.Primitive.Flag.Unknown
-import avail.interpreter.Primitive.PrimitiveHolder
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.Primitive.Result.FAILURE
 import avail.interpreter.Primitive.Result.SUCCESS
@@ -83,7 +81,6 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -94,21 +91,24 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_RunInfalliblePrimitiveNoCheck
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
-import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
@@ -126,11 +126,8 @@ import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ARETURN
 import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.DUP
-import org.objectweb.asm.Opcodes.DUP2
-import org.objectweb.asm.Opcodes.DUP2_X2
 import org.objectweb.asm.Opcodes.IFNULL
 import org.objectweb.asm.Opcodes.POP
-import org.objectweb.asm.Opcodes.POP2
 import org.objectweb.asm.Opcodes.SWAP
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -598,6 +595,31 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	}
 
 	/**
+	 * Compute the type guaranteed by the VM for this primitive, given the two
+	 * argument types.
+	 *
+	 * This may only be used for 2-argument primitives, and only if they don't
+	 * also require access to the called [A_RawFunction].
+	 *
+	 * @param argType1
+	 *   The type of the first operand to the primitive call.
+	 * @param argType2
+	 *   The type of the second operand to the primitive call.
+	 * @return
+	 *   A return type guaranteed by the VM when invoking the primitive with
+	 *   arguments satisfying the given types.
+	 *
+	 */
+	fun binaryBound(
+		argType1: A_Type,
+		argType2: A_Type
+	): A_Type
+	{
+		assert(argCount == 2)
+		return returnTypeGuaranteedByVM(null, listOf(argType1, argType2))
+	}
+
+	/**
 	 * If `true`, which is the default, this primitive can be considered to
 	 * destroy any of its arguments if they're mutable.  It doesn't *have* to
 	 * destroy them, but it *may*.
@@ -610,6 +632,28 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *    result.
 	 */
 	open val canDestroyArguments get() = true
+
+	/**
+	 * Answer whether this primitive could theoretically cause an escaped local
+	 * variable to become shared, or to have read/write reactors added to it.
+	 * In either case, we must not continue executing L2 code that assumes that
+	 * any local variables that may have escaped can use a register to track
+	 * what value would have been written and read.  Instead, it falls back to
+	 * L1 execution if this happens.
+	 *
+	 * Most primitives can't cause that situation, but writing into another
+	 * already shared variable could do it, as could launching a fiber with a
+	 * function outer or argument that has captured a local variable. Updating
+	 * a map from a variable and writing it back into the variable could cause
+	 * this, but only if it was updating or adding an entry, not if it's
+	 * removing one.
+	 *
+	 * @param argumentTypes
+	 *   The types of the arguments at the call site.
+	 */
+	open fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>,
+	) = false
 
 	/**
 	 * Return an Avail [type][TypeDescriptor] that a failure variable
@@ -880,14 +924,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * If the primitive might fail for this site, do not generate anything,
 	 * answer `false`, and generate nothing.
 	 *
+	 * @receiver
+	 *   The [L1Translator] on which to emit code, if possible.
 	 * @param rawFunction
 	 *   The primitive raw function whose invocation is being generated.
 	 * @param arguments
 	 *   The argument [L2ReadBoxedOperand]s supplied to the function.
 	 * @param argumentTypes
 	 *   The list of [A_Type]s of the arguments.
-	 * @param translator
-	 *   The [L1Translator] on which to emit code, if possible.
 	 * @param callSiteHelper
 	 *   Information about the call site being generated.
 	 * @return
@@ -895,12 +939,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
-	fun tryToGenerateGeneralPrimitiveInvocation(
+	fun L1Translator.tryToGenerateGeneralPrimitiveInvocation(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		// In the general case, avoid producing failure and reification code if
 		// the primitive is infallible.  However, if the primitive can suspend
@@ -918,44 +962,46 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// The primitive cannot fail at this site.  Output code to run the
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
-		val generator = translator.generator
 		val guaranteedType =
 			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val restriction = boxedRestrictionForType(
-			if (guaranteedType.isBottom) TOP.o else guaranteedType)
+			if (guaranteedType.isBottom) TOP() else guaranteedType)
 		val semanticValue: L2SemanticBoxedValue
 		if (hasFlag(CanFold) && !guaranteedType.isBottom)
 		{
 			semanticValue = primitiveInvocation(
-				this, arguments.map(L2ReadBoxedOperand::semanticValue))
+				this@Primitive,
+				arguments.map(L2ReadBoxedOperand::semanticValue))
 			// See if we already have a value for an equivalent invocation.
-			val manifest = generator.currentManifest
-			manifest.equivalentPopulatedSemanticValue(
+			currentManifest.equivalentPopulatedSemanticValue(
 				semanticValue
 			)?.let { equivalent ->
 				// Reuse the previously computed result.
-				manifest.updateRestriction(equivalent) {
+				currentManifest.updateRestriction(equivalent) {
 					intersectionWithType(guaranteedType)
 				}
-				callSiteHelper.useAnswer(generator.readBoxed(equivalent))
+				callSiteHelper.useAnswer(
+					readBoxed(equivalent),
+					mightMakeEscapedVariableShared(argumentTypes))
 				return true
 			}
 		}
 		else
 		{
-			semanticValue = generator.newTemp()
+			semanticValue = newTemp("$name result")
 		}
-		val writer = generator.boxedWrite(semanticValue, restriction)
-		translator.addInstruction(
-			L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-				L2ConstantOperand(rawFunction),
-				L2ArbitraryConstantOperand(this),
-				L2ReadBoxedVectorOperand(arguments),
-				writer))
+		val writer = boxedWrite(semanticValue, restriction)
+		+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+			L2ConstantOperand(rawFunction),
+			this@Primitive,
+			L2ReadBoxedVectorOperand(arguments),
+			writer)
 		when
 		{
-			guaranteedType.isBottom -> generator.addUnreachableCode()
-			else -> callSiteHelper.useAnswer(translator.readBoxed(writer))
+			guaranteedType.isBottom -> addUnreachableCode()
+			else -> callSiteHelper.useAnswer(
+				readBoxed(writer),
+				mightMakeEscapedVariableShared(argumentTypes))
 		}
 		return true
 	}
@@ -985,7 +1031,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
-	open fun tryToGenerateSpecialPrimitiveInvocation(
+	open fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
@@ -1110,11 +1156,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	}
 
 	/**
-	 * Re-emit an infallible primitive invocation to the given [regenerator].
-	 * The default implementation just outputs an equivalent instruction, but
-	 * specific primitives might try to strengthen the invocation into custom
-	 * instructions due to code splitting or other type strengthening.
+	 * Re-emit an infallible primitive invocation to the [L2GeneratorInterface]
+	 * in the implicit receiver.  The default implementation just outputs an
+	 * equivalent instruction, but specific primitives might try to strengthen
+	 * the invocation into custom instructions due to code splitting or other
+	 * type strengthening.
 	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which to emit the instructions.
 	 * @param rawFunction
 	 *   The [A_RawFunction] that is implemented by this [Primitive].
 	 * @param arguments
@@ -1123,20 +1172,39 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * @param result
 	 *   The [L2WriteBoxedOperand] in which to store the result of the primitive
 	 *   invocation.
-	 * @param regenerator
-	 *   The [L2Regenerator] on which to emit the instructions.
 	 */
-	open fun emitTransformedInfalliblePrimitive(
+	open fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand,
-		regenerator: L2Regenerator
-	) = regenerator.addInstruction(
-		L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-			L2ConstantOperand(rawFunction),
-			L2ArbitraryConstantOperand(this),
-			arguments,
-			result))
+		result: L2WriteBoxedOperand
+	) = emitBasicInfalliblePrimitive(rawFunction, arguments, result)
+
+	/**
+	 * Generate an [L2_RUN_INFALLIBLE_PRIMITIVE] for this primitive.  This
+	 * would normally be in the body of [emitTransformedInfalliblePrimitive],
+	 * but instance methods with an implied receiver can't be invoked with the
+	 * super syntax (as of 2024-12-14).
+	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which to emit the instructions.
+	 * @param rawFunction
+	 *   The [A_RawFunction] that is implemented by this [Primitive].
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing the sources of the arguments
+	 *   being passed to the primitive function.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] in which to store the result of the primitive
+	 *   invocation.
+	 */
+	open fun L2GeneratorInterface.emitBasicInfalliblePrimitive(
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	) = +L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+		L2ConstantOperand(rawFunction),
+		this@Primitive,
+		arguments,
+		result)
 
 	/**
 	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to
@@ -1152,7 +1220,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val boxedWrite: L2WriteBoxedOperand,
 		val intSuccess: L2BasicBlock,
 		val intFailure: L2BasicBlock,
-		val generator: L2Generator)
+		private val translator: L1Translator
+	) : L2GeneratorInterface by translator
 
 	/**
 	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to
@@ -1162,11 +1231,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
 	class BinaryNonIntGeneratorHelper(
+		@Suppress("unused")
 		val boxedA: L2ReadBoxedOperand,
+		@Suppress("unused")
 		val boxedB: L2ReadBoxedOperand,
 		val boxedWrite: L2WriteBoxedOperand,
-		val translator: L1Translator,
-		val generator: L2Generator)
+		val translator: L1Translator
+	) : L2GeneratorInterface by translator
 
 	/**
 	 * Emit code that attempts to unbox ints, and uses the supplied values in
@@ -1185,8 +1256,17 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * @param argumentTypes
 	 *   The known static types of the [arguments].
 	 * @param ifOutputIsInt
-	 *   A lambda that generates code to handle the case that the values are
-	 *   *not* both [i32]s in int registers.
+	 *   A lambda with [BinaryIntGeneratorHelper] as receiver, that generates
+	 *   code to handle the case that the values are both [i32]s in int
+	 *   registers, and the result, if performed, would also be an [i32].
+	 * @param ifOutputIsPossiblyInt
+	 *   A lambda with [BinaryIntGeneratorHelper] as receiver, that generates
+	 *   code to handle the case that the values are both [i32]s in int
+	 *   registers, and the result is not known to also be an [i32].
+	 * @param fallback
+	 *   A lambda with [BinaryNonIntGeneratorHelper] as receiver, that generates
+	 *   code to handle the case that the inputs can't be converted into [i32]s,
+	 *   or the result is known always to be out of range of an [i32].
 	 */
 	fun attemptToGenerateTwoIntToIntPrimitive(
 		callSiteHelper: CallSiteHelper,
@@ -1199,16 +1279,18 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		fallback: BinaryNonIntGeneratorHelper.() -> Unit =
 			{
 				translator.generateGeneralFunctionInvocation(
-					functionToCallReg, arguments, false, callSiteHelper)
+					functionToCallReg, false, callSiteHelper, arguments)
 			}
 	): Boolean
 	{
 		val (boxedA, boxedB) = arguments
 		val (aType, bType) = argumentTypes
 
-		val aIntersectInt32 = aType.typeIntersection(i32)
-		val bIntersectInt32 = bType.typeIntersection(i32)
-		if (aIntersectInt32.isBottom || bIntersectInt32.isBottom)
+		val aIntersectInt32 = boxedA.restriction()
+			.intersectionWithType(aType.typeIntersection(i32))
+		val bIntersectInt32 = boxedB.restriction()
+			.intersectionWithType(bType.typeIntersection(i32))
+		if (aIntersectInt32.isImpossible || bIntersectInt32.isImpossible)
 		{
 			// They can't both be an i32, so tell the caller to fall back.
 			return false
@@ -1216,34 +1298,37 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 		// Attempt to unbox the arguments.
 		val translator = callSiteHelper.translator
-		val generator = translator.generator
 		val valueA = boxedA.semanticValue()
 		val valueB = boxedB.semanticValue()
-		val intSuccess = generator.createBasicBlock("output is i32")
-		val intFallback = generator.createBasicBlock("fall back to boxed")
-		val intA = generator.readInt(valueA.unboxedInt, intFallback)
-		val intB = generator.readInt(valueB.unboxedInt, intFallback)
-		assert(generator.currentlyReachable())
+		val intSuccess = translator.createBasicBlock("output is i32")
+		val intFallback = translator.createBasicBlock("fall back to boxed")
+		val intA = translator.readInt(valueA.unboxedInt, intFallback) {
+			return false
+		}
+		val intB = translator.readInt(valueB.unboxedInt, intFallback) {
+			return false
+		}
+		assert(translator.currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
-			rawFunction, listOf(aIntersectInt32, bIntersectInt32))
+			rawFunction, listOf(aIntersectInt32.type, bIntersectInt32.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
 		val intSemanticPrimitive = semanticPrimitive.unboxedInt
-		val intWriter = generator.intWrite(
+		val intWriter = translator.intWrite(
 			setOf(intSemanticPrimitive),
 			intRestrictionForType(returnTypeIfInts.typeIntersection(i32)))
-		val boxedWrite = generator.boxedWrite(
+		val boxedWrite = translator.boxedWrite(
 			setOf(semanticPrimitive),
 			boxedRestrictionForType(returnTypeIfInts))
 		val helper = BinaryIntGeneratorHelper(
-			intA,
-			intB,
-			intWriter,
-			boxedWrite,
-			intSuccess,
-			intFallback,
-			generator)
+			intA = intA,
+			intB = intB,
+			intWrite = intWriter,
+			boxedWrite = boxedWrite,
+			intSuccess = intSuccess,
+			intFailure = intFallback,
+			translator = translator)
 		if (returnTypeIfInts.isSubtypeOf(i32))
 		{
 			// The result is guaranteed not to overflow, so emit an instruction
@@ -1257,7 +1342,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			// The result could exceed an int32.
 			helper.ifOutputIsPossiblyInt()
-			generator.startBlock(intSuccess)
+			translator.startBlock(intSuccess)
 		}
 
 		// Even though we're just using the boxed value again, the unboxed form
@@ -1265,20 +1350,21 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// allow the boxing instruction to evaporate.  Note that the prior
 		// int-specific generation blocks are allowed to have simply emitted a
 		// jump to the fallback, so only use the int/boxed value if it exists.
-		val manifest = generator.currentManifest
+		val manifest = translator.currentManifest
 		if (manifest.hasSemanticValue(semanticPrimitive) ||
 			manifest.hasSemanticValue(semanticPrimitive.unboxedInt))
 		{
-			callSiteHelper.useAnswer(generator.readBoxed(semanticPrimitive))
+			callSiteHelper.useAnswer(
+				translator.readBoxed(semanticPrimitive), false)
 		}
 		if (intFallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,
 			// or from int32 overflow calculating the product.
-			generator.startBlock(intFallback)
+			translator.startBlock(intFallback)
 			BinaryNonIntGeneratorHelper(
-				boxedA, boxedB, boxedWrite, translator, generator
+				boxedA, boxedB, boxedWrite, translator
 			).fallback()
 		}
 		return true
@@ -1395,38 +1481,35 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			{
 				method.visitInsn(DUP)
 			}
-			translator.load(method, arguments.elements[i].register())
+			translator.load(method, arguments.elements[i])
 			JavaLibrary.listAddMethod.generateCall(method)
 			method.visitInsn(POP)
 		}
 		// []
 		translator.loadInterpreter(method)
 		// [interpreter]
-		translator.literal(method, this)
+		translator.loadLiteralObject(method, this)
 		// [interpreter, prim]
-		method.visitInsn(DUP2)
+		translator.loadInterpreter(method)
+		// [interpreter, prim, interpreter]
+		translator.loadLiteralObject(method, this)
 		// [interpreter, prim, interpreter, prim]
-		method.visitInsn(DUP2)
-		// [interpreter, prim, interpreter, prim, interpreter, prim]
 		// :: long timeBefore = beforeAttemptPrimitive(primitive);
 		beforeAttemptPrimitiveMethod.generateCall(method)
-		// [interpreter, prim, interpreter, prim, timeBeforeLong]
-		method.visitInsn(DUP2_X2) // Form 2: v3,v2,v1x2 -> v1x2,v3,v2,v1x2
-		// [interpreter, prim, timeBeforeLong, interpreter, prim, timeBeforeLong]
-		method.visitInsn(POP2) // Form 2: v1x2 -> empty
-		// [interpreter, prim, timeBeforeLong, interpreter, prim]
-		method.visitInsn(SWAP)
+		// [interpreter, prim, timeBeforeLong]
+		translator.loadLiteralObject(method, this)
+		// [interpreter, prim, timeBeforeLong, prim]
+		translator.loadInterpreter(method)
 		// [interpreter, prim, timeBeforeLong, prim, interpreter]
 		// :: Result success = primitive.attempt(interpreter)
 		attemptMethod.generateCall(method)
 		// [interpreter, prim, timeBeforeLong, success]
-
 		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
 		afterAttemptPrimitiveMethod.generateCall(method)
+		// :: [success] (returned as a nicety by afterAttemptPrimitive)
 
 		// If the infallible primitive definitely switches continuations, then
 		// return null to force the context switch.
-		// :: [success] (returned as a nicety by afterAttemptPrimitive)
 		when
 		{
 			hasFlag(AlwaysSwitchesContinuation) ->
@@ -1442,7 +1525,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				// :: [success, interpreter]
 				method.visitInsn(SWAP)
 				// :: [interpreter, success]
-				translator.literal(method, this)
+				translator.loadLiteralObject(method, this)
 				// :: [interpreter, success, primitive]
 				method.visitInsn(SWAP)
 				// :: [interpreter, primitive, success]
@@ -1522,8 +1605,58 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	): L2SemanticPrimitiveInvocation =
 		primitiveInvocation(this, arguments.toList())
 
+	/**
+	 * The [manifest] has just gotten a narrower [TypeRestriction] set for a
+	 * semantic invocation of this primitive with the given semantic
+	 * [arguments].  Within the given [manifest], ropagate that narrowing to any
+	 * related [L2SemanticValue]s.
+	 */
+	open fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		// Do nothing by default.
+	}
+
 	override fun toString(): String
 	{
 		return this::class.java.simpleName
 	}
+
+	/**
+	 * Given a [L2SemanticPrimitiveInvocation] whose primitive is the receiver,
+	 * render it as text.
+	 */
+	open fun printSemanticInvocation(
+		invocation: L2SemanticPrimitiveInvocation
+	): String
+	{
+		assert(invocation.primitive == this)
+		semanticinfixOperatorString?.let { infix ->
+			assert(argCount == 2)
+			val (left, right) = invocation.argumentSemanticValues
+			var leftString =
+				left.constant?.let(AvailObject::toString) ?: left.toString()
+			if (left.requiresParentheses()) leftString = "($leftString)"
+			var rightString =
+				right.constant?.let(AvailObject::toString) ?: right.toString()
+			if (right.requiresParentheses()) rightString = "($rightString)"
+			return "$leftString $infix $rightString"
+		}
+		return invocation.argumentSemanticValues.joinToString(
+			separator = ", ",
+			prefix = "$name(",
+			postfix = ")" )
+		{
+			it.constant?.let(AvailObject::toString) ?: it.toString()
+		}
+	}
+
+	/**
+	 * If an [L2SemanticPrimitiveInvocation] of this primitive should be
+	 * described with an infix syntax, answer the infix operator string,
+	 * otherwise `null`.
+	 */
+	open val semanticinfixOperatorString: String? get() = null
 }

@@ -37,9 +37,11 @@ import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -52,32 +54,51 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
-class
-L2_MOVE_OUTER_VARIABLE(
-	val outerName: String,
+class L2_MOVE_OUTER_VARIABLE(
+	var outerName: L2CommentOperand,
 	var outerIndex: L2IntImmediateOperand,
 	var function: L2ReadBoxedOperand,
 	var destination: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(destination.registerString())
-		builder.append(" ← ")
-		builder.append(function.registerString())
-		builder.append('[')
-		builder.append(outerIndex.value)
-		if (outerName.isNotEmpty())
+		renderPreamble()
+		append(' ')
+		append(destination.registerString())
+		append(" ← ")
+		append(function.registerString())
+		append('[')
+		append(outerIndex.value)
+		if (outerName.comment.isNotEmpty())
 		{
-			builder.append('=')
-			builder.append(outerName)
+			append('=')
+			append(outerName.comment)
 		}
-		builder.append(']')
+		append(']')
+	}
+
+	override fun propagateMutability(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>)
+	{
+		// It doesn't catch all cases, but if the function has already become
+		// immutable, there's no need to mark the extracted outer as immutable.
+		if (function.register() in mutables)
+		{
+			// Function is still potentially mutable, so the extracted outer
+			// is potentially mutable.
+			super.propagateMutability(firstUses, mutables)
+		}
+		else
+		{
+			// The function is immutable at this point (perhaps because at least
+			// two uses have been encountered, say for extracting two outers).
+			// Therefore the outers are also already immutable.
+			return
+		}
 	}
 
 	override fun translateToJVM(
@@ -85,8 +106,8 @@ L2_MOVE_OUTER_VARIABLE(
 		method: MethodVisitor)
 	{
 		// :: destination = function.outerVarAt(outerIndex);
-		translator.load(method, function.register())
-		translator.literal(method, outerIndex.value)
+		translator.load(method, function)
+		translator.intConstant(method, outerIndex.value)
 		FunctionDescriptor.outerVarAtMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}

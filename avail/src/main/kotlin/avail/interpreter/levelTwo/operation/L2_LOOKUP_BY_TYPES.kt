@@ -57,7 +57,6 @@ import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_NO_METHOD
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import avail.exceptions.AvailException.Companion.numericCodeMethod
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
 import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
@@ -70,7 +69,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
+import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES.Companion.lookup
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -85,8 +84,8 @@ import java.util.logging.Level
 /**
  * Look up the method to invoke. Use the provided vector of argument types to
  * perform a polymorphic lookup. Write the resulting function into the
- * specified destination register. If the lookup fails, then branch to the
- * specified [offset][Interpreter.setOffset].
+ * specified destination register. If the lookup fails, then branch to
+ * [ifLookupFailed].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -95,7 +94,6 @@ class L2_LOOKUP_BY_TYPES(
 	var messageBundle: L2ConstantOperand,
 	var argumentTypes: L2ReadBoxedVectorOperand,
 	@On(SUCCESS) var lookedUpFunction: L2WriteBoxedOperand,
-	@On(FAILURE) var errorCode: L2WriteBoxedOperand,
 	@On(SUCCESS) var ifLookupSucceeded: L2PcOperand,
 	@On(FAILURE) var ifLookupFailed: L2PcOperand
 ) : L2ControlFlowInstruction()
@@ -107,11 +105,6 @@ class L2_LOOKUP_BY_TYPES(
 	{
 		//		final L2SelectorOperand bundle = instruction.operand(0);
 		super.instructionWasAdded(manifest)
-
-		// If the lookup failed, it supplies the reason to the errorCodeReg.
-		ifLookupFailed.manifest().setRestriction(
-			errorCode.pickSemanticValue(),
-			errorCode.restriction())
 
 		// If the lookup succeeds, the functionReg will be set, and we can also
 		// conclude that the arguments satisfied at least one of the found
@@ -137,7 +130,7 @@ class L2_LOOKUP_BY_TYPES(
 			{
 				val argumentUnion = argumentTupleUnionType.typeAtIndex(i)
 				ifLookupSucceeded.manifest().intersectType(
-					argumentTypeRegs[i - 1],
+					argumentTypeRegs[i - 1].semanticValue(),
 					instanceTypeOrMetaOn(argumentUnion))
 			}
 		}
@@ -158,7 +151,7 @@ class L2_LOOKUP_BY_TYPES(
 		method.visitLabel(tryStart)
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method)
-		translator.literal(method, messageBundle.constant)
+		translator.loadLiteralObject(method, messageBundle.constant)
 		translator.objectArray(
 			method, argumentTypes.elements, AvailObject::class.java)
 		lookupMethod.generateCall(method)
@@ -171,12 +164,9 @@ class L2_LOOKUP_BY_TYPES(
 		translator.jump(method, ifLookupSucceeded)
 		// :: } catch (MethodDefinitionException e) {
 		method.visitLabel(catchStart)
-		// ::    errorCode = e.numericCode();
-		numericCodeMethod.generateCall(method)
-		method.visitTypeInsn(
-			Opcodes.CHECKCAST,
-			Type.getInternalName(AvailObject::class.java))
-		translator.store(method, errorCode.register())
+		// [:: e]
+		method.visitInsn(Opcodes.POP)
+		// [::]
 		// ::    goto lookupFailed;
 		translator.jumpOrFallThrough(method, ifLookupFailed)
 		// :: }

@@ -46,8 +46,9 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_PHRASE_EXPRESSION_TYPE
 import avail.interpreter.primitive.phrases.P_PhraseExpressionType
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
@@ -229,6 +230,7 @@ constructor(
 		append(childNode.toString(indent + 1))
 	}
 
+	@Suppress("unused")
 	private fun newSemanticValue(
 		semanticValues: List<L2SemanticBoxedValue>,
 		extraSemanticValues: List<L2SemanticBoxedValue>
@@ -241,7 +243,7 @@ constructor(
 		list.add(childNode)
 	}
 
-	override fun generateEdgesFor(
+	override fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -251,22 +253,19 @@ constructor(
 			LookupTree<A_Definition, A_Tuple>,
 			List<L2SemanticBoxedValue>>>
 	{
-		val generator = callSiteHelper.generator
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction =
-			generator.currentManifest.restrictionFor(baseSemanticValue)
+			currentManifest.restrictionFor(baseSemanticValue)
 		val expressionTypeRestriction = boxedRestrictionForType(
 			instanceMeta(baseRestriction.type.phraseTypeExpressionType))
 		val expressionTypeSemanticValue =
 			P_PhraseExpressionType.semanticInvocation(baseSemanticValue)
-		generator.addInstruction(
-			L2_GET_PHRASE_EXPRESSION_TYPE(
-				generator.readBoxed(baseSemanticValue),
-				generator.boxedWrite(
-					expressionTypeSemanticValue, expressionTypeRestriction)))
+		+L2_GET_PHRASE_EXPRESSION_TYPE(
+			readBoxed(baseSemanticValue),
+			boxedWrite(expressionTypeSemanticValue, expressionTypeRestriction))
 		val target = L2BasicBlock("after extracting field")
-		generator.jumpTo(target)
+		jumpTo(target)
 		return listOf(
 			Triple(
 				target,

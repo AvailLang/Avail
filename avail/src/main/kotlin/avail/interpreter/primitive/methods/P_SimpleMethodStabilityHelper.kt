@@ -134,7 +134,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 		val arguments = interpreter.argsBuffer.toList()
 		if (arguments.any { !it.isEnumeration || it.isInstanceMeta })
 		{
-			return interpreter.primitiveSuccess(TOP.o)
+			return interpreter.primitiveSuccess(TOP())
 		}
 
 		val enumerations = arguments.map { it.instances.makeShared().toList() }
@@ -151,7 +151,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 		// The resulting combination of input types seems too expensive to
 		// compute here.
 		if (combinationCount > MAXIMUM_ENUMERATION_COMBINATIONS)
-			return interpreter.primitiveSuccess(TOP.o)
+			return interpreter.primitiveSuccess(TOP())
 
 		// The sole outer is the function to invoke with each combination of
 		// enumerated arguments.
@@ -164,7 +164,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 			allCombinations.parallelMapThen(
 				action = { combination, afterEach: (A_Type?)->Unit ->
 					val fiber = createFiber(
-						ANY.o,
+						ANY(),
 						loader.runtime,
 						loader,
 						originalFiber.textInterface,
@@ -189,7 +189,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 						// The primitive failed for at least one combination, so
 						// play it safe and have the semantic restriction answer
 						// ⊤.
-						succeed(TOP.o)
+						succeed(TOP())
 					}
 					else
 					{

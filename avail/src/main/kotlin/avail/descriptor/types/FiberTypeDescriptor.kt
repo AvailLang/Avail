@@ -175,7 +175,7 @@ constructor (
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int)
 	{
 		builder.append("fiber→")
@@ -217,7 +217,7 @@ constructor (
 		 * The most general [fiber type][FiberTypeDescriptor].
 		 */
 		private val mostGeneralFiberType: A_Type =
-			fiberType(TOP.o).makeShared()
+			fiberType(TOP()).makeShared()
 
 		/**
 		 * Answer the most general [fiber&#32;type][FiberDescriptor].

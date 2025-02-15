@@ -63,17 +63,16 @@ class L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 {
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(continuationToRestart.registerString())
-		builder.append("(")
-		builder.append(arguments.elements)
-		builder.append(")")
+		renderPreamble()
+		append(' ')
+		append(continuationToRestart.registerString())
+		append("(")
+		append(arguments.elements)
+		append(")")
 	}
 
 	override fun translateToJVM(
@@ -83,7 +82,7 @@ class L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 		// :: return interpreter.reifierToRestart(
 		// ::    continuation, argsArray);
 		translator.loadInterpreter(method)
-		translator.load(method, continuationToRestart.register())
+		translator.load(method, continuationToRestart)
 		translator.objectArray(
 			method,
 			arguments.elements,

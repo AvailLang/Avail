@@ -75,6 +75,7 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.Descriptor.Companion.maxBrief
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_SetBin
@@ -93,6 +94,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
+import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailException
@@ -106,6 +108,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
@@ -591,13 +594,15 @@ protected constructor (
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByTypesFromTuple (
 		self: AvailObject,
-		argumentTypeTuple: A_Tuple): A_Definition = unsupported
+		argumentTypeTuple: A_Tuple
+	): A_Definition = unsupported
 
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByValuesFromList (
-			self: AvailObject,
-			argumentList: List<A_BasicObject>): A_Definition =
-		unsupported
+		self: AvailObject,
+		argumentList: List<A_BasicObject>,
+		callerLookupStat: LookupStatistics?
+	): A_Definition = unsupported
 
 	override fun o_MapAtOrNull (
 		self: AvailObject,
@@ -623,7 +628,7 @@ protected constructor (
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_Map = unsupported
 
 	override fun o_MapWithoutKeyCanDestroy (
@@ -752,6 +757,10 @@ protected constructor (
 		unsupported
 
 	override fun o_SetValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject): Unit = unsupported
+
+	override fun o_SetUnescapedLocalValueNoCheck (
 		self: AvailObject,
 		newValue: A_BasicObject): Unit = unsupported
 
@@ -1035,6 +1044,10 @@ protected constructor (
 	override fun o_GetValueClearing (self: AvailObject): AvailObject =
 		unsupported
 
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearingIfMutable (self: AvailObject): AvailObject =
+		unsupported
+
 	override fun o_HashOrZero (self: AvailObject): Int = unsupported
 
 	override fun o_HasGrammaticalRestrictions (self: AvailObject): Boolean =
@@ -1044,14 +1057,16 @@ protected constructor (
 
 	override fun o_LazyIncomplete (self: AvailObject): A_Map = unsupported
 
-	override fun o_DecrementCountdownToReoptimize (
-		self: AvailObject,
-		continuation: (Boolean)->Unit
-	): Boolean = unsupported
+	override fun o_DecrementCountdownToReoptimize (self: AvailObject): Boolean =
+		unsupported
+
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
 		self: AvailObject,
 		delta: Long
 	): Unit = unsupported
+
+	override fun o_EncounteredFallbackLookup(self: AvailObject): Unit =
+		unsupported
 
 	override fun o_IsAbstract (self: AvailObject): Boolean = unsupported
 
@@ -1383,8 +1398,6 @@ protected constructor (
 		self.scanSubobjects(AvailObject::makeShared)
 		return self
 	}
-
-	override fun o_Kind (self: AvailObject): A_Type = unsupported
 
 	override fun o_IsBoolean (self: AvailObject) = false
 
@@ -1837,12 +1850,13 @@ protected constructor (
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy (
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin = unsupported
 
 	override fun o_MapBinKeyUnionKind (self: AvailObject): A_Type = unsupported
@@ -2026,12 +2040,8 @@ protected constructor (
 
 	override fun o_NameForDebugger (self: AvailObject): String
 	{
-		var typeName = javaClass.simpleName
-		if (typeName.endsWith("Descriptor"))
-		{
-			typeName = typeName.substring(0, typeName.length - 10)
-		}
-		typeName += mutability.suffix
+		val typeName = javaClass.simpleName.removeSuffix("Descriptor") +
+			mutability.suffix
 		return (
 			if (self.showValueInNameForDebugger())
 				"($typeName) = $self"
@@ -2178,9 +2188,11 @@ protected constructor (
 	override fun o_FiberResult (self: AvailObject): AvailObject =
 		unsupported
 
-	override fun o_SetFiberResult (
+	override fun o_SetFiberResultAndState(
 		self: AvailObject,
-		result: A_BasicObject): Unit = unsupported
+		result: A_BasicObject,
+		state: ExecutionState
+	): Unit = unsupported
 
 	override fun o_JoiningFibers (self: AvailObject): A_Set = unsupported
 
@@ -2429,7 +2441,7 @@ protected constructor (
 	override fun o_MacroOriginalSendNode (self: AvailObject): A_Phrase =
 		unsupported
 
-	override fun o_EqualsInt (self: AvailObject, theInt: Int) = false
+	override fun o_EqualsLong (self: AvailObject, theLong: Long) = false
 
 	override fun o_Tokens (self: AvailObject): A_Tuple = unsupported
 
@@ -2600,6 +2612,8 @@ protected constructor (
 	override fun o_ReturneeCheckStat (self: AvailObject): Statistic =
 		unsupported
 
+	override fun o_LookupStat(self: AvailObject): LookupStatistics = unsupported
+
 	override fun o_NumNybbles (self: AvailObject): Int = unsupported
 
 	override fun o_LineNumberEncodedDeltas (self: AvailObject): A_Tuple =
@@ -2657,6 +2671,8 @@ protected constructor (
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		unsupported
 
+	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple = unsupported
+
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,
 		index: Int
@@ -2664,6 +2680,10 @@ protected constructor (
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		unsupported
+
+	override fun o_FallbackEntryPoint(
+		self: AvailObject
+	): ChunkEntryPoint = unsupported
 
 	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler): Unit =
 		unsupported

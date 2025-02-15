@@ -36,38 +36,37 @@ import avail.descriptor.methods.A_Definition
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Ushr
-import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
-import avail.interpreter.levelTwo.operation.ShiftedHashSplitter
+import avail.interpreter.levelTwo.operation.dispatch.L2_HASH
+import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
+import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.interpreter.primitive.general.P_Hash
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
-import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 import avail.utility.notNullAnd
-import avail.utility.removeLast
 import java.lang.Integer.toHexString
 
 /**
@@ -364,7 +363,7 @@ constructor(
 	 * with the [LookupTree] responsible for generating code in that block, plus
 	 * the list of extra [L2SemanticValue]s that will be present at that block.
 	 */
-	abstract fun generateEdgesFor(
+	abstract fun L2GeneratorInterface.generateEdgesFor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
@@ -389,14 +388,14 @@ constructor(
 	 * at runtime does not match any of those listed values, control flow should
 	 * end up in code generated for the [noMatchSubtree].
 	 *
+	 * @receiver
+	 *   The [L1Translator] onto which to write the instructions.
 	 * @param semanticArguments
 	 *   The original [L2SemanticValue] arguments available at this point in the
 	 *   tree.
 	 * @param extraSemanticArguments
 	 *   Additional [L2SemanticValue]s for values that have been extracted from
 	 *   the arguments at this point in the tree.
-	 * @param callSiteHelper
-	 *   The [CallSiteHelper] for which the dispatch is happening.
 	 * @param valueToSubtree
 	 *   A [Map] from each expected value to the [LookupTree] that should be
 	 *   reached if that value occurs at runtime.
@@ -404,10 +403,9 @@ constructor(
 	 *   The [LookupTree] that should be reached if none of the entries in the
 	 *   [valueToSubtree] was supplied at runtime.
 	 */
-	fun generateDispatchTriples(
+	fun L2GeneratorInterface.generateDispatchTriples(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		extraSemanticArguments: List<L2SemanticBoxedValue>,
-		callSiteHelper: CallSiteHelper,
 		valueToSubtree: Map<A_BasicObject, LookupTree<Element, Result>>,
 		noMatchSubtree: LookupTree<Element, Result>
 	): List<
@@ -418,8 +416,7 @@ constructor(
 	{
 		val semanticSource =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val generator = callSiteHelper.generator
-		val manifest = generator.currentManifest
+		val manifest = currentManifest
 		val sourceRestriction = manifest.restrictionFor(semanticSource)
 		var residue = sourceRestriction
 		val reachableEntries = valueToSubtree.entries.filter { (key, _) ->
@@ -434,7 +431,7 @@ constructor(
 			reachableSize == 0 && exhaustive ->
 			{
 				// Nothing is possible here.
-				generator.addUnreachableCode()
+				addUnreachableCode()
 				return emptyList()
 			}
 
@@ -447,7 +444,7 @@ constructor(
 					else -> noMatchSubtree
 				}
 				val target = L2BasicBlock("Only outcome")
-				generator.jumpTo(target)
+				jumpTo(target)
 				return listOf(
 					Triple(target, onlyTree.cast(), extraSemanticArguments))
 			}
@@ -499,13 +496,11 @@ constructor(
 		val int32Restriction = intRestrictionForType(i32)
 		val semanticHash = P_Hash.semanticInvocation(semanticSource)
 		val semanticHashInt = semanticHash.unboxedInt
-		if (!generator.currentManifest.hasSemanticValue(semanticHashInt))
+		if (!currentManifest.hasSemanticValue(semanticHashInt))
 		{
-			generator.addInstruction(
-				L2_HASH(
-					generator.readBoxed(semanticSource),
-					generator.intWrite(
-						setOf(semanticHashInt), int32Restriction)))
+			+L2_HASH(
+				readBoxed(semanticSource),
+				intWrite(setOf(semanticHashInt), int32Restriction))
 		}
 		// Now extract the relevant bits.  Pretend the hash was masked with the
 		// value 0xFFFF_FFFFL, so that we can right shift it in a way that's
@@ -530,95 +525,74 @@ constructor(
 				run {
 					// Neither the semantic value representing the shifted hash
 					// nor an equivalent semantic value exist.  Do the shift.
-					generator.addInstruction(
-						L2_BIT_LOGIC_OP(
-							Ushr,
-							L2ReadIntOperand(
-								semanticHashInt,
-								int32Restriction,
-								generator.currentManifest),
-							generator.unboxedIntConstant(bestShift),
-							generator.intWrite(
-								setOf(semanticShiftedInt),
-								preMaskRestriction)))
+					+L2_BIT_LOGIC_OP(
+						Ushr,
+						L2ReadIntOperand(semanticHashInt, int32Restriction),
+						unboxedIntConstant(bestShift),
+						intWrite(setOf(semanticShiftedInt), preMaskRestriction))
 					semanticShiftedInt
 				}
 		}
-		val indexWrite = generator.intWriteTemp(indexRestriction)
-		generator.addInstruction(
-			L2_BIT_LOGIC_OP(
-				And,
-				L2ReadIntOperand(
-					inputForMasking,
-					preMaskRestriction,
-					generator.currentManifest),
-				generator.unboxedIntConstant(mask),
-				indexWrite))
-		// indexWrite's register now contains the shifted, masked value with
-		// which to dispatch.
+		val semanticMaskedInt =
+			P_BitwiseAnd.semanticInvocation(
+				inputForMasking.boxed,
+				constant(mask)
+			).unboxedInt
+		+L2_BIT_LOGIC_OP(
+			And,
+			L2ReadIntOperand(
+				inputForMasking,
+				preMaskRestriction),
+			unboxedIntConstant(mask),
+			intWrite(setOf(semanticMaskedInt), indexRestriction))
+		// semanticMaskedInt now contains the shifted, masked value with which
+		// to dispatch.
 		val triples = mutableListOf(
 			Triple(
 				noMatchBlock,
 				noMatchSubtree.castForGenerator(),
 				extraSemanticArguments))
 		val splitter = ShiftedHashSplitter(
-			bestShift,
-			mask,
-			(1 .. mask).toList(),
-			(0 .. mask).toList())
-		generator.addInstruction(
-			L2_MULTIWAY_JUMP(
-				L2ReadIntOperand(
-					indexWrite.pickSemanticValue(),
-					indexRestriction,
-					generator.currentManifest),
-				splitter,
-				L2PcVectorOperand(
-					(0 .. mask).map { index ->
-						val pair = targetsByShiftedHash[index]
-						L2PcOperand(
-							pair?.first ?: noMatchBlock,
-							false,
-							L2ValueManifest(generator.currentManifest).apply {
-								if (pair === null) return@apply
-								// Exclude the values that aren't on this
-								// branch.  This technique was chosen so
-								// so that it works for exhaustive or not.
-								val excluded = mutableSetOf<A_BasicObject>()
-								targetsByShiftedHash.forEach { (i, pair) ->
-									if (i == index) return@forEach
-									pair.second.forEach { excluded.add(it.key) }
-								}
-								subtractType(
-									semanticSource,
-									enumerationWith(
-										setFromCollection(excluded)))
-							},
-							"masked = 0x${toHexString(index)}")
-					})))
-		// At each of the targets of the multi-way jump, we still have to
-		// test for the exact object(s).  The successful paths from those tests
-		// lead to blocks we create for each subtree.  The chains that are
+			rightShift = bestShift,
+			lowMask = mask,
+			splitPoints = (1 .. mask).toList(),
+			activeInts = (0 .. mask).toList())
+		val newEdges = (0 .. mask).map { index ->
+			val pair = targetsByShiftedHash[index]
+			L2PcOperand(
+				pair?.first ?: noMatchBlock,
+				false,
+				L2ValueManifest(currentManifest),
+				"masked = 0x${toHexString(index)}")
+		}
+		splitter.run {
+			emitSplitterInstruction(
+				L2ReadIntOperand(semanticMaskedInt, indexRestriction),
+				newEdges)
+		}
+		// At each of the targets of the multi-way jump, we still have to test
+		// for the exact object(s).  The successful paths from those tests lead
+		// to blocks we create for each subtree.  The chains that are
 		// unsuccessful lead to the noMatchSubtree's block.
 		targetsByShiftedHash.forEach { (_, pair) ->
 			val (block, valuesWithTrees) = pair
-			generator.startBlock(block)
+			startBlock(block)
 			var nextFailure: L2BasicBlock?
 			valuesWithTrees.forEach { (valueToCheck, targetTree) ->
 				val success = L2BasicBlock("Equality succeeded")
 				nextFailure = L2BasicBlock("Equality failed")
-				generator.jumpIfEqualsConstant(
-					generator.readBoxed(semanticSource),
+				jumpIfEqualsConstant(
+					readBoxed(semanticSource),
 					valueToCheck,
 					success,
-					nextFailure!!)
+					nextFailure)
 				triples.add(
 					Triple(success, targetTree.cast(), extraSemanticArguments))
-				generator.startBlock(nextFailure!!)
+				startBlock(nextFailure)
 			}
 			// We're now inside the last failure block for this masked index.
 			// Jump to the noMatch case.
-			generator.jumpTo(noMatchBlock)
+			jumpTo(noMatchBlock)
 		}
 		return triples
 	}

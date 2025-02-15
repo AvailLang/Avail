@@ -66,7 +66,7 @@ Names
 	"L1 get local clearing",
 	"L1 push outer",
 	"L1 pop",
-	"L1 get outer clearing",
+	"L1 get last outer",
 	"L1 set outer",
 	"L1 get local",
 	"L1 make tuple",
@@ -231,11 +231,11 @@ Public "L1 pop" is a new atom;
  * "cannot-read-unassigned-variable exception"} if the variable does not have a
  * value.
  *
- * @method "L1 get outer clearing"
+ * @method "L1 get last outer"
  * @category "Disassembly" "Function Implementations"
  * @returns "atom"
  */
-Public "L1 get outer clearing" is a new atom;
+Public "L1 get last outer" is a new atom;
 
 /**
  * Pop the stack and write it to the specified outer of the {@type "function"}.
@@ -407,7 +407,7 @@ nybbleOperations ::=
 		/*  7 */ L1 get local clearing,
 		/*  8 */ L1 push outer,
 		/*  9 */ L1 pop,
-		/* 10 */ L1 get outer clearing,
+		/* 10 */ L1 get last outer,
 		/* 11 */ L1 set outer,
 		/* 12 */ L1 get local,
 		/* 13 */ L1 make tuple,
@@ -472,7 +472,7 @@ Public method "`|_'s⁇operands`|" is
 			L1 set local,
 			L1 get local clearing,
 			L1 push outer,
-			L1 get outer clearing,
+			L1 get last outer,
 			L1 set outer,
 			L1 get local,
 			L1 make tuple,
@@ -1006,4 +1006,3 @@ Public stable method "“_”(L1 instructions)" is
 |
 	“L1 disassembly of f's implementation” (L1 instructions)
 ];
-

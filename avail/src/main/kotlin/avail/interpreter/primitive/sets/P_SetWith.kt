@@ -81,10 +81,10 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralSetType(),
-				ANY.o),
+				ANY()),
 			setTypeForSizesContentType(
 				naturalNumbers,
-				ANY.o))
+				ANY()))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,

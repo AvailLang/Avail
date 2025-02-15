@@ -54,14 +54,13 @@ class L2_SET_CONTINUATION(
 	// It updates the current continuation of the interpreter.
 	override val hasSideEffect get() = true
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(replacementContinuation.registerString())
+		renderPreamble()
+		append(' ')
+		append(replacementContinuation.registerString())
 	}
 
 	override fun translateToJVM(
@@ -70,7 +69,7 @@ class L2_SET_CONTINUATION(
 	{
 		// :: interpreter.setReifiedContinuation(aContinuation);
 		translator.loadInterpreter(method)
-		translator.load(method, replacementContinuation.register())
+		translator.load(method, replacementContinuation)
 		Interpreter.setReifiedContinuationMethod.generateCall(method)
 	}
 }

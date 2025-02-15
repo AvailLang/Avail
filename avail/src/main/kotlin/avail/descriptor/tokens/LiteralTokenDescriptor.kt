@@ -193,7 +193,7 @@ class LiteralTokenDescriptor private constructor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) = builder.brief {
 		append(
@@ -302,7 +302,7 @@ class LiteralTokenDescriptor private constructor(
 			setSlot(LITERAL, literal)
 			setSlot(GENERATING_PHRASE, generatingPhrase)
 			setSlot(GENERATING_LEXER, generatingLexer)
-			if (literal.isInstanceOfKind(TOKEN.o))
+			if (literal.isInstanceOfKind(TOKEN()))
 			{
 				val nextStatePojo = (literal as A_Token).nextLexingStatePojo()
 				setSlot(NEXT_LEXING_STATE_POJO, nextStatePojo)

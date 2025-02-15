@@ -45,6 +45,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
@@ -79,15 +80,22 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The variable gets a reactor here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				mostGeneralVariableType,
-				ATOM.o,
+				ATOM(),
 				functionType(
 					emptyTuple,
-					TOP.o)),
-			TOP.o)
+					TOP())),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))

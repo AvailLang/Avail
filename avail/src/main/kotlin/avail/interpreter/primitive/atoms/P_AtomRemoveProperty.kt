@@ -84,7 +84,7 @@ object P_AtomRemoveProperty : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o, ATOM.o), TOP.o)
+		functionType(tuple(ATOM(), ATOM()), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SUCH_FIELD))

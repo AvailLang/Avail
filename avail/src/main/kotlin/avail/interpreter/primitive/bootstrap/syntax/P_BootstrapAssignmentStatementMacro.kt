@@ -96,7 +96,7 @@ object P_BootstrapAssignmentStatementMacro
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
-		assert(actualToken.isInstanceOf(TOKEN.o))
+		assert(actualToken.isInstanceOf(TOKEN()))
 		val variableNameString = actualToken.string()
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
@@ -151,9 +151,9 @@ object P_BootstrapAssignmentStatementMacro
 		functionType(
 			tuple(
 				/* Variable name for assignment */
-				LITERAL_PHRASE.create(TOKEN.o),
+				LITERAL_PHRASE.create(TOKEN()),
 				/* Assignment value */
-				EXPRESSION_PHRASE.create(ANY.o)),
+				EXPRESSION_PHRASE.create(ANY())),
 			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType)
 
 	override fun bootstrapStyler() = P_BootstrapStatementStyler

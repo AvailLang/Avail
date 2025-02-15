@@ -131,7 +131,7 @@ Public stable method "_(base_)" is
 	digits : string,
 	base : [2..36]
 |
-	fail ::= [early failure function(invalid-argument code)];
+	fail ::= [Failed primitive with invalid-argument code];
 	If digits is empty then fail;
 	realDigits : string := digits;
 	multiplier : {-1, 1}ᵀ := 1;
@@ -267,7 +267,7 @@ Method "_→_" is
 	str : string,
 	range : extended integer's type
 |
-	fail ::= [early failure function(invalid-argument code)];
+	fail ::= [Failed primitive with invalid-argument code];
 	If |str| > 1 ∧ str[1] = ¢0 then fail;
 	n ::= str (base 10);
 	if n ∈ range then [n] else fail
@@ -1325,7 +1325,7 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 		Reject parse, expected:
 			"string " ++ “s” ++ " not to contain Avail message metacharacters, \
 				\|but the following included characters are Avail message \
-        		\|metacharacters: " ++ “metachars” (as simple list)
+				\|metacharacters: " ++ “metachars” (as simple list)
 	];
 ]
 styled by assertion styler;

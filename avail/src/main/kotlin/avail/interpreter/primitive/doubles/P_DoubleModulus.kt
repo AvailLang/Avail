@@ -68,7 +68,7 @@ object P_DoubleModulus : Primitive(2, CannotFail, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				DOUBLE.o,
-				DOUBLE.o),
-			DOUBLE.o)
+				DOUBLE(),
+				DOUBLE()),
+			DOUBLE())
 }

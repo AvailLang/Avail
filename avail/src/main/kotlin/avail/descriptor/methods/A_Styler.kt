@@ -87,6 +87,6 @@ interface A_Styler : A_BasicObject
 				zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
 				// The transformed phrase which is useful to some stylers.
 				PhraseKind.PARSE_PHRASE.mostGeneralType),
-			Types.TOP.o)
+			Types.TOP())
 	}
 }

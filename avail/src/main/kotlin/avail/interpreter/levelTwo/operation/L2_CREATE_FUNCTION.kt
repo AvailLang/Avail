@@ -37,20 +37,23 @@ import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
-import avail.optimizer.L2Generator
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
@@ -69,11 +72,31 @@ class L2_CREATE_FUNCTION(
 	var newFunction: L2WriteBoxedOperand
 ) : L2Instruction()
 {
-	override fun extractFunctionOuter(
+	override fun StringBuilder.appendToWithWarnings(
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
+	{
+		renderPreamble()
+		append(' ')
+		append(newFunction.registerString())
+		append(" ← ")
+		var decompiled = code.toString()
+		var i = 0
+		val limit = capturedVariables.elements.size
+		while (i < limit)
+		{
+			decompiled = decompiled.replace(
+				"Outer#" + (i + 1), capturedVariables.elements[i].toString())
+			i++
+		}
+		append(increaseIndentation(decompiled, 1))
+	}
+
+	override fun L2GeneratorInterface.extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
 		outerIndex: Int,
-		outerType: A_Type,
-		generator: L2Generator): L2ReadBoxedOperand
+		outerType: A_Type
+	): L2ReadBoxedOperand
 	{
 		val originalRead = capturedVariables.elements[outerIndex - 1]
 		val rawCode: A_RawFunction = code.constant
@@ -82,16 +105,15 @@ class L2_CREATE_FUNCTION(
 		var intersection = originalRead.restriction().intersectionWithType(
 			outerType.typeIntersection(rawCode.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
-		val manifest = generator.currentManifest
 		val semanticValue = originalRead.semanticValue()
-		if (manifest.hasSemanticValue(semanticValue))
+		if (currentManifest.hasSemanticValue(semanticValue))
 		{
 			// This semantic value is still live.  Use it directly.
-			val restriction = manifest.restrictionFor(semanticValue)
+			val restriction = currentManifest.restrictionFor(semanticValue)
 			if (restriction.isBoxed)
 			{
 				// It's still live *and* boxed.
-				return manifest.readBoxed(semanticValue)
+				return currentManifest.readBoxed(semanticValue)
 			}
 		}
 		// The registers that supplied the value are no longer live.  Extract
@@ -102,7 +124,7 @@ class L2_CREATE_FUNCTION(
 			// An immutable function has immutable captured outers.
 			intersection = intersection.withFlag(IMMUTABLE_FLAG)
 		}
-		val tempWrite = generator.boxedWriteTemp(intersection)
+		val tempWrite = boxedWriteTemp("outer #$outerIndex", intersection)
 		val allNames = rawCode.declarationNames
 		val nameIndex = allNames.tupleSize - rawCode.numOuters + outerIndex
 		val outerName = when (nameIndex <= allNames.tupleSize)
@@ -110,13 +132,12 @@ class L2_CREATE_FUNCTION(
 			true -> allNames.tupleAt(nameIndex).asNativeString()
 			else -> ""
 		}
-		generator.addInstruction(
-			L2_MOVE_OUTER_VARIABLE(
-				outerName,
-				L2IntImmediateOperand(outerIndex),
-				functionRegister,
-				tempWrite))
-		return generator.readBoxed(tempWrite)
+		+L2_MOVE_OUTER_VARIABLE(
+			L2CommentOperand(outerName),
+			L2IntImmediateOperand(outerIndex),
+			functionRegister,
+			tempWrite)
+		return readBoxed(tempWrite)
 	}
 
 	/**
@@ -128,25 +149,23 @@ class L2_CREATE_FUNCTION(
 	 */
 	override val constantCode: A_RawFunction get() = code.constant
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
-		desiredOperandTypes: Set<L2OperandType>,
-		warningStyleChange: (Boolean)->Unit)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(newFunction.registerString())
-		builder.append(" ← ")
-		var decompiled = code.toString()
-		var i = 0
-		val limit = capturedVariables.elements.size
-		while (i < limit)
-		{
-			decompiled = decompiled.replace(
-				"Outer#" + (i + 1), capturedVariables.elements[i].toString())
-			i++
+		// See if the outers are all constant, perhaps due to code splitting.
+		val constantOuters = capturedVariables.elements.map { outer ->
+			val constant = outer.constantOrNull
+			if (constant == null)
+			{
+				+this@L2_CREATE_FUNCTION
+				return
+			}
+			constant
 		}
-		builder.append(increaseIndentation(decompiled, 1))
+		val staticFunction = createFunction(
+			code.constant, tupleFromList(constantOuters))
+		moveBoxedRegister(
+			boxedConstant(staticFunction).semanticValue(),
+			newFunction.semanticValues())
 	}
 
 	override fun translateToJVM(
@@ -156,12 +175,12 @@ class L2_CREATE_FUNCTION(
 		val numOuters = capturedVariables.elements.size
 
 		assert(numOuters == code.constant.numOuters)
-		translator.literal(method, code.constant)
+		translator.loadLiteralObject(method, code.constant)
 		assert(numOuters != 0)
 		if (numOuters <= 5)
 		{
 			capturedVariables.registers().forEach {
-				translator.load(method, it)
+				translator.loadRegister(method, it)
 			}
 		}
 		when (numOuters)
@@ -182,7 +201,7 @@ class L2_CREATE_FUNCTION(
 					method.visitInsn(Opcodes.DUP)
 					translator.intConstant(method, i + 1)
 					translator.load(
-						method, capturedVariables.elements[i].register())
+						method, capturedVariables.elements[i])
 					FunctionDescriptor.outerVarAtPutMethod.generateCall(method)
 				}
 			}

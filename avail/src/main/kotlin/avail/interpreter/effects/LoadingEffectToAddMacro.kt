@@ -94,7 +94,7 @@ internal class LoadingEffectToAddMacro constructor(
 				0,
 				L1Operation.L1_doCall,
 				addLiteral(MACRO_DEFINER.bundle),
-				addLiteral(Types.TOP.o))
+				addLiteral(Types.TOP()))
 		}
 	}
 }

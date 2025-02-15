@@ -80,7 +80,7 @@ object P_MarkStandardInputStream : Primitive(1, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(wholeNumbers), TOP.o)
+		functionType(tuple(wholeNumbers), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

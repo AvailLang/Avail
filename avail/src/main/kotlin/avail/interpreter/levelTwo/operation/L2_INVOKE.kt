@@ -52,6 +52,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -89,6 +90,24 @@ class L2_INVOKE(
 {
 	override val hasSideEffect get() = true
 
+	/** If it's primitive, defer to it, otherwise assume the worst. */
+	override fun mightMakeEscapedVariableShared(): Boolean
+	{
+		calledFunction.definitionSkippingMoves().constantCode?.let { code ->
+			code.codePrimitive()?.let { prim ->
+				return prim.mightMakeEscapedVariableShared(
+					arguments.elements.map(L2ReadBoxedOperand::type))
+			}
+		}
+		return true
+	}
+
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		forcePostponedWritesToLocals()
+		basicRegenerateForPostponement()
+	}
+
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't
 	 * bother splitting paths that lead only to it and other cold blocks.
@@ -104,10 +123,9 @@ class L2_INVOKE(
 			return functionType.returnType.isBottom
 		}
 
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		calledFunction.restriction().constantOrNull?.let { constantFunction ->
+		calledFunction.constantOrNull?.let { constantFunction ->
 			// Rewrite it as a constant function invocation, allowing that emit
 			// operation to do its own further optimizations.
 			L2_INVOKE_CONSTANT_FUNCTION(
@@ -116,27 +134,27 @@ class L2_INVOKE(
 				result,
 				ifReturn,
 				ifReification
-			).emitTransformedInstruction(regenerator)
+			).run {
+				emitTransformedInstruction()
+			}
 			return
 		}
-		super.emitTransformedInstruction(regenerator)
+		+this@L2_INVOKE
 	}
 
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(result.registerString())
-		builder.append(" ← ")
-		builder.append(calledFunction.registerString())
-		builder.append("(")
-		builder.append(arguments.elements)
-		builder.append(")")
+		renderPreamble()
+		append(' ')
+		append(result.registerString())
+		append(" ← ")
+		append(calledFunction.registerString())
+		append("(")
+		append(arguments.elements)
+		append(")")
 		renderOperandsExcludingFields(
-			builder,
 			desiredOperandTypes,
 			::result,
 			::calledFunction,
@@ -155,7 +173,7 @@ class L2_INVOKE(
 		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.load(method, calledFunction.register())
+		translator.load(method, calledFunction)
 		// :: [interpreter, callingChunk, interpreter, function]
 		generatePushArgumentsAndInvoke(
 			translator,
@@ -209,7 +227,7 @@ class L2_INVOKE(
 			val numArgs = argsRegsList.size
 			if (numArgs < preinvokeMethods.size)
 			{
-				argsRegsList.forEach { translator.load(method, it.register()) }
+				argsRegsList.forEach { translator.load(method, it) }
 				// :: [interpreter, callingChunk, interpreter, function, [args...]]
 				preinvokeMethods[numArgs].generateCall(method)
 			}

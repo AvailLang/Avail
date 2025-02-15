@@ -64,22 +64,23 @@ object P_FiberResult : Primitive(
 		val fiber = interpreter.argument(0)
 		return with(fiber) {
 			lock {
-				when {
-					!executionState.indicatesTermination
-						|| fiberResult.isNil ->
+				val result = fiberResult
+				when
+				{
+					!executionState.indicatesTermination || result.isNil ->
 						interpreter.primitiveFailure(
 							E_FIBER_RESULT_UNAVAILABLE)
-					!fiberResult.isInstanceOf(kind().resultType()) ->
+					!result.isInstanceOf(kind().resultType()) ->
 						interpreter.primitiveFailure(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
-					else -> interpreter.primitiveSuccess(fiberResult)
+					else -> interpreter.primitiveSuccess(result)
 				}
 			}
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), ANY.o)
+		functionType(tuple(mostGeneralFiberType()), ANY())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

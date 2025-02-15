@@ -61,10 +61,11 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Xor
-import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
+import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.L2GeneratorInterface
 import avail.utility.notNullAnd
 import kotlin.math.min
 
@@ -139,50 +140,50 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 			false)
 	}
 
-	override fun emitTransformedInfalliblePrimitive(
+	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand,
-		regenerator: L2Regenerator)
+		result: L2WriteBoxedOperand)
 	{
 		val (x, y) = arguments.elements
 		when
 		{
 			// x ⊕ 0 = x
 			(y.constantOrNull.notNullAnd { equalsInt(0) }) ->
-				regenerator.moveBoxedRegister(
+				moveBoxedRegister(
 					x.semanticValue(), result.semanticValues())
 			// 0 ⊕ y = y
 			(x.constantOrNull.notNullAnd { equalsInt(0) }) ->
-				regenerator.moveBoxedRegister(
+				moveBoxedRegister(
 					y.semanticValue(), result.semanticValues())
 			// x ⊕ x = 0
-			regenerator.currentManifest.isEquivalentSemanticValue(
+			currentManifest.isEquivalentSemanticValue(
 				x.semanticValue(), y.semanticValue()
-			) -> regenerator.addInstruction(
-				L2_MOVE.L2_MOVE_BOXED(
-					regenerator.boxedConstant(zero), result))
-			else -> super.emitTransformedInfalliblePrimitive(
-				rawFunction, arguments, result, regenerator)
+			) -> +L2_MOVE_BOXED(boxedConstant(zero), result)
+			else -> emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 		}
 	}
 
-	override fun tryToGenerateSpecialPrimitiveInvocation(
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: L1Translator.CallSiteHelper
-	): Boolean = Xor.generateBinaryIntOperation(
-		this,
-		arguments,
-		argumentTypes,
-		callSiteHelper,
-		typeGuaranteeFunction = { restrictedArgTypes ->
-			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
-		},
-		fallbackBody = {
-			generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
-		})
+		callSiteHelper: CallSiteHelper
+	): Boolean = Xor.run {
+		generateBinaryIntOperation(
+			this@P_BitwiseXor,
+			arguments,
+			argumentTypes,
+			callSiteHelper,
+			typeGuaranteeFunction = { restrictedArgTypes ->
+				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+			},
+			fallbackBody = {
+				generateGeneralFunctionInvocation(
+					functionToCallReg, false, callSiteHelper, arguments)
+			})
+	}
+
+	override val semanticinfixOperatorString: String? get() = "Xor"
 }

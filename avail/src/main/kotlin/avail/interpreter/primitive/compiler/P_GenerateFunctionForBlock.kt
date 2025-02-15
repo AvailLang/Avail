@@ -96,6 +96,10 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 		return interpreter.primitiveSuccess(function.makeImmutable())
 	}
 
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

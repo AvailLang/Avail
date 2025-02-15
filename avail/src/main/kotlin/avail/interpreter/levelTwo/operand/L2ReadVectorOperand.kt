@@ -36,13 +36,15 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
 import java.util.Collections.unmodifiableList
 
 /**
  * An `L2ReadVectorOperand` is an operand of type
- * [L2OperandType.READ_BOXED_VECTOR]. It holds a [List] of [L2ReadOperand]s.
+ * [L2OperandType.READ_BOXED_VECTOR], or the int or float variants. It holds a
+ * [List] of [L2ReadOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param R
@@ -97,7 +99,7 @@ constructor(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		elements.forEach{ it.instructionWasAdded(manifest) }
+		elements.forEach { it.instructionWasAdded(manifest) }
 	}
 
 	override fun instructionWasInserted(newInstruction: L2Instruction)
@@ -135,16 +137,26 @@ constructor(
 		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
+	override fun adjustCloneForInstruction(
+		theInstruction: L2Instruction,
+		generator: L2GeneratorInterface)
+	{
+		super.adjustCloneForInstruction(theInstruction, generator)
+		elements.forEach {
+			it.adjustCloneForInstruction(theInstruction, generator)
+		}
+	}
+
 	override fun appendTo(builder: StringBuilder): Unit = with(builder)
 	{
 		append("@<")
+		val big = elements.size > 4
 		var first = true
 		for (read in elements)
 		{
-			if (!first)
-			{
-				append(", ")
-			}
+			if (!first) append(",")
+			if (big) append("\n\t\t")
+			else if (!first) append (" ")
 			append(read.registerString())
 			val restriction = read.restriction()
 			if (restriction.constantOrNull === null)
@@ -155,7 +167,40 @@ constructor(
 			}
 			first = false
 		}
+		if (big) append("\n\t")
 		append(">")
+	}
+
+	override fun simpleAppendOperand(
+		commands: MutableList<String>,
+		sources: MutableList<String>,
+		targets: MutableList<String>)
+	{
+		val parts = mutableListOf<String>()
+		elements.forEach {
+			// Force any commands and sources to be put in `parts`.
+			it.simpleAppendOperand(parts, parts, parts)
+		}
+		sources.add(parts.joinToString(", ", "[", "]"))
+	}
+
+	override fun equivalentTo(other: L2Operand) =
+		other is L2ReadVectorOperand<*>
+			&& elements.size == other.elements.size
+			&& elements.zip(other.elements).all { (a, b) -> a.equivalentTo(b) }
+
+	override val equivalentHash: Int get() =
+		elements.sumOf { it.equivalentHash }
+
+	override fun mergeFromOperands(operands: List<L2Operand>)
+	{
+		assert(operands.all(::equivalentTo))
+		@Suppress("UNCHECKED_CAST")
+		operands as List<L2ReadVectorOperand<*>>
+		elements.forEachIndexed { elementIndex, element ->
+			element.mergeFromOperands(
+				operands.map { it.elements[elementIndex] })
+		}
 	}
 
 	override fun postOptimizationCleanup() =

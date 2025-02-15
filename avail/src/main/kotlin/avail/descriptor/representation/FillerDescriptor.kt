@@ -31,6 +31,7 @@
  */
 package avail.descriptor.representation
 
+import avail.descriptor.types.A_Type
 import avail.descriptor.types.TypeTag
 import avail.exceptions.unsupported
 import java.util.IdentityHashMap
@@ -54,7 +55,7 @@ class FillerDescriptor private constructor() : Descriptor(
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
 	) {
 		builder.append("(*** a destroyed object ***)")
@@ -71,6 +72,8 @@ class FillerDescriptor private constructor() : Descriptor(
 		queueToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>
 	) = unsupported
+
+	override fun o_Kind(self: AvailObject): A_Type = unsupported
 
 	override fun o_MakeSubobjectsImmutable(self: AvailObject): AvailObject =
 		unsupported

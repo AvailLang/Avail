@@ -909,7 +909,7 @@ class AvailCodeGenerator private constructor(
 					{
 						primitive == null -> blockPhrase.resultType()
 						primitive.hasFlag(Flag.CannotFail) -> bottom
-						tupleSize == 0 -> Types.TOP.o
+						tupleSize == 0 -> Types.TOP()
 						else -> tupleAt(tupleSize).phraseExpressionType
 					}
 				}

@@ -65,5 +65,5 @@ object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(u8), TOP.o)
+		functionType(tuple(u8), TOP())
 }

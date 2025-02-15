@@ -122,7 +122,7 @@ object P_AttemptJoinFiber : Primitive(
 			// is simply skipped in that case.
 			joinee.joiningFibers =
 				joinee.joiningFibers.setWithElementCanDestroy(
-					current, false)
+					current, false).makeShared()
 			false
 		}
 		return when {
@@ -140,7 +140,7 @@ object P_AttemptJoinFiber : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), TOP.o)
+		functionType(tuple(mostGeneralFiberType()), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_FIBER_CANNOT_JOIN_ITSELF))

@@ -35,7 +35,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.register.L2Register
 import avail.utility.Graph
 import java.util.ArrayDeque
@@ -244,28 +243,10 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		{
 			for (write in destinationReg.definitions())
 			{
-				val instruction = write.instruction
-				when
-				{
-					instruction is L2_MOVE<*> ->
-					{
-						assert(instruction.destinationRegisters.single()
-							== destinationReg)
-						coalesceNoninterferingMove(
-							instruction.source.register(),
-							instruction.destination.register())
-					}
-					// An L2_STRIP_MANIFEST has a vector of inputs that map to a
-					// vector of outputs.  Map the particular one we're working
-					// on to its corresponding output.
-					instruction is L2_STRIP_MANIFEST ->
-					{
-						val index = instruction.destinationRegisters
-							.indexOf(destinationReg)
-						val sourceReg = instruction.sourceRegisters[index]
+				write.instruction.sourceOfMoveToRegister(write.register())
+					?.let { sourceReg ->
 						coalesceNoninterferingMove(sourceReg, destinationReg)
 					}
-				}
 			}
 		}
 	}
@@ -283,8 +264,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	{
 		// If the source is a constant, just ignore it.
 		if (sourceRegister.isConstant) return
-		// The source and destination registers shouldn't be
-		// considered interfering if they'll hold the same value.
+		// The source and destination registers shouldn't be considered
+		// interfering if they'll hold the same value.
 		val group1 = group(destinationRegister)
 		val group2 = group(sourceRegister)
 		if (group1 !== group2)

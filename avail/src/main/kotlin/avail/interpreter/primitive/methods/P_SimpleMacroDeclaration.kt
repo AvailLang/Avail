@@ -202,7 +202,7 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType),
 				zeroOrOneOf(stylerFunctionType)),
-			TOP.o)
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

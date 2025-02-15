@@ -56,26 +56,42 @@ class L2_GET_OBJECT_TYPE_FIELD(
 	var fieldType: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		builder: StringBuilder,
+	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		renderPreamble(builder)
-		builder.append(' ')
-		builder.append(fieldType.registerString())
-		builder.append(" ← ")
-		builder.append(objectType)
-		builder.append("[")
-		builder.append(fieldAtom)
-		builder.append("]")
+		renderPreamble()
+		append(' ')
+		append(fieldType.registerString())
+		append(" ← ")
+		append(objectType)
+		append("[")
+		append(fieldAtom)
+		objectType.restriction().positiveGroup.objectTypeVariants
+			?.singleOrNull()
+			?.let { variant ->
+				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+				append(" =#$fieldIndex")
+			}
+		append("]")
+	}
+
+	override fun simpleAppendTo(builder: StringBuilder)
+	{
+		super.simpleAppendTo(builder)
+		objectType.restriction().positiveGroup.objectVariants
+			?.singleOrNull()
+			?.let { variant ->
+				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+				builder.append("(#$fieldIndex)")
+			}
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		translator.load(method, objectType.register())
+		translator.load(method, objectType)
 		val variants = objectType.restriction().positiveGroup.objectTypeVariants
 		if (variants.notNullAnd { distinctBy { it.variantId }.size == 1 })
 		{
@@ -88,7 +104,7 @@ class L2_GET_OBJECT_TYPE_FIELD(
 		}
 		else
 		{
-			translator.literal(method, fieldAtom.constant)
+			translator.loadLiteralObject(method, fieldAtom.constant)
 			AvailObject.fieldTypeAtMethod.generateCall(method)
 		}
 		translator.store(method, fieldType.register())

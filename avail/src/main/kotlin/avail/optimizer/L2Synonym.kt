@@ -34,6 +34,7 @@ package avail.optimizer
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.values.Frame
+import avail.optimizer.values.L2SemanticSlot
 import avail.optimizer.values.L2SemanticValue
 
 /**
@@ -129,36 +130,46 @@ constructor(
 		return if (changed) L2Synonym(newSemanticValues) else this
 	}
 
-	override fun toString(): String
-	{
-		val sortedStrings = semanticValues
-			.sorted()
-			.map(L2SemanticValue<K>::toStringForSynonym)
-		val builder = StringBuilder()
-		builder.append('〖')
-		var first = true
-		var column = 1
-		for (string in sortedStrings)
-		{
-			if (column > 75)
-			{
-				builder.append("\n       ")
-				column = 8
-			}
-			if (!first)
-			{
-				builder.append(" & ")
-				column += 3
-			}
-			builder.append(string)
-			column += string.codePointCount(0, string.length)
-			first = false
-		}
-		builder.append('〗')
-		return builder.toString()
+	override fun toString(): String = buildString {
+		append('〖')
+		appendSemanticValues(semanticValues, true)
+		append('〗')
 	}
 
 	override fun compareTo(other: L2Synonym<K>) =
 		semanticValues.minOrNull()!!.compareTo(
 			other.semanticValues.minOrNull()!!)
+
+	companion object
+	{
+		fun StringBuilder.appendSemanticValues(
+			semanticValues: Iterable<L2SemanticValue<*>>,
+			canWrap: Boolean)
+		{
+			val sortedValues = semanticValues.sorted()
+			var column = 1
+			var previous: L2SemanticValue<*>? = null
+			for (value in sortedValues)
+			{
+				if (canWrap && column > 75)
+				{
+					append("\n       ")
+					column = 8
+				}
+				val string: String = when
+				{
+					previous == null -> value.toStringForSynonym()
+					(previous is L2SemanticSlot
+						&& value is L2SemanticSlot
+						&& previous.slotIndex == value.slotIndex
+						) -> "/" + value.pcAfter.toString()
+					else -> " & " + value.toStringForSynonym()
+				}
+				append(string)
+				column += string.codePointCount(0, string.length)
+				previous = value
+			}
+		}
+
+	}
 }

@@ -106,7 +106,7 @@ class AbstractDefinitionDescriptor private constructor(
 		combine2(self[BODY_SIGNATURE].hash(), 0x201FE782)
 
 	override fun o_Kind(self: AvailObject): AvailObject =
-		ABSTRACT_DEFINITION.o
+		ABSTRACT_DEFINITION()
 
 	override fun o_IsAbstractDefinition(self: AvailObject) = true
 
