@@ -195,12 +195,12 @@ class L2_VIRTUAL_CREATE_LABEL(
 			// become immutable or shared, so we don't have to worry about
 			// capturing any elided variable values.
 			+L2_SAVE_ALL_AND_PC_TO_INT(
-				reference = edgeTo(afterReification),
-				l2Address = tempOffset,
-				registerDump = tempRegisterDump,
 				ifFallThrough = edgeTo(reificationOfframp),
+				reference = edgeTo(afterReification),
+				referenceOffset = tempOffset,
+				registerDump = tempRegisterDump,
 				dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
-				dirtyLocalIndices = L2ArbitraryConstantOperand(IntArray(0)))
+				dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 
 			startBlock(reificationOfframp)
 			val tempCaller = boxedWrite(
@@ -258,16 +258,16 @@ class L2_VIRTUAL_CREATE_LABEL(
 			"dump for label",
 			boxedRestrictionForType(Types.ANY()))
 		+L2_SAVE_ALL_AND_PC_TO_INT(
+			ifFallThrough = edgeTo(fallThrough),
 			// Force there to be nothing considered live in the edge
 			// leading to the label's entry point.
 			reference = backEdgeTo(
 				specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!, mutableSetOf()),
-			l2Address = writeOffset,
+			referenceOffset = writeOffset,
 			registerDump = writeRegisterDump,
-			ifFallThrough = edgeTo(fallThrough),
 			// Local variables aren't preserved by a label.
 			dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
-			dirtyLocalIndices = L2ArbitraryConstantOperand(IntArray(0)))
+			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 
 		startBlock(fallThrough)
 		val frameSizeInt = frameSize.value

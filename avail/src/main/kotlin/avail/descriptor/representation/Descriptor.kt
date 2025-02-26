@@ -667,6 +667,10 @@ protected constructor (
 		index: Int,
 		value: AvailObject): Unit = unsupported
 
+	override fun o_PlaceholderVariableLocalIndex(
+		self: AvailObject
+	): Int = unsupported
+
 	override fun o_PlusCanDestroy (
 		self: AvailObject,
 		aNumber: A_Number,
@@ -1081,6 +1085,8 @@ protected constructor (
 	override fun o_IsInstanceMeta (self: AvailObject): Boolean = false
 
 	override fun o_IsMethodDefinition (self: AvailObject): Boolean = unsupported
+
+	override fun o_IsPlaceholderVariable(self: AvailObject): Boolean = false
 
 	override fun o_IsPositive (self: AvailObject): Boolean = unsupported
 

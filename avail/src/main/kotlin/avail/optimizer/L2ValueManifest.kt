@@ -312,7 +312,7 @@ class L2ValueManifest
 	 * Record a sourceInstruction, which can be translated by an [L2Regenerator]
 	 * whenever its output values are needed.
 	 */
-	fun recordPostponedSourceInstruction(sourceInstruction: L2Instruction)
+	fun recordPostponedInstruction(sourceInstruction: L2Instruction)
 	{
 		assert(!sourceInstruction.hasBeenEmitted)
 		assert(!sourceInstruction.hasSideEffect)
@@ -2028,7 +2028,44 @@ class L2ValueManifest
 		selfMaps[0].forEach { equivalence, instruction ->
 			val oldInstructions = selfMaps.map { it[equivalence]!! }
 			val newInstruction = instruction.mergeInstructions(oldInstructions)
-			recordPostponedSourceInstruction(newInstruction)
+			recordPostponedInstruction(newInstruction)
+		}
+	}
+
+	/**
+	 * Recurse through the postponed instructions, starting with the writer of
+	 * [valueToCheck], looking for a dependency chain for [stopInstruction],
+	 * which is also postponed.  If such a dependency path is found, answer
+	 * true, otherwise answer false.  Avoid recursing into the same path twice
+	 * by adding to the [ignore] set.
+	 *
+	 * @param valueToCheck
+	 *   The [L2SemanticValue] at which to search ancestor postponed
+	 *   instructions.
+	 * @param stopInstruction
+	 *   The [L2Instruction] which, if reached recursively, causes the
+	 *   original call to return true, indicating it was found.
+	 * @param ignore
+	 *   The [MutableSet] of [L2Instruction]s that have been reached so far,
+	 *   which prevents investigating the same dependencies more than once.
+	 * @return
+	 *   Whether the [stopInstruction] was reachable as an ancestor of the
+	 *   [valueToCheck].
+	 */
+	fun checkDependency(
+		valueToCheck: L2SemanticValue<*>,
+		stopInstruction: L2Instruction,
+		ignore: MutableSet<L2Instruction>
+	): Boolean
+	{
+		if (valueToCheck !in postponedInstructions) return false
+		val instruction = postponedInstructions[valueToCheck]!!
+		if (instruction == stopInstruction) return true
+		if (instruction in ignore) return false
+		if (instruction == stopInstruction) return true
+		ignore += instruction
+		return instruction.readOperands.any { read ->
+			checkDependency(read.semanticValue(), stopInstruction, ignore)
 		}
 	}
 

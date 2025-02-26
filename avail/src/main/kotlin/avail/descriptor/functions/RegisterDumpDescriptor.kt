@@ -46,6 +46,8 @@ import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -245,6 +247,12 @@ class RegisterDumpDescriptor private constructor(
 				objects.size,
 				longs.size
 			) {
+				assert(
+					encodedElidedLocals.run {
+						isNil || (2 .. tupleSize step 2).all {
+							tupleIntAt(it) != 0
+						}
+					})
 				setSlot(ENCODED_ELIDED_LOCALS, encodedElidedLocals)
 				setSlotsFromArray(OBJECT_SLOTS_, 1, objects, 0, objects.size)
 				setSlotsFromArray(INTEGER_SLOTS_, 1, longs, 0, longs.size)

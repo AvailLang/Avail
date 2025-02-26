@@ -642,6 +642,8 @@ import avail.descriptor.variables.A_Variable.Companion.globalModule
 import avail.descriptor.variables.A_Variable.Companion.globalName
 import avail.descriptor.variables.A_Variable.Companion.hasValue
 import avail.descriptor.variables.A_Variable.Companion.isGlobal
+import avail.descriptor.variables.A_Variable.Companion.isPlaceholderVariable
+import avail.descriptor.variables.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.variables.A_Variable.Companion.removeWriteReactor
 import avail.descriptor.variables.A_Variable.Companion.setUnescapedLocalValueNoCheck
 import avail.descriptor.variables.A_Variable.Companion.setValue
@@ -4175,4 +4177,10 @@ class IndirectionDescriptor private constructor(
 		indices: Iterator<AvailObject>,
 		update: (AvailObject)->A_BasicObject
 	): A_BasicObject = self { recursivelyUpdate(indices, update) }
+
+	override fun o_IsPlaceholderVariable(self: AvailObject): Boolean =
+		self { isPlaceholderVariable() }
+
+	override fun o_PlaceholderVariableLocalIndex(self: AvailObject): Int =
+		self { placeholderVariableLocalIndex() }
 }

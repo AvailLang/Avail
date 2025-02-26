@@ -119,6 +119,8 @@ class L2SimpleChunk private constructor(
 		 * @param contingentValues
 		 *   A [Set] of [methods][MethodDescriptor] on which the level two chunk
 		 *   depends.
+		 * @param
+		 *   The [OptimizationLevel] that was used to create this chunk.
 		 * @return
 		 *   The new level two chunk.
 		 */
@@ -127,7 +129,7 @@ class L2SimpleChunk private constructor(
 			offsetAfterInitialTryPrimitive: Int,
 			theInstructions: List<L2SimpleInstruction>,
 			contingentValues: A_Set,
-			nextOptimizationLevel: OptimizationLevel
+			optimizationLevel: OptimizationLevel
 		): L2SimpleChunk
 		{
 			val chunk = L2SimpleChunk(
@@ -138,7 +140,7 @@ class L2SimpleChunk private constructor(
 				L2SimpleExecutableChunk(
 					code,
 					theInstructions.toTypedArray(),
-					nextOptimizationLevel))
+					optimizationLevel))
 			contingentValues.forEach { it.addDependentChunk(chunk) }
 			Generation.addNewChunk(chunk)
 			return chunk

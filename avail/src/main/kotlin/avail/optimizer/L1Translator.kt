@@ -72,7 +72,6 @@ import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -112,6 +111,7 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
+import avail.descriptor.variables.VariablePlaceholderDescriptor.Companion.newPlaceholder
 import avail.dispatch.InternalLookupTree
 import avail.dispatch.LeafLookupTree
 import avail.exceptions.MethodDefinitionException
@@ -638,10 +638,11 @@ class L1Translator private constructor(
 			ZoneType.DEAD_END.createZone("Fall back"),
 			isCold = true)
 		val localIndices = (numArgs + 1 .. numArgs + numLocals).filter {
-			// The only constant locals are `0` for a sentinel indicating
-			// elision, an `nil` representing the variable has been used for
-			// the last time and removed even at the L1 level.  Both of those
-			// cases should be excluded from the check (or move).
+			// The only constant locals are placeholder variables (see
+			// [VariablePlaceholderDescriptor]) indicating elision, or a `nil`
+			// representing the variable has been used for the last time and
+			// removed even at the L1 level.  Both of those cases should be
+			// excluded from the check (or move).
 			readSlot(it).constantOrNull == null
 		}
 		if (localIndices.isEmpty()) return
@@ -765,12 +766,12 @@ class L1Translator private constructor(
 			boxedRestrictionForType(Types.ANY()))
 		val fallThrough = createBasicBlock("Off-ramp", zone)
 		+L2_SAVE_ALL_AND_PC_TO_INT(
-			reference = edgeTo(onReturnIntoReified),
-			l2Address = writeOffset,
-			registerDump = writeRegisterDump,
 			ifFallThrough = edgeTo(fallThrough),
+			reference = edgeTo(onReturnIntoReified),
+			referenceOffset = writeOffset,
+			registerDump = writeRegisterDump,
 			dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
-			dirtyLocalIndices = L2ArbitraryConstantOperand(IntArray(0)))
+			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 		startBlock(fallThrough)
 		// We're in a reification handler here, so the caller is guaranteed to
 		// contain the reified caller.
@@ -2182,26 +2183,29 @@ class L1Translator private constructor(
 		jumpTo(loopHead)
 		startBlock(loopHead)
 
-		// Let the interrupt routine see the sentinel `0` for each local
+		// Let the interrupt routine see postponed variables for each local
 		// variable, to avoid having to slide them through that part of the
 		// graph.  We'll set them to new variables right after the interrupt has
 		// been serviced and resumed safely (from a continuation that isn't
 		// shared or immutable).
-		for (i in numArgs + 1 .. numArgs + numLocals)
+		for (localIndex in 1 .. numLocals)
 		{
-			forceConstantSlot(i, zero)
+			val postponedLocal =
+				newPlaceholder(code.localTypeAt(localIndex), localIndex)
+			forceConstantSlot(numArgs + localIndex, postponedLocal)
 		}
 		primitive?.let {
 			// Capture the primitive failure value in the first local.
 			assert(!primitive.hasFlag(Flag.CannotFail))
 			val localType = code.localTypeAt(1)
 			+L2_CREATE_VARIABLE(
-				L2ConstantOperand(localType),
-				writeSlot(
+				localIndex = L2IntImmediateOperand(1),
+				outerType = L2ConstantOperand(localType),
+				variable = writeSlot(
 					numArgs + 1,
 					pc,
 					boxedRestrictionForType(localType)),
-				getLatestReturnValue(
+				initialValueOrNil = getLatestReturnValue(
 					"failure code",
 					localType.writeType))
 		}
@@ -2223,12 +2227,13 @@ class L1Translator private constructor(
 		{
 			val localType = code.localTypeAt(localIndex)
 			+L2_CREATE_VARIABLE(
-				L2ConstantOperand(localType),
-				writeSlot(
+				localIndex = L2IntImmediateOperand(localIndex),
+				outerType = L2ConstantOperand(localType),
+				variable = writeSlot(
 					numArgs + localIndex,
 					pc,
 					boxedRestrictionForType(localType)),
-				boxedConstant(nil))
+				initialValueOrNil = boxedConstant(nil))
 		}
 
 		val nybblecodeMap = mutableMapOf<Int, String>()

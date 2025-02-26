@@ -31,7 +31,6 @@
  */
 package avail.interpreter.primitive.atoms
 
-import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -40,8 +39,8 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.interpreter.Primitive
@@ -63,21 +62,18 @@ object P_CreateAtom : Primitive(1, CanInline)
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
 		val loader = interpreter.availLoaderOrNull()
-		val atom: A_Atom
-		if (loader === null)
+		val atom = when (loader)
 		{
-			atom = createAtom(name, nil)
-		}
-		else
-		{
-			try
-			{
-				atom = loader.lookupName(name)
-			}
-			catch (e: AmbiguousNameException)
-			{
-				return interpreter.primitiveFailure(E_AMBIGUOUS_NAME)
-			}
+			null -> createAtom(name, nil)
+			else ->
+				try
+				{
+					loader.lookupName(name)
+				}
+				catch (e: AmbiguousNameException)
+				{
+					return interpreter.primitiveFailure(E_AMBIGUOUS_NAME)
+				}
 		}
 		return interpreter.primitiveSuccess(atom)
 	}

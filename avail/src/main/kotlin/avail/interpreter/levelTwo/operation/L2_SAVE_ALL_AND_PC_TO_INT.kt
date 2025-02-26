@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor
+import avail.descriptor.variables.VariablePlaceholderDescriptor.Companion.newPlaceholder
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
@@ -45,9 +46,17 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
+import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -63,19 +72,19 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
+ * @property ifFallThrough
+ *   Where to unconditionally jump after this instruction.
  * @property reference
  *   Where control flow will resume when the reified continuation resumes, if it
  *   hasn't been invalidated in the meanwhile.  The actual offset [Int]
- *   associated with this edge's target is separately recorded in [l2Address]
- *   for use in creating a continuation.
- * @property l2Address
+ *   associated with this edge's target is separately recorded in
+ *   [referenceOffset] for use in creating a continuation.
+ * @property referenceOffset
  *   The [Int] version of [reference].  This is used later when constructing the
  *   actual [A_Continuation], written to the [A_Continuation.levelTwoOffset], so
  *   that when the continuation resumes it knows what L2 offset to jump to.
  * @property registerDump
  *   Where to write an [A_RegisterDump] of all live register values.
- * @property ifFallThrough
- *   Where to unconditionally jump after this instruction.
  * @property dirtyLocals
  *   Mixed vector holding the current dirty values to be written into fresh
  *   variables if/when the continuation becomes immutable or shared.
@@ -87,10 +96,10 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_SAVE_ALL_AND_PC_TO_INT
 constructor(
-	@On(REFERENCED_AS_INT) var reference: L2PcOperand,
-	@On(SUCCESS) var l2Address: L2WriteIntOperand,
-	@On(SUCCESS) var registerDump: L2WriteBoxedOperand,
 	@On(SUCCESS) var ifFallThrough: L2PcOperand,
+	@On(REFERENCED_AS_INT) var reference: L2PcOperand,
+	@On(SUCCESS) var referenceOffset: L2WriteIntOperand,
+	@On(SUCCESS) var registerDump: L2WriteBoxedOperand,
 	var dirtyLocals: L2ReadMixedVectorOperand,
 	var dirtyLocalIndices: L2ArbitraryConstantOperand<IntArray>
 ): L2Instruction()
@@ -101,14 +110,19 @@ constructor(
 
 	override val altersControlFlow get() = true
 
+	init
+	{
+		assert(dirtyLocals.elements.size == dirtyLocalIndices.constant.size)
+	}
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
 		append(' ')
-		append(l2Address)
-		append(" ← address of label $[")
+		append(referenceOffset)
+		append(" ← offset of label $[")
 		append(reference.targetBlock().name())
 		append("]")
 		if (reference.offset() != -1)
@@ -139,11 +153,6 @@ constructor(
 		}
 	}
 
-	override fun simpleAppendTo(builder: StringBuilder)
-	{
-		super.simpleAppendTo(builder)
-	}
-
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
@@ -169,7 +178,7 @@ constructor(
 		}
 		// Note: We process `reference` with the strippedManifest.
 		reference.instructionWasAdded(strippedManifest)
-		l2Address.instructionWasAdded(manifest)
+		referenceOffset.instructionWasAdded(manifest)
 		registerDump.instructionWasAdded(manifest)
 		ifFallThrough.instructionWasAdded(manifest)
 		dirtyLocals.instructionWasAdded(manifest)
@@ -179,21 +188,117 @@ constructor(
 	 * Don't allow instructions to be delayed across an instruction that goes
 	 * both ways, since that would make the computation in one of the forks
 	 * redundant with the computation in the other. Specifically, an
-	 * L2_SAVE_ALL_AND_PC_TO_INT must act as a barrier against postponement,
+	 * [L2_SAVE_ALL_AND_PC_TO_INT] must act as a barrier against postponement,
 	 * since values created after the fork will not affect the collection of
 	 * registers that need to be saved in a register dump and restored on the
 	 * second path. For simplicity, just recursively force all postponed
 	 * instructions to be generated here.
+	 *
+	 * We allow an [L2_CREATE_VARIABLE] to go both ways, because it reports
+	 * `true` for [shouldPostponeEvenIfLiveIn].  It goes along the [reference]
+	 * edge to allow variable creation to be postponed until after the
+	 * reification completes and the continuation is returned into.  It also
+	 * goes along the [ifFallThrough] edge, where it gets transformed by the
+	 * eventual [L2_CREATE_CONTINUATION] in the reification part that captures
+	 * the initialization value in case the continuation becomes shared or
+	 * immutable, allowing that local variable to be initialized correctly on
+	 * creation (and switch to L1 execution).  Note that the [dirtyLocals] and
+	 * [dirtyLocalIndices] lists have to be updated to capture this information,
+	 * since the transformation of the current ([L2_SAVE_ALL_AND_PC_TO_INT])
+	 * instruction is what creates the [A_RegisterDump] subsequently used by the
+	 * [L2_CREATE_CONTINUATION].
 	 */
 	override fun L2Regenerator.regenerateForPostponement()
 	{
-		//TODO Allow local variable creations to slip through along `reference`,
-		// and somehow alter the `ifFallThrough` path's continuation creation so
-		// that if the continuation becomes shared, the variable will be created
-		// with the correct value.
+		if (reference.isBackward)
+		{
+			// It's preparing to create a label or transient continuation.
+			// Either way, the reference is to (near) the top of the graph, so
+			// we can just let the postponed instructions go both ways and the
+			// addInstruction() that happens later will clear them from the
+			// reference edge.
+			basicRegenerateForPostponement()
+			return
+		}
+		// Look for L2_CREATE_VARIABLE instructions that can stay postponed.
+		val creations = currentManifest.postponedInstructions()
+			.values
+			.toSet()
+			.filterIsInstance<L2_CREATE_VARIABLE>()
+		if (creations.isEmpty())
+		{
+			// There's nothing new to elide here.
+			basicRegenerateForPostponement()
+			return
+		}
+		// There's at least one elision to add.
+		val elidedVariables = dirtyLocals.elements.toMutableList()
+		val elidedVariableIndices = dirtyLocalIndices.constant.toMutableList()
+		creations.forEach { postponedCreation ->
+			// We can postpone the creation of this local along the reference
+			// edge, but also record the source of the value for creating the
+			// register dump that will be used by the continuation creation
+			// instruction within the reification section.  We'll also have to
+			// ensure that we move a postponed variable into the local slot
+			// along the ifFallThrough path, to indicate the continuation can
+			// keep it elided unless the continuation is made immutable or
+			// shared (in which case it will exit to L1).
+			val valueRead = postponedCreation.initialValueOrNil
+			val semanticValue = valueRead.semanticValue()
+			val semanticInt = currentManifest.equivalentSemanticValue(
+				semanticValue.unboxedInt)
+			val semanticFloat = currentManifest.equivalentSemanticValue(
+				semanticValue.unboxedFloat)
+			val source = semanticInt ?: semanticFloat ?: semanticValue
+			elidedVariables.add(source.createRead(currentManifest))
+			elidedVariableIndices.add(postponedCreation.localIndex.value)
+		}
+		val fallThroughSplitBlock = L2BasicBlock(
+			name = "Fallthrough split",
+			zone = currentBlock().zone)
+		val replacement = L2_SAVE_ALL_AND_PC_TO_INT(
+			ifFallThrough = edgeTo(fallThroughSplitBlock),
+			reference = reference,
+			referenceOffset = referenceOffset,
+			registerDump = registerDump,
+			dirtyLocals = L2ReadMixedVectorOperand(elidedVariables),
+			dirtyLocalIndices = L2ArbitraryConstantOperand(
+				elidedVariableIndices.toIntArray())
+		)
+		replacement.run {
+			basicRegenerateForPostponement()
+		}
+		// Edit the new fallThrough edge.
+		val fallThroughEdge = fallThroughSplitBlock.predecessorEdges()[0]
+		creations.forEach { postponedCreation ->
+			fallThroughEdge.manifest().removePostponedInstructionFor(
+				postponedCreation.variable)
+		}
+		startBlock(fallThroughSplitBlock)
+		// Use a placeholder variable in place of the freshly postponed variable
+		// creations, so that the variables can be elided even through
+		// reification, as long as the continuation stays mutable.
+		creations.forEach { postponedCreation ->
+			val postponedVariable = newPlaceholder(
+				postponedCreation.outerType.constant,
+				postponedCreation.localIndex.value)
+			moveBoxedRegister(
+				boxedConstant(postponedVariable).semanticValue(),
+				postponedCreation.variable.semanticValues())
+		}
+		// Jump to the original (mapped) fallThrough target, so that code
+		// regeneration will continue correctly there at some point.
+		jumpTo(ifFallThrough.targetBlock())
+	}
 
-		forceAllPostponedTranslationsExceptConstantMoves(true)
-		basicRegenerateForPostponement()
+	override fun replaceConstantReads(
+		generator: L2GeneratorInterface,
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+	{
+		// Don't replace any saved registers with constants, since there would
+		// be nowhere to restore them to (they don't occupy JVM locals).  This
+		// also ensures that dirtyLocals continue to refer to real registers,
+		// since the encoding can't handle constants.
 	}
 
 	override fun translateToJVM(
@@ -208,7 +313,7 @@ constructor(
 		translator.store(method, registerDump.register())
 		// :: []
 		translator.intConstant(method, reference.offset())
-		translator.store(method, l2Address.register())
+		translator.store(method, referenceOffset.register())
 
 		// Jump is usually elided.
 		translator.jumpOrFallThrough(method, ifFallThrough)

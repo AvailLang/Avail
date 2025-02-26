@@ -118,9 +118,8 @@ class PrimitiveCompiledCodeDescriptor internal constructor(
 	originatingPhrase,
 	packedDeclarationNames,
 	lineNumber,
-	lineNumberEncodedDeltas
-) {
-
+	lineNumberEncodedDeltas)
+{
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -296,7 +295,8 @@ class PrimitiveCompiledCodeDescriptor internal constructor(
 			primitive: Primitive,
 			module: A_Module,
 			lineNumber: Int
-		): A_RawFunction {
+		): A_RawFunction
+		{
 			val writer = L1InstructionWriter(module, lineNumber, nil)
 			writer.primitive = primitive
 			val functionType = primitive.blockTypeRestriction()

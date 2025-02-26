@@ -395,11 +395,18 @@ abstract class L2Chunk protected constructor(
 		;
 
 		/**
-		 * [Statistic] for tracking the cost of invalidating chunks due to this
-		 * reason.
+		 * [Statistic] for tracking the cost of invalidating [L2SimpleChunk]s
+		 * due to this reason.
 		 */
-		val statistic = Statistic(
-			L2_OPTIMIZATION_TIME, "(invalidation from $name)")
+		val statisticForL2Simple = Statistic(
+			L2_OPTIMIZATION_TIME, "(invalidate L2Simple from $name)")
+
+		/**
+		 * [Statistic] for tracking the cost of invalidating [L2JVMChunk]s
+		 * due to this reason.
+		 */
+		val statisticForL2 = Statistic(
+			L2_OPTIMIZATION_TIME, "(invalidate L2 from $name)")
 	}
 
 	/**
@@ -445,19 +452,27 @@ abstract class L2Chunk protected constructor(
 		val after = AvailRuntimeSupport.captureNanos()
 		// Use interpreter #0, since the invalidationLock prevents concurrent
 		// updates.
-		reason.statistic.record(after - before, 0)
+		val stat = when (this)
+		{
+			is L2SimpleChunk -> reason.statisticForL2Simple
+			else -> reason.statisticForL2
+		}
+		stat.record(after - before, 0)
 	}
 
 	/**
 	 * Dump the chunk to disk for debugging. This is expected to be called
-	 * directly from the debugger, and should result in the production of three
-	 * files: `JVMChunk_«uuid».l1`, `JVMChunk_«uuid».l2`, and
-	 * `JVMChunk_«uuid».class`. This momentarily sets the [debugJVM] flag to
-	 * `true`, but restores it to its original value on return.
+	 * directly from the Kotlin debugger, and should result in the production of
+	 * four files with extensions .l1, .l2, .dot, and .simple.dot. This
+	 * momentarily sets the [debugJVM] flag to `true`, but restores it to its
+	 * original value on return.
+	 *
+	 * The first level of directory is the module name, and the second level is
+	 * `DDDD_function_name (version)`, to help locate code by (DDDD) line
+	 * number.
 	 *
 	 * @return
-	 *   The base name, i.e., `JVMChunk_«uuid»`, to allow location of the
-	 *   generated files.
+	 *   The base name, used to name the directory and its files.
 	 */
 	@Suppress("unused")
 	abstract fun dumpChunk(): String
@@ -498,7 +513,7 @@ abstract class L2Chunk protected constructor(
 		 * This temporal signal should be more effective at deciding what to
 		 * optimize than just counting the number of times the code is called.
 		 */
-		const val decrementForPolledActiveCode: Long = 1000
+		const val decrementForPolledActiveCode: Long = 100
 
 		/**
 		 * The [lock][ReentrantLock] that protects invalidation of chunks due to

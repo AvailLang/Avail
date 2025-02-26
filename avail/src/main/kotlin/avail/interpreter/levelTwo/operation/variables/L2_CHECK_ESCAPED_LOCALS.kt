@@ -46,8 +46,10 @@ import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Optimizer
@@ -102,13 +104,57 @@ class L2_CHECK_ESCAPED_LOCALS(
 	override fun L2Regenerator.generateReplacement(
 		originalInstruction: L2Instruction)
 	{
-		// Omit the check if the vector is empty.
+		// Omit the check (and moves) if the vector is empty.
 		if (localsToCheck.elements.isEmpty())
 		{
 			jumpTo(ifSafe.targetBlock())
 			return
 		}
 		emitTransformedInstruction()
+	}
+
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		val keptLocals = mutableListOf<L2ReadBoxedOperand>()
+		val keptWrites = mutableListOf<L2WriteBoxedOperand>()
+		localsToCheck.elements.zip(localsOutput.elements).map { (read, write) ->
+			val postponed =
+				currentManifest.postponedInstruction(read.semanticValue())
+			when (postponed)
+			{
+				is L2_CREATE_VARIABLE ->
+				{
+					// Keep he instruction postponed, and add a postponed move
+					// from the old register with the variable to the new one.
+					currentManifest.recordPostponedInstruction(
+						L2_MOVE_BOXED(read, write))
+				}
+				else ->
+				{
+					// Either it's not postponed, or it's some other instruction
+					// besides a variable creation that produced the variable.
+					// The second case probably shouldn't happen, but play it
+					// safe and force it to generate.
+					forceTranslationForRead(read.semanticValue())
+					keptLocals.add(read)
+					keptWrites.add(write)
+				}
+			}
+		}
+		if (keptLocals.isEmpty())
+		{
+			// Skip the check entirely.
+			jumpTo(ifSafe.targetBlock())
+		}
+		else
+		{
+			+L2_CHECK_ESCAPED_LOCALS(
+				reason,
+				L2ReadBoxedVectorOperand(keptLocals),
+				L2WriteBoxedVectorOperand(keptWrites),
+				ifSafe,
+				ifFallBack)
+		}
 	}
 
 	override fun StringBuilder.appendToWithWarnings(

@@ -340,6 +340,5 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
-
 	}
 }

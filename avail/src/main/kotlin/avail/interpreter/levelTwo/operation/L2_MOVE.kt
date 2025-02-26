@@ -218,7 +218,7 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			}
 			removePostponedSourceInstruction(this@L2_MOVE)
 			removePostponedSourceInstruction(sourceInstruction)
-			recordPostponedSourceInstruction(clone)
+			recordPostponedInstruction(clone)
 			return true
 		}
 		return false

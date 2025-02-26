@@ -40,6 +40,7 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
+import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -117,6 +118,7 @@ import avail.descriptor.types.TypeTag
 import avail.dispatch.LookupStatistics
 import avail.exceptions.unsupported
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1OperandType
 import avail.interpreter.levelOne.L1Operation
@@ -146,6 +148,7 @@ import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.LongAdder
 import kotlin.concurrent.withLock
 import kotlin.math.max
 
@@ -351,11 +354,11 @@ open class CompiledCodeDescriptor protected constructor(
 	internal class InvocationStatistic
 	{
 		/**
-		 * An [AtomicLong] holding a count of the total number of times this
+		 * A [LongAdder] holding a count of the total number of times this
 		 * code has been invoked.  This statistic can be useful during
 		 * optimization.
 		 */
-		val totalInvocations = AtomicLong(0)
+		val totalInvocations = LongAdder()
 
 		/**
 		 * An [AtomicLong] that indicates how many more invocations can take
@@ -664,8 +667,16 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun o_DecrementCountdownToReoptimize(self: AvailObject): Boolean
 	{
 		val countdown = invocationStatistic.countdownToReoptimize
-		if (countdown.get() == Long.MAX_VALUE) return false
-		return countdown.decrementAndGet() == 0L
+		if (countdown.get().let { it == Long.MAX_VALUE || it <= 0 })
+			return false
+		var newValue: Long
+		do
+		{
+			var counter = countdown.get()
+			if (counter == Long.MAX_VALUE || counter <= 0) return false
+			newValue = counter - 1
+		} while (!countdown.compareAndSet(counter, newValue))
+		return newValue == 0L
 	}
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
@@ -678,10 +689,16 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			// Ignore this poll if it's max or already negative (or zero).
 			current == Long.MAX_VALUE || current <= 0 -> return
-			// It's positive.  Decrease it by delta, but not below 1.
-			current > 0L -> countdown.updateAndGet {
-				// We have to test again for max, so that we don't decrement it.
-				if (it == Long.MAX_VALUE) it else max(1L, it - delta)
+			// It's positive.  Decrease it by delta, but not below 2.
+			current <= 0L -> return
+			else ->
+			{
+				do
+				{
+					var counter = countdown.get()
+					if (counter == Long.MAX_VALUE || counter <= 0) return
+				} while (!countdown.compareAndSet(
+						counter, max(2L, counter - delta)))
 			}
 		}
 	}
@@ -1097,12 +1114,14 @@ open class CompiledCodeDescriptor protected constructor(
 
 	override fun o_TallyInvocation(self: AvailObject)
 	{
-		invocationStatistic.totalInvocations.incrementAndGet()
-		invocationStatistic.hasRun = true
+		invocationStatistic.run {
+			totalInvocations.add(1)
+			if (!hasRun) hasRun = true
+		}
 	}
 
 	override fun o_TotalInvocations(self: AvailObject) =
-		invocationStatistic.totalInvocations.get()
+		invocationStatistic.totalInvocations.toLong()
 
 	/**
 	 * Render the [receiver][AvailObject] as JSON.
@@ -1456,6 +1475,10 @@ open class CompiledCodeDescriptor protected constructor(
 						packedDeclarationNames.makeShared(),
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
+				if (!primitive.hasFlag(CatchException))
+				{
+					code.countdownToReoptimize(Long.MAX_VALUE)
+				}
 			}
 			else
 			{

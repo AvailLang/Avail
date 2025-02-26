@@ -70,12 +70,13 @@ class L2ArbitraryConstantOperand<T>(constant: T) : L2Operand()
 				constant == null -> append("null")
 				constant.javaClass.isArray ->
 				{
-					(0 until getLength(constant)).asSequence()
+					val elementType = constant.javaClass.componentType
+					(0 until getLength(constant))
 						.map { get(constant, it) }
 						.joinTo(
 							buffer = this,
 							separator = ", ",
-							prefix = "${constant.javaClass.simpleName}[",
+							prefix = "${elementType.simpleName}[",
 							postfix = "]",
 							limit = 10)
 				}

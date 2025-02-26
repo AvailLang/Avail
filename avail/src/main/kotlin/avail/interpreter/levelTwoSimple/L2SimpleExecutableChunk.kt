@@ -88,13 +88,23 @@ import kotlin.math.max
  * same manner as for [L1InstructionStepper].  The current function occupies
  * `register[0]`, then the frame slots.
  *
+ * @constructor
+ * Creaate this chunk from the given instructions.
+ *
+ * @property code
+ *   The [A_RawFunction] which was translated.
+ * @property instructions
+ *   The [Array] of [L2SimpleInstruction]s comprising this chunk.
+ * @property optimizationLevel
+ *   The [OptimizationLevel] at which this chunk was created.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class L2SimpleExecutableChunk
 constructor(
 	private val code: A_RawFunction,
 	private val instructions: Array<L2SimpleInstruction>,
-	private val nextOptimizationLevel: OptimizationLevel
+	private val optimizationLevel: OptimizationLevel
 ) : ExecutableChunk
 {
 	/** Capture the primitive, if any, for easy access. */
@@ -156,7 +166,7 @@ constructor(
 					savedArguments = interpreter.argsBuffer.toList()
 				}
 				OptimizationLevel.optimizationLevel(
-					nextOptimizationLevel.ordinal
+					optimizationLevel.ordinal
 				).optimize(code, interpreter)
 				// Enter the newly constructed chunk, after ensuring the
 				// arguments have been handed back to the interpreter.

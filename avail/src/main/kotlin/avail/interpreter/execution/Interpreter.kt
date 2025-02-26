@@ -2513,6 +2513,9 @@ class Interpreter(
 							"{0}Exit1 run\n",
 							debugModeString)
 					}
+					// Prevent dynamic optimizer from thinking this interpreter
+					// is running any function.
+					function = null
 					return
 				}
 				if (!returnNow)
@@ -2539,6 +2542,9 @@ class Interpreter(
 							"Interpreter.run)\n",
 						debugModeString)
 				}
+				// Prevent dynamic optimizer from thinking this interpreter
+				// is running any function.
+				function = null
 				return
 			}
 			// Resume the top reified frame.  It should be at an on-ramp that

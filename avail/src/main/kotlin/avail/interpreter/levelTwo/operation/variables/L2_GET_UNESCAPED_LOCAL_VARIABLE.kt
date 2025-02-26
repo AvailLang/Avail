@@ -122,7 +122,7 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 		}
 		// The move from variable to variableOut is unconditional.
 		currentManifest.removePostponedInstructionFor(variableOut)
-		currentManifest.recordPostponedSourceInstruction(
+		currentManifest.recordPostponedInstruction(
 			L2_MOVE_BOXED(variable, variableOut))
 		val originRestriction = currentManifest.restrictionFor(originValue)
 		when
@@ -130,7 +130,7 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 			originRestriction.containedByType(ANY()) ->
 			{
 				// The variable is definitely assigned.
-				currentManifest.recordPostponedSourceInstruction(
+				currentManifest.recordPostponedInstruction(
 					L2_MOVE_BOXED(originValue, extractedValue))
 				jumpTo(ifReadSucceeded.targetBlock())
 				return

@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.utility.notNullAnd
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -95,6 +96,10 @@ constructor(
 	 * both can be replaced by an [L2_CREATE_VARIABLE] that has the more
 	 * up-to-date value as its initialization value.
 	 *
+	 * HOWEVER, we must not do that if the initialization value is computed
+	 * recursively from the variable itself, since that would introduce a cyclic
+	 * dependency order, which is impossible to satisfy.
+	 *
 	 * @receiver
 	 *   The [L2ValueManifest] containing this postponed instruction.
 	 * @return
@@ -102,6 +107,21 @@ constructor(
 	 */
 	override fun L2ValueManifest.rewritePostponed(): Boolean
 	{
+		// Check if the value to be written depends on this variable.
+		// If so, we must not merge the assignment with the creation, or
+		// it would introduce an unsatisfiable dependency order.
+		if (
+			postponedInstruction(variable.semanticValue()).notNullAnd {
+				checkDependency(
+					valueToWrite.semanticValue(),
+					this@notNullAnd,
+					mutableSetOf())
+			})
+		{
+			// The variable must already exist to know what to assign.
+			// Don't merge the assignment into the creation.
+			return false
+		}
 		val variableOrigin = postponedInstructions()[variable.semanticValue()]
 		when (variableOrigin)
 		{
@@ -112,8 +132,9 @@ constructor(
 				removePostponedSourceInstruction(
 					this@L2_SET_UNESCAPED_LOCAL_VARIABLE)
 				removePostponedSourceInstruction(variableOrigin)
-				recordPostponedSourceInstruction(
+				recordPostponedInstruction(
 					L2_CREATE_VARIABLE(
+						localIndex = variableOrigin.localIndex,
 						outerType = variableOrigin.outerType,
 						variable = L2WriteBoxedOperand(
 							variableOrigin.variable.semanticValues() +
@@ -137,7 +158,7 @@ constructor(
 				removePostponedSourceInstruction(
 					this@L2_SET_UNESCAPED_LOCAL_VARIABLE)
 				removePostponedSourceInstruction(variableOrigin)
-				recordPostponedSourceInstruction(
+				recordPostponedInstruction(
 					L2_SET_UNESCAPED_LOCAL_VARIABLE(
 						variable = variableOrigin.variable,
 						valueToWrite = valueToWrite,

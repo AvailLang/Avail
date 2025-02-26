@@ -972,7 +972,7 @@ constructor() :
 		if (anyNonconstant)
 		{
 			// At least one output was non-constant.  Postpone the instruction.
-			currentManifest.recordPostponedSourceInstruction(this@L2Instruction)
+			currentManifest.recordPostponedInstruction(this@L2Instruction)
 		}
 	}
 

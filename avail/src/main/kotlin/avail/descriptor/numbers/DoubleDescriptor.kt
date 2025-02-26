@@ -451,7 +451,8 @@ class DoubleDescriptor private constructor(
 					return compareDoubles(
 						aDouble, anInteger.extractInt.toDouble())
 				}
-				aDouble == 0.0 -> return zero.numericCompare(anInteger)
+				aDouble == 0.0 || aDouble == -0.0 ->
+					return zero.numericCompare(anInteger)
 			}
 			// The integer is beyond an int's range.  Perhaps even beyond a
 			// double. For boundary purposes, check now if it's exactly

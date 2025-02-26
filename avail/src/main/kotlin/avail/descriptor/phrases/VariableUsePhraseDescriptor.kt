@@ -34,7 +34,6 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
@@ -59,6 +58,7 @@ import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -236,7 +236,8 @@ class VariableUsePhraseDescriptor private constructor(
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		tuple(self[USE_TOKEN])
 
-	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple = tuple(zero)
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		singleZeroTuple
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -292,6 +293,10 @@ class VariableUsePhraseDescriptor private constructor(
 				initHash()
 			}
 		}
+
+		/** A tuple with a single zero in it. */
+		private val singleZeroTuple =
+			generateNybbleTupleFrom(1) { 0 }.makeShared()
 
 		/** The mutable [VariableUsePhraseDescriptor]. */
 		private val mutable = VariableUsePhraseDescriptor(Mutability.MUTABLE)

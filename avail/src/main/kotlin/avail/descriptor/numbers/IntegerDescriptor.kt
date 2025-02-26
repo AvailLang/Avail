@@ -640,11 +640,11 @@ class IntegerDescriptor private constructor(
 	): A_Number
 	{
 		// Compute anInteger / self. Round towards negative infinity.
-		if (self.equals(zero))
-			throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
 		if (self.isLong)
 		{
 			var denominator = self.extractLong
+			if (denominator == 0L)
+				throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
 			if (anInteger.isLong)
 			{
 				// Two longs - by far the most common case.

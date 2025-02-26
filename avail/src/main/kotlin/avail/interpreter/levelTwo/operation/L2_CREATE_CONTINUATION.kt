@@ -35,7 +35,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithou
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrameMethod
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -52,7 +51,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import avail.utility.notNullAnd
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -110,12 +108,6 @@ constructor (
 			}
 			append(": ")
 			append(slot.registerString())
-			//if (slotIndex < slotValues.elements.size) append(",")
-			if (slotIndex in localRange
-				&& slot.constantOrNull.notNullAnd { equalsInt(0) })
-			{
-				append("  (elided local)")
-			}
 		}
 		append("]\n\tstackp=")
 		append(levelOneStackp.value)
@@ -123,12 +115,13 @@ constructor (
 		append(caller)
 		renderOperandsExcludingFields(
 			desiredOperandTypes,
+			::comment,
+			::destination,
 			::function,
 			::code,
-			::caller,
 			::slotValues,
-			::destination,
-			::comment)
+			::levelOneStackp,
+			::caller)
 	}
 
 	override fun translateToJVM(

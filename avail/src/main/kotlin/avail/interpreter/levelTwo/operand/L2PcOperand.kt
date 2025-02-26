@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operand
 
 import avail.descriptor.functions.A_RegisterDump
+import avail.descriptor.functions.A_RegisterDump.Companion.encodeLocalValue
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDumpMethod
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.representation.AvailObject
@@ -410,6 +411,17 @@ class L2PcOperand constructor (
 		liveRegistersList.forEach {
 			liveMap[it.kind]!!.add(it)
 		}
+		// ALSO add any registers that must be preserved because elided variable
+		// creation will need it as an initial value (in the reification path).
+		val sourceInstruction = instruction
+		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
+		{
+			sourceInstruction.dirtyLocals.elements.forEach { read ->
+				liveMap[read.kind]!!.add(read.register())
+			}
+		}
+
+		// Stably deduplicate them.
 		val liveLocalsByKind = liveMap.mapValues { (_, list) ->
 			list.map(translator::localNumberFromRegister).distinct()
 		}
@@ -445,7 +457,6 @@ class L2PcOperand constructor (
 		// initializing variables.  See ENCODED_ELIDED_LOCALS in
 		// RegisterDumpDescriptor.
 		translator.loadLiteralObject(method, fallbackChunkEntry)
-		val sourceInstruction = instruction
 		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
 		{
 			// This is a real continuation that can become immutable or shared,
@@ -460,12 +471,12 @@ class L2PcOperand constructor (
 				ints.add(sourceInstruction.dirtyLocalIndices.constant[i])
 				val liveIndexInKind =
 					liveMap[read.kind]!!.indexOf(read.register())
-				ints.add(
-					A_RegisterDump.encodeLocalValue(read.kind, liveIndexInKind))
+				assert(liveIndexInKind >= 0)
+				ints.add(encodeLocalValue(read.kind, liveIndexInKind))
 			}
 			val intTuple = tupleFromIntegerList(ints).makeShared()
 			translator.loadLiteralObject(method, intTuple)
-			// :: encodedInitTuple
+			// :: encodedIntTuple
 		}
 		else
 		{

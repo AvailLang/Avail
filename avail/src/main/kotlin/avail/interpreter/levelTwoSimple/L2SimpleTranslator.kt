@@ -109,7 +109,7 @@ import avail.utility.notNullAnd
 class L2SimpleTranslator
 constructor(
 	val code: A_RawFunction,
-	private val nextOptimizationLevel: OptimizationLevel,
+	private val optimizationLevel: OptimizationLevel,
 	val interpreter: Interpreter,
 ) : L1OperationDispatcher
 {
@@ -179,9 +179,9 @@ constructor(
 				if (code.codePrimitive() == null) 0 else -1,
 			theInstructions = instructions,
 			contingentValues = setFromCollection(contingentValues),
-			nextOptimizationLevel = nextOptimizationLevel)
+			optimizationLevel = optimizationLevel)
 		code.setStartingChunkAndReoptimizationCountdown(
-			chunk, nextOptimizationLevel.countdown)
+			chunk, optimizationLevel.countdown)
 		return chunk
 	}
 
@@ -754,16 +754,18 @@ constructor(
 	}
 
 	companion object {
-		/** Translate the code into an [L2SimpleChunk]. */
+		/** Translate the code into an [L2SimpleChunk] and install it. */
 		fun translateToLevelTwoSimple(
 			code: A_RawFunction,
-			nextOptimizationLevel: OptimizationLevel,
-			interpreter: Interpreter): L2SimpleChunk
+			optimizationLevel: OptimizationLevel,
+			interpreter: Interpreter)
 		{
 			return simpleTranslationStat.record(interpreter.interpreterIndex) {
 				val translator = L2SimpleTranslator(
-					code, nextOptimizationLevel, interpreter)
-				translator.createChunk()
+					code, optimizationLevel, interpreter)
+				val chunk = translator.createChunk()
+				code.setStartingChunkAndReoptimizationCountdown(
+					chunk, optimizationLevel.countdown)
 			}
 		}
 

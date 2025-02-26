@@ -264,6 +264,8 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		append(sources)
 	}
 
+	override val name: String get() = "ϕ"
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)

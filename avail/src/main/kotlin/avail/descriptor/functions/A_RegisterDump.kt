@@ -31,6 +31,9 @@
  */
 package avail.descriptor.functions
 
+import avail.descriptor.functions.A_RegisterDump.Companion.decodeBoxedValueFromDump
+import avail.descriptor.functions.A_RegisterDump.Companion.encodeLocalValue
+import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -38,6 +41,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
@@ -128,11 +132,15 @@ interface A_RegisterDump : A_BasicObject
 		fun encodeLocalValue(
 			kind: RegisterKind<*>,
 			liveIndexInKind: Int
-		): Int = when (kind)
+		): Int
 		{
-			BOXED_KIND -> liveIndexInKind + 1
-			INTEGER_KIND -> liveIndexInKind * -2
-			FLOAT_KIND -> liveIndexInKind * -2 + 1
+			assert(liveIndexInKind >= 0)
+			return when (kind)
+			{
+				BOXED_KIND -> liveIndexInKind + 1
+				INTEGER_KIND -> liveIndexInKind * -2 - 2
+				FLOAT_KIND -> liveIndexInKind * -2 + 1
+			}
 		}
 
 		/**
@@ -156,6 +164,7 @@ interface A_RegisterDump : A_BasicObject
 			encodedIndex: Int
 		): AvailObject = when
 		{
+			encodedIndex == 0 -> unsupported
 			encodedIndex > 0 -> dump.extractDumpedObjectAt(encodedIndex)
 			encodedIndex and 1 == 0 -> fromInt(
 				dump.extractDumpedLongAt(-encodedIndex ushr 1).toInt())

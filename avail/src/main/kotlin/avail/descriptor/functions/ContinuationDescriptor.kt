@@ -58,6 +58,9 @@ import avail.descriptor.functions.A_RawFunction.Companion.shortMethodName
 import avail.descriptor.functions.A_RegisterDump.Companion.decodeBoxedValueFromDump
 import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
+import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuation
+import avail.descriptor.functions.ContinuationDescriptor.Companion.functionStatic
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -70,7 +73,6 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_C
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -96,6 +98,9 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.TypeTag
+import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.isPlaceholderVariable
+import avail.descriptor.variables.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
@@ -530,7 +535,9 @@ class ContinuationDescriptor private constructor(
 		assert(mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
 		}
+		self.setDescriptor(mutable)
 		self.createElidedVariables()
+		self.setDescriptor(this)
 		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
 	}
 
@@ -551,7 +558,9 @@ class ContinuationDescriptor private constructor(
 		assert(mutability == Mutability.SHARED) {
 			"The descriptor should have been switched to shared already"
 		}
+		self.setDescriptor(mutable)
 		self.createElidedVariables()
+		self.setDescriptor(this)
 		super.o_MakeSharedInternal(self, queueToProcess, fixups)
 	}
 
@@ -578,7 +587,15 @@ class ContinuationDescriptor private constructor(
 			if (primitive === P_CatchException)
 			{
 				append(" CATCH var = ")
-				append(self.frameAt(4).value().value())
+				val outerVar = self.frameAt(4)
+				if (outerVar.isPlaceholderVariable())
+				{
+					append("elided")
+				}
+				else
+				{
+					append(outerVar.value().value())
+				}
 			}
 		}
 
@@ -896,61 +913,80 @@ class ContinuationDescriptor private constructor(
 			if (chunk is L2SimpleChunk) return
 
 			val code = this[FUNCTION].code()
+			val numLocals = code.numLocals
 			// There are no local variables, so this frame can stay optimized.
-			if (code.numLocals == 0) return
+			if (numLocals == 0) return
 			// This is a tuple of ints, taken two at a time, where the first is
 			// the local number into which the new variable is to be written,
-			// and the second numuber is signed, where
-			//  - a positive integer means an index into the saved object
-			//    register array, or
-			//  - a negative even number -2×N, where the Nth entry in the long
-			//    array contains an [Int] to box and store in the new variable,
-			//    or
-			//  - a negative odd number -2×N+1, where the Nth entry in the long
-			//    array contains a [Long] whose bit pattern can produce a
-			//    [Double] to box and store in the new variable.
+			// and the second numuber is a signed value interpreted by
+			// decodeBoxedValueFromDump() which allows a boxed, i32, or double
+			// value to be used for initialization (boxing as needed).
 			val dump = this[LEVEL_TWO_REGISTER_DUMP]
 			dump.ifNotNil<A_RegisterDump> {
 				val encoded: A_Tuple = dump.encodedElidedLocals
+				val numArgs = code.numArgs()
+				val placeholderReplacements =
+					arrayOfNulls<A_Variable>(numLocals)
 				for (i in 1 .. encoded.tupleSize step 2)
 				{
 					val localIndex = encoded.tupleIntAt(i)
 					val sourceInt = encoded.tupleIntAt(i + 1)
 					val value = decodeBoxedValueFromDump(dump, sourceInt)
+					val slotIndex = localIndex + numArgs
+					val newVariable = newVariableWithOuterType(
+						code.localTypeAt(localIndex), value)
+					val placeholder = this[FRAME_AT_, slotIndex]
+					assert(placeholder.isPlaceholderVariable())
+					placeholderReplacements[localIndex - 1] = newVariable
 					// We must not create the same variable twice, and the L2
-					// code should have ensured this, so verify the sentinel `0`
+					// code should have ensured this, so verify the placeholder
 					// in the local slot.
-					assert(this[FRAME_AT_, localIndex].equalsInt(0))
-
-					if (debugL2)
+					assert(
+						placeholder.placeholderVariableLocalIndex()
+							== localIndex)
+				}
+				// Replace placeholders in every slot of the continuation, not
+				// just the local slots.  That allows a variable to be pushed
+				// without the fast path having to create it, even in the event
+				// of simple reification.
+				for (slotIndex in 1 .. code.numSlots)
+				{
+					val entry = this[FRAME_AT_, slotIndex]
+					if (entry.isPlaceholderVariable())
 					{
-						AvailThread.currentOrNull?.interpreter?.run {
-							log(
-								loggerDebugL2,
-								Level.FINER,
-								"{0}CREATE ELIDED local #{1} of {2}",
-								debugModeString,
-								localIndex,
-								code.shortMethodName)
+						val localIndex = entry.placeholderVariableLocalIndex()
+						var replacement =
+							placeholderReplacements[localIndex - 1]
+						if (replacement == null)
+						{
+							// This placeholder wasn't mentioned in the register
+							// dump, which means it should be a variable
+							// initialized to nil.
+							replacement = newVariableWithOuterType(
+								code.localTypeAt(localIndex), nil)
+							placeholderReplacements[localIndex - 1] =
+								replacement
+						}
+						this[FRAME_AT_, slotIndex] = replacement
+						if (debugL2)
+						{
+							AvailThread.currentOrNull?.interpreter?.run {
+								log(
+									loggerDebugL2,
+									Level.FINER,
+									"{0}WROTE ELIDED local #{1} " +
+										"into slot {2} of {3}",
+									debugModeString,
+									localIndex,
+									slotIndex,
+									code.shortMethodName)
+							}
 						}
 					}
-
-					this[FRAME_AT_, localIndex] = newVariableWithOuterType(
-						code.localTypeAt(localIndex), value)
 				}
 			}
-			// Any locals that weren't mentioned, and that happen to have `0`
-			// sentinel slots in the continuation, should be created with nil as
-			// their value.
-			val numArgs = code.numArgs()
-			for (i in 1 .. code.numLocals)
-			{
-				if (this[FRAME_AT_, numArgs + i].equalsInt(0))
-				{
-					this[FRAME_AT_, numArgs + i] =
-						newVariableWithOuterType(code.localTypeAt(i), nil)
-				}
-			}
+			// The L2 code cannot continue to run with those variables created,
+			// so we must fall back to L1.
 			dump.ifNotNil<A_RegisterDump> {
 				this[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
 				this[LEVEL_TWO_OFFSET] =

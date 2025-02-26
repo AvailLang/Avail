@@ -64,7 +64,6 @@ import avail.utility.deepForEach
 import avail.utility.dot.DotWriter
 import avail.utility.dot.DotWriter.AttributeWriter
 import avail.utility.dot.DotWriter.Companion.node
-import avail.utility.dot.DotWriter.CompassPoint
 import avail.utility.dot.DotWriter.DecoratedNode
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType
 import avail.utility.dot.DotWriter.GraphWriter
@@ -518,7 +517,6 @@ class L2ControlFlowGraphVisualizer constructor(
 		edgeCounter: AtomicInteger)
 	{
 		val sourceBlock = edge.sourceBlock()
-		val sourceInstruction = edge.instruction
 		val targetBlock = edge.targetBlock()
 		val isTargetTheUnreachableBlock = targetBlock.instructions()
 			.any { it is L2_UNREACHABLE_CODE }
@@ -637,17 +635,17 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		try
 		{
-			val sourceSubscript =
-				sourceBlock.instructions().indexOf(sourceInstruction) + 1
 			writer.edge(
-				if (edge.isBackward) DecoratedNode(
-					basicBlockName(sourceBlock),
-					sourceSubscript.toString(),
-					CompassPoint.E)
-				else DecoratedNode(
-					basicBlockName(sourceBlock),
-					sourcePortNamesByEdge[edge],
-					null),
+				if (edge.isBackward)
+					DecoratedNode(
+						basicBlockName(sourceBlock),
+						sourcePortNamesByEdge[edge],
+						null)
+				else
+					DecoratedNode(
+						basicBlockName(sourceBlock),
+						sourcePortNamesByEdge[edge],
+						null),
 				if (edge.isBackward)
 				{
 					node(basicBlockName(targetBlock), "1")

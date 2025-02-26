@@ -466,7 +466,6 @@ interface A_Variable : A_ChunkDependable
 				body = MutableMap<*, *>?::isNullOrEmpty)
 		}
 
-
 		/**
 		 * Answer whether this variable is both a write-once variable and
 		 * initialized from an expression which is stable – always produces the
@@ -475,6 +474,12 @@ interface A_Variable : A_ChunkDependable
 		var A_Variable.valueWasStablyComputed: Boolean
 			get() = dispatch { o_ValueWasStablyComputed(it) }
 			set(value) = dispatch { o_SetValueWasStablyComputed(it, value) }
+
+		fun A_Variable.isPlaceholderVariable(): Boolean =
+			dispatch { o_IsPlaceholderVariable(it) }
+
+		fun A_Variable.placeholderVariableLocalIndex(): Int =
+			dispatch { o_PlaceholderVariableLocalIndex(it) }
 
 
 

@@ -37,6 +37,7 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -56,6 +57,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_CREATE_VARIABLE
 constructor(
+	var localIndex: L2IntImmediateOperand,
 	var outerType: L2ConstantOperand,
 	var variable: L2WriteBoxedOperand,
 	var initialValueOrNil: L2ReadBoxedOperand
@@ -68,7 +70,9 @@ constructor(
 		renderPreamble()
 		append(' ')
 		append(variable.registerString())
-		append(" ← new ")
+		append(" ← new(local#")
+		append(localIndex.value)
+		append(") ")
 		append(outerType.constant)
 		if (initialValueOrNil.constantOrNull.isNullOr { notNil })
 		{

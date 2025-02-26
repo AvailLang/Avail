@@ -34,7 +34,6 @@ package avail.optimizer
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
@@ -70,17 +69,15 @@ constructor(val countdown: Long)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
-			code.setStartingChunkAndReoptimizationCountdown(
-				L2SimpleTranslator.translateToLevelTwoSimple(
-					code, SIMPLE_TRANSLATION, interpreter),
-				countdown)
+			L2SimpleTranslator.translateToLevelTwoSimple(
+				code, SIMPLE_TRANSLATION, interpreter)
 		}
 	},
 
 	/**
 	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
 	 */
-	SIMPLE_TRANSLATION(10_000L)
+	SIMPLE_TRANSLATION(1_000L)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
@@ -186,6 +183,6 @@ constructor(val countdown: Long)
 		 * After enough slow lookups have been encountered in the current chunk,
 		 * set the call countdown to this value.
 		 */
-		const val countdownResetAfterEnoughFallbackLookups = 2_000L
+		const val countdownResetAfterEnoughFallbackLookups = 100L
 	}
 }

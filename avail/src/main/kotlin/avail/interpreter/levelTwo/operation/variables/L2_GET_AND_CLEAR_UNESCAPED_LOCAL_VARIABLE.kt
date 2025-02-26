@@ -127,9 +127,9 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			originType.containedByType(ANY()) ->
 			{
 				// The variable is definitely assigned.
-				currentManifest.recordPostponedSourceInstruction(
+				currentManifest.recordPostponedInstruction(
 					L2_MOVE_BOXED(variable, variableOut))
-				currentManifest.recordPostponedSourceInstruction(
+				currentManifest.recordPostponedInstruction(
 					L2_MOVE_BOXED(originValue, extractedValue))
 				jumpTo(ifReadSucceeded.targetBlock())
 				return
@@ -137,7 +137,7 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			originType.constantOrNull.notNullAnd { isNil } ->
 			{
 				// The variable is definitely unassigned.
-				currentManifest.recordPostponedSourceInstruction(
+				currentManifest.recordPostponedInstruction(
 					L2_MOVE_BOXED(variable, variableOut))
 				jumpTo(ifReadFailed.targetBlock())
 				return

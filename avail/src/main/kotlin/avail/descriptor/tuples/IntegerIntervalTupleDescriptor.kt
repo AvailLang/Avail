@@ -576,8 +576,7 @@ private constructor(
 
 			// If there are fewer than maximumCopySize members in this interval,
 			// create a normal tuple with them in it instead of an interval tuple.
-			val size = 1 +
-						difference.divideCanDestroy(delta, false).extractInt
+			val size = 1 + difference.divideCanDestroy(delta, false).extractInt
 			if (size < maximumCopySize)
 			{
 				val members = mutableListOf<A_Number>()
