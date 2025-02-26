@@ -198,6 +198,7 @@ import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
 import com.thizzer.jtouchbar.JTouchBar
+import com.thizzer.jtouchbar.JTouchBarJNI
 import com.thizzer.jtouchbar.item.TouchBarItem
 import com.thizzer.jtouchbar.item.view.TouchBarButton
 import com.thizzer.jtouchbar.item.view.action.TouchBarViewAction
@@ -1765,7 +1766,8 @@ class AvailWorkbench internal constructor(
 		moduleSize: Long,
 		position: Long,
 		line: Int,
-		@Suppress("unused") phrase: ()->A_Phrase?)
+		@Suppress("UNUSED_PARAMETER")
+		phrase: ()->A_Phrase?)
 	{
 		perModuleProgressLock.safeWrite {
 			if (position == moduleSize)
@@ -2447,24 +2449,28 @@ class AvailWorkbench internal constructor(
 				setIconBadge(activeVersionSummary)
 			}
 
-			// Populate the Mac TouchBar, if it exists on the device.
-			//TODO – test on other hardware, and detect its absence.
-			val touchBar = JTouchBar()
-			touchBar.setCustomizationIdentifier("MySwingJavaTouchBar");
-			touchBar.addItem(
-				TouchBarItem(
-					"Build",
-					TouchBarButton().apply {
-						title = "Build"
-						action = TouchBarViewAction {
-							println("(Performing build)")
-							buildAction.actionPerformed(
-								ActionEvent(
-									this, ActionEvent.ACTION_PERFORMED, null))
-						}
-					},
-					true))
-			touchBar.show(this)
+			// Populate the Mac TouchBar if it exists on the device.
+			if (AvailWorkbench.supportsTouchBar)
+			{
+				val touchBar = JTouchBar()
+				touchBar.setCustomizationIdentifier("MySwingJavaTouchBar");
+				touchBar.addItem(
+					TouchBarItem(
+						"Build",
+						TouchBarButton().apply {
+							title = "Build"
+							action = TouchBarViewAction {
+								println("(Performing build)")
+								buildAction.actionPerformed(
+									ActionEvent(
+										this,
+										ActionEvent.ACTION_PERFORMED,
+										null))
+							}
+						},
+						true))
+				touchBar.show(this)
+			}
 		}
 		// Select an initial module if specified.
 		validate()
@@ -2696,7 +2702,7 @@ class AvailWorkbench internal constructor(
 	 *   [Pair]s.
 	 */
 	private fun allRelevantCompilationsDoThen(
-		@Suppress("unused") // Eventually use in Bloom filter search.
+		@Suppress("UNUSED_PARAMETER")
 		nameInModule: NameInModule,
 		after: (List<Pair<ResolvedModuleName, ModuleCompilation>>)->Unit)
 	{
@@ -3237,6 +3243,17 @@ class AvailWorkbench internal constructor(
 		 */
 		val darkMode: Boolean =
 			System.getProperty(DARK_MODE_KEY)?.equals("true") ?: true
+
+		val supportsTouchBar: Boolean =
+			try {
+				Class.forName(
+					JTouchBarJNI::javaClass.name, true, null)
+				true
+			}
+			catch (e: Throwable)
+			{
+				false
+			}
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current

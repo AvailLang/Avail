@@ -773,28 +773,29 @@ class AvailEditor constructor(
 		add(panel)
 		pack()
 
-		// Populate the Mac TouchBar, if it exists on the device.
-		//TODO – test on other hardware, and detect its absence.
-		val touchBar = JTouchBar()
-		touchBar.setCustomizationIdentifier("MySwingJavaTouchBar");
-		touchBar.addItem(
-			TouchBarItem(
-				"Build",
-				TouchBarButton().apply {
-					title = "Build"
-					action = TouchBarViewAction {
-						println("(Building module)")
-						sourcePane.actionMap[RebuildShortcut.actionMapKey]
-							.actionPerformed(
-								ActionEvent(
-									sourcePane,
-									ActionEvent.ACTION_PERFORMED,
-									null))
-					}
-				},
-				true))
-		touchBar.show(this)
-
+		// Populate the Mac TouchBar if it exists on the device.
+		if (AvailWorkbench.supportsTouchBar)
+		{
+			val touchBar = JTouchBar()
+			touchBar.setCustomizationIdentifier("MySwingJavaTouchBar");
+			touchBar.addItem(
+				TouchBarItem(
+					"Build",
+					TouchBarButton().apply {
+						title = "Build"
+						action = TouchBarViewAction {
+							println("(Building module)")
+							sourcePane.actionMap[RebuildShortcut.actionMapKey]
+								.actionPerformed(
+									ActionEvent(
+										sourcePane,
+										ActionEvent.ACTION_PERFORMED,
+										null))
+						}
+					},
+					true))
+			touchBar.show(this)
+		}
 
 		if (workbench.structureViewIsOpen)
 		{

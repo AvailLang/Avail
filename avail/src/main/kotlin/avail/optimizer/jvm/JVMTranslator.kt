@@ -103,7 +103,6 @@ import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
-import avail.optimizer.jvm.JVMTranslator.GenerationPhase.entries
 import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
 import avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
@@ -2036,7 +2035,7 @@ class JVMTranslator constructor(
 		 * class name, and will be replaced with a single `'%'`.
 		 */
 		private val classNameForbiddenCharacters =
-			Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+")
+			Pattern.compile("""[\[\]\\/.:*?;"'<>|\p{Cntrl}]+""")
 
 		/**
 		 * A regex [Pattern] to locate things that should be replaced with an
