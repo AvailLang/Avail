@@ -120,6 +120,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.Primitive.Flag
+import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.assignmentFunction
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -217,6 +218,7 @@ import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
+import avail.utility.isNullOr
 import java.util.IdentityHashMap
 import java.util.logging.Level
 
@@ -2508,7 +2510,7 @@ class L1Translator private constructor(
 		// frame's function and arguments, only those are used by the virtual
 		// instruction.  The label continuation's pc will be 0, and its stack
 		// will be empty.
-		assert(code.codePrimitive() === null)
+		assert(code.codePrimitive().isNullOr { hasFlag(CatchException) })
 		val semanticLabel = topFrame.label()
 		if (currentManifest.hasSemanticValue(semanticLabel))
 		{

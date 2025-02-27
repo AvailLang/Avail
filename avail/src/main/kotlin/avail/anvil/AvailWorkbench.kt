@@ -3246,8 +3246,7 @@ class AvailWorkbench internal constructor(
 
 		val supportsTouchBar: Boolean =
 			try {
-				Class.forName(
-					JTouchBarJNI::javaClass.name, true, null)
+				JTouchBarJNI::class
 				true
 			}
 			catch (e: Throwable)

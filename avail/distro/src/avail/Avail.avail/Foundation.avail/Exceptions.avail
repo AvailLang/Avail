@@ -444,6 +444,8 @@ Private method "private guard_intercept_ensure_" is
 |
 	Primitive CatchException (failureCode : guardVariableType);
 
+	$here : any;
+
 	/*
 	 * If the failureCode is non-zero, report it with a "hard" fiber failure,
 	 * not an exception.
@@ -462,12 +464,10 @@ Private method "private guard_intercept_ensure_" is
 	 * unwind should propagate (unmodified by causal chaining) to any enclosing
 	 * handlers.
 	 */
-	If ↓failureVariable = 0 then
-	[
-		Mark guard variable failureVariable with handler-sentinel code;
-		unwind();
-		Mark guard variable failureVariable with unwind-sentinel code;
-	];
+	Exit here with result if ↓failureVariable > 0;
+	Mark guard variable failureVariable with handler-sentinel code;
+	unwind();
+	Mark guard variable failureVariable with unwind-sentinel code;
 	result
 ] : any
 styled by nonlocal control styler;

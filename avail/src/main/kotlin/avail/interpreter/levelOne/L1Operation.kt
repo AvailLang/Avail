@@ -58,10 +58,10 @@ import avail.interpreter.levelOne.L1Operation.L1Ext_doSuperCall
 import avail.interpreter.levelOne.L1Operation.L1_doCall
 import avail.interpreter.levelOne.L1Operation.L1_doClose
 import avail.interpreter.levelOne.L1Operation.L1_doExtension
+import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
 import avail.interpreter.levelOne.L1Operation.L1_doGetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doGetLocalClearing
 import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
-import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
 import avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
 import avail.interpreter.levelOne.L1Operation.L1_doPop
 import avail.interpreter.levelOne.L1Operation.L1_doPushLastLocal
@@ -71,6 +71,7 @@ import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
 import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
+import avail.interpreter.levelOne.L1Operation.entries
 import avail.io.NybbleOutputStream
 
 /**

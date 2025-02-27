@@ -100,6 +100,7 @@ import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACE
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.assignmentFunction
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -138,6 +139,7 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.cast
+import avail.utility.isNullOr
 import java.util.logging.Level
 import java.util.regex.Pattern
 
@@ -558,7 +560,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				L1Ext_doPushLabel_ord ->
 				{
 					val numArgs = code.numArgs()
-					assert(code.codePrimitive() === null)
+					assert(code.codePrimitive().isNullOr {
+						hasFlag(CatchException)
+					})
 					val args = (1..numArgs).map {
 						val arg = pointerAt(it)
 						assert(arg.notNil)

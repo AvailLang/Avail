@@ -104,6 +104,7 @@ import avail.descriptor.variables.A_Variable.Companion.placeholderVariableLocalI
 import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
+import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugL2
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -127,6 +128,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero
+import avail.utility.isNullOr
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.logging.Level
@@ -683,7 +685,7 @@ class ContinuationDescriptor private constructor(
 		): A_Continuation
 		{
 			val code = function.code()
-			assert(code.codePrimitive() === null)
+			assert(code.codePrimitive().isNullOr { hasFlag(CatchException) })
 			val frameSize = code.numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
