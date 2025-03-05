@@ -90,7 +90,11 @@ constructor (
 		append("\n\tstack=[")
 		val code = this@L2_CREATE_CONTINUATION.code.constant
 		val slotNames = code.declarationNamesWithoutOuters
-		val localRange = code.numArgs() + 1 .. code.numArgs() + code.numLocals
+		// This range includes a primitive failure variable (first), if present.
+		var localRangeStart = code.numArgs() + 1
+		var primFailureIndex = -1
+		if (code.codePrimitive() != null) primFailureIndex = localRangeStart++
+		val localRange = localRangeStart .. code.numArgs() + code.numLocals
 		slotValues.elements.forEachIndexed { zeroIndex, slot ->
 			val slotIndex = zeroIndex + 1
 			append(
@@ -103,7 +107,11 @@ constructor (
 			if (slotIndex <= slotNames.tupleSize)
 			{
 				append(" ")
-				if (slotIndex in localRange) append("↑")
+				when (slotIndex)
+				{
+					primFailureIndex -> append("[PrimFail] ")
+					in localRange -> append("↑ ")
+				}
 				append(slotNames.tupleAt(slotIndex).asNativeString())
 			}
 			append(": ")

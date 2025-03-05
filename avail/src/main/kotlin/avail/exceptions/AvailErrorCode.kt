@@ -32,10 +32,11 @@
 
 package avail.exceptions
 
-import avail.AvailRuntime
+import avail.SpecialObject
 import avail.compiler.splitter.Group
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Function
@@ -58,8 +59,8 @@ import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.InfinityDescriptor
-import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
@@ -124,14 +125,13 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_CANNOT_SUBTRACT_LIKE_INFINITIES(2),
 
 	/**
-	 * Cannot [multiply][A_Number.timesCanDestroy]
-	 * [zero][IntegerDescriptor.zero] and [infinity][InfinityDescriptor].
+	 * Cannot [multiply][A_Number.timesCanDestroy] [zero] and
+	 * [infinity][InfinityDescriptor].
 	 */
 	E_CANNOT_MULTIPLY_ZERO_AND_INFINITY(3),
 
 	/**
-	 * Cannot [divide][A_Number.divideCanDestroy] by
-	 * [zero][IntegerDescriptor.zero].
+	 * Cannot [divide][A_Number.divideCanDestroy] by [zero].
 	 */
 	E_CANNOT_DIVIDE_BY_ZERO(4),
 
@@ -262,12 +262,12 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES(31),
 
 	/**
-	 * A method's argument type was inconsistent with a
-	 * [special&#32;object][AvailRuntime.specialObject] specific requirements.
+	 * A method's argument type was inconsistent with a [SpecialObject] specific
+	 * requirements.
 	 */
 	E_INCORRECT_TYPE_FOR_GROUP(32),
 
-	/** A [special object][AvailRuntime.specialObject] number is invalid. */
+	/** A [SpecialObject] number is invalid. */
 	E_NO_SPECIAL_OBJECT(33),
 
 	/**
@@ -311,8 +311,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS(40),
 
 	/**
-	 * A [special&#32;atom][AvailRuntime.specialAtoms] was supplied where
-	 * forbidden.
+	 * A [SpecialAtom] was supplied where forbidden.
 	 */
 	E_SPECIAL_ATOM(41),
 
@@ -552,14 +551,6 @@ enum class AvailErrorCode constructor(val code: Int)
 	},
 
 	/**
-	 * The continuation whose primitive failure variable is set to this value is
-	 * no longer eligible to run an exception handler (because it already has,
-	 * is currently doing so, or has successfully run its guarded function to
-	 * completion).
-	 */
-	E_HANDLER_SENTINEL(80),
-
-	/**
 	 * The continuation cannot be marked as ineligible to handle an exception
 	 * (because its state is incorrect).
 	 */
@@ -569,13 +560,6 @@ enum class AvailErrorCode constructor(val code: Int)
 	 * There are no exception handling continuations anywhere in the call chain.
 	 */
 	E_NO_HANDLER_FRAME(82),
-
-	/**
-	 * The continuation whose primitive failure variable is set to this value is
-	 * no longer eligible to run an unwind handler (because it already has or is
-	 * currently doing so).
-	 */
-	E_UNWIND_SENTINEL(83),
 
 	/**
 	 * No [method&#32;definition][MethodDefinitionDescriptor] satisfies the

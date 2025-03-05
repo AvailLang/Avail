@@ -41,6 +41,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
@@ -55,8 +56,12 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetRaiseJavaExceptionInAvailFunction
-	: Primitive(1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
+object P_SetRaiseJavaExceptionInAvailFunction : Primitive(
+	1,
+	CannotFail,
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

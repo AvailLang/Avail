@@ -82,6 +82,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.shortMethodName
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.CompiledCodeDescriptor
@@ -98,6 +99,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
@@ -130,9 +132,7 @@ import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithCo
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
-import avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
 import avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME
-import avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import avail.exceptions.AvailException
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.Primitive
@@ -159,6 +159,8 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.controlflow.P_CatchException
+import avail.interpreter.primitive.controlflow.P_CatchException.handlerSentinel
+import avail.interpreter.primitive.controlflow.P_CatchException.unwindSentinel
 import avail.interpreter.primitive.fibers.P_AttemptJoinFiber
 import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
 import avail.interpreter.primitive.variables.P_SetValue
@@ -1905,9 +1907,23 @@ class Interpreter(
 			if (code.codePrimitive() == P_CatchException)
 			{
 				assert(code.numArgs() == 3)
-				val failureVariable: A_Variable = continuation.frameAt(4)
+				assert(code.numLocals > 0)
+				// The frame layout is:
+				//   1. arg: body
+				//   2. arg: handlers
+				//   3. arg: unwind
+				//   4. first local variable: guardVariable
+				//   [...potentially other variables...]
+				//   ≥5. first local slot: primitive failure slot
+				// Note that even though variable elision postpones the creation
+				// of the variable in slot (≥)5, by the time we're searching the
+				// stack, the frames have become immutable, which forces the
+				// variables to be created (and affected frames to jump to L1
+				// interpretation).
+				val stateVariable: A_Variable = continuation.frameAt(
+					P_CatchException.slotIndexOfGuardVariable)
 				// Scan a currently unmarked frame.
-				if (failureVariable.value().value().equalsInt(0))
+				if (stateVariable.value().equalsInt(0))
 				{
 					val handlerTuple: A_Tuple = continuation.frameAt(2)
 					assert(handlerTuple.isTuple)
@@ -1926,8 +1942,7 @@ class Interpreter(
 									debugModeString,
 									depth)
 							}
-							failureVariable.value().setValueNoCheck(
-								E_HANDLER_SENTINEL.numericCode())
+							stateVariable.setValueNoCheck(handlerSentinel)
 							// Run the handler.  Since the Java stack has been
 							// fully reified, simply jump into the chunk.  Note
 							// that the argsBuffer was already set up with just
@@ -1952,50 +1967,6 @@ class Interpreter(
 	}
 
 	/**
-	 * Update the guard [A_Variable] with the new marker [number][A_Number]. The
-	 * variable is a failure variable of a primitive function for
-	 * [P_CatchException], and is used to track exception/unwind states.
-	 *
-	 * @param guardVariable
-	 *   The primitive failure variable to update.
-	 * @param marker
-	 *   An exception handling state marker (integer).
-	 * @return
-	 *   The [success&#32;state][Result].
-	 */
-	fun markGuardVariable(
-		guardVariable: A_Variable,
-		marker: A_Number
-	): Result
-	{
-		// Only allow certain state transitions.
-		val oldState = guardVariable.value().extractInt
-		if (marker.equals(E_HANDLER_SENTINEL.numericCode())
-			&& oldState != 0)
-		{
-			return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
-		}
-		if (marker.equals(E_UNWIND_SENTINEL.numericCode())
-			&& oldState != E_HANDLER_SENTINEL.nativeCode())
-		{
-			return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
-		}
-		// Mark this frame.  Depending on the marker, we don't want it to handle
-		// exceptions or unwinds anymore.
-		if (debugL2)
-		{
-			log(
-				loggerDebugL2,
-				Level.FINER,
-				"{0}Marked guard var {1}",
-				debugModeString,
-				marker)
-		}
-		guardVariable.setValueNoCheck(marker)
-		return primitiveSuccess(nil)
-	}
-
-	/**
 	 * Assume the entire stack has been reified.  Scan the stack of
 	 * continuations until one is found for a function whose code specifies
 	 * [P_CatchException]. Write the specified marker into its primitive failure
@@ -2016,17 +1987,30 @@ class Interpreter(
 			if (code.codePrimitive() == P_CatchException)
 			{
 				assert(code.numArgs() == 3)
-				val failureVariable: A_Variable = continuation.frameAt(4)
-				val guardVariable: A_Variable = failureVariable.value()
-				val oldState = guardVariable.value().extractInt
+				assert(code.numLocals > 0)
+				// The frame layout is:
+				//   1. arg: body
+				//   2. arg: handlers
+				//   3. arg: unwind
+				//   4. first local variable: guardVariable
+				//   [...potentially other variables...]
+				//   ≥5. first local slot: primitive failure slot
+				// Note that even though variable elision postpones the creation
+				// of the variable in slot (≥)5, by the time we're searching the
+				// stack, the frames have become immutable, which forces the
+				// variables to be created (and affected frames to jump to L1
+				// interpretation).
+				val guardVariable: A_Variable = continuation.frameAt(
+					P_CatchException.slotIndexOfGuardVariable)
+				val oldState = guardVariable.value()
 				// Only allow certain state transitions.
 				when
 				{
-					marker.equals(E_HANDLER_SENTINEL.numericCode())
-						&& oldState != 0 ->
+					marker.equals(handlerSentinel)
+						&& oldState != zero ->
 						return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
-					marker.equals(E_UNWIND_SENTINEL.numericCode())
-						&& oldState != E_HANDLER_SENTINEL.nativeCode() ->
+					marker.equals(unwindSentinel)
+						&& oldState != handlerSentinel ->
 						return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
 				}
 				// Mark this frame: we don't want it to handle exceptions
@@ -2556,6 +2540,7 @@ class Interpreter(
 			chunk = frame.levelTwoChunk
 			offset = frame.levelTwoOffset
 		}
+		assert(!isReifying)
 	}
 
 	/**
@@ -2693,64 +2678,6 @@ class Interpreter(
 	}
 
 	/**
-	 * Handle having attempted to read from a variable that does not currently
-	 * have a value. This shrinks the control flow graph in L2, which is not
-	 * just a time saving during creation and memory saving ongoing, but may
-	 * also increase HotSpot's effectiveness.
-	 *
-	 * This [Interpreter]'s [function] is expected to contain the current
-	 * function.
-	 *
-	 * Note that if the handler ([HookType.READ_UNASSIGNED_VARIABLE]) asks to
-	 * reify, this method will construct a continuation representing the current
-	 * function.  The continuation frame can't be resumed, so it will use the
-	 * [unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
-	 *
-	 * @param pc
-	 *   The level one [A_Continuation.pc] to use in a new continuation, if
-	 *   reification happens inside the error handler.
-	 * @param stackp
-	 *   The level one parameter stack pointer to use in a new continuation, if
-	 *   reification happens inside the error handler.
-	 * @param slots
-	 *   Values that will populate a continuation's frame slots if reification
-	 *   happens inside the error handler.
-	 * @return
-	 *   Either `null` or a [StackReifier] that the calling code should simply
-	 *   return.  This method creates a stack frame on behalf of the current
-	 *   executing function if needed.
-	 */
-	@ReferencedInGeneratedCode
-	fun reportUnassignedVariableRead(
-		pc: Int,
-		stackp: Int,
-		vararg slots: A_BasicObject
-	): StackReifier
-	{
-		val currentFunction = function!!
-		argsBuffer.clear()
-		val reifier = invokeFunction(runtime.unassignedVariableReadFunction())
-		assert(reifier !== null) {
-			"unassigned-variable-read handler must not return."
-		}
-		// Assemble a (non-resumable) stack frame for the reifier.
-		reifier!!.pushAction {
-			val continuation = createContinuationWithFrame(
-				currentFunction,
-				it.getReifiedContinuation() ?: nil,
-				emptyRegisterDump(ChunkEntryPoint.UNREACHABLE),
-				pc,
-				stackp,
-				unoptimizedChunk,
-				ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk,
-				listOf(*slots),
-				0)
-			it.setReifiedContinuation(continuation)
-		}
-		return reifier
-	}
-
-	/**
 	 * Record the fact that a statement of the given module just took some
 	 * number of nanoseconds to run.
 	 *
@@ -2826,7 +2753,7 @@ class Interpreter(
 	 * greatly the amount of repetition of equivalent arrays.  The key is a
 	 * [List], just to get the right equality and hash semantics.
 	 */
-	val arraysForL2Simple = mutableMapOf<List<Int>, Array<Int>>()
+	val arraysForL2Simple = mutableMapOf<List<Int>, IntArray>()
 
 	companion object
 	{
@@ -3495,17 +3422,6 @@ class Interpreter(
 			StackReifier::class.java,
 			A_BasicObject::class.java,
 			A_Type::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!,
-			Array<A_BasicObject>::class.java)
-
-		/**
-		 * Access the [reportUnassignedVariableRead] method.
-		 */
-		val reportUnassignedVariableReadMethod = instanceMethod(
-			Interpreter::class.java,
-			Interpreter::reportUnassignedVariableRead.name,
-			StackReifier::class.java,
 			Int::class.javaPrimitiveType!!,
 			Int::class.javaPrimitiveType!!,
 			Array<A_BasicObject>::class.java)

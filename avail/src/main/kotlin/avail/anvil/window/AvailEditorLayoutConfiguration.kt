@@ -109,7 +109,7 @@ class AvailEditorLayoutConfiguration internal constructor (
 		 * @param obj
 		 *   The [JSONObject] to extract the data from.
 		 * @return
-		 *   An [AvailWorkbenchLayoutConfiguration] or `null` if malformed..
+		 *   An [AvailWorkbenchLayoutConfiguration] or `null` if malformed.
 		 */
 		fun from (obj: JSONObject): AvailEditorLayoutConfiguration?
 		{

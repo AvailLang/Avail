@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo
 
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 
 /**

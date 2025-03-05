@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_SUBTYPE_OF_OBJECT.kt
+ * L2_JUMP_IF_SUBTYPE.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *

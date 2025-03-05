@@ -156,6 +156,15 @@ class AvailTask constructor(
 					// failure continuation with the throwable.
 					interpreter.adjustUnreifiedCallDepthBy(
 						-interpreter.unreifiedCallDepth())
+
+					// Clear the interpreter's function so that polling won't
+					// give the function any more weight toward optimization.
+					interpreter.function = null
+
+					// Clear the interpreter's isReifying flag to improve debug
+					// output for the *next* fiber to run in it.
+					interpreter.isReifying = false
+
 					if (!fiber.executionState.indicatesTermination)
 					{
 						assert(interpreter.fiberOrNull() === fiber)

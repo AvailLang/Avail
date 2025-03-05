@@ -182,11 +182,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		assert(optionalArgumentDeclarations.expressionsSize <= 1)
 
 		val argumentDeclarationPairs =
-			if (optionalArgumentDeclarations.expressionsSize == 0)
-			{ emptyTuple }
-			else
+			when (optionalArgumentDeclarations.expressionsSize)
 			{
-				optionalArgumentDeclarations.expressionAt(1).expressionsTuple
+				0 -> emptyTuple
+				else -> optionalArgumentDeclarations.expressionAt(1)
+					.expressionsTuple
 			}
 
 		// Look up the names of the arguments that were declared in the first
@@ -194,8 +194,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		val argumentDeclarationsList = mutableListOf<A_Phrase>()
 		for (declarationPair in argumentDeclarationPairs)
 		{
-			val declarationName =
-				declarationPair.expressionAt(1).token.string()
+			val declarationName = declarationPair.expressionAt(1).token.string()
 			val declaration = scopeMap.mapAtOrNull(declarationName) ?:
 				// The argument binding is missing.
 				return interpreter.primitiveFailure(
@@ -277,6 +276,13 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			{
 				// Label's type was explicitly provided.
 				labelReturnType = label.declaredType.functionType.returnType
+			}
+			if (optionalPrimitive.expressionsSize == 1)
+			{
+				// Primitive blocks can't also use a label, and the label prefix
+				// function should have prevented it.
+				return interpreter.primitiveFailure(
+					E_INCONSISTENT_PREFIX_FUNCTION)
 			}
 		}
 

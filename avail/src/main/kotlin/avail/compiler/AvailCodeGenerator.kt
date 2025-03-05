@@ -108,6 +108,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
+import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushArgument2
@@ -863,13 +864,14 @@ class AvailCodeGenerator private constructor(
 		{
 			// If necessary, prevent clearing of the primitive failure variable
 			// after its last usage.
-			if (p.hasFlag(Flag.PreserveFailureVariable))
+			if (p.hasFlag(Flag.PreserveGuardVariable))
 			{
 				assert(!p.hasFlag(Flag.CannotFail))
-				val fakeFailureVariableUse = AvailGetLocalVariable(
-					emptyTuple, numArgs + 1)
-				fakeFailureVariableUse.fixUsageFlags(
-					localData, outerData, this)
+				// Pretend there's one more use of the local variable used to
+				// hold the current guard state of a P_CatchException.
+				val fakeGuardVariableUse = AvailGetLocalVariable(
+					emptyTuple, P_CatchException.slotIndexOfGuardVariable)
+				fakeGuardVariableUse.fixUsageFlags(localData, outerData, this)
 			}
 			// If necessary, prevent clearing of the primitive arguments after
 			// their last usage.

@@ -33,7 +33,6 @@ package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
@@ -41,7 +40,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
@@ -153,17 +151,7 @@ class VariableUsePhraseDescriptor private constructor(
 		// bootstrap macros can, so when we visit the output of one of those
 		// macros, we can find variable uses to style.  Which is here.
 		val declaration = self.declaration
-		val style = when (declaration.declarationKind())
-		{
-			DeclarationKind.ARGUMENT -> SystemStyle.PARAMETER_USE
-			DeclarationKind.LABEL -> SystemStyle.LABEL_USE
-			DeclarationKind.LOCAL_VARIABLE -> SystemStyle.LOCAL_VARIABLE_USE
-			DeclarationKind.LOCAL_CONSTANT -> SystemStyle.LOCAL_CONSTANT_USE
-			DeclarationKind.MODULE_VARIABLE -> SystemStyle.MODULE_VARIABLE_USE
-			DeclarationKind.MODULE_CONSTANT -> SystemStyle.MODULE_CONSTANT_USE
-			DeclarationKind.PRIMITIVE_FAILURE_REASON ->
-				SystemStyle.PRIMITIVE_FAILURE_REASON_USE
-		}
+		val style = declaration.declarationKind().defaultUseStyle
 		val useToken = self.token
 		context.loader.styleToken(useToken, style.kotlinString)
 		val declarationToken = declaration.token

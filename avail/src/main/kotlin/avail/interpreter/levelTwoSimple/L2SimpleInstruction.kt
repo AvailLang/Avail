@@ -277,7 +277,7 @@ class L2Simple_GetVariable(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val fromVariable: Int
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -308,7 +308,7 @@ class L2Simple_GetVariableClearing(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val fromVariable: Int,
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -345,7 +345,7 @@ class L2Simple_GetOuter(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val outerNumber: Int,
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -377,7 +377,7 @@ class L2Simple_GetLastOuter(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val outerNumber: Int,
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -417,7 +417,7 @@ class L2Simple_GetConstant(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val variable: AvailObject
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -447,7 +447,7 @@ class L2Simple_SetVariable(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val toVariable: Int
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -482,7 +482,7 @@ class L2Simple_SetOuter(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val outerNumber: Int
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -518,7 +518,7 @@ class L2Simple_SetConstant(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val variable: AvailObject
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
@@ -921,7 +921,7 @@ class L2Simple_PushLabel(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>
+	liveIndices: IntArray
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
 {
@@ -1028,8 +1028,8 @@ class L2Simple_PushLabel(
  * before all writes, using temporary storage as needed.
  */
 class L2Simple_Permute(
-	val reads: Array<Int>,
-	val writes: Array<Int>,
+	val reads: IntArray,
+	val writes: IntArray,
 ) : L2SimpleInstruction()
 {
 	init { assert(reads.size == writes.size) }
@@ -1062,7 +1062,7 @@ constructor(
 	val stackp: Int,
 	val pc: Int,
 	val nextOffset: Int,
-	val liveIndices: Array<Int>
+	val liveIndices: IntArray
 ): L2SimpleInstruction()
 {
 	override fun reenter(
@@ -1210,7 +1210,7 @@ constructor(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	val expectedType: A_Type,
 	val mustCheck: Boolean
 ): L2Simple_AbstractReifiableInstruction(
@@ -1393,7 +1393,7 @@ constructor(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	val function: A_Function
@@ -1446,7 +1446,7 @@ constructor(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	function: A_Function,
@@ -1500,7 +1500,7 @@ class L2Simple_GeneralCall(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	val bundle: A_Bundle
@@ -1556,7 +1556,7 @@ class L2Simple_SuperCall(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>,
+	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	val bundle: A_Bundle,
@@ -1659,7 +1659,7 @@ class L2Simple_CheckForInterrupt(
 	stackp: Int,
 	pc: Int,
 	nextOffset: Int,
-	liveIndices: Array<Int>
+	liveIndices: IntArray
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
 {

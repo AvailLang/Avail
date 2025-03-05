@@ -40,7 +40,6 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -118,7 +117,6 @@ import avail.descriptor.types.TypeTag
 import avail.dispatch.LookupStatistics
 import avail.exceptions.unsupported
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1OperandType
 import avail.interpreter.levelOne.L1Operation
@@ -1386,18 +1384,18 @@ open class CompiledCodeDescriptor protected constructor(
 			packedDeclarationNames: A_String
 		): AvailObject
 		{
-			if (primitive !== null)
+			when (primitive)
 			{
-				// Sanity check for primitive blocks.  Use this to hunt incorrectly
-				// specified primitive signatures.
-				val canHaveCode = primitive.canHaveNybblecodes()
-				assert(canHaveCode == nybbles.tupleSize > 0)
-				val restrictionSignature = primitive.blockTypeRestriction()
-				assert(restrictionSignature.isSubtypeOf(functionType))
-			}
-			else
-			{
-				assert(nybbles.tupleSize > 0)
+				null -> assert(nybbles.tupleSize > 0)
+				else ->
+				{
+					// Sanity check for primitive blocks.  Use this to hunt
+					// incorrectly specified primitive signatures.
+					val canHaveCode = primitive.canHaveNybblecodes()
+					assert(canHaveCode == nybbles.tupleSize > 0)
+					val restrictionSignature = primitive.blockTypeRestriction()
+					assert(restrictionSignature.isSubtypeOf(functionType))
+				}
 			}
 			val argCounts = functionType.argsTupleType.sizeRange
 			val numArgs = argCounts.lowerBound.extractInt
@@ -1475,10 +1473,6 @@ open class CompiledCodeDescriptor protected constructor(
 						packedDeclarationNames.makeShared(),
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
-				if (!primitive.hasFlag(CatchException))
-				{
-					code.countdownToReoptimize(Long.MAX_VALUE)
-				}
 			}
 			else
 			{

@@ -98,13 +98,13 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.TypeTag
+import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.A_Variable.Companion.isPlaceholderVariable
 import avail.descriptor.variables.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
-import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugL2
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -128,7 +128,6 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero
-import avail.utility.isNullOr
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.logging.Level
@@ -588,15 +587,15 @@ class ContinuationDescriptor private constructor(
 			val primitive = code.codePrimitive()
 			if (primitive === P_CatchException)
 			{
-				append(" CATCH var = ")
-				val outerVar = self.frameAt(4)
-				if (outerVar.isPlaceholderVariable())
+				append(" GUARD = ")
+				val guardVariable =
+					self.frameAt(P_CatchException.slotIndexOfGuardVariable)
+				when
 				{
-					append("elided")
-				}
-				else
-				{
-					append(outerVar.value().value())
+					guardVariable.isPlaceholderVariable() -> append("elided")
+					guardVariable.isInstanceOfKind(mostGeneralVariableType) ->
+						append(guardVariable.value())
+					else -> append("??? ($guardVariable)")
 				}
 			}
 		}
@@ -685,7 +684,7 @@ class ContinuationDescriptor private constructor(
 		): A_Continuation
 		{
 			val code = function.code()
-			assert(code.codePrimitive().isNullOr { hasFlag(CatchException) })
+			assert(code.codePrimitive() == null)
 			val frameSize = code.numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
@@ -704,7 +703,8 @@ class ContinuationDescriptor private constructor(
 				// P_RestartContinuationWithArguments.
 				setSlotsFromList(FRAME_AT_, 1, args, 0, numArgs)
 
-				// All the remaining slots.  DO NOT capture or build locals.
+				// All the remaining slots.  DO NOT capture or build locals, nor
+				// a primitive failure slot.
 				fillSlots(FRAME_AT_, numArgs + 1, frameSize - numArgs, nil)
 			}
 		}

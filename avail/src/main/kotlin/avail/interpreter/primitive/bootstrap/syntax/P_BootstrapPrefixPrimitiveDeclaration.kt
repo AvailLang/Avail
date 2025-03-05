@@ -42,8 +42,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureVariable
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureConstant
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -70,8 +70,8 @@ import avail.interpreter.execution.Interpreter
 /**
  * The `P_BootstrapPrefixVariableDeclaration` primitive is used for
  * bootstrapping declaration of a primitive declaration, including an optional
- * [primitive&#32;failure&#32;variable][DeclarationKind.PRIMITIVE_FAILURE_REASON]
- * which holds the reason for a primitive's failure.
+ * [PRIMITIVE_FAILURE_REASON] which is automatically set to the reason for a
+ * primitive's failure.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -163,9 +163,8 @@ object P_BootstrapPrefixPrimitiveDeclaration
 					"primitive failure variable to be a supertype of: "
 					+ "$requiredFailureType, not $failureType")
 			}
-			val failureDeclaration =
-				newPrimitiveFailureVariable(
-					failureName, failureTypePhrase, failureType)
+			val failureDeclaration = newPrimitiveFailureConstant(
+				failureName, failureTypePhrase, failureType)
 			FiberDescriptor.addDeclaration(failureDeclaration)
 				?.let{ conflictingDeclaration ->
 					throw AvailRejectedParseException(

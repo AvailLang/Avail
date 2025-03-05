@@ -90,6 +90,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
@@ -256,7 +257,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			newlineTab(indent - 1)
 			append('|')
 		}
-		var skipFailureDeclaration = false
+		var afterFailureDeclaration = 1
 		if (primitive !== null && !primitive.hasFlag(Flag.SpecialForm))
 		{
 			wroteAnything = true
@@ -266,33 +267,23 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				append(" (")
-				statementsTuple.tupleAt(1).printOnAvoidingIndent(
+				val primitiveFailureDeclaration = statementsTuple.tupleAt(1)
+				assert(primitiveFailureDeclaration.isInstanceOf(
+					PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType))
+				primitiveFailureDeclaration.printOnAvoidingIndent(
 					this, recursionMap, indent)
 				append(')')
-				skipFailureDeclaration = true
+				afterFailureDeclaration++
 			}
 			append(';')
 		}
-		for (index in 1 .. statementsSize)
+		for (index in afterFailureDeclaration .. statementsSize)
 		{
 			val statement: A_Phrase = statementsTuple.tupleAt(index)
-			if (skipFailureDeclaration)
-			{
-				assert(
-					statement.isInstanceOf(
-						DECLARATION_PHRASE.mostGeneralType))
-				skipFailureDeclaration = false
-			}
-			else
-			{
-				wroteAnything = true
-				newlineTab(indent)
-				statement.printOnAvoidingIndent(this, recursionMap, indent)
-				if (index < statementsSize || endsWithStatement)
-				{
-					append(';')
-				}
-			}
+			wroteAnything = true
+			newlineTab(indent)
+			statement.printOnAvoidingIndent(this, recursionMap, indent)
+			if (index < statementsSize || endsWithStatement) append(';')
 		}
 		if (wroteAnything)
 		{
@@ -551,10 +542,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 		/**
 		 * Answer the declarations of this block's local variables.  Do not
-		 * include the label declaration if present, nor argument declarations,
-		 * nor local constants.
-		 *
-		 * Include the primitive failure reason variable, if present.
+		 * include the label declaration if present, argument declarations,
+		 * local constants, nor primitive failure code.
 		 *
 		 * @param self
 		 *   The block phrase to examine.
@@ -563,13 +552,13 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		fun locals(self: A_Phrase): List<A_Phrase> =
 			allLocalDeclarations(self).filter {
-				it.declarationKind() === PRIMITIVE_FAILURE_REASON
-					|| it.declarationKind() === LOCAL_VARIABLE }
+				it.declarationKind() === LOCAL_VARIABLE }
 
 		/**
 		 * Answer the declarations of this block's local constants.  Do not
 		 * include the label declaration if present, nor argument declarations,
-		 * nor local variables.
+		 * nor local variables.  Do include local constants, and if present,
+		 * the primitive failure constant, which will always come first.
 		 *
 		 * @param self
 		 *   The block phrase to examine.
@@ -578,7 +567,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		fun constants(self: A_Phrase): List<A_Phrase> =
 			allLocalDeclarations(self).filter {
-				it.declarationKind() === LOCAL_CONSTANT }
+				it.declarationKind() === LOCAL_CONSTANT
+					|| it.declarationKind() === PRIMITIVE_FAILURE_REASON }
 
 		/**
 		 * Construct a block phrase.

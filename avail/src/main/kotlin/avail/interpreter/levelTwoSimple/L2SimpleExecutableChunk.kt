@@ -43,7 +43,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
@@ -189,7 +188,9 @@ constructor(
 			// Capture arguments.
 			val numArgs = code.numArgs()
 			for (i in 1 .. numArgs)
+			{
 				registers[i] = interpreter.argsBuffer[i - 1]
+			}
 			// Create locals.
 			for (i in 1 .. code.numLocals)
 			{
@@ -200,12 +201,13 @@ constructor(
 			{
 				// The primitive either failed in this method (offset == 0), or
 				// in an attempt prior to this method (offset == -1).  Either
-				// way, put the failure value into the failure variable.
+				// way, put the failure value into the failure constant slot
+				// (the first one, right after the args and local variables).
 				try
 				{
 					val failureValue = interpreter.getLatestResult()
 					assert(failureValue.notNil)
-					registers[numArgs + 1].setValueNoCheck(failureValue)
+					registers[numArgs + code.numLocals + 1] = failureValue
 				}
 				catch (e: Exception)
 				{

@@ -241,7 +241,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 			if (!methodBodyPrimitive.hasFlag(Flag.CannotFail))
 			{
 				// Produce failure code that simply terminates the fiber.
-				createLocal(
+				createConstant(
 					variableTypeFor(methodBodyPrimitive.failureVariableType))
 				write(
 					methodBodyCode.codeStartingLineNumber,

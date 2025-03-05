@@ -252,6 +252,22 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
+	 * Declare a local constant with the specified type.  Answer its index.  The
+	 * index is the slot number, relative to the start of the arguments.
+	 *
+	 * @param constantType
+	 *   The [type][TypeDescriptor] of the constant slot.
+	 * @return
+	 *   The index of the local constant.
+	 */
+	fun createConstant(constantType: A_Type): Int
+	{
+		assert(constantType.isInstanceOf(topMeta))
+		constantTypes.add(constantType)
+		return argumentTypes.size + localTypes.size + constantTypes.size
+	}
+
+	/**
 	 * Declare an outer (lexically captured) variable, specifying its type.
 	 *
 	 * @param outerType
@@ -378,8 +394,7 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Produce the [compiled&#32;code&#32;object][CompiledCodeDescriptor] which
-	 * we have just incrementally specified.
+	 * Produce the [A_RawFunction] which we have just incrementally specified.
 	 *
 	 * @return
 	 *   A compiled code object (which can be lexically closed to a
@@ -388,12 +403,11 @@ class L1InstructionWriter constructor(
 	 */
 	fun compiledCode(): AvailObject
 	{
-		val p = primitive
-		assert(p === null
-			|| p.hasFlag(Flag.CannotFail)
-			|| localTypes.isNotEmpty())
-		{
-			"Fallible primitive needs a primitive failure variable"
+		primitive?.run {
+			assert(hasFlag(Flag.CannotFail) || constantTypes.isNotEmpty())
+			{
+				"Fallible primitive needs a primitive failure constant"
+			}
 		}
 		val names = mutableListOf<String>()
 		if (phrase.notNil)

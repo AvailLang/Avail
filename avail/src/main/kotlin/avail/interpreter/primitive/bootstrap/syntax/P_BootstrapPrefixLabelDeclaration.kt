@@ -56,11 +56,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
@@ -82,7 +82,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 	{
 		interpreter.checkArgumentCount(3)
 		val optionalBlockArgumentsList = interpreter.argument(0)
-		//		final A_Phrase optionalPrimFailurePhrase = interpreter.argument(1);
+		val optionalPrimFailurePhrase = interpreter.argument(1)
 		val optionalLabelPhrase = interpreter.argument(2)
 
 		interpreter.availLoaderOrNull() ?:
@@ -119,6 +119,15 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				labelReturnTypePhrase = nil
 				bottom
 			}
+		if (optionalPrimFailurePhrase.expressionsSize > 0)
+		{
+			// There was both a primitive declaration and a label, which is
+			// forbidden.
+			throw AvailRejectedParseException(
+				STRONG,
+				"a block without both a primitive declaration and a " +
+					"label declaration.")
+		}
 
 		// Re-extract all the argument types so we can specify the exact type of
 		// the continuation.

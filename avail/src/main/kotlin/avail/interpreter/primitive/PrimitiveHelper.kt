@@ -56,7 +56,6 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
@@ -249,9 +248,9 @@ object PrimitiveHelper
 		writer.returnTypeIfPrimitiveFails = bottom
 		// Produce failure code.  First declare the local that holds primitive
 		// failure information.
-		val failureLocal = writer.createLocal(
-			variableTypeFor(pojoTypeForClass(Throwable::class.java)))
-		assert(failureLocal == numArgs + 1)
+		val failureConstant = writer.createConstant(
+			pojoTypeForClass(Throwable::class.java))
+		assert(failureConstant == numArgs + 1)
 		outerTypes.forEach { outerType -> writer.createOuter(outerType) }
 		writer.write(
 			0,
@@ -259,7 +258,7 @@ object PrimitiveHelper
 			writer.addLiteral(
 				SpecialMethodAtom.GET_RETHROW_JAVA_EXCEPTION.bundle),
 			writer.addLiteral(RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType))
-		writer.write(0, L1_doPushLocal, failureLocal)
+		writer.write(0, L1_doPushLocal, failureConstant)
 		writer.write(0, L1_doMakeTuple, 1)
 		writer.write(
 			0,

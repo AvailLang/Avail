@@ -32,14 +32,13 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureVariable
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureConstant
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tokens.TokenDescriptor
+import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.interpreter.Primitive
@@ -48,9 +47,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a
- * [primitive&#32;failure&#32;variable&#32;declaration][PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE]
- * from the specified [token][TokenDescriptor] and [type][A_Type].
+ * **Primitive:** Create a [PRIMITIVE_FAILURE_REASON_PHRASE] declaration from
+ * the specified [token][A_Token] and [type][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -64,7 +62,7 @@ object P_CreatePrimitiveFailureVariableDeclaration : Primitive(
 		val token = interpreter.argument(0)
 		val type = interpreter.argument(1)
 		return interpreter.primitiveSuccess(
-			newPrimitiveFailureVariable(token, nil, type))
+			newPrimitiveFailureConstant(token, nil, type))
 	}
 
 	/**

@@ -36,6 +36,7 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
@@ -70,6 +71,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newArgumen
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newConstant
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureConstant
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
@@ -240,7 +242,12 @@ class L1Decompiler constructor(
 			{
 				// It's fallible, so we have to declare the failure variable.
 				// Look up the local, but don't do anything with it.
-				argOrLocalOrConstant(args.size + 1)
+				val failureDeclaration = newPrimitiveFailureConstant(
+					createToken("failure"),
+					nil,
+					code.constantTypeAt(1))
+				statements.add(failureDeclaration)
+				constants[0] = failureDeclaration
 			}
 		}
 		// Don't initialize the constants – we may as well wait until we reach

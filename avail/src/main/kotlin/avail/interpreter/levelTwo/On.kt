@@ -32,6 +32,10 @@
 
 package avail.interpreter.levelTwo
 
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.operand.L2WriteOperand
+
 /**
  * This annotation can be applied to fields of an [L2Instruction] that
  * contains an [L2Operand].  For instructions that branch, an [L2WriteOperand]

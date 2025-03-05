@@ -38,6 +38,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.numArgs
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
@@ -85,6 +86,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
+import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1OperationDispatcher
@@ -147,7 +149,7 @@ constructor(
 		// Set up the restrictions for the arguments r[1]..r[n].
 		val paramTypes = funType.argsTupleType
 		val numArgs = code.numArgs()
-		for (i in 1.. numArgs)
+		for (i in 1..numArgs)
 		{
 			restrictions[i] = boxedRestrictionForType(paramTypes.typeAtIndex(i))
 		}
@@ -156,6 +158,12 @@ constructor(
 		{
 			restrictions[i + numArgs] =
 				boxedRestrictionForType(code.localTypeAt(i))
+		}
+		code.codePrimitive()?.let { prim ->
+			assert(!prim.hasFlag(CannotFail))
+			// The first constant slot gets the failure code.
+			restrictions[numArgs + code.numLocals + 1] =
+				boxedRestrictionForType(code.constantTypeAt(1))
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc = 1
@@ -360,9 +368,9 @@ constructor(
 	 */
 	private fun liveIndices(
 		rangeToNil: IntRange? = null
-	): Array<Int>
+	): IntArray
 	{
-		val array = Array(restrictions.size - 1) { zeroIndex ->
+		val array = IntArray(restrictions.size - 1) { zeroIndex ->
 			val index = zeroIndex + 1
 			when
 			{
@@ -719,17 +727,17 @@ constructor(
 	{
 		val permutation = code.literalAt(instructionDecoder.getOperand())
 		val size = permutation.tupleSize
-		val reads = Array(size) { -1 }
+		val reads = IntArray(size) { -1 }
 		val earliestStackp = stackp + size - 1
 		for (i in 1..size)
 		{
 			reads[permutation.tupleIntAt(i) - 1] = earliestStackp + 1 - i
 		}
 		val readRestrictions = reads.map { restrictions[it] }
-		val writes = Array(size) { earliestStackp - it }
+		val writes = IntArray(size) { earliestStackp - it }
 		add(L2Simple_Permute(reads, writes))
 		// Permute the restrictions as well.
-		readRestrictions.zip(writes).forEach { (restriction, writeIndex) ->
+		writes.zip(readRestrictions).forEach { (writeIndex, restriction) ->
 			restrictions[writeIndex] = restriction
 		}
 	}

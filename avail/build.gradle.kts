@@ -650,7 +650,7 @@ data class AvailRoot constructor(val name: String, val uri: URI)
 
 /**
  * Copy the generated bootstrap property files into the build directory, so that
- * the executable tools can find them as resources..
+ * the executable tools can find them as resources.
  *
  * @param task
  *   The [Copy] task in which this code is executed.

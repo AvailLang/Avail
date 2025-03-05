@@ -32,6 +32,9 @@
 
 package avail.interpreter.levelTwo
 
+import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag
+
 /**
  * A brief hierarchy of classes for sensibly parameterizing the
  * [ReadsHiddenVariable] and [WritesHiddenVariable] annotations on an

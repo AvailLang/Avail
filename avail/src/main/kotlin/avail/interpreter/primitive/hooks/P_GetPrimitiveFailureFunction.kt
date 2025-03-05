@@ -38,6 +38,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
@@ -61,6 +62,7 @@ import avail.interpreter.execution.Interpreter
 object P_GetPrimitiveFailureFunction : Primitive(
 	0,
 	CannotFail,
+	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)

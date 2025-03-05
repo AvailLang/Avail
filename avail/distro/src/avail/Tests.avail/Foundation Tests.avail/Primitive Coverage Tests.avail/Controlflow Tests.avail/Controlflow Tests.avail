@@ -50,7 +50,6 @@ Uses
 	"IfFalseThenElse Tests",
 	"IfTrueThenElse Tests",
 	"InvokeWithTuple Tests",
-	"MarkGuardVariable Tests",
 	"MarkNearestCatch Tests",
 	"RaiseException Tests",
 	"RestartContinuation Tests",

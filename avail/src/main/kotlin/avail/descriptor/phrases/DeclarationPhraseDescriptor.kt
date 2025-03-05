@@ -50,7 +50,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCA
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.entries
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT
@@ -165,10 +164,20 @@ class DeclarationPhraseDescriptor(
 			private val nativeKindName: String,
 			val isVariable: Boolean,
 			val isModuleScoped: Boolean,
-			private val kindEnumeration: PhraseKind)
-		: IntegerEnumSlotDescriptionEnum {
+			private val kindEnumeration: PhraseKind,
+			val defaultDefinitionStyle: SystemStyle,
+			val defaultUseStyle: SystemStyle
+	) : IntegerEnumSlotDescriptionEnum
+	{
 		/** An argument to a block. */
-		ARGUMENT("argument", false, false, PhraseKind.ARGUMENT_PHRASE) {
+		ARGUMENT(
+			nativeKindName = "argument",
+			isVariable = false,
+			isModuleScoped = false,
+			kindEnumeration = PhraseKind.ARGUMENT_PHRASE,
+			defaultDefinitionStyle = SystemStyle.PARAMETER_DEFINITION,
+			defaultUseStyle = SystemStyle.PARAMETER_USE)
+		{
 			override fun emitVariableValueForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -188,7 +197,14 @@ class DeclarationPhraseDescriptor(
 		},
 
 		/** A label declaration at the start of a block. */
-		LABEL("label", false, false, PhraseKind.LABEL_PHRASE) {
+		LABEL(
+			nativeKindName = "label",
+			isVariable = false,
+			isModuleScoped = false,
+			kindEnumeration = PhraseKind.LABEL_PHRASE,
+			defaultDefinitionStyle = SystemStyle.LABEL_DEFINITION,
+			defaultUseStyle = SystemStyle.LABEL_USE)
+		{
 			/**
 			 * Let the code generator know that the label occurs at the current
 			 * code position.
@@ -232,8 +248,13 @@ class DeclarationPhraseDescriptor(
 
 		/** A local variable, declared within a block. */
 		LOCAL_VARIABLE(
-			"local variable", true, false, PhraseKind.LOCAL_VARIABLE_PHRASE
-		) {
+			nativeKindName = "local variable",
+			isVariable = true,
+			isModuleScoped = false,
+			kindEnumeration = PhraseKind.LOCAL_VARIABLE_PHRASE,
+			defaultDefinitionStyle = SystemStyle.LOCAL_VARIABLE_DEFINITION,
+			defaultUseStyle = SystemStyle.LOCAL_VARIABLE_USE)
+		{
 			override fun emitEffectForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -283,8 +304,13 @@ class DeclarationPhraseDescriptor(
 
 		/** A local constant, declared within a block. */
 		LOCAL_CONSTANT(
-			"local constant", false, false, PhraseKind.LOCAL_CONSTANT_PHRASE
-		) {
+			nativeKindName = "local constant",
+			isVariable = false,
+			isModuleScoped = false,
+			kindEnumeration = PhraseKind.LOCAL_CONSTANT_PHRASE,
+			defaultDefinitionStyle = SystemStyle.LOCAL_CONSTANT_DEFINITION,
+			defaultUseStyle = SystemStyle.LOCAL_CONSTANT_USE)
+		{
 			override fun emitEffectForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -316,8 +342,13 @@ class DeclarationPhraseDescriptor(
 
 		/** A variable declared at the outermost (module) scope. */
 		MODULE_VARIABLE(
-			"module variable", true, true, PhraseKind.MODULE_VARIABLE_PHRASE
-		) {
+			nativeKindName = "module variable",
+			isVariable = true,
+			isModuleScoped = true,
+			kindEnumeration = PhraseKind.MODULE_VARIABLE_PHRASE,
+			defaultDefinitionStyle = SystemStyle.MODULE_VARIABLE_DEFINITION,
+			defaultUseStyle = SystemStyle.MODULE_VARIABLE_USE)
+		{
 			override fun emitVariableAssignmentForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -362,8 +393,13 @@ class DeclarationPhraseDescriptor(
 
 		/** A constant declared at the outermost (module) scope. */
 		MODULE_CONSTANT(
-			"module constant", false, true, PhraseKind.MODULE_CONSTANT_PHRASE
-		) {
+			nativeKindName = "module constant",
+			isVariable = false,
+			isModuleScoped = true,
+			kindEnumeration = PhraseKind.MODULE_CONSTANT_PHRASE,
+			defaultDefinitionStyle = SystemStyle.MODULE_CONSTANT_DEFINITION,
+			defaultUseStyle = SystemStyle.MODULE_CONSTANT_USE)
+		{
 			override fun emitVariableValueForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -386,16 +422,19 @@ class DeclarationPhraseDescriptor(
 
 		/** A local constant, declared within a block. */
 		PRIMITIVE_FAILURE_REASON(
-			"primitive failure reason",
-			true,
-			false,
-			PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE
-		) {
+			nativeKindName = "primitive failure reason",
+			isVariable = false,
+			isModuleScoped = false,
+			kindEnumeration = PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE,
+			defaultDefinitionStyle =
+				SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION,
+			defaultUseStyle = SystemStyle.PRIMITIVE_FAILURE_REASON_USE)
+		{
 			override fun emitVariableValueForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
 				codeGenerator: AvailCodeGenerator
-			) = codeGenerator.emitGetLocalOrOuter(tokens, declarationNode)
+			) = codeGenerator.emitPushLocalOrOuter(tokens, declarationNode)
 
 			override fun print(
 				self: A_Phrase,
@@ -585,17 +624,7 @@ class DeclarationPhraseDescriptor(
 			// bootstrap (and other) macros can, so when we visit the output of
 			// one of those macros, we can find declarations to style.  Which is
 			// here.
-			val style = when (self.declarationKind())
-			{
-				ARGUMENT -> SystemStyle.PARAMETER_DEFINITION
-				LABEL -> SystemStyle.LABEL_DEFINITION
-				LOCAL_VARIABLE -> SystemStyle.LOCAL_VARIABLE_DEFINITION
-				LOCAL_CONSTANT -> SystemStyle.LOCAL_CONSTANT_DEFINITION
-				MODULE_VARIABLE -> SystemStyle.MODULE_VARIABLE_DEFINITION
-				MODULE_CONSTANT -> SystemStyle.MODULE_CONSTANT_DEFINITION
-				PRIMITIVE_FAILURE_REASON ->
-					SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION
-			}
+			val style = self.declarationKind().defaultDefinitionStyle
 			val token = self.token
 			context.loader.styleToken(token, style.kotlinString)
 			context.loader.addDeclarationToken(token)
@@ -844,10 +873,10 @@ class DeclarationPhraseDescriptor(
 			nil)
 
 		/**
-		 * Construct a new declaration of a
-		 * [DeclarationKind.PRIMITIVE_FAILURE_REASON]. This is set up
-		 * automatically when a primitive fails, and the statements of the block
-		 * should not be allowed to write to it.
+		 * Construct a new declaration of a [PRIMITIVE_FAILURE_REASON]. This is
+		 * set up automatically when a primitive fails, and the statements of
+		 * the block cannot write to it.  It must occur as the first local
+		 * constant, which is just after the arguments and local variables.
 		 *
 		 * @param token
 		 *   The [token][TokenDescriptor] that is the defining occurrence of the
@@ -856,12 +885,13 @@ class DeclarationPhraseDescriptor(
 		 *   The [expression][PhraseDescriptor] that produced the type for the
 		 *   entity being declared, or [nil] if there was no such expression.
 		 * @param type
-		 *   The [type][TypeDescriptor] of the primitive failure variable being
+		 *   The [type][TypeDescriptor] of the primitive failure constant being
 		 *   declared.
 		 * @return
-		 *   The new local constant declaration.
+		 *   The new local constant declaration that will be automatically set
+		 *   to the reason for a failed primitive.
 		 */
-		fun newPrimitiveFailureVariable(
+		fun newPrimitiveFailureConstant(
 			token: A_Token,
 			typeExpression: A_Phrase,
 			type: A_Type

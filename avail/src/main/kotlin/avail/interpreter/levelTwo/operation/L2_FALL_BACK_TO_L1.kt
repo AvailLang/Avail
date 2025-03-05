@@ -1,5 +1,5 @@
 /*
- * L1_FALL_BACK_TO_L1.kt
+ * L2_FALL_BACK_TO_L1.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

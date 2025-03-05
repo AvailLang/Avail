@@ -146,7 +146,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 					L2ConstantOperand(fieldAtom),
 					boxedWrite(
 						semanticFieldValue, boxedRestrictionForType(fieldType)))
-				// TODO - Generate L2 code to collect statistics on the variants
+				//TODO - Generate L2 code to collect statistics on the variants
 				// that are encountered, then at the next reoptimization, inline
 				// L2 instructions that access the field by index.
 			}

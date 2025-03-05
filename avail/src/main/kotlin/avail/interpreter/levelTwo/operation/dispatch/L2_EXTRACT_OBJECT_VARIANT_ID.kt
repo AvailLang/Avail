@@ -78,7 +78,7 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		variantId.semanticValues()
 			.firstOrNull { readIfAvailable(it) != null }
 			?.let { existingValue ->
-				// Found one. Populate the rest..
+				// Found one. Populate the rest.
 				val others = variantId.semanticValues()
 					.filterNot(currentManifest::hasSemanticValue)
 				if (others.isNotEmpty())

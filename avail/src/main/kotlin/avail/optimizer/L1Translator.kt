@@ -96,7 +96,6 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
@@ -120,7 +119,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.Primitive.Flag
-import avail.interpreter.Primitive.Flag.CatchException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.assignmentFunction
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -218,7 +216,6 @@ import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
-import avail.utility.isNullOr
 import java.util.IdentityHashMap
 import java.util.logging.Level
 
@@ -2192,28 +2189,27 @@ class L1Translator private constructor(
 		// shared or immutable).
 		for (localIndex in 1 .. numLocals)
 		{
-			val postponedLocal =
-				newPlaceholder(code.localTypeAt(localIndex), localIndex)
-			forceConstantSlot(numArgs + localIndex, postponedLocal)
+			forceConstantSlot(
+				numArgs + localIndex,
+				newPlaceholder(code.localTypeAt(localIndex), localIndex))
 		}
+		var startOfConstantsToClear = numArgs + numLocals + 1
 		primitive?.let {
-			// Capture the primitive failure value in the first local.
+			// Capture the primitive failure value in the first local constant.
 			assert(!primitive.hasFlag(Flag.CannotFail))
-			val localType = code.localTypeAt(1)
-			+L2_CREATE_VARIABLE(
-				localIndex = L2IntImmediateOperand(1),
-				outerType = L2ConstantOperand(localType),
-				variable = writeSlot(
-					numArgs + 1,
+			val failureType = primitive.failureVariableType
+			moveBoxedRegister(
+				getLatestReturnValue(
+					"failure code", failureType).semanticValue(),
+				writeSlot(
+					startOfConstantsToClear++,
 					pc,
-					boxedRestrictionForType(localType)),
-				initialValueOrNil = getLatestReturnValue(
-					"failure code",
-					localType.writeType))
+					boxedRestrictionForType(failureType)
+				).semanticValues())
 		}
 
 		// Clear the rest of the stack slots.
-		(numArgs + numLocals + 1 .. numSlots).forEach(::nilSlot)
+		(startOfConstantsToClear .. numSlots).forEach(::nilSlot)
 
 		// Check for interrupts.  If an interrupt is discovered, then reify and
 		// process the interrupt.  If the reified continuation becomes immutable
@@ -2225,7 +2221,7 @@ class L1Translator private constructor(
 		// Finally, create the remaining local variables.  These creation
 		// instructions will migrate through the graph during optimization,
 		// allowing some to be elided entirely.
-		for (localIndex in (if (primitive === null) 1 else 2) .. numLocals)
+		for (localIndex in 1 .. numLocals)
 		{
 			val localType = code.localTypeAt(localIndex)
 			+L2_CREATE_VARIABLE(
@@ -2510,7 +2506,7 @@ class L1Translator private constructor(
 		// frame's function and arguments, only those are used by the virtual
 		// instruction.  The label continuation's pc will be 0, and its stack
 		// will be empty.
-		assert(code.codePrimitive().isNullOr { hasFlag(CatchException) })
+		assert(code.codePrimitive() == null)
 		val semanticLabel = topFrame.label()
 		if (currentManifest.hasSemanticValue(semanticLabel))
 		{

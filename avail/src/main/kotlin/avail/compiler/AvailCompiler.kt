@@ -3351,8 +3351,8 @@ class AvailCompiler constructor(
 				this@AvailCompiler,
 				pragmaToken,
 				pragmaValue,
-				state
-			) {
+				state)
+			{
 				state.compilationContext.eventuallyDo(state, recurse!!)
 			}
 		}

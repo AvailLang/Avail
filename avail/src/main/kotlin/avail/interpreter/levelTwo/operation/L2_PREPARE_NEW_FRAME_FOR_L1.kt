@@ -38,10 +38,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.A_Variable.Companion.setValue
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
@@ -157,11 +154,8 @@ class L2_PREPARE_NEW_FRAME_FOR_L1(
 				// A failed primitive.  The failure value was captured in the
 				// latestResult().
 				assert(!primitive.hasFlag(Primitive.Flag.CannotFail))
-				val primitiveFailureValue: A_BasicObject =
-					interpreter.getLatestResult()
-				val primitiveFailureVariable: A_Variable =
-					stepper.pointerAt(numArgs + 1)
-				primitiveFailureVariable.setValue(primitiveFailureValue)
+				stepper.pointerAtPut(
+					numArgs + numLocals + 1, interpreter.getLatestResult())
 			}
 			if (interpreter.isInterruptRequested)
 			{

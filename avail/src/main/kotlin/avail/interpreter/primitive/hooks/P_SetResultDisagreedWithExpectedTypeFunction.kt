@@ -46,6 +46,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
@@ -60,7 +61,11 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
-	1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
+	1,
+	CannotFail,
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

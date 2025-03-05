@@ -39,13 +39,13 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
-import avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
 import avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME
-import avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.controlflow.P_CatchException.handlerSentinel
+import avail.interpreter.primitive.controlflow.P_CatchException.unwindSentinel
 
 /**
  * **Primitive:** Mark the nearest frame corresponding to an invocation of
@@ -65,8 +65,8 @@ object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(enumerationWith(
-				set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
+			tuple(
+				enumerationWith(set(handlerSentinel, unwindSentinel))),
 			TOP())
 
 	override fun privateFailureVariableType(): A_Type =

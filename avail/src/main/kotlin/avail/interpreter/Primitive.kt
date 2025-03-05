@@ -56,7 +56,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeDescriptor
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
@@ -94,6 +93,7 @@ import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_RunInfalliblePrimitiveNoCheck
+import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.optimizer.CallSiteHelper
@@ -229,9 +229,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
 
 	/**
-	 * A [type][TypeDescriptor] to constrain the [A_Type.writeType] of the
-	 * variable declaration within the primitive declaration of a block.  The
-	 * actual variable's inner type must be this or a supertype.
+	 * A [type][TypeDescriptor] to constrain the local constant holding the
+	 * reason that this primitive failed.  The actual failure constant's type
+	 * must be this or a supertype.
 	 */
 	@Suppress("LeakingThis")
 	val failureVariableType: AvailObject =
@@ -455,10 +455,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		CatchException,
 
 		/**
-		 * The primitive failure variable should not be cleared after its last
-		 * usage.
+		 * The "guard" local variable of a [P_CatchException] frame should not
+		 * be cleared after its last usage.
 		 */
-		PreserveFailureVariable,
+		PreserveGuardVariable,
 
 		/**
 		 * The primitive arguments should not be cleared after their last
@@ -867,16 +867,17 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			// Produce failure code.  First declare the local that holds
 			// primitive failure information.
-			val failureLocal = writer.createLocal(
-				variableTypeFor(failureVariableType))
+			val failureConstant = writer.createConstant(failureVariableType)
 			for (i in 1 .. numArgs)
 			{
 				writer.write(lineNumber, L1Operation.L1_doPushLastLocal, i)
 			}
 			// Get the failure code.
-			writer.write(lineNumber, L1Operation.L1_doGetLocal, failureLocal)
+			writer.write(
+				lineNumber, L1Operation.L1_doPushLocal, failureConstant)
 			// Put the arguments and failure code into a tuple.
 			writer.write(lineNumber, L1Operation.L1_doMakeTuple, numArgs + 1)
+			// Call the Crash function with tha tuple.
 			writer.write(
 				lineNumber,
 				L1Operation.L1_doCall,

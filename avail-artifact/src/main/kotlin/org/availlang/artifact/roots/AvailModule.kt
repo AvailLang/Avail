@@ -52,7 +52,7 @@ open class AvailModule constructor(
 
 	/**
 	 * The list of Avail Modules this [AvailModule] will be able to `Use`
-	 * in the `Body` of this module..
+	 * in the `Body` of this module.
 	 */
 	@Suppress("unused")
 	var uses: List<String> = listOf()

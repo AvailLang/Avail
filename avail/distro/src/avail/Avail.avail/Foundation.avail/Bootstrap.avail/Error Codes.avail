@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/14/25, 12:19 PM
+ * * Last Generated: 3/4/25, 9:32 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -94,7 +94,6 @@ Names
 	/*  90 */ "fiber-result-unavailable code",
 	/* 201 */ "file-exists code",
 	/*  86 */ "forward-method-definition code",
-	/*  80 */ "handler-sentinel code",
 	/* 204 */ "illegal-option code",
 	/*  77 */ "illegal-trace-mode code",
 	/*  98 */ "inconsistent-argument-reordering code",
@@ -158,7 +157,6 @@ Names
 	/*  44 */ "unbalanced-guillemets code",
 	/*  64 */ "untimely-parse-acceptance code",
 	/*  71 */ "untimely-parse-rejection code",
-	/*  83 */ "unwind-sentinel code",
 	/*  78 */ "up-arrow-must-follow-argument code",
 	/*  55 */ "vertical-bar-must-separate-tokens-or-simple-groups code",
 	/*  20 */ "wrong-outers code"
@@ -534,11 +532,6 @@ Primitive "result-disagreed-with-expected-type code" is
 	79
 ];
 
-Primitive "handler-sentinel code" is
-[
-	80
-];
-
 Primitive "cannot-mark-handler-frame code" is
 [
 	81
@@ -547,11 +540,6 @@ Primitive "cannot-mark-handler-frame code" is
 Primitive "no-handler-frame code" is
 [
 	82
-];
-
-Primitive "unwind-sentinel code" is
-[
-	83
 ];
 
 Primitive "no-method-definition code" is

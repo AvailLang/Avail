@@ -71,7 +71,6 @@ import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
 import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
-import avail.interpreter.levelOne.L1Operation.entries
 import avail.io.NybbleOutputStream
 
 /**
@@ -392,7 +391,9 @@ enum class L1Operation constructor(
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1Ext_doSetLocalSlot()
-	};
+	}
+
+	;
 
 	init
 	{

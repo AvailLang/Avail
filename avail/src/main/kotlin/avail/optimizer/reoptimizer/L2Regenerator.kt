@@ -779,7 +779,7 @@ constructor(
 				write.semanticValues()
 					.firstOrNull { readIfAvailable(it) != null }
 					?.let { existing ->
-						// Found one. Populate the rest..
+						// Found one. Populate the rest.
 						val others = write.semanticValues()
 							.filterNot(currentManifest::hasSemanticValue)
 						if (others.isNotEmpty())
