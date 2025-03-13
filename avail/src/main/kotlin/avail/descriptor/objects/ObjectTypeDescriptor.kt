@@ -201,9 +201,9 @@ class ObjectTypeDescriptor internal constructor(
 
 	/**
 	 * The result of a comparison of two [SHARED] object types, for use in the
-	 * first one's [TESTING_TYPES_POJO] map.  There isn't an entry for `subtype`, since
-	 * for this usage we're only interested in whether the second type
-	 * definitely is or cannot be a supertype of the first.
+	 * first one's [TESTING_TYPES_POJO] map.  There isn't an entry for
+	 * `subtype`, since for this usage we're only interested in whether the
+	 * second type definitely is or cannot be a supertype of the first.
 	 */
 	enum class TestOutcome
 	{

@@ -152,14 +152,11 @@ Method "Advance_" is
 [
 	anIterator : iterator
 |
-	Unless anIterator is exhausted then
-	[
-		Private advance anIterator;
-	]
-	else
+	If anIterator is exhausted then
 	[
 		Raise an exhausted-iterator exception
 	];
+	Private advance anIterator;
 ] : ⊤;
 
 /**

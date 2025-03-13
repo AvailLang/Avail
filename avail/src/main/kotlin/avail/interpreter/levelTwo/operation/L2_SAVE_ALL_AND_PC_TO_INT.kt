@@ -34,7 +34,6 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor
-import avail.descriptor.variables.VariablePlaceholderDescriptor.Companion.newPlaceholder
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
@@ -43,10 +42,14 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -56,6 +59,7 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.MethodVisitor
 
@@ -85,6 +89,11 @@ import org.objectweb.asm.MethodVisitor
  *   that when the continuation resumes it knows what L2 offset to jump to.
  * @property registerDump
  *   Where to write an [A_RegisterDump] of all live register values.
+ * @property finalSavedBoxedRegisters
+ *   During insertion of [L2_MAKE_IMMUTABLE] instructions, this gets populated
+ *   by [processForMakeImmutable] with reads of the boxed registers that will be
+ *   saved into the [registerDump], based on which boxed values are live along
+ *   the [reference] edge.
  * @property dirtyLocals
  *   Mixed vector holding the current dirty values to be written into fresh
  *   variables if/when the continuation becomes immutable or shared.
@@ -100,20 +109,21 @@ constructor(
 	@On(REFERENCED_AS_INT) var reference: L2PcOperand,
 	@On(SUCCESS) var referenceOffset: L2WriteIntOperand,
 	@On(SUCCESS) var registerDump: L2WriteBoxedOperand,
+	var finalSavedBoxedRegisters: L2ReadBoxedVectorOperand,
 	var dirtyLocals: L2ReadMixedVectorOperand,
 	var dirtyLocalIndices: L2ArbitraryConstantOperand<IntArray>
 ): L2Instruction()
 {
+	init
+	{
+		assert(dirtyLocals.elements.size == dirtyLocalIndices.constant.size)
+	}
+
 	override val targetEdges: List<L2PcOperand> get() = layout.pcOperands(this)
 
 	override val hasSideEffect get() = true
 
 	override val altersControlFlow get() = true
-
-	init
-	{
-		assert(dirtyLocals.elements.size == dirtyLocalIndices.constant.size)
-	}
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
@@ -261,10 +271,10 @@ constructor(
 			reference = reference,
 			referenceOffset = referenceOffset,
 			registerDump = registerDump,
+			finalSavedBoxedRegisters = finalSavedBoxedRegisters.clone(),
 			dirtyLocals = L2ReadMixedVectorOperand(elidedVariables),
 			dirtyLocalIndices = L2ArbitraryConstantOperand(
-				elidedVariableIndices.toIntArray())
-		)
+				elidedVariableIndices.toIntArray()))
 		replacement.run {
 			basicRegenerateForPostponement()
 		}
@@ -279,11 +289,10 @@ constructor(
 		// creations, so that the variables can be elided even through
 		// reification, as long as the continuation stays mutable.
 		creations.forEach { postponedCreation ->
-			val postponedVariable = newPlaceholder(
-				postponedCreation.outerType.constant,
-				postponedCreation.localIndex.value)
+			val elidedVariable =
+				postponedCreation.constantVariableIfElided.constant
 			moveBoxedRegister(
-				boxedConstant(postponedVariable).semanticValue(),
+				boxedConstant(elidedVariable).semanticValue(),
 				postponedCreation.variable.semanticValues())
 		}
 		// Jump to the original (mapped) fallThrough target, so that code
@@ -299,6 +308,37 @@ constructor(
 		// be nowhere to restore them to (they don't occupy JVM locals).  This
 		// also ensures that dirtyLocals continue to refer to real registers,
 		// since the encoding can't handle constants.
+	}
+
+	/**
+	 * Use the [reference] edge's [L2PcOperand.sometimesLiveInEntities] to
+	 * populate this instruction's [finalSavedBoxedRegisters].  This happens
+	 * very late during optimization, as part of insertion of the
+	 * [L2_MAKE_IMMUTABLE] instructions.
+	 */
+	override fun processForMakeImmutable(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		insertions: MutableList<Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>,
+		uniqueGenerator: ()->Int)
+	{
+		assert(finalSavedBoxedRegisters.elements.isEmpty())
+		val boxedRegisters = reference.sometimesLiveInEntities!!
+			.filterIsInstance<L2BoxedRegister>()
+		if (boxedRegisters.isEmpty()) return
+		val reads = boxedRegisters.map { register ->
+			val read = L2ReadBoxedOperand(
+				L2SemanticDummy(uniqueGenerator()),
+				topRestriction,
+				register
+			)
+			register.addUse(read)
+			read
+		}
+		finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(reads)
+		sourceRegisters.addAll(boxedRegisters)
+		super.processForMakeImmutable(
+			firstUses, insertions, mutables, uniqueGenerator)
 	}
 
 	override fun translateToJVM(

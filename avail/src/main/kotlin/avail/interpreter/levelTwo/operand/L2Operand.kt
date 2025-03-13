@@ -40,9 +40,9 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.BUNDLE_TAG
 import avail.descriptor.types.TypeTag.FUNCTION_TAG
+import avail.descriptor.types.TypeTag.RAW_FUNCTION_TAG
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
@@ -361,7 +361,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 				}
 				sources.add(str)
 			}
-			TypeTag.RAW_FUNCTION_TAG ->
+			RAW_FUNCTION_TAG ->
 			{
 				val code: A_RawFunction = value
 				var str = code.methodName.asNativeString()

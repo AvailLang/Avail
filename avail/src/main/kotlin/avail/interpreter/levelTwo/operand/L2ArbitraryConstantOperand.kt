@@ -35,7 +35,8 @@ import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
-import java.lang.reflect.Array.*
+import java.lang.reflect.Array.get
+import java.lang.reflect.Array.getLength
 
 /**
  * An [L2ArbitraryConstantOperand] is an operand of type

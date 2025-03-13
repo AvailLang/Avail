@@ -140,7 +140,9 @@ constructor(
 							variableOrigin.variable.semanticValues() +
 								variableOut.semanticValues(),
 							variableOut.restriction()),
-						initialValueOrNil = valueToWrite))
+						initialValueOrNil = valueToWrite,
+						constantVariableIfElided =
+							variableOrigin.constantVariableIfElided))
 				return true
 			}
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE ->

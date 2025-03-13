@@ -192,8 +192,8 @@ open class AtomDescriptor protected constructor (
 		when {
 			self.isAtomSpecial -> append(nativeName)
 			wordPattern.matcher(nativeName).matches() ->
-				append("\$$nativeName")
-			else -> append("\$\"$nativeName\"")
+				append("$$nativeName")
+			else -> append("$\"$nativeName\"")
 		}
 		Unit
 	}

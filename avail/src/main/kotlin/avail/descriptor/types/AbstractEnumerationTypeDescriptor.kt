@@ -576,15 +576,11 @@ protected constructor(
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun instanceTypeOrMetaOn(instance: A_BasicObject): A_Type =
-			if (instance.isType)
-			{
-				instanceMeta(instance as A_Type)
-			}
-			else
-			{
-				instanceType(instance)
-			}
+		fun instanceTypeOrMetaOn(instance: A_BasicObject): A_Type = when
+		{
+			instance.isType -> instanceMeta(instance as A_Type)
+			else -> instanceType(instance)
+		}
 
 		/**
 		 * The [CheckedMethod] for [instanceTypeOrMetaOn].

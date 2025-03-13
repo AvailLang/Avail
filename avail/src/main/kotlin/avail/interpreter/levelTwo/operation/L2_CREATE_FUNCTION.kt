@@ -200,8 +200,7 @@ class L2_CREATE_FUNCTION(
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
 					method.visitInsn(Opcodes.DUP)
 					translator.intConstant(method, i + 1)
-					translator.load(
-						method, capturedVariables.elements[i])
+					translator.load(method, capturedVariables.elements[i])
 					FunctionDescriptor.outerVarAtPutMethod.generateCall(method)
 				}
 			}

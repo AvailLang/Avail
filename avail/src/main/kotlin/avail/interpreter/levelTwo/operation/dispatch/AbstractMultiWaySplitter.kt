@@ -35,6 +35,7 @@ package avail.interpreter.levelTwo.operation.dispatch
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.types.TypeTag
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -42,9 +43,11 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticExtractedTag
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
@@ -106,39 +109,48 @@ constructor(
 	}
 
 	/**
-	 * Emit an [L2_MULTIWAY_JUMP] instruction using the given [readValue] to
-	 * produce an unboxed int value, and edges suitable for this
-	 * [AbstractMultiWaySplitter].  Remove unreachable edges, and strengthen the
-	 * manifests on the remaining edges to take into account the consequences of
-	 * having matched the int value or range along that edge.
+	 * Produce an [L2_MULTIWAY_JUMP] instruction, or an equivalent, using the
+	 * given [readValue] to produce an unboxed int value, with edges suitable
+	 * for this [AbstractMultiWaySplitter].  Remove unreachable edges, and
+	 * strengthen the manifests on the remaining edges to take into account the
+	 * consequences of having matched the int value or range along that edge.
 	 *
-	 * @receiver
-	 *   The [L2GeneratorInterface] on which to write the instruction.
+	 * The receiver can be destroyed by this operation, and must not be an
+	 * instruction that has been emitted.
+	 *
 	 * @param readValue
 	 *   The [L2ReadIntOperand] supplying the integer on which to dispatch.
 	 * @param edges
 	 *   The [List] of [L2PcOperand]s separated by the [splitPoints].
+	 * @param manifest
+	 *   The [L2ValueManifest] currently in effect.
+	 * @return
+	 *   An [L2Instruction] that can be emitted, or perhaps further processed if
+	 *   it's an [L2_MULTIWAY_JUMP].
 	 */
-	fun L2GeneratorInterface.emitSplitterInstruction(
+	fun reducedSplitterInstruction(
 		readValue: L2ReadIntOperand,
-		edges: List<L2PcOperand>)
+		edges: List<L2PcOperand>,
+		manifest: L2ValueManifest
+	): L2Instruction
 	{
-		edges.forEach { edge -> edge.setManifestToCloneOf(currentManifest) }
+		edges.forEach { edge -> edge.setManifestToCloneOf(manifest) }
 		populateEdgeManifests(readValue, edges)
 		val possibleEdges = edges.filterNot { edge ->
 			edge.manifest().hasImpossibleRestriction
+				|| edge.manifest().restrictionFor(readValue.semanticValue())
+				.intersection(readValue.restriction())
+				.isImpossible
 		}.toSet()
 
 		if (possibleEdges.isEmpty())
 		{
 			// Shouldn't happen, but play nice.
-			addUnreachableCode()
-			return
+			return L2_UNREACHABLE_CODE()
 		}
 		if (possibleEdges.size == 1)
 		{
-			+L2_JUMP(possibleEdges.single())
-			return
+			return L2_JUMP(possibleEdges.single())
 		}
 
 		// Let impossible edges share a target path with one of their neighbors,
@@ -151,7 +163,7 @@ constructor(
 			{
 				if (newEdges.isEmpty() ||
 					edge.targetBlockSkippingBareJumps() !=
-						newEdges.last().targetBlockSkippingBareJumps())
+					newEdges.last().targetBlockSkippingBareJumps())
 				{
 					// Preserve the edge.
 					newEdges.add(edge)
@@ -170,10 +182,31 @@ constructor(
 		newSplits.removeLast()
 		assert(newSplits.size == newEdges.size - 1)
 		val newSplitter = cloneForReducedEdges(edges, newEdges, newSplits)
-		+L2_MULTIWAY_JUMP(
+		return L2_MULTIWAY_JUMP(
 			readValue,
 			L2ArbitraryConstantOperand(newSplitter),
 			L2PcVectorOperand(newEdges))
+	}
+
+	/**
+	 * Emit an [L2_MULTIWAY_JUMP] instruction, or an equivalent, using the given
+	 * [readValue] to produce an unboxed int value, with edges suitable for this
+	 * [AbstractMultiWaySplitter].  Remove unreachable edges, and strengthen the
+	 * manifests on the remaining edges to take into account the consequences of
+	 * having matched the int value or range along that edge.
+	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which to write the instruction.
+	 * @param readValue
+	 *   The [L2ReadIntOperand] supplying the integer on which to dispatch.
+	 * @param edges
+	 *   The [List] of [L2PcOperand]s separated by the [splitPoints].
+	 */
+	fun L2GeneratorInterface.emitSplitterInstruction(
+		readValue: L2ReadIntOperand,
+		edges: List<L2PcOperand>)
+	{
+		+reducedSplitterInstruction(readValue, edges, currentManifest)
 	}
 
 	/**

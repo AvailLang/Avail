@@ -4015,7 +4015,7 @@ Method "quicksort_" is
 		else [size]   /*bca*/
 	];
 	pivot ::= numbers[pivotIndex];
-	withoutPivot ::= numbers[..pivotIndex-1] ++ numbers[pivotIndex+1..];
+	withoutPivot ::= numbers[pivotIndex..pivotIndex] → <>;
 	lesser ::= select each n from withoutPivot where [n ≤ pivot];
 	greater ::= select each n from withoutPivot where [n > pivot];
 	quicksort lesser ++ <pivot> ++ quicksort greater

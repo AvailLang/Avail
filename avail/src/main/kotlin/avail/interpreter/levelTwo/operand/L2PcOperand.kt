@@ -403,8 +403,7 @@ class L2PcOperand constructor (
 		val liveMap =
 			RegisterKind.all.associateWith { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
-			listOfNotNull(alwaysLiveInEntities, sometimesLiveInEntities)
-				.flatten()
+			sometimesLiveInEntities!!
 				.filterIsInstance<L2Register<*>>()
 				.sortedBy(L2Register<*>::finalIndex)
 				.distinct()

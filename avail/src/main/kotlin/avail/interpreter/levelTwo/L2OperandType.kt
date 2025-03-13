@@ -81,37 +81,6 @@ constructor(
 	 */
 	val ordinal = counter++
 
-	/**
-	 * Create an [L2NamedOperandType] from the receiver and a [String] naming
-	 * its role within some [L2Instruction].
-	 *
-	 * @param roleName
-	 *   The name of this operand.
-	 * @return A named operand type.
-	 */
-	fun named(roleName: String): L2NamedOperandType
-	{
-		return L2NamedOperandType(this, roleName, null)
-	}
-
-	/**
-	 * Create a [L2NamedOperandType] from the receiver, a [String] naming its
-	 * role within some [L2Instruction], and a designator of its [Purpose].
-	 * The purpose is used to designate branch edges, and correlate them to
-	 * register writes that only happen if the corresponding edge is taken.
-	 *
-	 * @param roleName
-	 *   The name of this operand.
-	 * @param purpose
-	 *   The [Purpose] that best describes the [L2NamedOperandType].
-	 * @return A named operand type.
-	 */
-	fun named(roleName: String, purpose: Purpose): L2NamedOperandType
-	{
-		assert(canHavePurpose)
-		return L2NamedOperandType(this, roleName, purpose)
-	}
-
 	companion object
 	{
 		// Note that these are ORDERED, so that fields with an earlier operand

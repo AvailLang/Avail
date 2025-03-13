@@ -234,8 +234,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 					append(';')
 				}
 				append(']')
+				return
 			}
-			return
 		}
 
 		// Use multiple lines instead...

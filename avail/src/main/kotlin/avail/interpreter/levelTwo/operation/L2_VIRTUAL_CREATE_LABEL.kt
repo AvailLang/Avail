@@ -77,7 +77,6 @@ import org.objectweb.asm.MethodVisitor
  *   1.  [L2_GET_CURRENT_CONTINUATION],
  *   1.  [L2_GET_CURRENT_FUNCTION],
  *   1.  [L2_CREATE_CONTINUATION],
- *   1.  [L2_SET_CONTINUATION],
  *   1.  [L2_RETURN_FROM_REIFICATION_HANDLER], then outside the reification
  *       area,
  *   1.  [L2_ENTER_L2_CHUNK].
@@ -199,6 +198,8 @@ class L2_VIRTUAL_CREATE_LABEL(
 				reference = edgeTo(afterReification),
 				referenceOffset = tempOffset,
 				registerDump = tempRegisterDump,
+				finalSavedBoxedRegisters =
+					L2ReadBoxedVectorOperand(emptyList()),
 				dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
 				dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 
@@ -225,8 +226,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 				currentManifest.readInt(tempOffset.pickSemanticValue()),
 				readBoxed(tempRegisterDump),
 				L2CommentOperand("Dummy reification continuation."))
-			+L2_SET_CONTINUATION(readBoxed(dummyContinuation))
-			+L2_RETURN_FROM_REIFICATION_HANDLER()
+			+L2_RETURN_FROM_REIFICATION_HANDLER(readBoxed(dummyContinuation))
 
 			startBlock(unreachable)
 			+L2_UNREACHABLE_CODE()
@@ -265,6 +265,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 				specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!, mutableSetOf()),
 			referenceOffset = writeOffset,
 			registerDump = writeRegisterDump,
+			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()),
 			// Local variables aren't preserved by a label.
 			dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
 			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))

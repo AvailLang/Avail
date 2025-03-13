@@ -1,5 +1,5 @@
 /*
- * L2_SET_CONTINUATION.kt
+ * HideInSimpleVisualization.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,47 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.levelTwo.operation
-
-import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
+package avail.interpreter.levelTwo
 
 /**
- * Set the [Interpreter.setReifiedContinuation].
+ * [HideInSimpleVisualization] on a var field of an [L2Instruction] causes that
+ * slot to be omitted when producing a simple visualization graph.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable(CURRENT_CONTINUATION::class)
-class L2_SET_CONTINUATION(
-	var replacementContinuation: L2ReadBoxedOperand
-): L2Instruction()
-{
-	// It updates the current continuation of the interpreter.
-	override val hasSideEffect get() = true
-
-	override fun StringBuilder.appendToWithWarnings(
-		desiredOperandTypes: Set<L2OperandType>,
-		warningStyleChange: (Boolean)->Unit)
-	{
-		renderPreamble()
-		append(' ')
-		append(replacementContinuation.registerString())
-	}
-
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
-	{
-		// :: interpreter.setReifiedContinuation(aContinuation);
-		translator.loadInterpreter(method)
-		translator.load(method, replacementContinuation)
-		Interpreter.setReifiedContinuationMethod.generateCall(method)
-	}
-}
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class HideInSimpleVisualization

@@ -31,11 +31,13 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
-import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -50,10 +52,12 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(
+@WritesHiddenVariable(
 	CURRENT_CONTINUATION::class,
 	STACK_REIFIER::class)
-class L2_RETURN_FROM_REIFICATION_HANDLER(
+class L2_RETURN_FROM_REIFICATION_HANDLER
+constructor(
+	var continuation: L2ReadBoxedOperand
 ) : L2ControlFlowInstruction()
 {
 	override val isCold: Boolean get() = true
@@ -65,12 +69,19 @@ class L2_RETURN_FROM_REIFICATION_HANDLER(
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
+		append(' ')
+		append(continuation.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
+		// :: interpreter.setReifiedContinuation(continuation)
+		translator.loadInterpreter(method)
+		translator.load(method, continuation)
+		Interpreter.setReifiedContinuationMethod.generateCall(method)
+		// :: return null
 		method.visitInsn(Opcodes.ACONST_NULL)
 		method.visitInsn(Opcodes.ARETURN)
 	}

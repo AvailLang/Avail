@@ -33,22 +33,24 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.lessThan
-import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.lowerInclusive
+import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.optimizer.L2GeneratorInterface
@@ -91,14 +93,10 @@ enum class NumericComparator(
 	internal val reflexive: Boolean,
 	internal val reversed: ()->NumericComparator,
 	internal val comparatorMethod: CheckedMethod,
-	private val ifTrue1:
-		(A_Number, A_Number, A_Number, A_Number) -> TypeRestriction,
-	private val ifTrue2:
-		(A_Number, A_Number, A_Number, A_Number) -> TypeRestriction,
-	private val ifFalse1:
-		(A_Number, A_Number, A_Number, A_Number) -> TypeRestriction,
-	private val ifFalse2:
-		(A_Number, A_Number, A_Number, A_Number) -> TypeRestriction)
+	private val ifTrue1: (A_Type, A_Type) -> TypeRestriction,
+	private val ifTrue2: (A_Type, A_Type) -> TypeRestriction,
+	private val ifFalse1: (A_Type, A_Type) -> TypeRestriction,
+	private val ifFalse2: (A_Type, A_Type) -> TypeRestriction)
 {
 	/** An instance for testing whether a < b. */
 	Less(
@@ -180,16 +178,18 @@ enum class NumericComparator(
 
 	/**
 	 * Compute the output ranges along the ifTrue and ifFalse edges. It takes
-	 * the [TypeRestriction]s of the two values being compared, and produces
-	 * four restrictions for the outbound edges:
+	 * the [TypeRestriction]s of the two integer values being compared (which
+	 * may include infinities), and produces four restrictions for the outbound
+	 * edges:
 	 *   1. the first operand if the condition holds,
 	 *   2. the second operand if the condition holds,
 	 *   3. the first operand if the condition fails,
 	 *   4. the second operand if the condition fails.
-	 * Computes the restrictions for two type restrictions.
 	 *
-	 * @param restriction1 The first type restriction.
-	 * @param restriction2 The second type restriction.
+	 * @param restriction1
+	 *   The first type restriction.
+	 * @param restriction2
+	 *   The second type restriction.
 	 * @return A tuple containing the computed type restrictions.
 	 */
 	fun computeRestrictions(
@@ -197,21 +197,27 @@ enum class NumericComparator(
 		restriction2: TypeRestriction
 	): List<TypeRestriction>
 	{
+		if (restriction1.isImpossible || restriction2.isImpossible)
+		{
+			// At least one input is impossible, so the tighter restrictions are
+			// also impossible.
+			return listOf(
+				bottomRestriction,
+				bottomRestriction,
+				bottomRestriction,
+				bottomRestriction)
+		}
 		assert(restriction1.isBoxed)
 		assert(restriction2.isBoxed)
 		val type1 = restriction1.type
 		val type2 = restriction2.type
 		assert(type1.isIntegerRangeType)
 		assert(type2.isIntegerRangeType)
-		val low1 = type1.lowerBound
-		val high1 = type1.upperBound
-		val low2 = type2.lowerBound
-		val high2 = type2.upperBound
 		return listOf(
-			ifTrue1(low1, high1, low2, high2).intersection(restriction1),
-			ifTrue2(low2, high2, low1, high1).intersection(restriction2),
-			ifFalse1(low1, high1, low2, high2).intersection(restriction1),
-			ifFalse2(low2, high2, low1, high1).intersection(restriction2))
+			ifTrue1(type1, type2).intersection(restriction1),
+			ifTrue2(type2, type1).intersection(restriction2),
+			ifFalse1(type1, type2).intersection(restriction1),
+			ifFalse2(type2, type1).intersection(restriction2))
 	}
 
 	/**
@@ -410,83 +416,114 @@ private fun A_Type.narrow(): A_Type = when
 	else -> this
 }
 
-/** Compute the minimum of the two boxed integers. */
-private fun min(number1: A_Number, number2: A_Number) =
-	(if (number1.lessThan(number2)) number1 else number2).makeImmutable()
-
-/** Compute the maximum of the two boxed integers. */
-private fun max(number1: A_Number, number2: A_Number) =
-	(if (number1.greaterThan(number2)) number1 else number2).makeImmutable()
-
-/** Add an int to the given boxed number. */
-private operator fun A_Number.plus(delta: Int) =
-	plusCanDestroy(fromInt(delta), false).makeImmutable()
-
 /**
- * Given two [i32] subranges, answer the range that a value from the first range
- * can have if it's known to be less than a value from the second range.
+ * Given two extended integer subranges, answer the range that a value from the
+ * first range can have if it's known to be less than a value from the second
+ * range.  As a convenience, this will be intersected with the first type by the
+ * caller.
+ *
+ * If the second range's maximum is some finite X < ∞, it's sufficient to
+ * constrain the first range's upper bound to be less than X.  If the second
+ * range's maximum X is ∞, whether it's inclusive or not, the first range must
+ * still be constrained less than X, so < ∞.
+ *
+ * Consider the cases, and the resulting restrictions on the first range:
+ * ```
+ *   [2..7] < [3..5] -> [-∞, 5) -> [2..4]
+ *   [2..7] < [3..9] -> [-∞, 9) -> [2..7]
+ *   [2..7] < [3..∞] -> [-∞, ∞) -> [2..7]
+ *   [2..7] < [3..∞) -> [-∞, ∞) -> [2..7]
+ *   [2..∞) < [3..∞] -> [-∞, ∞) -> [2..∞)
+ *   [2..∞) < [3..∞) -> [-∞, ∞) -> [2..∞)
+ *   [2..∞] < [3..∞] -> [-∞, ∞) -> [2..∞)
+ *   [2..∞] < [3..∞) -> [-∞, ∞) -> [2..∞)
+ * ```
  */
 @Suppress("unused")
 private fun lessHelper(
-	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
-) = boxedRestrictionForType(inclusive(low1, min(high1, high2 + -1)).narrow())
+	type1: A_Type,
+	type2: A_Type
+) = boxedRestrictionForType(
+	integerRangeType(negativeInfinity, true,  type2.upperBound, false).narrow())
 
 /**
- * Given two [i32] subranges, answer the range that a value from the first range
- * can have if it's known to be less than or equal to a value from the second
- * range.
+ * Given two extended integer subranges, answer the range that a value from the
+ * first range can have if it's known to be less than or equal to a value from
+ * the second range.  As a convenience, this will be intersected with the first
+ * type by the caller.
+ *
+ * If the second range is X inclusive, the first range can be intersected with
+ * [-∞..X].  Likewise, if the second range is X exclusive, the first range can
+ * be intersected with [-∞..X).
  */
 @Suppress("unused")
 private fun lessOrEqualHelper(
-	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
-) = boxedRestrictionForType(inclusive(low1, min(high1, high2)).narrow())
+	type1: A_Type,
+	type2: A_Type
+) = boxedRestrictionForType(
+	integerRangeType(
+		negativeInfinity, true, type2.upperBound, type2.upperInclusive
+	).narrow())
 
 /**
- * Given two [i32] subranges, answer the range that a value from the first range
- * can have if it's known to be greater than a value from the second range.
+ * Given two extended integer subranges, answer the range that a value from the
+ * first range can have if it's known to be greater than a value from the second
+ * range.  As a convenience, this will be intersected with the first type by the
+ * caller.
+ *
+ * The cases are analogous to [lessHelper], but with reversed direction.
  */
 @Suppress("unused")
 private fun greaterHelper(
-	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
+	type1: A_Type,
+	type2: A_Type
 ) = boxedRestrictionForType(
-	inclusive(max(low1, low2 + 1), high1).narrow())
+	integerRangeType(type2.lowerBound, false, positiveInfinity, true).narrow())
 
 /**
- * Given two [i32] subranges, answer the range that a value from the first range
- * can have if it's known to be greater than or equal to a value from the second
- * range.
+ * Given two extended integer subranges, answer the range that a value from the
+ * first range can have if it's known to be greater than or equal to a value
+ * from the second range.  As a convenience, this will be intersected with the
+ * first type by the caller.
+ *
+ * The cases are analogous to [lessOrEqualHelper], but with reversed direction.
  */
 @Suppress("unused")
 private fun greaterOrEqualHelper(
-	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
-) = boxedRestrictionForType(inclusive(max(low1, low2), high1).narrow())
+	type1: A_Type,
+	type2: A_Type
+) = boxedRestrictionForType(
+	integerRangeType(
+		type2.lowerBound, type2.lowerInclusive, positiveInfinity, true
+	).narrow())
 
 /**
- * Given two [i32] subranges, answer the range that a value from the first range
- * can have if it's known to be equal to a value from the second range.
+ * Given two extended integer subranges, answer the range that a value from the
+ * first range can have if it's known to be equal to a value from the second
+ * range.  As a convenience, this will be intersected with the first type by the
+ * caller.
  */
 private fun equalHelper(
-	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
-) = boxedRestrictionForType(
-	inclusive(max(low1, low2), min(high1, high2)).narrow())
+	type1: A_Type,
+	type2: A_Type
+) = boxedRestrictionForType(type1.typeIntersection(type2).narrow())
 
 /**
- * Given two [i32] subranges, answer the range that a value from the first range
- * can have if it's known to be unequal to some value from the second range.
+ * Given two extended integer subranges, answer the range that a value from the
+ * first range can have if it's known to be unequal to some value from the
+ * second range.  As a convenience, this will be intersected with the first type
+ * by the caller.
  */
 private fun unequalHelper(
-	low1: A_Number, high1: A_Number, low2: A_Number, high2: A_Number
+	type1: A_Type,
+	type2: A_Type
 ): TypeRestriction
 {
-	if (low2.equals(high2))
+	if (type2.lowerBound.equals(type2.upperBound))
 	{
-		// The second value is a particular constant which we can exclude in the
-		// event the values are unequal.
-		return TypeRestriction.restriction(
-			type = inclusive(low1, high1),
-			constantOrNull = null,
-			givenExcludedValues = setOf(low2))
+		// Type2 has only one value, so produce a restriction based on type1,
+		// but with that one value removed.
+		return boxedRestrictionForType(type1).minusValue(type2.lowerBound)
 	}
-	return lessHelper(low1, high1, low2, high2).union(
-		greaterHelper(low1, high1, low2, high2))
+	return lessHelper(type1, type2).union(greaterHelper(type1, type2))
 }

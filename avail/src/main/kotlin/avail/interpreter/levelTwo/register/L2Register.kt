@@ -125,7 +125,6 @@ constructor (
 	 */
 	fun definition(): L2WriteOperand<K>
 	{
-		assert(definitions.size == 1)
 		return definitions.single()
 	}
 

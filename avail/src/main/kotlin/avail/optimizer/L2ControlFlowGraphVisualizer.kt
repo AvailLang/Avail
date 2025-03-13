@@ -64,7 +64,7 @@ import avail.utility.deepForEach
 import avail.utility.dot.DotWriter
 import avail.utility.dot.DotWriter.AttributeWriter
 import avail.utility.dot.DotWriter.Companion.node
-import avail.utility.dot.DotWriter.DecoratedNode
+import avail.utility.dot.DotWriter.CompassPoint
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType
 import avail.utility.dot.DotWriter.GraphWriter
 import avail.utility.mapToSet
@@ -422,7 +422,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			when
 			{
 				instruction is L2_NOP ->
-					cellAttributes["bgcolor"] = writer.adjust("#ff90ff/#602860")
+					cellAttributes["bgcolor"] = writer.adjust("#ffe0ff/#602860")
 				instruction.isPlaceholder ->
 					cellAttributes["bgcolor"] = writer.adjust("#ffC090/#604800")
 				basicBlock.isCold ->
@@ -636,23 +636,15 @@ class L2ControlFlowGraphVisualizer constructor(
 		try
 		{
 			writer.edge(
-				if (edge.isBackward)
-					DecoratedNode(
-						basicBlockName(sourceBlock),
-						sourcePortNamesByEdge[edge],
-						null)
-				else
-					DecoratedNode(
-						basicBlockName(sourceBlock),
-						sourcePortNamesByEdge[edge],
-						null),
-				if (edge.isBackward)
+				source = node(
+					basicBlockName(sourceBlock),
+					sourcePortNamesByEdge[edge],
+					null),
+				target = when
 				{
-					node(basicBlockName(targetBlock), "1")
-				}
-				else
-				{
-					node(basicBlockName(targetBlock))
+					edge.isBackward ->
+						node(basicBlockName(targetBlock), "1", CompassPoint.N)
+					else -> node(basicBlockName(targetBlock))
 				}
 			) { attr: AttributeWriter ->
 				// Number each edge uniquely, to allow a multigraph.
@@ -1206,7 +1198,7 @@ class L2ControlFlowGraphVisualizer constructor(
 
 		private const val newEntryColor = "#209020/b0ffb0"
 
-		private const val noRegistersColor = "#404040/c0c0c0"
+		private const val noRegistersColor = "#707070/909090"
 
 		private const val changedEntryColor = "#909020/e0e0a0"
 

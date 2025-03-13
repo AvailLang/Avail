@@ -294,7 +294,9 @@ internal enum class OptimizationPhase constructor(
 	 * JVM translation.  Prefer to have the target block of an unconditional
 	 * jump to follow the jump, since final code generation elides the jump.
 	 */
-	ORDER_BLOCKS(L2Optimizer::orderBlocks);
+	ORDER_BLOCKS(L2Optimizer::orderBlocks)
+
+	;
 
 
 	/** The [Statistic] for tracking this pass's cost. */

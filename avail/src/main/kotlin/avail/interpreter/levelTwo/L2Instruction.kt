@@ -991,6 +991,65 @@ constructor() :
 	}
 
 	/**
+	 * If the source instruction has no side effects and isn't a phi, check if
+	 * its sole write has a semantic value equivalent to a value already in the
+	 * manifest.  If so, emit a move into the not-yet-populated semantic values,
+	 * and answer `true`.  Otherwise answer `false`.
+	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which emission should occur if possible.
+	 * @return
+	 *   Whether the writes that this original instruction (from a previous
+	 *   graph) were replaced by moves from equivalent registers.
+	 */
+	open fun L2GeneratorInterface.populateFromSourceInstructionIfPossible(
+	): Boolean
+	{
+		// If it has side effect, do the default processing.
+		if (hasSideEffect) return false
+		writeOperands.singleOrNull()?.let { write ->
+			// See if there's an equivalent value alredy computed, and
+			// if so just move it to the sole write, eliding the
+			// sourceInstruction.
+			val semanticValues = write.semanticValues()
+			val possibleSources = semanticValues.mapNotNull {
+				currentManifest.equivalentSemanticValue(it)
+			}
+			if (possibleSources.isNotEmpty())
+			{
+				val unpopulated = semanticValues - possibleSources
+				if (unpopulated.isEmpty())
+				{
+					// All destination semantic values are already populated, so
+					// there's no need to do anything else.  However, since we
+					// know they're supposed to be equivalent to each other, we
+					// merge their synonyms.  Note that since there won't be an
+					// instruction to repeat this in subsequent passes, we'll
+					// lose out on the values being synonymous, but at least we
+					// can cause them now to all to have the intersection of the
+					// restrictions.
+					val synonymRepresentatives = possibleSources.mapToSet {
+						currentManifest.semanticValueToSynonym(it)
+							.pickSemanticValue()
+					}.toList()
+					for (i in 1..<synonymRepresentatives.size)
+					{
+						currentManifest.dynamicMergeExistingSemanticValues(
+							synonymRepresentatives[0],
+							synonymRepresentatives[i])
+					}
+					return true
+				}
+				// Not all destinations have been filled, so populate them with
+				// a move.
+				moveRegister(possibleSources.first(), unpopulated.cast())
+				return true
+			}
+		}
+		return false
+	}
+
+	/**
 	 * Examine each [L2ReadOperand], and if it's restricted to a constant,
 	 * replace its register with a fresh one that has no definition. Do not do
 	 * the additional step of removing [L2_MOVE_CONSTANT] instructions, as some
@@ -1235,8 +1294,11 @@ constructor() :
 		val targets = mutableListOf<String>()
 		val sources = mutableListOf<String>()
 		val commands = mutableListOf<String>()
-		operands.forEach { operand ->
-			operand.simpleAppendOperand(commands, sources, targets)
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			if (!namedOperandType.hideInSimpleVisualization)
+			{
+				operand.simpleAppendOperand(commands, sources, targets)
+			}
 		}
 		val hasTargets = targets.isNotEmpty()
 		val hasSources = sources.isNotEmpty() || commands.isNotEmpty()
@@ -1375,6 +1437,53 @@ constructor() :
 			clone
 		}
 		return newInstruction
+	}
+
+	/**
+	 * Update the given data structures to accomodate this instruction's effect.
+	 *
+	 * @param firstUses
+	 *   The positions within this instruction's block where a register is used
+	 *   for the first time.
+	 * @param insertions
+	 *   The positions at which to insert an [L2_MAKE_IMMUTABLE] for a register.
+	 * @param mutables
+	 *   The registers that might still be mutable at this instruction.
+	 * @param uniqueGenerator
+	 *   A nullary function to produce an [Int] unique to the current
+	 *   [L2Generator].
+	 */
+	open fun processForMakeImmutable(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		insertions: MutableList<Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>,
+		uniqueGenerator: ()->Int)
+	{
+		val instruction = this
+		instruction.readsThatMightDestroy.forEach { read ->
+			val readReg = read.register()
+			val pair = firstUses[readReg]
+			when
+			{
+				pair !== null ->
+				{
+					// We just hit the second use within the block.
+					insertions.add(pair)
+					// It's no longer mutable.
+					mutables.remove(readReg)
+					firstUses.remove(readReg)
+				}
+
+				readReg in mutables ->
+				{
+					// Record this first use of a mutable.
+					firstUses[readReg] =
+						basicBlock!!.instructions().indexOf(this) to read
+				}
+			}
+		}
+		// Deal with the register writes.
+		instruction.propagateMutability(firstUses, mutables)
 	}
 
 	/**

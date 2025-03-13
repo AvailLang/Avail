@@ -254,6 +254,14 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		}
 	}
 
+	/**
+	 * Phi instructions cannot be replaced by moves in this way.  However,
+	 * pretend we wrote something, since it will be automatically generated as
+	 * needed.
+	 */
+	override fun L2GeneratorInterface.populateFromSourceInstructionIfPossible(
+	): Boolean = true
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)

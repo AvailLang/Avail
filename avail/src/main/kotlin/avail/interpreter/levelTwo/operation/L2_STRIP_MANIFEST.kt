@@ -33,8 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
@@ -125,6 +127,20 @@ class L2_STRIP_MANIFEST(
 		val index = destinationRegisters.indexOf(destinationRegister)
 		assert(index != -1)
 		return sourceRegisters[index]
+	}
+
+	override fun processForMakeImmutable(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		insertions: MutableList<Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>,
+		uniqueGenerator: ()->Int)
+	{
+		// Deal with L2_STRIP_MANIFEST instructions that have their data moves
+		// *entirely* elided due to register coloring.  If even one move is
+		// still needed, generate makeImmutables for *all* of the registers.
+		if (sourceRegisters == destinationRegisters) return
+		super.processForMakeImmutable(
+			firstUses, insertions, mutables, uniqueGenerator)
 	}
 
 	override fun translateToJVM(

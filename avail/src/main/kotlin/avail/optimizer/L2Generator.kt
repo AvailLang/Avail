@@ -1705,8 +1705,11 @@ constructor(
 		 * implementations at a call site.  This may seem so small that it
 		 * precludes many fruitful opportunities, but code splitting should help
 		 * eliminate all but a few possibilities at many call sites.
+		 *
+		 * TODO - Once we start tracking actual lookup results per call site,
+		 *  we can decrease this.
 		 */
-		const val maxPolymorphismToInlineDispatch = 12
+		const val maxPolymorphismToInlineDispatch = 20
 
 		/**
 		 * Use a series of instance equality checks if we're doing type testing

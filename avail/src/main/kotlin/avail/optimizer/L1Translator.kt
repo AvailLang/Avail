@@ -176,7 +176,6 @@ import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.operation.L2_SET_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
@@ -769,6 +768,7 @@ class L1Translator private constructor(
 			reference = edgeTo(onReturnIntoReified),
 			referenceOffset = writeOffset,
 			registerDump = writeRegisterDump,
+			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()),
 			dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
 			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 		startBlock(fallThrough)
@@ -819,10 +819,7 @@ class L1Translator private constructor(
 				comment = L2CommentOperand(
 					"Create a reification continuation."))
 		}
-		+L2_SET_CONTINUATION(readBoxed(newContinuationWrite))
-
-		// Right after creating the continuation.
-		+L2_RETURN_FROM_REIFICATION_HANDLER()
+		+L2_RETURN_FROM_REIFICATION_HANDLER(readBoxed(newContinuationWrite))
 
 		// Here it's returning into the reified continuation.
 		startBlock(onReturnIntoReified)
@@ -2187,11 +2184,14 @@ class L1Translator private constructor(
 		// graph.  We'll set them to new variables right after the interrupt has
 		// been serviced and resumed safely (from a continuation that isn't
 		// shared or immutable).
+		val elidedLocalPlaceholders = (1..numLocals).map { localindex ->
+			newPlaceholder(code.localTypeAt(localindex), localindex)
+		}
 		for (localIndex in 1 .. numLocals)
 		{
 			forceConstantSlot(
 				numArgs + localIndex,
-				newPlaceholder(code.localTypeAt(localIndex), localIndex))
+				elidedLocalPlaceholders[localIndex - 1])
 		}
 		var startOfConstantsToClear = numArgs + numLocals + 1
 		primitive?.let {
@@ -2231,7 +2231,9 @@ class L1Translator private constructor(
 					numArgs + localIndex,
 					pc,
 					boxedRestrictionForType(localType)),
-				initialValueOrNil = boxedConstant(nil))
+				initialValueOrNil = boxedConstant(nil),
+				constantVariableIfElided =
+					L2ConstantOperand(elidedLocalPlaceholders[localIndex - 1]))
 		}
 
 		val nybblecodeMap = mutableMapOf<Int, String>()

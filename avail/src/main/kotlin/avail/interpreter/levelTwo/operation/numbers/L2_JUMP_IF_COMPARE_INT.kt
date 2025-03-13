@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -131,15 +131,15 @@ class L2_JUMP_IF_COMPARE_INT(
 			// made the restriction unduly restrictive, and it may fail to find
 			// a suitable split position (i.e., for v>10, when we've already
 			// narrowed v to [0..20], we should still split (for the positive
-			// case) with the test v ∈ [11..∞) instead of v ∈ [11..20], so that
+			// case) with the test v ∈ [11..∞] instead of v ∈ [11..20], so that
 			// it can split at an earlier position where, say, v ∈ [11..1000]
 			// was known.  Wishing for v ∈ [11.20] would fail to detect that
 			// split point.
 			//
 			// Note that even though we know the value is an i32 here, we wish
-			// for [11..∞) instead of [11..MAX_INT], in case there was a point
+			// for [11..∞] instead of [11..MAX_INT], in case there was a point
 			// before the unboxing that detected, say, [11..10^100].
-			val restriction1 = boxedRestrictionForType(integers)
+			val restriction1 = boxedRestrictionForType(extendedIntegers)
 			val restriction2 = boxedRestrictionForConstant(constant)
 			val (rest1, _, rest3, _) =
 				numericComparator.constant

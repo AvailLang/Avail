@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.AvailRuntimeSupport
+import avail.descriptor.functions.A_RegisterDump
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
@@ -46,6 +47,7 @@ import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
@@ -53,8 +55,10 @@ import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
@@ -69,7 +73,6 @@ import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.Strings.increaseIndentation
-import avail.utility.cast
 import avail.utility.deepForEach
 import avail.utility.mapToSet
 import java.util.ArrayDeque
@@ -458,74 +461,15 @@ class L2Optimizer internal constructor(
 			isSplitting = true,
 			interestingConditionsByOldBlock = splitConditions)
 		{ sourceInstruction ->
-			if (populateIfPossible(sourceInstruction)) return@regenerateGraph
+			with(sourceInstruction) {
+				if (populateFromSourceInstructionIfPossible())
+					return@regenerateGraph
+			}
 			// Fall back to having the instruction transform itself.
 			basicTransformInstruction(sourceInstruction)
 				.cloneFor(generator)
 				.run { emitTransformedInstruction() }
 		}
-	}
-
-	/**
-	 * If the source instruction has no side effects and isn't a phi, check if
-	 * its sole write has a semantic value equivalent to a value already in the
-	 * manifest.  If so, emit a move into the not-yet-populated semantic values,
-	 * and answer `true`.  Otherwise answer `false`.
-	 *
-	 * @receiver
-	 *   The [L2GeneratorInterface] on which emission should occur if possible.
-	 * @param sourceInstruction
-	 *   The [L2Instruction] from a previous version of the graph.
-	 */
-	private fun L2GeneratorInterface.populateIfPossible(
-		sourceInstruction: L2Instruction
-	): Boolean
-	{
-		// If it's a phi, pretend we wrote something, since it will be
-		// automatically generated as needed.
-		if (sourceInstruction is L2_PHI<*>) return true
-		// If it has side effect, do the default processing.
-		if (sourceInstruction.hasSideEffect) return false
-		sourceInstruction.writeOperands.singleOrNull()?.let { write ->
-			// See if there's an equivalent value alredy computed, and
-			// if so just move it to the sole write, eliding the
-			// sourceInstruction.
-			val semanticValues = write.semanticValues()
-			val possibleSources = semanticValues.mapNotNull {
-				currentManifest.equivalentSemanticValue(it)
-			}
-			if (possibleSources.isNotEmpty())
-			{
-				val unpopulated = semanticValues - possibleSources
-				if (unpopulated.isEmpty())
-				{
-					// All destination semantic values are already populated, so
-					// there's no need to do anything else.  However, since we
-					// know they're supposed to be equivalent to each other, we
-					// merge their synonyms.  Note that since there won't be an
-					// instruction to repeat this in subsequent passes, we'll
-					// lose out on the values being synonymous, but at least we
-					// can cause them now to all to have the intersection of the
-					// restrictions.
-					val synonymRepresentatives = possibleSources.mapToSet {
-						currentManifest.semanticValueToSynonym(it)
-							.pickSemanticValue()
-					}.toList()
-					for (i in 1..<synonymRepresentatives.size)
-					{
-						currentManifest.dynamicMergeExistingSemanticValues(
-							synonymRepresentatives[0],
-							synonymRepresentatives[i])
-					}
-					return true
-				}
-				// Not all destinations have been filled, so populate them with
-				// a move.
-				moveRegister(possibleSources.first(), unpopulated.cast())
-				return true
-			}
-		}
-		return false
 	}
 
 	/**
@@ -847,7 +791,10 @@ class L2Optimizer internal constructor(
 		}
 		// Use an L2Regenerator to do the substitution.
 		regenerateGraph(BySemanticValue) { sourceInstruction ->
-			if (populateIfPossible(sourceInstruction)) return@regenerateGraph
+			with (sourceInstruction) {
+				if (populateFromSourceInstructionIfPossible())
+					return@regenerateGraph
+			}
 			// Fall back to having the instruction transform itself.
 			basicTransformInstruction(sourceInstruction)
 				.cloneFor(this@regenerateGraph)
@@ -1318,6 +1265,29 @@ class L2Optimizer internal constructor(
 	 * When starting a block, begin by taking the union of the mutable sets of
 	 * the incoming edges (i.e., the registers which have been written with a
 	 * potentially mutable value, and have not yet been read).
+	 *
+	 * There's some trickiness to [L2_SAVE_ALL_AND_PC_TO_INT], since it
+	 * first jumps along the "ifFallThrough" edge, ultimately creating a
+	 * continuation, and when that continuation later resumes, control flow
+	 * continues along the "reference" edge.  In effect, it goes "both ways".
+	 * We allow non-side-effect instructions to be replicated along these two
+	 * paths, to increase the mobility of these instructions, allowing them to
+	 * slip past a call entirely (rejoining and continuing postponement), other
+	 * than the cold path of reification, where redundant computation can
+	 * happen.  However, these instructions can still destroy their inputs if
+	 * they're mutable, leading to a situation where "the same" operation is
+	 * performed after the (reified) call completes.  If the operation altered
+	 * a mutable input, say the [L2_APPEND_TO_TUPLE], the second occurrence of
+	 * the operation, outside the reification zone, could append the value
+	 * twice.  This actually happened, rarely, for a quicksort implementation
+	 * (2025.03.07).
+	 *
+	 * To resolve this problem, we treat the [L2_CREATE_CONTINUATION] as
+	 * consuming each value provided to it, whether in a slot or in the
+	 * [A_RegisterDump] constructed in the prior [L2_SAVE_ALL_AND_PC_TO_INT].
+	 * Since an append is considered to consume its input, and that append is
+	 * prior to the continuation creation, we know that we must insert an
+	 * [L2_MAKE_IMMUTABLE] for the input tuple inserted before the append.
 	 */
 	fun insertMakeImmutable()
 	{
@@ -1333,48 +1303,9 @@ class L2Optimizer internal constructor(
 				if (!it.isBackward) mutables.addAll(mutablesByEdge[it]!!)
 			}
 			val instructions = block.instructions()
-			instructions.forEachIndexed { i, instruction ->
-				// Deal with the register reads.
-				if (instruction is L2_MOVE<*>
-					&& instruction.source.register().finalIndex
-						== instruction.destination.register().finalIndex)
-				{
-					// Treat it as a pass-through, since it just moves from a
-					// register to itself.
-					return@forEachIndexed
-				}
-				// Deal with L2_STRIP_MANIFEST instructions that have their
-				// data moves *entirely* elided due to register coloring.  If
-				// even one move is still needed, generate makeImmutables for
-				// *all* of the registers.
-				if (instruction is L2_STRIP_MANIFEST
-					&& instruction.sourceRegisters
-						== instruction.destinationRegisters)
-				{
-					return@forEachIndexed
-				}
-				instruction.readsThatMightDestroy.forEach { read ->
-					val readReg = read.register()
-					val pair = firstUses[readReg]
-					when
-					{
-						pair !== null ->
-						{
-							// We just hit the second use within the block.
-							insertions.add(pair)
-							// It's no longer mutable.
-							mutables.remove(readReg)
-							firstUses.remove(readReg)
-						}
-						readReg in mutables ->
-						{
-							// Record this first use of a mutable.
-							firstUses[readReg] = i to read
-						}
-					}
-				}
-				// Deal with the register writes.
-				instruction.propagateMutability(firstUses, mutables)
+			instructions.forEach { instruction ->
+				instruction.processForMakeImmutable(
+					firstUses, insertions, mutables, generator::nextUnique)
 			}
 			// We've processed the block's instructions.  Now use the live-in
 			// information on the outbound edges as additional uses, to

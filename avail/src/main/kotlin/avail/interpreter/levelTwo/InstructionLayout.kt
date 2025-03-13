@@ -119,7 +119,9 @@ internal constructor(
 		val namedOperandType: L2NamedOperandType = L2NamedOperandType(
 			operandTypeForOperandClass(type),
 			name,
-			property.javaField!!.getAnnotation(On::class.java)?.purpose)
+			property.javaField!!.getAnnotation(On::class.java)?.purpose,
+			property.javaField!!
+				.isAnnotationPresent(HideInSimpleVisualization::class.java))
 
 		/**
 		 * Read the field from an [L2Instruction] of the required type.

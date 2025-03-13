@@ -41,6 +41,7 @@ import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HideInSimpleVisualization
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -65,6 +66,7 @@ import org.objectweb.asm.MethodVisitor
 class L2_CREATE_CONTINUATION
 constructor (
 	var function: L2ReadBoxedOperand,
+	@HideInSimpleVisualization
 	var code: L2ConstantOperand,
 	var caller: L2ReadBoxedOperand,
 	var levelOnePc: L2IntImmediateOperand,

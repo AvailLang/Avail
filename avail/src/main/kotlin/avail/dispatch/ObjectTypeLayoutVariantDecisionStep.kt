@@ -287,8 +287,7 @@ constructor(
 		val applicableEntries = variantToSubtree.entries
 			.filter { (variant, subtree) ->
 				variant.isSubvariantOf(restrictionVariant)
-					&& avail.dispatch.DecisionStep.Companion.containsAnyValidLookup(
-					subtree.castForGenerator())
+					&& containsAnyValidLookup(subtree.castForGenerator())
 			}
 			.sortedBy { (variant, _) -> variant.variantId }
 		if (applicableEntries.isEmpty())

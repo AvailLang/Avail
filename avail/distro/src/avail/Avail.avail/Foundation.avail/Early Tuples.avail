@@ -831,7 +831,7 @@ Public method "_[_..]" is
  * Construct and answer a slice (i.e., subtuple) that begins at subscript
  * {@param "sliceStart"} and continues to the end of the tuple.
  *
- * @method "_[_..]"
+ * @macro "_[_..]"
  * @param "aTuple" "tuple"
  *        A tuple.
  * @param "sliceStart" "natural number"
@@ -840,13 +840,23 @@ Public method "_[_..]" is
  *          The requested tuple.
  * @category "Tuples" "Types" "Queries"
  */
-Public stable method "_[_..]" is
+Public macro "_[_..]" is
 [
-	aTuple : tuple,
-	sliceStart : natural number
+	aTuple : expression phrase ⇒ tuple,
+	sliceStart : expression phrase ⇒ natural number
 |
-	aTuple[sliceStart..|aTuple|]
-] : tuple;
+	/* Introduce a temp to avoid computing aTuple twice. */
+	sequence-as-expression «
+		seq «
+			⟦
+				[
+					tupleTemp ::= ⦊aTuple⦉;
+					tupleTemp[⦊sliceStart⦉..|tupleTemp|]
+				]
+			⟧'s statements
+		»
+	» ?→ expression phrase ⇒ tuple
+];
 
 /**
  * Strengthen the tuple type produced by {@param "_[_..]"} to the strongest

@@ -85,9 +85,13 @@ import java.nio.ByteBuffer
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class SubrangeTupleDescriptor private constructor(mutability: Mutability)
-	: TupleDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+class SubrangeTupleDescriptor
+private constructor(
+	mutability: Mutability
+) : TupleDescriptor(
+	mutability,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.

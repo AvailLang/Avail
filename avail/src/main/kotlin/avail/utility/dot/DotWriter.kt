@@ -36,7 +36,7 @@ package avail.utility.dot
 
 import avail.utility.Strings.tabs
 import avail.utility.cast
-import avail.utility.dot.DotWriter.AttributeWriter
+import avail.utility.dot.DotWriter.Companion.label
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE
@@ -727,15 +727,15 @@ class DotWriter constructor(
 		private fun nodeReference(node: DecoratedNode)
 		{
 			identifier(node.name)
-			if (node.port !== null)
-			{
-				emit(":")
-				identifier(node.port)
-			}
 			if (node.compassPoint !== null)
 			{
 				emit(":")
 				emit(node.compassPoint.name.lowercase())
+			}
+			if (node.port !== null)
+			{
+				emit(":")
+				identifier(node.port)
 			}
 		}
 
@@ -1104,16 +1104,16 @@ class DotWriter constructor(
 		 * @param name
 		 *   The name of the node.
 		 * @param port
-		 *   The name of the port.
+		 *   The name of the port or `null`.
 		 * @param compassPoint
-		 *   The [CompassPoint].
+		 *   The [CompassPoint] or `null`.
 		 * @return
 		 *   The requested node.
 		 */
 		fun node(
 			name: String,
-			port: String,
-			compassPoint: CompassPoint
+			port: String?,
+			compassPoint: CompassPoint?
 		) = DecoratedNode(name, port, compassPoint)
 
 		/** The pattern to match for light/dark bimodal colors. */

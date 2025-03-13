@@ -63,7 +63,8 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
-class L2_ENTER_L2_CHUNK(
+class L2_ENTER_L2_CHUNK
+constructor(
 	var entryPointOffsetInDefaultChunk: L2IntImmediateOperand,
 	var chunkEntryPointName: L2CommentOperand
 ): L2Instruction()

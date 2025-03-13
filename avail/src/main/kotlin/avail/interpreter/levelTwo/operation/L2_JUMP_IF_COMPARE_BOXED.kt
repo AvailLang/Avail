@@ -31,8 +31,8 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -78,8 +78,8 @@ class L2_JUMP_IF_COMPARE_BOXED(
 		val restriction1 = number1.restriction()
 		val restriction2 = number2.restriction()
 
-		if (restriction1.containedByType(integers)
-			&& restriction2.containedByType(integers))
+		if (restriction1.containedByType(extendedIntegers)
+			&& restriction2.containedByType(extendedIntegers))
 		{
 			// Restrict both values along both branches.
 			val (rest1, rest2, rest3, rest4) =
@@ -120,20 +120,21 @@ class L2_JUMP_IF_COMPARE_BOXED(
 			addAll(unboxedIntConditions(listOf(number1.register())))
 			addAll(unboxedIntConditions(listOf(number2.register())))
 		}
-		number2.constantOrNull?.let { constant ->
-			// If the constant is an integer, and if the argument is an extended
-			// integer, we can try to leverage that by keeping the code split
-			// whenever the comparison would have been always true or always
-			// false.
-			if (constant.isInstanceOf(integers)
-				&& number1.restriction().containedByType(integers))
+		number2.constantOrNull?.let { constant2 ->
+			// If the constant2 is an extended integer, and if the argument is
+			// an extended integer, we can try to leverage that by keeping the
+			// code split whenever the comparison would have been always true or
+			// always false.
+			if (constant2.isInstanceOf(extendedIntegers)
+				&& number1.restriction().containedByType(extendedIntegers))
 			{
 				// HOWEVER, don't use the current restriction for the value,
 				// since it might have been narrowed by previous comparisons.
-				// Use the broadest range (integers), to get the broadest type
-				// that can be used to split the code as early as possible.
-				val restriction1 = boxedRestrictionForType(integers)
-				val restriction2 = boxedRestrictionForConstant(constant)
+				// Use the broadest range (extendedIntegers), to get the
+				// broadest type that can be used to split the code as early as
+				// possible.
+				val restriction1 = boxedRestrictionForType(extendedIntegers)
+				val restriction2 = boxedRestrictionForConstant(constant2)
 				val (rest1, _, rest3, _) =
 					numericComparator.constant.computeRestrictions(
 						restriction1, restriction2)

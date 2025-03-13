@@ -135,37 +135,44 @@ constructor(
 		}
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
-		// Delegate to the MultiWaySplitter.
-		addAll(
-			splitter.constant.interestingConditions(value, branchEdges.edges))
-	}
+	/** Delegate to the MultiWaySplitter. */
+	override fun interestingConditions(): List<L2SplitCondition?> =
+		splitter.constant.interestingConditions(value, branchEdges.edges)
 
 	override fun L2GeneratorInterface.generateConditionalReplacement(
 		originalInstruction: L2Instruction)
 	{
-		val splits = splitter.constant.splitPoints
-		val edgeCount = splits.size + 1
-		val low = splits.first()
-		val high = splits.last()
+		val reduced = splitter.constant.reducedSplitterInstruction(
+			value, branchEdges.edges, currentManifest)
+		if (reduced !is L2_MULTIWAY_JUMP)
+		{
+			+reduced
+			return
+		}
+
+		val reducedSplitter = reduced.splitter.constant
+		val reducedSplits = reducedSplitter.splitPoints
+		val edgeCount = reducedSplits.size + 1
+		val low = reducedSplits.first()
+		val high = reducedSplits.last()
 		if (edgeCount > 4 && (high - low) < edgeCount * 10)
 		{
 			// It's at least 10% dense and has at least five edges out, so use
 			// a dense table lookup.
-			+this@L2_MULTIWAY_JUMP
+			+reduced
 			return
 		}
-		// Do a binary search instead.
+		// Emit a binary search instead.
 		generateSubtree(
-			value,
-			splitter.constant,
-			splitter.constant.originalValueSource(value),
-			branchEdges.edges,
+			reduced.value,
+			reducedSplitter,
+			reducedSplitter.originalValueSource(reduced.value),
+			reduced.branchEdges.edges,
 			1,
-			splits.size,
+			reducedSplits.size,
 			ZoneType.MULTI_WAY_EXPANSION.createZone(
 				"multi-way branch:\n" +
-					"\tsplits = $splits"))
+					"\tsplits = $reducedSplits"))
 	}
 
 	/**

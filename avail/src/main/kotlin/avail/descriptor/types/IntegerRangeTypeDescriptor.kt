@@ -67,10 +67,12 @@ import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.lowerInclusive
+import avail.descriptor.types.A_Type.Companion.trimType
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeIntersectionOfIntegerRangeType
 import avail.descriptor.types.A_Type.Companion.typeUnionOfIntegerRangeType
@@ -78,6 +80,7 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND
 import avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND
 import avail.descriptor.types.PojoTypeDescriptor.Companion.byteRange
@@ -343,9 +346,15 @@ private constructor(
 		{
 			self.isSubtypeOf(typeToRemove) -> bottom
 			!typeToRemove.isIntegerRangeType -> self
-			// Don't use a conservative union of the values' types.
 			typeToRemove.isEnumeration &&
-				!typeToRemove.instanceCount.equalsInt(1) -> self
+				!typeToRemove.instanceCount.equalsInt(1) ->
+			{
+				// Don't use a conservative union of the values' types. Instead,
+				// remove each excluded value in turn.
+				typeToRemove.instances.fold(self) { running: A_Type, remove ->
+					running.trimType(instanceType(remove))
+				}
+			}
 			(!lowerInclusive
 					&& typeToRemove.lowerBound.equalsInfinity(NEGATIVE))
 				|| self.lowerBound.isInstanceOf(typeToRemove) ->

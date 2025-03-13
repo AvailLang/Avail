@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
@@ -275,6 +276,23 @@ constructor(
 		generator: L2Generator
 	): Unit = generator.extractTupleElement(
 		source, index, destinationSemanticValues)
+
+	override fun processForMakeImmutable(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		insertions: MutableList<Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>,
+		uniqueGenerator: ()->Int)
+	{
+		if (source.register().finalIndex == destination.register().finalIndex)
+		{
+			// Treat it as a pass-through, since it just moves from a
+			// register to itself.
+			return
+		}
+		super.processForMakeImmutable(
+			firstUses, insertions, mutables, uniqueGenerator)
+	}
+
 }
 
 class L2_MOVE_INT

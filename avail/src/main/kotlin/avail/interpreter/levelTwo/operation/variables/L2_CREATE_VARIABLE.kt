@@ -60,7 +60,8 @@ constructor(
 	var localIndex: L2IntImmediateOperand,
 	var outerType: L2ConstantOperand,
 	var variable: L2WriteBoxedOperand,
-	var initialValueOrNil: L2ReadBoxedOperand
+	var initialValueOrNil: L2ReadBoxedOperand,
+	var constantVariableIfElided: L2ConstantOperand
 ): L2Instruction()
 {
 	override fun StringBuilder.appendToWithWarnings(

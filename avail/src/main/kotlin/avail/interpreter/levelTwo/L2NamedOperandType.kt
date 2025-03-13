@@ -49,6 +49,9 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
  *   The [String] that names the receiver within an [L2Instruction].
  * @property purpose
  *   The [Purpose] that best describes the [L2NamedOperandType], if any.
+ * @property hideInSimpleVisualization
+ *   Whether this field should be hidden when producing a simple textual output
+ *   of the containing instruction.
  *
  * @constructor
  * Construct a new `L2NamedOperandType`.
@@ -59,11 +62,15 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
  *   The name of this operand.
  * @param purpose
  *   The [Purpose] that best describes the [L2NamedOperandType], if any.
+ * @param hideInSimpleVisualization
+ *   Whether this field should be hidden when producing a simple textual output
+ *   of the containing instruction.
  */
 class L2NamedOperandType internal constructor(
 	val operandType: L2OperandType,
 	val name: String,
-	val purpose: Purpose?)
+	val purpose: Purpose?,
+	val hideInSimpleVisualization: Boolean)
 {
 	/**
 	 * Answer the [L2OperandType] that this decorates.

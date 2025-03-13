@@ -622,7 +622,9 @@ class AvailDebugger internal constructor (
 		override fun actionPerformed(e: ActionEvent)
 		{
 			(variablesPane.lastSelectedPathComponent as? LazyTreeNode)?.run {
-				inspect(name, (userObject as? AvailObject) ?: nil)
+				val helper = userObject as? AvailObjectFieldHelper
+				val value = helper?.value as? AvailObject
+				inspect(name, value ?: nil)
 			}
 		}
 	}
