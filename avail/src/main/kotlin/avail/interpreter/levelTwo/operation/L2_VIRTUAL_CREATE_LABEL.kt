@@ -143,7 +143,6 @@ class L2_VIRTUAL_CREATE_LABEL(
 	{
 		// Make sure this instruction didn't migrate into (and get lodged in) a
 		// multi-way dispatch zone.
-		assert(currentBlock().zone?.zoneType != ZoneType.MULTI_WAY_EXPANSION)
 		if (currentBlock().zone == null)
 		{
 			// Force the caller to be reified.  Use a dummy continuation

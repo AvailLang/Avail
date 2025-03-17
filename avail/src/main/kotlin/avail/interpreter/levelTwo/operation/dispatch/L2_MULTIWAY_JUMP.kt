@@ -33,27 +33,22 @@ package avail.interpreter.levelTwo.operation.dispatch
 
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
-import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
-import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
-import avail.optimizer.L2ControlFlowGraph.Zone
-import avail.optimizer.L2ControlFlowGraph.ZoneType
-import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.mapToSet
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -142,209 +137,139 @@ constructor(
 	override fun L2GeneratorInterface.generateConditionalReplacement(
 		originalInstruction: L2Instruction)
 	{
-		val reduced = splitter.constant.reducedSplitterInstruction(
+		+splitter.constant.reducedSplitterInstruction(
 			value, branchEdges.edges, currentManifest)
-		if (reduced !is L2_MULTIWAY_JUMP)
-		{
-			+reduced
-			return
-		}
-
-		val reducedSplitter = reduced.splitter.constant
-		val reducedSplits = reducedSplitter.splitPoints
-		val edgeCount = reducedSplits.size + 1
-		val low = reducedSplits.first()
-		val high = reducedSplits.last()
-		if (edgeCount > 4 && (high - low) < edgeCount * 10)
-		{
-			// It's at least 10% dense and has at least five edges out, so use
-			// a dense table lookup.
-			+reduced
-			return
-		}
-		// Emit a binary search instead.
-		generateSubtree(
-			reduced.value,
-			reducedSplitter,
-			reducedSplitter.originalValueSource(reduced.value),
-			reduced.branchEdges.edges,
-			1,
-			reducedSplits.size,
-			ZoneType.MULTI_WAY_EXPANSION.createZone(
-				"multi-way branch:\n" +
-					"\tsplits = $reducedSplits"))
-	}
-
-	/**
-	 * Use the split values with indices `[`firstSplit..lastSplit`]` to
-	 * determine which target to jump to.  For example if `firstSplit = 1` and
-	 * `lastSplit = 1`, it should test against splitPoints`[`1`]` and branch to
-	 * either edges`[`1`]` or edges`[`2`]`.  As another example, if
-	 * `firstSplit = 5` and `lastSplit = 4`, this indicates edges`[`5`]` should
-	 * be used without a further test.
-	 *
-	 * @receiver
-	 *   The [L2GeneratorInterface] on which to generate the subtree.
-	 * @param value
-	 *   The [L2ReadIntOperand] value to generate the subtree for.
-	 * @param splitter
-	 *   The [AbstractMultiWaySplitter] controlling this multi-way jump.
-	 * @param originalValueSource
-	 *   If available, this is the [L2SemanticBoxedValue] representing the
-	 *   original from which the int value has been extracted, such as a tag or
-	 *   variant id.
-	 * @param edges
-	 *   The edges list as a [List] of [L2PcOperand]s.  There should be one more
-	 *   than there are split points in the [splitter].
-	 * @param firstSplit
-	 *   The index of the first split point.
-	 * @param lastSplit
-	 *   The index of the last split point.
-	 * @param zone
-	 *   The optional [Zone] in which to create new basic blocks.
-	 */
-	private fun L2GeneratorInterface.generateSubtree(
-		value: L2ReadIntOperand,
-		splitter: AbstractMultiWaySplitter,
-		originalValueSource: L2SemanticBoxedValue?,
-		edges: List<L2PcOperand>,
-		firstSplit: Int,
-		lastSplit: Int,
-		zone: Zone?)
-	{
-		if (!currentlyReachable()) return
-		if (firstSplit > lastSplit)
-		{
-			// It's a leaf.
-			assert(firstSplit == lastSplit + 1)
-			val edge = edges[firstSplit - 1]  // Convert to zero-based.
-			+L2_JUMP(edge)
-			return
-		}
-		if (lastSplit - firstSplit < 10)
-		{
-			// It's not overly complex, so see if a small number of equality
-			// checks are suitable, versus having to produce a binary search.
-			val boundaries = (firstSplit - 1 .. lastSplit + 1)
-				.map { splitIndex ->
-					when (splitIndex)
-					{
-						firstSplit - 1 -> value.type().lowerBound.extractInt
-						lastSplit + 1 -> value.type().upperBound.extractInt + 1
-						else -> splitter.splitPoints[splitIndex - 1]
-					}
-				}
-			// Find spans containing more than one int, and see if they all lead
-			// to the same target block.
-			val spanTargets = (0..boundaries.size - 2)
-				.filter { i -> boundaries[i] + 1 < boundaries[i + 1] }
-				.mapToSet {
-					edges[firstSplit - 1 + it].targetBlockSkippingBareJumps()
-				}
-			if (spanTargets.size <= 1)
-			{
-				// The choices are all singular int ranges, except possibly some
-				// non-singular ranges that all lead to the same target block.
-				(0..boundaries.size - 2).forEach { i ->
-					val boundary = boundaries[i]
-					if (boundary + 1 == boundaries[i + 1])
-					{
-						val ifUnequal = createBasicBlock("not $boundary")
-						+L2_JUMP_IF_COMPARE_INT(
-							L2ArbitraryConstantOperand(Equal),
-							value,
-							unboxedIntConstant(boundary),
-							edges[firstSplit - 1 + i],
-							edgeTo(ifUnequal))
-						startBlock(ifUnequal)
-					}
-				}
-				if (spanTargets.size == 1)
-				{
-					+L2_JUMP(edgeTo(spanTargets.single()))
-				}
-				return
-			}
-		}
-		// It's not a leaf.  Pick a split point near the middle of the range.
-
-		val splitIndex = (firstSplit + lastSplit) ushr 1
-		val splitValue = splitter.splitPoints[splitIndex - 1]
-		val (leftName, rightName) = splitter.leftAndRightTargetNames(
-			currentManifest.restrictionFor(value.semanticValue()),
-			splitValue)
-		val leftBlock = createBasicBlock(leftName, zone)
-		val rightBlock = createBasicBlock(rightName, zone)
-		compareAndBranchInt(
-			GreaterOrEqual,
-			value,
-			unboxedIntConstant(splitValue),
-			L2PcOperand(
-				rightBlock,
-				false,
-				optionalName = rightName),
-			L2PcOperand(
-				leftBlock,
-				false,
-				optionalName = leftName))
-		// Recursively generate the left side.
-		startBlock(leftBlock)
-		generateSubtree(
-			value,
-			splitter,
-			originalValueSource,
-			edges,
-			firstSplit,
-			splitIndex - 1,
-			zone)
-		// Recursively generate the right side.
-		startBlock(rightBlock)
-		generateSubtree(
-			value,
-			splitter,
-			originalValueSource,
-			edges,
-			splitIndex + 1,
-			lastSplit,
-			zone)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
+		val targetsToLabels = branchEdges.edges
+			.mapToSet(transform = L2PcOperand::targetBlock)
+			.associateWith { Label() }
+		translateRegionToJVM(
+			translator,
+			method,
+			0,
+			splitter.constant.splitPoints.size - 1,
+			value.restriction(),
+			targetsToLabels)
+	}
+
+	/**
+	 * Generate JVM code to dispatch values in the given range of splits, with
+	 * knowledge that the value being dispatched falls in the given restriction.
+	 * Here is where the decision is made whether to use a tablelookup
+	 * instruction or a tree of branches, or some combination.
+	 *
+	 * @param translator
+	 *   The [JVMTranslator] on which to write the dispatch code.
+	 * @param method
+	 *   The [MethodVisitor] on which to write the dispatch code.
+	 * @param firstSplitIndex
+	 *   The zero-based index into the [List] of splitPoints of the first split
+	 *   value to be tested.
+	 * @param lastSplitIndex
+	 *   The zero-based index into the [List] of splitPoints of the last split
+	 *   value to be tested.  If this is less than [firstSplitIndex], only one
+	 *   edge is accessible.
+	 * @param restriction
+	 *   The [TypeRestriction] that bounds the dispatch value at this point.
+	 * @param targetsToLabels
+	 *   A [Map] from each outgoing edge's target block to a [Label].
+	 */
+	private fun translateRegionToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		firstSplitIndex: Int,
+		lastSplitIndex: Int,
+		restriction: TypeRestriction,
+		targetsToLabels: Map<L2BasicBlock, Label>)
+	{
+		assert(!restriction.isImpossible)
+		if (firstSplitIndex > lastSplitIndex)
+		{
+			translator.jump(method, branchEdges.edges[firstSplitIndex])
+			return
+		}
 		val splits = splitter.constant.splitPoints
 		val edges = branchEdges.edges
-		val lowerBound = value.type().lowerBound.extractInt
-		if (lowerBound < splits[0])
+		val splitCount = lastSplitIndex - firstSplitIndex
+		val splitSpan = splits[lastSplitIndex] - splits[firstSplitIndex]
+		val useLookupSwitch = when
 		{
-			// Handle values below the lowest split value.
+			// Too few entries to bother with a lookupswitch.
+			splitCount <= 3 -> false
+			// Entries are too sparse for a lookupswitch.
+			splitSpan > splitCount * 100L -> false
+			// Sure, use a lookupswitch.
+			else -> true
+		}
+		if (!useLookupSwitch)
+		{
+			// Split at the median split point and recurse.
+			val medianIndex = (firstSplitIndex + lastSplitIndex) / 2
+			val medianValue = splits[medianIndex]
+			val greaterOrEqualLabel = Label()
 			translator.load(method, value)
-			translator.intConstant(method, splits[0])
+			translator.intConstant(method, medianValue)
+			method.visitJumpInsn(GreaterOrEqual.opcode, greaterOrEqualLabel)
+			translateRegionToJVM(
+				translator,
+				method,
+				firstSplitIndex,
+				medianIndex - 1,
+				restriction.intersectionWithType(
+					inclusive(Int.MIN_VALUE, medianValue - 1)),
+				targetsToLabels)
+			method.visitLabel(greaterOrEqualLabel)
+			translateRegionToJVM(
+				translator,
+				method,
+				medianIndex + 1,
+				lastSplitIndex,
+				restriction.intersectionWithType(
+					inclusive(medianValue, Int.MAX_VALUE)),
+				targetsToLabels)
+			return
+		}
+		// Produce a lookupswitch instruction.
+		val lowerBound = restriction.type.lowerBound.extractInt
+		if (lowerBound < splits[firstSplitIndex]
+			&& edges[firstSplitIndex].targetBlock()
+			!= edges[lastSplitIndex + 1].targetBlock())
+		{
+			// Handle values below the lowest split value, but only because such
+			// a value is possible *and* the first and last edges go somewhere
+			// different, precluding a trivial use of the default target of the
+			// tablelookup instruction.
+			translator.load(method, value)
+			translator.intConstant(method, splits[firstSplitIndex])
 			val notTooLow = Label()
 			method.visitJumpInsn(GreaterOrEqual.opcode, notTooLow)
 			// At this point the value is left of the first split.
-			translator.jump(method, edges[0])
+			translator.jump(method, edges[firstSplitIndex])
 			method.visitLabel(notTooLow)
 		}
 		// At this point the value is at or after the first split.
-		val targetsToLabels = edges
-			.mapToSet(transform = L2PcOperand::targetBlock)
-			.associateWith { Label() }
 		val labelTable = buildList<Label> {
-			splits.zipWithNext().forEachIndexed { i, (start, pastEnd) ->
-				val targetBlock = edges[i+1].targetBlock()
-				val label = targetsToLabels[targetBlock]!!
-				repeat(pastEnd - start) {
+			(firstSplitIndex .. lastSplitIndex - 1).forEach { i ->
+				val startOfRun = splits[i]
+				val pastEndOfRun = splits[i + 1]
+				val block = edges[i + 1].targetBlock()
+				val label = targetsToLabels[block]!!
+				repeat(pastEndOfRun - startOfRun) {
 					add(label)
 				}
 			}
 		}
+		assert(labelTable.isNotEmpty())
 		translator.load(method, value)
 		method.visitTableSwitchInsn(
-			splits.first(),
-			splits.last() - 1,
-			targetsToLabels[edges.last().targetBlock()],
+			splits[firstSplitIndex],
+			splits[lastSplitIndex] - 1,
+			targetsToLabels[edges[lastSplitIndex + 1].targetBlock()],
 			*labelTable.toTypedArray())
 		targetsToLabels.forEach { target, label ->
 			method.visitLabel(label)

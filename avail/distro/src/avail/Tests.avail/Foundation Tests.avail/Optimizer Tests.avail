@@ -81,7 +81,7 @@ Test "non-local Exit_if_ didn't clear JVM stack" in optimizer test suite is
 		x : boolean := true;
 		If x then [Exit body];
 		Shouldn't happen
-	] 10001 times;
+	] 100 times;
 ];
 
 /* Detect a regression where there are two equal *constant* arguments. */

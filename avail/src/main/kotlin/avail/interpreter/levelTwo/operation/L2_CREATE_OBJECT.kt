@@ -50,14 +50,12 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_CREATE_OBJECT(
-	variant: ObjectLayoutVariant,
+	var variant: L2ArbitraryConstantOperand<ObjectLayoutVariant>,
 	var guaranteedType: L2ConstantOperand,
 	var fieldValues: L2ReadBoxedVectorOperand,
 	var newObject: L2WriteBoxedOperand
 ) : L2Instruction()
 {
-	var variant = L2ArbitraryConstantOperand(variant)
-
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)

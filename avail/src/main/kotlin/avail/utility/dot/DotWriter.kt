@@ -35,11 +35,12 @@
 package avail.utility.dot
 
 import avail.utility.Strings.tabs
-import avail.utility.cast
 import avail.utility.dot.DotWriter.Companion.label
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE
+import avail.utility.dot.DotWriter.JustificationAttributeName.Justification
+import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.RankDirection
 import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -132,6 +133,120 @@ class DotWriter constructor(
 	 * The prebuilt [GraphWriter] for dependency injection.
 	 */
 	internal val graphWriter = GraphWriter()
+
+	/**
+	 * An enumeration of names that can be used as though they're declarative
+	 * functions where an [AttributeWriter] is a visible receiver.  The argument
+	 * is expected to be a value of type [T], which will produce a string
+	 * representation via toString()
+	 *
+	 * Note that the enumeration value names in the specific enums are the
+	 * actual strings emitted in a graph attribute declaration, so don't rename
+	 * them.
+	 */
+	interface TypedAttributeName<T>
+	{
+		@Suppress("UNCHECKED_CAST")
+		open val attributeName: String get() = (this as Enum<T>).name
+
+		open fun getString(
+			value: T,
+			writer: AttributeWriter
+		): String = value.toString()
+	}
+
+	/**
+	 * An enumeration of [Boolean]-valued attributes, which can be used like
+	 * a method invocation where an [AttributeWriter] is a visible receiver,
+	 * taking a [Boolean] as an argument.
+	 */
+	enum class BooleanAttributeName: TypedAttributeName<Boolean>
+	{
+		newrank,
+		overlap,
+		splines,
+		fixedsize,
+		constraint
+	}
+
+	/**
+	 * An enumeration of [String]-valued attributes, which can be used like
+	 * a method invocation where an [AttributeWriter] is a visible receiver,
+	 * taking a [String] as an argument.
+	 */
+	enum class StringAttributeName: TypedAttributeName<String>
+	{
+		label,
+		style, //This can be specialized to an enum.
+		arrowhead, //This can be specialized to an enum.
+		id,
+		fontname,
+		shape, //This can be specialized to an enum.
+		headlabel,
+	}
+
+	/**
+	 * An enumeration of [Number]-valued attributes, which can be used like
+	 * a method invocation where an [AttributeWriter] is a visible receiver,
+	 * taking a [Number] as an argument.
+	 */
+	enum class NumberAttributeName: TypedAttributeName<Number>
+	{
+		fontsize,
+		labeldistance,
+		labelangle,
+		penwidth
+	}
+
+	/**
+	 * An enumeration of names that can be used as though they're declarative
+	 * functions where an [AttributeWriter] is a visible receiver.  The argument
+	 * is expected to be a string suitable to [AttributeWriter.adjust],
+	 */
+	enum class ColorAttributeName: TypedAttributeName<String>
+	{
+		color,
+		fontcolor,
+		bgcolor;
+
+		override fun getString(value: String, writer: AttributeWriter): String =
+			writer.adjust(value)
+	}
+
+	/**
+	 * An enumeration of names that can be used as though they're declarative
+	 * functions where an [AttributeWriter] is a visible receiver.  The argument
+	 * is expected to be a [Justification].
+	 */
+	enum class JustificationAttributeName: TypedAttributeName<Justification>
+	{
+		labeljust;
+
+		override fun getString(value: Justification, writer: AttributeWriter) =
+			value.string
+
+		/** An enumeration of justification values. */
+		enum class Justification(val string: String)
+		{
+			left("l"),
+			right("r"),
+			center("c")
+		}
+	}
+
+	enum class RankDirectionAttribuuteName: TypedAttributeName<RankDirection>
+	{
+		rankdir;
+
+		/** An enumeration of orientations in which to lay out the graph. */
+		enum class RankDirection(val string: String)
+		{
+			TopBottom("TB"),
+			BottomTop("BT"),
+			LeftRight("LR"),
+			RightLeft("RL")
+		}
+	}
 
 	/**
 	 * An `AttributeWriter` provides the ability to write generally
@@ -428,13 +543,34 @@ class DotWriter constructor(
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		fun attribute(lhs: String, rhs: String)
+		private fun attribute(lhs: String, rhs: String)
 		{
 			val isColor = lhs.contains("color")
 			indent()
 			identifier(lhs)
 			emit(" = ")
 			identifier(if (isColor) adjust(rhs) else rhs)
+			linefeed()
+		}
+
+		/**
+		 * Emit an attribute setting with a well-typed argument.
+		 *
+		 * @receiver
+		 *   The [TypedAttributeName] to set.
+		 * @param T
+		 *   The type of value for the argument.
+		 * @param value
+		 *   The strongly-typed value to bind to the assignment target.
+		 * @throws IOException
+		 *   If emission fails.
+		 */
+		operator fun <T> TypedAttributeName<T>.invoke(value: T): Unit
+		{
+			indent()
+			identifier(attributeName)
+			emit(" = ")
+			identifier(getString(value, this@AttributeWriter))
 			linefeed()
 		}
 
@@ -587,7 +723,7 @@ class DotWriter constructor(
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		private fun attributeBlock(block: (AttributeWriter) -> Unit)
+		private fun attributeBlock(block: AttributeWriter.()->Unit)
 		{
 			indent()
 			emit("[\n")
@@ -609,7 +745,7 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun defaultAttributeBlock(
 			type: DefaultAttributeBlockType,
-			block: (AttributeWriter) -> Unit)
+			block: AttributeWriter.()->Unit)
 		{
 			indent()
 			emit(type.name.lowercase())
@@ -646,7 +782,7 @@ class DotWriter constructor(
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		fun subgraph(subgraphName: String, block: (GraphWriter) -> Unit)
+		fun subgraph(subgraphName: String, block: GraphWriter.()->Unit)
 		{
 			indent()
 			emit("subgraph ")
@@ -668,15 +804,12 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun node(
 			nodeName: String,
-			block: ((AttributeWriter) -> Unit)?)
+			block: AttributeWriter.()->Unit)
 		{
 			indent()
 			identifier(nodeName)
 			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
+			attributeBlock(block)
 		}
 
 		/**
@@ -704,17 +837,14 @@ class DotWriter constructor(
 		fun edge(
 			source: String,
 			target: String,
-			block: ((AttributeWriter) -> Unit)?)
+			block: AttributeWriter.()->Unit)
 		{
 			indent()
 			identifier(source)
 			edgeOperator()
 			identifier(target)
 			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
+			attributeBlock(block)
 		}
 
 		/**
@@ -755,230 +885,14 @@ class DotWriter constructor(
 		fun edge(
 			source: DecoratedNode,
 			target: DecoratedNode,
-			block: ((AttributeWriter) -> Unit)?)
+			block: AttributeWriter.()->Unit)
 		{
 			indent()
 			nodeReference(source)
 			edgeOperator()
 			nodeReference(target)
 			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
-		}
-
-		/**
-		 * Emit an edge.
-		 *
-		 * @param source
-		 *   The lambda to apply to generate the source subgraph.
-		 * @param target
-		 *   The identifier of the target node.
-		 * @param block
-		 *   The lambda to apply to generate the edge's attributes.
-		 * @throws IOException
-		 *   If emission fails.
-		 */
-		@Throws(IOException::class)
-		fun edge(
-			source: (GraphWriter) -> Unit,
-			target: String,
-			block: ((AttributeWriter) -> Unit)?)
-		{
-			subgraph(source)
-			edgeOperator()
-			identifier(target)
-			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
-		}
-
-		/**
-		 * Emit an edge.
-		 *
-		 * @param source
-		 *   The lambda to apply to generate the source subgraph.
-		 * @param target
-		 *   The target [node][DecoratedNode].
-		 * @param block
-		 *   The lambda to apply to generate the edge's attributes.
-		 * @throws IOException
-		 *   If emission fails.
-		 */
-		@Throws(IOException::class)
-		fun edge(
-			source: (GraphWriter) -> Unit,
-			target: DecoratedNode,
-			block: ((AttributeWriter) -> Unit)?)
-		{
-			subgraph(source)
-			edgeOperator()
-			nodeReference(target)
-			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
-		}
-
-		/**
-		 * Emit an edge.
-		 *
-		 * @param source
-		 *   The identifier of the source node.
-		 * @param target
-		 *   The lambda to apply to generate the target subgraph.
-		 * @param block
-		 *   The lambda to apply to generate the edge's attributes.
-		 * @throws IOException
-		 *   If emission fails.
-		 */
-		@Throws(IOException::class)
-		fun edge(
-			source: String,
-			target: (GraphWriter) -> Unit,
-			block: ((AttributeWriter) -> Unit)?)
-		{
-			identifier(source)
-			edgeOperator()
-			linefeed()
-			subgraph(target)
-			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
-		}
-
-		/**
-		 * Emit an edge.
-		 *
-		 * @param source
-		 *   The source [node][DecoratedNode].
-		 * @param target
-		 *   The lambda to apply to generate the target subgraph.
-		 * @param block
-		 *   The lambda to apply to generate the edge's attributes.
-		 * @throws IOException
-		 *   If emission fails.
-		 */
-		@Throws(IOException::class)
-		fun edge(
-			source: DecoratedNode,
-			target: (GraphWriter) -> Unit,
-			block: ((AttributeWriter) -> Unit)?)
-		{
-			nodeReference(source)
-			edgeOperator()
-			linefeed()
-			subgraph(target)
-			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
-		}
-
-		/**
-		 * Emit an edge.
-		 *
-		 * @param source
-		 *   The lambda to apply to generate the source subgraph.
-		 * @param target
-		 *   The lambda to apply to generate the target subgraph.
-		 * @param block
-		 *   The lambda to apply to generate the edge's attributes.
-		 * @throws IOException
-		 *   If emission fails.
-		 */
-		@Throws(IOException::class)
-		fun edge(
-			source: (GraphWriter) -> Unit,
-			target: (GraphWriter) -> Unit,
-			block: ((AttributeWriter) -> Unit)?)
-		{
-			subgraph(source)
-			edgeOperator()
-			linefeed()
-			subgraph(target)
-			linefeed()
-			if (block !== null)
-			{
-				attributeBlock(block)
-			}
-		}
-
-		/**
-		 * Emit interleaved nodes and edges. If no nodes are specified, then
-		 * do nothing.
-		 *
-		 * @param nodes
-		 *   The nodes.
-		 * @param block
-		 *   The lambda to apply to generate the edges' attributes.
-		 * @throws IOException
-		 *   If emission fails.
-		 */
-		@Throws(IOException::class)
-		fun interleaved(
-			nodes: List<Any>,
-			block: ((AttributeWriter) -> Unit)?)
-		{
-			if (nodes.isNotEmpty())
-			{
-				var i = 0
-				val limit = nodes.size
-				while (i < limit)
-				{
-					val o = nodes[i]
-					if (o is String)
-					{
-						identifier(o)
-					}
-					else if (o is DecoratedNode)
-					{
-						identifier(o.name)
-						if (o.port !== null)
-						{
-							emit(":")
-							identifier(o.port)
-						}
-						if (o.compassPoint !== null)
-						{
-							emit(":")
-							identifier(o.compassPoint.name.lowercase())
-						}
-					}
-					else if (o is Function1<*, *>)
-					{
-						if (i != 0)
-						{
-							linefeed()
-						}
-						subgraph(o.cast())
-					}
-					else
-					{
-						throw AssertionError(
-							"""allowed node types are String, DecoratedNode
-							and CheckedConsumer<GraphWriter>, but
-							${o.javaClass.name} is none of these""".trim())
-					}
-					if (i < limit - 1)
-					{
-						edgeOperator()
-					}
-					i++
-				}
-				linefeed()
-				if (block !== null)
-				{
-					attributeBlock(block)
-				}
-			}
+			attributeBlock(block)
 		}
 	}
 
@@ -1003,7 +917,7 @@ class DotWriter constructor(
 	 *   If emission fails.
 	 */
 	@Throws(IOException::class)
-	fun graph(block: (GraphWriter) -> Unit)
+	fun graph(block: GraphWriter.()->Unit)
 	{
 		val writer = graphWriter
 		writer.indent()

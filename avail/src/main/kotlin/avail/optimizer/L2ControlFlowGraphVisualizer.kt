@@ -62,11 +62,33 @@ import avail.utility.Strings.tagIf
 import avail.utility.Strings.truncateTo
 import avail.utility.deepForEach
 import avail.utility.dot.DotWriter
-import avail.utility.dot.DotWriter.AttributeWriter
+import avail.utility.dot.DotWriter.BooleanAttributeName.constraint
+import avail.utility.dot.DotWriter.BooleanAttributeName.fixedsize
+import avail.utility.dot.DotWriter.BooleanAttributeName.newrank
+import avail.utility.dot.DotWriter.BooleanAttributeName.overlap
+import avail.utility.dot.DotWriter.BooleanAttributeName.splines
+import avail.utility.dot.DotWriter.ColorAttributeName.bgcolor
+import avail.utility.dot.DotWriter.ColorAttributeName.color
+import avail.utility.dot.DotWriter.ColorAttributeName.fontcolor
 import avail.utility.dot.DotWriter.Companion.node
 import avail.utility.dot.DotWriter.CompassPoint
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType
 import avail.utility.dot.DotWriter.GraphWriter
+import avail.utility.dot.DotWriter.JustificationAttributeName.Justification.left
+import avail.utility.dot.DotWriter.JustificationAttributeName.labeljust
+import avail.utility.dot.DotWriter.NumberAttributeName.fontsize
+import avail.utility.dot.DotWriter.NumberAttributeName.labelangle
+import avail.utility.dot.DotWriter.NumberAttributeName.labeldistance
+import avail.utility.dot.DotWriter.NumberAttributeName.penwidth
+import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.RankDirection.TopBottom
+import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.rankdir
+import avail.utility.dot.DotWriter.StringAttributeName.arrowhead
+import avail.utility.dot.DotWriter.StringAttributeName.fontname
+import avail.utility.dot.DotWriter.StringAttributeName.headlabel
+import avail.utility.dot.DotWriter.StringAttributeName.id
+import avail.utility.dot.DotWriter.StringAttributeName.label
+import avail.utility.dot.DotWriter.StringAttributeName.shape
+import avail.utility.dot.DotWriter.StringAttributeName.style
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import java.io.IOException
@@ -231,17 +253,16 @@ class L2ControlFlowGraphVisualizer constructor(
 	/**
 	 * Emit the specified [L2BasicBlock].
 	 *
+	 * @receiver
+	 *   The [GraphWriter] for emission.
 	 * @param basicBlock
 	 *   A `L2BasicBlock`.
-	 * @param writer
-	 *   The [GraphWriter] for emission.
 	 * @param started
 	 *   `true` if the basic block is starting, `false` otherwise.
 	 */
 	@Suppress("SpellCheckingInspection")
-	private fun basicBlock(
+	private fun GraphWriter.basicBlock(
 		basicBlock: L2BasicBlock,
-		writer: GraphWriter,
 		started: Boolean)
 	{
 		val isCurrent = generator.notNullAnd {
@@ -284,9 +305,9 @@ class L2ControlFlowGraphVisualizer constructor(
 						"#c0c0c0/404040",
 						"#000000/e0e0e0")
 				}
-				val fillcolor = writer.adjust(fill)
-				val gridcolor = writer.adjust(grid)
-				val fontcolor = writer.adjust(font)
+				val fillcolor = adjust(fill)
+				val gridcolor = adjust(grid)
+				val fontcolor = adjust(font)
 				// Block heading.
 				tag("tr") {
 					tag(
@@ -311,7 +332,7 @@ class L2ControlFlowGraphVisualizer constructor(
 						{
 							font(
 								face = "Arial",
-								color = writer.adjust(commentTextColor))
+								color = adjust(commentTextColor))
 							{
 								basicBlock.debugNote.lines().joinTo(
 									this@buildString,
@@ -330,7 +351,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					) {
 						font(
 							face = "Arial",
-							color = writer.adjust(commentTextColor))
+							color = adjust(commentTextColor))
 						{
 							append("#" + (basicBlockNumbers[basicBlock] ?: "?"))
 						}
@@ -340,7 +361,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				{
 					instructions.forEachIndexed { port, instruction ->
 						instructionTableRow(
-							gridcolor, instruction, writer, basicBlock)
+							gridcolor, instruction, this@basicBlock, basicBlock)
 					}
 				}
 				else
@@ -362,8 +383,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		try
 		{
-			writer.node(basicBlockName(basicBlock)) {
-				it.attribute("label", rhs)
+			node(basicBlockName(basicBlock)) {
+				label(rhs)
 			}
 			if (isCurrent)
 			{
@@ -373,29 +394,27 @@ class L2ControlFlowGraphVisualizer constructor(
 							tag(
 								"td",
 								"balign" to "left",
-								"bgcolor" to
-									writer.adjust(currentBlockBackColor)
+								"bgcolor" to adjust(currentBlockBackColor)
 							) {
 								manifest(
 									generator!!.currentManifest,
-									writer,
+									this@basicBlock,
 									generator.currentBlock().predecessorEdges())
 							}
 						}
 					}
 				}
 				val manifestNodeName = "(current manifest)"
-				writer.node(manifestNodeName) {
-					it.attribute("style", "rounded,dashed")
-					it.attribute("label", manifestText)
+				node(manifestNodeName) {
+					style("rounded,dashed")
+					label(manifestText)
 				}
 				// Draw an edge from the current block to its manifest, which is
 				// written as a vertex with no border.
-				writer.edge(basicBlockName(basicBlock), manifestNodeName) {
-					it.attribute("style", "dashed")
-					it.attribute("arrowhead", "dot")
-					it.attribute(
-						"color", writer.adjust(currentBlockBackColor))
+				edge(basicBlockName(basicBlock), manifestNodeName) {
+					style("dashed")
+					arrowhead("dot")
+					color(currentBlockBackColor)
 				}
 			}
 		}
@@ -436,7 +455,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				|| instruction.targetEdges.size <= 1)
 			{
 				tagIf(true, "td", cellAttributes) {
-					append(instruction(instruction, writer))
+					append(writer.instruction(instruction))
 				}
 			}
 			else
@@ -465,7 +484,7 @@ class L2ControlFlowGraphVisualizer constructor(
 								cellAttributes["colspan"] =
 									portNamesByEdge.size.toString()
 								tagIf(true, "td", cellAttributes) {
-									append(instruction(instruction, writer))
+									append(writer.instruction(instruction))
 								}
 							}
 							tag("tr") {
@@ -645,32 +664,31 @@ class L2ControlFlowGraphVisualizer constructor(
 					edge.isBackward ->
 						node(basicBlockName(targetBlock), "1", CompassPoint.N)
 					else -> node(basicBlockName(targetBlock))
-				}
-			) { attr: AttributeWriter ->
+				})
+			{
 				// Number each edge uniquely, to allow a multigraph.
-				attr.attribute("id", edgeCounter.getAndIncrement().toString())
+				id(edgeCounter.getAndIncrement().toString())
 				if (!targetBlock.isCold && !sourceBlock.isCold)
 				{
-					attr.attribute("penwidth", "5")
+					penwidth(5)
 				}
 				if (!started)
 				{
-					attr.attribute("color", "#4040ff/8080ff")
-					attr.attribute("style", "dotted")
+					color("#4040ff/8080ff")
+					style("dotted")
 				}
 				else if (isTargetTheUnreachableBlock)
 				{
-					attr.attribute("color", "#804040/c06060")
-					attr.attribute("style", "dotted")
+					color("#804040/c06060")
+					style("dotted")
 				}
 				else if (edge.isBackward)
 				{
-					attr.attribute("constraint", "false")
-					attr.attribute(
-						"color",
+					constraint(false)
+					color(
 						if (sourceBlock.zone === null) "#9070ff/6050ff"
 						else "#20b040/60ff70")
-					attr.attribute("style", "dashed")
+					style("dashed")
 				}
 				else
 				{
@@ -679,23 +697,21 @@ class L2ControlFlowGraphVisualizer constructor(
 						// Nothing. The default styling will be fine.
 						null -> Unit
 						SUCCESS -> Unit
-						Purpose.FAILURE ->
-							attr.attribute("color", "#e54545/c03030")
-						Purpose.OFF_RAMP ->
-							attr.attribute("style", "dashed")
+						Purpose.FAILURE -> color("#e54545/c03030")
+						Purpose.OFF_RAMP -> style("dashed")
 						Purpose.ON_RAMP ->
 						{
-							attr.attribute("style", "dashed")
-							attr.attribute("color", "#6aaf6a")
+							style("dashed")
+							color("#6aaf6a")
 						}
 						Purpose.REFERENCED_AS_INT ->
 						{
-							attr.attribute("style", "dashed")
-							attr.attribute("color", "#6080ff")
+							style("dashed")
+							color("#6080ff")
 						}
 					}
 				}
-				attr.attribute("label", edgeLabel)
+				label(edgeLabel)
 				if (targetBlock.instructions().any { it is L2_PHI<*> })
 				{
 					// The target includes phi instructions, so label this
@@ -704,8 +720,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					// of source values.
 					val predecessors = edge.targetBlock().predecessorEdges()
 					val targetIndex = predecessors.indexOf(edge) + 1
-					attr.attribute(
-						"headlabel",
+					headlabel(
 						buildString
 						{
 							font(
@@ -932,10 +947,10 @@ class L2ControlFlowGraphVisualizer constructor(
 	/**
 	 * Render the nodes in this zone as a subgraph (cluster).
 	 *
+	 * @receiver
+	 *   The [GraphWriter] on which to render the cluster.
 	 * @param zone
 	 *   The [L2ControlFlowGraph.Zone] to render.
-	 * @param graph
-	 *   The [GraphWriter] to render them.
 	 * @param isStarted
 	 *   A test to tell if a block has started to be generated.
 	 * @throws IOException
@@ -943,25 +958,24 @@ class L2ControlFlowGraphVisualizer constructor(
 	 */
 	@Suppress("SpellCheckingInspection")
 	@Throws(IOException::class)
-	private fun cluster(
+	private fun GraphWriter.cluster(
 		zone: L2ControlFlowGraph.Zone,
-		graph: GraphWriter,
 		isStarted: (L2BasicBlock) -> Boolean)
 	{
-		graph.subgraph("cluster_" + subgraphNumber++)
-		{ gw: GraphWriter ->
-			gw.attribute("fontcolor", "#000000/ffffff")
-			gw.attribute("labeljust", "l") // Left-aligned.
-			gw.attribute("label", zone.zoneName)
-			gw.attribute("color", zone.zoneType.color)
-			gw.attribute("bgcolor", zone.zoneType.bgcolor)
-			gw.defaultAttributeBlock(DefaultAttributeBlockType.GRAPH)
-			{ attr: AttributeWriter ->
-				attr.attribute("style", "rounded")
-				attr.attribute("penwidth", "5")
+		subgraph("cluster_" + subgraphNumber++)
+		{
+			fontcolor("#000000/ffffff")
+			labeljust(left)
+			label(zone.zoneName)
+			zone.zoneType.color?.let { color(it) }
+			zone.zoneType.bgcolor?.let { bgcolor(it) }
+			defaultAttributeBlock(DefaultAttributeBlockType.GRAPH)
+			{
+				style("rounded")
+				penwidth(5)
 			}
 			blocksByZone[zone]!!.forEach { block ->
-				basicBlock(block, gw, isStarted(block))
+				basicBlock(block, isStarted(block))
 			}
 		}
 	}
@@ -991,30 +1005,30 @@ class L2ControlFlowGraphVisualizer constructor(
 			//
 			// In particular, Courier, Arial, Helvetica, and Times are
 			// supported.
-			writer.graph { graph: GraphWriter ->
-				graph.attribute("fontname", "Helvetica")
-				graph.attribute("bgcolor", "#ffffff/000000")
-				graph.attribute("rankdir", "TB")
-				graph.attribute("newrank", "true")
-				graph.attribute("overlap", "false")
-				graph.attribute("splines", "true")
-				graph.defaultAttributeBlock(DefaultAttributeBlockType.NODE) {
-					it.attribute("fontname", "Helvetica")
-					it.attribute("bgcolor", "#ffffff/a0a0a0")
-					it.attribute("color", "#000000/b0b0b0")
-					it.attribute("fixedsize", "false")
-					it.attribute("fontsize", "11")
-					it.attribute("fontcolor", "#000000/d0d0d0")
-					it.attribute("shape", "none")
+			writer.graph {
+				fontname("Helvetica")
+				bgcolor("#ffffff/000000")
+				rankdir(TopBottom)
+				newrank(true)
+				overlap(false)
+				splines(true)
+				defaultAttributeBlock(DefaultAttributeBlockType.NODE) {
+					fontname("Helvetica")
+					bgcolor("#ffffff/a0a0a0")
+					color("#000000/b0b0b0")
+					fixedsize(false)
+					fontsize(11)
+					fontcolor("#000000/d0d0d0")
+					shape("none")
 				}
-				graph.defaultAttributeBlock(DefaultAttributeBlockType.EDGE) {
-					it.attribute("labeldistance", "3")
-					it.attribute("labelangle", "-75")
-					it.attribute("fontname", "Helvetica")
-					it.attribute("fontsize", "8")
-					it.attribute("fontcolor", "#000000/dddddd")
-					it.attribute("style", "solid")
-					it.attribute("color", "#000000/e0e0e0")
+				defaultAttributeBlock(DefaultAttributeBlockType.EDGE) {
+					labeldistance(3)
+					labelangle(-75)
+					fontname("Helvetica")
+					fontsize(8)
+					fontcolor("#000000/dddddd")
+					style("solid")
+					color("#000000/e0e0e0")
 				}
 				val startedBlocks = controlFlowGraph.basicBlockOrder.toSet()
 				val unstartedBlocks = startedBlocks
@@ -1027,21 +1041,21 @@ class L2ControlFlowGraphVisualizer constructor(
 				computeClusters(unstartedBlocks)
 				for (zone in blocksByZone.keys)
 				{
-					cluster(zone, graph) { !unstartedBlocks.contains(it) }
+					cluster(zone) { !unstartedBlocks.contains(it) }
 				}
 				controlFlowGraph.basicBlockOrder
 					.filter { it.zone === null }
-					.forEach { basicBlock(it, graph, true) }
+					.forEach { basicBlock(it, true) }
 				unstartedBlocks
 					.filter { it.zone === null }
-					.forEach { basicBlock(it, graph, false) }
+					.forEach { basicBlock(it, false) }
 				val edgeCounter = AtomicInteger(1)
 				controlFlowGraph.basicBlockOrder
 					.deepForEach(L2BasicBlock::predecessorEdges) {
-						edge(it, graph, true, edgeCounter)
+						edge(it, this@graph, true, edgeCounter)
 					}
 				unstartedBlocks.deepForEach(L2BasicBlock::predecessorEdges) {
-					edge(it, graph, false, edgeCounter)
+					edge(it, this@graph, false, edgeCounter)
 				}
 			}
 		}
@@ -1057,16 +1071,15 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * `L2Instruction`, as they will be described along the edges instead of
 	 * within the nodes.
 	 *
+	 * @receiver
+	 *   A [GraphWriter] used to mediate the styling.
 	 * @param instruction
 	 *   An `L2Instruction`.
-	 * @param writer
-	 *   A [GraphWriter] used to mediate the styling.
 	 * @return
 	 *   The requested description.
 	 */
-	private fun instruction(
-		instruction: L2Instruction,
-		writer: GraphWriter
+	private fun GraphWriter.instruction(
+		instruction: L2Instruction
 	): String = buildString {
 		// Hoist a comment operand, if one is present.
 		instruction.operands.forEach { operand: L2Operand ->
@@ -1074,7 +1087,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			{
 				font(
 					italic = true,
-					color = writer.adjust(
+					color = adjust(
 						operand.isMisconnected,
 						errorTextColor,
 						commentTextColor))
@@ -1095,7 +1108,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			// Show instructions that generate no code in gray.
 			font(
 				italic = true,
-				color = writer.adjust(
+				color = adjust(
 					condition = instruction is L2_JUMP
 						&& instruction.target.isMisconnected,
 					trueString = errorTextColor,
@@ -1152,7 +1165,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					warningFlag = !warningFlag
 					if (warningFlag)
 					{
-						val color = writer.adjust(errorTextColor)
+						val color = adjust(errorTextColor)
 						escaped.append("<font color=\"$color\"><i>")
 					}
 					else

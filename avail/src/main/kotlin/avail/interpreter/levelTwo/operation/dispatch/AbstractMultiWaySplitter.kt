@@ -173,7 +173,7 @@ constructor(
 					}
 					else
 					{
-						//Dummy value, will be removed.
+						// Dummy value, will be removed.
 						newSplits.add(Int.MIN_VALUE)
 					}
 				}

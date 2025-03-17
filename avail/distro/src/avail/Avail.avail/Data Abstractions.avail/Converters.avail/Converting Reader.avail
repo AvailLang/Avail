@@ -148,20 +148,18 @@ Method "_is exhausted" is
 	$thisMethod : boolean;
 	Exit thisMethod with false if |aReader's buffer| > 0;
 	base ::= aReader's base reader;
-	If base is exhausted then
-	[
-		finalOutput ::= flush aReader's element converter;
-		aReader's buffer := finalOutput;
-		|finalOutput| = 0
-	]
-	else
+	baseExhausted ::= base is exhausted;
+	If ¬baseExhausted then
 	[
 		unprocessed ::= take at most conversionBufferSize from base;
 		processed ::= processInvokingFunction(
 			aReader's element converter, unprocessed);
 		aReader's buffer := processed;
-		Restart thisMethod
-	]
+	];
+	Restart thisMethod with <aReader> if ¬baseExhausted;
+	finalOutput ::= flush aReader's element converter;
+	aReader's buffer := finalOutput;
+	|finalOutput| = 0
 ] : boolean;
 
 /*

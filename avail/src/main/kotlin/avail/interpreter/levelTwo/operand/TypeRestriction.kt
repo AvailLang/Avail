@@ -440,6 +440,7 @@ class TypeRestriction private constructor(
 	 */
 	fun union(other: TypeRestriction): TypeRestriction
 	{
+		if (this === other) return this
 		if (type.isBottom) return other
 		if (other.type.isBottom) return this
 		if (constantOrNull !== null && other.constantOrNull !== null
