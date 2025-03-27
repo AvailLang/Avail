@@ -778,7 +778,7 @@ class IndirectionDescriptor private constructor(
 	 */
 	override fun o_Traversed(self: AvailObject): AvailObject {
 		var next = self[INDIRECTION_TARGET]
-		if (next.descriptor() !is IndirectionDescriptor)
+		if (next.descriptor !is IndirectionDescriptor)
 		{
 			// This indirection is already pointing to a non-indirection.
 			return next
@@ -787,7 +787,7 @@ class IndirectionDescriptor private constructor(
 		do
 		{
 			next = next[INDIRECTION_TARGET]
-		} while (next.descriptor() is IndirectionDescriptor)
+		} while (next.descriptor is IndirectionDescriptor)
 		// Flatten the path for each intervening indirection.
 		val finalTarget = next
 		next = self
@@ -796,7 +796,7 @@ class IndirectionDescriptor private constructor(
 			val nextNext = next[INDIRECTION_TARGET]
 			next[INDIRECTION_TARGET] = finalTarget
 			next = nextNext
-		} while (next.descriptor() is IndirectionDescriptor)
+		} while (next.descriptor is IndirectionDescriptor)
 		return finalTarget
 	}
 
@@ -912,11 +912,11 @@ class IndirectionDescriptor private constructor(
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag {
 		val tag = self { typeTag }
 		// Now that we know it, switch to a descriptor that has it cached...
-		self.setDescriptor(when {
+		self.descriptor = when {
 			mutability === Mutability.MUTABLE -> mutable(tag)
 			mutability === Mutability.IMMUTABLE -> immutable(tag)
 			else -> shared(tag)
-		})
+		}
 		return tag
 	}
 
@@ -1075,7 +1075,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_CheckAgainstObjectType(
 		self: AvailObject,
 		otherObjectType: A_Type
-	): ObjectTypeDescriptor.TestOutcome = self { checkAgainstObjectType(otherObjectType) }
+	): ObjectTypeDescriptor.TestOutcome =
+		self { checkAgainstObjectType(otherObjectType) }
 
 	override fun o_CompareFromToWithStartingAt(
 		self: AvailObject,

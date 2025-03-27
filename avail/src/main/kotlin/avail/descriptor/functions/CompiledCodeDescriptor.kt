@@ -1256,7 +1256,7 @@ open class CompiledCodeDescriptor protected constructor(
 					{
 						val self: AvailObject = rawFunction.cast()
 						val descriptor: CompiledCodeDescriptor =
-							self.descriptor().cast()
+							self.descriptor.cast()
 						descriptor.invocationStatistic.hasRun = false
 						if (descriptor.module.notNil)
 						{
@@ -1291,7 +1291,7 @@ open class CompiledCodeDescriptor protected constructor(
 			{
 				val self: AvailObject = rawFunction.cast()
 				val descriptor: CompiledCodeDescriptor =
-					self.descriptor().cast()
+					self.descriptor.cast()
 				val module = descriptor.module
 				if (module.notNil)
 				{
@@ -1462,7 +1462,7 @@ open class CompiledCodeDescriptor protected constructor(
 			code[HASH] = AvailRuntimeSupport.nextNonzeroHash()
 			if (primitive != null)
 			{
-				code.setDescriptor(
+				code.descriptor =
 					PrimitiveCompiledCodeDescriptor(
 						Mutability.SHARED,
 						primitive,
@@ -1472,11 +1472,11 @@ open class CompiledCodeDescriptor protected constructor(
 						originatingPhrase.makeShared(),
 						packedDeclarationNames.makeShared(),
 						lineNumber,
-						lineNumberEncodedDeltas.makeShared()))
+						lineNumberEncodedDeltas.makeShared())
 			}
 			else
 			{
-				code.setDescriptor(
+				code.descriptor =
 					CompiledCodeDescriptor(
 						Mutability.SHARED,
 						module.makeShared(),
@@ -1484,7 +1484,7 @@ open class CompiledCodeDescriptor protected constructor(
 						originatingPhrase.makeShared(),
 						packedDeclarationNames.makeShared(),
 						lineNumber,
-						lineNumberEncodedDeltas.makeShared()))
+						lineNumberEncodedDeltas.makeShared())
 			}
 
 			// Add the newborn raw function to the weak set being used for code

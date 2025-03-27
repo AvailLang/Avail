@@ -134,7 +134,7 @@ private constructor(
 					aType.makeImmutable()
 					self.becomeIndirectionTo(aType)
 				}
-				else if (!aType.descriptor().isShared)
+				else if (!aType.descriptor.isShared)
 				{
 					self.makeImmutable()
 					aType.becomeIndirectionTo(self)

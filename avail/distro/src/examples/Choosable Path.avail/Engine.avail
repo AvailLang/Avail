@@ -43,10 +43,10 @@ Names
 	"Play a game,⁇creating a context with_,⁇interacting with_"
 Body
 
-"game context creator" is a new field atom;
-"beginning flag" is a new field atom;
-"game over flag" is a new field atom;
-"viable transitions" is a new field atom;
+"game context creator" is a new field atom constrained to ↑[]→context;
+"beginning flag" is a new field atom constrained to ↑boolean;
+"game over flag" is a new field atom constrained to ↑boolean;
+"viable transitions" is a new field atom constrained to ↑(natural number*);
 
 /**
  * An engine context contains the implementation-specific state of a choosable
@@ -60,7 +60,7 @@ Class "engine context" extends object
 		game context creator : []→context,
 		beginning flag : boolean,
 		game over flag : boolean,
-		viable transitions : <natural number…|>;
+		viable transitions : natural number*;
 
 /**
  * Does the specified {@type "engine context"} indicate that the game is over?

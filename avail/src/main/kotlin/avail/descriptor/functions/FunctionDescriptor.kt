@@ -42,6 +42,12 @@ import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
+import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
+import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
+import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters3
+import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters4
+import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters5
 import avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import avail.descriptor.methods.A_Method
@@ -188,7 +194,7 @@ class FunctionDescriptor private constructor(
 			// replace one with an indirection to the other to reduce storage
 			// costs and the frequency of detailed comparisons.
 			!isShared -> self.becomeIndirectionTo(aFunction.makeImmutable())
-			!aFunction.descriptor().isShared ->
+			!aFunction.descriptor.isShared ->
 				aFunction.becomeIndirectionTo(self.makeImmutable())
 		}
 		return true

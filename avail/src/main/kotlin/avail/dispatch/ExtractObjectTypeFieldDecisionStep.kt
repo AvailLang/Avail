@@ -34,6 +34,7 @@ package avail.dispatch
 
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.representation.A_BasicObject
@@ -45,7 +46,6 @@ import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_TYPE_FIELD
@@ -125,7 +125,8 @@ constructor(
 		}
 		// baseMeta is known to be an objectMeta, but the element we're looking
 		// up might use a variant that doesn't have that field.
-		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
+		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?:
+			field.fieldAtomConstraint
 		return extraValues.append(instanceMeta(baseFieldType))
 	}
 
@@ -143,7 +144,8 @@ constructor(
 		}
 		// baseMeta is known to be an objectMeta, but the element we're looking
 		// up might use a variant that doesn't have that field.
-		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
+		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?:
+			field.fieldAtomConstraint
 		return extraValues.append(instanceMeta(baseFieldType))
 	}
 
@@ -180,7 +182,8 @@ constructor(
 				// The object type that will be looked up is known to have a
 				// suitable variant.
 				val fieldType =
-					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
+					theObjectMeta.instance.fieldTypeAtOrNull(field) ?:
+						field.fieldAtomConstraint
 				val fieldMeta = instanceMeta(fieldType)
 				optionalBaseType to extrasList.append(fieldMeta)
 			}
@@ -195,7 +198,8 @@ constructor(
 				// suitable variant, but the element we're looking up might use
 				// a variant that doesn't have that field.
 				val fieldType =
-					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY()
+					theObjectMeta.instance.fieldTypeAtOrNull(field) ?:
+					field.fieldAtomConstraint
 				val fieldMeta = instanceMeta(fieldType)
 				optionalBaseType to extrasList.append(fieldMeta)
 				baseType to extrasList.append(fieldMeta)
@@ -287,7 +291,9 @@ constructor(
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction = currentManifest.restrictionFor(baseSemanticValue)
 		val fieldRestriction = boxedRestrictionForType(
-			instanceMeta(baseRestriction.type.instance.fieldTypeAt(field)))
+			instanceMeta(
+				baseRestriction.type.instance.fieldTypeAtOrNull(field) ?:
+					field.fieldAtomConstraint))
 		val fieldSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
 		+L2_GET_OBJECT_TYPE_FIELD(

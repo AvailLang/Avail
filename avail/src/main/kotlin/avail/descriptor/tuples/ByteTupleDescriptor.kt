@@ -171,7 +171,7 @@ private constructor(
 		if (isMutable && canDestroy && originalSize and 7 != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			self.setDescriptor(descriptorFor(MUTABLE, newSize))
+			self.descriptor = descriptorFor(MUTABLE, newSize)
 			self.setByteSlot(RAW_LONG_AT_, newSize, longValue.toShort())
 			self[HASH_OR_ZERO] = 0
 			return self
@@ -277,7 +277,7 @@ private constructor(
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = self
-				result.setDescriptor(descriptorFor(MUTABLE, newSize))
+				result.descriptor = descriptorFor(MUTABLE, newSize)
 			}
 			else
 			{
@@ -392,7 +392,7 @@ private constructor(
 				aByteTuple.makeImmutable()
 				self.becomeIndirectionTo(aByteTuple)
 			}
-			!aByteTuple.descriptor().isShared ->
+			!aByteTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aByteTuple.becomeIndirectionTo(self)

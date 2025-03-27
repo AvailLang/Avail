@@ -189,7 +189,7 @@ Private method "characters from_" is
  */
 Public stable method "“_”(Base64)" is [bytes : byte* | characters from bytes];
 
-"binary residue" is a new field atom;
+"binary residue" is a new field atom constrained to ↑(byte*);
 
 /**
  * A {@type "converter"} that translates a {@type "tuple"} of {@type "byte"}s
@@ -387,7 +387,7 @@ Private method "bytes from_" is
  */
 Public stable method "_→bytes(Base64)" is [s : Base64 string | bytes from s];
 
-"Base64 residue" is a new field atom;
+"Base64 residue" is a new field atom constrained to ↑(Base64 character*);
 
 /**
  * A {@type "converter"} that translates a {@type "tuple"} of {@type

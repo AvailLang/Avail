@@ -1,5 +1,5 @@
 /*
- * P_MapToObjectType.kt
+ * P_AtomSetFieldBound.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,60 +29,78 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.primitive.objects
+package avail.interpreter.primitive.atoms
 
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
+import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.maps.MapDescriptor
-import avail.descriptor.objects.ObjectFieldTypeException
-import avail.descriptor.objects.ObjectTypeDescriptor
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.InstanceTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.descriptor.types.TypeDescriptor
-import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.exceptions.AvailErrorCode.E_PROPERTY_MAY_ONLY_BE_SET_ONCE
+import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.HasSideEffect
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Convert a [map][MapDescriptor] from fields
- * ([instance&#32;types][InstanceTypeDescriptor] of [atoms][AtomDescriptor]) to
- * [types][TypeDescriptor] into an [object&#32;type][ObjectTypeDescriptor].
+ * **Primitive:** Within the first [atom][AtomDescriptor], associate the given
+ * property key (another atom) and property value.  This is a destructive
+ * operation.
  */
 @Suppress("unused")
-object P_MapToObjectType : Primitive(1, CanFold, CanInline)
+object P_AtomSetFieldBound : Primitive(
+	2, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val map = interpreter.argument(0)
-		return try
+		interpreter.checkArgumentCount(2)
+		val (atom, typeBound) = interpreter.argsBuffer
+		if (atom.isAtomSpecial)
 		{
-			interpreter.primitiveSuccess(objectTypeFromMap(map))
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
-		catch (e: ObjectFieldTypeException)
+		if (atom
+			.getAtomProperty(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
+			.notNil)
 		{
-			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+			// Not quite right, but it should get the idea across that this
+			// field atom should not have a type bound set on it.
+			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
+		if (atom.fieldAtomConstraint.notNil)
+		{
+			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+		}
+		atom.fieldAtomConstraint = typeBound
+
+		// Statement summarization replaces the effect of running a series of
+		// statements that only invoke 'safe" primitives with simple calls that
+		// have the same system effect (installing methods, etc).  We can't
+		// consider this primitive "safe" in that regard, since a subsequent
+		// statement may use the affected field atom within an object type,
+		// which will fail to deserialize if the field bound has not yet been
+		// set.
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, ATOM(), anyMeta)),
-			mostGeneralObjectMeta)
+		functionType(tuple(ATOM(), anyMeta), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_INVALID_FIELD_FOR_OBJECT))
+		enumerationWith(
+			set(
+				E_SPECIAL_ATOM,
+				E_PROPERTY_MAY_ONLY_BE_SET_ONCE))
 }

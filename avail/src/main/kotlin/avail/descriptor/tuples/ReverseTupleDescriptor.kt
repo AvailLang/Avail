@@ -149,7 +149,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_ChildAt(self: AvailObject, childIndex: Int): A_Tuple
 	{
-		if (!self.descriptor().isShared)
+		if (!self.descriptor.isShared)
 		{
 			val treeTuple = internalTreeReverse(self[ORIGIN_TUPLE])
 			treeTuple.setHashOrZero(self[HASH_OR_ZERO])

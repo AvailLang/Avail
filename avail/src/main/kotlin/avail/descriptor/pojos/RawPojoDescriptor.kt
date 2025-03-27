@@ -96,7 +96,7 @@ open class RawPojoDescriptor protected constructor(
 			javaObject !== otherJavaObject -> return false
 			self.sameAddressAs(otherRawPojo) -> return true
 			!isShared -> self.becomeIndirectionTo(otherRawPojo)
-			!otherRawPojo.descriptor().isShared ->
+			!otherRawPojo.descriptor.isShared ->
 				otherRawPojo.becomeIndirectionTo(self)
 		}
 		return true

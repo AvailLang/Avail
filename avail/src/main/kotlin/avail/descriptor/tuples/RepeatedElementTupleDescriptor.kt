@@ -235,7 +235,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 					aRepeatedElementTuple.makeImmutable()
 					self.becomeIndirectionTo(aRepeatedElementTuple)
 				}
-				else if (!aRepeatedElementTuple.descriptor().isShared)
+				else if (!aRepeatedElementTuple.descriptor.isShared)
 				{
 					self.makeImmutable()
 					aRepeatedElementTuple.becomeIndirectionTo(self)
@@ -284,7 +284,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 					return self
 				}
 				// Or the other one.
-				if (otherTuple.descriptor().isMutable)
+				if (otherTuple.descriptor.isMutable)
 				{
 					otherDirect[SIZE] = newSize
 					otherDirect.setHashOrZero(0)
@@ -352,7 +352,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			aRepeatedElementTuple.makeImmutable()
 			self.becomeIndirectionTo(aRepeatedElementTuple)
 		}
-		else if (!aRepeatedElementTuple.descriptor().isShared)
+		else if (!aRepeatedElementTuple.descriptor.isShared)
 		{
 			self.makeImmutable()
 			aRepeatedElementTuple.becomeIndirectionTo(self)

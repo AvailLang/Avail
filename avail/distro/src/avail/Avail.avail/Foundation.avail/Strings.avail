@@ -381,12 +381,12 @@ Method "“_”" is
 		Do
 		[
 			elem ::= aTuple[index];
-			s := eject s ++ “elem”;
+			s ++= “elem”;
 			index++;
 		]
 		while index ≤ |aTuple|
-		alternate with [s := eject s ++ ", ";];
-		s := eject s ++ ">";
+		alternate with [s ++= ", ";];
+		s ++= ">";
 		s
 	]
 ] : string;
@@ -418,11 +418,11 @@ Public method "“_”«else_»(as simple list)" is
 		Do
 		[
 			elem ::= aTuple[index];
-			s := eject s ++ cast elem into [t : string | t] else [“elem”];
+			s ++= cast elem into [t : string | t] else [“elem”];
 			index++;
 		]
 		while index ≤ |aTuple|
-		alternate with [s := eject s ++ ", ";];
+		alternate with [s ++= ", ";];
 		s
 	]
 ] : string;
@@ -489,11 +489,11 @@ Method "“_”" is
 	Do
 	[
 		elem ::= aTuple[index];
-		s := eject s ++ “elem”;
+		s ++= “elem”;
 		index++;
 	]
 	while index ≤ |aTuple|
-	alternate with [s := eject s ++ ", ";];
+	alternate with [s ++= ", ";];
 	eject s ++ "}"
 ] : string;
 
@@ -599,12 +599,12 @@ Method "“_”" is
 	While index ≤ |bindings| do
 	[
 		key, value ::= bindings[index];
-		s := eject s ++ “key”;
-		s := eject s ++ "→" ++ “value”;
+		s ++= “key”;
+		s ++= "→" ++ “value”;
 		index++;
 	]
-	alternate with [s := eject s ++ ", ";];
-	s := eject s ++ "}";
+	alternate with [s ++= ", ";];
+	s ++= "}";
 	s
 ] : string;
 
@@ -688,11 +688,11 @@ is
 	For each index from 1 to |aTuple| - 1 do
 	[
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject s ++ tx ++ ", ";
+		s ++= tx ++ ", ";
 	];
 	last ::= aTuple's last;
 	tx ::= cast last into [t : string | t] else [“last”];
-	s := eject s ++ <"and ", "or ">[mode] ++ tx;
+	s ++= <"and ", "or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -777,11 +777,11 @@ is
 	For each index from 1 to |aTuple| - 1 do
 	[
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject s ++ tx ++ ", ";
+		s ++= tx ++ ", ";
 	];
 	last ::= aTuple's last;
 	tx ::= cast last into [t : string | t] else [“last”];
-	s := eject s ++ <"and ", "or ">[mode] ++ tx;
+	s ++= <"and ", "or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -849,14 +849,14 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	For each index from 1 to |aTuple| - 2 do
 	[
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject s ++ tx ++ ", ";
+		s ++= tx ++ ", ";
 	];
 	nextLast ::= aTuple[|aTuple| - 1];
 	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
-	s := eject s ++ tx;
+	s ++= tx;
 	last ::= aTuple's last;
 	tx := cast last into [t : string | t] else [“last”];
-	s := eject s ++ <" and ", " or ">[mode] ++ tx;
+	s ++= <" and ", " or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -927,14 +927,14 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	For each index from 1 to |aTuple| - 2 do
 	[
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject s ++ tx ++ ", ";
+		s ++= tx ++ ", ";
 	];
 	nextLast ::= aTuple[|aTuple| - 1];
 	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
-	s := eject s ++ tx;
+	s ++= tx;
 	last ::= aTuple's last;
 	tx := cast last into [t : string | t] else [“last”];
-	s := eject s ++ <" and ", " or ">[mode] ++ tx;
+	s ++= <" and ", " or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -969,10 +969,10 @@ Method "“_”«else_»(as list partitioned by_)" is
 		Do
 		[
 			tx ::= cast aTuple[i] into [t : string | t] else [“aTuple[i]”];
-			s := eject s ++ tx;
+			s ++= tx;
 			i++;
 		]
-		while i ≤ |aTuple| alternate with [s := eject s ++ separator;];
+		while i ≤ |aTuple| alternate with [s ++= separator;];
 		s
 	]
 ] : string;
@@ -1170,7 +1170,7 @@ Public stable method "“_”(hex)" is
 	[
 		high ::= (bytes[index] >> 4) bit∧ 15;
 		low ::= bytes[index] bit∧ 15;
-		s := eject s ++ <baseAlphabetTuple[high+1], baseAlphabetTuple[low+1]>;
+		s ++= <baseAlphabetTuple[high+1], baseAlphabetTuple[low+1]>;
 	];
 	s
 ] : string;

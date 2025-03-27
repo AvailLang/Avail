@@ -59,6 +59,7 @@ import avail.descriptor.sets.A_SetBin.Companion.setBinUnion
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
+import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.ObjectSlots.ROOT_BIN
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -233,7 +234,7 @@ private constructor(
 			self.becomeIndirectionTo(aSet)
 			true
 		}
-		!aSet.descriptor().isShared ->
+		!aSet.descriptor.isShared ->
 		{
 			self.makeImmutable()
 			aSet.becomeIndirectionTo(self)
@@ -399,8 +400,8 @@ private constructor(
 		val out = when
 		{
 			!canDestroy -> mutable.create()
-			self.descriptor().isMutable -> self
-			other.descriptor().isMutable -> other
+			self.descriptor.isMutable -> self
+			other.descriptor.isMutable -> other
 			else -> mutable.create()
 		}
 		out[ROOT_BIN] = newBin

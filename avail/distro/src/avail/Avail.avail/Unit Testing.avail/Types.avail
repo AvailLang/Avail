@@ -56,7 +56,6 @@ Names
 	"suite fixture setup",
 	"suite fixture tear down",
 	"suite ID",
-	"statistics",
 	"test fixture setup",
 	"test fixture tear down",
 	"test ID",
@@ -96,7 +95,6 @@ Names
 	"_'s⁇suite fixture tear down",
 	"_'s⁇suite fixture tear down::=_",
 	"_'s⁇suite ID",
-	"_'s⁇statistics",
 	"_'s⁇test fixture setup",
 	"_'s⁇test fixture setup::=_",
 	"_'s⁇test fixture tear down",
@@ -106,21 +104,21 @@ Names
 	"_'s⁇unit tests::=_"
 Body
 
-"test ID" is a new field atom;
-"body" is a new field atom;
-"platform optionality" is a new field atom;
-"expected exception type" is a new field atom;
-"metrics" is a new field atom;
-"statistics" is a new field atom;
-"suite ID" is a new field atom;
-"child suite IDs" is a new field atom;
-"parent suite ID" is a new field atom;
-"suite fixture setup" is a new field atom;
-"test fixture setup" is a new field atom;
-"suite fixture tear down" is a new field atom;
-"test fixture tear down" is a new field atom;
-"unit tests" is a new field atom;
-"root test suite ID" is a new field atom;
+"test ID" is a new field atom constrained to atom;
+"body" is a new field atom constrained to []→⊤;
+"platform optionality" is a new field atom constrained to boolean;
+"expected exception type" is a new field atom constrained to exception's type?;
+"suite ID" is a new field atom constrained to atom;
+"child suite IDs" is a new field atom constrained to atom*;
+"parent suite ID" is a new field atom constrained to atom;
+"suite fixture setup" is a new field atom constrained to <[]→⊤…|>;
+"test fixture setup" is a new field atom constrained to <[]→⊤…|>;
+"suite fixture tear down" is a new field atom constrained to <[]→⊤…|>;
+"test fixture tear down" is a new field atom constrained to <[]→⊤…|>;
+
+/* Constant root of all tests. */
+"root test suite ID" is a new atom;
+
 
 /**
  * A unit test comprises:
@@ -206,10 +204,10 @@ Public explicit class "failed-test exception"
  * @type "expected-a-specific-exception exception"
  * @supertype "unit-test exception"
  */
-Public explicit class "expected-a-specific-exception exception"
+Public class "expected-a-specific-exception exception"
 	extends unit-test exception
 	with fields
-		public expected exception type : exception's type;
+		public expected exception type : <exception's type…|1>;
 
 /**
  * Answer a short description of the specified {@type "unit-test exception"}.
@@ -250,6 +248,8 @@ Public method "short“_”" is
 		description ::= description,
 		cause ::= cause
 ];
+
+"unit tests" is a new field atom constrained to <unit test…|>;
 
 /**
  * The root unit test suite has a reduced representation (compared to a declared
@@ -543,6 +543,8 @@ Method "long“_”" is
 |
 	“result”
 ];
+
+"metrics" is a new field atom constrained to <unit test result…|>;
 
 /**
  * A unit test report contains a tuple of {@type "unit test result"}s and offers

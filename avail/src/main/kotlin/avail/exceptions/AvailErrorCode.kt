@@ -196,7 +196,12 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_NOT_AN_ENUMERATION(17),
 
-	// E_?? (18)
+	/**
+	 * An attempt was made to update or remove a property that is marked (via
+	 * its own [SpecialAtom.SET_ONCE_PROPERTY_KEY]) to indicate it must not be
+	 * updated once set.
+	 */
+	E_PROPERTY_MAY_ONLY_BE_SET_ONCE(18),
 
 	/**
 	 * No [method][MethodDescriptor] exists for the specified
@@ -249,7 +254,13 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_DECLARATION_DOES_NOT_HAVE_INITIALIZER(28),
 
-	// E_?? (29)
+	/**
+	 * An attempt was made to create an object or object type without first
+	 * setting a type bound for at least one of the proposed fields, or when
+	 * providing specific values or types for the field that don't comply with
+	 * the previously set constraint.
+	 */
+	E_INVALID_FIELD_FOR_OBJECT(29),
 
 	/** A computation would produce a value too large to represent. */
 	E_TOO_LARGE_TO_REPRESENT(30),

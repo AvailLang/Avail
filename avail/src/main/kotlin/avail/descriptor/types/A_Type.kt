@@ -48,6 +48,12 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.argsTupleTypeStatic
+import avail.descriptor.types.A_Type.Companion.isSubtypeOfStatic
+import avail.descriptor.types.A_Type.Companion.phraseKind
+import avail.descriptor.types.A_Type.Companion.typeAtIndexStatic
+import avail.descriptor.types.A_Type.Companion.typeUnionStatic
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
@@ -1089,7 +1095,7 @@ interface A_Type : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun argsTupleTypeStatic(self: AvailObject): AvailObject =
-			self.descriptor().o_ArgsTupleType(self) as AvailObject
+			self.descriptor.o_ArgsTupleType(self) as AvailObject
 
 		/** The [CheckedMethod] for [argsTupleTypeStatic]. */
 		val argsTupleTypeMethod = staticMethod(
@@ -1101,7 +1107,7 @@ interface A_Type : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun isSubtypeOfStatic(self: AvailObject, aType: A_Type): Boolean =
-			self.descriptor().o_IsSubtypeOf(self, aType)
+			self.descriptor.o_IsSubtypeOf(self, aType)
 
 		/** The [CheckedMethod] for [isSubtypeOfStatic]. */
 		val isSubtypeOfMethod = staticMethod(
@@ -1114,7 +1120,7 @@ interface A_Type : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun typeAtIndexStatic(self: AvailObject, index: Int): AvailObject =
-			self.descriptor().o_TypeAtIndex(self, index) as AvailObject
+			self.descriptor.o_TypeAtIndex(self, index) as AvailObject
 
 		/** The [CheckedMethod] for [typeAtIndexStatic]. */
 		val typeAtIndexMethod = staticMethod(
@@ -1127,7 +1133,7 @@ interface A_Type : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun typeUnionStatic(self: AvailObject, another: A_Type): AvailObject =
-			self.descriptor().o_TypeUnion(self, another) as AvailObject
+			self.descriptor.o_TypeUnion(self, another) as AvailObject
 
 		/** The [CheckedMethod] for [typeUnionStatic]. */
 		val typeUnionMethod = staticMethod(

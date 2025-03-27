@@ -45,8 +45,8 @@ Names
 Body
 
 
-"base reader" is a new atom;
-"element converter" is a new atom;
+"base reader" is a new atom constrained to reader;
+"element converter" is a new atom constrained to converter;
 
 
 /*

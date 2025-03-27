@@ -45,9 +45,9 @@ Names
 	"delimited reader test suite"
 Body
 
-"delimiter" is a new field atom;
-"current value" is a new field atom;
-"exhaustion state" is a new field atom;
+"delimiter" is a new field atom constrained to any+;
+"current value" is a new field atom constrained to ↑tuple;
+"exhaustion state" is a new field atom constrained to ↑boolean;
 
 /**
  * A delimited reader answers tuples of elements from its decorated reader.
@@ -111,7 +111,7 @@ delimited reader's advance method is
 			]
 			else
 			[
-				result := eject result ++ delimiter[1..index-1] ++ <value>;
+				result ++= delimiter[1..index-1] ++ <value>;
 				index := 1;
 			];
 			Advance inner;

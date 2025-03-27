@@ -137,8 +137,10 @@ constructor(
 	override fun L2GeneratorInterface.generateConditionalReplacement(
 		originalInstruction: L2Instruction)
 	{
-		+splitter.constant.reducedSplitterInstruction(
-			value, branchEdges.edges, currentManifest)
+		+splitter.constant.run {
+			reducedSplitterInstruction(
+				value, branchEdges.edges, currentManifest)
+		}
 	}
 
 	override fun translateToJVM(

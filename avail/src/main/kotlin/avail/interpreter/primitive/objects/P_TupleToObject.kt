@@ -44,11 +44,13 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromTuple
+import avail.descriptor.objects.ObjectFieldTypeException
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
 import avail.descriptor.sets.A_Set.Companion.setSize
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
@@ -63,15 +65,16 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -91,13 +94,20 @@ import avail.optimizer.L1Translator
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
+object P_TupleToObject : Primitive(1, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
-		return interpreter.primitiveSuccess(objectFromTuple(tuple))
+		return try
+		{
+			interpreter.primitiveSuccess(objectFromTuple(tuple))
+		}
+		catch (e: ObjectFieldTypeException)
+		{
+			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -216,4 +226,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		callSiteHelper.useAnswer(readBoxed(write), false)
 		return true
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_FIELD_FOR_OBJECT))
 }

@@ -416,7 +416,7 @@ class LinearSetBinDescriptor private constructor(
 		 */
 		private fun checkBinHash(self: AvailObject) {
 			if (checkBinHashes) {
-				assert(self.descriptor() is LinearSetBinDescriptor)
+				assert(self.descriptor is LinearSetBinDescriptor)
 				val stored = self.setBinHash
 				var calculated = 0
 				for (i in self.variableObjectSlotsCount() downTo 1) {
@@ -554,7 +554,7 @@ class LinearSetBinDescriptor private constructor(
 			return when (written) {
 				1 -> bin[BIN_ELEMENT_AT_, 1]
 				size -> bin
-				else -> newLike(bin.descriptor(), bin, written - size, 0)
+				else -> newLike(bin.descriptor, bin, written - size, 0)
 			}
 		}
 	}

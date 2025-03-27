@@ -1153,7 +1153,7 @@ class MethodDescriptor private constructor(
 					throw AssertionError("VM method name is invalid: $name", e)
 				}
 			}
-			assert(atom.descriptor().isShared)
+			assert(atom.descriptor.isShared)
 			assert(atom.isAtomSpecial)
 		}
 	}
@@ -1234,7 +1234,7 @@ class MethodDescriptor private constructor(
 				setSlot(LEXER_OR_NIL, nil)
 				setSlot(STYLERS, emptySet)
 				// Create and plug in a new shared descriptor.
-				setDescriptor(MethodDescriptor(Mutability.SHARED))
+				descriptor = MethodDescriptor(Mutability.SHARED)
 			}
 
 		/**

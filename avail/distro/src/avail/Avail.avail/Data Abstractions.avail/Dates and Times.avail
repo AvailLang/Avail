@@ -120,7 +120,7 @@ Names
 Body
 
 
-"Epoch milliseconds" is a new field atom;
+"Epoch milliseconds" is a new field atom constrained to integer;
 
 /**
  * A {@type "timestamp"} denotes a moment in time as millisecond offset from the
@@ -1315,14 +1315,14 @@ Semantic restriction "private_'s⁇month ordinal" is
 	[1..12]
 ];
 
-"exploded years" is a new field atom;
-"exploded months" is a new field atom;
-"exploded days" is a new field atom;
-"exploded day of week" is a new field atom;
-"exploded hours" is a new field atom;
-"exploded minutes" is a new field atom;
-"exploded seconds" is a new field atom;
-"exploded milliseconds" is a new field atom;
+"exploded years" is a new field atom constrained to integer;
+"exploded months" is a new field atom constrained to month;
+"exploded days" is a new field atom constrained to [1..31];
+"exploded day of week" is a new field atom constrained to day of week;
+"exploded hours" is a new field atom constrained to [0..23];
+"exploded minutes" is a new field atom constrained to [0..59];
+"exploded seconds" is a new field atom constrained to [0..59];
+"exploded milliseconds" is a new field atom constrained to [0..999];
 
 /**
  * {@method "_exploded"} produces an {@type "exploded timestamp"} that

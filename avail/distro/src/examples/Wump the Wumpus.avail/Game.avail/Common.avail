@@ -55,8 +55,9 @@ Names
 Body
 
 /* Define field atoms for the "Wump the Wumpus" type. */
-"setting" is a new atom;
-"dramatis personae" is a new atom;
+"setting" is a new atom constrained to cave;
+"dramatis personae" is a new atom
+	constrained to <agent, wumpus, super bat swarm…|4>;
 
 /**
  * Roughly speaking, the game comprises a {@type "cave"} and four {@type

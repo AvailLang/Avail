@@ -186,10 +186,12 @@ open class AtomDescriptor protected constructor (
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
 		indent: Int
-	) = with(builder) {
+	) = with(builder)
+	{
 		val nativeName = self.atomName.asNativeString()
 		// Some atoms print nicer than others.
-		when {
+		when
+		{
 			self.isAtomSpecial -> append(nativeName)
 			wordPattern.matcher(nativeName).matches() ->
 				append("$$nativeName")
@@ -258,14 +260,15 @@ open class AtomDescriptor protected constructor (
 			// Scan the property map as well.
 			val propertyMap: Map<A_Atom, AvailObject> = map.javaObjectNotNull()
 			propertyMap.forEach { (key, value) ->
-				if (!key.descriptor().isShared)
+				key as AvailObject
+				if (!key.descriptor.isShared)
 				{
-					key.setDescriptor(key.descriptor().shared())
-					queueToProcess.add(key as AvailObject)
+					key.descriptor = key.descriptor.shared()
+					queueToProcess.add(key)
 				}
-				if (!value.descriptor().isShared)
+				if (!value.descriptor.isShared)
 				{
-					value.setDescriptor(value.descriptor().shared())
+					value.descriptor = value.descriptor.shared()
 					queueToProcess.add(value)
 				}
 			}
@@ -277,17 +280,17 @@ open class AtomDescriptor protected constructor (
 				map,
 				self[HASH_OR_ZERO])
 
-		assert(substituteAtom.descriptor().isShared)
+		assert(substituteAtom.descriptor.isShared)
 
 		// The old atom (self) was marked as shared when it was added to the
 		// queueToProcess.  Therefore, it's not truly shared yet, as other
 		// threads cannot actually see it.  Since shared objects can't become
 		// indirections, we switch the descriptor back to its mutable form
 		// before making it an indirection to the substituteAtom.
-		self.setDescriptor(self.descriptor().mutable())
+		self.descriptor = self.descriptor.mutable()
 		self.becomeIndirectionTo(substituteAtom)
 		// Make the indirection shared, too.
-		self.setDescriptor(self.descriptor().shared())
+		self.descriptor = self.descriptor.shared()
 	}
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
@@ -351,7 +354,8 @@ open class AtomDescriptor protected constructor (
 	enum class SpecialAtom
 	constructor (
 		val atom: A_Atom,
-		val heritable: Boolean = false)
+		val heritable: Boolean = false,
+		val setOnceKey: Boolean = false)
 	{
 		/** The atom representing the Avail concept "true". */
 		TRUE(
@@ -366,13 +370,22 @@ open class AtomDescriptor protected constructor (
 		/**
 		 * The atom used as a property key to name
 		 * [object&#32;types][ObjectTypeDescriptor].  This property occurs
-		 * within each atom which occurs as a field type key of the object type.
-		 * The value is a map from object type to the set of names of that exact
-		 * type (typically just one).  The naming information is set up via
-		 * [ObjectTypeDescriptor.setNameForType], and removed by
+		 * within at least one atom which occurs as a field type key of the
+		 * object type. The value is a map from object type to the set of names
+		 * of that exact type (typically just one).  The naming information is
+		 * set up via [ObjectTypeDescriptor.setNameForType], and removed by
 		 * [ObjectTypeDescriptor.removeNameFromType].
 		 */
 		OBJECT_TYPE_NAME_PROPERTY_KEY("object names"),
+
+		/**
+		 * The atom used as a property of a field atom to indicate the
+		 * permanent global bound for values stored in that field, no matter in
+		 * which object that field occurs.  Note that once set, this type is
+		 * permanent.  Particular object types might have field types stronger
+		 * than this bound, but they cannot weaken it.
+		 */
+		OBJECT_FIELD_RESTRICTION_KEY("field restriction key", setOnce = true),
 
 		/**
 		 * The atom used as a key in a [ParserState]'s
@@ -467,13 +480,13 @@ open class AtomDescriptor protected constructor (
 		 * The property key that indicates that a [fiber][A_Fiber]
 		 * global is inheritable by its forked fibers.
 		 */
-		HERITABLE_KEY("heritability"),
+		HERITABLE_KEY("heritability", setOnce = true),
 
 		/**
 		 * The property key whose presence indicates an atom is for explicit
 		 * subclassing of [object&#32;types][ObjectTypeDescriptor].
 		 */
-		EXPLICIT_SUBCLASSING_KEY("explicit subclassing"),
+		EXPLICIT_SUBCLASSING_KEY("explicit subclassing", setOnce = true),
 
 		/**
 		 * A heritable atom (has [HERITABLE_KEY] -> [trueObject] as a property)
@@ -486,7 +499,20 @@ open class AtomDescriptor protected constructor (
 		 * they were, we still wouldn't want to serialize one launched from a
 		 * debugger, so this atom itself doesn't need to be serializable.
 		 */
-		DONT_DEBUG_KEY("don't debug", heritable = true);
+		DONT_DEBUG_KEY("don't debug", heritable = true),
+
+		/**
+		 * If an atom F has this key mapped to [trueObject] as a property, then
+		 * it's a runtime error to attempt to set the property F on yet another
+		 * atom A if it already has that property.  It's also forbidden to
+		 * remove such a property F from A.
+		 *
+		 * This is useful when optimizing property reads of atoms,
+		 *
+		 */
+		SET_ONCE_PROPERTY_KEY("set once", heritable = false, setOnce = true)
+
+		;
 
 		/**
 		 * Create a `SpecialAtom` to hold a new atom constructed with the given
@@ -494,10 +520,14 @@ open class AtomDescriptor protected constructor (
 		 *
 		 * @param name The name of the atom to be created.
 		 */
-		constructor (
+		constructor(
 			name: String,
-			heritable: Boolean = false
-		) : this(createSpecialAtom(name), heritable)
+			heritable: Boolean = false,
+			setOnce: Boolean = false
+		) : this(
+			createSpecialAtom(name),
+			heritable = heritable,
+			setOnceKey = setOnce)
 
 		companion object
 		{
@@ -508,6 +538,11 @@ open class AtomDescriptor protected constructor (
 					{
 						specialAtom.atom.setAtomProperty(
 							HERITABLE_KEY.atom, trueObject)
+					}
+					if (specialAtom.setOnceKey)
+					{
+						specialAtom.atom.setAtomProperty(
+							SET_ONCE_PROPERTY_KEY.atom, trueObject)
 					}
 				}
 			}
@@ -555,7 +590,7 @@ open class AtomDescriptor protected constructor (
 		 *   The new atom, not equal to any object in use before this method was
 		 *   invoked.
 		 */
-		fun createAtom (
+		fun createAtom(
 			name: A_String,
 			issuingModule: A_Module
 		) = mutable.createImmutable {
@@ -576,7 +611,7 @@ open class AtomDescriptor protected constructor (
 		 *   The new atom, not equal to any object in use before this method was
 		 *   invoked.
 		 */
-		fun createSpecialAtom (
+		fun createSpecialAtom(
 			name: String
 		) = AtomWithPropertiesSharedDescriptor.sharedSpecial.createInitialized(
 			stringFrom(name), nil, nil, 0)
@@ -597,7 +632,7 @@ open class AtomDescriptor protected constructor (
 		 * @return
 		 *   An Avail boolean.
 		 */
-		fun objectFromBoolean (aBoolean: Boolean): A_Atom =
+		fun objectFromBoolean(aBoolean: Boolean): A_Atom =
 			if (aBoolean) trueObject else falseObject
 	}
 }

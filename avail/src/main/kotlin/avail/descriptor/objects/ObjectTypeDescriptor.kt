@@ -34,6 +34,7 @@ package avail.descriptor.objects
 import avail.annotations.ThreadSafe
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
@@ -53,6 +54,9 @@ import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.maximumTestOutcomesToKeep
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.TESTING_TYPES_POJO
@@ -106,6 +110,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfObjectType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
@@ -293,7 +298,8 @@ class ObjectTypeDescriptor internal constructor(
 		otherObjectType: A_Type
 	): TestOutcome
 	{
-		// First, see if we've already checked this combination of types.
+		if (self.sameAddressAs(otherObjectType)) return SUPER
+		// See if we've already checked this combination of types.
 		val otherHash = otherObjectType.hash()
 		val testResults: Array<Pair<WeakObjectTypeReference, TestOutcome>> =
 			self.volatileSlot(TESTING_TYPES_POJO).javaObjectNotNull()
@@ -311,7 +317,7 @@ class ObjectTypeDescriptor internal constructor(
 				}
 			}
 		}
-		// None of the cached tests results was applicable.
+		// None of the cached test results was applicable.
 		val outcome = when
 		{
 			self.isSubtypeOf(otherObjectType) -> SUPER
@@ -370,6 +376,16 @@ class ObjectTypeDescriptor internal constructor(
 					tupleFromList(otherAtoms),
 					slotName = "SUBCLASS_FIELDS"))
 		}
+		val testingTypeArray: Array<Pair<*, *>> =
+			self[TESTING_TYPES_POJO].javaObjectNotNull()
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+				-1,
+				mapOf(*testingTypeArray),
+				slotName = "(tested types)",
+				forcedName = "(tested types)"))
 		return fields.toTypedArray()
 	}
 
@@ -404,7 +420,7 @@ class ObjectTypeDescriptor internal constructor(
 		when
 		{
 			!isShared -> self.becomeIndirectionTo(anObjectType)
-			!anObjectType.descriptor().isShared ->
+			!anObjectType.descriptor.isShared ->
 				anObjectType.becomeIndirectionTo(self)
 		}
 		return true
@@ -567,7 +583,7 @@ class ObjectTypeDescriptor internal constructor(
 						// which can only happen in this thread or after the
 						// enclosing synchronized section completes.
 						val refPojo = identityPojo(ref)
-						refPojo.setDescriptor(refPojo.descriptor().shared())
+						refPojo.descriptor = refPojo.descriptor.shared()
 						queueToProcess.add(refPojo)
 						self.setVolatileSlot(WEAK_REFERENCE_POJO, refPojo)
 						ref
@@ -583,9 +599,9 @@ class ObjectTypeDescriptor internal constructor(
 				// Indirect self to be the canonical value.  This is safe
 				// because, even though self is shared now, no other thread has
 				// seen it.
-				self.setDescriptor(self.descriptor().mutable())
+				self.descriptor = self.descriptor.mutable()
 				self.becomeIndirectionTo(canonical)
-				self.setDescriptor(self.descriptor().shared())
+				self.descriptor = self.descriptor.shared()
 			}
 		}
 	}
@@ -638,7 +654,7 @@ class ObjectTypeDescriptor internal constructor(
 						// Abandon the partially built object type.
 						return bottom
 					}
-					setSlot(FIELD_TYPES_, it, fieldIntersection)
+					this[FIELD_TYPES_, it] = fieldIntersection
 				}
 			}
 		}
@@ -700,7 +716,7 @@ class ObjectTypeDescriptor internal constructor(
 				(1..variant.realSlotCount).forEach {
 					val fieldUnion = self[FIELD_TYPES_, it].typeUnion(
 						anObjectType[FIELD_TYPES_, it])
-					setSlot(FIELD_TYPES_, it, fieldUnion)
+					this[FIELD_TYPES_, it] = fieldUnion
 				}
 			}
 		}
@@ -847,10 +863,29 @@ class ObjectTypeDescriptor internal constructor(
 		 *   The map from atoms to types.
 		 * @return
 		 *   The new `object type`.
+		 * @throws ObjectFieldTypeException
+		 *   If any provided type is not a subtype of the field atom's bound.
 		 */
+		@Throws(ObjectFieldTypeException::class)
 		fun objectTypeFromMap(map: A_Map): AvailObject {
-			val variant: ObjectLayoutVariant = variantForFields(map.keysAsSet)
+			val variant = variantForFields(map.keysAsSet)
 			val slotMap = variant.fieldToSlotIndex
+			var problems: MutableList<A_Atom>? = null
+			map.forEach { key, value ->
+				val slotIndex = slotMap[key]!!
+				if (slotIndex > 0)
+				{
+					val typeBound = key.fieldAtomConstraint
+					if (!value.isSubtypeOf(typeBound))
+					{
+						if (problems === null) problems = mutableListOf()
+						problems.add(key)
+					}
+				}
+			}
+			problems?.let {
+				throw ObjectFieldTypeException(it)
+			}
 			return createUninitializedObjectType(variant) {
 				map.forEach { key, value ->
 					val slotIndex = slotMap[key]!!
@@ -871,7 +906,10 @@ class ObjectTypeDescriptor internal constructor(
 		 *   [type][TypeDescriptor].
 		 * @return
 		 *   The new object type.
+		 * @throws ObjectFieldTypeException
+		 *   If any value does not to conform to the key atom's type bound.
 		 */
+		@Throws(ObjectFieldTypeException::class)
 		fun objectTypeFromTuple(tuple: A_Tuple): AvailObject =
 			objectTypeFromMap(
 				tuple.fold(emptyMap) { m, (atom, type) ->
@@ -1136,7 +1174,9 @@ class ObjectTypeDescriptor internal constructor(
 			 * The [atom][AtomDescriptor] that identifies the stack dump
 			 * [field][AtomDescriptor] of an [exception][exceptionType].
 			 */
-			val stackDumpAtom = createSpecialAtom("stack dump")
+			val stackDumpAtom = createSpecialAtom("stack dump").apply {
+				fieldAtomConstraint = mostGeneralContinuationType
+			}
 
 			/**
 			 * The most general exception type.

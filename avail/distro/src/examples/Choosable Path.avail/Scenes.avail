@@ -58,10 +58,10 @@ Names
 	"_'s⁇next scene"
 Body
 
-"predicate" is a new field atom;
-"entry action" is a new field atom;
-"describer" is a new field atom;
-"next scene" is a new field atom;
+"predicate" is a new field atom constrained to [⊥]→boolean;
+"entry action" is a new field atom constrained to [⊥]→⊤;
+"describer" is a new field atom constrained to [⊥]→string;
+"next scene" is a new field atom constrained to [⊥]→abstract scene;
 
 /**
  * A scene transition comprises a predicate and a {@type "variable"} that refers
@@ -151,8 +151,8 @@ Public method "description of_for_" is
 	aTransition's describer(aContext)
 ] : string;
 
-"title" is a new field atom;
-"transitions" is a new field atom;
+"title" is a new field atom constrained to [⊥]→string;
+"transitions" is a new field atom constrained to scene transition*;
 
 /**
  * A scene represents a "location" within the story.
@@ -165,7 +165,7 @@ Public class "scene" extends abstract scene
 		entry action : [⊥]→⊤,
 		title : [⊥]→string,
 		describer : [⊥]→string,
-		transitions : <scene transition…|>;
+		transitions : scene transition*;
 
 Semantic restriction "the implied context" is [context];
 
@@ -285,7 +285,7 @@ Public method "scene for_" is
 [
 	contextType : context's type
 |
-	extend scene with transitions : <scene transition for contextType…|>
+	extend scene with transitions : scene transition for contextType*
 ] : scene's type;
 
 Semantic restriction "next scene of_for_" is
@@ -428,7 +428,7 @@ is
  *        The function to execute just before activating the scene.
  * @param "describerFunction" "[⊥]→string"
  *        The function that produces a description of the requested scene.
- * @param "nextScenes" "<scene transition…|>"
+ * @param "nextScenes" "scene transition*"
  *        The complete {@type "tuple"} of scene transitions.
  * @returns The requested scene.
  */
@@ -439,7 +439,7 @@ is
 	titleFunction : [⊥]→string,
 	entryFunction : [⊥]→⊤,
 	describerFunction : [⊥]→string,
-	nextScenes : <scene transition…|>
+	nextScenes : scene transition*
 |
 	a scene with
 		entry action ::= entryFunction,
@@ -455,7 +455,7 @@ is
 	titleType : ([⊥]→string)'s type,
 	entryType : ([⊥]→⊤)'s type,
 	describerType : ([⊥]→string)'s type,
-	nextScenes : <scene transition…|>'s type
+	nextScenes : scene transition*'s type
 |
 	Unless titleType[1] ⊆ context then
 	[

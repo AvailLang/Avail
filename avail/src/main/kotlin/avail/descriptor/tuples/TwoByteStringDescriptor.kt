@@ -185,7 +185,7 @@ class TwoByteStringDescriptor private constructor(
 		if (isMutable && canDestroy && originalSize and 3 != 0)
 		{
 			// Enlarge it in place, using more of the final partial long field.
-			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+			self.descriptor = descriptorFor(Mutability.MUTABLE, newSize)
 			self.setShortSlot(RAW_LONGS_, newSize, intValue)
 			self[HASH_OR_ZERO] = 0
 			return self
@@ -258,7 +258,7 @@ class TwoByteStringDescriptor private constructor(
 				aString.makeImmutable()
 				self.becomeIndirectionTo(aString)
 			}
-			!aString.descriptor().isShared ->
+			!aString.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aString.becomeIndirectionTo(self)
@@ -483,7 +483,7 @@ class TwoByteStringDescriptor private constructor(
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = self
-				result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+				result.descriptor = descriptorFor(Mutability.MUTABLE, newSize)
 			}
 			else
 			{

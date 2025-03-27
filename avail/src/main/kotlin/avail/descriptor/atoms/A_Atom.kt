@@ -31,8 +31,10 @@
  */
 package avail.descriptor.atoms
 
+import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.module.A_Module
@@ -43,6 +45,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.types.A_Type
 import avail.exceptions.MalformedMessageException
 import avail.persistence.cache.record.NameInModule
 
@@ -164,5 +167,10 @@ interface A_Atom : A_BasicObject {
 			get() = NameInModule(
 				issuingModule.moduleNameNative,
 				atomName.asNativeString())
+
+		var A_Atom.fieldAtomConstraint: A_Type
+			get() = getAtomProperty(OBJECT_FIELD_RESTRICTION_KEY.atom)
+			set(value: A_Type) =
+				setAtomProperty(OBJECT_FIELD_RESTRICTION_KEY.atom, value)
 	}
 }

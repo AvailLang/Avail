@@ -51,6 +51,7 @@ import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
 import avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
 import avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
+import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
@@ -283,7 +284,7 @@ class MapDescriptor private constructor(
 			self.becomeIndirectionTo(aMap.makeImmutable())
 			true
 		}
-		!aMap.descriptor().isShared -> {
+		!aMap.descriptor.isShared -> {
 			aMap.becomeIndirectionTo(self.makeImmutable())
 			true
 		}

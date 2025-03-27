@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.AvailObject
@@ -127,7 +128,8 @@ class L2_GET_OBJECT_FIELD(
 		val objectRestriction = sourceObject.restriction().intersection(
 			currentManifest.restrictionFor(sourceObject.semanticValue()))
 		val objectType = objectRestriction.type
-		val fieldType = objectType.fieldTypeAt(fieldAtom.constant)
+		val fieldType = objectType.fieldTypeAtOrNull(fieldAtom.constant) ?:
+			fieldAtom.constant.fieldAtomConstraint
 		val fieldRestriction =
 			fieldValue.restriction().intersectionWithType(fieldType)
 		if (fieldType.instanceCount.equalsInt(1) && !fieldType.isInstanceMeta)

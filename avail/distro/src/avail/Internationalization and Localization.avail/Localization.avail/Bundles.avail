@@ -48,8 +48,8 @@ Names
 	"the default localization|l10n bundle_"
 Body
 
-"bundle name" is a new field atom;
-"bundle tag" is a new field atom;
+"bundle name" is a new field atom constrained to nonempty string;
+"bundle tag" is a new field atom constrained to language tag;
 
 /**
  * A {@type "localization|l10n bundle" localization bundle} comprises a

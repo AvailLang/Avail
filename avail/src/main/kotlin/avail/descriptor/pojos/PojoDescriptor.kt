@@ -93,7 +93,7 @@ class PojoDescriptor private constructor(
 				{
 					!isShared ->
 						self.becomeIndirectionTo(aPojo.makeImmutable())
-					!aPojo.descriptor().isShared ->
+					!aPojo.descriptor.isShared ->
 						aPojo.becomeIndirectionTo(self.makeImmutable())
 				}
 				true

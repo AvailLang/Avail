@@ -34,6 +34,7 @@ import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
 import avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
+import avail.descriptor.maps.LinearMapBinDescriptor.Companion.numberOfLevels
 import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
 import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
 import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
@@ -248,7 +249,7 @@ internal class LinearMapBinDescriptor private constructor(
 							eachHash = self.intSlot(KEY_HASHES_AREA_, i)
 							eachValue = self[BIN_SLOT_AT_, i shl 1]
 						}
-						assert(result.descriptor().isMutable)
+						assert(result.descriptor.isMutable)
 						val localAddResult =
 							result.mapBinAtHashPutLevelCanDestroy(
 								eachKey, eachHash, eachValue, myLevel, true)
@@ -594,7 +595,7 @@ internal class LinearMapBinDescriptor private constructor(
 		fun check(self: AvailObject) {
 			@Suppress("ConstantConditionIf")
 			if (shouldCheckConsistency) {
-				assert(self.descriptor() is LinearMapBinDescriptor)
+				assert(self.descriptor is LinearMapBinDescriptor)
 				val numObjectSlots = self.variableObjectSlotsCount()
 				assert(numObjectSlots and 1 == 0)
 				val numEntries = numObjectSlots shr 1

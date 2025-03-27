@@ -80,6 +80,7 @@ import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
@@ -258,7 +259,7 @@ private constructor(
 				another.makeImmutable()
 				self.becomeIndirectionTo(another)
 			}
-			else if (!another.descriptor().isShared)
+			else if (!another.descriptor.isShared)
 			{
 				self.makeImmutable()
 				another.becomeIndirectionTo(self)

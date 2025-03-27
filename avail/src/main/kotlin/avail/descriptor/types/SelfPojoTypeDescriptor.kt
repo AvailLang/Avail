@@ -58,6 +58,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.ArrayPojoTypeDescriptor.PojoArray
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
+import avail.descriptor.types.SelfPojoTypeDescriptor.Companion.pojoSerializationProxy
 import avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
 import avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
 import avail.exceptions.unsupported

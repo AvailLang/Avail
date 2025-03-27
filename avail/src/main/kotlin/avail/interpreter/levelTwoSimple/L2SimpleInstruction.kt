@@ -221,7 +221,7 @@ class L2Simple_MoveConstant(
 	val to: Int
 ) : L2SimpleInstruction()
 {
-	init { assert(value.descriptor().isShared) }
+	init { assert(value.descriptor.isShared) }
 
 	override fun step(
 		registers: Array<AvailObject>,
@@ -321,7 +321,7 @@ class L2Simple_GetVariableClearing(
 		try
 		{
 			val variable = registers[fromVariable]
-			val value = when (variable.traversed().descriptor().isMutable)
+			val value = when (variable.traversed().descriptor.isMutable)
 			{
 				true -> variable.getValueClearing()
 				// Automatically makes the value immutable.
@@ -391,7 +391,7 @@ class L2Simple_GetLastOuter(
 		val variable = function.outerVarAt(outerNumber)
 		registers[stackp] = try
 		{
-			if (variable.traversed().descriptor().isMutable)
+			if (variable.traversed().descriptor.isMutable)
 			{
 				variable.getValueClearing().makeImmutable()
 			}

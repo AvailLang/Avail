@@ -71,6 +71,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfFunctionType
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE
@@ -351,7 +352,7 @@ private constructor(
 				aFunctionType.makeImmutable()
 				self.becomeIndirectionTo(aFunctionType)
 			}
-			!aFunctionType.descriptor().isShared ->
+			!aFunctionType.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aFunctionType.becomeIndirectionTo(self)

@@ -64,7 +64,7 @@ Names
 	"_'s⁇port"
 Body
 
-"octets" is a new field atom;
+"octets" is a new field atom constrained to <byte…|4..16>;
 
 /**
  * An Internet Protocol (IP) address is a 32- or 128-bit unsigned integer label
@@ -364,8 +364,8 @@ Public macro "IPv6««…#§»?«…§»?‡:»" is
 	‘cast octets into [t : <byte…|16> | an IPv6 address with octets ::= t]’
 ];
 
-"address" is a new field atom;
-"port" is a new field atom;
+"address" is a new field atom constrained to IP address;
+"port" is a new field atom constrained to [0..65535];
 
 /**
  * A socket address combines an {@type "IP address"} with a port number.

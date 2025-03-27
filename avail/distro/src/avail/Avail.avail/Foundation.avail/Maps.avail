@@ -77,8 +77,8 @@ Method "“_”" is
 		"{" ++ “t's key type” ++ "→" ++ “t's value type” ++ "|";
 	lower ::= ⌊t⌋;
 	upper ::= ⌈t⌉;
-	s := eject s ++ “||t||” (cardinality restriction);
-	s := eject s ++ "}";
+	s ++= “||t||” (cardinality restriction);
+	s ++= "}";
 	s
 ] : string;
 

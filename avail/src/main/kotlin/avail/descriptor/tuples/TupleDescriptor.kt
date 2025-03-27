@@ -265,7 +265,7 @@ protected constructor(
 		}
 		if (self.isBetterRepresentationThan(aTuple))
 		{
-			if (!aTuple.descriptor().isShared)
+			if (!aTuple.descriptor.isShared)
 			{
 				self.makeImmutable()
 				aTuple.becomeIndirectionTo(self)

@@ -342,9 +342,9 @@ Public method "Join_,then honor a termination request" is
 	];
 ];
 
-"mutex name" is a new field atom;
-"owner" is a new field atom;
-"parked fibers" is a new field atom;
+"mutex name" is a new field atom constrained to string;
+"owner" is a new field atom constrained to ↑fiber;
+"parked fibers" is a new field atom constrained to ↑parking queue;
 
 /**
  * A synchronization device controls concurrent access to protected resources.
@@ -444,9 +444,7 @@ Public method "a non-reentrant mutex«named_»" is
 	optionalName : nonempty string?
 |
 	myName ::= optionalName[1] else [defaultName];
-	/* The ownership memento 0 is used to indicate that a mutex is unowned.
-	 * It is non-canonical.
-	 */
+	/* An unassigned owner variable indicates that a mutex is unowned. */
 	a non-reentrant mutex with
 		mutex name ::= myName,
 		parked fibers := <>
@@ -472,8 +470,8 @@ Semantic restriction "a non-reentrant mutex«named_»" is
  */
 Public explicit class "synchronization exception" extends exception;
 
-"reentered mutex" is a new field atom;
-"reentering fiber" is a new field atom;
+"reentered mutex" is a new field atom constrained to non-reentrant mutex;
+"reentering fiber" is a new field atom constrained to fiber;
 
 /**
  * A reentry exception is raised when an attempt is made to reenter a {@type
@@ -697,8 +695,8 @@ Public method "Lock|lock_for_" is
 	];
 ] : ⊤;
 
-"originating monitor" is a new field atom;
-"condition predicate" is a new field atom;
+"originating monitor" is a new field atom constrained to reentrant mutex;
+"condition predicate" is a new field atom constrained to []→boolean;
 
 /**
  * A condition represents a situation that may be signaled or awaited from
@@ -716,7 +714,7 @@ Public class "condition" extends object
 	with mutable field
 		referable parked fibers : parking queue;
 
-"signaler fibers" is a new field atom;
+"signaler fibers" is a new field atom constrained to ↑parking queue;
 
 /**
  * A monitor is a {@type "reentrant mutex"} that supports {@type "condition"}s.
@@ -863,7 +861,7 @@ Public method "_is satisfied" is
 	aCondition's condition predicate()
 ] : boolean;
 
-"misused condition" is a new field atom;
+"misused condition" is a new field atom constrained to condition;
 
 /**
  * A condition exception indicates that a condition has been misused in some
@@ -1043,10 +1041,10 @@ Public method "Signal_if satisfied" is
 	If aCondition is satisfied then [Signal aCondition;];
 ] : ⊤;
 
-"maximum permits" is a new field atom;
-"available permits" is a new field atom;
-"internal monitor" is a new field atom;
-"availability" is a new field atom;
+"maximum permits" is a new field atom constrained to [0..∞];
+"available permits" is a new field atom constrained to ↑extended integer;
+"internal monitor" is a new field atom constrained to monitor;
+"availability" is a new field atom constrained to condition;
 
 /**
  * A semaphore is a {@type "synchronization device"} that describes how
@@ -1208,7 +1206,7 @@ Public method "Await__time|times" is
 	Repeat [Await sem;] permits times;
 ] : ⊤;
 
-"misused semaphore" is a new field atom;
+"misused semaphore" is a new field atom constrained to semaphore;
 
 /**
  * A semaphore exception indicates that a semaphore has been used

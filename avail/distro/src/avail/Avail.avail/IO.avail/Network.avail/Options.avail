@@ -57,9 +57,9 @@ Names
 Body
 
 /* Define the valid server socket options. */
-"option`#" is a new atom;
-"option name" is a new atom;
-"option type" is a new atom;
+"option`#" is a new atom constrained to [1..5];
+"option name" is a new atom constrained to nonempty string;
+"option type" is a new atom constrained to type;
 
 /**
  * @type "private socket option"
@@ -67,7 +67,7 @@ Body
  * @category "IO" "Networking" "Sockets"
  */
 Class "private socket option" extends object
-	with field
+	with fields
 		option# : [1..5],
 		option name : nonempty string,
 		option type : type;

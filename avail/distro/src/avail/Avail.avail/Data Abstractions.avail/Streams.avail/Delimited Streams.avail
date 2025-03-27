@@ -41,7 +41,7 @@ Names
 	"_delimited by any of_"
 Body
 
-Private method "delimiter|delimiters" is [$"delimiter|delimiters"];
+"delimiter|delimiters" is a new field atom constrained to any+;
 
 /**
  * A delimited stream answers tuples of elements from its decorated stream.
@@ -75,7 +75,7 @@ delimited stream's head method is
 	rest : stream := aStream's decorated stream;
 	Until rest is empty ∨ rest starts with aStream's delimiter do
 	[
-		head := eject head ++ <rest's head>;
+		head ++= <rest's head>;
 		rest := eject rest's tail;
 	];
 	head
@@ -156,7 +156,7 @@ multiply delimited stream's head method is
 		[rest starts with delimiter]
 	do
 	[
-		head := eject head ++ <rest's head>;
+		head ++= <rest's head>;
 		rest := eject rest's tail;
 	];
 	head

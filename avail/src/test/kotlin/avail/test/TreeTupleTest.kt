@@ -540,7 +540,7 @@ class TreeTupleTest
 			byteStringReversed,
 			1,
 			0)
-		assert(aTreeTupleReversed.descriptor() is TreeTupleDescriptor)
+		assert(aTreeTupleReversed.descriptor is TreeTupleDescriptor)
 
 		// Compare all the elements but not the tuples themselves, to avoid
 		// transforming one into an indirection.
@@ -550,14 +550,14 @@ class TreeTupleTest
 		val aTreeTupleReversedSubrange = aTreeTuple
 			.tupleReverse()
 			.copyTupleFromToCanDestroy(17, 63, false)
-		assert(aTreeTupleReversedSubrange.descriptor() is ReverseTupleDescriptor)
+		assert(aTreeTupleReversedSubrange.descriptor is ReverseTupleDescriptor)
 		Assertions.assertEquals(
 			aTreeTupleReversedSubrange.tupleSize,
 			63 - 17 + 1)
 		val aConcatenation = aTreeTuple
 			.tupleReverse()
 			.concatenateWith(aTreeTupleReversed.tupleReverse(), true)
-		assert(aConcatenation.descriptor() is TreeTupleDescriptor)
+		assert(aConcatenation.descriptor is TreeTupleDescriptor)
 		Assertions.assertEquals(aConcatenation.childCount, 4)
 		Assertions.assertEquals(aConcatenation.childAt(4), anObjectTuple)
 		Assertions.assertEquals(aConcatenation.childAt(3), byteString)

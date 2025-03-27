@@ -34,9 +34,6 @@ package avail.descriptor.atoms
 import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.splitter.MessageSplitter
-import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.ObjectSlots.BUNDLE_OR_NIL
@@ -249,10 +246,6 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 
 	override fun o_SerializerOperation (self: AvailObject) = when {
 		isSpecial -> SerializerOperation.SPECIAL_ATOM
-		self.getAtomProperty(HERITABLE_KEY.atom).notNil ->
-			SerializerOperation.HERITABLE_ATOM
-		self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil ->
-			SerializerOperation.EXPLICIT_SUBCLASS_ATOM
 		else -> SerializerOperation.ATOM
 	}
 
@@ -331,7 +324,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		}
 		setSlot(HASH_OR_ZERO, hash)
 		setSlot(BUNDLE_OR_NIL, nil)
-		setDescriptor(this@AtomWithPropertiesSharedDescriptor)
+		descriptor = this@AtomWithPropertiesSharedDescriptor
 	}
 
 	companion object {

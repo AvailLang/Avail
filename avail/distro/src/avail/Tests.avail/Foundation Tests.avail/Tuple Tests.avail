@@ -136,7 +136,7 @@ Test "macro for each of do" in tuple test suite is
 	b : natural number* := <>;
 	For each element of a do
 	[
-		If element is even then [b := eject b ++ <element>;];
+		If element is even then [b ++= <element>;];
 	];
 	Require: b = <2,4>;
 
@@ -848,7 +848,7 @@ Test "serialization" in tuple test suite is
 			If actualImplementation's nybblecodes
 				≠ expectedImplementation's nybblecodes then
 			[
-				failed := eject failed ++ <index>;
+				failed ++= <index>;
 			];
 		]
 		/* Functions have identity. */
@@ -859,7 +859,7 @@ Test "serialization" in tuple test suite is
 			If actualFunction's implementation's nybblecodes
 				≠ expectedFunction's implementation's nybblecodes then
 			[
-				failed := eject failed ++ <index>;
+				failed ++= <index>;
 			];
 		]
 		/* Variables have identity. */
@@ -869,13 +869,13 @@ Test "serialization" in tuple test suite is
 			actualVariable ::= expectedValue ?→ ↑string;
 			If ↓actualVariable ≠ ↓expectedVariable then
 			[
-				failed := eject failed ++ <index>;
+				failed ++= <index>;
 			];
 		]
 		/* All other values in the input tuple are identityless. */
 		else if actualValue ≠ expectedValue then
 		[
-			failed := eject failed ++ <index>;
+			failed ++= <index>;
 		];
 	];
 	Require: failed = <> ("serialization failed");

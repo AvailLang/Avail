@@ -46,7 +46,7 @@ Names
 	"_'s⁇position:=_"
 Body
 
-"position variable" is a new field atom;
+"position variable" is a new field atom constrained to read any/write ⊥;
 
 /**
  * A positionable iterator supports explicitly {@method "_'s⁇position"

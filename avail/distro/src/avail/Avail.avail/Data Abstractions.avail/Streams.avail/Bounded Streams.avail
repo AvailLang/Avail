@@ -40,7 +40,7 @@ Names
 	"_limited to_elements"
 Body
 
-"remaining elements" is a new field atom;
+"remaining elements" is a new field atom constrained to whole number;
 
 /**
  * A bounded stream artificially limits the number of elements that its

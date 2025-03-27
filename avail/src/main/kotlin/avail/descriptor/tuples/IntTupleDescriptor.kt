@@ -177,7 +177,7 @@ private constructor(
 		if (isMutable && canDestroy && originalSize and 1 != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+			self.descriptor = descriptorFor(Mutability.MUTABLE, newSize)
 			self.setIntSlot(RAW_LONG_AT_, newSize, intValue)
 			self[HASH_OR_ZERO] = 0
 			return self
@@ -307,7 +307,7 @@ private constructor(
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = self
-				result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+				result.descriptor = descriptorFor(Mutability.MUTABLE, newSize)
 			}
 			else
 			{
@@ -411,7 +411,7 @@ private constructor(
 				aByteTuple.makeImmutable()
 				self.becomeIndirectionTo(aByteTuple)
 			}
-			!aByteTuple.descriptor().isShared ->
+			!aByteTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aByteTuple.becomeIndirectionTo(self)
@@ -443,7 +443,7 @@ private constructor(
 				anIntTuple.makeImmutable()
 				self.becomeIndirectionTo(anIntTuple)
 			}
-			!anIntTuple.descriptor().isShared ->
+			!anIntTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				anIntTuple.becomeIndirectionTo(self)
@@ -466,7 +466,7 @@ private constructor(
 			// They're equal (but occupy disjoint storage). If possible, then
 			// replace one with an indirection to the other to keep down the
 			// frequency of long-wise comparisons.
-			!aLongTuple.descriptor().isShared ->
+			!aLongTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aLongTuple.becomeIndirectionTo(self)

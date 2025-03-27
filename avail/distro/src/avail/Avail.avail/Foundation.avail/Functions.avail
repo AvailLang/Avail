@@ -61,19 +61,20 @@ Method "“_”" is
 |
 	s : string := "[";
 	params ::= t's parameters' type;
-	If params = ⊥ then [s := eject s ++ "…";]
+	If params = ⊥ then [s ++= "…";]
 	else
 	[
 		index : natural number := 1;
 		While index ≤ ⌊params⌋
 		do
 		[
-			s := eject s ++ “t[index]”;
+			s ++= “t[index]”;
 			index := eject index + 1;
 		]
-		alternate with [s := eject s ++ ", ";];
+		alternate with [s ++= ", ";];
 	];
-	s := eject s ++ "]→" ++ “t's return type”;
+	s ++= "]→";
+	s ++= “t's return type”;
 	s
 ];
 
@@ -246,7 +247,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
 			];
 			argumentType ::= originalFunction[index];
-			argumentTypes := eject argumentTypes ++ <argumentType>;
+			argumentTypes ++= <argumentType>;
 		]
 		else if underscoreType = false's type then
 		[
@@ -444,4 +445,3 @@ Semantic restriction "unsafe sender of_returning_" is
 	]
 	else [[…]→returnType's instance]
 ];
-

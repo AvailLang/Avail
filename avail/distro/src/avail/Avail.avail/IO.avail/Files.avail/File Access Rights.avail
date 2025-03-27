@@ -158,10 +158,10 @@ Method "file permission" is [filePermissions];
 
 /* Field atoms. * @category "Files"
  */
-"access`#" is a new field atom;
-"access class" is a new field atom;
-"access right name" is a new field atom;
-"permission" is a new field atom;
+"access`#" is a new field atom constrained to [1..9];
+"access class" is a new field atom constrained to file access class;
+"access right name" is a new field atom constrained to nonempty string;
+"permission" is a new field atom constrained to file permission;
 
 /**
  * A private file access right describes a conjunction of a {@type

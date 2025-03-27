@@ -51,8 +51,8 @@ Names
 	"«_‡++»"
 Body
 
-"readers" is a new field atom;
-"reader index" is a new field atom;
+"readers" is a new field atom constrained to reader*;
+"reader index" is a new field atom constrained to ↑natural number;
 
 /**
  * A concatenation reader produces values from a sequenced collection of
@@ -211,4 +211,3 @@ Semantic restriction "«_‡++»" is concatenation semantic restriction;
 
 Grammatical restriction {"concatenate_"} is <{"«_‡++»"}>;
 Grammatical restriction {"«_‡++»"} is <{"«_‡++»"}>;
-

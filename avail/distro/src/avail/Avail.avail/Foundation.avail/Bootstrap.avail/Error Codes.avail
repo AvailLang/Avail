@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/4/25, 9:32 AM
+ * * Last Generated: 3/26/25, 11:41 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -106,6 +106,7 @@ Names
 	/*  32 */ "incorrect-type-for-group code",
 	/*  57 */ "incorrect-type-for-numbered-choice code",
 	/*  43 */ "incorrect-use-of-double-dagger code",
+	/*  29 */ "invalid-field-for-object code",
 	/*  25 */ "invalid-handle code",
 	/* 205 */ "invalid-path code",
 	/*  26 */ "invalid-primitive-name code",
@@ -140,6 +141,7 @@ Names
 	/* 203 */ "partial-success code",
 	/*  24 */ "permission-denied code",
 	/* 501 */ "pojo-type-is-abstract code",
+	/*  18 */ "property-may-only-be-set-once code",
 	/*  50 */ "question-mark-must-follow-a-simple-group code",
 	/*  39 */ "redefined-with-same-argument-types code",
 	/*  79 */ "result-disagreed-with-expected-type code",
@@ -247,6 +249,11 @@ Primitive "not-an-enumeration code" is
 	17
 ];
 
+Primitive "property-may-only-be-set-once code" is
+[
+	18
+];
+
 Primitive "no-method code" is
 [
 	19
@@ -295,6 +302,11 @@ Primitive "styler-already-set-by-this-module code" is
 Primitive "declaration-does-not-have-initializer code" is
 [
 	28
+];
+
+Primitive "invalid-field-for-object code" is
+[
+	29
 ];
 
 Primitive "too-large-to-represent code" is

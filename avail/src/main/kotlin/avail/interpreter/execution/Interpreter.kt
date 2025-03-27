@@ -3029,7 +3029,7 @@ class Interpreter(
 			{
 				is AvailObject ->
 				{
-					when (value.descriptor())
+					when (value.descriptor)
 					{
 						is RegisterDumpDescriptor -> {
 							append("a RegisterDump(")

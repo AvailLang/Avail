@@ -42,7 +42,7 @@ Names
 	"_'s⁇component reader"
 Body
 
-"component reader" is a new field atom;
+"component reader" is a new field atom constrained to reader;
 
 /**
  * This abstract class is for building decorators on another reader.

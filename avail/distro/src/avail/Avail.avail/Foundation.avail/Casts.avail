@@ -73,8 +73,8 @@ Names
 	"bad-multiway-cast exception"
 Body
 
-"source type" is a new field atom;
-"destination type" is a new field atom;
+"source type" is a new field atom constrained to type;
+"destination type" is a new field atom constrained to type;
 
 /**
  * {@method "Cast|cast_into«_‡,»«else_»"} raises a bad-multiway-cast exception

@@ -130,7 +130,7 @@ Method "read«at most»?_byte|bytes from_" is
 				atEnd : boolean
 			|
 				If atEnd then [endOfStream := true;]
-				else [data := eject data ++ justRead;];
+				else [data ++= justRead;];
 				Signal sem;
 			]
 			on failure doing [e : exception | killer := e; Signal sem;];

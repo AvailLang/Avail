@@ -46,10 +46,10 @@ Names
 	"a Mersenne Twister stream from_"
 Body
 
-"mt" is a new field atom;
-"index" is a new field atom;
-
 u32 ::= [0..1<<32);
+
+"mt" is a new field atom constrained to <u32…|624>;
+"index" is a new field atom constrained to [1..624];
 
 /**
  * The Mersenne Twister pseudorandom number generator.
@@ -150,7 +150,7 @@ Private method "untwisted Mersenne Twister from_" is
 	[
 		last ::= vector's last;
 		value ::= 1812433253 × (last bit⊕ (last >> 30)) + i;
-		vector := eject vector ++ <value bit∧ ((1<<32)-1)>;
+		vector ++= <value bit∧ ((1<<32)-1)>;
 	];
 	a Mersenne Twister with
 		element type ::= u32,

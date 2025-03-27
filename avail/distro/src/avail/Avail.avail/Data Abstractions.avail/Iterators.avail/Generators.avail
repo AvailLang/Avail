@@ -41,10 +41,10 @@ Names
 	"generator for_"
 Body
 
-"current value" is a new field atom;
-"client state" is a new field atom;
-"execution state" is a new field atom;
-"resuming" is a new field atom;
+"current value" is a new field atom constrained to ↑any;
+"client state" is a new field atom constrained to ↑$[any]→⊤;
+"execution state" is a new field atom constrained to ↑continuation;
+"resuming" is a new field atom constrained to ↑boolean;
 
 /**
  * A generator iteratively applies a supplied function to produce values. This

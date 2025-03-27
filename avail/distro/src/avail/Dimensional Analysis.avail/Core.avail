@@ -132,13 +132,10 @@ Alias "_÷_(Avail)" to Foundation $"_÷_";
 Alias "_mod_(Avail)" to Foundation $"_mod_";
 Alias "_^_(Avail)" to Foundation $"_^_";
 
-Public method "unit map" is [$"unit map"];
-Public method "extent" is [$extent];
-Public method "metric" is [$metric];
-Private method "incompatible quantities" is [$"incompatible quantities"];
-Private method "source unit" is [$"source unit"];
-Private method "target unit" is [$"target unit"];
-Private method "preferred symbol" is [$"preferred symbol"];
+Public "unit map" is a new field atom constrained to {atom→integer|};
+Public "extent" is a new field atom constrained to any;
+
+"preferred symbol" is a new atom;
 
 /**
  * A unit is a measurement quantum along some dimensional axis.
@@ -185,6 +182,8 @@ Public explicit class "derived unit" extends unit;
 Public class "scalar" extends derived unit
 	with fields
 		unit map : {}'s type;
+
+Public "metric" is a new field atom constrained to unit;
 
 /**
  * A dimensioned quantity combines a numeric extent with a {@type "unit"}.
@@ -817,6 +816,9 @@ Public method "_(_)is a derived unit equivalent to_" is
 		Prefer symbol for printing aUnit in a dimensioned quantity;
 	];
 ] : ⊤;
+
+"incompatible quantities" is a new field atom
+	constrained to <dimensioned quantity…|2>;
 
 /**
  * An incompatible-quantities exception is raised whenever an operation is
@@ -1976,6 +1978,9 @@ Public method "unit conversion function" is
 [
 	[⊥, ⊥]→dimensioned quantity
 ];
+
+"source unit" is a new field atom constrained to unit;
+"target unit" is a new field atom constrained to unit;
 
 /**
  * A no-such-conversion exception is raised by {@method "_converted to_"} when

@@ -55,7 +55,7 @@ Body
  */
 Public explicit class "command" extends object;
 
-"chosen transition" is a new field atom;
+"chosen transition" is a new field atom constrained to natural number;
 
 /**
  * A transition command represents a request to execute the chosen {@type

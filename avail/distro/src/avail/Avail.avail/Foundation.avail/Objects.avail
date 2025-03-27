@@ -265,8 +265,9 @@ Semantic restriction "_→object" is
 		if |atomType| = 1 then
 		[
 			fieldAtom ::= atomType's instance;
-			fieldType ::= defs[fieldAtom] else [⊥] ∪ defType;
-			defs := eject defs + fieldAtom→fieldType;
+			fieldType ::= (defs[fieldAtom] else [⊥] ∪ defType)
+				∩ fieldAtom's field constraint;
+			↑defs[fieldAtom] := fieldType;
 		]
 		/* We know one or more fields with which this type is associated, so
 		 * record this knowledge into `constraints`.
@@ -276,8 +277,9 @@ Semantic restriction "_→object" is
 			atoms ::= atomType's instances;
 			For each fieldAtom of atoms do
 			[
-				fieldType ::= constraints[fieldAtom] else [⊥] ∪ defType;
-				constraints := eject constraints + fieldAtom→fieldType;
+				fieldType ::= (constraints[fieldAtom] else [⊥] ∪ defType)
+					∩ fieldAtom's field constraint;
+				↑constraints[fieldAtom] := fieldType;
 			];
 		]
 		/* We don't know anything about the field. Treat the field type as a
@@ -916,7 +918,7 @@ Private method "reconstructor name for_" is
 	methodName : nonempty string := fieldAtomNames[1] ++ "::=_";
 	For each fieldAtomName of fieldAtomNames' tail do
 	[
-		methodName := eject methodName ++ "," ++ fieldAtomName[5..] ++ "::=_";
+		methodName ++= "," ++ fieldAtomName[5..] ++ "::=_";
 	];
 	methodName
 ];
@@ -1014,7 +1016,7 @@ Private method "Generate and install_reconstructor for_" is
 				with «<ejectSend, ‘fieldAtom’, «↑«↓decl»»>»
 				: field map;
 			mapAssign ::= ««↓mapDecl» := addBindingSend»;
-			cloning := eject cloning ++ <decl, ifSend, mapAssign>;
+			cloning ++= <decl, ifSend, mapAssign>;
 		];
 	];
 	/* Convert the map back to an object. */
@@ -1227,7 +1229,7 @@ is
 	Unless optionalMutable is empty then
 	[
 		mutable := optionalMutable[1];
-		newDefinitions := eject newDefinitions ++
+		newDefinitions ++=
 			map each fieldTuple in mutable through
 			[
 				fieldAtom ::= fieldTuple[5];
@@ -1400,8 +1402,7 @@ is
 	Unless optionalReconstructors is empty then
 	[
 		specs ::= optionalReconstructors[1];
-		reconstructors := eject reconstructors ++
-			map each spec in specs through [spec[2]];
+		reconstructors ++= map each spec in specs through [spec[2]];
 	];
 	/* Generate the reconstructors. */
 	For each atoms of reconstructors do
@@ -1605,7 +1606,7 @@ is
 								\| section (because it is public)"
 					];
 				];
-				allNamesTuple := eject allNamesTuple ++ <accessorName>;
+				allNamesTuple ++= <accessorName>;
 			];
 			If fieldAtom ∈ newDefinitions then
 			[
@@ -1711,7 +1712,7 @@ is
 						++ "\" to be included in the module's \"Names\" section\
 						\| (because it is public)"
 				];
-				allNamesTuple := eject allNamesTuple ++ <accessorName>;
+				allNamesTuple ++= <accessorName>;
 				If referable then
 				[
 					If |orderedNames[3]| ≠ 1 then
@@ -1749,7 +1750,7 @@ is
 							++ "\" to be included in the module's \"Names\"\
 								\| section (because it is public)"
 					];
-					allNamesTuple := eject allNamesTuple ++ <referrerName>;
+					allNamesTuple ++= <referrerName>;
 				]
 				else
 				[
@@ -1808,7 +1809,7 @@ is
 							++ "\" to be included in the module's \"Names\"\
 								\| section (because it is public)"
 					];
-					allNamesTuple := eject allNamesTuple ++ <mutatorName>;
+					allNamesTuple ++= <mutatorName>;
 				];
 			];
 			If fieldAtom ∈ newDefinitions then
@@ -1846,7 +1847,7 @@ is
 			atomType ::= atomsType[atomTypeIndex];
 			If |atomType| = 1 then
 			[
-				fieldAtoms := eject fieldAtoms ++ <atomType's instance>;
+				fieldAtoms ++= <atomType's instance>;
 			];
 		];
 		If publicSpec ∧ |fieldAtoms| = relevant |atomsType| then
@@ -1934,9 +1935,8 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 					[
 						varType : variable meta
 					|
-						readType ::= cast varType's read type
-							into [t : any meta | t];
-						var ::= new ↑readType;
+						readType ::= varType's read type ?→ any meta;
+						var ::= new variable of type readType;
 						var ?= value;
 						var
 					]
@@ -1970,11 +1970,9 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 				[
 					varType : variable meta
 				|
-					readType ::= cast varType's read type
-						into [t : any meta | t];
-					var ::= new ↑readType;
-					syntheticAssignments := eject syntheticAssignments
-						++ <<fieldAtom, var>>;
+					readType ::= varType's read type ?→ any meta;
+					var ::= new variable of type readType;
+					syntheticAssignments ++= <<fieldAtom, var>>;
 				]
 				else
 				[
@@ -2109,7 +2107,9 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 					readType ::= cast varType's read type
 						into [t : any meta | t];
 					fieldAtomToken ::= `fieldAtom`(fieldAtom's name);
-					createVar ::= ⟦new ↑⦊`readType` → literal phrase⦉⟧;
+					createVar ::= restricted send $"new`↑_"
+						with <`readType` → literal phrase> → list phrase
+						: varType;
 					tuplePhrases ++= <«<
 						fieldAtomToken → literal phrase,
 						createVar>»>;
@@ -2179,11 +2179,14 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 							++ fieldAtom's name
 							++ " (but it is not present in the object type)"
 					];
+				/* Make sure the assignment will be type-safe when this
+				 * expression runs.  The value provided *cannot* strongthen the
+				 * variable's type, since it's invariant. */
 				cast fieldType into
 				[
 					varType : variable meta
 				|
-					cast varType's read type into [t : any meta | t]
+					varType's read type ?→ any meta
 				]
 				else
 				[
@@ -2196,6 +2199,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 			]
 			else
 			[
+				assignments := eject assignments + fieldAtom→valueType;
 				definitions[fieldAtom] else [any]
 			];
 		If ¬valueType ⊆ requiredType then
@@ -2209,7 +2213,6 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 				++ “requiredType”
 				++ ")"
 		];
-		assignments := eject assignments + fieldAtom→valueType;
 	];
 	For each fieldAtom → fieldType of definitions do
 	[

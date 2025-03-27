@@ -67,7 +67,7 @@ Names
 	"temporary directory"
 Body
 
-"string name" is a new field atom;
+"string name" is a new field atom constrained to string;
 
 /**
  * A file name represents a node, actual or hypothetical, within a file system.

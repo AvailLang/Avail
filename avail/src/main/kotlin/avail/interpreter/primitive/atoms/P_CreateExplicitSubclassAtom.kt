@@ -57,7 +57,6 @@ import avail.interpreter.execution.Interpreter
  * the [SpecialAtom.EXPLICIT_SUBCLASSING_KEY] as a property to indicate this
  * atom will be used for explicitly subclassing object types.
  *
- *
  * If this method is executed outside the scope of compiling or loading, a
  * new atom will always be created.
  */

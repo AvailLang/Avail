@@ -672,6 +672,10 @@ class L2ControlFlowGraphVisualizer constructor(
 				{
 					penwidth(5)
 				}
+				else
+				{
+					penwidth(0.4)
+				}
 				if (!started)
 				{
 					color("#4040ff/8080ff")

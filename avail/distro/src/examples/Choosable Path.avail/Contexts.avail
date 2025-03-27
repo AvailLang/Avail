@@ -58,14 +58,14 @@ Body
  *
  * @global "current scene" "atom"
  */
-Public "current scene" is a new field atom;
+Public "current scene" is a new field atom constrained to ↑abstract scene;
 
 /**
  * The previous scene field atom of a {@type "context"}.
  *
  * @global "previous scene" "atom"
  */
-Public "previous scene" is a new field atom;
+Public "previous scene" is a new field atom constrained to ↑abstract scene;
 
 /**
  * A context represents the visible state of a game. Many choosable path games

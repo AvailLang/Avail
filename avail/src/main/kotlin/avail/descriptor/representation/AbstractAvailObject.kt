@@ -31,10 +31,6 @@
  */
 package avail.descriptor.representation
 
-import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
-import avail.optimizer.jvm.ReferencedInGeneratedCode
-
 /**
  * `AbstractAvailObject` specifies the essential layout and storage requirements
  * of an Avail object, but does not specify a particular representation. As
@@ -64,16 +60,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * including how its fields are laid out.
 	 */
 	@field:Volatile
-	protected var currentDescriptor = initialDescriptor
-
-	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */
-	@ReferencedInGeneratedCode
-	fun descriptor() = currentDescriptor
-
-	/** Replace this object's current [currentDescriptor]AbstractDescriptor]. */
-	fun setDescriptor(newDescriptor: AbstractDescriptor) {
-		currentDescriptor = newDescriptor
-	}
+	var descriptor = initialDescriptor
 
 	/**
 	 * Check if the object's address is valid. Throw an [Error] if it lies
@@ -105,7 +92,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * definition.
 	 */
 	fun destroy() {
-		currentDescriptor = FillerDescriptor.mutable
+		descriptor = FillerDescriptor.mutable
 	}
 
 	/**
@@ -117,7 +104,7 @@ abstract class AbstractAvailObject protected constructor(
 	protected val isDestroyed: Boolean
 		get() {
 			checkValidAddress()
-			return currentDescriptor === FillerDescriptor.mutable
+			return descriptor === FillerDescriptor.mutable
 		}
 
 	/**
@@ -137,7 +124,7 @@ abstract class AbstractAvailObject protected constructor(
 	 *   The number of variable integer slots.
 	 */
 	fun variableIntegerSlotsCount() =
-		integerSlotsCount() - currentDescriptor.numberOfFixedIntegerSlots
+		integerSlotsCount() - descriptor.numberOfFixedIntegerSlots
 
 	/**
 	 * Answer the number of object slots in this [AvailObject]. All variable
@@ -156,7 +143,7 @@ abstract class AbstractAvailObject protected constructor(
 	 *   The number of variable object slots.
 	 */
 	fun variableObjectSlotsCount() =
-		objectSlotsCount() - currentDescriptor.numberOfFixedObjectSlots
+		objectSlotsCount() - descriptor.numberOfFixedObjectSlots
 
 	/**
 	 * Sanity check: ensure that the specified field is writable.
@@ -165,7 +152,7 @@ abstract class AbstractAvailObject protected constructor(
 	 *   An `enum` value whose ordinal is the field position.
 	 */
 	fun checkWriteForField(e: AbstractSlotsEnum) =
-		currentDescriptor.checkWriteForField(e)
+		descriptor.checkWriteForField(e)
 
 	/**
 	 * Slice the current [object][AvailObject] into two objects, the left one
@@ -196,12 +183,4 @@ abstract class AbstractAvailObject protected constructor(
 	 */
 	abstract fun truncateWithFillerForNewObjectSlotsCount(
 		newObjectSlotsCount: Int)
-
-	companion object {
-		/** The [CheckedMethod] for [descriptor]. */
-		val descriptorMethod = instanceMethod(
-			AbstractAvailObject::class.java,
-			AbstractAvailObject::descriptor.name,
-			AbstractDescriptor::class.java)
-	}
 }

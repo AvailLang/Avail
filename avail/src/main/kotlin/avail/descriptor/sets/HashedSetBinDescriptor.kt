@@ -345,7 +345,7 @@ class HashedSetBinDescriptor private constructor(
 		val out = when
 		{
 			mask1 == mergedMask && isMutable -> self
-			mask2 == mergedMask && hashedBin.descriptor().isMutable -> hashedBin
+			mask2 == mergedMask && hashedBin.descriptor.isMutable -> hashedBin
 			mask1 == mask2 -> newLike(mutable(), self, 0, 0)
 			else -> createUninitializedHashedSetBin(
 				level, newSize, 0, 0, mergedMask, nil)
@@ -611,7 +611,7 @@ class HashedSetBinDescriptor private constructor(
 		fun checkHashedSetBin(self: AvailObject) {
 			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
-				assert(self.descriptor() is HashedSetBinDescriptor)
+				assert(self.descriptor is HashedSetBinDescriptor)
 				val stored = self.setBinHash
 				var calculated = 0
 				for (i in 1..self.variableObjectSlotsCount()) {

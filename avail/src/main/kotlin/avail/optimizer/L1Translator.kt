@@ -194,6 +194,11 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VAR
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.interpreter.primitive.privatehelpers.P_PushArgument1
+import avail.interpreter.primitive.privatehelpers.P_PushArgument2
+import avail.interpreter.primitive.privatehelpers.P_PushArgument3
+import avail.interpreter.primitive.privatehelpers.P_PushConstant
+import avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckTestEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckTestEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
@@ -1858,6 +1863,17 @@ class L1Translator private constructor(
 	 */
 	private fun emitInterruptOffRamp()
 	{
+		// Skip the interrupt check if this is a special primitive that can't
+		// cause recursion or reification.
+		when (code.codePrimitive())
+		{
+			null -> { }
+			P_PushConstant,
+			P_PushArgument1,
+			P_PushArgument2,
+			P_PushArgument3,
+			P_PushLastOuter -> return
+		}
 		val serviceInterrupt = createBasicBlock(
 			"service interrupt",
 			isCold = true)

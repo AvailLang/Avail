@@ -42,11 +42,10 @@ import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
-import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SET_ONCE_PROPERTY_KEY
 import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
@@ -796,8 +795,9 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(
-				fromInt(Serializer.indexOfSpecialAtom(obj)))
+			val specialIndex = Serializer.indexOfSpecialAtom(obj)
+			assert(specialIndex != -1)
+			return array(fromInt(specialIndex))
 		}
 
 		override fun compose(
@@ -1202,66 +1202,89 @@ enum class SerializerOperation constructor(
 	ATOM(
 		34,
 		OBJECT_REFERENCE("atom name"),
-		OBJECT_REFERENCE("module name"))
+		OBJECT_REFERENCE("module name"),
+		BYTE("flags"))
 	{
+		/**
+		 * The flag indicating the atom should have its [HERITABLE_KEY] property
+		 * set, so that when used as a fiber variable, the variable will be
+		 * inherited by forked fibers.
+		 */
+		val HeritableFlag = 1 shl 0
+
+		/**
+		 * The flag that indicates the atom should have its
+		 * [SET_ONCE_PROPERTY_KEY] property set, so that when this atom F is
+		 * used as a property of some other atom A, the Avail primitives will
+		 * fail if an attempt is made to remove the property F from A, or to
+		 * set it again.
+		 */
+		val SetOnceFlag = 1 shl 1
+
+		/**
+		 * The flag that indicates the atom is for explicit subclassing of
+		 * [object&#32;types][ObjectTypeDescriptor].
+		 */
+		val ExplicitSubclassFlag = 1 shl 2
+
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			serializer.checkAtom(obj)
-			assert(obj.getAtomProperty(HERITABLE_KEY.atom).isNil)
+			val heritable = obj.getAtomProperty(HERITABLE_KEY.atom)
+				.equals(trueObject)
+			val setOnce = obj.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
+				.equals(trueObject)
+			val explicitSubclass = obj
+				.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
+				.equals(trueObject)
 			val module = obj.issuingModule
 			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(obj.atomName, module.moduleName)
+			var flags = 0
+			if (heritable) flags = flags or HeritableFlag
+			if (setOnce) flags = flags or SetOnceFlag
+			if (explicitSubclass) flags = flags or ExplicitSubclassFlag
+			return array(obj.atomName, module.moduleName, fromInt(flags))
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (atomName, moduleName) = subobjects
+			val (atomName, moduleName, flags) = subobjects
 			val atom = lookupAtom(atomName, moduleName, deserializer)
+			val flagsInt = flags.extractInt
+			if (flagsInt and HeritableFlag != 0)
+				atom.setAtomProperty(HERITABLE_KEY.atom, trueObject)
+			if (flagsInt and SetOnceFlag != 0)
+				atom.setAtomProperty(SET_ONCE_PROPERTY_KEY.atom, trueObject)
+			if (flagsInt and ExplicitSubclassFlag != 0)
+				atom.setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 			return atom.makeShared()
 		}
 	},
 
 	/**
-	 * An [atom][A_Atom].  Output the atom name and the name of the
-	 * module that issued it.  Look up the corresponding atom during
-	 * reconstruction, recreating it if it's not present and supposed to have
-	 * been issued by the current module.
+	 * Reserved for future use.
 	 */
-	HERITABLE_ATOM(
-		35,
-		OBJECT_REFERENCE("atom name"),
-		OBJECT_REFERENCE("module name"))
+	@Suppress("unused") RESERVED_35(35)
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			serializer.checkAtom(obj)
-			assert(obj.getAtomProperty(HERITABLE_KEY.atom).equals(trueObject))
-			val module = obj.issuingModule
-			if (module.isNil)
-			{
-				// It probably should be listed in AvailRuntime.specialAtoms.
-				throw RuntimeException("Atom has no issuing module")
-			}
-			return array(obj.atomName, module.moduleName)
+			throw RuntimeException("Reserved serializer operation")
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (atomName, moduleName) = subobjects
-			val atom = lookupAtom(atomName, moduleName, deserializer)
-			atom.setAtomProperty(HERITABLE_KEY.atom, trueObject)
-			return atom.makeShared()
+			throw RuntimeException("Reserved serializer operation")
 		}
 	},
 
@@ -2012,43 +2035,24 @@ enum class SerializerOperation constructor(
 		}
 	},
 
+
 	/**
-	 * An [atom][AtomDescriptor] which is used for creating explicit subclasses.
-	 * Output the atom name and the name of the module that issued it.  Look up
-	 * the corresponding atom during reconstruction, recreating it if it's not
-	 * present and supposed to have been issued by the current module.
-	 *
-	 * This should be the same as [ATOM], other than adding the special
-	 * [SpecialAtom.EXPLICIT_SUBCLASSING_KEY] property.
+	 * Reserved for future use.
 	 */
-	EXPLICIT_SUBCLASS_ATOM(
-		54,
-		OBJECT_REFERENCE("atom name"),
-		OBJECT_REFERENCE("module name"))
+	@Suppress("unused") RESERVED_54(54)
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			serializer.checkAtom(obj)
-			assert(obj.getAtomProperty(HERITABLE_KEY.atom).isNil)
-			assert(obj.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
-			val module = obj.issuingModule
-			if (module.isNil)
-			{
-				throw RuntimeException("Atom has no issuing module")
-			}
-			return array(obj.atomName, module.moduleName)
+			throw RuntimeException("Reserved serializer operation")
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (atomName, moduleName) = subobjects
-			val atom = lookupAtom(atomName, moduleName, deserializer)
-			atom.setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
-			return atom.makeShared()
+			throw RuntimeException("Reserved serializer operation")
 		}
 	},
 
@@ -2702,7 +2706,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.descriptor() is PojoFinalFieldDescriptor)
+			assert(obj.descriptor is PojoFinalFieldDescriptor)
 			val field = obj[PojoFinalFieldDescriptor.ObjectSlots.FIELD]
 				.javaObjectNotNull<Field>()
 			val definingClass = field.declaringClass

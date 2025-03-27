@@ -540,7 +540,7 @@ Method "take«at most»?_from_" is
 		Repeat
 		[
 			next ::= aReader's current element;
-			result := eject result ++ <next>;
+			result ++= <next>;
 			Advance aReader;
 		] count times;
 	]
@@ -623,7 +623,7 @@ Method "take from_while_" is
 	result : tuple := <>;
 	While aReader is not exhausted ∧ predicate(aReader's current element) do
 	[
-		result := eject result ++ <aReader's current element>;
+		result ++= <aReader's current element>;
 		Advance aReader;
 	];
 	result
@@ -670,7 +670,7 @@ Method "take from_until_" is
 	result : tuple := <>;
 	Until aReader is exhausted ∨ predicate(aReader's current element) do
 	[
-		result := eject result ++ <aReader's current element>;
+		result ++= <aReader's current element>;
 		Advance aReader;
 	];
 	result

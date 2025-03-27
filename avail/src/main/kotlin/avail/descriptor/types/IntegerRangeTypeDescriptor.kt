@@ -81,6 +81,7 @@ import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND
 import avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND
 import avail.descriptor.types.PojoTypeDescriptor.Companion.byteRange
@@ -590,7 +591,7 @@ private constructor(
 		{
 			if (lowerBound.sameAddressAs(upperBound))
 			{
-				if (lowerBound.descriptor().isMutable)
+				if (lowerBound.descriptor.isMutable)
 				{
 					error("Don't plug in a mutable object as two distinct " +
 						"construction parameters")

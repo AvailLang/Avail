@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/4/25, 9:32 AM
+ * * Last Generated: 3/26/25, 11:41 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,6 +56,7 @@ Names
 	"Breakpoint",
 	"Cast|cast_into_else_",
 	"Close module_",
+	"Constrain field_to_",
 	"Copy macros from_to_",
 	"Crash:_",
 	"Error:_",
@@ -114,6 +115,7 @@ Names
 	"_'s⁇entry points",
 	"_'s⁇expression",
 	"_'s⁇expressions",
+	"_'s⁇field constraint",
 	"_'s⁇function",
 	"_'s⁇function type",
 	"_'s⁇genuine lower bound",

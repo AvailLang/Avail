@@ -67,10 +67,10 @@ Names
 	"Require:_is valid value type of_"
 Body
 
-"key type" is a new field atom;
-"payload type" is a new field atom;
-"payload" is a new field atom;
-"next tries" is a new field atom;
+"key type" is a new field atom constrained to tuple's type;
+"payload type" is a new field atom constrained to any's type;
+"payload" is a new field atom constrained to ↑any;
+"next tries" is a new field atom constrained to ↑any;
 
 /**
  * A {@type "trie"} is a mutable prefix tree.

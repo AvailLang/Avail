@@ -305,7 +305,7 @@ class AvailDebugger internal constructor (
 			!value.isType -> "(${value.typeTag.shorterName})"
 			value.isTop -> value.toString()
 			value.isBottom -> value.toString()
-			value.traversed().descriptor() is PrimitiveTypeDescriptor ->
+			value.traversed().descriptor is PrimitiveTypeDescriptor ->
 				value.toString()
 			value.equals(booleanType) -> "boolean"
 			value.instanceCount.equalsInt(1) ->
@@ -853,6 +853,8 @@ class AvailDebugger internal constructor (
 						{
 							currentCode = code
 							disassemblyPane.text = text
+							disassemblyPane.revalidate()
+							disassemblyPane.repaint()
 						}
 						val pc = frame.pc
 						val highlightPc = when (isTopFrame)
@@ -896,6 +898,9 @@ class AvailDebugger internal constructor (
 					if (module.notNil)
 					{
 						sourcePane.text = "Fetching source..."
+						sourcePane.revalidate()
+						sourcePane.repaint()
+
 						sourceWithInfoThen(runtime, module) {
 								src, delimiter, ends ->
 							SwingUtilities.invokeLater {
@@ -1152,6 +1157,8 @@ class AvailDebugger internal constructor (
 					// It's a more recent stringification than the currently
 					// displayed string, so replace it.
 					variableValuePane.text = string
+					variableValuePane.revalidate()
+					variableValuePane.repaint()
 					paneVersionTracker.renderedVersion = id
 				}
 			}

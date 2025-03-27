@@ -86,7 +86,7 @@ Body
 //                                  Genders.                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical gender identity" is a new field atom;
+Public "grammatical gender identity" is a new field atom constrained to atom;
 
 /**
  * English classically categorizes pronouns according to three grammatical
@@ -166,7 +166,7 @@ extends feminine gender ∪ masculine gender ∪ neuter gender;
 //                              Gendered values.                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical gender" is a new field atom;
+Public "grammatical gender" is a new field atom constrained to gender;
 
 /**
  * Any {@type "object"} that wishes to express {@type "gender"} immutably may

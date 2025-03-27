@@ -51,6 +51,7 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
+import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.DoubleDescriptor.IntegerSlots.LONG_BITS
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
@@ -218,7 +219,7 @@ class DoubleDescriptor private constructor(
 		when {
 			!(another as A_Number).equalsDouble(getDouble(self)) -> return false
 			!isShared -> self.becomeIndirectionTo(another.makeImmutable())
-			!another.descriptor().isShared ->
+			!another.descriptor.isShared ->
 				another.becomeIndirectionTo(self.makeImmutable())
 		}
 		return true
@@ -568,7 +569,7 @@ class DoubleDescriptor private constructor(
 			canDestroy: Boolean
 		): A_Number {
 			val result =
-				if (canDestroy && recyclable1.descriptor().isMutable)
+				if (canDestroy && recyclable1.descriptor.isMutable)
 				{
 					recyclable1 as AvailObject
 				}
@@ -603,9 +604,9 @@ class DoubleDescriptor private constructor(
 			canDestroy: Boolean
 		): A_Number {
 			val result: AvailObject = when {
-				canDestroy && recyclable1.descriptor().isMutable ->
+				canDestroy && recyclable1.descriptor.isMutable ->
 					recyclable1 as AvailObject
-				canDestroy && recyclable2.descriptor().isMutable ->
+				canDestroy && recyclable2.descriptor.isMutable ->
 					recyclable2 as AvailObject
 				else -> mutable.create()
 			}

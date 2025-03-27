@@ -68,8 +68,8 @@ Body
 Public method "room id" is [[1..20]];
 
 /* Define the field atoms for the "unfinished room" type. */
-"room`#" is a new atom;
-"adjacent room ids" is a new atom;
+"room`#" is a new atom constrained to [0..20];
+"adjacent room ids" is a new atom constrained to {room id|};
 
 /**
  * Unfinished rooms are used only by the {@method "a cave" cave builder}.
@@ -104,7 +104,7 @@ Private method "an unfinished room" is
 ] : unfinished room;
 
 /* Define the field atoms for the "room" type. */
-"label" is a new atom;
+"label" is a new atom constrained to ↑string;
 
 /**
  * A room is a location within a cave. Every room has an {@type "room id"
@@ -218,9 +218,9 @@ Public method "`#“_”(with label)" is
 ] : string;
 
 /* Define the field atoms for the "cave" type. */
-"network of rooms" is a new atom;
-"entrance id" is a new atom;
-"pit ids" is a new atom;
+"network of rooms" is a new atom constrained to <room…|20>;
+"entrance id" is a new atom constrained to room id;
+"pit ids" is a new atom constrained to {room id|2};
 
 /**
  * The cave comprises a network of twenty (20) {@type "room"}s. One of these

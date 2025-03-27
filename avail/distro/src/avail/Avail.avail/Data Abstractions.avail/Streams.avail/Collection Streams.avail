@@ -40,8 +40,8 @@ Names
 	"a stream over_"
 Body
 
-"collection" is a new field atom;
-"index" is a new field atom;
+"collection" is a new field atom constrained to any*;
+"index" is a new field atom constrained to natural number;
 
 /**
  * A tuple stream operates over the elements of a tuple. It is finite by

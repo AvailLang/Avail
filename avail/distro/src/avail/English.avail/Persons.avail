@@ -87,7 +87,7 @@ Body
 //                                  Persons.                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical person identity" is a new field atom;
+Public "grammatical person identity" is a new field atom constrained to atom;
 
 /**
  * English categorizes nouns, pronouns, and verbs according to three grammatical
@@ -162,7 +162,7 @@ extends English first person ∪ English second person ∪ English third person;
 //                              Personed values.                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical person" is a new field atom;
+Public "grammatical person" is a new field atom constrained to person;
 
 /**
  * Any {@type "object"} that wishes to express {@type "person"} immutably may

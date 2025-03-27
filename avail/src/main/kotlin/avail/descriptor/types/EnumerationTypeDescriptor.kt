@@ -270,7 +270,7 @@ private constructor(
 				another.makeImmutable()
 				self.becomeIndirectionTo(another)
 			}
-			else if (!another.descriptor().isShared)
+			else if (!another.descriptor.isShared)
 			{
 				self.makeImmutable()
 				another.becomeIndirectionTo(self)

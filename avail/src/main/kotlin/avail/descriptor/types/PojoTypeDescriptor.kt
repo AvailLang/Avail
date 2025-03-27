@@ -89,6 +89,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PojoTypeDescriptor.Companion.cache
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.MarshalingException
 import avail.utility.Mutable

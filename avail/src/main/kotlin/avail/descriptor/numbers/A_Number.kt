@@ -1206,7 +1206,7 @@ interface A_Number : A_BasicObject
 			aNumber: AvailObject,
 			canDestroy: Boolean
 		): AvailObject =
-			self.descriptor().o_DivideCanDestroy(
+			self.descriptor.o_DivideCanDestroy(
 				self, aNumber, canDestroy
 			) as AvailObject
 
@@ -1257,7 +1257,7 @@ interface A_Number : A_BasicObject
 			aNumber: AvailObject,
 			canDestroy: Boolean
 		): AvailObject =
-			self.descriptor().o_MinusCanDestroy(
+			self.descriptor.o_MinusCanDestroy(
 				self, aNumber, canDestroy
 			) as AvailObject
 
@@ -1277,7 +1277,7 @@ interface A_Number : A_BasicObject
 		fun numericCompareStatic(
 			self: AvailObject,
 			another: AvailObject
-		): Order = self.descriptor().o_NumericCompare(self, another)
+		): Order = self.descriptor.o_NumericCompare(self, another)
 
 		/**
 		 * The [CheckedMethod] for [numericCompare].
@@ -1296,7 +1296,7 @@ interface A_Number : A_BasicObject
 			aNumber: AvailObject,
 			canDestroy: Boolean
 		): AvailObject =
-			self.descriptor().o_TimesCanDestroy(
+			self.descriptor.o_TimesCanDestroy(
 				self, aNumber, canDestroy
 			) as AvailObject
 
@@ -1314,7 +1314,7 @@ interface A_Number : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun isIntStatic(self: AvailObject): Boolean =
-			self.descriptor().o_IsInt(self)
+			self.descriptor.o_IsInt(self)
 
 		/** The [CheckedMethod] for [isInt]. */
 		val isIntMethod = staticMethod(
@@ -1326,7 +1326,7 @@ interface A_Number : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun equalsIntStatic(self: AvailObject, intValue: Int): Boolean =
-			self.descriptor().o_EqualsLong(self, intValue.toLong())
+			self.descriptor.o_EqualsLong(self, intValue.toLong())
 
 		/** The [CheckedMethod] for [isInt]. */
 		val equalsIntMethod = staticMethod(
@@ -1339,7 +1339,7 @@ interface A_Number : A_BasicObject
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun isDoubleStatic(self: AvailObject): Boolean =
-			self.descriptor().o_IsDouble(self)
+			self.descriptor.o_IsDouble(self)
 
 		/** The [CheckedMethod] for [isDouble]. */
 		val isDoubleMethod = staticMethod(
@@ -1356,7 +1356,7 @@ interface A_Number : A_BasicObject
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
-			self.descriptor().o_NumericCompare(self, another).isLess()
+			self.descriptor.o_NumericCompare(self, another).isLess()
 
 		/**
 		 * The [CheckedMethod] for [numericLessThanStatic].
@@ -1374,7 +1374,7 @@ interface A_Number : A_BasicObject
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
-			self.descriptor().o_NumericCompare(self, another).isLessOrEqual()
+			self.descriptor.o_NumericCompare(self, another).isLessOrEqual()
 
 		/**
 		 * The [CheckedMethod] for [numericLessOrEqualStatic].
@@ -1392,7 +1392,7 @@ interface A_Number : A_BasicObject
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
-			self.descriptor().o_NumericCompare(self, another).isMore()
+			self.descriptor.o_NumericCompare(self, another).isMore()
 
 		/**
 		 * The [CheckedMethod] for [numericGreaterThanStatic].
@@ -1410,7 +1410,7 @@ interface A_Number : A_BasicObject
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
-			self.descriptor().o_NumericCompare(self, another).isMoreOrEqual()
+			self.descriptor.o_NumericCompare(self, another).isMoreOrEqual()
 
 		/**
 		 * The [CheckedMethod] for [numericGreaterOrEqualStatic].
@@ -1428,7 +1428,7 @@ interface A_Number : A_BasicObject
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
-			self.descriptor().o_NumericCompare(self, another).isEqual()
+			self.descriptor.o_NumericCompare(self, another).isEqual()
 
 		/**
 		 * The [CheckedMethod] for [numericEqualStatic].
@@ -1446,7 +1446,7 @@ interface A_Number : A_BasicObject
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
-			self.descriptor().o_NumericCompare(self, another).isEqual().not()
+			self.descriptor.o_NumericCompare(self, another).isEqual().not()
 
 		/**
 		 * The [CheckedMethod] for [numericNotEqualStatic].

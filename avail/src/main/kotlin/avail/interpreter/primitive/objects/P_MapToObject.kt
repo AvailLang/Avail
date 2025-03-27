@@ -34,18 +34,21 @@ package avail.interpreter.primitive.objects
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import avail.descriptor.objects.ObjectFieldTypeException
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -53,13 +56,20 @@ import avail.interpreter.execution.Interpreter
  * [object][ObjectDescriptor].
  */
 @Suppress("unused")
-object P_MapToObject : Primitive(1, CannotFail, CanFold, CanInline)
+object P_MapToObject : Primitive(1, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
-		return interpreter.primitiveSuccess(objectFromMap(map))
+		return try
+		{
+			interpreter.primitiveSuccess(objectFromMap(map))
+		}
+		catch (e: ObjectFieldTypeException)
+		{
+			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -68,4 +78,7 @@ object P_MapToObject : Primitive(1, CannotFail, CanFold, CanInline)
 				mapTypeForSizesKeyTypeValueType(
 					wholeNumbers, ATOM(), ANY())),
 			mostGeneralObjectType)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_FIELD_FOR_OBJECT))
 }

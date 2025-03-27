@@ -52,6 +52,7 @@ Names
 	/* Dynamic variable creation. */
 	"(↓new`↑_:=_)",
 	"(↓new`↑_`?=_)",
+	"new variable of type_",
 
 	/* Increment/decrement. */
 	"_↑++", "_++",
@@ -74,6 +75,33 @@ Names
 	/* Registration in a module variable. */
 	"Register_→_in_"
 Body
+
+/**
+ * It's difficult to deal with the semantic restrictions that run on "new ↑_",
+ * especially for generic codee that gets passed the type for the variable.
+ * This method is for just that purpose.
+ */
+Public method "new variable of type_" is
+[
+	innerType : any meta
+|
+	Primitive CreateVariable;
+] : variable;
+
+Semantic restriction "new`↑_" is
+[
+	containmentType : any meta's type
+|
+	↑containmentType's instance
+];
+
+Semantic restriction "new`↑_initialized to_" is
+[
+	containmentType : any meta's type,
+	initialValue : any meta
+|
+	↑containmentType's instance
+];
 
 Semantic restriction "_'s⁇read type" is
 [

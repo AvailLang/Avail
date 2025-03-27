@@ -70,7 +70,7 @@ Names
 	"result type"
 Body
 
-"result type" is a field atom;
+"result type" is a field atom constrained to extended integer's type;
 
 /**
  * A dice expression uses a collection of dice to produce a value. The simplest
@@ -104,10 +104,10 @@ Public explicit class "die" extends dice expression;
  *        A {@type "die"}.
  * @returns "<extended integer…|1..>" The argument's faces.
  */
-Public abstract method "_'s⁇faces" is [die]→<extended integer…|1..>;
+Public abstract method "_'s⁇faces" is [die]→(extended integer+);
 
-"detailed outcome" is a field atom;
-"result" is a field atom;
+"detailed outcome" is a field atom constrained to any;
+"result" is a field atom constrained to any;
 
 /**
  * A dice expression outcome describes the result of pseudorandomly evaluating
@@ -120,7 +120,7 @@ Public abstract method "_'s⁇faces" is [die]→<extended integer…|1..>;
  */
 Public explicit class "dice expression⁇outcome" extends object
 	with fields
-		public detailed outcome : {die→<extended integer…|>|},
+		public detailed outcome : {die→extended integer*|},
 		public reconstructible result : extended integer
 	with reconstructors
 		public (detailed outcome, result);
@@ -135,7 +135,7 @@ Method "“_”" is
 	Do
 	[
 		aDie ::= bindings[i][1];
-		rolls ::= “bindings[i][2] ?→ <extended integer…|1..>”
+		rolls ::= “bindings[i][2] ?→ extended integer+”
 			?→ nonempty string;
 		s ++= “aDie” ++ ": " ++ rolls[2..|rolls|-1];
 		i++;
@@ -235,7 +235,7 @@ Semantic restriction "«using_,»roll_" is
 	extend dice outcome with result : someDice's result type's instance
 ];
 
-"constant value" is a field atom;
+"constant value" is a field atom constrained to extended integer;
 
 /**
  * A constant dice expression reliably answers a particular value when
@@ -293,7 +293,7 @@ Method "«using_,»roll_" is
 	a dice outcome with detailed outcome ::= {}, result ::= c's constant value
 ] : dice outcome;
 
-"operands" is a field atom;
+"operands" is a field atom constrained to dice+;
 
 /**
  * An operator dice expression {@method "«using_,»roll_" evaluates} its

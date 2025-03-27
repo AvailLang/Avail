@@ -137,8 +137,8 @@ Public method "_'s⁇stack summary" is
 ] : string*;
 
 /* Private field definitions. */
-"error code" is a new atom;
-"error name" is a new atom;
+"error code" is a new atom constrained to whole number;
+"error name" is a new atom constrained to string;
 
 /**
  * Answer the field atom that represents an exception's cause.
@@ -147,7 +147,7 @@ Public method "_'s⁇stack summary" is
  * @returns "atom"
  * @category "Exception Handling"
  */
-"causal exception" is a new atom;
+"causal exception" is a new atom constrained to exception;
 
 /**
  * Answer the field atom that represents an error message.
@@ -156,7 +156,7 @@ Public method "_'s⁇stack summary" is
  * @returns "atom"
  * @category "Exception Handling"
  */
-"error message" is a new atom;
+"error message" is a new atom constrained to string;
 
 /**
  * Answer the heritable fiber-local atom that represents a fiber's unhandled
@@ -586,7 +586,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 			previousArgType ::= handlersType[inner][1];
 			If argType ⊆ previousArgType then
 			[
-				hidingArgTypes := eject hidingArgTypes ++ <previousArgType>;
+				hidingArgTypes ++= <previousArgType>;
 			];
 		];
 		If ¬hidingArgTypes is empty then
@@ -1234,6 +1234,22 @@ System exception "not-an-enumeration" (17)
 	extends invocation exception;
 
 /**
+ * Raised when attempting to set or remove a property which has been marked as
+ * only being settable once.
+ *
+ * @type "property-may-only-be-set-once exception"
+ * @supertype "invocation exception"
+ * @field "error code" "18's type"
+ *      The VM error code.
+ * @field "error name" "string"
+ *      The full name of the system exception including the word "exception"
+ *      at the end.
+ * @category "Exceptions" "Types" "Enumerations"
+ */
+System exception "property-may-only-be-set-once" (18)
+	extends system exception;
+
+/**
  * Raised when attempting to look up a nonexistent {@type "method"}.
  *
  * @type "no-method exception"
@@ -1280,8 +1296,8 @@ System exception "function-disagrees-with-primitive-restriction" (27)
 	extends code-generation exception;
 System exception "local-type-literal-is-not-a-type" (28)
 	extends code-generation exception;
-System exception "outer-type-literal-is-not-a-type" (29)
-	extends code-generation exception;
+System exception "invalid-field-for-object" (29)
+	extends system exception;
 System exception "too-large-to-represent" (30)
 	extends system exception;
 System exception "type-restriction-must-accept-only-types" (31)
@@ -1594,7 +1610,7 @@ Public method "an exception for_" is
 		error name ::= exceptionType's error name's instance
 ] : exception;
 
-"throwable" is a new field atom;
+"throwable" is a new field atom constrained to pojo exception;
 
 /**
  * A Java exception wraps a pojo representing a Java-style {@code Throwable}.
@@ -1643,7 +1659,7 @@ Public method "“_”(stack summary)" is
 	For each index from |dump| to 1 by -1 do
 	[
 		frame ::= dump[index];
-		text := eject text ++ (format "\t‘①’\n" with frame);
+		text ++= (format "\t‘①’\n" with frame);
 	];
 	text
 ];
@@ -1742,8 +1758,8 @@ is
 	While e is assigned do
 	[
 		name ::= “e's type's names” (as list partitioned by " ∩ ");
-		msg := eject msg ++ (a|an) “name” ++ "\n";
-		msg := eject msg ++
+		msg ++= (a|an) “name” ++ "\n";
+		msg ++=
 			if firstTime then
 			[
 				firstTime := false;
@@ -1758,7 +1774,7 @@ is
 		[
 			cascade : cascade exception
 		|
-			msg := eject msg ++ "\ncaused by…\n";
+			msg ++= "\ncaused by…\n";
 			e := cascade's causal exception;
 		]
 		else
@@ -1828,9 +1844,9 @@ After the current module is unloaded, do
 unassigned variable read function :=
 	[Raise a cannot-read-unassigned-variable exception];
 
-"bad message" is a new field atom;
-"expected type" is a new field atom;
-"actual value" is a new field atom;
+"bad message" is a new field atom constrained to string;
+"expected type" is a new field atom constrained to type;
+"actual value" is a new field atom constrained to any;
 
 
 /**
@@ -1929,8 +1945,8 @@ Private method "invalid method send function:=_" is
 	Primitive SetInvalidMessageSendFunction;
 ] : ⊤;
 
-"looked up method" is a new atom;
-"looked up arguments" is a new atom;
+"looked up method" is a new atom constrained to method;
+"looked up arguments" is a new atom constrained to tuple;
 
 /* Revert the invalid method send reflex to the bootstrap mechanism upon
  * unloading this module for any reason.
@@ -2005,7 +2021,7 @@ invalid method send function :=
 			methodString ::=
 				guard [“theMethod”]
 				intercept [e : exception | "(Exception while printing)"];
-			argumentsString ::= map arguments through
+			argumentsString ::= concatenate map arguments through
 			[
 				argument : any
 			|
@@ -2123,12 +2139,11 @@ noUnhandledExceptionHandler :=
 				with m's name;
 		]
 		intercept [e : loading-is-over exception |];
-		msg := eject msg ++ "Unhandled exception: ";
-		msg := eject msg ++ any unhandled's type's names;
-		msg := eject msg ++ "\n\nCausal trace follows:\n";
-		msg := eject msg
-			++ “unhandled” (frames [1..∞) of stack summary, cascaded)
-			++ "\nThe current fiber will be terminated.\n";
+		msg ++= "Unhandled exception: ";
+		msg ++= any unhandled's type's names;
+		msg ++= "\n\nCausal trace follows:\n";
+		msg ++= “unhandled” (frames [1..∞) of stack summary, cascaded);
+		msg ++= "\nThe current fiber will be terminated.\n";
 		/* If the current fiber was launched in order to apply a semantic
 		 * restriction, run a macro, or run a macro prefix function, then reject
 		 * the current parse. Otherwise, emit the error message to the standard
@@ -2221,7 +2236,7 @@ Set stability failure function to
 
 /* Set up the base frame hook that affects every newly created fiber. */
 
-"action" is a new field atom;
+"action" is a new field atom constrained to [] → ⊤;
 
 Explicit class "private-unwind-to-base-frame exception"
 extends exception with field action : [] → ⊤;

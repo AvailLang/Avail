@@ -357,7 +357,7 @@ class HashedMapBinDescriptor private constructor(
 						objectEntryCount - physicalIndex + 1)
 				}
 		}
-		assert(objectToModify.descriptor().isMutable)
+		assert(objectToModify.descriptor.isMutable)
 		objectToModify[KEYS_HASH] = oldKeysHash + hashDelta
 		objectToModify[VALUES_HASH_OR_ZERO] = 0
 		objectToModify[BIN_SIZE] = oldSize + delta.toLong()
@@ -450,9 +450,9 @@ class HashedMapBinDescriptor private constructor(
 			// The subBin has to be replaced...
 			delta = newSubBin.mapBinSize - oldSubBinSize
 			deltaHash = newSubBin.mapBinKeysHash - oldSubBinKeysHash
-			assert(canDestroy || !self.descriptor().isMutable)
+			assert(canDestroy || !self.descriptor.isMutable)
 			objectToModify =
-				if (self.descriptor().isMutable)
+				if (self.descriptor.isMutable)
 				{
 					self
 				}
@@ -462,7 +462,7 @@ class HashedMapBinDescriptor private constructor(
 				}
 			objectToModify[SUB_BINS_, physicalIndex] = newSubBin
 		}
-		assert(objectToModify.descriptor().isMutable)
+		assert(objectToModify.descriptor.isMutable)
 		objectToModify[BIN_SIZE] = oldSize + delta.toLong()
 		objectToModify[KEYS_HASH] = oldKeysHash + deltaHash
 		objectToModify[VALUES_HASH_OR_ZERO] = 0
@@ -519,7 +519,7 @@ class HashedMapBinDescriptor private constructor(
 		val objectToModify =
 			if (canDestroy && isMutable) self
 			else newLike(descriptorFor(MUTABLE, level), self, 0, 0)
-		assert(objectToModify.descriptor().isMutable)
+		assert(objectToModify.descriptor.isMutable)
 		objectToModify[SUB_BINS_, physicalIndex] = newSubBin
 		objectToModify[KEYS_HASH] = oldKeysHash + hashDelta
 		objectToModify[VALUES_HASH_OR_ZERO] = 0

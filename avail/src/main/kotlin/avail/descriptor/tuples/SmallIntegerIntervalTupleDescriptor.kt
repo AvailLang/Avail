@@ -246,7 +246,7 @@ private constructor(
 				aSmallIntegerIntervalTuple.makeImmutable()
 				self.becomeIndirectionTo(aSmallIntegerIntervalTuple)
 			}
-			else if (!aSmallIntegerIntervalTuple.descriptor().isShared)
+			else if (!aSmallIntegerIntervalTuple.descriptor.isShared)
 			{
 				self.makeImmutable()
 				aSmallIntegerIntervalTuple.becomeIndirectionTo(self)
@@ -304,7 +304,7 @@ private constructor(
 						return self
 					}
 					// Or the other one.
-					if (otherDirect.descriptor().isMutable)
+					if (otherDirect.descriptor.isMutable)
 					{
 						otherDirect[START] = self[START]
 						otherDirect[SIZE] = newSize.toInt()
@@ -404,7 +404,7 @@ private constructor(
 				aSmallIntegerIntervalTuple.makeImmutable()
 				self.becomeIndirectionTo(aSmallIntegerIntervalTuple)
 			}
-			!aSmallIntegerIntervalTuple.descriptor().isShared ->
+			!aSmallIntegerIntervalTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aSmallIntegerIntervalTuple.becomeIndirectionTo(self)

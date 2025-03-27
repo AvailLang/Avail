@@ -107,7 +107,8 @@ enum class AllSpecialAtoms(givenAtom: A_Atom)
 	OPERATOR_TOKEN_CLASSIFIER(TokenType.OPERATOR.atom),
 	COMMENT_TOKEN_CLASSIFIER(TokenType.COMMENT.atom),
 	WHITESPACE_TOKEN_CLASSIFIER(TokenType.WHITESPACE.atom),
-	TOKEN_TYPE_ORDINAL_KEY(StaticInit.tokenTypeOrdinalKey)
+	TOKEN_TYPE_ORDINAL_KEY(StaticInit.tokenTypeOrdinalKey),
+	SET_ONCE_PROPERTY_KEY(SpecialAtom.SET_ONCE_PROPERTY_KEY.atom)
 
 	;
 

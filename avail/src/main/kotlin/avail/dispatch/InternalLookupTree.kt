@@ -173,12 +173,12 @@ internal constructor(
 
 	init
 	{
-		assert(alreadyTagTestedArguments.descriptor().isShared)
-		assert(alreadyVariantTestedArguments.descriptor().isShared)
-		assert(alreadyMetaInstanceExtractArguments.descriptor().isShared)
-		assert(alreadyPhraseTypeExtractArguments.descriptor().isShared)
-		assert(alreadyTestedConstants.descriptor().isShared)
-		assert(alreadyExtractedFields.descriptor().isShared)
+		assert(alreadyTagTestedArguments.descriptor.isShared)
+		assert(alreadyVariantTestedArguments.descriptor.isShared)
+		assert(alreadyMetaInstanceExtractArguments.descriptor.isShared)
+		assert(alreadyPhraseTypeExtractArguments.descriptor.isShared)
+		assert(alreadyTestedConstants.descriptor.isShared)
+		assert(alreadyExtractedFields.descriptor.isShared)
 	}
 
 	/**
@@ -1310,7 +1310,7 @@ internal constructor(
 		return TestForConstantsDecisionStep(
 			argumentIndex,
 			elementsByConstant.mapValues { (constant, elements) ->
-				assert(constant.descriptor().isShared)
+				assert(constant.descriptor.isShared)
 				val newRestrictions = knownArgumentRestrictions.toMutableList()
 				newRestrictions[argumentIndex - 1] =
 					boxedRestrictionForConstant(constant)

@@ -44,6 +44,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -53,6 +54,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteString
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -181,14 +183,14 @@ class ByteStringDescriptor private constructor(
 		if (isMutable && canDestroy && originalSize and 7 != 0)
 		{
 			// Enlarge it in place, using more of the final partial long field.
-			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+			self.descriptor = descriptorFor(MUTABLE, newSize)
 			self.setByteSlot(RAW_LONGS_, newSize, intValue.toShort())
 			self[HASH_OR_ZERO] = 0
 			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
 		val result = newLike(
-			descriptorFor(Mutability.MUTABLE, newSize),
+			descriptorFor(MUTABLE, newSize),
 			self,
 			0,
 			if (originalSize and 7 == 0) 1 else 0)
@@ -250,7 +252,7 @@ class ByteStringDescriptor private constructor(
 				aByteString.makeImmutable()
 				self.becomeIndirectionTo(aByteString)
 			}
-			else if (!aByteString.descriptor().isShared)
+			else if (!aByteString.descriptor.isShared)
 			{
 				self.makeImmutable()
 				aByteString.becomeIndirectionTo(self)
@@ -315,13 +317,12 @@ class ByteStringDescriptor private constructor(
 				{
 					// We can reuse the receiver; it has enough int slots.
 					result = self
-					result.setDescriptor(
-						descriptorFor(Mutability.MUTABLE, newSize))
+					result.descriptor = descriptorFor(MUTABLE, newSize)
 				}
 				else
 				{
 					result = newLike(
-						descriptorFor(Mutability.MUTABLE, newSize),
+						descriptorFor(MUTABLE, newSize),
 						self,
 						0,
 						deltaSlots)
@@ -415,7 +416,7 @@ class ByteStringDescriptor private constructor(
 				aByteString.makeImmutable()
 				self.becomeIndirectionTo(aByteString)
 			}
-			!aByteString.descriptor().isShared ->
+			!aByteString.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aByteString.becomeIndirectionTo(self)
@@ -632,7 +633,7 @@ class ByteStringDescriptor private constructor(
 			size: Int,
 			generator: (Int) -> Int): AvailObject
 		{
-			val descriptor = descriptorFor(Mutability.MUTABLE, size)
+			val descriptor = descriptorFor(MUTABLE, size)
 			val result = descriptor.mutableObjectOfSize(size)
 			var counter = 1
 			// Aggregate eight writes at a time for the bulk of the string.
@@ -705,7 +706,7 @@ class ByteStringDescriptor private constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun createUninitializedByteString(size: Int): AvailObject =
-			descriptorFor(Mutability.MUTABLE, size).create(size + 7 shr 3)
+			descriptorFor(MUTABLE, size).create(size + 7 shr 3)
 
 		/** The [CheckedMethod] for [createUninitializedByteString]. */
 		val createUninitializedByteStringMethod = staticMethod(
@@ -742,7 +743,7 @@ class ByteStringDescriptor private constructor(
 	}
 
 	override fun mutable(): ByteStringDescriptor =
-		descriptors[Mutability.MUTABLE]!![unusedBytesOfLastLong]
+		descriptors[MUTABLE]!![unusedBytesOfLastLong]
 
 	override fun immutable(): ByteStringDescriptor =
 		descriptors[Mutability.IMMUTABLE]!![unusedBytesOfLastLong]

@@ -500,7 +500,7 @@ Private stable method "_'s⁇optimal plays" is
 	]
 ];
 
-"unsolvable board" is a new field atom;
+"unsolvable board" is a new field atom constrained to board;
 
 /**
  * A {@type "no-solution exception"} is raised if the solver determines that a

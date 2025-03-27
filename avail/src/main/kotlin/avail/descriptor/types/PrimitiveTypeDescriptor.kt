@@ -415,7 +415,7 @@ private constructor(
 	{
 		assert(mutability === Mutability.SHARED)
 		self[PARENT] = parentType
-		self.setDescriptor(this)
+		self.descriptor = this
 	}
 
 	override fun mutable(): PrimitiveTypeDescriptor = transientMutable
@@ -443,7 +443,7 @@ private constructor(
 		 *   The [Types] enum value.
 		 */
 		private fun extractEnum(self: AvailObject): Types =
-			(self.descriptor() as PrimitiveTypeDescriptor).primitiveType
+			(self.descriptor as PrimitiveTypeDescriptor).primitiveType
 
 		/**
 		 * Extract the [Types] enum value's [Enum.ordinal] from

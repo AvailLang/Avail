@@ -90,6 +90,7 @@ Extends
 		"Breakpoint",
 		"Cast|cast_into_else_",
 		"Close module_",
+		"Constrain field_to_",
 		"Copy macros from_to_",
 		"Exit_if_",
 		"Exit_with_if_",
@@ -823,7 +824,7 @@ Extends
 		"observed-variable-written-while-untraced exception",
 		"octothorp-must-follow-a-simple-group-or-ellipsis exception",
 		"operation-not-supported exception",
-		"outer-type-literal-is-not-a-type exception",
+		"invalid-field-for-object exception",
 		"partial-success exception",
 		"permission-denied exception",
 		"pojo-type-is-abstract exception",
@@ -923,7 +924,7 @@ Extends
 	"Late Atoms" =
 	(
 		"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
-		"«Public»?_is a|an new⁇field⁇atom",
+		"«Public»?_is a|an new⁇field⁇atom«constrained to_»?",
 		"all atoms for_where_",
 		"atom for_where_",
 		"_hails from Foundation",
@@ -1361,6 +1362,7 @@ Extends
 		"atomically read_↑and store_",
 			"atomically read_and store_",
 		"eject_↑", "eject_",
+		"new variable of type_",
 		"(↓new`↑_:=_)",
 		"(↓new`↑_`?=_)",
 		"_↑++", "_++",

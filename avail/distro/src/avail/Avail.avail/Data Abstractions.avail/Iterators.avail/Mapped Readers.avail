@@ -54,7 +54,7 @@ Names
 	"mapped reader"
 Body
 
-"transformer" is a new field atom;
+"transformer" is a new field atom constrained to [⊥]→any;
 
 /**
  * {@method "map_through_"} produces mapped readers. A mapped reader decorates

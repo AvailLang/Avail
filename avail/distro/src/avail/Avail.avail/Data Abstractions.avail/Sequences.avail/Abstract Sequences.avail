@@ -66,7 +66,7 @@ Names
 	"_[_]else_"
 Body
 
-"sequence size" is a new field atom;
+"sequence size" is a new field atom constrained to [0..∞];
 
 /**
  * A sequence is an ordered collection whose elements may be referenced via an
@@ -377,9 +377,9 @@ Public method "an empty sequence" is [_theEmptySequence];
 /* Seal the public operations. */
 Seal method "_[_]" at <sequence, natural number>;
 
-"index offset" is a new field atom;
-Private method "decorated sequence|sequences"
-	is [$"decorated sequence|sequences"];
+"index offset" is a new field atom constrained to whole number;
+
+"decorated sequence|sequences" is a new field atom constrained to sequence;
 
 /**
  * A sliced sequence is a lazy window onto another sequence. The elements of

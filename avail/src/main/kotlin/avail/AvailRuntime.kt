@@ -1093,7 +1093,7 @@ class AvailRuntime constructor(
 	{
 		assert(moduleName.isString)
 		return runtimeLock.read {
-			assert(modules.descriptor().isShared)
+			assert(modules.descriptor.isShared)
 			modules.hasKey(moduleName)
 		}
 	}
@@ -1107,7 +1107,7 @@ class AvailRuntime constructor(
 	 *   ([strings][StringDescriptor]) to [modules][ModuleDescriptor].
 	 */
 	fun loadedModules(): A_Map = runtimeLock.read {
-		assert(modules.descriptor().isShared)
+		assert(modules.descriptor.isShared)
 		modules
 	}
 

@@ -351,7 +351,7 @@ private constructor(
 			aByteArrayTuple.makeImmutable()
 			self.becomeIndirectionTo(aByteArrayTuple)
 		}
-		else if (!aByteArrayTuple.descriptor().isShared)
+		else if (!aByteArrayTuple.descriptor.isShared)
 		{
 			self.makeImmutable()
 			aByteArrayTuple.becomeIndirectionTo(self)

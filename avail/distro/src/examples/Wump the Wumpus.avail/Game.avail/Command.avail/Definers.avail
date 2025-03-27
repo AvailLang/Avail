@@ -58,10 +58,8 @@ Names
 Body
 
 /* Definitions of field atoms. */
-"label" is a new atom;
-"next nodes" is a new atom;
-"good nodes" is a new atom;
-"action" is a new atom;
+"action" is a new atom constrained to ↑[…]→boolean;
+
 
 /**
  * Avail is reference transparent, so no type can directly refer to itself; such
@@ -78,6 +76,12 @@ Body
  * @supertype "object"
  */
 Explicit class "abstract command node" extends object;
+
+/* Definitions of field atoms that use the above type. */
+"next nodes" is a new atom
+	constrained to ↑{nonempty string→abstract command node|};
+"good nodes" is a new atom
+	constrained to ↑{nonempty string→abstract command node|};
 
 /**
  * A root command node has a mutable map from command token to command nodes.

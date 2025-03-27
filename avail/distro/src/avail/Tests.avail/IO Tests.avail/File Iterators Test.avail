@@ -146,7 +146,7 @@ Test "file iterator (alignment)" in file iterator test suite is
 			size ::= prng's next [0..50];
 			segment ::= map 1 to size through [n : any | prng's next byte];
 			Write segment to aWriter;
-			memory := eject memory ++ segment;
+			memory ++= segment;
 		] 50 times;
 		Synchronize aWriter;
 		Refresh aReader;
@@ -188,7 +188,7 @@ Test "file iterator (scattered write)" in file iterator test suite is
 				If start > |memory| + 1 then
 				[
 					extension ::= start - |memory| - 1 ?→ natural number;
-					memory := eject memory ++ extension of 0;
+					memory ++= extension of 0;
 				];
 				memory := memory
 					[start .. (start + size - 1) min |memory|]

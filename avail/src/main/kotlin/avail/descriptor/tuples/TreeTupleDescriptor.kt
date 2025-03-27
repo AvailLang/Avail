@@ -232,7 +232,7 @@ class TreeTupleDescriptor internal constructor(
 				anotherObject.makeImmutable()
 				self.becomeIndirectionTo(anotherObject)
 			}
-			else if (!anotherObject.descriptor().isShared)
+			else if (!anotherObject.descriptor.isShared)
 			{
 				self.makeImmutable()
 				anotherObject.becomeIndirectionTo(self)
@@ -689,7 +689,7 @@ class TreeTupleDescriptor internal constructor(
 			{
 				// Fits in a single node.
 				val newNode = newLike(
-					tuple1.descriptor().mutable(),
+					tuple1.descriptor.mutable(),
 					(tuple1 as AvailObject),
 					count2,
 					(count1 + count2 + 1 shr 1) - (count1 + 1 shr 1))
@@ -821,7 +821,7 @@ class TreeTupleDescriptor internal constructor(
 				assert(newLast.treeTupleLevel == level1 - 1)
 				// Replace the last child.  In place if possible.
 				val result =
-					if (canDestroy && tuple1.descriptor().isMutable)
+					if (canDestroy && tuple1.descriptor.isMutable)
 					{
 						tuple1
 					}
@@ -942,7 +942,7 @@ class TreeTupleDescriptor internal constructor(
 		{
 			if (!shouldCheckTreeTuple) return
 
-			assert(self.descriptor() is TreeTupleDescriptor)
+			assert(self.descriptor is TreeTupleDescriptor)
 			assert(self.variableObjectSlotsCount() + 1 shr 1
 						== self.variableIntegerSlotsCount())
 			val myLevelMinusOne = self.treeTupleLevel - 1

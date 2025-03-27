@@ -274,14 +274,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 			AvailObject.newIndexedDescriptor(0, mutable).apply {
 				setSlot(BUNDLE, bundle.makeShared())
 				setSlot(DEFINITION, definition.makeShared())
-				setDescriptor(
-					DefinitionParsingPlanDescriptor(
-						SHARED,
-						bundle.messageSplitter.instructionsFor(
-							definition.parsingSignature()
-						)
-					)
-				)
+				descriptor = DefinitionParsingPlanDescriptor(
+					SHARED,
+					bundle.messageSplitter.instructionsFor(
+						definition.parsingSignature()))
 			}
 
 		/** The sole mutable descriptor. */

@@ -39,7 +39,8 @@ Names
 	"iterators test suite"
 Body
 
-Public "iterators test suite" is a new field atom;
+Public "iterators test suite" is a new atom;
+
 New test suite iterators test suite extends data abstractions test suite;
 
 Test "for each of do" in iterators test suite is

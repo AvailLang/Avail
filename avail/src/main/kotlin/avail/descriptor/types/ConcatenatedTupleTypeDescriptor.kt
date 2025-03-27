@@ -166,7 +166,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			self.representationCostOfTupleType()
 				< aTupleType.representationCostOfTupleType() ->
 			{
-				if (!aTupleType.descriptor().isShared)
+				if (!aTupleType.descriptor.isShared)
 				{
 					aTupleType.becomeIndirectionTo(self.makeImmutable())
 				}
@@ -285,9 +285,9 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		// This was only surface shared at this point, and the internals have
 		// not yet been scanned, nor could any other threads access this object.
 		// Unshared it and flatten it into a real tuple type.
-		self.setDescriptor(mutable())
+		self.descriptor = mutable()
 		becomeRealTupleType(self)
-		self.setDescriptor(self.descriptor().shared())
+		self.descriptor = self.descriptor.shared()
 		// Process self, now that it's a surface-shared indirection object.
 		self.makeSharedInternal(queueToProcess, fixups)
 	}
@@ -305,7 +305,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		endIndex: Int): A_Tuple
 	{
 		becomeRealTupleType(self)
-		assert(self.descriptor() !== this)
+		assert(self.descriptor !== this)
 		return self.tupleOfTypesFromTo(startIndex, endIndex)
 	}
 

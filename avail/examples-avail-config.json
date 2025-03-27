@@ -63,7 +63,6 @@
 				"scheme": "FILE",
 				"path": "distro/src/examples"
 			},
-			"availModuleExtensions": ["avail"],
 			"moduleHeaders":
 			[
 			]

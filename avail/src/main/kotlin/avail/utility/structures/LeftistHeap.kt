@@ -83,14 +83,22 @@ sealed class LeftistHeap<Value : Comparable<Value>>(
 	abstract fun without(value: Value): LeftistHeap<Value>
 
 	/**
-	 * Split the heap into two heaps.  This is only used for work stealing, to
-	 * reduce the number of times other heaps are explored.  The distribution of
-	 * values is not specified, but if there are multiple elements neither
-	 * produced heap will be empty, and if there is exactly one element, it will
-	 * be in the *first* split heap.  So during work stealing, the first heap
-	 * should be considered what has been taken.
+	 * Extract the left subheap.  This is only exposed for work stealing, to
+	 * reduce the number of times other heaps are explored.  The fact of it
+	 * being a leftist heap is not part of the contract, but the expectation is
+	 * that [leftSubheap] and [rightSubheap] should produce roughly comparable
+	 * sized heaps.
 	 */
-	abstract val split: Pair<LeftistHeap<Value>, LeftistHeap<Value>>
+	abstract val leftSubheap: LeftistHeap<Value>
+
+	/**
+	 * Extract the left subheap.  This is only exposed for work stealing, to
+	 * reduce the number of times other heaps are explored.  The fact of it
+	 * being a leftist heap is not part of the contract, but the expectation is
+	 * that [leftSubheap] and [rightSubheap] should produce roughly comparable
+	 * sized heaps.
+	 */
+	abstract val rightSubheap: LeftistHeap<Value>
 
 	/** Collect the heap's elements in a [List] in sorted order. */
 	fun toList(): List<Value>
@@ -116,7 +124,8 @@ private open class LeftistLeaf<Value : Comparable<Value>>
 	override fun with(newValue: Value) = LeftistInternal(newValue, this, this)
 	override fun merge(another: LeftistHeap<Value>) = another
 	override fun without(value: Value) = this
-	override val split get() = Pair(this, this)
+	override val leftSubheap: LeftistHeap<Value> get() = leftistLeaf<Value>()
+	override val rightSubheap: LeftistHeap<Value> get() = leftistLeaf<Value>()
 }
 
 /** The sole empty heap. */
@@ -169,7 +178,8 @@ constructor(
 		return join(first, leftWithout, rightWithout)
 	}
 
-	override val split get() = Pair(left.with(first), right)
+	override val leftSubheap: LeftistHeap<Value> get() = left
+	override val rightSubheap: LeftistHeap<Value> get() = right
 }
 
 /**

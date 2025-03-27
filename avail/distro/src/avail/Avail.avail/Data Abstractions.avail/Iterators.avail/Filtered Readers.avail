@@ -54,7 +54,7 @@ Names
 	"filtered reader"
 Body
 
-"filter" is a new field atom;
+"filter" is a new field atom constrained to [⊥]→boolean;
 
 /**
  * {@method "filter_by_"} produces filtered readers. A filtered reader

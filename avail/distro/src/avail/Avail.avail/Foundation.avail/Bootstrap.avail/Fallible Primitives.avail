@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/4/25, 9:32 AM
+ * * Last Generated: 3/26/25, 11:41 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -55,6 +55,7 @@ Uses
 		"Alias_to_",
 		"Attempt to join_",
 		"Close module_",
+		"Constrain field_to_",
 		"Copy macros from_to_",
 		"Error:_",
 		"Exit_with_if_",
@@ -83,6 +84,7 @@ Uses
 		"Style token_as_«overwriting»?",
 		"Style_with_",
 		"_'s⁇_field",
+		"_'s⁇field constraint",
 		"_'s⁇initializing expression",
 		"_'s⁇instances",
 		"_'s⁇issuing module",
@@ -113,6 +115,8 @@ Uses
 		"_→extended integer",
 		"_→function",
 		"_→map",
+		"_→object",
+		"_→object type",
 		"_→tuple",
 		"_∈_",
 		"_∈current fiber",
@@ -226,6 +230,30 @@ Primitive "Failed primitive with_" is
 ] : ⊥;
 
 /**
+ * Answer this field atom's constraint type, if it has already been set
+ * (permanently) by {@method "Constrain field_to_"}, otherwise fail.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇field constraint"
+ * @param "arg1" "atom"
+ *        The field atom to process.
+ * @returns "{any}ᵀ"
+ *    The type constraint for that field atom.  All object types using this atom
+ *    as a field must have this type or stronger for the field's type.
+ *    Similarly, all objects using this field must have a value that conforms to
+ *    the field's constraint.
+ * @raises "key-not-found code"
+ */
+Primitive "_'s⁇field constraint" is
+[
+	arg1 : atom
+|
+	Primitive AtomFieldBound (failureCode : {
+		key-not-found code}ᵀ);
+	Failed primitive with failureCode
+] : any meta;
+
+/**
  * Assuming that {@param "anAtom"} has a property whose key is {@param
  * "key"}, then answer the property value associated with the {@param
  * "key"}.
@@ -304,6 +332,8 @@ Primitive "_'s⁇issuing module" is
  * @param "key" "atom"
  *        A property key.
  * @returns "⊤"
+ * @raises "property-may-only-be-set-once code"
+ * @raises "special-atom code"
  * @raises "no-such-field code"
  */
 Primitive "Remove_[_]" is
@@ -312,7 +342,34 @@ Primitive "Remove_[_]" is
 	key : atom
 |
 	Primitive AtomRemoveProperty (failureCode : {
+		property-may-only-be-set-once code,
+		special-atom code,
 		no-such-field code}ᵀ);
+	Failed primitive with failureCode
+] : ⊤;
+
+/**
+ * Set a field atom's type constraint, permanently, which limits the types of
+ * values that can be stored in an object under that field.
+ *
+ * @category "Primitives"
+ * @method "Constrain field_to_"
+ * @param "fieldAtom" "atom"
+ *        The field atom.
+ * @param "typeBound" "{any}ᵀ"
+ *        The type that constrains the field atom.
+ * @returns "⊤"
+ * @raises "property-may-only-be-set-once code"
+ * @raises "special-atom code"
+ */
+Primitive "Constrain field_to_" is
+[
+	fieldAtom : atom,
+	typeBound : any meta
+|
+	Primitive AtomSetFieldBound (failureCode : {
+		property-may-only-be-set-once code,
+		special-atom code}ᵀ);
 	Failed primitive with failureCode
 ] : ⊤;
 
@@ -330,6 +387,7 @@ Primitive "Remove_[_]" is
  * @param "value" "any"
  *        The property value.
  * @returns "⊤"
+ * @raises "property-may-only-be-set-once code"
  * @raises "special-atom code"
  */
 Primitive "_[_]:=_" is
@@ -339,6 +397,7 @@ Primitive "_[_]:=_" is
 	value : any
 |
 	Primitive AtomSetProperty (failureCode : {
+		property-may-only-be-set-once code,
 		special-atom code}ᵀ);
 	Failed primitive with failureCode
 ] : ⊤;
@@ -2991,6 +3050,48 @@ Primitive "_[_]" is
 ] : any meta;
 
 /**
+ * Construct and answer an object based on the supplied map.
+ *
+ * @category "Primitives" "Objects" "Constructors"
+ * @method "_→object"
+ * @param "fieldsToValues" "{atom→any|}"
+ *        A map whose keys are the fields of the new object and whose values are
+ *        the corresponding field values.
+ * @returns "object"
+ *    The requested object.
+ * @raises "invalid-field-for-object code"
+ */
+Primitive "_→object" is
+[
+	fieldsToValues : field map
+|
+	Primitive MapToObject (failureCode : {
+		invalid-field-for-object code}ᵀ);
+	Failed primitive with failureCode
+] : object;
+
+/**
+ * Construct and answer an object type based on the supplied map.
+ *
+ * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
+ * @method "_→object type"
+ * @param "fieldsToTypes" "{atom→{any}ᵀ|}"
+ *        A map whose keys are the fields of the new object and whose values are
+ *        the corresponding field types.
+ * @returns "{object}ᵀ"
+ *    The requested object type.
+ * @raises "invalid-field-for-object code"
+ */
+Primitive "_→object type" is
+[
+	fieldsToTypes : field type map
+|
+	Primitive MapToObjectType (failureCode : {
+		invalid-field-for-object code}ᵀ);
+	Failed primitive with failureCode
+] : object meta;
+
+/**
  * Construct and answer a map based on the supplied object type.
  *
  * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
@@ -3033,6 +3134,50 @@ Primitive "_→tuple" is
 		no-such-field code}ᵀ);
 	Failed primitive with failureCode
 ] : field type tuple;
+
+/**
+ * Construct and answer an object based on the supplied tuple.
+ *
+ * @category "Primitives" "Tuples" "Objects" "Conversions"
+ * @method "_→object"
+ * @param "fieldAssignments" "<atom, any…|2>*"
+ *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
+ *        an atom (i.e., the field identifier) and its second element is
+ *        associated value.
+ * @returns "object"
+ *    The requested object.
+ * @raises "invalid-field-for-object code"
+ */
+Primitive "_→object" is
+[
+	fieldAssignments : field tuple
+|
+	Primitive TupleToObject (failureCode : {
+		invalid-field-for-object code}ᵀ);
+	Failed primitive with failureCode
+] : object;
+
+/**
+ * Construct and answer an object type based on the supplied tuple.
+ *
+ * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
+ * @method "_→object type"
+ * @param "fieldDefinitions" "<atom, {any}ᵀ…|2>*"
+ *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
+ *        an atom (i.e., the field identifier) and its second element is the
+ *        value type permitted by the field.
+ * @returns "{object}ᵀ"
+ *    The requested object type.
+ * @raises "invalid-field-for-object code"
+ */
+Primitive "_→object type" is
+[
+	fieldDefinitions : field type tuple
+|
+	Primitive TupleToObjectType (failureCode : {
+		invalid-field-for-object code}ᵀ);
+	Failed primitive with failureCode
+] : object meta;
 
 /**
  * Construct and answer an assignment expression.

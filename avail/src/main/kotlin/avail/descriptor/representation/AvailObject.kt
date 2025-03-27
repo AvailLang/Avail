@@ -61,6 +61,13 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
+import avail.descriptor.representation.AvailObject.Companion.frameAtPut
+import avail.descriptor.representation.AvailObject.Companion.frameAtPut2
+import avail.descriptor.representation.AvailObject.Companion.frameAtPut3
+import avail.descriptor.representation.AvailObject.Companion.frameAtPut4
+import avail.descriptor.representation.AvailObject.Companion.frameAtPut5
+import avail.descriptor.representation.AvailObject.Companion.frameAtPut6
+import avail.descriptor.representation.AvailObject.Companion.registerDumpStatic
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
@@ -182,14 +189,14 @@ class AvailObject private constructor(
 		{
 			when {
 				isDestroyed -> append("*** A DESTROYED OBJECT ***")
-				indent > descriptor().maximumIndent() -> append("*** DEPTH ***")
+				indent > descriptor.maximumIndent() -> append("*** DEPTH ***")
 				recursionMap.containsKey(this@AvailObject) ->
 					append("**RECURSION**")
 				else ->
 					try
 					{
 						recursionMap[this@AvailObject] = null
-						descriptor().printObjectOnAvoidingIndent(
+						descriptor.printObjectOnAvoidingIndent(
 							this@AvailObject, builder, recursionMap, indent)
 					}
 					catch (e: Exception)
@@ -225,7 +232,7 @@ class AvailObject private constructor(
 	override fun describeForDebugger(): Array<*> =
 		try
 		{
-			descriptor().o_DescribeForDebugger(this)
+			descriptor.o_DescribeForDebugger(this)
 		}
 		catch (e: Throwable)
 		{
@@ -255,7 +262,7 @@ class AvailObject private constructor(
 	override fun nameForDebugger(): String =
 		try
 		{
-			descriptor().o_NameForDebugger(this)
+			descriptor.o_NameForDebugger(this)
 		}
 		catch (e: Throwable)
 		{
@@ -269,7 +276,7 @@ class AvailObject private constructor(
 	 * @return Whether to show the value.
 	 */
 	override fun showValueInNameForDebugger(): Boolean =
-		descriptor().o_ShowValueInNameForDebugger(this)
+		descriptor.o_ShowValueInNameForDebugger(this)
 
 	override fun toString() = buildString {
 		val recursionMap = IdentityHashMap<A_BasicObject, Unit>(10)
@@ -302,13 +309,13 @@ class AvailObject private constructor(
 	fun assertObjectUnreachableIfMutable()
 	{
 		checkValidAddress()
-		if (!descriptor().isMutable) return
+		if (!descriptor.isMutable) return
 		// Recursively invoke the iterator on the subobjects of self...
 		lateinit var marker: (AvailObject) -> AvailObject
 		marker = { childObject: AvailObject ->
 			when
 			{
-				!childObject.descriptor().isMutable -> childObject
+				!childObject.descriptor.isMutable -> childObject
 				else ->
 				{
 					// Recursively invoke the iterator on the subobjects of
@@ -331,8 +338,8 @@ class AvailObject private constructor(
 	 * uses of this object.
 	 */
 	override fun setToInvalidDescriptor() {
-		assert(currentDescriptor.isMutable)
-		currentDescriptor = FillerDescriptor.mutable
+		assert(descriptor.isMutable)
+		descriptor = FillerDescriptor.mutable
 	}
 
 	/**
@@ -341,7 +348,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   An [Int] hash value.
 	 */
-	override fun hash() = descriptor().o_Hash(this)
+	override fun hash() = descriptor.o_Hash(this)
 
 	/**
 	 * Add the [chunk][L2Chunk] with the given index to the receiver's list of
@@ -350,9 +357,9 @@ class AvailObject private constructor(
 	 * definition) will cause the chunk to be invalidated.
 	 */
 	override fun addDependentChunk(chunk: L2Chunk) =
-		descriptor().o_AddDependentChunk(this, chunk)
+		descriptor.o_AddDependentChunk(this, chunk)
 
-	override fun function() = descriptor().o_Function(this)
+	override fun function() = descriptor.o_Function(this)
 
 	/**
 	 * {@inheritDoc}
@@ -370,7 +377,7 @@ class AvailObject private constructor(
 	override fun equals(other: Any?): Boolean
 	{
 		return other is AvailObject
-			&& currentDescriptor.o_Equals(this, other)
+			&& descriptor.o_Equals(this, other)
 	}
 
 	/**
@@ -392,13 +399,13 @@ class AvailObject private constructor(
 	@Suppress("CovariantEquals")
 	override fun equals(another: A_BasicObject): Boolean {
 		if (this === another) return true
-		if (!descriptor().o_Equals(this, another)) return false
+		if (!descriptor.o_Equals(this, another)) return false
 		// They're equal.  Try to turn one into an indirection to the other.
 		val traversed1 = traversed()
 		val traversed2 = another.traversed()
 		if (traversed1 === traversed2) return true
-		if (!traversed1.descriptor().isShared) {
-			if (!traversed2.descriptor().isShared
+		if (!traversed1.descriptor.isShared) {
+			if (!traversed2.descriptor.isShared
 				&& traversed1.isBetterRepresentationThan(traversed2)) {
 				traversed2.becomeIndirectionTo(traversed1.makeImmutable())
 			}
@@ -407,7 +414,7 @@ class AvailObject private constructor(
 				traversed1.becomeIndirectionTo(traversed2.makeImmutable())
 			}
 		}
-		else if (!traversed2.descriptor().isShared)
+		else if (!traversed2.descriptor.isShared)
 		{
 			traversed2.becomeIndirectionTo(traversed1.makeImmutable())
 		}
@@ -425,7 +432,7 @@ class AvailObject private constructor(
 	 *   `false` otherwise.
 	 */
 	override fun equalsAnyTuple(aTuple: A_Tuple) =
-		descriptor().o_EqualsAnyTuple(this, aTuple)
+		descriptor.o_EqualsAnyTuple(this, aTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -438,7 +445,7 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsByteString(aByteString: A_String) =
-		descriptor().o_EqualsByteString(this, aByteString)
+		descriptor.o_EqualsByteString(this, aByteString)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -451,7 +458,7 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsByteTuple(aByteTuple: A_Tuple) =
-		descriptor().o_EqualsByteTuple(this, aByteTuple)
+		descriptor.o_EqualsByteTuple(this, aByteTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, an
@@ -465,7 +472,7 @@ class AvailObject private constructor(
 	 *   to the argument, `false` otherwise.
 	 */
 	override fun equalsIntegerIntervalTuple(anIntegerIntervalTuple: A_Tuple) =
-		descriptor().o_EqualsIntegerIntervalTuple(this, anIntegerIntervalTuple)
+		descriptor.o_EqualsIntegerIntervalTuple(this, anIntegerIntervalTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, an
@@ -478,7 +485,7 @@ class AvailObject private constructor(
 	 *   otherwise.
 	 */
 	override fun equalsIntTuple(anIntTuple: A_Tuple) =
-		descriptor().o_EqualsIntTuple(this, anIntTuple)
+		descriptor.o_EqualsIntTuple(this, anIntTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -491,7 +498,7 @@ class AvailObject private constructor(
 	 *   otherwise.
 	 */
 	override fun equalsLongTuple(aLongTuple: A_Tuple) =
-		descriptor().o_EqualsLongTuple(this, aLongTuple)
+		descriptor.o_EqualsLongTuple(this, aLongTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -506,7 +513,7 @@ class AvailObject private constructor(
 	 */
 	override fun equalsSmallIntegerIntervalTuple(
 		aSmallIntegerIntervalTuple: A_Tuple
-	) = descriptor().o_EqualsSmallIntegerIntervalTuple(this, aSmallIntegerIntervalTuple)
+	) = descriptor.o_EqualsSmallIntegerIntervalTuple(this, aSmallIntegerIntervalTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -520,13 +527,13 @@ class AvailObject private constructor(
 	 *   to the argument, `false` otherwise.
 	 */
 	override fun equalsRepeatedElementTuple(aRepeatedElementTuple: A_Tuple) =
-		descriptor().o_EqualsRepeatedElementTuple(this, aRepeatedElementTuple)
+		descriptor.o_EqualsRepeatedElementTuple(this, aRepeatedElementTuple)
 
 	override fun equalsFiberType(aFiberType: A_Type) =
-		descriptor().o_EqualsFiberType(this, aFiberType)
+		descriptor.o_EqualsFiberType(this, aFiberType)
 
 	override fun equalsFunction(aFunction: A_Function) =
-		descriptor().o_EqualsFunction(this, aFunction)
+		descriptor.o_EqualsFunction(this, aFunction)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the
@@ -541,7 +548,7 @@ class AvailObject private constructor(
 	 *   * The [declared&#32;exceptions][A_Type.declaredExceptions] correspond.
 	 */
 	override fun equalsFunctionType(aFunctionType: A_Type) =
-		descriptor().o_EqualsFunctionType(this, aFunctionType)
+		descriptor.o_EqualsFunctionType(this, aFunctionType)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and a
@@ -554,50 +561,50 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsCompiledCode(aCompiledCode: A_RawFunction) =
-		descriptor().o_EqualsCompiledCode(this, aCompiledCode)
+		descriptor.o_EqualsCompiledCode(this, aCompiledCode)
 
 	override fun equalsVariableType(aVariableType: A_Type) =
-		descriptor().o_EqualsVariableType(this, aVariableType)
+		descriptor.o_EqualsVariableType(this, aVariableType)
 
 	override fun equalsContinuation(aContinuation: A_Continuation) =
-		descriptor().o_EqualsContinuation(this, aContinuation)
+		descriptor.o_EqualsContinuation(this, aContinuation)
 
 	override fun equalsContinuationType(aContinuationType: A_Type) =
-		descriptor().o_EqualsContinuationType(this, aContinuationType)
+		descriptor.o_EqualsContinuationType(this, aContinuationType)
 
 	override fun equalsIntegerRangeType(anIntegerRangeType: A_Type) =
-		descriptor().o_EqualsIntegerRangeType(this, anIntegerRangeType)
+		descriptor.o_EqualsIntegerRangeType(this, anIntegerRangeType)
 
-	override fun equalsMap(aMap: A_Map) = descriptor().o_EqualsMap(this, aMap)
+	override fun equalsMap(aMap: A_Map) = descriptor.o_EqualsMap(this, aMap)
 
 	override fun equalsMapType(aMapType: A_Type) =
-		descriptor().o_EqualsMapType(this, aMapType)
+		descriptor.o_EqualsMapType(this, aMapType)
 
 	override fun equalsNybbleTuple(aNybbleTuple: A_Tuple) =
-		descriptor().o_EqualsNybbleTuple(this, aNybbleTuple)
+		descriptor.o_EqualsNybbleTuple(this, aNybbleTuple)
 
 	override fun equalsObject(anObject: AvailObject) =
-		descriptor().o_EqualsObject(this, anObject)
+		descriptor.o_EqualsObject(this, anObject)
 
 	override fun equalsObjectTuple(anObjectTuple: A_Tuple) =
-		descriptor().o_EqualsObjectTuple(this, anObjectTuple)
+		descriptor.o_EqualsObjectTuple(this, anObjectTuple)
 
 	override fun equalsPhraseType(aPhraseType: A_Type) =
-		descriptor().o_EqualsPhraseType(this, aPhraseType)
+		descriptor.o_EqualsPhraseType(this, aPhraseType)
 
 	override fun equalsPojo(aPojo: AvailObject) =
-		descriptor().o_EqualsPojo(this, aPojo)
+		descriptor.o_EqualsPojo(this, aPojo)
 
 	override fun equalsPojoType(aPojoType: AvailObject) =
-		descriptor().o_EqualsPojoType(this, aPojoType)
+		descriptor.o_EqualsPojoType(this, aPojoType)
 
 	override fun equalsPrimitiveType(aPrimitiveType: A_Type) =
-		descriptor().o_EqualsPrimitiveType(this, aPrimitiveType)
+		descriptor.o_EqualsPrimitiveType(this, aPrimitiveType)
 
 	override fun equalsRawPojoFor(
 		otherRawPojo: AvailObject,
 		otherJavaObject: Any?
-	) = descriptor().o_EqualsRawPojoFor(this, otherRawPojo, otherJavaObject)
+	) = descriptor.o_EqualsRawPojoFor(this, otherRawPojo, otherJavaObject)
 
 	/**
 	 * Answer whether the receiver and the argument tuple, both [AvailObject]s,
@@ -616,31 +623,31 @@ class AvailObject private constructor(
 	 *   `true` if the two objects are of equal value, `false` otherwise.
 	 */
 	override fun equalsReverseTuple(aTuple: A_Tuple) =
-		descriptor().o_EqualsReverseTuple(this, aTuple)
+		descriptor.o_EqualsReverseTuple(this, aTuple)
 
 	override fun equalsSetType(aSetType: A_Type) =
-		descriptor().o_EqualsSetType(this, aSetType)
+		descriptor.o_EqualsSetType(this, aSetType)
 
 	override fun equalsTupleType(aTupleType: A_Type) =
-		descriptor().o_EqualsTupleType(this, aTupleType)
+		descriptor.o_EqualsTupleType(this, aTupleType)
 
 	override fun equalsTwoByteString(aTwoByteString: A_String) =
-		descriptor().o_EqualsTwoByteString(this, aTwoByteString)
+		descriptor.o_EqualsTwoByteString(this, aTwoByteString)
 
 	override fun equalsTwentyOneBitString(aTwentyOneBitString: A_String) =
-		descriptor().o_EqualsTwentyOneBitString(this, aTwentyOneBitString)
+		descriptor.o_EqualsTwentyOneBitString(this, aTwentyOneBitString)
 
-	override fun fieldMap() = descriptor().o_FieldMap(this)
+	override fun fieldMap() = descriptor.o_FieldMap(this)
 
-	override fun hashOrZero() = descriptor().o_HashOrZero(this)
+	override fun hashOrZero() = descriptor.o_HashOrZero(this)
 
 	override fun setHashOrZero(value: Int) =
-		descriptor().o_SetHashOrZero(this, value)
+		descriptor.o_SetHashOrZero(this, value)
 
-	override val isAbstract get() = descriptor().o_IsAbstract(this)
+	override val isAbstract get() = descriptor.o_IsAbstract(this)
 
 	override fun representationCostOfTupleType() =
-		descriptor().o_RepresentationCostOfTupleType(this)
+		descriptor.o_RepresentationCostOfTupleType(this)
 
 	/**
 	 * Is the receiver an Avail boolean?
@@ -648,7 +655,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a boolean, `false` otherwise.
 	 */
-	override val isBoolean get() = descriptor().o_IsBoolean(this)
+	override val isBoolean get() = descriptor.o_IsBoolean(this)
 
 	/**
 	 * Is the receiver an Avail unsigned byte?
@@ -656,7 +663,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the argument is an unsigned byte, `false` otherwise.
 	 */
-	override val isUnsignedByte get() = descriptor().o_IsUnsignedByte(this)
+	override val isUnsignedByte get() = descriptor.o_IsUnsignedByte(this)
 
 	/**
 	 * Is the receiver an Avail byte tuple?
@@ -664,7 +671,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a byte tuple, `false` otherwise.
 	 */
-	override val isByteTuple get() = descriptor().o_IsByteTuple(this)
+	override val isByteTuple get() = descriptor.o_IsByteTuple(this)
 
 	/**
 	 * Is the receiver an Avail function?
@@ -672,7 +679,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a function, `false` otherwise.
 	 */
-	override val isFunction get() = descriptor().o_IsFunction(this)
+	override val isFunction get() = descriptor.o_IsFunction(this)
 
 	/**
 	 * Is the receiver an Avail atom?
@@ -680,7 +687,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is an atom, `false` otherwise.
 	 */
-	override val isAtom get() = descriptor().o_IsAtom(this)
+	override val isAtom get() = descriptor.o_IsAtom(this)
 
 	/**
 	 * Is the receiver an Avail extended integer?
@@ -689,31 +696,31 @@ class AvailObject private constructor(
 	 *   `true` if the receiver is an extended integer, `false` otherwise.
 	 */
 	override val isExtendedInteger get() =
-		descriptor().o_IsExtendedInteger(this)
+		descriptor.o_IsExtendedInteger(this)
 
-	override val isFinite get() = descriptor().o_IsFinite(this)
+	override val isFinite get() = descriptor.o_IsFinite(this)
 
 	override fun isInstanceOf(aType: A_Type) =
-		descriptor().o_IsInstanceOf(this, aType)
+		descriptor.o_IsInstanceOf(this, aType)
 
 	override fun isInstanceOfKind(aType: A_Type) =
-		descriptor().o_IsInstanceOfKind(this, aType)
+		descriptor.o_IsInstanceOfKind(this, aType)
 
 	override val isIntegerIntervalTuple get() =
-		descriptor().o_IsIntegerIntervalTuple(this)
+		descriptor.o_IsIntegerIntervalTuple(this)
 
-	override val isIntTuple get() = descriptor().o_IsIntTuple(this)
+	override val isIntTuple get() = descriptor.o_IsIntTuple(this)
 
-	override val isLongTuple get() = descriptor().o_IsLongTuple(this)
+	override val isLongTuple get() = descriptor.o_IsLongTuple(this)
 
 	override val isSmallIntegerIntervalTuple get() =
-		descriptor().o_IsSmallIntegerIntervalTuple(this)
+		descriptor.o_IsSmallIntegerIntervalTuple(this)
 
 	override val isRepeatedElementTuple get() =
-		descriptor().o_IsRepeatedElementTuple(this)
+		descriptor.o_IsRepeatedElementTuple(this)
 
 	override val isIntegerRangeType get() =
-		descriptor().o_IsIntegerRangeType(this)
+		descriptor.o_IsIntegerRangeType(this)
 
 	/**
 	 * Is the receiver an Avail map?
@@ -721,9 +728,9 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a map, `false` otherwise.
 	 */
-	override val isMap get() = descriptor().o_IsMap(this)
+	override val isMap get() = descriptor.o_IsMap(this)
 
-	override val isMapType get() = descriptor().o_IsMapType(this)
+	override val isMapType get() = descriptor.o_IsMapType(this)
 
 	/**
 	 * Is the receiver an Avail nybble?
@@ -731,9 +738,9 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a nybble, `false` otherwise.
 	 */
-	override val isNybble get() = descriptor().o_IsNybble(this)
+	override val isNybble get() = descriptor.o_IsNybble(this)
 
-	override val isSetType get() = descriptor().o_IsSetType(this)
+	override val isSetType get() = descriptor.o_IsSetType(this)
 
 	/**
 	 * Is the receiver an Avail string?
@@ -741,7 +748,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is an Avail string, `false` otherwise.
 	 */
-	override val isString get() = descriptor().o_IsString(this)
+	override val isString get() = descriptor.o_IsString(this)
 
 	/**
 	 * Is the receiver an Avail tuple?
@@ -749,11 +756,11 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a tuple, `false` otherwise.
 	 */
-	override val isTuple get() = descriptor().o_IsTuple(this)
+	override val isTuple get() = descriptor.o_IsTuple(this)
 
-	override val isTupleType get() = descriptor().o_IsTupleType(this)
+	override val isTupleType get() = descriptor.o_IsTupleType(this)
 
-	override val isType get() = descriptor().o_IsType(this)
+	override val isType get() = descriptor.o_IsType(this)
 
 	/**
 	 * Answer an [iterator][Iterator] suitable for traversing the
@@ -764,20 +771,20 @@ class AvailObject private constructor(
 	 */
 	@ReferencedInGeneratedCode
 	override fun iterator(): Iterator<AvailObject> =
-		descriptor().o_Iterator(this)
+		descriptor.o_Iterator(this)
 
 	override fun spliterator(): Spliterator<AvailObject> =
-		descriptor().o_Spliterator(this)
+		descriptor.o_Spliterator(this)
 
-	override fun literal() = descriptor().o_Literal(this)
+	override fun literal() = descriptor.o_Literal(this)
 
 	override fun makeImmutable(): AvailObject
 	{
-		val descriptor = descriptor()
-		if (!descriptor.isMutable) return traversed()
+		val oldDescriptor = descriptor
+		if (!oldDescriptor.isMutable) return traversed()
 		// Switch the descriptor to prevent it from being added to the queue
 		// again.
-		setDescriptor(descriptor.immutable())
+		descriptor = oldDescriptor.immutable()
 		// Create a queue of marked-immutable-but-not-yet-scanned objects,
 		// seeded with the root of the graph.
 		val queue =	mutableListOf(this)
@@ -794,15 +801,15 @@ class AvailObject private constructor(
 	override fun makeImmutableInternal(
 		queueToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>
-	) = descriptor().o_MakeImmutableInternal(this, queueToProcess, fixups)
+	) = descriptor.o_MakeImmutableInternal(this, queueToProcess, fixups)
 
 
 	override fun makeShared(): AvailObject
 	{
-		if (descriptor().isShared) return traversed()
+		if (descriptor.isShared) return traversed()
 		// Switch the descriptor to prevent it from being added to the queue
 		// again.
-		setDescriptor(descriptor().shared())
+		descriptor = descriptor.shared()
 		// Create a queue of marked-shared-but-not-yet-scanned objects, seeded
 		// with the root of the graph.
 		val queue =	mutableListOf(this)
@@ -818,41 +825,41 @@ class AvailObject private constructor(
 	override fun makeSharedInternal(
 		queueToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>
-	) = descriptor().o_MakeSharedInternal(this, queueToProcess, fixups)
+	) = descriptor.o_MakeSharedInternal(this, queueToProcess, fixups)
 
 	override fun makeSubobjectsImmutable() =
-		descriptor().o_MakeSubobjectsImmutable(this)
+		descriptor.o_MakeSubobjectsImmutable(this)
 
 	override fun makeSubobjectsShared() =
-		descriptor().o_MakeSubobjectsShared(this)
+		descriptor.o_MakeSubobjectsShared(this)
 
 	override fun removeDependentChunk(chunk: L2Chunk) =
-		descriptor().o_RemoveDependentChunk(this, chunk)
+		descriptor.o_RemoveDependentChunk(this, chunk)
 
-	override fun start() = descriptor().o_Start(this)
+	override fun start() = descriptor.o_Start(this)
 
-	override fun string() = descriptor().o_String(this)
+	override fun string() = descriptor.o_String(this)
 
-	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
+	override fun tokenType(): TokenType = descriptor.o_TokenType(this)
 
-	override fun traversed() = descriptor().o_Traversed(this)
+	override fun traversed() = descriptor.o_Traversed(this)
 
 	override fun traversedWhileMakingImmutable() =
-		descriptor().o_TraversedWhileMakingImmutable(this)
+		descriptor.o_TraversedWhileMakingImmutable(this)
 
 	override fun traversedWhileMakingShared() =
-		descriptor().o_TraversedWhileMakingShared(this)
+		descriptor.o_TraversedWhileMakingShared(this)
 
-	override fun kind() = descriptor().o_Kind(this)
+	override fun kind() = descriptor.o_Kind(this)
 
-	override fun resultType() = descriptor().o_ResultType(this)
+	override fun resultType() = descriptor.o_ResultType(this)
 
-	override fun declarationKind() = descriptor().o_DeclarationKind(this)
+	override fun declarationKind() = descriptor.o_DeclarationKind(this)
 
-	override fun lineNumber() = descriptor().o_LineNumber(this)
+	override fun lineNumber() = descriptor.o_LineNumber(this)
 
 	override fun equalsInstanceTypeFor(anInstanceType: AvailObject) =
-		descriptor().o_EqualsInstanceTypeFor(this, anInstanceType)
+		descriptor.o_EqualsInstanceTypeFor(this, anInstanceType)
 
 	/**
 	 * Determine whether the receiver is an
@@ -865,86 +872,86 @@ class AvailObject private constructor(
 	 *   Whether the receiver is an enumeration with the given membership.
 	 */
 	override fun equalsEnumerationWithSet(aSet: A_Set) =
-		descriptor().o_EqualsEnumerationWithSet(this, aSet)
+		descriptor.o_EqualsEnumerationWithSet(this, aSet)
 
-	override val isEnumeration get() = descriptor().o_IsEnumeration(this)
+	override val isEnumeration get() = descriptor.o_IsEnumeration(this)
 
 	override fun enumerationIncludesInstance(potentialInstance: AvailObject) =
-		descriptor().o_EnumerationIncludesInstance(this, potentialInstance)
+		descriptor.o_EnumerationIncludesInstance(this, potentialInstance)
 
 	override fun equalsCompiledCodeType(aCompiledCodeType: A_Type) =
-		descriptor().o_EqualsCompiledCodeType(this, aCompiledCodeType)
+		descriptor.o_EqualsCompiledCodeType(this, aCompiledCodeType)
 
 	override fun equalsEnumerationType(anEnumerationType: A_BasicObject) =
-		descriptor().o_EqualsEnumerationType(this, anEnumerationType)
+		descriptor.o_EqualsEnumerationType(this, anEnumerationType)
 
-	override val isRawPojo get() = descriptor().o_IsRawPojo(this)
+	override val isRawPojo get() = descriptor.o_IsRawPojo(this)
 
-	override val isPojoSelfType get() = descriptor().o_IsPojoSelfType(this)
+	override val isPojoSelfType get() = descriptor.o_IsPojoSelfType(this)
 
-	override fun pojoSelfType() = descriptor().o_PojoSelfType(this)
+	override fun pojoSelfType() = descriptor.o_PojoSelfType(this)
 
-	override fun javaClass() = descriptor().o_JavaClass(this)
+	override fun javaClass() = descriptor.o_JavaClass(this)
 
-	override fun rawPojo() = descriptor().o_RawPojo(this)
+	override fun rawPojo() = descriptor.o_RawPojo(this)
 
-	override val isPojo get() = descriptor().o_IsPojo(this)
+	override val isPojo get() = descriptor.o_IsPojo(this)
 
-	override val isPojoType get() = descriptor().o_IsPojoType(this)
+	override val isPojoType get() = descriptor.o_IsPojoType(this)
 
 	override fun serializerOperation() =
-		descriptor().o_SerializerOperation(this)
+		descriptor.o_SerializerOperation(this)
 
-	override val isPojoFusedType get() = descriptor().o_IsPojoFusedType(this)
+	override val isPojoFusedType get() = descriptor.o_IsPojoFusedType(this)
 
 	override fun equalsPojoBottomType() =
-		descriptor().o_EqualsPojoBottomType(this)
+		descriptor.o_EqualsPojoBottomType(this)
 
-	override fun javaAncestors() = descriptor().o_JavaAncestors(this)
+	override fun javaAncestors() = descriptor.o_JavaAncestors(this)
 
-	override val isPojoArrayType get() = descriptor().o_IsPojoArrayType(this)
+	override val isPojoArrayType get() = descriptor.o_IsPojoArrayType(this)
 
 	override fun marshalToJava(classHint: Class<*>?) =
-		descriptor().o_MarshalToJava(this, classHint)
+		descriptor.o_MarshalToJava(this, classHint)
 
 	override fun equalsPojoField(field: AvailObject, receiver: AvailObject) =
-		descriptor().o_EqualsPojoField(this, field, receiver)
+		descriptor.o_EqualsPojoField(this, field, receiver)
 
 	override fun equalsEqualityRawPojoFor(
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?
-	) = descriptor().o_EqualsEqualityRawPojo(
+	) = descriptor.o_EqualsEqualityRawPojo(
 		this, otherEqualityRawPojo, otherJavaObject)
 
-	override fun <T : Any> javaObject(): T? = descriptor().o_JavaObject(this)
+	override fun <T : Any> javaObject(): T? = descriptor.o_JavaObject(this)
 
 	override fun <T : Any> javaObjectNotNull(): T =
-		descriptor().o_JavaObject(this)!!
+		descriptor.o_JavaObject(this)!!
 
-	override fun lowerCaseString() = descriptor().o_LowerCaseString(this)
+	override fun lowerCaseString() = descriptor.o_LowerCaseString(this)
 
-	override fun fieldTuple() = descriptor().o_FieldTuple(this)
+	override fun fieldTuple() = descriptor.o_FieldTuple(this)
 
-	override val isTokenType get() = descriptor().o_IsTokenType(this)
+	override val isTokenType get() = descriptor.o_IsTokenType(this)
 
 	override val isLiteralTokenType
-		get() = descriptor().o_IsLiteralTokenType(this)
+		get() = descriptor.o_IsLiteralTokenType(this)
 
-	override fun isLiteralToken() = descriptor().o_IsLiteralToken(this)
+	override fun isLiteralToken() = descriptor.o_IsLiteralToken(this)
 
 	override fun equalsTokenType(aTokenType: A_Type) =
-		descriptor().o_EqualsTokenType(this, aTokenType)
+		descriptor.o_EqualsTokenType(this, aTokenType)
 
 	override fun equalsLiteralTokenType(aLiteralTokenType: A_Type) =
-		descriptor().o_EqualsLiteralTokenType(this, aLiteralTokenType)
+		descriptor.o_EqualsLiteralTokenType(this, aLiteralTokenType)
 
 	override fun equalsObjectType(anObjectType: AvailObject) =
-		descriptor().o_EqualsObjectType(this, anObjectType)
+		descriptor.o_EqualsObjectType(this, anObjectType)
 
 	override fun equalsToken(aToken: A_Token) =
-		descriptor().o_EqualsToken(this, aToken)
+		descriptor.o_EqualsToken(this, aToken)
 
-	override val isInstanceMeta get() = descriptor().o_IsInstanceMeta(this)
+	override val isInstanceMeta get() = descriptor.o_IsInstanceMeta(this)
 
 	/**
 	 * Answer the [method][MethodDescriptor] that this
@@ -953,110 +960,110 @@ class AvailObject private constructor(
 	 * @return
 	 *   The definition's method.
 	 */
-	override fun definitionMethod() = descriptor().o_DefinitionMethod(this)
+	override fun definitionMethod() = descriptor.o_DefinitionMethod(this)
 
-	override fun prefixFunctions() = descriptor().o_PrefixFunctions(this)
+	override fun prefixFunctions() = descriptor.o_PrefixFunctions(this)
 
 	override fun equalsByteArrayTuple(aByteArrayTuple: A_Tuple) =
-		descriptor().o_EqualsByteArrayTuple(this, aByteArrayTuple)
+		descriptor.o_EqualsByteArrayTuple(this, aByteArrayTuple)
 
-	override val isByteArrayTuple get() = descriptor().o_IsByteArrayTuple(this)
+	override val isByteArrayTuple get() = descriptor.o_IsByteArrayTuple(this)
 
-	override fun <T> lock(body: () -> T): T = descriptor().o_Lock(this, body)
+	override fun <T> lock(body: () -> T): T = descriptor.o_Lock(this, body)
 
 	override fun equalsByteBufferTuple(aByteBufferTuple: A_Tuple) =
-		descriptor().o_EqualsByteBufferTuple(this, aByteBufferTuple)
+		descriptor.o_EqualsByteBufferTuple(this, aByteBufferTuple)
 
 	override val isByteBufferTuple get() =
-		descriptor().o_IsByteBufferTuple(this)
+		descriptor.o_IsByteBufferTuple(this)
 
 	override fun definitionBundle(): A_Bundle =
-		descriptor().o_DefinitionBundle(this)
+		descriptor.o_DefinitionBundle(this)
 
-	override fun definitionModule() = descriptor().o_DefinitionModule(this)
+	override fun definitionModule() = descriptor.o_DefinitionModule(this)
 
 	override fun argumentRestrictionSets() =
-		descriptor().o_ArgumentRestrictionSets(this)
+		descriptor.o_ArgumentRestrictionSets(this)
 
-	override fun restrictedBundle() = descriptor().o_RestrictedBundle(this)
+	override fun restrictedBundle() = descriptor.o_RestrictedBundle(this)
 
-	override val isByteString get() = descriptor().o_IsByteString(this)
+	override val isByteString get() = descriptor.o_IsByteString(this)
 
-	override val isTwoByteString get() = descriptor().o_IsTwoByteString(this)
+	override val isTwoByteString get() = descriptor.o_IsTwoByteString(this)
 
-	override val isBottom get() = descriptor().o_IsBottom(this)
+	override val isBottom get() = descriptor.o_IsBottom(this)
 
-	override val isVacuousType get() = descriptor().o_IsVacuousType(this)
+	override val isVacuousType get() = descriptor.o_IsVacuousType(this)
 
-	override val isTop get() = descriptor().o_IsTop(this)
+	override val isTop get() = descriptor.o_IsTop(this)
 
 	override val isInitializedWriteOnceVariable get() =
-		descriptor().o_IsInitializedWriteOnceVariable(this)
+		descriptor.o_IsInitializedWriteOnceVariable(this)
 
 	override fun writeTo(writer: JSONWriter) =
-		descriptor().o_WriteTo(this, writer)
+		descriptor.o_WriteTo(this, writer)
 
 	override fun writeSummaryTo(writer: JSONWriter) =
-		descriptor().o_WriteSummaryTo(this, writer)
+		descriptor.o_WriteSummaryTo(this, writer)
 
 	override fun equalsListNodeType(listNodeType: A_Type) =
-		descriptor().o_EqualsListNodeType(this, listNodeType)
+		descriptor.o_EqualsListNodeType(this, listNodeType)
 
 	@ReferencedInGeneratedCode
-	override fun fieldAt(field: A_Atom) = descriptor().o_FieldAt(this, field)
+	override fun fieldAt(field: A_Atom) = descriptor.o_FieldAt(this, field)
 
 	@ReferencedInGeneratedCode
 	override fun fieldAtIndex(index: Int): AvailObject =
-		descriptor().o_FieldAtIndex(this, index)
+		descriptor.o_FieldAtIndex(this, index)
 
 	override fun fieldAtOrNull(field: A_Atom) =
-		descriptor().o_FieldAtOrNull(this, field)
+		descriptor.o_FieldAtOrNull(this, field)
 
 	override fun fieldAtPuttingCanDestroy(
 		field: A_Atom,
 		value: A_BasicObject,
 		canDestroy: Boolean
-	) = descriptor().o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
+	) = descriptor.o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
 
 	@ReferencedInGeneratedCode
 	override fun fieldTypeAt(field: A_Atom) =
-		descriptor().o_FieldTypeAt(this, field)
+		descriptor.o_FieldTypeAt(this, field)
 
 	@ReferencedInGeneratedCode
 	override fun fieldTypeAtIndex(index: Int): A_Type =
-		descriptor().o_FieldTypeAtIndex(this, index)
+		descriptor.o_FieldTypeAtIndex(this, index)
 
 	override fun fieldTypeAtOrNull(field: A_Atom) =
-		descriptor().o_FieldTypeAtOrNull(this, field)
+		descriptor.o_FieldTypeAtOrNull(this, field)
 
 	override fun nextLexingState(): LexingState =
-		descriptor().o_NextLexingState(this)
+		descriptor.o_NextLexingState(this)
 
 	override fun nextLexingStatePojo(): AvailObject =
-		descriptor().o_NextLexingStatePojo(this)
+		descriptor.o_NextLexingStatePojo(this)
 
 	override fun setNextLexingStateFromPrior(priorLexingState: LexingState) =
-		descriptor().o_SetNextLexingStateFromPrior(this, priorLexingState)
+		descriptor.o_SetNextLexingStateFromPrior(this, priorLexingState)
 
-	override fun clearLexingState() = descriptor().o_ClearLexingState(this)
+	override fun clearLexingState() = descriptor.o_ClearLexingState(this)
 
 	override fun extractDumpedObjectAt(index: Int): AvailObject =
-		descriptor().o_ExtractDumpedObjectAt(this, index)
+		descriptor.o_ExtractDumpedObjectAt(this, index)
 
 	override fun extractDumpedLongAt(index: Int): Long =
-		descriptor().o_ExtractDumpedLongAt(this, index)
+		descriptor.o_ExtractDumpedLongAt(this, index)
 
 	override val fallbackEntryPoint: ChunkEntryPoint
-		get() = descriptor().o_FallbackEntryPoint(this)
+		get() = descriptor.o_FallbackEntryPoint(this)
 
 	override fun synthesizeCurrentLexingState(): LexingState =
-		descriptor().o_SynthesizeCurrentLexingState(this)
+		descriptor.o_SynthesizeCurrentLexingState(this)
 
 	override fun isInCurrentModule(currentModule: A_Module): Boolean =
-		descriptor().o_IsInCurrentModule(this, currentModule)
+		descriptor.o_IsInCurrentModule(this, currentModule)
 
 	override fun setCurrentModule(currentModule: A_Module) =
-		descriptor().o_SetCurrentModule(this, currentModule)
+		descriptor.o_SetCurrentModule(this, currentModule)
 
 	companion object {
 		/**
@@ -1265,7 +1272,7 @@ class AvailObject private constructor(
 			self: AvailObject,
 			index: Int,
 			value: AvailObject
-		): AvailObject = self.descriptor().o_FrameAtPut(self, index, value)
+		): AvailObject = self.descriptor.o_FrameAtPut(self, index, value)
 
 		/** Access the [frameAtPut] method. */
 		val frameAtPutMethod = staticMethod(
@@ -1286,7 +1293,7 @@ class AvailObject private constructor(
 			value2: AvailObject
 		): AvailObject
 		{
-			val desc = self.descriptor()
+			val desc = self.descriptor
 			desc.o_FrameAtPut(self, index1, value1)
 			desc.o_FrameAtPut(self, index2, value2)
 			return self
@@ -1315,7 +1322,7 @@ class AvailObject private constructor(
 			value3: AvailObject
 		): AvailObject
 		{
-			val desc = self.descriptor()
+			val desc = self.descriptor
 			desc.o_FrameAtPut(self, index1, value1)
 			desc.o_FrameAtPut(self, index2, value2)
 			desc.o_FrameAtPut(self, index3, value3)
@@ -1349,7 +1356,7 @@ class AvailObject private constructor(
 			value4: AvailObject
 		): AvailObject
 		{
-			val desc = self.descriptor()
+			val desc = self.descriptor
 			desc.o_FrameAtPut(self, index1, value1)
 			desc.o_FrameAtPut(self, index2, value2)
 			desc.o_FrameAtPut(self, index3, value3)
@@ -1388,7 +1395,7 @@ class AvailObject private constructor(
 			value5: AvailObject
 		): AvailObject
 		{
-			val desc = self.descriptor()
+			val desc = self.descriptor
 			desc.o_FrameAtPut(self, index1, value1)
 			desc.o_FrameAtPut(self, index2, value2)
 			desc.o_FrameAtPut(self, index3, value3)
@@ -1432,7 +1439,7 @@ class AvailObject private constructor(
 			value6: AvailObject
 		): AvailObject
 		{
-			val desc = self.descriptor()
+			val desc = self.descriptor
 			desc.o_FrameAtPut(self, index1, value1)
 			desc.o_FrameAtPut(self, index2, value2)
 			desc.o_FrameAtPut(self, index3, value3)
@@ -1464,7 +1471,7 @@ class AvailObject private constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun registerDumpStatic(self: AvailObject): AvailObject =
-			self.descriptor().o_RegisterDump(self)
+			self.descriptor.o_RegisterDump(self)
 
 		/** Access the [registerDumpStatic] method. */
 		val registerDumpMethod = staticMethod(

@@ -41,9 +41,9 @@ Names
 	"a counting stream from_to_by_"
 Body
 
-"next" is a new field atom;
-"step" is a new field atom;
-"maximum" is a new field atom;
+"next" is a new field atom constrained to number;
+"step" is a new field atom constrained to number;
+"maximum" is a new field atom constrained to number;
 
 /**
  * A counting number stream is an immutable lazy list of arbitrarily many

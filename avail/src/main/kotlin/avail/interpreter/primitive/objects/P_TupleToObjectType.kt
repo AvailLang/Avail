@@ -40,10 +40,12 @@ import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.objects.ObjectFieldTypeException
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
@@ -53,6 +55,7 @@ import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -60,10 +63,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TypeDescriptor
+import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -75,13 +78,20 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_TupleToObjectType : Primitive(1, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
-		return interpreter.primitiveSuccess(objectTypeFromTuple(tuple))
+		return try
+		{
+			interpreter.primitiveSuccess(objectTypeFromTuple(tuple))
+		}
+		catch (e: ObjectFieldTypeException)
+		{
+			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -131,4 +141,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		return instanceMeta(objectTypeFromMap(fieldTypeMap))
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_FIELD_FOR_OBJECT))
 }

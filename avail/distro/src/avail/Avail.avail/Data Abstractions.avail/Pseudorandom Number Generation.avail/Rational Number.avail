@@ -53,9 +53,9 @@ Body
 /* Rational number for Mark's continuous border sampling equal distribution.
  * In order to preserve precision, the representation rational's will be
  * mixed fractions. */
-"numerator" is a new field atom;
-"denominator" is a new field atom;
-"whole number part" is a new field atom;
+"numerator" is a new field atom constrained to whole number;
+"denominator" is a new field atom constrained to natural number;
+"whole number part" is a new field atom constrained to whole number;
 
 /* For the purpose of the equal distribution of the mapping, negative numbers
  * are not necessary */

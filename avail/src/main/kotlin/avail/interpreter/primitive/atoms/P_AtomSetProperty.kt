@@ -31,9 +31,12 @@
  */
 package avail.interpreter.primitive.atoms
 
+import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SET_ONCE_PROPERTY_KEY
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -44,6 +47,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.exceptions.AvailErrorCode.E_PROPERTY_MAY_ONLY_BE_SET_ONCE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
@@ -72,6 +76,14 @@ object P_AtomSetProperty : Primitive(
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
+		if (propertyKey.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
+			.equals(trueObject)
+			&& atom.getAtomProperty(propertyKey).notNil)
+		{
+			// The atom already has that property, and the property is marked as
+			// disallowing change once it's set.
+			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+		}
 		atom.setAtomProperty(propertyKey, propertyValue)
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
@@ -91,5 +103,8 @@ object P_AtomSetProperty : Primitive(
 		functionType(tuple(ATOM(), ATOM(), ANY()), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_SPECIAL_ATOM))
+		enumerationWith(
+			set(
+				E_SPECIAL_ATOM,
+				E_PROPERTY_MAY_ONLY_BE_SET_ONCE))
 }

@@ -83,7 +83,7 @@ Public method "«Public»?_is a new localization key" is
 	isPublic : boolean,
 	name : nonempty string
 |
-	name is a new field atom;
+	name is a new atom;
 	a ::= atom for name;
 	a[private localization key] := private localization key;
 ];

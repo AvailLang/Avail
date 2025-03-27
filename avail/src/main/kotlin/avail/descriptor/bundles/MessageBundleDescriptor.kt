@@ -74,6 +74,8 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.MUTABLE
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setSize
@@ -339,7 +341,7 @@ class MessageBundleDescriptor private constructor(
 	): A_Tuple
 	{
 		val methodDescriptor =
-			self.bundleMethod.traversed().descriptor() as MethodDescriptor
+			self.bundleMethod.traversed().descriptor as MethodDescriptor
 		return runtimeDispatcher.lookupByValues(
 			macroTestingTree(self),
 			argumentPhraseTuple.toList(),
@@ -549,8 +551,7 @@ class MessageBundleDescriptor private constructor(
 				setSlot(MACROS_TUPLE, emptyTuple())
 				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet)
 				setSlot(DEFINITION_PARSING_PLANS, emptyMap)
-				setDescriptor(
-					MessageBundleDescriptor(Mutability.SHARED, splitter))
+				descriptor = MessageBundleDescriptor(SHARED, splitter)
 				method.methodAddBundle(this)
 				currentModule?.addBundle(this)
 				// Note that there are no macro implementations in this bundle
@@ -570,7 +571,7 @@ class MessageBundleDescriptor private constructor(
 		 * [MessageSplitter] to ensure the field is always non-null.
 		 */
 		private val initialMutableDescriptor = MessageBundleDescriptor(
-			Mutability.MUTABLE,
+			MUTABLE,
 			MessageSplitter.split(stringFrom("dummy")))
 	}
 }

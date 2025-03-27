@@ -471,7 +471,7 @@ class IntegerDescriptor private constructor(
 					// Safety: Zero the bytes if the size is now odd.
 					self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
 				}
-				self.setDescriptor(mutableFor(size))
+				self.descriptor = mutableFor(size)
 			}
 		}
 	}
@@ -513,11 +513,11 @@ class IntegerDescriptor private constructor(
 			!canDestroy -> null
 			selfIntCount == anotherIntCount -> when {
 				isMutable -> self
-				another.descriptor().isMutable -> another
+				another.descriptor.isMutable -> another
 				else -> null
 			}
 			selfIntCount > anotherIntCount -> if (isMutable) self else null
-			another.descriptor().isMutable -> another
+			another.descriptor.isMutable -> another
 			else -> null
 		}
 	}
@@ -1582,7 +1582,7 @@ class IntegerDescriptor private constructor(
 		fun intCount(
 			self: AvailObject
 		) = ((self.integerSlotsCount() shl 1)
-			- (self.descriptor() as IntegerDescriptor).unusedIntsOfLastLong)
+			- (self.descriptor as IntegerDescriptor).unusedIntsOfLastLong)
 
 		/**
 		 * A helper function for printing very large integers.
@@ -1710,10 +1710,10 @@ class IntegerDescriptor private constructor(
 			val intCount = if (aLong.toInt().toLong() == aLong) 1 else 2
 			val output = when
 			{
-				(recyclable1.descriptor().isMutable
+				(recyclable1.descriptor.isMutable
 					&& intCount(recyclable1) <= 2
 				) -> recyclable1
-				(recyclable1.descriptor().isMutable
+				(recyclable1.descriptor.isMutable
 					&& intCount(recyclable1) <= 2
 				) -> recyclable2
 				else -> return fromLong(aLong)
@@ -1724,7 +1724,7 @@ class IntegerDescriptor private constructor(
 				RAW_LONG_SLOTS_,
 				2,
 				if (intCount == 1) 0 else (aLong shr 32).toInt())
-			output.setDescriptor(mutableFor(intCount))
+			output.descriptor = mutableFor(intCount)
 			return output
 		}
 

@@ -39,6 +39,8 @@ import avail.compiler.splitter.CheckIndent.IndentationMatchType.ForbidIncreaseIn
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
 import avail.compiler.splitter.MessageSplitter.Companion.cache
+import avail.compiler.splitter.MessageSplitter.Companion.circledNumbersString
+import avail.compiler.splitter.MessageSplitter.Companion.permutations
 import avail.compiler.splitter.MessageSplitter.Companion.split
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
@@ -125,7 +127,7 @@ import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 import avail.utility.iterableWith
 import org.availlang.cache.LRUCache
-import java.util.*
+import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -584,7 +586,7 @@ private constructor(messageName: A_String)
 		// Since the messageName is used as a key in a cache, multiple threads
 		// may compare these keys, so it must have been shared already for
 		// safety.
-		assert(messageName.descriptor().isShared)
+		assert(messageName.descriptor.isShared)
 		this.messageName = messageName
 		val tokenizer = MessageSplitterTokenizer(this.messageName)
 		this.messageParts = tokenizer.canonicalMessageParts()

@@ -58,7 +58,7 @@ Body
  */
 Public explicit class "malformed-encoding exception" extends exception;
 
-Public "conversion type" is a new field atom;
+Public "conversion type" is a new field atom constrained to ([⊥]→any)'s type;
 
 /**
  * A {@code "converter"} repeatedly accepts a tuple of input values and produces

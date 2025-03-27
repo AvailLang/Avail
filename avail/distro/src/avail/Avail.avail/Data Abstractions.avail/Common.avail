@@ -43,12 +43,4 @@ Names
 
 Body
 
-/**
- * Answer the field atom that represents an iterator's element type.
- *
- * @method "element type"
- * @returns "atom"
- *          The requested field atom.
- * @category "Iterators" "Types"
- */
-Public method "element type" is [$"element type"];
+"element type" is a new field atom constrained to any's type;

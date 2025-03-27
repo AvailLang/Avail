@@ -50,7 +50,7 @@ Names
 	"_'s⁇next binding of_",
 	"_'s⁇next shuffling of_"
 Body
-"bit count" is a new field atom;
+
 /**
  * A pseudorandom number generator employs a deterministic process to produce a
  * sequence of numbers with properties similar to those possessed by a truly

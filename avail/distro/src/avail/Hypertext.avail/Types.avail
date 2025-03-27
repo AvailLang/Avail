@@ -56,10 +56,11 @@ Names
 	"_«fully»?escaped"
 Body
 
-Public "hypertext tag" is a new field atom;
-Public "hypertext attributes" is a new field atom;
-Public "hypertext subelements" is a new field atom;
-Public "hypertext void flag" is a new field atom;
+Public "hypertext tag" is a new field atom constrained to nonempty string;
+Public "hypertext attributes" is a new field atom
+	constrained to {nonempty string→any|};
+Public "hypertext subelements" is a new field atom constrained to any*;
+Public "hypertext void flag" is a new field atom constrained to boolean;
 
 /**
  * A {@type "hypertext element"} represents an HTML element.
@@ -171,9 +172,9 @@ Public method "_rendered" is
 
 Method "“_”" is [elem : hypertext element | elem rendered];
 
-"escape cdata" is a new field atom;
-"fully escape cdata" is a new field atom;
-"cdata accumulator" is a new field atom;
+"escape cdata" is a new field atom constrained to boolean;
+"fully escape cdata" is a new field atom constrained to boolean;
+"cdata accumulator" is a new field atom constrained to ↑string;
 
 /**
  * A {@type "hypertext cdata visitor"} accumulates all character data (CDATA)

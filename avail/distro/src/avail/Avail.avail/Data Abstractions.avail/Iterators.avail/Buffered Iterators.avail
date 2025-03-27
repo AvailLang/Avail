@@ -69,9 +69,9 @@ Names
 
 Body
 
-"buffer" is a new field atom;
-"position in buffer" is a new field atom;
-"maximum buffer size" is a new field atom;
+"buffer" is a new field atom constrained to ↑tuple;
+"position in buffer" is a new field atom constrained to ↑integer;
+"maximum buffer size" is a new field atom constrained to [1..∞];
 
 /**
  * Buffered iterator is an abstraction that maintains a buffer and a current
@@ -350,7 +350,7 @@ Method "take«at most»?_from_" is
 		endInBuffer ?= (startInBuffer + count - 1 - |result|) min |buffer|;
 		batchSize : natural number;
 		batchSize ?= endInBuffer - startInBuffer + 1;
-		result := eject result ++ buffer[startInBuffer..endInBuffer];
+		result ++= buffer[startInBuffer..endInBuffer];
 		aReader's position in buffer :=
 			aReader's position in buffer + batchSize;
 	];

@@ -83,8 +83,8 @@ Method "“_”" is
 	s : nonempty string := "{" ++ “t's element type” ++ "|";
 	lower ::= ⌊t⌋;
 	upper ::= ⌈t⌉;
-	s := eject s ++ “||t||” (cardinality restriction);
-	s := eject s ++ "}";
+	s ++= “||t||” (cardinality restriction);
+	s ++= "}";
 	s
 ] : string;
 

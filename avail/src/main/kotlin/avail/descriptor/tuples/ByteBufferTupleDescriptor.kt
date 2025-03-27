@@ -221,7 +221,7 @@ private constructor(
 				aByteBufferTuple.makeImmutable()
 				self.becomeIndirectionTo(aByteBufferTuple)
 			}
-			!aByteBufferTuple.descriptor().isShared ->
+			!aByteBufferTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aByteBufferTuple.becomeIndirectionTo(self)

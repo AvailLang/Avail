@@ -34,6 +34,8 @@ package avail.descriptor.sets
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.sets.A_Set.Companion.setSizeStatic
+import avail.descriptor.sets.A_Set.Companion.setWithElementStatic
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.optimizer.jvm.CheckedMethod
@@ -250,7 +252,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun setSizeStatic(self: AvailObject): Int =
-			self.descriptor().o_SetSize(self)
+			self.descriptor.o_SetSize(self)
 
 		/** The [CheckedMethod] for [setSizeStatic]. */
 		val setSizeMethod = staticMethod(
@@ -268,7 +270,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		fun setWithElementStatic(
 			self: AvailObject,
 			newElementObject: AvailObject
-		): AvailObject = self.descriptor().o_SetWithElementCanDestroy(
+		): AvailObject = self.descriptor.o_SetWithElementCanDestroy(
 			self, newElementObject, true) as AvailObject
 
 		/** The [CheckedMethod] for [setWithElementStatic]. */

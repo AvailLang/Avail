@@ -34,6 +34,7 @@ package avail.dispatch
 
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
@@ -44,7 +45,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
@@ -120,7 +120,8 @@ constructor(
 			inExtras > 0 -> extraValues[inExtras - 1]
 			else -> types[i - 1]
 		}
-		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY()
+		val newValue =
+			baseType.fieldTypeAtOrNull(field) ?: field.fieldAtomConstraint
 		return extraValues.append(newValue.cast())
 	}
 
@@ -136,7 +137,8 @@ constructor(
 			inExtras > 0 -> extraValues[inExtras - 1]
 			else -> argTypes.tupleAt(i)
 		}
-		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY()
+		val newValue =
+			baseType.fieldTypeAtOrNull(field) ?: field.fieldAtomConstraint
 		return extraValues.append(newValue.cast())
 	}
 
@@ -174,7 +176,9 @@ constructor(
 				// position at this point, but the *type* might be talking about
 				// a super-variant which does not have that field.  Handle that
 				// here.
-				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY()
+				val fieldType =
+					theObjectType.fieldTypeAtOrNull(field) ?:
+						field.fieldAtomConstraint
 				optionalBaseType to extrasList.append(fieldType)
 			}
 			else -> { element ->
@@ -188,7 +192,8 @@ constructor(
 				// position at this point, but the *type* might be talking about
 				// a super-variant which does not have that field.  Handle that
 				// here.
-				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY()
+				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?:
+					field.fieldAtomConstraint
 				optionalBaseType to extrasList.append(fieldType)
 				baseType to extrasList.append(fieldType)
 			}
@@ -279,7 +284,8 @@ constructor(
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction = currentManifest.restrictionFor(baseSemanticValue)
 		val fieldRestriction = boxedRestrictionForType(
-			baseRestriction.type.fieldTypeAt(field))
+			baseRestriction.type.fieldTypeAtOrNull(field) ?:
+				field.fieldAtomConstraint)
 		val fieldSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
 		+L2_GET_OBJECT_FIELD(

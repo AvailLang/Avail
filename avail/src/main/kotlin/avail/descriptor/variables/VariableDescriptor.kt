@@ -663,10 +663,10 @@ open class VariableDescriptor protected constructor(
 			{
 				// Eliminate indirections during this step.
 				val traversed = subobject.traversedWhileMakingImmutable()
-				val descriptor = traversed.descriptor()
+				val descriptor = traversed.descriptor
 				if (descriptor.isMutable)
 				{
-					traversed.setDescriptor(descriptor.immutable())
+					traversed.descriptor = descriptor.immutable()
 					queueToProcess.add(traversed)
 				}
 				traversed
@@ -687,17 +687,17 @@ open class VariableDescriptor protected constructor(
 			self.hash(),
 			self[VALUE],
 			self[WRITE_REACTORS])
-		assert(newVariable.descriptor().isShared)
+		assert(newVariable.descriptor.isShared)
 
 		// The old variable (self) was marked as shared when it was added to the
 		// queueToProcess.  Therefore, it's not truly shared yet, as other
 		// threads cannot actually see it.  Since shared objects can't become
 		// indirections, we switch the descriptor back to its mutable form
 		// before making it an indirection to the newVariable.
-		self.setDescriptor(self.descriptor().mutable())
+		self.descriptor = self.descriptor.mutable()
 		self.becomeIndirectionTo(newVariable)
 		// Make the indirection shared, too.
-		self.setDescriptor(self.descriptor().shared())
+		self.descriptor = self.descriptor.shared()
 	}
 
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject)
@@ -758,7 +758,7 @@ open class VariableDescriptor protected constructor(
 		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T
 	): T
 	{
-		assert(this == self.descriptor())
+		assert(this == self.descriptor)
 		var pojo = self.volatileSlot(WRITE_REACTORS)
 		if (pojo.isNil)
 		{

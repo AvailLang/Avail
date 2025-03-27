@@ -444,7 +444,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			}
 			val phraseTypesAsYields =
 				mappingElementTypes(subexpressionsTupleType) {
-					val descriptorTraversed = it.traversed().descriptor()
+					val descriptorTraversed = it.traversed().descriptor
 					assert(
 						descriptorTraversed is PhraseTypeDescriptor
 							|| descriptorTraversed is BottomTypeDescriptor)
@@ -471,7 +471,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			assert(subexpressionsTupleType.isTupleType)
 			val phraseTypesAsYields =
 				mappingElementTypes(subexpressionsTupleType) {
-					val descriptorTraversed = it.traversed().descriptor()
+					val descriptorTraversed = it.traversed().descriptor
 					assert(
 						descriptorTraversed is PhraseTypeDescriptor
 							|| descriptorTraversed is BottomTypeDescriptor)

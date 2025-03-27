@@ -86,7 +86,7 @@ Body
 //                                   Cases.                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical case identity" is a new field atom;
+Public "grammatical case identity" is a new field atom constrained to atom;
 
 /**
  * English classically categorizes nouns and pronouns according to three
@@ -159,7 +159,7 @@ extends subjective case ∪ objective case ∪ possessive case;
 //                               Cased values.                                //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical case" is a new field atom;
+Public "grammatical case" is a new field atom constrained to case;
 
 /**
  * Any {@type "object"} that wishes to express {@type "case"} immutably may

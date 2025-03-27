@@ -954,9 +954,10 @@ Semantic restriction "region_'s⁇code else_" is
 	region code ∪ elseType's return type
 ];
 
-Public "language subtag" is a new field atom;
-Public "script subtag" is a new field atom;
-Public "region subtag" is a new field atom;
+Public "language subtag" is a new field atom constrained to language code;
+Public "script subtag" is a new field atom
+	constrained to <¢[A-Z]ᵀ, ¢[a-z]ᵀ… | 0..4>;
+Public "region subtag" is a new field atom constrained to <¢[A-Z]ᵀ…|0..2>;
 
 /**
  * A {@type "language tag"} represents a language tag, as specified by {@see
@@ -973,12 +974,8 @@ Public "region subtag" is a new field atom;
 Public class "language tag" extends object
 	with fields
 		public language subtag : language code,
-		script subtag : <
-				enumeration of ¢A to ¢Z → set,
-				enumeration of ¢a to ¢z → set… | 0..4>
-			("private_'s⁇script subtag"),
-		region subtag : <enumeration of ¢A to ¢Z → set…|0..2>
-			("private_'s⁇region subtag");
+		script subtag : <¢[A-Z]ᵀ, ¢[a-z]ᵀ… | 0..4> ("private_'s⁇script subtag"),
+		region subtag : <¢[A-Z]ᵀ…|0..2> ("private_'s⁇region subtag");
 
 Public explicit class "no-script-subtag exception" extends exception;
 Public explicit class "no-region-subtag exception" extends exception;

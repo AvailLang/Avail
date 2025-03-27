@@ -44,6 +44,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
+import avail.interpreter.levelTwo.operation.NumericComparator.Equal
+import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
+import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
+import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -128,7 +132,7 @@ constructor(
 	 *   An [L2Instruction] that can be emitted, or perhaps further processed if
 	 *   it's an [L2_MULTIWAY_JUMP].
 	 */
-	fun reducedSplitterInstruction(
+	fun L2GeneratorInterface.reducedSplitterInstruction(
 		readValue: L2ReadIntOperand,
 		edges: List<L2PcOperand>,
 		manifest: L2ValueManifest
@@ -143,16 +147,31 @@ constructor(
 				.isImpossible
 		}.toSet()
 
-		if (possibleEdges.isEmpty())
+		when
 		{
 			// Shouldn't happen, but play nice.
-			return L2_UNREACHABLE_CODE()
+			possibleEdges.size == 0 -> return L2_UNREACHABLE_CODE()
+			possibleEdges.size == 1 -> return L2_JUMP(possibleEdges.single())
+			edges.size == 2 -> return L2_JUMP_IF_COMPARE_INT(
+				numericComparator = L2ArbitraryConstantOperand(GreaterOrEqual),
+				int1 = readValue,
+				int2 = unboxedIntConstant(splitPoints[0]),
+				ifTrue = edges[1],
+				ifFalse = edges[0])
+			edges.size == 3
+				&& splitPoints[0] == splitPoints[1] - 1
+				&& edges[0].targetBlock() == edges[2].targetBlock() ->
+			{
+				// It's testing for one specific value.  Convert it to an
+				// equality check, and somehow(?) do a union merge of the
+				return L2_JUMP_IF_COMPARE_INT(
+					numericComparator = L2ArbitraryConstantOperand(Equal),
+					int1 = readValue,
+					int2 = unboxedIntConstant(splitPoints[0]),
+					ifTrue = edges[1],
+					ifFalse = edgeTo(edges[0].targetBlock()))
+			}
 		}
-		if (possibleEdges.size == 1)
-		{
-			return L2_JUMP(possibleEdges.single())
-		}
-
 		// Let impossible edges share a target path with one of their neighbors,
 		// since they can't actually be reached by the condition that the
 		// impossible edge had.

@@ -81,10 +81,10 @@ import kotlin.math.max
  * @param fileLocation
  *   The absolute path of the source code file.
  * @param frameTitle
- *   The [JFrame.title].
+ *   The [JFrame]'s [title].
  */
 abstract class FileEditor<CE> constructor(
-	final override val workbench: AvailWorkbench,
+	final override val workbench:  AvailWorkbench,
 	protected val fileLocation: String,
 	frameTitle: String
 ) : WorkbenchFrame(frameTitle)
@@ -167,6 +167,8 @@ abstract class FileEditor<CE> constructor(
 		})
 		putClientProperty(generalFileEditor, this@FileEditor)
 		text = File(fileLocation).readText()
+		revalidate()
+		repaint()
 	}
 
 	/**
@@ -176,6 +178,8 @@ abstract class FileEditor<CE> constructor(
 	{
 		SwingUtilities.invokeLater {
 			sourcePane.text = File(fileLocation).readText()
+			sourcePane.revalidate()
+			sourcePane.repaint()
 		}
 	}
 

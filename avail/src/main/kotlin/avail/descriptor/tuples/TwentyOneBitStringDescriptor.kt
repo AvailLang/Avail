@@ -58,6 +58,8 @@ import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.descriptorFor
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.mutableTwentyOneBitStringOfSize
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
@@ -180,7 +182,7 @@ class TwentyOneBitStringDescriptor private constructor(
 		if (isMutable && canDestroy && originalSize.mod3 != 0)
 		{
 			// Enlarge it in place, using more of the final partial long field.
-			self.setDescriptor(descriptorFor(MUTABLE, newSize))
+			self.descriptor = descriptorFor(MUTABLE, newSize)
 			set21BitSlot(self, newSize, intValue)
 			self[HASH_OR_ZERO] = 0
 			return self
@@ -253,7 +255,7 @@ class TwentyOneBitStringDescriptor private constructor(
 				aTwentyOneBitString.makeImmutable()
 				self.becomeIndirectionTo(aTwentyOneBitString)
 			}
-			!aTwentyOneBitString.descriptor().isShared ->
+			!aTwentyOneBitString.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aTwentyOneBitString.becomeIndirectionTo(self)
@@ -471,7 +473,7 @@ class TwentyOneBitStringDescriptor private constructor(
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = self
-				result.setDescriptor(descriptorFor(MUTABLE, newSize))
+				result.descriptor = descriptorFor(MUTABLE, newSize)
 			}
 			else
 			{

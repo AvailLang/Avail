@@ -48,7 +48,7 @@ Names
 	"tuple reader test suite"
 Body
 
-"collection" is a new field atom;
+"collection" is a new field atom constrained to tuple;
 
 naturalNumberVariable ::= ↑natural number;
 
@@ -166,7 +166,7 @@ Public method "a reader over_" is
 [
 	aTuple : tuple
 |
-	newVar ::= cast new ↑natural number into [v : naturalNumberVariable | v];
+	newVar ::= new ↑natural number;
 	newVar ?= 1;
 	a tuple reader with
 		element type ::= ∪ aTuple's type[1..|aTuple|],

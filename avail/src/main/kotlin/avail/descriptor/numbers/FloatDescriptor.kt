@@ -203,7 +203,7 @@ class FloatDescriptor private constructor(
 		when {
 			!(another as A_Number).equalsFloat(getFloat(self)) -> return false
 			!isShared -> self.becomeIndirectionTo(another.makeImmutable())
-			!another.descriptor().isShared ->
+			!another.descriptor.isShared ->
 				another.becomeIndirectionTo(self.makeImmutable())
 		}
 		return true
@@ -439,7 +439,7 @@ class FloatDescriptor private constructor(
 			canDestroy: Boolean
 		): A_Number {
 			val result =
-				if (canDestroy && recyclable1.descriptor().isMutable)
+				if (canDestroy && recyclable1.descriptor.isMutable)
 				{
 					recyclable1 as AvailObject
 				}
@@ -474,9 +474,9 @@ class FloatDescriptor private constructor(
 			canDestroy: Boolean
 		): A_Number {
 			val result: AvailObject = when {
-				canDestroy && recyclable1.descriptor().isMutable ->
+				canDestroy && recyclable1.descriptor.isMutable ->
 					recyclable1 as AvailObject
-				canDestroy && recyclable2.descriptor().isMutable ->
+				canDestroy && recyclable2.descriptor.isMutable ->
 					recyclable2 as AvailObject
 				else -> mutable.create()
 			}

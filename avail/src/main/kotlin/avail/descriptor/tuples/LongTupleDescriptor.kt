@@ -56,6 +56,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import avail.descriptor.tuples.LongTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.LONG_AT_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
@@ -249,7 +250,7 @@ private constructor(
 			return self
 		}
 		val newSize = size1 + size2
-		if (otherTuple.traversed().descriptor() is NumericTupleDescriptor
+		if (otherTuple.traversed().descriptor is NumericTupleDescriptor
 			&& newSize <= maximumCopySize)
 		{
 			// Copy the longs.
@@ -347,7 +348,7 @@ private constructor(
 				aByteTuple.makeImmutable()
 				self.becomeIndirectionTo(aByteTuple)
 			}
-			!aByteTuple.descriptor().isShared ->
+			!aByteTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aByteTuple.becomeIndirectionTo(self)
@@ -374,7 +375,7 @@ private constructor(
 				anIntTuple.makeImmutable()
 				self.becomeIndirectionTo(anIntTuple)
 			}
-			!anIntTuple.descriptor().isShared ->
+			!anIntTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				anIntTuple.becomeIndirectionTo(self)
@@ -405,7 +406,7 @@ private constructor(
 				aLongTuple.makeImmutable()
 				self.becomeIndirectionTo(aLongTuple)
 			}
-			!aLongTuple.descriptor().isShared ->
+			!aLongTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aLongTuple.becomeIndirectionTo(self)

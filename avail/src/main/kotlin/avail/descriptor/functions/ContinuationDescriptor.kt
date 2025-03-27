@@ -536,9 +536,9 @@ class ContinuationDescriptor private constructor(
 		assert(mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
 		}
-		self.setDescriptor(mutable)
+		self.descriptor = mutable
 		self.createElidedVariables()
-		self.setDescriptor(this)
+		self.descriptor = this
 		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
 	}
 
@@ -559,9 +559,9 @@ class ContinuationDescriptor private constructor(
 		assert(mutability == Mutability.SHARED) {
 			"The descriptor should have been switched to shared already"
 		}
-		self.setDescriptor(mutable)
+		self.descriptor = mutable
 		self.createElidedVariables()
-		self.setDescriptor(this)
+		self.descriptor = this
 		super.o_MakeSharedInternal(self, queueToProcess, fixups)
 	}
 
@@ -647,7 +647,7 @@ class ContinuationDescriptor private constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun functionStatic(self: AvailObject): A_Function =
-			self.descriptor().o_Function(self)
+			self.descriptor.o_Function(self)
 
 		/** The [CheckedMethod] for [functionStatic]. */
 		val continuationFunctionMethod = staticMethod(

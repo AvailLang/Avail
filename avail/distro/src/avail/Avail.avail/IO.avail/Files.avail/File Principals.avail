@@ -56,7 +56,7 @@ Names
 	"_'s⁇group:=_«(don't follow if symlink)»?"
 Body
 
-"name" is a new field atom;
+"name" is a new field atom constrained to string;
 
 /**
  * A principal is an entity that can be authenticated by a security system, and

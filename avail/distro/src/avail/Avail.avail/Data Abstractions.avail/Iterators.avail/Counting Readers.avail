@@ -49,9 +49,9 @@ Names
 	"counting reader test suite"
 Body
 
-"start" is a new field atom;
-"step" is a new field atom;
-"size" is a new field atom;
+"start" is a new field atom constrained to number;
+"step" is a new field atom constrained to number;
+"size" is a new field atom constrained to [0..∞];
 
 naturalNumberVariable ::= ↑natural number;
 

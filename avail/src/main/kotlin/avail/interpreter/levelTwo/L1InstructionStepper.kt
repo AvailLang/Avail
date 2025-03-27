@@ -593,7 +593,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// caller, function, and args.
 						newContinuation.makeSubobjectsImmutable()
 						//assert(newContinuation.caller().isNil
-						//	|| !newContinuation.caller().descriptor().isMutable
+						//	|| !newContinuation.caller().descriptor.isMutable
 						//) {
 						//	"Caller should freeze because two continuations " +
 						//		"can see it"
@@ -636,7 +636,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							// its caller, function, and args.
 							newContinuation.makeSubobjectsImmutable()
 							//assert(newContinuation.caller().isNil
-							//		|| !newContinuation.caller().descriptor()
+							//		|| !newContinuation.caller().descriptor
 							//	.isMutable
 							//) {
 							//	"Caller should freeze because two " +
@@ -870,7 +870,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	{
 		return try
 		{
-			if (variable.traversed().descriptor().isMutable)
+			if (variable.traversed().descriptor.isMutable)
 			{
 				variable.getValueClearing()
 			}

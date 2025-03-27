@@ -169,7 +169,6 @@ import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
@@ -367,7 +366,6 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the described object is mutable, `false` otherwise.
 	 */
-	@get:ReferencedInGeneratedCode
 	val isMutable get () = mutability === Mutability.MUTABLE
 
 	/**
@@ -2702,12 +2700,12 @@ abstract class AbstractDescriptor protected constructor (
 		self.scanSubobjects { subobject ->
 			// Eliminate indirections during this step.
 			val traversed = subobject.traversedWhileMakingImmutable()
-			val descriptor = traversed.descriptor()
+			val descriptor = traversed.descriptor
 			if (descriptor.isMutable)
 			{
 				val immutableDescriptor = descriptor.immutable()
 				//assert(immutableDescriptor.mutability == Mutability.IMMUTABLE)
-				traversed.setDescriptor(immutableDescriptor)
+				traversed.descriptor = immutableDescriptor
 				queueToProcess.add(traversed)
 			}
 			traversed
@@ -2739,10 +2737,10 @@ abstract class AbstractDescriptor protected constructor (
 		self.scanSubobjects { subobject ->
 			// Eliminate indirections during this step.
 			val traversed = subobject.traversedWhileMakingShared()
-			val descriptor = traversed.descriptor()
+			val descriptor = traversed.descriptor
 			if (!descriptor.isShared)
 			{
-				traversed.setDescriptor(descriptor.shared())
+				traversed.descriptor = descriptor.shared()
 				queueToProcess.add(traversed)
 			}
 			traversed
@@ -4184,14 +4182,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	companion object
 	{
-		/**
-		 * The [CheckedMethod] for [isMutable].
-		 */
-		val isMutableMethod = instanceMethod(
-			AbstractDescriptor::class.java,
-			AbstractDescriptor::isMutable.name,
-			Boolean::class.javaPrimitiveType!!)
-
 		/**
 		 * Note: This is a logical shift *without* Java's implicit modulus on
 		 * the shift amount.

@@ -40,4 +40,4 @@ Names
 	"handle"
 Body
 
-Public "handle" is a new field atom;
+Public "handle" is a new field atom constrained to atom;

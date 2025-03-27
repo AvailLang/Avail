@@ -58,7 +58,7 @@ Names
 	"optional test suite"
 Body
 
-"actual value" is a new atom;
+"actual value" is a new atom constrained to any?;
 
 /**
  * The null antipattern is generally to be avoided, because it effectively

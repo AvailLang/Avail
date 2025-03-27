@@ -83,7 +83,7 @@ internal class EqualityRawPojoDescriptor(
 				when
 				{
 					!isShared -> self.becomeIndirectionTo(otherEqualityRawPojo)
-					!otherEqualityRawPojo.descriptor().isShared ->
+					!otherEqualityRawPojo.descriptor.isShared ->
 						otherEqualityRawPojo.becomeIndirectionTo(self)
 				}
 				true

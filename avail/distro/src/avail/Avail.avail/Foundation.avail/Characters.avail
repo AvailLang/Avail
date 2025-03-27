@@ -1362,7 +1362,7 @@ Private method "recase restriction for elements∈_using_" is
 		For each index from 1 to |stringType's leading types| + 1 do
 		[
 			charType ::= stringType[index];
-			types := eject types ++
+			types ++=
 				<if index ∈ range then
 				[
 					converted : {character|} := ∅;

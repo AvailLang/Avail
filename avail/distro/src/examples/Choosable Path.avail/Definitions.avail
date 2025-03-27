@@ -89,12 +89,12 @@ explicitAtomName ::= "explicit-game context";
  */
 Private method "context type,initialization triples,and atom map given_and_" is
 [
-	booleanState : <<<string, boolean, string, boolean…|4>…|1..>…|0..1>,
-	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>
+	booleanState : <string, boolean, string, boolean…|4>+?,
+	nonBooleanState : <<any's type, <string, any…|2>+…|2>…|>
 |
 	explicitAtom ::= new explicit subclass atom named explicitAtomName;
 	typeMap : field type map := context→map + explicitAtom→explicitAtom's type;
-	initializationTriples : <<atom, any's type, any…|3>…|> := <>;
+	initializationTriples : <atom, any's type, any…|3>* := <>;
 	atomsByName : {string→atom|} := {};
 	booleanQuartets ::= booleanState[1] else [<>];
 	/* Build the field type map for the game-specific context type. Start with
@@ -105,6 +105,7 @@ Private method "context type,initialization triples,and atom map given_and_" is
 		/* Use the positive form to name the field atom. */
 		positive ::= quartet[1];
 		fieldAtom ::= atom for positive;
+		Constrain field fieldAtom to ↑boolean;
 		atomsByName := atomsByName + positive→fieldAtom;
 		typeMap := typeMap + fieldAtom→↑boolean;
 		initializationTriples := initializationTriples
@@ -118,6 +119,7 @@ Private method "context type,initialization triples,and atom map given_and_" is
 		[
 			fieldName, initialValue ::= fieldDefinition;
 			fieldAtom ::= atom for fieldName;
+			Constrain field fieldAtom to ↑fieldType;
 			atomsByName := atomsByName + fieldName→fieldAtom;
 			typeMap := typeMap + fieldAtom→↑fieldType;
 			initializationTriples := initializationTriples
@@ -125,7 +127,7 @@ Private method "context type,initialization triples,and atom map given_and_" is
 		];
 	];
 	/* Create the game-specific context type. */
-	contextType ::= cast typeMap→object type into [t : context's type | t];
+	contextType ::= typeMap→object type ?→ context's type;
 	/* Answer the context type, initialization triples, and atom map as a
 	 * 3-tuple.
 	 */
@@ -185,7 +187,7 @@ is
 	 * Make the game-specific opening scene variable available.
 	 */
 	sceneType ::= scene for contextType;
-	openingSceneVar ::= new ↑sceneType;
+	openingSceneVar ::= new variable of type sceneType;
 	openingSceneAtom ::= atom for openingSceneName;
 	Method openingSceneAtom is
 		«[ <> | <‘openingSceneVar’> ] : ↑sceneType»→function;
@@ -299,16 +301,16 @@ Private method "get_'s⁇_field variable expression for_" is
  *
  * @method "Install boolean accessors for_given_and_"
  * @param "contextType" "context's type"
- * @param "booleanQuintets" "<<string, boolean, string, boolean…|4>…|>"
+ * @param "booleanQuartets" "<<string, boolean, string, boolean…|4>…|>"
  * @param "atomsByName" "{string→atom|}"
  */
 Private method "Install boolean accessors for_given_and_" is
 [
 	contextType : context's type,
-	booleanQuintets : <<string, boolean, string, boolean…|4>…|>,
+	booleanQuartets : <<string, boolean, string, boolean…|4>…|>,
 	atomsByName : {string→atom|}
 |
-	For each quartet of booleanQuintets do
+	For each quartet of booleanQuartets do
 	[
 		/* Generate and install the positive interrogative accessor. */
 		positive ::= quartet[1];
@@ -432,7 +434,7 @@ Private method "Install the scene vault for_" is
 	 * So dynamically create a variable of the right type.
 	 */
 	sceneVaultType ::= {↑sceneType→nonempty string|};
-	sceneVault ::= new ↑sceneVaultType;
+	sceneVault ::= new variable of type sceneVaultType;
 	sceneVault ?= {};
 
 	/* In the event that multiple story modules are being loading concurrently,
@@ -613,8 +615,8 @@ Public method
 	\|«_state«_(initially_)‡,»»"
 is
 [
-	booleanState : <<<string, boolean, string, boolean…|4>…|1..>…|0..1>,
-	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>
+	booleanState : <string, boolean, string, boolean…|4>+?,
+	nonBooleanState : <any's type, <string, any…|2>+…|2>*
 |
 	contextType, initializationTriples, atomsByType ::=
 		context type, initialization triples, and atom map
@@ -868,11 +870,11 @@ Private method "dynamic scene vault for_" is
  */
 Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 [
-	sceneNames : <nonempty string…|1..>
+	sceneNames : nonempty string+
 |
 	contextType ::= dynamic game context type;
 	sceneType ::= scene for contextType;
-	sceneVaultUpdates : <<variable, nonempty string…|2>…|> := <>;
+	sceneVaultUpdates : <variable, nonempty string…|2>* := <>;
 	/* Declare the scenes. */
 	For each name of sceneNames do
 	[
@@ -880,7 +882,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 * do this statically because we don't know the game context type
 		 * statically. So dynamically create a variable of the right type.
 		 */
-		sceneVar ::= new ↑sceneType;
+		sceneVar ::= new variable of type sceneType;
 		sceneVaultUpdates ++= <<sceneVar, name>>;
 
 		/* Generate the scene accessor as a method that answers the variable

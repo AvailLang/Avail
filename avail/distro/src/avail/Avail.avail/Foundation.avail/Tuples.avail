@@ -138,12 +138,12 @@ Method "“_”" is
 		leadingTypes ::= t's leading types;
 		index : natural number := 1;
 		While index ≤ |leadingTypes|
-		do [s := eject s ++ “leadingTypes[(index++)]” ++ ", ";];
-		s := eject s ++ “t's default type” ++ "…|";
+		do [s ++= “leadingTypes[(index++)]” ++ ", ";];
+		s ++= “t's default type” ++ "…|";
 		lower ::= ⌊t⌋;
 		upper ::= ⌈t⌉;
-		s := eject s ++ “||t||” (cardinality restriction);
-		s := eject s ++ ">";
+		s ++= “||t||” (cardinality restriction);
+		s ++= ">";
 		s
 	]
 ] : string;
@@ -1206,7 +1206,7 @@ Method "map and filter_by_" is
 			|
 				If ¬hasAlreadyKept then
 				[
-					result := eject result ++ <transformed>;
+					result ++= <transformed>;
 					hasAlreadyKept := true;
 				];
 			]
@@ -1697,9 +1697,9 @@ Private method "zip function" is
 			group : tuple := <>;
 			For each aTuple of tuples do
 			[
-				group := eject group ++ <aTuple[index]>;
+				group ++= <aTuple[index]>;
 			];
-			accumulator := eject accumulator ++ <group>;
+			accumulator ++= <group>;
 		];
 		accumulator
 	] : tuple
@@ -1800,14 +1800,14 @@ Private method "zip semantic restriction" is
 				 */
 				For each tupleType of types do
 				[
-					zipped := eject zipped ++ <tupleType[index]>;
+					zipped ++= <tupleType[index]>;
 				];
 				nonempty ::= cast zipped
 					into [ t : <any meta…|1..> | t ];
 				zippedType ::=
 					<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
 						| ||tuplesType||>;
-				resultTypes := eject resultTypes ++ <zippedType>;
+				resultTypes ++= <zippedType>;
 			];
 			nonempty ::= cast resultTypes into [ t : <tuple meta…|1..> | t ];
 			resultSizes ::= [lower..upper + 1);
@@ -2413,7 +2413,7 @@ Public stable method "_to_" is
 	endCodePoint ::= end's code point;
 	For each value from startCodePoint to endCodePoint do
 	[
-		accumulator := eject accumulator ++ <value→character>;
+		accumulator ++= <value→character>;
 	];
 	accumulator
 ] : string;
@@ -3084,7 +3084,7 @@ Semantic restriction "stripe_at_" is
 			innerIndex ::= ⌊index⌋ + delta;
 			union := eject union ∪ innerType[innerIndex];
 		];
-		stripeTypes := eject stripeTypes ++ <union>;
+		stripeTypes ++= <union>;
 	];
 	nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
 	<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
@@ -3502,7 +3502,7 @@ Semantic restriction "_[_]→_" is
 		If padCount > 0 then
 		[
 			count ::= cast padCount into [ t : natural number | t ];
-			leadingTypes := eject leadingTypes ++ count of defaultType;
+			leadingTypes ++= count of defaultType;
 		];
 		/* If the upper bound of `index` is less than the maximum length of the
 		 * tuple, then some elements of the result tuple may have the original
@@ -3517,7 +3517,7 @@ Semantic restriction "_[_]→_" is
 			delta ::= if indexLower ≤ |leadingTypes| then [ 0 ] else [ 1 ];
 			count ::= cast indexUpper - (|leadingTypes| max indexLower)
 				into [ t : whole number | t + delta ];
-			leadingTypes := eject leadingTypes ++ count of newType;
+			leadingTypes ++= count of newType;
 		]
 		/* The upper bound of `index` exceeds the minimum length of the tuple,
 		 * so just update the default type.

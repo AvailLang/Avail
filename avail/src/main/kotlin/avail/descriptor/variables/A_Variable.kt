@@ -457,10 +457,9 @@ interface A_Variable : A_ChunkDependable
 		fun A_Variable.checkForSharedOrReactors(): Boolean
 		{
 			val traversed = traversed()
-			val descriptor = traversed.descriptor()
-			if (descriptor.isShared) return true
-			descriptor as VariableDescriptor
-			return !descriptor.withWriteReactorsToModify(
+			val traversedDescriptor = traversed.descriptor as VariableDescriptor
+			if (traversedDescriptor.isShared) return true
+			return !traversedDescriptor.withWriteReactorsToModify(
 				traversed,
 				toModify = false,
 				body = MutableMap<*, *>?::isNullOrEmpty)

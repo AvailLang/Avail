@@ -224,7 +224,7 @@ private constructor(
 			{
 				// Enlarge it in place, using the pad nybbles of the last long.
 				result = self
-				result.setDescriptor(descriptorFor(MUTABLE, newSize))
+				result.descriptor = descriptorFor(MUTABLE, newSize)
 			}
 			else
 			{
@@ -339,7 +339,7 @@ private constructor(
 			val copy = if (canDestroy && isMutable && deltaSlots == 0)
 			{
 				// We can reuse the receiver; it has enough int slots.
-				self.setDescriptor(descriptorFor(MUTABLE, newSize))
+				self.descriptor = descriptorFor(MUTABLE, newSize)
 				self
 			}
 			else
@@ -431,7 +431,7 @@ private constructor(
 				aTuple.makeImmutable()
 				self.becomeIndirectionTo(aTuple)
 			}
-			!aTuple.descriptor().isShared ->
+			!aTuple.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				aTuple.becomeIndirectionTo(self)

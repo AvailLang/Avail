@@ -51,6 +51,8 @@ import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceOfMeta
 import avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.INSTANCE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
@@ -207,7 +209,7 @@ private constructor(
 				another.makeImmutable()
 				self.becomeIndirectionTo(another)
 			}
-			!another.descriptor().isShared ->
+			!another.descriptor.isShared ->
 			{
 				self.makeImmutable()
 				another.becomeIndirectionTo(self)

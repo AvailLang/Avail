@@ -54,7 +54,7 @@ interface A_ParsingPlanInProgress : A_BasicObject {
 	companion object
 	{
 		val A_ParsingPlanInProgress.isParsingPlanInProgress: Boolean
-			get() = traversed().descriptor() is ParsingPlanInProgressDescriptor
+			get() = traversed().descriptor is ParsingPlanInProgressDescriptor
 
 		/**
 		 * Answer whether this plan-in-progress is at a backward jump

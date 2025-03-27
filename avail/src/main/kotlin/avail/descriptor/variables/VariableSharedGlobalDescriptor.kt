@@ -380,7 +380,7 @@ class VariableSharedGlobalDescriptor private constructor(
 				setSlot(WRITE_REACTORS, nil)
 				setSlot(MODULE, module.makeShared())
 				setSlot(GLOBAL_NAME, name.makeShared())
-				setDescriptor(if (writeOnce) sharedWriteOnce else shared)
+				descriptor = if (writeOnce) sharedWriteOnce else shared
 			}
 		}
 

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/4/25, 9:32 AM
+ * * Last Generated: 3/26/25, 11:41 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -163,8 +163,6 @@ Uses
 		"_→list phrase",
 		"_→literal phrase",
 		"_→map",
-		"_→object",
-		"_→object type",
 		"_→set",
 		"_→statement phrase",
 		"_→tuple",
@@ -2175,42 +2173,6 @@ Primitive "_<_" is
 ] : boolean;
 
 /**
- * Construct and answer an object based on the supplied map.
- *
- * @category "Primitives" "Objects" "Constructors"
- * @method "_→object"
- * @param "fieldsToValues" "{atom→any|}"
- *        A map whose keys are the fields of the new object and whose values are
- *        the corresponding field values.
- * @returns "object"
- *    The requested object.
- */
-Primitive "_→object" is
-[
-	fieldsToValues : field map
-|
-	Primitive MapToObject;
-] : object;
-
-/**
- * Construct and answer an object type based on the supplied map.
- *
- * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
- * @method "_→object type"
- * @param "fieldsToTypes" "{atom→{any}ᵀ|}"
- *        A map whose keys are the fields of the new object and whose values are
- *        the corresponding field types.
- * @returns "{object}ᵀ"
- *    The requested object type.
- */
-Primitive "_→object type" is
-[
-	fieldsToTypes : field type map
-|
-	Primitive MapToObjectType;
-] : object meta;
-
-/**
  * Construct and answer a map based on the supplied object.
  *
  * @category "Primitives" "Objects" "Maps" "Conversions"
@@ -2289,44 +2251,6 @@ Primitive "Unname_from_" is
 |
 	Primitive RemoveTypeName;
 ] : ⊤;
-
-/**
- * Construct and answer an object based on the supplied tuple.
- *
- * @category "Primitives" "Tuples" "Objects" "Conversions"
- * @method "_→object"
- * @param "fieldAssignments" "<atom, any…|2>*"
- *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
- *        an atom (i.e., the field identifier) and its second element is
- *        associated value.
- * @returns "object"
- *    The requested object.
- */
-Primitive "_→object" is
-[
-	fieldAssignments : field tuple
-|
-	Primitive TupleToObject;
-] : object;
-
-/**
- * Construct and answer an object type based on the supplied tuple.
- *
- * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
- * @method "_→object type"
- * @param "fieldDefinitions" "<atom, {any}ᵀ…|2>*"
- *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
- *        an atom (i.e., the field identifier) and its second element is the
- *        value type permitted by the field.
- * @returns "{object}ᵀ"
- *    The requested object type.
- */
-Primitive "_→object type" is
-[
-	fieldDefinitions : field type tuple
-|
-	Primitive TupleToObjectType;
-] : object meta;
 
 /**
  * Answer the set of locally most-specific names bound to the specified object

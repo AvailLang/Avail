@@ -789,10 +789,10 @@ class TypeRestriction private constructor(
 	 */
 	fun intersectionWithObjectVariant(
 		variantToIntersect: ObjectLayoutVariant
-	): TypeRestriction = when
+	): TypeRestriction
 	{
-		isImpossible -> this
-		else -> intersection(
+		if (isImpossible) return this
+		return intersection(
 			TypeRestriction(
 				RestrictionGroup(
 					null,

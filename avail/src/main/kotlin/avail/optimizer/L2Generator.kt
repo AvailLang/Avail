@@ -1709,7 +1709,7 @@ constructor(
 		 * TODO - Once we start tracking actual lookup results per call site,
 		 *  we can decrease this.
 		 */
-		const val maxPolymorphismToInlineDispatch = 20
+		const val maxPolymorphismToInlineDispatch = 50
 
 		/**
 		 * Use a series of instance equality checks if we're doing type testing

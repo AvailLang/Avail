@@ -52,7 +52,7 @@ Names
 	"_'s⁇scale factor::=_"
 Body
 
-Public method "scale factor" is [$"scale factor"];
+Public "scale factor" is a new field atom constrained to integer;
 
 /**
  * An SI unit defines a family that relates units that differ only by scale.

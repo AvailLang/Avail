@@ -46,7 +46,7 @@ Extends
 	"Collections" = ("_[_]else_")
 Names
 	"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
-	"«Public»?_is a|an new⁇field⁇atom"
+	"«Public»?_is a|an new⁇field⁇atom«constrained to_»?"
 Body
 
 /**
@@ -128,32 +128,44 @@ Method "_[_]else_" is
  * dynamic publication, then answer this atom. Otherwise, privately introduce a
  * new atom.
  *
- * @method "«Public»?_is a|an new⁇field⁇atom"
+ * @method "«Public»?_is a|an new⁇field⁇atom«constrained to_»?"
  * @param "atomName" "string"
  *        The name by which this atom is known locally.
  * @returns "⊤"
  * @category "Atoms" "Declarations"
  */
-Public method "«Public»?_is a|an new⁇field⁇atom" is
+Public method "«Public»?_is a|an new⁇field⁇atom«constrained to_»?" is
 [
 	isPublic : boolean,
-	atomName : string
+	atomName : string,
+	optionalFieldConstraint :
+		<<>, any meta… |
+			integer range from 0 (inclusive = true) to 1 (inclusive = true)>
 |
 	theAtom ::= atom for atomName;
+	If optionalFieldConstraint ≠ <> then
+	[
+		Constrain field theAtom to optionalFieldConstraint[1] ?→ any meta;
+	];
 	Macro atomName is [`theAtom`(atomName) → literal phrase];
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤
 styled by definition styler;
 
 /**
- * @method "«Public»?_is a|an new⁇field⁇atom"
+ * @method "«Public»?_is a|an new⁇field⁇atom«constrained to_»?"
  * @restricts "boolean's type"
  * @restricts "string's type"
  */
-Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
+Semantic restriction "«Public»?_is a|an new⁇field⁇atom«constrained to_»?" is
 [
 	publicType : boolean's type,
-	nameType : string's type
+	nameType : string's type,
+	optionalFieldConstraintType :
+		<<>, any meta… |
+			integer range from 0 (inclusive = true)
+			to 1 (inclusive = true)
+		>'s type
 |
 	public ::= publicType's instance;
 	If public ∧ |nameType| ≠ 1 then

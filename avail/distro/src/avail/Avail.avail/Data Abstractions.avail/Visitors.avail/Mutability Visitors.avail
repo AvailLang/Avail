@@ -48,7 +48,7 @@ Names
 	"_is mutable"
 Body
 
-"escape continuation" is a new field atom;
+"escape continuation" is a new field atom constrained to $[…]→boolean;
 
 /**
  * An {@type "private mutability visitor"} retains a {@type "continuation"} that

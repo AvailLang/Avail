@@ -465,7 +465,7 @@ class L1Disassembler constructor(
 				value.isInstanceOf(mostGeneralVariableType) -> null to true
 				!value.isType -> null to true
 				value.isTop -> value to false
-				value.traversed().descriptor() is PrimitiveTypeDescriptor ->
+				value.traversed().descriptor is PrimitiveTypeDescriptor ->
 					value to false
 				value.isBottom -> value to false
 				value.isInstanceOf(mostGeneralCompiledCodeType()) ->

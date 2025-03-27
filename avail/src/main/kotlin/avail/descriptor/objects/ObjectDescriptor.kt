@@ -44,6 +44,9 @@ import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
+import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import avail.descriptor.objects.ObjectDescriptor.Companion.setField
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.FIELD_VALUES_
@@ -170,7 +173,8 @@ class ObjectDescriptor internal constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
-		 * The [kind][ObjectTypeDescriptor] of the [object][ObjectDescriptor].
+		 * The [kind][ObjectTypeDescriptor] of the [object][ObjectDescriptor],
+		 * or [nil] if it has not yet been requested.
 		 */
 		KIND,
 
@@ -242,6 +246,25 @@ class ObjectDescriptor internal constructor(
 					tupleFromList(otherAtoms),
 					slotName = "SUBCLASS_FIELDS"))
 		}
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+				-1,
+				self[KNOWN_STATIC_OBJECT_TYPE],
+				slotName = "(statically known type)",
+				forcedName = "(statically known type)"))
+		self[TYPE_VETTINGS_CACHE].ifNotNil { cachePojo: AvailObject ->
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					cachePojo.javaObjectNotNull(),
+					slotName = "(type vettings cache)",
+					forcedName = "(type vettings cache)"))
+
+		}
 		return fields.toTypedArray()
 	}
 
@@ -277,13 +300,13 @@ class ObjectDescriptor internal constructor(
 		val kind = self[KIND].ifNil { anObject[KIND] }
 		if (!isShared)
 		{
-			if (anObject.descriptor().isShared)
+			if (anObject.descriptor.isShared)
 				anObject[KIND] = kind.makeShared()
 			else
 				anObject[KIND] = kind.makeImmutable()
 			self.becomeIndirectionTo(anObject)
 		}
-		else if (!anObject.descriptor().isShared)
+		else if (!anObject.descriptor.isShared)
 		{
 			// We tested it above, and the receiver wasn't shared.
 			self[KIND] = kind.makeImmutable()
@@ -412,7 +435,7 @@ class ObjectDescriptor internal constructor(
 	{
 		if (aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)) return true
 		val typeTraversed = aType.traversed()
-		val typeDescriptor = typeTraversed.descriptor()
+		val typeDescriptor = typeTraversed.descriptor
 		if (typeDescriptor !is ObjectTypeDescriptor) return false
 		if (!typeDescriptor.isShared)
 			return typeTraversed.hasObjectInstance(self)

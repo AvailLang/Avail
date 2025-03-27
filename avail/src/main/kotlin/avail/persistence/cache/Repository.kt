@@ -40,7 +40,7 @@ import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.AvailObject.Companion.multiplier
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import avail.persistence.cache.Repository.Companion.DEBUG_REPOSITORY
 import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.ModuleArchive
 import avail.persistence.cache.record.ModuleCompilation
@@ -154,7 +154,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V18")
+		"Avail compiled module repository V19")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -175,10 +175,10 @@ class Repository constructor(
 	private var dirtySince = 0L
 
 	/**
-	 * A [Map] from the
-	 * [root-relative&#32;name][ResolvedModuleName.rootRelativeName] of each
-	 * module that has ever been compiled within this repository to the
-	 * corresponding ModuleArchive.
+	 * A [Map] from the root-relative
+	 * [name][ResolvedModuleName.rootRelativeName] of each [ResolvedModuleName]
+	 * representing a module that has ever been compiled within this repository
+	 * to the corresponding ModuleArchive.
 	 */
 	private val moduleMap = mutableMapOf<String, ModuleArchive>()
 

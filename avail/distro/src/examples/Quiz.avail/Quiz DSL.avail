@@ -64,7 +64,7 @@ Body
 
 "point" ("pt") is a base unit;
 
-"text" is a new field atom;
+"text" is a new field atom constrained to string;
 
 /**
  * An {@code "answer"} to a {@type "question"}, independent of its correctness.
@@ -78,7 +78,7 @@ Class "answer" extends object
 	with field
 		reconstructible text : string;
 
-"weight" is a new field atom;
+"weight" is a new field atom constrained to natural number point;
 
 /**
  * A {@code "question"}.
@@ -120,8 +120,8 @@ Abstract method "“_”" is [question]→string;
  */
 Private abstract method "_correctly answers_" is [answer, question]→boolean;
 
-"answers" is a new field atom;
-"correct answers" is a new field atom;
+"answers" is a new field atom constrained to answer+;
+"correct answers" is a new field atom constrained to {answer|1..};
 
 /**
  * A {@code "multiple-choice question"}.
@@ -179,8 +179,8 @@ Private method "_correctly answers_" is
 	anAnswer ∈ aQuestion's correct answers
 ] : boolean;
 
-"title" is a new field atom;
-"questions" is a new field atom;
+"title" is a new field atom constrained to string;
+"questions" is a new field atom constrained to ↑(question*);
 
 /**
  * A {@code "quiz"}.
@@ -579,6 +579,8 @@ Semantic restriction "Short Answer(_)._«A:_»" is
 	⊤
 ];
 
+"graded answers" is a new field atom constrained to ↑{question→answer|};
+
 /**
  * A {@code "grade sheet"} records the user's answers.
  *
@@ -590,7 +592,7 @@ Semantic restriction "Short Answer(_)._«A:_»" is
  */
 Class "grade sheet" extends object
 	with mutable field
-		answers : {question→answer|};
+		referable graded answers : {question→answer|};
 
 /**
  * Answer the number of correct answers tallied by the {@type "grade sheet"}.
@@ -605,7 +607,7 @@ Private method "_'s⁇correct answers" is
 [
 	gradeSheet : grade sheet
 |
-	count of gradeSheet's answers' bindings where
+	count of gradeSheet's graded answers' bindings where
 		[b : <question, answer…|2> | b[2] correctly answers b[1]]
 ] : whole number;
 
@@ -623,7 +625,7 @@ Private method "_'s⁇score" is
 	gradeSheet : grade sheet
 |
 	score : whole number point := 0 pt;
-	For each q → a of gradeSheet's answers do
+	For each q → a of gradeSheet's graded answers do
 	[
 		If a correctly answers q then [score := score + q's weight;];
 	];
@@ -671,7 +673,7 @@ Private method "User answered_to_" is
 	aQuestion : question
 |
 	gradeSheet ::= current grade sheet;
-	gradeSheet's answers := gradeSheet's answers + aQuestion→anAnswer;
+	(↑gradeSheet's graded answers)[aQuestion] := anAnswer;
 ] : ⊤;
 
 /**
@@ -781,7 +783,7 @@ Private method "Administer_" is
 [
 	aQuiz : quiz
 |
-	current grade sheet := a grade sheet with answers := {};
+	current grade sheet := a grade sheet with graded answers := {};
 	Print:
 		format "‘①’ ‘②’\n"
 		with

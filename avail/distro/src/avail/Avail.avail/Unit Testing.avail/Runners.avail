@@ -133,7 +133,7 @@ Private method "tear down for_" is
 	Until suiteID = root test suite ID do
 	[
 		suite ::= suites by atom[suiteID];
-		tearDown := eject tearDown ++ suite's suite fixture tear down;
+		tearDown ++= suite's suite fixture tear down;
 		suiteID := suite's parent suite ID;
 	];
 	tearDown
@@ -160,7 +160,7 @@ Private method "tear down for_" is
 	Until suiteID = root test suite ID do
 	[
 		suite ::= suites by atom[suiteID];
-		tearDown := eject tearDown ++ suite's test fixture tear down;
+		tearDown ++= suite's test fixture tear down;
 		suiteID := suite's parent suite ID;
 	];
 	tearDown
@@ -320,7 +320,7 @@ Private method "test metric for_" is
 					causal exception ::=
 						an expected-a-specific-exception exception with
 							test ID ::= id,
-							expected exception type ::= expected[1]
+							expected exception type ::= <expected[1]>
 			]
 			else
 			[
@@ -353,7 +353,7 @@ Private method "test metric for_" is
 					causal exception ::= an exceptionType with
 						test ID ::= id,
 						causal exception ::= e,
-						expected exception type ::= expected[1]
+						expected exception type ::= <expected[1]>
 			]
 			else
 			[
@@ -482,7 +482,7 @@ Private method "recursively visit_,on entering do_,on leaving do_" is
 			recursively visit suites by atom[childID],
 			on entering do enterAction,
 			on leaving do leaveAction;
-		results := eject results ++ childResults;
+		results ++= childResults;
 	];
 	leaveAction(aSuite);
 	results
@@ -769,7 +769,7 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 				passed ::= |statistics[$passed] else [<>]|,
 				failed ::= |statistics[$failed] else [<>]|,
 				skipped ::= |statistics[$skipped] else [<>]|;
-		badResults := eject badResults ++ bad results of results;
+		badResults ++= bad results of results;
 	];
 	/* Compute statistics. */
 	statistics ::= group report's metrics by discriminator;
@@ -780,12 +780,12 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 	do
 	[
 		result ::= badResults[index];
-		details := eject details ++ long “result”;
+		details ++= long “result”;
 		index++;
 	]
 	alternate with
 	[
-		details := eject details ++ "\n" ++ banner ++ "\n";
+		details ++= "\n" ++ banner ++ "\n";
 	];
 	/* Format report. */
 	format

@@ -94,7 +94,7 @@ class VettingsCache
 		objectType: AvailObject
 	): Boolean
 	{
-		assert(objectType.descriptor().isShared)
+		assert(objectType.descriptor.isShared)
 		val objectTypeHash = objectType.hash()
 		positiveCache1.forEach {
 			if (it.matches(objectTypeHash, objectType)) return true

@@ -33,19 +33,23 @@ package avail.descriptor.objects
 
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
+import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsByFieldSet
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsCounter
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.createUninitializedObjectType
 import avail.descriptor.representation.Mutability
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.isSubsetOf
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.types.A_Type
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.utility.safeWrite
-import org.apache.commons.collections4.map.ReferenceMap
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
+import org.apache.commons.collections4.map.ReferenceMap
 import java.lang.ref.SoftReference
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -76,7 +80,8 @@ import kotlin.concurrent.read
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class ObjectLayoutVariant private constructor(
+class ObjectLayoutVariant
+private constructor(
 	allFieldsSet: A_Set,
 	val variantId: Int)
 {
@@ -97,6 +102,13 @@ class ObjectLayoutVariant private constructor(
 	val realSlots: List<A_Atom>
 
 	/**
+	 * This list has the same indices as [realSlots], and contains the intrinsic
+	 * bounding types for the fields, as found in each field atom's
+	 * [OBJECT_FIELD_RESTRICTION_KEY] property.
+	 */
+	val realSlotBounds: List<A_Type>
+
+	/**
 	 * The number of slots to allocate in an object or object type to
 	 * accommodate the real fields.  This excludes the keys that were created
 	 * solely for the purpose of explicit subclassing.  This value is always the
@@ -112,7 +124,7 @@ class ObjectLayoutVariant private constructor(
 
 	init
 	{
-		val explicitSubclassingKey = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
+		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		// Alphabetize the fields to make debugging nice.  Note that field names
 		// don't have to be lexicographically unique.
 		val sortedFields = allFields.sortedBy { it.atomName.asNativeString() }
@@ -122,6 +134,12 @@ class ObjectLayoutVariant private constructor(
 			val isReal = field.getAtomProperty(explicitSubclassingKey).isNil
 			fieldToSlotIndex[field] = if (isReal) ++slotCount else 0
 			isReal
+		}
+		realSlotBounds = realSlots.map { field ->
+			val boundType = field.fieldAtomConstraint
+			// Caller should have ensured this.
+			assert(boundType.notNil && boundType.isType)
+			boundType
 		}
 		realSlotCount = slotCount
 	}
@@ -166,12 +184,11 @@ class ObjectLayoutVariant private constructor(
 
 	/** The most general object type using this variant. */
 	val mostGeneralObjectType by lazy {
-		ObjectTypeDescriptor.createUninitializedObjectType(this).let { type ->
-			type.fillSlots(
-				ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_,
-				1,
-				type.variableObjectSlotsCount(),
-				ANY())
+		createUninitializedObjectType(this).let { type ->
+			realSlotBounds.forEachIndexed { i, slotBoundType ->
+				type[ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_, i + 1] =
+					slotBoundType
+			}
 			type.makeShared()
 		}
 	}
@@ -242,10 +259,22 @@ class ObjectLayoutVariant private constructor(
 		 * @return
 		 *   The lookup for that set of fields.
 		 */
-		fun variantForFields(allFields: A_Set): ObjectLayoutVariant {
+		fun variantForFields(allFields: A_Set): ObjectLayoutVariant
+		{
 			variantsLock.read {
 				// By far the most likely path.
 				variantsByFieldSet[allFields]?.get()?.let { return it }
+			}
+
+			// Check that every field has an inherent type bound before
+			// allocating a variant id.
+			val badFields = allFields.filter { field ->
+				field.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).isNil
+					&& field.fieldAtomConstraint.run { isNil || !isType }
+			}
+			if (badFields.isNotEmpty())
+			{
+				throw ObjectFieldTypeException(badFields)
 			}
 			// Didn't find it while holding the read lock.  We could create it
 			// outside of the lock, then test for its presence again inside the
@@ -254,11 +283,15 @@ class ObjectLayoutVariant private constructor(
 			// necessary.
 			return variantsLock.safeWrite {
 				when (val theirVariant = variantsByFieldSet[allFields]?.get()) {
-					null -> ObjectLayoutVariant(allFields, ++variantsCounter)
-						.also { newVariant ->
-							variantsByFieldSet[allFields] = SoftReference(newVariant)
-							variantsById[newVariant.variantId] = newVariant
-						}
+					null ->
+					{
+						val newVariant =
+							ObjectLayoutVariant(allFields, ++variantsCounter)
+						variantsByFieldSet[allFields] =
+							SoftReference(newVariant)
+						variantsById[newVariant.variantId] = newVariant
+						newVariant
+					}
 					else -> theirVariant
 				}
 			}

@@ -73,7 +73,7 @@ Names
 Body
 
 /* Define field atoms for the "movable entity" type. */
-"location" is a new field atom;
+"location" is a new field atom constrained to ↑room;
 
 /**
  * A movable entity can move around in a {@type "cave"}, though not necessarily
@@ -98,7 +98,7 @@ Public class "movable entity" extends object
 Public explicit class "crooked arrow" extends movable entity;
 
 /* Define field atoms for the "creature" type. */
-"life flag" is a new field atom;
+"life flag" is a new field atom constrained to ↑boolean;
 
 /**
  * A creature is an occupant or explorer of a {@type "cave"}.
@@ -133,7 +133,7 @@ Public method "_is«alive|dead»!" is
 ] : boolean;
 
 /* Define field atoms for the "agent" type. */
-"count of remaining arrows" is a new field atom;
+"count of remaining arrows" is a new field atom constrained to ↑(-∞..5];
 
 /**
  * The agent is the player character.
@@ -159,7 +159,7 @@ Public class "agent" extends creature
 Public explicit class "super bat swarm" extends creature;
 
 /* Define field atoms for the "wumpus" type. */
-"activity flag" is a new field atom;
+"activity flag" is a new field atom constrained to ↑boolean;
 
 /**
  * The fabled wumpus is master of the {@type "cave"}. It will eat any {@type

@@ -49,7 +49,7 @@ Names
 	"visited values"
 Body
 
-"escape continuation" is a new field atom;
+"escape continuation" is a new field atom constrained to $[…]→boolean;
 
 /**
  * An {@type "private identity visitor"} retains a {@type "continuation"} that
@@ -180,7 +180,7 @@ Public stable method "_has identity" is
 	false
 ] : boolean;
 
-Public "visited values" is a new field atom;
+Public "visited values" is a new field atom constrained to ↑set;
 
 /**
  * An {@type "anti-identity revisitor"} does not {@method

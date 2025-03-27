@@ -54,7 +54,9 @@ Names
 	"stream reader test suite"
 Body
 
-"adapted stream" is a new field atom;
+"adapted stream" is a new field atom constrained to ↑stream;
+
+/* Used as a private memento key to capture state. */
 "reader id" is a new atom;
 
 atomVariable ::= ↑atom;
@@ -143,7 +145,7 @@ Public method "a reader over_" is
 [
 	aStream : stream
 |
-	newVar ::= cast new ↑atom into [v : atomVariable | v];
+	newVar ::= new ↑atom;
 	/* Leave the variable uninitialized. */
 	a stream reader with
 		element type ::= aStream's element type,

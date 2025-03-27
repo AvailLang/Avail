@@ -47,7 +47,7 @@ Names
 	"“_”(UTF8)"
 Body
 
-"residue" is a new field atom;
+"residue" is a new field atom constrained to ↑(byte*);
 
 /**
  * Produce a sequence of bytes that constitute the UTF-8 encoding of the given
@@ -144,7 +144,7 @@ Method "_process_" is
 	output : byte* := <>;
 	For each c of sourceTuple do
 	[
-		output := eject output ++ bytes from c's code point;
+		output ++= bytes from c's code point;
 	];
 	output
 ];
@@ -254,9 +254,9 @@ Method "_process_" is
 				accumulator := (eject accumulator << 6) + (nextByte bit∧ 63);
 				index++;
 			];
-			out := eject out ++ (cast accumulator
+			out ++= cast accumulator
 				into [cp : code point | <cp → character>]
-				else ["\(fffd)"]);
+				else ["\(fffd)"];
 		]
 		else
 		[
@@ -266,7 +266,7 @@ Method "_process_" is
 			 * wrong.  Replace the sequence with the Unicode replacement
 			 * character (U+FFFD), and skip the leading and continuation bytes.
 			 */
-			out := eject out ++ "\(fffd)";
+			out ++= "\(fffd)";
 			index := index + count + 1;
 		];
 	];

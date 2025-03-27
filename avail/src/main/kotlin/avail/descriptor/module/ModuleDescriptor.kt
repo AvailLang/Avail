@@ -1648,11 +1648,8 @@ class ModuleDescriptor private constructor(
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				// Create a new shared descriptor.
-				setDescriptor(
-					ModuleDescriptor(
-						SHARED,
-						moduleName.makeShared(),
-						runtime))
+				descriptor = ModuleDescriptor(
+					SHARED, moduleName.makeShared(), runtime)
 			}
 
 		/**

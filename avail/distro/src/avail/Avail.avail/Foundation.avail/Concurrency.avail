@@ -417,12 +417,12 @@ Semantic restriction "in_millisecond|milliseconds,⁇fork_" is
  */
 Public explicit class "worker exception" extends cascade exception;
 
-"expected type" is a new field atom;
-"future monitor" is a new field atom;
-"completeness" is a new field atom;
-"worker fiber" is a new field atom;
-"product" is a new field atom;
-"killer" is a new field atom;
+"expected type" is a new field atom constrained to any's type;
+"future monitor" is a new field atom constrained to monitor;
+"completeness" is a new field atom constrained to condition;
+"worker fiber" is a new field atom constrained to ↑fiber;
+"product" is a new field atom constrained to ↑any;
+"killer" is a new field atom constrained to ↑exception;
 
 /**
  * A future is a proxy for an operation that may not have completed yet. If

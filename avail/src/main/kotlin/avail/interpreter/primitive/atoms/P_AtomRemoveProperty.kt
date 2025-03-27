@@ -35,6 +35,8 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SET_ONCE_PROPERTY_KEY
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -45,6 +47,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
+import avail.exceptions.AvailErrorCode.E_PROPERTY_MAY_ONLY_BE_SET_ONCE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
@@ -72,6 +75,14 @@ object P_AtomRemoveProperty : Primitive(
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
+		if (propertyKey.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
+				.equals(trueObject)
+			&& atom.getAtomProperty(propertyKey).notNil)
+		{
+			// The atom has that property, but the property is marked as
+			// disallowing change once it's set.
+			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+		}
 		if (propertyValue.isNil)
 		{
 			return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
@@ -87,5 +98,9 @@ object P_AtomRemoveProperty : Primitive(
 		functionType(tuple(ATOM(), ATOM()), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_NO_SUCH_FIELD))
+		enumerationWith(
+			set(
+				E_SPECIAL_ATOM,
+				E_NO_SUCH_FIELD,
+				E_PROPERTY_MAY_ONLY_BE_SET_ONCE))
 }

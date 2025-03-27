@@ -33,9 +33,6 @@ package avail.descriptor.atoms
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE
@@ -231,26 +228,22 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		assert(map.notNil)
 		val propertyMap: Map<A_Atom, AvailObject> = map.javaObjectNotNull()
 		propertyMap.forEach { (key, value) ->
-			if (key.descriptor().isMutable)
+			key as AvailObject
+			if (key.descriptor.isMutable)
 			{
-				key.setDescriptor(key.descriptor().immutable())
-				queueToProcess.add(key as AvailObject)
+				key.descriptor = key.descriptor.immutable()
+				queueToProcess.add(key)
 			}
-			if (value.descriptor().isMutable)
+			if (value.descriptor.isMutable)
 			{
-				value.setDescriptor(value.descriptor().immutable())
+				value.descriptor = value.descriptor.immutable()
 				queueToProcess.add(value)
 			}
 		}
 	}
 
-	override fun o_SerializerOperation (self: AvailObject) = when {
-		self.getAtomProperty(HERITABLE_KEY.atom).notNil ->
-			SerializerOperation.HERITABLE_ATOM
-		self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil ->
-			SerializerOperation.EXPLICIT_SUBCLASS_ATOM
-		else -> SerializerOperation.ATOM
-	}
+	override fun o_SerializerOperation (self: AvailObject) =
+		SerializerOperation.ATOM
 
 	/**
 	 * Add or replace a property of this [A_Atom].  If the provided value is

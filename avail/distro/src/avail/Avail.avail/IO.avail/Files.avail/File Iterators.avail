@@ -75,9 +75,8 @@ Names
 	"Truncate_to_bytes⁇"
 Body
 
-"file position" is a new field atom;
-"alignment" is a new field atom;
-"element source" is a new field atom;
+"alignment" is a new field atom constrained to natural number;
+"element source" is a new field atom constrained to file;
 
 /* File iterators provide buffered random access to external files.  Buffer
  * management is a collaboration between the Avail library and the virtual

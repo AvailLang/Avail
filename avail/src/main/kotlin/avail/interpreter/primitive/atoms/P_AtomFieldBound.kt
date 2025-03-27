@@ -1,5 +1,5 @@
 /*
- * P_MapToObjectType.kt
+ * P_AtomFieldBound.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,60 +29,83 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.primitive.objects
+package avail.interpreter.primitive.atoms
 
-import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.maps.MapDescriptor
-import avail.descriptor.objects.ObjectFieldTypeException
-import avail.descriptor.objects.ObjectTypeDescriptor
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
+import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.InstanceTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.descriptor.types.TypeDescriptor
-import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
+import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Convert a [map][MapDescriptor] from fields
- * ([instance&#32;types][InstanceTypeDescriptor] of [atoms][AtomDescriptor]) to
- * [types][TypeDescriptor] into an [object&#32;type][ObjectTypeDescriptor].
+ * **Primitive:** Extract the type previously set for this field atom via
+ * [P_AtomSetFieldBound], or fail if there is none.  Note that the type is
+ * permanent once set, so L2 can make use of the type as a constant if it's
+ * found to be already set.  If not set, it will fail until it has bene set,
+ * which actually makes it foldable ([CanFold]).
  */
 @Suppress("unused")
-object P_MapToObjectType : Primitive(1, CanFold, CanInline)
+object P_AtomFieldBound : Primitive(
+	1, CanInline, CanFold, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val map = interpreter.argument(0)
-		return try
+		val atom = interpreter.argument(0)
+		if (atom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
-			interpreter.primitiveSuccess(objectTypeFromMap(map))
+			// It's an explicit subclassing atom, so its type bound is just the
+			// same atom's type.
+			return interpreter.primitiveSuccess(instanceType(atom))
 		}
-		catch (e: ObjectFieldTypeException)
+		val typeBound = atom.fieldAtomConstraint
+		if (typeBound.isNil)
 		{
-			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+			return interpreter.primitiveFailure(E_KEY_NOT_FOUND)
 		}
+		assert(typeBound.isSubtypeOf(ANY()))
+		return interpreter.primitiveSuccess(typeBound)
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		val atomType = argumentTypes[0]
+		if (!atomType.instanceCount.equalsInt(1)) return anyMeta
+		val atom = atomType.instance
+		if (atom.isAtomSpecial) return anyMeta
+		val typeBound = atom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
+		if (typeBound.isNil) return anyMeta
+		assert(typeBound.isSubtypeOf(ANY()))
+		return typeBound
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, ATOM(), anyMeta)),
-			mostGeneralObjectMeta)
+			tuple(ATOM()),
+			anyMeta)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_INVALID_FIELD_FOR_OBJECT))
+		enumerationWith(set(E_KEY_NOT_FOUND))
 }

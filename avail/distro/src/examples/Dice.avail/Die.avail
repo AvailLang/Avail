@@ -63,7 +63,7 @@ Names
 	"xDy lexer"
 Body
 
-"face count" is a field atom;
+"face count" is a field atom constrained to natural number;
 
 /**
  * A standard die has faces that show pips. The number of pips shown on a face
@@ -132,7 +132,7 @@ Semantic restriction "a|an standard⁇_-sided die" is
 		result type : [1..⌈count⌉+1)'s type
 ];
 
-"face tuple" is a field atom;
+"face tuple" is a field atom constrained to extended integer+;
 
 /**
  * A nonstandard die has faces that show anything whatsoever. Faces need not
@@ -144,7 +144,7 @@ Semantic restriction "a|an standard⁇_-sided die" is
  */
 Class "nonstandard die" extends die
 	with fields
-		face tuple: <extended integer…|1..>;
+		face tuple: extended integer+;
 
 Method "“_”" is
 [
@@ -238,7 +238,7 @@ Method "«using_,»roll_" is
 	extend dice outcome with
 		detailed outcome : {nonstandard die→<extended integer…|1>|};
 
-"members" is a field atom;
+"members" is a field atom constrained to die*;
 
 /**
  * A dice group is a collection of {@type "die" dice}.
@@ -407,7 +407,7 @@ Semantic restriction "a dice group with_" is
 	ranges : <extended integer's type…|> := <>;
 	For each index from 1 to leadCount do
 	[
-		ranges := eject ranges ++ <someDice[index]'s result type's instance>;
+		ranges ++= <someDice[index]'s result type's instance>;
 	];
 	default ::= someDice[leadCount + 1]'s result type's instance;
 	extend dice group with
@@ -439,8 +439,8 @@ Method "«using_,»roll_" is
 	]
 ] : dice outcome;
 
-"drop group" is a field atom;
-"drop count" is a field atom;
+"drop group" is a field atom constrained to dice group;
+"drop count" is a field atom constrained to integer;
 
 /**
  * A drop dice expression, when evaluated, throws away either the highest
@@ -526,7 +526,7 @@ Semantic restriction "_(drop the⁇lowest«_»?)" is
 	ranges : <extended integer's type…|> := <>;
 	For each index from 1 to |members' leading types| + 1 do
 	[
-		ranges := eject ranges ++ <members[index]'s result type's instance>;
+		ranges ++= <members[index]'s result type's instance>;
 	];
 	min ::= quicksort map each r in ranges through [⌊r⌋];
 	max ::= quicksort map each r in ranges through [⌈r⌉];
@@ -598,7 +598,7 @@ Semantic restriction "_(drop the⁇highest«_»?)" is
 	ranges : <extended integer's type…|> := <>;
 	For each index from 1 to |members' leading types| + 1 do
 	[
-		ranges := eject ranges ++ <members[index]'s result type's instance>;
+		ranges ++= <members[index]'s result type's instance>;
 	];
 	min ::= quicksort map each r in ranges through [⌊r⌋];
 	max ::= quicksort map each r in ranges through [⌈r⌉];

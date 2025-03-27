@@ -61,7 +61,8 @@ Uses
 	"Foundation" = (-"_'s⁇element type", …)
 Names
 	"an empty stream",
-	"decorated stream|streams",
+	"decorated stream",
+	"decorated streams",
 	"drain_",
 	"drop«at most»?_from_",
 	"empty stream",
@@ -78,11 +79,6 @@ Names
 	 */
 Body
 
-Public "decorated stream|streams" is a new field atom;
-"transformer" is a new field atom;
-"filter" is a new field atom;
-"stream index" is a new field atom;
-
 /**
  * A stream is an immutable lazy list of arbitrarily many elements.
  *
@@ -92,6 +88,12 @@ Public "decorated stream|streams" is a new field atom;
 Public explicit class "stream" extends object
 	with fields
 		element type : any's type;
+
+Public "decorated stream" is a new field atom constrained to stream;
+Public "decorated streams" is a new field atom constrained to stream*;
+"transformer" is a new field atom constrained to [⊥]→any;
+"filter" is a new field atom constrained to [⊥]→boolean;
+"stream index" is a new field atom constrained to natural number;
 
 /**
  * Construct and answer a stream type that answers values of the specified type.
@@ -954,7 +956,7 @@ Private method "zip semantic restriction" is
 		types : <any's type…|> := <>;
 		For each i from 1 to (⌊streams⌋ min (|streams' leading types| + 1)) do
 		[
-			types := eject types ++ <streams[i]'s element type's instance>;
+			types ++= <streams[i]'s element type's instance>;
 		];
 		nonempty ::= cast types into [ t : <any's type…|1..> | t ];
 		elementType ::=
@@ -1001,7 +1003,7 @@ Method "take«at most»?_from_" is
 		Repeat
 		[
 			next ::= rest's head;
-			result := eject result ++ <next>;
+			result ++= <next>;
 			rest := eject rest's tail;
 		] count times;
 	]
@@ -1054,7 +1056,7 @@ Method "take from_while_" is
 	rest : stream := aStream;
 	While ¬rest is empty ∧ predicate(rest's head) do
 	[
-		result := eject result ++ <rest's head>;
+		result ++= <rest's head>;
 		rest := eject rest's tail;
 	];
 	result
@@ -1093,7 +1095,7 @@ Method "take from_until_" is
 	rest : stream := aStream;
 	Until rest is empty ∨ predicate(rest's head) do
 	[
-		result := eject result ++ <rest's head>;
+		result ++= <rest's head>;
 		rest := eject rest's tail;
 	];
 	result

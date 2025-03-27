@@ -172,7 +172,7 @@ Private stable method "format sites for_" is
 				Failed primitive with empty-format-variable code
 			];
 			varName ::= template[start + 1..index - 1];
-			sites := eject sites ++ <<varName, interpType, start, index>>;
+			sites ++= <<varName, interpType, start, index>>;
 		];
 	invalid ::= [Failed primitive with invalid-format-metacharacter-use code];
 	While index ≤ |template| do
@@ -196,7 +196,7 @@ Private stable method "format sites for_" is
 							invalid-format-metacharacter-escape code
 					];
 					escaped ::= <template[index]>;
-					sites := eject sites ++ <<escaped, escape, start, index>>;
+					sites ++= <<escaped, escape, start, index>>;
 				],
 				¢’ is invalid,
 				¢” is invalid,
@@ -276,7 +276,7 @@ Public stable method "partially format_with_" is
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
-		formatted := eject formatted ++ template[index..site[3] - 1];
+		formatted ++= template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		var ::= site[1];
 		interpolation ::= choose site[2] from interpolation mode where
@@ -293,12 +293,12 @@ Public stable method "partially format_with_" is
 			[
 				"`" ++ var
 			];
-		formatted := eject formatted ++ interpolation;
+		formatted ++= interpolation;
 		/* Update the template subscript (to point just beyond this site). */
 		index := site[4] + 1;
 	];
 	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject formatted ++ template[index..];
+	formatted ++= template[index..];
 	formatted
 ] : string;
 
@@ -395,7 +395,7 @@ Public stable method "format_with_" is
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
-		formatted := eject formatted ++ template[index..site[3] - 1];
+		formatted ++= template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		interpolation ::= choose site[2] from interpolation mode where
 			description is
@@ -412,12 +412,12 @@ Public stable method "format_with_" is
 			[
 				site[1]
 			];
-		formatted := eject formatted ++ interpolation;
+		formatted ++= interpolation;
 		/* Update the template subscript (to point just beyond this site). */
 		index := site[4] + 1;
 	];
 	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject formatted ++ template[index..];
+	formatted ++= template[index..];
 	formatted
 ] : string;
 
@@ -727,7 +727,7 @@ Public stable method "format_with unchecked_" is
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
-		formatted := eject formatted ++ template[index..site[3] - 1];
+		formatted ++= template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		If |site[1]| > 1 then badName;
 		var ::= site[1][1];
@@ -752,12 +752,12 @@ Public stable method "format_with unchecked_" is
 			[
 				site[1]
 			];
-		formatted := eject formatted ++ interpolation;
+		formatted ++= interpolation;
 		/* Update the template subscript (to point just beyond this site). */
 		index := site[4] + 1;
 	];
 	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject formatted ++ template[index..];
+	formatted ++= template[index..];
 	formatted
 ] : string;
 

@@ -73,15 +73,16 @@ Names
 	"no-such-vertex exception"
 Body
 
-Private method "vertex type" is [$"vertex type"];
-Private method "edge type" is [$"edge type"];
-Private method "predecessors" is [$predecessors];
-Private method "successors" is [$successors];
-Private method "source" is [$source];
-Private method "destination" is [$destination];
-Private method "edge label" is [$"edge label"];
-Private method "target vertex" is [$"target vertex"];
-Private method "target edge" is [$"target edge"];
+"vertex type" is a new field atom constrained to any's type;
+"edge type" is a new field atom constrained to any;
+"source" is a new field atom constrained to any;
+"destination" is a new field atom constrained to any;
+"edge label" is a new field atom constrained to any;
+/* Subclasses of graph will fill in more details for these fields, since the
+ * labeled and unlabeled graphs vary.
+ */
+"predecessors" is a new field atom constrained to {any→any|};
+"successors" is a new field atom constrained to {any→any|};
 
 /**
  * A graph comprises vertices and directed edges.
@@ -680,6 +681,8 @@ Semantic restriction "_-_" is
  */
 Public explicit class "graph exception" extends exception;
 
+"target vertex" is a new field atom constrained to any;
+
 /**
  * A no-such-vertex exception is raised when an operation inappropriately
  * specifies a vertex not present in the target graph.
@@ -691,6 +694,8 @@ Public explicit class "graph exception" extends exception;
 Public explicit class "no-such-vertex exception" extends graph exception
 	with fields
 		target vertex : any;
+
+"target edge" is a new field atom constrained to edge;
 
 /**
  * A no-such-vertex exception is raised when an operation inappropriately

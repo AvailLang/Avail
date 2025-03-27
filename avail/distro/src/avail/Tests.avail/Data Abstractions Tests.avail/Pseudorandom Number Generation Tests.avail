@@ -56,12 +56,13 @@ After running pRNG test suite, do [Clear rng;];
 Test "next integer within range" in pRNG test suite is
 [
 	_2_128 ::= 2^128;
+	r ::= rng;
 	Repeat
 	[
-		Require: 1 ≤ rng's next [1..6] ≤ 6;
-		Require: -6 ≤ rng's next [-6..-1] ≤ -1;
-		Require: -10 ≤ rng's next [-10..10] ≤ 10;
-		Require: 0 ≤ rng's next [0.._2_128) < _2_128;
+		Require: 1 ≤ r's next [1..6] ≤ 6;
+		Require: -6 ≤ r's next [-6..-1] ≤ -1;
+		Require: -10 ≤ r's next [-10..10] ≤ 10;
+		Require: 0 ≤ r's next [0.._2_128) < _2_128;
 	] 10 times;
 ];
 

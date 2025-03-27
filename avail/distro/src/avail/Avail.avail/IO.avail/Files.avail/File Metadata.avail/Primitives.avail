@@ -63,16 +63,17 @@ Names
 	"signed long"
 Body
 
-/* Field atoms. */
-"name" is a new field atom;
-"file ID" is a new field atom;
-"file type" is a new field atom;
-"creation time" is a new field atom;
-"last modification time" is a new field atom;
-"last access time" is a new field atom;
-"size" is a new field atom;
-
 Public method "signed long" is [[0..2^63 - 1]];
+
+
+/* Field atoms. */
+"name" is a new field atom constrained to file name;
+"file ID" is a new field atom constrained to any;
+"file type" is a new field atom constrained to actual file type;
+"creation time" is a new field atom constrained to timestamp;
+"last modification time" is a new field atom constrained to timestamp;
+"last access time" is a new field atom constrained to timestamp;
+"size" is a new field atom constrained to signed long;
 
 /**
  * A file metadata provides an aggregate view of the metadata for a file. It

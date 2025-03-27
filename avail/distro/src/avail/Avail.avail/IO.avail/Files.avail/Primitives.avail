@@ -97,11 +97,11 @@ Names
 	"file primitives test suite"
 Body
 
-"name" is a new field atom;
-"handle" is a new field atom;
-"readable" is a new field atom;
-"writable" is a new field atom;
-"open state" is a new field atom;
+"name" is a new field atom constrained to file name;
+"handle" is a new field atom constrained to atom;
+"readable" is a new field atom constrained to boolean;
+"writable" is a new field atom constrained to boolean;
+"open state" is a new field atom constrained to ↑boolean;
 
 /**
  * A file represents an open node within a file system.
@@ -299,10 +299,10 @@ Stable method "“_”" is
 	f : file
 |
 	s : string := if f is open then ["open"] else ["closed"];
-	s := eject s ++ " file named " ++ “file's name”;
+	s ++= " file named " ++ “file's name”;
 	If f is open then
 	[
-		s := eject s ++ " " ++
+		s ++= " " ++
 			if f is readable then
 			[
 				if f is writable then ["(readable, writable)"]

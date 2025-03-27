@@ -82,7 +82,7 @@ Body
 //                                  Numbers.                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical number identity" is a new field atom;
+Public "grammatical number identity" is a new field atom constrained to atom;
 
 /**
  * English classically categorizes nouns, pronouns, and verbs according to two
@@ -154,7 +154,7 @@ Public class "English number" extends singular number ∪ plural number;
 //                              Numbered values.                              //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical number" is a new field atom;
+Public "grammatical number" is a new field atom constrained to number;
 
 /**
  * Any {@type "object"} that wishes to express {@type "number"} immutably may

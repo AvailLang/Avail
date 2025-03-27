@@ -101,17 +101,7 @@ interface A_BasicObject : JSONFriendly
 	 *
 	 * @return A descriptor.
 	 */
-	fun descriptor(): AbstractDescriptor
-
-	/**
-	 * Replace the object's {@linkplain AbstractDescriptor descriptor}.
-	 *
-	 * When Avail moves off the JVM for its object storage, this will only be a
-	 * volatile write for objects in shared space.
-	 *
-	 * @return A descriptor.
-	 */
-	fun setDescriptor(newDescriptor: AbstractDescriptor)
+	abstract val descriptor: AbstractDescriptor
 
 	/**
 	 * Answer whether the [objects][AvailObject] occupy the same
@@ -1198,7 +1188,7 @@ interface A_BasicObject : JSONFriendly
 		 */
 		inline fun <R> A_BasicObject.dispatch(
 			f: AbstractDescriptor.(AvailObject) -> R): R =
-				descriptor().f(this as AvailObject)
+				descriptor.f(this as AvailObject)
 
 		/**
 		 * If the provided condition is true, synchronize with the receiver's
@@ -1226,7 +1216,7 @@ interface A_BasicObject : JSONFriendly
 		 * Extract the [ObjectLayoutVariant] from an [object][ObjectDescriptor].
 		 */
 		val A_BasicObject.objectVariant: ObjectLayoutVariant
-			get() = descriptor().o_ObjectVariant(this as AvailObject)
+			get() = descriptor.o_ObjectVariant(this as AvailObject)
 
 
 		/** The [CheckedMethod] for [equals]. */

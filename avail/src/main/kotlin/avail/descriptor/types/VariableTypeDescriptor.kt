@@ -47,6 +47,7 @@ import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.ReadWriteVariableTypeDescriptor.Companion.fromReadAndWriteTypes
 import avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import avail.descriptor.variables.VariableDescriptor
 import avail.serialization.SerializerOperation
@@ -132,7 +133,7 @@ private constructor(
 				aType.makeImmutable()
 				self.becomeIndirectionTo(aType)
 			}
-			else if (!aType.descriptor().isShared)
+			else if (!aType.descriptor.isShared)
 			{
 				self.makeImmutable()
 				aType.becomeIndirectionTo(self)
@@ -266,15 +267,7 @@ private constructor(
 		 *   The new variable type.
 		 */
 		fun variableReadWriteType(readType: A_Type, writeType: A_Type): A_Type =
-			if (readType.equals(writeType))
-			{
-				variableTypeFor(readType)
-			}
-			else
-			{
-				ReadWriteVariableTypeDescriptor.fromReadAndWriteTypes(
-					readType, writeType)
-			}
+			fromReadAndWriteTypes(readType, writeType)
 
 		/** The mutable [VariableTypeDescriptor]. */
 		private val mutable = VariableTypeDescriptor(Mutability.MUTABLE)

@@ -206,7 +206,7 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
-		assert(value.descriptor().isShared)
+		assert(value.descriptor.isShared)
 		return value
 	}
 
@@ -228,7 +228,7 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
-		assert(value.descriptor().isShared)
+		assert(value.descriptor.isShared)
 		handleVariableWriteTracing(self)
 		self.setVolatileSlot(VALUE, nil)
 		recordWriteToSharedVariable()
@@ -253,7 +253,7 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
-		assert(value.descriptor().isShared)
+		assert(value.descriptor.isShared)
 		handleVariableWriteTracing(self)
 		recordWriteToSharedVariable()
 		assert(!isMutable)
@@ -635,14 +635,14 @@ open class VariableSharedDescriptor protected constructor(
 			writeReactors: A_BasicObject
 		): AvailObject
 		{
-			assert(kind.descriptor().isShared)
-			assert(value.descriptor().isShared)
+			assert(kind.descriptor.isShared)
+			assert(value.descriptor.isShared)
 			return mutableInitial.create {
 				setSlot(KIND, kind)
 				setSlot(HASH_ALWAYS_SET, hash)
 				setSlot(VALUE, value)
 				setSlot(WRITE_REACTORS, writeReactors)
-				setDescriptor(shared)
+				descriptor = shared
 			}
 		}
 

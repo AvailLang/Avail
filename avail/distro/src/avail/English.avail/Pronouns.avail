@@ -125,7 +125,8 @@ Body
 //                               Pronoun kinds.                               //
 ////////////////////////////////////////////////////////////////////////////////
 
-Public "grammatical pronoun kind identity" is a new field atom;
+Public "grammatical pronoun kind identity" is a new field atom
+	constrained to atom;
 
 /**
  * English classically categorizes pronouns according to ten grammatical kinds,
@@ -1303,7 +1304,7 @@ genderedPronounTable ::=
 	>
 >;
 
-"bad selector" is a new field atom;
+"bad selector" is a new field atom constrained to gendered pronoun selector;
 
 /**
  * An {@type "invalid-gendered-pronoun-selector exception"} is raised whenever a

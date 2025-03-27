@@ -516,6 +516,8 @@ class AvailEditor constructor(
 		info.sourceAndDelimiter.withValue { (normalizedText, delimiter) ->
 			lineEndDelimiter = delimiter
 			sourcePane.text = normalizedText
+			sourcePane.revalidate()
+			sourcePane.repaint()
 			getActiveStylingAndPhrasePathRecords(
 				onSuccess = { stylingRec, phrasePathRec, manifestRec ->
 					stylingRecord = stylingRec

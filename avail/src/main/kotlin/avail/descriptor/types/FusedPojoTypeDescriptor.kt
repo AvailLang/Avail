@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
@@ -107,6 +108,7 @@ constructor (
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper
 		 * 32 can be used by other [BitField]s in subclasses.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object
@@ -191,7 +193,7 @@ constructor (
 			aPojoType.makeImmutable()
 			self.becomeIndirectionTo(aPojoType)
 		}
-		else if (!aPojoType.descriptor().isShared)
+		else if (!aPojoType.descriptor.isShared)
 		{
 			self.makeImmutable()
 			aPojoType.becomeIndirectionTo(self)

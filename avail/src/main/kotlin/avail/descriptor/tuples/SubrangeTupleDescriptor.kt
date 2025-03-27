@@ -257,7 +257,7 @@ private constructor(
 				anotherObject.makeImmutable()
 				self.becomeIndirectionTo(anotherObject)
 			}
-			else if (!anotherObject.descriptor().isShared)
+			else if (!anotherObject.descriptor.isShared)
 			{
 				self.makeImmutable()
 				anotherObject.becomeIndirectionTo(self)
