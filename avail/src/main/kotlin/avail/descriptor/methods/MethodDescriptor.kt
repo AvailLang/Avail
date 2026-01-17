@@ -480,7 +480,7 @@ class MethodDescriptor private constructor(
 	) = synchronized(self) {
 		assert(typeTuple.isTuple)
 		val oldTuple: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
-		val newTuple = oldTuple.appendCanDestroy(typeTuple, true)
+		val newTuple = oldTuple.appendCanDestroy(typeTuple, false, true)
 		self[SEALED_ARGUMENTS_TYPES_TUPLE] = newTuple.makeShared()
 	}
 
@@ -689,7 +689,7 @@ class MethodDescriptor private constructor(
 			}
 		}
 		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
-			appendCanDestroy(definition, true)
+			appendCanDestroy(definition, false, true)
 		}
 		// TODO MvG 2021-06-19:  This might be a race.  I *think* the worst that
 		//  can happen is that dependency-incomparable modules won't have

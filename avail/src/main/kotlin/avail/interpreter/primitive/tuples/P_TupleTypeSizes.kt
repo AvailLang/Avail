@@ -31,10 +31,14 @@
  */
 package avail.interpreter.primitive.tuples
 
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor
@@ -45,6 +49,16 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
 /**
  * **Primitive:** Answer the allowed size [ranges][IntegerRangeTypeDescriptor]
@@ -61,6 +75,62 @@ object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val tupleType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(tupleType.sizeRange)
+	}
+
+	override fun L2GeneratorInterface.emitBasicInfalliblePrimitive(
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		val tupleMetaRestriction = arguments.elements[0].restriction()
+		if (tupleMetaRestriction.type.equals(bottomMeta))
+		{
+			// The tuple type is necessrily bottom, so the size range is also
+			// bottom.
+			moveBoxedRegister(
+				boxedConstant(bottom).semanticValue(),
+				result.semanticValues())
+			return
+		}
+		val sizeRange = tupleMetaRestriction.type.instance.sizeRange
+		var strongSizeRestriction =
+			boxedRestrictionForType(instanceMeta(sizeRange))
+		if (tupleMetaRestriction.canBeBottom)
+		{
+			// The tuple type can be bottom, which means the output size range
+			// can also be bottom.
+			strongSizeRestriction = strongSizeRestriction.withCanBeBottom(true)
+		}
+		if (tupleMetaRestriction.isConstant)
+		{
+			// For this invocation, only one size happens to be possible.
+			moveBoxedRegister(
+				boxedConstant(
+					tupleMetaRestriction.constantOrNull!!.sizeRange
+				).semanticValue(),
+				result.semanticValues())
+			return
+		}
+		+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+			L2ConstantOperand(rawFunction),
+			this@P_TupleTypeSizes,
+			arguments,
+			boxedWrite(result.semanticValues(), strongSizeRestriction))
+	}
+
+	override fun interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>,
+		rawFunction: A_RawFunction
+	): List<L2SplitCondition?> = buildList {
+		val tupleTypeRegister = readBoxedOperands[0].register()
+		addAll(
+			typeRestrictionConditions(
+				setOf(tupleTypeRegister),
+				boxedRestrictionForConstant(bottom)))
+		addAll(
+			typeRestrictionConditions(
+				setOf(tupleTypeRegister),
+				readBoxedOperands[0].restriction().withCanBeBottom(false)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

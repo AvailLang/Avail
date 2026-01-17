@@ -40,11 +40,10 @@ Body
 Test "TupleAppend ok" in primitive tuples test suite is
 [
 	a : <natural number…|0..> := <1, 2, 3>;
-	a ++= <8>;
+	a += 8;
 	Require: a = <1, 2, 3, 8>;
 
 	b : <any…|0..> := <"a", "b", 7, "foo", ∅>;
 	b ++= <<99, "1">, 8>;
 	Require: b = <"a", "b", 7, "foo", ∅, <99, "1">, 8>;
 ];
-

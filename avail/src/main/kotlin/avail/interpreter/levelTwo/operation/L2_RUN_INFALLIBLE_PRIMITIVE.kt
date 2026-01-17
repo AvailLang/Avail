@@ -38,6 +38,7 @@ import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HideInAllVisualizations
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -72,6 +73,7 @@ import org.objectweb.asm.MethodVisitor
  * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE`.
  */
 sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
+	@HideInAllVisualizations
 	var rawFunction: L2ConstantOperand,
 	var primitive: L2ArbitraryConstantOperand<Primitive>,
 	var arguments: L2ReadBoxedVectorOperand,
@@ -151,9 +153,9 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		renderPreamble()
 		append("\n\t")
 		append(result.registerString())

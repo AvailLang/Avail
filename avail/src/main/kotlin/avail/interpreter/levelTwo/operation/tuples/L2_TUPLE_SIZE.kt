@@ -32,12 +32,17 @@
 
 package avail.interpreter.levelTwo.operation.tuples
 
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.primitive.tuples.P_TupleSize
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -53,6 +58,7 @@ class L2_TUPLE_SIZE(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -72,5 +78,29 @@ class L2_TUPLE_SIZE(
 		translator.load(method, tuple)
 		TupleDescriptor.tupleSizeMethod.generateCall(method)
 		translator.store(method, tupleSize.register())
+	}
+
+	/**
+	 * During regeneration, the input tuple may have become more restricted, so
+	 * we might be able to produce a better bound on the size.
+	 */
+	override fun L2GeneratorInterface.emitTransformedInstruction()
+	{
+		val strongerResultType = P_TupleSize.returnTypeGuaranteedByVM(
+			null,
+			listOf(tuple.type()))
+		tupleSize.restrict { intersectionWithType(strongerResultType) }
+		assert(!tupleSize.restriction().isImpossible)
+		val sizeType = tupleSize.restriction().type
+		if (sizeType.lowerBound.equals(sizeType.upperBound))
+		{
+			// The exact tuple size is now known.
+			moveIntRegister(
+				unboxedIntConstant(sizeType.lowerBound.extractInt)
+					.semanticValue(),
+				tupleSize.semanticValues())
+			return
+		}
+		+this@L2_TUPLE_SIZE
 	}
 }

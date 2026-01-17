@@ -49,8 +49,11 @@ constructor(
 	var comment: L2CommentOperand
 ): L2Instruction()
 {
+	constructor(comment: String) : this(L2CommentOperand(comment))
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		append("----------------")

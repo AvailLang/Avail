@@ -161,10 +161,12 @@ private constructor(
 		}
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val originalSize = self.tupleSize
 		val endValue = self[END].toLong()
@@ -473,10 +475,10 @@ private constructor(
 				// Make the object immutable because we're extracting two
 				// subranges.
 				self.makeImmutable()
-				val left = self.copyTupleFromToCanDestroy(1, index - 1, true)
+				val left = self.copyTupleFromToCanDestroy(1, index - 1, false)
 				val right =
 					self.copyTupleFromToCanDestroy(index + 1, size, true)
-				left.appendCanDestroy(newValueObject, true)
+				left.appendCanDestroy(newValueObject, false, true)
 					.concatenateWith(right, true)
 			}
 		}

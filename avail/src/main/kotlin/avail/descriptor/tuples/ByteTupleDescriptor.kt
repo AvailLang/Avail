@@ -62,6 +62,8 @@ import avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.defaultType
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -77,6 +79,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
+import kotlin.math.min
 
 /**
  * `ByteTupleDescriptor` represents a tuple of integers that happen to fall in the range 0..255.
@@ -148,10 +151,12 @@ private constructor(
 		}
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val originalSize = self.tupleSize
 		val newElementStrong = newElement as AvailObject
@@ -175,6 +180,23 @@ private constructor(
 			self.setByteSlot(RAW_LONG_AT_, newSize, longValue.toShort())
 			self[HASH_OR_ZERO] = 0
 			return self
+		}
+		if (canPad && isMutable && newSize >= minSubrangeSize)
+		{
+			// The fact that this is still mutable suggests that padding will be
+			// effective.  Add ~25% in padding.
+			val addedSize = (originalSize shr 2) + 32
+			val padded = newLike(
+				descriptorFor(MUTABLE, newSize),
+				self,
+				0,
+				min(
+					// Convert bytes to longs.
+					addedSize shr 3,
+					Int.MAX_VALUE - self.variableObjectSlotsCount()))
+			padded.setByteSlot(RAW_LONG_AT_, newSize, longValue.toShort())
+			padded[HASH_OR_ZERO] = 0
+			return createSubrange(padded, 1, newSize)
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
 		val result = newLike(

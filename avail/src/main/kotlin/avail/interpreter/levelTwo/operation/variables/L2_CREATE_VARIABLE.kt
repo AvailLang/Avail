@@ -32,6 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
+import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
@@ -40,7 +41,10 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.isNullOr
 import org.objectweb.asm.MethodVisitor
 
@@ -66,6 +70,7 @@ constructor(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -82,8 +87,27 @@ constructor(
 		}
 	}
 
-	override val shouldPostponeEvenIfLiveIn: Boolean
-		get() = true
+	/**
+	 * We *do* allow an [L2_CREATE_VARIABLE] to go both ways at an
+	 * [L2_SAVE_ALL_AND_PC_TO_INT].  It goes along the
+	 * [reference][L2_SAVE_ALL_AND_PC_TO_INT.reference] edge to allow variable
+	 * creation to be postponed until after the reification completes and the
+	 * continuation is returned into.  It also goes along the
+	 * [ifFallThrough][L2_SAVE_ALL_AND_PC_TO_INT.ifFallThrough] edge, where it
+	 * gets transformed by the eventual [L2_CREATE_CONTINUATION] in the
+	 * reification part that captures the initialization value in case the
+	 * continuation becomes shared or immutable, allowing that local variable to
+	 * be initialized correctly on creation (and switch to L1 execution).  Note
+	 * that other state information of the [L2_SAVE_ALL_AND_PC_TO_INT] has to be
+	 * updated to capture this information, since that instruction is what
+	 * creates the [A_RegisterDump] subsequently used by the
+	 * [L2_CREATE_CONTINUATION].
+	 */
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		// Always try to postpone the local variable creation instruction.
+		currentManifest.recordPostponedInstruction(this@L2_CREATE_VARIABLE)
+	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

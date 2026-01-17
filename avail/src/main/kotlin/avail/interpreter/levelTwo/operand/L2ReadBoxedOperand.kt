@@ -53,28 +53,34 @@ import avail.utility.cast
  * An `L2ReadBoxedOperand` is an operand of type [L2OperandType.READ_BOXED]. It
  * holds the actual [L2BoxedRegister] that is to be accessed.
  *
+ * @constructor
+ *   Construct a new [L2ReadBoxedOperand] for the specified [L2SemanticValue]
+ *   and [TypeRestriction].
+ * @param semanticValue
+ *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
+ *   this [L2Operand].
+ * @param restriction
+ *   The [TypeRestriction] to constrain this particular read. This restriction
+ *   has been guaranteed by the VM at the point where this operand's instruction
+ *   occurs.
+ * @param register
+ *   The optional [L2BoxedRegister] to read from.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
+class L2ReadBoxedOperand
+constructor(
+	semanticValue: L2SemanticValue<BOXED_KIND>,
+	restriction: TypeRestriction,
+	register: L2Register<BOXED_KIND>? = null
+) : L2ReadOperand<BOXED_KIND>(semanticValue, restriction, register)
 {
-	override val operandType: L2OperandType get() = READ_BOXED
+	init {
+		assert(restriction.isBoxed)
+	}
 
-	/**
-	 * Construct a new `L2ReadBoxedOperand` with an explicit definition
-	 * register [L2WriteBoxedOperand].
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
-	 *   this [L2Operand].
-	 * @param restriction
-	 *   The [TypeRestriction] that bounds the value being read.
-	 */
-	constructor(
-		semanticValue: L2SemanticValue<BOXED_KIND>,
-		restriction: TypeRestriction,
-		register: L2Register<BOXED_KIND>? = null
-	) : super(semanticValue, restriction, register)
+	override val operandType: L2OperandType get() = READ_BOXED
 
 	override fun semanticValue(): L2SemanticBoxedValue =
 		super.semanticValue().cast()

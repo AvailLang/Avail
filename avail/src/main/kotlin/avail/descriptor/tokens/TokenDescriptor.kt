@@ -265,7 +265,7 @@ open class TokenDescriptor protected constructor(
 			"token type ordinal key")
 	}
 
-	public override fun allowsImmutableToMutableReferenceInField(
+	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === NEXT_LEXING_STATE_POJO
 		|| e === ORIGINATING_MODULE

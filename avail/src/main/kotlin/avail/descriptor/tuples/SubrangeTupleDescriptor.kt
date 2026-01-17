@@ -38,6 +38,7 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -53,7 +54,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.SIZE
 import avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.START_INDEX
@@ -99,8 +100,8 @@ private constructor(
 	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32
-		 * can be used by other [BitField]s in subclasses of [TupleDescriptor].
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
@@ -156,6 +157,7 @@ private constructor(
 	override fun o_AppendCanDestroy(
 		self: AvailObject,
 		newElement: A_BasicObject,
+		canPad: Boolean,
 		canDestroy: Boolean): A_Tuple
 	{
 		val startIndex = self[START_INDEX]
@@ -163,9 +165,19 @@ private constructor(
 		val endIndex = startIndex + originalSize - 1
 		val basisTuple = self[BASIS_TUPLE]
 		if (endIndex < basisTuple.tupleSize
-			&& basisTuple.tupleAt(endIndex).equals(newElement))
+			&& basisTuple.tupleAt(endIndex + 1).equals(newElement))
 		{
 			// We merely need to increase the range.
+			if (basisTuple.tupleSize == endIndex + 1)
+			{
+				// We've reached the basis tuple's size, so answer it rather
+				// than the subrange.
+				if (isMutable && !canDestroy)
+				{
+					basisTuple.makeImmutable()
+				}
+				return basisTuple
+			}
 			if (canDestroy && isMutable)
 			{
 				self[SIZE] = originalSize + 1
@@ -173,11 +185,37 @@ private constructor(
 				return self
 			}
 			basisTuple.makeImmutable()
-			return createSubrange(basisTuple, startIndex, originalSize + 1)
+			val result =
+				createSubrange(basisTuple, startIndex, originalSize + 1)
+			self.destroy()
+			return result
+		}
+		if (canPad && canDestroy && isMutable)
+		{
+			if (endIndex < basisTuple.tupleSize)
+			{
+				// Write into the basis tuple, making a mutable copy if needed.
+				val newBasis = basisTuple.tupleAtPuttingCanDestroy(
+					endIndex + 1, newElement, canDestroy)
+				self[BASIS_TUPLE] = newBasis
+				self[SIZE] = originalSize + 1
+				self[HASH_OR_ZERO] = 0
+				return self
+			}
+			// Extend the basis tuple.  The fact that this is still mutable
+			// suggests that padding will be effective.  Add ~25% in padding.
+			// Since we don't want to pry about what kind of tuple the basis is,
+			// we just use its own append, then extract a subrange, which may
+			// or may not create a subrange tuple.
+			val appendedBasis = basisTuple.appendCanDestroy(
+				newElement, canPad, canDestroy)
+			return appendedBasis.copyTupleFromToCanDestroy(
+				startIndex, endIndex + 1, true)
 		}
 		// Fall back to concatenating with a singleton.
-		val singleton = tuple(newElement)
-		return self.concatenateWith(singleton, canDestroy)
+		return self.concatenateWith(
+			optimizedTuple(newElement as AvailObject),
+			canDestroy)
 	}
 
 	/**
@@ -334,7 +372,7 @@ private constructor(
 			return emptyTuple
 		}
 		val oldStartIndex = self[START_INDEX]
-		if (canDestroy && isMutable && newSize >= minSize)
+		if (canDestroy && isMutable && newSize >= minSubrangeSize)
 		{
 			// Modify the bounds in place.
 			self[START_INDEX] = oldStartIndex + start - 1
@@ -556,7 +594,7 @@ private constructor(
 		 * Below this threshold the subrange representation is expected to be
 		 * unnecessarily verbose and slow.
 		 */
-		const val minSize = 10
+		const val minSubrangeSize = 10
 
 		/**
 		 * Create a [subrange tuple][SubrangeTupleDescriptor] with the given
@@ -575,9 +613,10 @@ private constructor(
 		fun createSubrange(
 			basisTuple: A_Tuple,
 			startIndex: Int,
-			size: Int): AvailObject
+			size: Int
+		): AvailObject
 		{
-			assert(size >= minSize)
+			assert(size >= minSubrangeSize)
 			assert(size < basisTuple.tupleSize)
 			basisTuple.makeImmutable()
 			return mutable.create(size) {

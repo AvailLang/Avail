@@ -381,6 +381,10 @@ class CallSiteHelper internal constructor(
 	 *   The register which will already hold the return value at this point.
 	 *   The value has not yet been type checked against the expectedType at
 	 *   this point, but it should comply with the type guarantees of the VM.
+	 * @param mightEndangerEscapedLocals
+	 *   If true, after the call we should check whether any escaped variables
+	 *   might have become shared or had write reactors added to them.
+	 *   Otherwise, don't bother checking.
 	 */
 	fun useAnswer(
 		answerReg: L2ReadBoxedOperand,

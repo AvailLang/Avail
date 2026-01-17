@@ -53,8 +53,10 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
+import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -78,6 +80,8 @@ import avail.optimizer.values.L2SemanticValue
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.cast
+import avail.utility.ifNotEmpty
+import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 
@@ -87,9 +91,9 @@ import avail.utility.notNullAnd
  * semantic values, and the list of [L2WriteOperand]s that are visible
  * definitions of those values.
  *
- * In order to avoid reevaluating primitives with the same values, a manifest
- * also tracks [L2Register]s that hold values representing which
- * [L2SemanticValue]s, specifically using [L2Synonym]s as the binding mechanism.
+ * To avoid reevaluating primitives with the same values, a manifest also tracks
+ * [L2Register]s that hold values representing which [L2SemanticValue]s,
+ * specifically using [L2Synonym]s as the binding mechanism.
  *
  * The basic structure of the manifest is two maps: One from semantic value to
  * synonym (kept exactly in sync with each synonym's membership), and  a mapping
@@ -208,7 +212,7 @@ class L2ValueManifest
 	 * [L2ControlFlowGraph], which can be translated as needed by an
 	 * [L2Regenerator], as part of the instruction postponement optimization
 	 * (perfect redundancy elimination). The same source instruction is stored
-	 * under each semantic value that was written by that instruction.
+	 * under each semantic value written by that instruction.
 	 */
 	private val postponedInstructions:
 		MutableMap<L2SemanticValue<*>, L2Instruction>
@@ -247,15 +251,22 @@ class L2ValueManifest
 	{
 		do
 		{
+			var debug = mutableListOf<Any>() //TODO Remove
 			var changed = false
 			postponedInstructions.values.toSet().forEach { instruction ->
 				// We have to check if the instruction is still present.
-				if (instruction.writeOperands[0].pickSemanticValue()
-					in postponedInstructions)
+				val values = instruction.writeOperands
+					.flatMap(L2WriteOperand<*>::semanticValues)
+				val (postponed, notPostponed) =
+					values.partition(postponedInstructions::contains)
+				assert(postponed.isEmpty() || notPostponed.isEmpty())
+				if (postponed.isNotEmpty())
 				{
-					instruction.run {
-						changed = changed or rewritePostponed()
-					}
+					check() //TODO Very slow.
+					val newChange = instruction.run { rewritePostponed() }
+					changed = changed or newChange
+					debug.add(newChange to instruction)
+					check() //TODO Very slow.
 				}
 			}
 		} while (changed)
@@ -312,26 +323,30 @@ class L2ValueManifest
 	 * Record a sourceInstruction, which can be translated by an [L2Regenerator]
 	 * whenever its output values are needed.
 	 */
-	fun recordPostponedInstruction(sourceInstruction: L2Instruction)
+	fun recordPostponedInstruction(postponedInstruction: L2Instruction)
 	{
-		assert(!sourceInstruction.hasBeenEmitted)
-		assert(!sourceInstruction.hasSideEffect)
-		assert(sourceInstruction.writeOperands.size == 1)
-		val originalWrite = sourceInstruction.writeOperands[0]
-		val alreadyWritten = originalWrite.semanticValues()
-			.mapNotNull { equivalentSemanticValue(it) }
+		assert(!postponedInstruction.hasBeenEmitted)
+		assert(!postponedInstruction.hasSideEffect)
+		assert(postponedInstruction.writeOperands.size == 1)
+		val originalWrite = postponedInstruction.writeOperands[0]
+		val alreadyWritten = originalWrite.semanticValues().mapNotNull {
+			equivalentPopulatedSemanticValue(it) ?:
+				(if (it in postponedInstructions) it else null)
+		}
 		if (alreadyWritten.isEmpty())
 		{
 			// The value has not yet been computed.
-			for (write in sourceInstruction.writeOperands)
+			for (write in postponedInstruction.writeOperands)
 			{
-				recordPostponedSourceInstructionFor(sourceInstruction, write)
+				recordPostponedSourceInstructionFor(postponedInstruction, write)
 			}
 			return
 		}
 		// The value has been computed into at least one (equivalent) value in
 		// alreadyWritten.  Record a move to populate the rest.
-		val unwritten = originalWrite.semanticValues() - alreadyWritten
+		val unwritten = originalWrite.semanticValues() -
+			semanticValueToSynonym!!.keys -
+			postponedInstructions.keys
 		if (unwritten.isEmpty())
 		{
 			// All the target values are already populated.  Don't record an
@@ -355,19 +370,22 @@ class L2ValueManifest
 	 * Kotlin.
 	 */
 	private fun <K: RegisterKind<K>> recordPostponedSourceInstructionFor(
-		sourceInstruction: L2Instruction,
+		instruction: L2Instruction,
 		writeOperand: L2WriteOperand<K>)
 	{
-		assert(!sourceInstruction.hasBeenEmitted)
-		check()
+		assert(!instruction.hasBeenEmitted)
+		val mentionedRegisters = mutableListOf<L2Register<*>>()
+		instruction.operands.forEach {
+			it.addSourceRegistersTo(mentionedRegisters)
+			it.addDestinationRegistersTo(mentionedRegisters)
+		}
+		assert(mentionedRegisters.isEmpty())
 		val values = writeOperand.semanticValues()
-		// Start by capturing the postponed instruction.
+		// Record the postponed instruction under each target semantic value.
 		values.forEach { value ->
-			if (value !in semanticValueToSynonym!!
-				&& value !in postponedInstructions)
-			{
-				postponedInstructions[value] = sourceInstruction
-			}
+			assert(value !in postponedInstructions)
+			assert(!hasLiveSemanticValue(value))
+			postponedInstructions[value] = instruction
 		}
 	}
 
@@ -384,7 +402,13 @@ class L2ValueManifest
 		instruction: L2Instruction)
 	{
 		instruction.writeOperands.forEach {
-			postponedInstructions -= it.semanticValues()
+			assert(it.semanticValues().all { it in postponedInstructions })
+			{
+				val bad = it.semanticValues()
+					.filterNot { it in postponedInstructions }
+				"Expected postponed instruction for $bad"
+			}
+			it.semanticValues().forEach(::removePostponedInstructionFor)
 		}
 	}
 
@@ -398,7 +422,7 @@ class L2ValueManifest
 	 */
 	fun removePostponedInstructionFor(writeOperand: L2WriteOperand<*>)
 	{
-		postponedInstructions -= writeOperand.semanticValues()
+		writeOperand.semanticValues().forEach(::removePostponedInstructionFor)
 	}
 
 	/**
@@ -412,7 +436,7 @@ class L2ValueManifest
 	 */
 	fun removePostponedInstructionFor(semanticValue: L2SemanticValue<*>)
 	{
-		postponedInstructions -= semanticValue
+		postponedInstructions.remove(semanticValue)
 	}
 
 	/**
@@ -539,8 +563,6 @@ class L2ValueManifest
 					semanticValue, semanticConstant)
 			}
 		}
-		// The manifest should be correct here.
-		check()
 		when (semanticValue)
 		{
 			is L2SemanticBoxedValue ->
@@ -552,11 +574,9 @@ class L2ValueManifest
 					equivalentSemanticValue(
 						semanticValue.unboxedInt
 					)?.let { unboxedInt ->
-						check()
 						updateRestriction(unboxedInt) {
 							restriction.forUnboxedInt()
 						}
-						check()
 					}
 				}
 				if (restriction.containedByType(DOUBLE()))
@@ -567,11 +587,9 @@ class L2ValueManifest
 					equivalentSemanticValue(
 						semanticValue.unboxedFloat
 					)?.let { unboxedFloat ->
-						check()
 						updateRestriction(unboxedFloat) {
 							restriction.forUnboxedFloat()
 						}
-						check()
 					}
 				}
 				equivalentSemanticValue(
@@ -579,7 +597,6 @@ class L2ValueManifest
 				)?.let { intTagValue ->
 					// The boxed form was restricted, so see if we can prove a
 					// stronger bound for the [TypeTag].
-					check()
 					updateRestriction(intTagValue) {
 						val tagRangeType = when
 						{
@@ -590,7 +607,6 @@ class L2ValueManifest
 						}
 						intersectionWithType(tagRangeType)
 					}
-					check()
 				}
 			}
 			is L2SemanticUnboxedInt ->
@@ -598,11 +614,9 @@ class L2ValueManifest
 				// The int form was restricted, so similarly restrict the boxed
 				// form.
 				equivalentSemanticValue(semanticValue.boxed)?.let { base ->
-					check()
 					updateRestriction(base) {
 						restriction.forBoxed()
 					}
-					check()
 				}
 				when (val baseOfInt = semanticValue.boxed)
 				{
@@ -628,13 +642,12 @@ class L2ValueManifest
 								restrictionFromTag.forUnboxedFloat()
 							}
 						}
-						check()
 					}
 					is L2SemanticObjectVariantId ->
 					{
 						// The semantic value was populated from a variant id
 						// (from an object or object type), but we can't go
-						// backward to the variant itself in order to narrow the
+						// backward to the variant itself to narrow the
 						// source value whose variant was extracted.  We simply
 						// don't keep that backward map from id to variant.  But
 						// we can eliminate any explicitly mentioned variants
@@ -662,13 +675,11 @@ class L2ValueManifest
 									}
 								if (!variantsToExclude.isNullOrEmpty())
 								{
-									check()
 									updateRestriction(objectValue) {
 										variantsToExclude.fold(
 											this,
 											TypeRestriction::minusObjectVariant)
 									}
-									check()
 								}
 							}
 							else if (objectRestriction.type
@@ -685,14 +696,12 @@ class L2ValueManifest
 									}
 								if (!variantsToExclude.isNullOrEmpty())
 								{
-									check()
 									updateRestriction(objectValue) {
 										variantsToExclude.fold(
 											this,
 											TypeRestriction::
 												minusObjectTypeVariant)
 									}
-									check()
 								}
 							}
 						}
@@ -716,11 +725,9 @@ class L2ValueManifest
 				equivalentSemanticValue(semanticValue.boxed)?.let { base ->
 					// The float form was just narrowed, so narrow the boxed
 					// form correspondingly.
-					check()
 					updateRestriction(base) {
 						restriction.forBoxed()
 					}
-					check()
 				}
 			}
 		}
@@ -757,12 +764,80 @@ class L2ValueManifest
 			{
 				assert(semanticValueToSynonym!!.values.toSet()
 					== constraints.keys)
-				assert(postponedInstructions().keys
-					.none(semanticValueToSynonym::contains)
-				) {
-					val intersection = postponedInstructions().keys.intersect(
+				val postponedValues = postponedInstructions().values.toSet()
+					.flatMap(L2Instruction::writeOperands)
+					.flatMap(L2WriteOperand<*>::semanticValues)
+				assert(postponedValues.size == postponedInstructions.size)
+				{
+					// For debugging, figure out which semantic values are
+					// written by *multiple* postponed instructions.
+					val whoWritesMap =
+						mutableMapOf<
+							L2SemanticValue<*>, MutableList<L2Instruction>
+						>()
+					postponedInstructions().values.toSet()
+						.forEach { instruction ->
+							instruction.writeOperands
+								.flatMap(L2WriteOperand<*>::semanticValues)
+								.forEach { value ->
+									whoWritesMap
+										.computeIfAbsent(value) {
+											mutableListOf()
+										}
+										.add(instruction)
+								}
+						}
+					buildList {
+						val whoWrites = whoWritesMap.entries
+							.filter { it.value.size > 1 }
+						whoWrites.ifNotEmpty {
+							add("Multiple postponed instructions write the " +
+								"seme semantic values: $it.")
+						}
+						val absent =
+							postponedValues - postponedInstructions.keys
+						absent.ifNotEmpty {
+							add("Keys in write operands but not in map: $it")
+						}
+						val extras =
+							postponedInstructions.keys - postponedValues
+						extras.ifNotEmpty {
+							add("Keys in map but not in write operands: $it")
+						}
+					}.joinToString("\n")
+				}
+				assert(postponedValues.toSet() == postponedInstructions.keys)
+				{
+					// For debugging, figure out which semantic values are
+					// written by postponed instructions but are not present as
+					// keys in that map.
+					val differences =
+						postponedValues - postponedInstructions.keys
+					"Postponed instructions write to semantic values not " +
+						"present as keys of postponed instructions map: " +
+						"$differences"
+				}
+				assert(
+					postponedValues.all { semanticValue ->
+						constraintOrNull(semanticValue).isNullOr {
+							definitions.isEmpty()
+						}
+					})
+				{
+					val intersection = postponedValues.intersect(
 						semanticValueToSynonym.keys)
 					"Postponed writes and also in synonym: $intersection"
+				}
+				// Make sure we haven't mixed into the same synonym (1) semantic
+				// values that are only present for a postponed write with (2)
+				// semantic values that have been written by an emitted
+				// instruction.
+				constraints.forEach { (synonym, constraint) ->
+					val (hasWrite, noWrite) =
+						synonym.semanticValues()
+							.filterNot(L2SemanticValue<*>::isConstant)
+							.partition(::hasLiveSemanticValue)
+					assert(hasWrite.isEmpty() || noWrite.isEmpty())
 				}
 			}
 			val registers = constraints.flatMap { it.value.definitions }
@@ -795,6 +870,19 @@ class L2ValueManifest
 
 	/**
 	 * Look up the given [L2SemanticValue], answering the [L2Synonym] that's
+	 * bound to it.  Answer `null` if it's not found.
+	 *
+	 * @param semanticValue
+	 *   The semantic value to look up.
+	 * @return
+	 *   The [L2Synonym] bound to that semantic value, or `null`.
+	 */
+	fun <K: RegisterKind<K>> semanticValueToSynonymOrNull(
+		semanticValue: L2SemanticValue<K>
+	): L2Synonym<K>? = semanticValueToSynonym!![semanticValue]?.cast()
+
+	/**
+	 * Look up the given [L2SemanticValue], answering the [L2Synonym] that's
 	 * bound to it.  Fail if it's not found.
 	 *
 	 * @param semanticValue
@@ -804,7 +892,7 @@ class L2ValueManifest
 	 */
 	fun <K: RegisterKind<K>> semanticValueToSynonym(
 		semanticValue: L2SemanticValue<K>
-	): L2Synonym<K> = semanticValueToSynonym!![semanticValue].cast()
+	): L2Synonym<K> = semanticValueToSynonymOrNull(semanticValue)!!
 
 	/**
 	 * Look up the given [L2SemanticValue], answering the [L2Synonym] that's
@@ -840,12 +928,14 @@ class L2ValueManifest
 	{
 		assert(freshSynonym.semanticValues().none(
 			semanticValueToSynonym!!::containsKey))
+		val pick = freshSynonym.pickSemanticValue()
 		for (sv in freshSynonym.semanticValues())
 		{
 			semanticValueToSynonym[sv] = freshSynonym
 		}
-		constraints[freshSynonym] = Constraint(emptyList(), restriction)
-		if (restriction.isImpossible) impossibleRestrictionCount++
+		constraints[freshSynonym] =
+			Constraint(emptyList(), pick.defaultRestriction)
+		updateRestriction(pick) { restriction }
 	}
 
 	/**
@@ -871,11 +961,13 @@ class L2ValueManifest
 	 *   it's already written by a previous instruction or it would be written
 	 *   by a postponed instruction.
 	 */
-	private fun hasLiveSemanticValue(
+	fun hasLiveSemanticValue(
 		semanticValue: L2SemanticValue<*>
 	): Boolean =
 		semanticValueToSynonym!![semanticValue].notNullAnd {
-			constraints[this]!!.definitions.isNotEmpty()
+			constraints[this]!!.definitions.any { reg ->
+				reg.definitions().any { semanticValue in it.semanticValues() }
+			}
 		}
 
 	/**
@@ -898,7 +990,8 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue<K>
 	): L2SemanticValue<K>?
 	{
-		if (semanticValue in semanticValueToSynonym!!)
+		if (semanticValue in semanticValueToSynonym!!
+			|| semanticValue in postponedInstructions)
 		{
 			// It already exists in exactly the form given, which is the vast
 			// majority of cases.
@@ -1076,7 +1169,44 @@ class L2ValueManifest
 		semanticValues.forEach { sv ->
 			semanticValueToSynonym!![sv] = merged
 		}
-		constraints[merged] = constraints.remove(existingSynonym)!!
+		val existingConstraint = constraints.remove(existingSynonym)!!
+		constraints[merged] = existingConstraint
+
+		// If the existing synonym has definitions (registers), handle any
+		// postponed instruction that was writing to the new semantic value. We
+		// must maintain the invariant that a postponed instruction is listed
+		// under ALL semantic values it writes.
+		if (existingConstraint.definitions.isNotEmpty()
+			&& postponedInstructions.isNotEmpty())
+		{
+			postponedInstructions[semanticValue]?.let { postponedInstruction ->
+				val allWrittenValues =
+					postponedInstruction.writeOperands.single().semanticValues()
+
+				// Remove the postponed instruction for ALL semantic values it writes.
+				allWrittenValues.forEach(::removePostponedInstructionFor)
+
+				// For semantic values that are NOT being added to this synonym
+				// (still need the postponed value), create a postponed move.
+				val stillNeededValues =
+					allWrittenValues.minusElement(semanticValue)
+				if (stillNeededValues.isNotEmpty())
+				{
+					// Create a postponed move from the newly-added value to
+					// the still-needed values.
+					val moveInstruction = semanticValue.kind.dynamicMove(
+						semanticValue,
+						stillNeededValues,
+						this,
+						existingConstraint.restriction)
+
+					// Add the postponed move for each destination value
+					stillNeededValues.forEach { destValue ->
+						postponedInstructions[destValue] = moveInstruction
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -1223,7 +1353,8 @@ class L2ValueManifest
 	 */
 	private fun <K: RegisterKind<K>> privateMergeSynonyms(
 		synonym1: L2Synonym<K>,
-		synonym2: L2Synonym<K>): Boolean
+		synonym2: L2Synonym<K>
+	): Boolean
 	{
 		if (synonym1 == synonym2) return false
 		val semanticValues =
@@ -1242,7 +1373,73 @@ class L2ValueManifest
 		if (constraint1.isImpossible) impossibleRestrictionCount--
 		if (constraint2.isImpossible) impossibleRestrictionCount--
 		if (newConstraint.isImpossible) impossibleRestrictionCount++
+
+		// If the merged synonym now has definitions (registers), handle any
+		// postponed instructions that were writing to semantic values in this
+		// synonym.  We must maintain the invariant that a postponed instruction
+		// is listed under ALL semantic values it writes, so if we remove it for
+		// any value, we must remove it for all values, replacing it with a
+		// postponed move for values that still need it.
+		if (list.isNotEmpty() && postponedInstructions.isNotEmpty())
+		{
+			// Find the written semantic values that already have definitions.
+			val instructionsToRemove = semanticValues
+				.mapNotNullTo(mutableSetOf(), postponedInstructions::get)
+
+			for (instruction in instructionsToRemove)
+			{
+				val allWrittenValues =
+					instruction.writeOperands.single().semanticValues()
+				allWrittenValues.forEach(::removePostponedInstructionFor)
+				// For semantic values that are NOT in the merged synonym (and
+				// thus don't have a register yet), create a postponed move from
+				// one of the semantic values that IS in the merged synonym.
+				val stillNeededValues = allWrittenValues - semanticValues
+				if (stillNeededValues.isNotEmpty())
+				{
+					// Find a source that's *not* one of the values being
+					// populated by the move below.
+					val source = semanticValues.first { value ->
+						value !in allWrittenValues &&
+							newConstraint.definitions.any { reg ->
+								reg.definitions().any { write ->
+									value in write.semanticValues()
+								}
+							}
+					}
+
+					// Create a postponed move for each still-needed value. All
+					// still-needed values will be in the same synonym (since
+					// they were all in the write operand together), so we can
+					// create a single move instruction for all of them.
+					val moveInstruction = source.kind.dynamicMove(
+						source,
+						stillNeededValues,
+						this,
+						restriction)
+					recordPostponedInstruction(moveInstruction)
+				}
+			}
+		}
 		return true
+	}
+
+	/**
+	 * Given two semantic values of the same [RegisterKind], check if there is
+	 * an equivalent semantic value for each in this manifest, and if so, merge
+	 * their synonyms.  Otherwise do nothing.
+	 *
+	 * Only merge them if they're both populated.
+	 */
+	fun <K: RegisterKind<K>> mergeSemanticValueEquivalentsIfPresent(
+		value1: L2SemanticValue<K>,
+		value2: L2SemanticValue<K>)
+	{
+		equivalentPopulatedSemanticValue(value1)?.let { equivalent1 ->
+			equivalentPopulatedSemanticValue(value2)?.let { equivalent2 ->
+				mergeExistingSemanticValues(equivalent1, equivalent2)
+			}
+		}
 	}
 
 	/**
@@ -1250,17 +1447,18 @@ class L2ValueManifest
 	 * equivalent, but having the given [RegisterKind].  Only consider
 	 * registers whose definitions *all* include that semantic value.  This
 	 * should work well in SSA or non-SSA, but not after register coloring.
+	 * If no such register is found, return `null`.
 	 *
 	 * @param K
 	 *   The [RegisterKind] of the desired register.
 	 * @param semanticValue
 	 *   The [L2SemanticValue] being examined.
 	 * @return
-	 *   The requested [L2Register].
+	 *   The requested [L2Register] or `null`.
 	 */
-	fun <K: RegisterKind<K>> getDefinition(
+	fun <K: RegisterKind<K>> getDefinitionOrNull(
 		semanticValue: L2SemanticValue<K>
-	): L2Register<K>
+	): L2Register<K>?
 	{
 		if (!hasSemanticValue(semanticValue))
 		{
@@ -1284,15 +1482,29 @@ class L2ValueManifest
 			// definitions.
 			definition = constraint.definitions.firstOrNull()
 		}
-		assert(definition != null) {
-			"Appropriate register for kind not found"
-		}
-		return definition!!
+		return definition
 	}
 
 	/**
+	 * Retrieve the oldest definition of the given [L2SemanticValue] or an
+	 * equivalent, but having the given [RegisterKind].  Only consider
+	 * registers whose definitions *all* include that semantic value.  This
+	 * should work well in SSA or non-SSA, but not after register coloring.
+	 *
+	 * @param K
+	 *   The [RegisterKind] of the desired register.
+	 * @param semanticValue
+	 *   The [L2SemanticValue] being examined.
+	 * @return
+	 *   The requested [L2Register].
+	 */
+	fun <K: RegisterKind<K>> getDefinition(
+		semanticValue: L2SemanticValue<K>
+	): L2Register<K> = getDefinitionOrNull(semanticValue)!!
+
+	/**
 	 * Retrieve all [L2Register]s known to contain the given [L2SemanticValue].
-	 * If the mode is still [BySemanticValue], Narrow it to just those registers
+	 * If the mode is still [BySemanticValue], narrow it to just those registers
 	 * whose definitions *all* include that semantic value.
 	 *
 	 * @param <R>
@@ -1422,16 +1634,15 @@ class L2ValueManifest
 			}
 			return semanticValue.constantRestrictionOrNull!!
 		}
-		val equivalent = equivalentSemanticValue(semanticValue)
-		if (equivalent == null)
-		{
-			return postponedInstruction(semanticValue)!!
+		val equivalent = equivalentSemanticValue(semanticValue)!!
+		semanticValueToSynonym!![equivalent]?.let { synonym ->
+			return constraints[synonym]!!.restriction
+		}
+		postponedInstructions[equivalent]?.let { instruction ->
+			return instruction
 				.writeOperands
 				.first { semanticValue in it.semanticValues() }
 				.restriction()
-		}
-		semanticValueToSynonym!![equivalent]?.let { synonym ->
-			return constraints[synonym]!!.restriction
 		}
 		// The semantic value wasn't found directly in a synonym.  If it's
 		// unboxed, see if we can synthesize an answer from the boxed form.
@@ -1460,7 +1671,8 @@ class L2ValueManifest
 	): Constraint<K>?
 	{
 		val equivalent = equivalentSemanticValue(semanticValue)!!
-		return constraints[semanticValueToSynonym(equivalent)]?.cast()
+		val synonym = semanticValueToSynonymOrNull(equivalent) ?: return null
+		return constraints[synonym]!!.cast()
 	}
 
 	/**
@@ -1508,7 +1720,7 @@ class L2ValueManifest
 		semanticValueToSynonym?.clear()
 		constraints.clear()
 		impossibleRestrictionCount = 0
-		postponedInstructions.clear()
+		clearPostponedInstructions()
 	}
 
 	/**
@@ -1526,7 +1738,6 @@ class L2ValueManifest
 	fun recordDefinition(writer: L2WriteOperand<*>)
 	{
 		recordDefinitionNoCheck(writer)
-		check()
 	}
 
 	/**
@@ -1641,7 +1852,6 @@ class L2ValueManifest
 			}
 		}
 		removePostponedInstructionFor(writer)
-		check()
 	}
 
 	/**
@@ -1742,11 +1952,13 @@ class L2ValueManifest
 	 * as the given semantic value.
 	 *
 	 * @param semanticValue
-	 *   The [L2SemanticValue] to read as an unboxed int value.
+	 *   The [L2SemanticValue] to read as an unboxed floot value.
 	 * @return
-	 *   An [L2ReadBoxedOperand] that reads from the synonym.
+	 *   An [L2ReadFloatOperand] that reads from the synonym.
 	 */
-	fun readFloat(semanticValue: L2SemanticUnboxedFloat): L2ReadFloatOperand
+	fun readFloat(
+		semanticValue: L2SemanticValue<FLOAT_KIND>
+	): L2ReadFloatOperand
 	{
 		val restriction = restrictionFor(semanticValue)
 		assert(restriction.isUnboxedFloat)
@@ -1792,6 +2004,10 @@ class L2ValueManifest
 	{
 		assert(semanticValueToSynonym!!.isEmpty())
 		assert(constraints.isEmpty())
+		// Here's a good place to reduce postponed instructions into simpler
+		// equivalents, since we're right at the merge that would consume them,
+		// and each edge will be visited once.
+		manifests.forEach(L2ValueManifest::rewriteAllPostponed)
 		val manifestsSize = manifests.size
 		if (manifestsSize == 0)
 		{
@@ -1847,20 +2063,33 @@ class L2ValueManifest
 			phiMap.values.forEach { relatedSemanticValues ->
 				// Consume the first related semantic value to construct a phi
 				// instruction, and populate the others via moves.
-				val firstSemanticValue = relatedSemanticValues[0]
+				val otherSemanticValues = relatedSemanticValues.toMutableList()
+				val firstSemanticValue = otherSemanticValues.removeFirst()
 				val restriction = manifests
 					.map { it.restrictionFor(firstSemanticValue) }
 					.reduce(TypeRestriction::union)
 				// Generate a phi instruction of this kind.
 				firstSemanticValue.kind.run {
 					generator.generatePhi(
-						relatedSemanticValues.cast(),
+						listOf(firstSemanticValue).cast(),
 						forcePhis,
 						restriction,
 						manifests)
+					if (relatedSemanticValues.size > 1)
+					{
+						generator.moveRegister(
+							firstSemanticValue,
+							otherSemanticValues.cast())
+					}
 				}
 			}
 			mergeAllEquivalentSynonyms()
+			if (manifests.size > 1)
+			{
+				generator.run {
+					+L2_NOP("finished merge here (${this.optimizationLevel})")
+				}
+			}
 		}
 		else
 		{
@@ -1951,8 +2180,8 @@ class L2ValueManifest
 	 * edges.
 	 *
 	 * Repeat until the only instructions remaining are common to all edges.
-	 * Finally, move the remaining instructions into the postponed into the
-	 * merged manifest.
+	 * Finally, move those remaining instructions into the postponed map of the
+	 * receiver, the merged manifest.
 	 *
 	 * @param liveSemanticValues
 	 *   The intersection of the sets of live or postponed [L2SemanticValue]s
@@ -1998,8 +2227,7 @@ class L2ValueManifest
 			// For each instruction that isn't in commonInstructions, force its
 			// emission in its predecessor block.
 			var changed = false
-			for (i in predecessorEdges.indices)
-			{
+			predecessorEdges.forEachIndexed { i, edge ->
 				val toEmit =
 					instructionEquivalencesByManifest[i] - commonInstructions
 				if (toEmit.isNotEmpty())
@@ -2009,8 +2237,9 @@ class L2ValueManifest
 						val instruction = equivalence.instruction
 						instruction.writeOperands.forEach { write ->
 							write.semanticValues().forEach { value ->
+								edge.manifest().check() //TODO remove
 								generator.forcePostponedTranslationBeforeEdge(
-									predecessorEdges[i], value)
+									edge, value)
 							}
 						}
 					}
@@ -2108,7 +2337,7 @@ class L2ValueManifest
 
 	/**
 	 * Look for equivalent [L2SemanticValue]s in separate [L2Synonym]s, and
-	 * merge them together.
+	 * merge them.
 	 */
 	fun mergeAllEquivalentSynonyms()
 	{
@@ -2126,6 +2355,15 @@ class L2ValueManifest
 				if (group1 == group2) continue
 				val syn1 = initialSynonyms[i].semanticValues()
 				val syn2 = initialSynonyms[j].semanticValues()
+				if (constraintOrNull(syn1.first())!!.definitions.isEmpty() !=
+					constraintOrNull(syn2.first())!!.definitions.isEmpty())
+				{
+					// DO NOT mix synonyms where one has no definitions and the
+					// other does.  A synonym with no definition indicates it's
+					// holding information (restriction, synonymy) for a
+					// postponed instruction.
+					continue
+				}
 				if (syn1.any { value1 ->
 					syn2.any { value2 ->
 						isEquivalentSemanticValue(value1, value2)

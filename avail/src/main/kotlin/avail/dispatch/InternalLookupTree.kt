@@ -79,6 +79,7 @@ import avail.utility.iterableWith
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import java.lang.String.format
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -809,11 +810,11 @@ internal constructor(
 
 	/**
 	 * Create a [TypeTagDecisionStep] for the given values.  The basic idea is
-	 * to create a [Map] from tag to a [Set] of [Result]s.  Only add elements at
-	 * the [A_Type.instanceTag] reported by the argument type.  During lookup,
-	 * the [typeTag][AvailObjectRepresentation.typeTag] of the actual argument
-	 * value is used to find an entry in this map, but if there's no entry, its
-	 * parent chain is searched instead.
+	 * to create a [Map] from [TypeTag] to a [Set] of [Result]s.  Only add
+	 * elements at the [A_Type.instanceTag] reported by the argument type.
+	 * During lookup, the [typeTag][AvailObjectRepresentation.typeTag] of the
+	 * actual argument value is used to find an entry in this map, but if
+	 * there's no entry, its tag's parent chain is searched instead.
 	 *
 	 * [BOTTOM_TYPE_TAG] is problematic, because it breaks the tree shape.  We
 	 * can't just leave it out, and we can't pretend it's not a child of all
@@ -906,6 +907,11 @@ internal constructor(
 				{
 					restriction = restriction.minusType(otherTag.supremum)
 				}
+			}
+			if (restriction.type.isSubtypeOf(topMeta)
+				&& !restriction.type.equals(bottomMeta))
+			{
+				assert(!restriction.canBeBottom)
 			}
 			restrictions[argumentIndex - 1] = restriction
 

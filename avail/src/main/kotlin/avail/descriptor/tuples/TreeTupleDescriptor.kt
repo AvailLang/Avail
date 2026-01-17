@@ -43,6 +43,7 @@ import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.childAt
 import avail.descriptor.tuples.A_Tuple.Companion.childCount
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
@@ -152,15 +153,61 @@ class TreeTupleDescriptor internal constructor(
 		SUBTUPLE_AT_
 	}
 
-	// Fall back to concatenating a singleton tuple.
 	override fun o_AppendCanDestroy(
 		self: AvailObject,
 		newElement: A_BasicObject,
+		canPad: Boolean,
 		canDestroy: Boolean
-	): A_Tuple = concatenateAtLeastOneTree(
-		self,
-		optimizedTuple(newElement as AvailObject),
-		canDestroy)
+	): A_Tuple
+	{
+		if (canDestroy && isMutable)
+		{
+			// We can recurse into the rightmost child, appending to it and
+			// writing that back into ourself.
+			val oldHash = self[HASH_OR_ZERO]
+			val childCount = self.variableObjectSlotsCount()
+			val oldSize = self.intSlot(CUMULATIVE_SIZES_AREA_, childCount)
+			val oldRightChild = self[SUBTUPLE_AT_, childCount]
+			val oldRightLevel = oldRightChild.treeTupleLevel
+			assert(oldRightLevel == level - 1)
+			val newRightChild =
+				oldRightChild.appendCanDestroy(newElement, canPad, canDestroy)
+			if (newRightChild.treeTupleLevel == oldRightLevel)
+			{
+				// The height of the right child didn't change, so just use that
+				// altered subtree.
+				self[SUBTUPLE_AT_, childCount] = newRightChild
+				val newSize = oldSize + 1
+				self.setIntSlot(CUMULATIVE_SIZES_AREA_, childCount, newSize)
+				if (oldHash != 0)
+				{
+					// The previous hash was known, so adjust it.  We just have
+					// to add p(h[n])*M^n, where n is the new index, h[n] is its
+					// hash, p(h[n]) is its pretoggled hash, and M is the fixed
+					// polynomial multiplier.
+					var scaledHash = newElement.hash() xor preToggle
+					scaledHash *= multiplierRaisedTo(newSize)
+					self[HASH_OR_ZERO] = oldHash + scaledHash
+				}
+				return self
+			}
+			else
+			{
+				// The child can only have increased in height by one level.
+				// And note that in that case, the oldRightChild would not have
+				// been modified.
+				assert (newRightChild.treeTupleLevel == level)
+				// Fall through, ignoring the newRightChild.
+			}
+		}
+		// Fall back to concatenating a singleton tuple.  If it ends up mutable,
+		// we'll still be able to efficiently extend this tree tuple in place
+		// next time.
+		return concatenateAtLeastOneTree(
+			self,
+			optimizedTuple(newElement as AvailObject),
+			canDestroy)
+	}
 
 	/**
 	 * Answer approximately how many bits per entry are taken up by this object.
@@ -307,8 +354,7 @@ class TreeTupleDescriptor internal constructor(
 		{
 			// At least one element of this child is involved in the hash.
 			val startOfChild = offsetForChildSubscript(self, i) + 1
-			val endOfChild =
-				self.intSlot(CUMULATIVE_SIZES_AREA_, i)
+			val endOfChild = self.intSlot(CUMULATIVE_SIZES_AREA_, i)
 			val startIndexInChild = max(0, start - startOfChild) + 1
 			val endIndexInChild = min(endOfChild, end) - startOfChild + 1
 			val child: A_Tuple = self[SUBTUPLE_AT_, i]
@@ -446,6 +492,14 @@ class TreeTupleDescriptor internal constructor(
 			else ->
 				self.compareFromToWithStartingAt(1, self.tupleSize, aTuple, 1)
 		}
+	}
+
+	override fun o_NameForDebugger(self: AvailObject): String = buildString {
+		append(super.o_NameForDebugger(self))
+		append(", level=")
+		append(level)
+		append(", children=")
+		append(self.childCount)
 	}
 
 	override fun o_ReplaceFirstChild(
@@ -701,8 +755,7 @@ class TreeTupleDescriptor internal constructor(
 					val child = tuple2.childAt(src)
 					newNode[SUBTUPLE_AT_, dest] = child
 					size += child.tupleSize
-					newNode.setIntSlot(
-						CUMULATIVE_SIZES_AREA_, dest, size)
+					newNode.setIntSlot(CUMULATIVE_SIZES_AREA_, dest, size)
 					src++
 					dest++
 				}
@@ -801,9 +854,9 @@ class TreeTupleDescriptor internal constructor(
 				val newLast = oldLast.concatenateWith(tuple2, true)
 				if (newLast.treeTupleLevel == level1)
 				{
-					// Last child overflowed.  Combine myself minus the last, with
-					// the new peer.  Be careful of the int-packed cumulative sizes
-					// area.
+					// Last child overflowed.  Combine myself minus the last,
+					// with the new peer.  Be careful of the int-packed
+					// cumulative sizes area.
 					val withoutLast = newLike(
 						descriptors[MUTABLE]!![level1],
 						tuple1,
@@ -1019,8 +1072,7 @@ class TreeTupleDescriptor internal constructor(
 			newNode.setIntSlot(
 				CUMULATIVE_SIZES_AREA_,
 				2,
-				left.tupleSize +
-				right.tupleSize)
+				left.tupleSize + right.tupleSize)
 			newNode[HASH_OR_ZERO] = newHashOrZero
 			check(newNode)
 			return newNode

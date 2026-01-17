@@ -239,7 +239,7 @@ constructor(
 	override fun dumpChunk(): String
 	{
 		val translator = JVMTranslator(
-			code, name, null, controlFlowGraph, instructions)
+			code, name, null, controlFlowGraph, instructions, false)
 		val savedDebugFlag = JVMTranslator.debugJVM
 		JVMTranslator.debugJVM = true
 		try
@@ -274,6 +274,8 @@ constructor(
 		 *   The optimized, non-SSA [L2ControlFlowGraph].  Useful for debugging.
 		 *   Eventually we'll want to capture a copy of the graph prior to
 		 *   conversion from SSA to support inlining.
+		 * @param trackBranches
+		 *   Whether to emit bytecodes that track directions taken by branches.
 		 * @param contingentValues
 		 *   A [Set] of [methods][MethodDescriptor] on which the level two chunk
 		 *   depends.
@@ -285,7 +287,9 @@ constructor(
 			offsetAfterInitialTryPrimitive: Int,
 			theInstructions: List<L2Instruction>,
 			controlFlowGraph: L2ControlFlowGraph,
-			contingentValues: A_Set): L2JVMChunk
+			trackBranches: Boolean,
+			contingentValues: A_Set
+		): L2JVMChunk
 		{
 			assert(offsetAfterInitialTryPrimitive >= 0)
 			var sourceFileName: String? = null
@@ -314,7 +318,8 @@ constructor(
 				name(code),
 				sourceFileName,
 				controlFlowGraph,
-				theInstructions)
+				theInstructions,
+				trackBranches)
 			jvmTranslator.translate()
 			val chunk = L2JVMChunk(
 				code,
@@ -376,6 +381,7 @@ constructor(
 				reenterFromRestartBlock.offset(),
 				instructions,
 				controlFlowGraph,
+				trackBranches = false,
 				emptySet)
 			assert(initialBlock.offset() == 0)
 			assert(reenterFromRestartBlock.offset()

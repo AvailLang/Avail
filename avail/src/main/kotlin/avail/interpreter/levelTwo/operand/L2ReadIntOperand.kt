@@ -47,33 +47,34 @@ import avail.utility.cast
  * An [L2ReadIntOperand] is an operand of type [READ_INT]. It holds the actual
  * [L2IntRegister] that is to be accessed.
  *
+ * @constructor
+ *   Construct a new `L2ReadIntOperand` for the specified [L2SemanticValue] and
+ *   [TypeRestriction].
+ * @param semanticValue
+ *   The [L2SemanticValue] that is being read when an [L2Instruction] uses this
+ *   [L2Operand].
+ * @param restriction
+ *   The [TypeRestriction] to constrain this particular read. This restriction
+ *   has been guaranteed by the VM at the point where this operand's instruction
+ *   occurs.
+ * @param register
+ *   The optional [L2IntRegister] to read from.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
+class L2ReadIntOperand
+constructor(
+	semanticValue: L2SemanticValue<INTEGER_KIND>,
+	restriction: TypeRestriction,
+	register: L2Register<INTEGER_KIND>? = null
+) : L2ReadOperand<INTEGER_KIND>(semanticValue, restriction, register)
 {
-	override val operandType get() = READ_INT
-
-	/**
-	 * Construct a new `L2ReadIntOperand` for the specified [L2SemanticValue]
-	 * and [TypeRestriction].
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
-	 *   this [L2Operand].
-	 * @param restriction
-	 *   The [TypeRestriction] to constrain this particular read. This
-	 *   restriction has been guaranteed by the VM at the point where this
-	 *   operand's instruction occurs.
-	 */
-	constructor(
-		semanticValue: L2SemanticValue<INTEGER_KIND>,
-		restriction: TypeRestriction,
-		register: L2Register<INTEGER_KIND>? = null
-	) : super(semanticValue, restriction, register)
-	{
+	init {
 		assert(restriction.isUnboxedInt)
 	}
+
+	override val operandType get() = READ_INT
 
 	override fun semanticValue(): L2SemanticUnboxedInt =
 		super.semanticValue().cast()

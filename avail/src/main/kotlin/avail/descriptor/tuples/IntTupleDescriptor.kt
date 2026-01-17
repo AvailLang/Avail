@@ -48,6 +48,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithIntTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -63,6 +64,8 @@ import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.Companion.HASH_OR
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -152,10 +155,12 @@ private constructor(
 		}
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val originalSize = self.tupleSize
 		val newElementStrong = newElement as AvailObject
@@ -177,14 +182,31 @@ private constructor(
 		if (isMutable && canDestroy && originalSize and 1 != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			self.descriptor = descriptorFor(Mutability.MUTABLE, newSize)
+			self.descriptor = descriptorFor(MUTABLE, newSize)
 			self.setIntSlot(RAW_LONG_AT_, newSize, intValue)
 			self[HASH_OR_ZERO] = 0
 			return self
 		}
+		if (canPad && isMutable && newSize >= minSubrangeSize)
+		{
+			// The fact that this is still mutable suggests that padding will be
+			// effective.  Add ~25% in padding.
+			val addedSize = (originalSize shr 2) + 16
+			val padded = newLike(
+				descriptorFor(MUTABLE, newSize),
+				self,
+				0,
+				min(
+					// Convert ints to longs.
+					addedSize shr 1,
+					Int.MAX_VALUE - self.variableObjectSlotsCount()))
+			padded.setIntSlot(RAW_LONG_AT_, newSize, intValue)
+			padded[HASH_OR_ZERO] = 0
+			return createSubrange(padded, 1, newSize)
+		}
 		// Copy to a potentially larger IntTupleDescriptor.
 		val result = newLike(
-			descriptorFor(Mutability.MUTABLE, newSize),
+			descriptorFor(MUTABLE, newSize),
 			self,
 			0,
 			if (originalSize and 1 == 0) 1 else 0)
@@ -307,13 +329,13 @@ private constructor(
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = self
-				result.descriptor = descriptorFor(Mutability.MUTABLE, newSize)
+				result.descriptor = descriptorFor(MUTABLE, newSize)
 			}
 			else
 			{
 				result = newLike(
 					descriptorFor(
-						Mutability.MUTABLE, newSize), self, 0, deltaSlots)
+						MUTABLE, newSize), self, 0, deltaSlots)
 			}
 			var destination = size1 + 1
 			var source = 1
@@ -725,7 +747,7 @@ private constructor(
 		@JvmStatic
 		fun mutableObjectOfSize(size: Int): AvailObject
 		{
-			val descriptor = descriptorFor(Mutability.MUTABLE, size)
+			val descriptor = descriptorFor(MUTABLE, size)
 			assert(size + descriptor.unusedIntsOfLastLong and 1 == 0)
 			return descriptor.create(size + 1 ushr 1)
 		}
@@ -754,7 +776,7 @@ private constructor(
 			size: Int,
 			generator: (Int) -> Int): AvailObject
 		{
-			val descriptor = descriptorFor(Mutability.MUTABLE, size)
+			val descriptor = descriptorFor(MUTABLE, size)
 			val result = newIndexedDescriptor(size + 1 ushr 1, descriptor)
 			var tupleIndex = 1
 			// Aggregate two writes at a time for the bulk of the tuple.
@@ -795,7 +817,7 @@ private constructor(
 
 	override fun mutable(): IntTupleDescriptor =
 		descriptors[
-			(unusedIntsOfLastLong and 1) * 3 + Mutability.MUTABLE.ordinal]!!
+			(unusedIntsOfLastLong and 1) * 3 + MUTABLE.ordinal]!!
 
 	override fun immutable(): IntTupleDescriptor =
 		descriptors[

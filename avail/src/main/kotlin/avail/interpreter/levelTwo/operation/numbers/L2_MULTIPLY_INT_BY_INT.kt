@@ -92,6 +92,7 @@ class L2_MULTIPLY_INT_BY_INT(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

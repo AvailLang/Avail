@@ -60,6 +60,8 @@ import avail.descriptor.tuples.LongTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.LONG_AT_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -140,10 +142,12 @@ private constructor(
 		}
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val newElementStrong = newElement as AvailObject
 		val originalSize = self.tupleSize
@@ -155,6 +159,22 @@ private constructor(
 		}
 		val longValue = newElementStrong.extractLong
 		val newSize = originalSize + 1
+		if (canPad && isMutable && newSize >= minSubrangeSize)
+		{
+			// The fact that this is still mutable suggests that padding will be
+			// effective.  Add ~25% in padding.
+			val addedSize = (originalSize shr 2) + 32
+			val padded = newLike(
+				mutable(),
+				self,
+				0,
+				min(
+					addedSize,
+					Int.MAX_VALUE - self.variableObjectSlotsCount()))
+			padded[LONG_AT_, newSize] = longValue
+			padded[HASH_OR_ZERO] = 0
+			return createSubrange(padded, 1, newSize)
+		}
 		// Always copy to a larger LongTupleDescriptor.
 		val result = newLike(mutable, self, 0, 1)
 		result[LONG_AT_, newSize] = longValue

@@ -99,7 +99,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	 * @return
 	 *   The most general type that is a subtype of both object and another.
 	 */
-	public override fun computeIntersectionWith(
+	override fun computeIntersectionWith(
 		self: AvailObject,
 		another: A_Type): A_Type = self // Easy -- it's always the type bottom.
 
@@ -114,7 +114,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	 * @return
 	 *   The most specific type that is a supertype of both object and another.
 	 */
-	public override fun computeUnionWith(
+	override fun computeUnionWith(
 		self: AvailObject,
 		another: A_Type): A_Type
 	{

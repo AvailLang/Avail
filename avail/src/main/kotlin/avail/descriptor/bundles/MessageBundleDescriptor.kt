@@ -284,7 +284,9 @@ class MessageBundleDescriptor private constructor(
 		// are unparseable.
 		val plan = newParsingPlan(self, macro)
 		// Install the macro.
-		self.updateSlotShared(MACROS_TUPLE) { appendCanDestroy(macro, true) }
+		self.updateSlotShared(MACROS_TUPLE) {
+			appendCanDestroy(macro, false, true)
+		}
 		// It's only a macro change, so don't invalidate dependent L2Chunks.
 		synchronized(self) {
 			privateMacroTestingTree = null

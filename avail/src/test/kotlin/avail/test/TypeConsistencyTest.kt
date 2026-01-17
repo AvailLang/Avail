@@ -32,8 +32,10 @@
 package avail.test
 
 import avail.AvailRuntime
+import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.IntegerDescriptor
@@ -100,6 +102,9 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.interpreter.Primitive
+import avail.test.TypeConsistencyTest.Companion.checkCovariance
+import avail.test.TypeConsistencyTest.Node.Companion.BOTTOM
+import avail.test.TypeConsistencyTest.Node.Companion.SOME_ATOM_TYPE
 import avail.utility.structures.EnumMap
 import avail.utility.structures.EnumMap.Companion.enumMap
 import org.junit.jupiter.api.AfterAll
@@ -359,9 +364,10 @@ class TypeConsistencyTest
 			private val SOME_ATOM_TYPE = Node(
 				"SOME_ATOM_TYPE",
 				instanceType(
-					createAtom(
-						stringFrom("something"),
-						nil)),
+					createAtom(stringFrom("something"), nil).apply {
+						setAtomProperty(
+							OBJECT_FIELD_RESTRICTION_KEY.atom, Types.ANY())
+					}),
 				primitiveTypes[Types.ATOM]!!)
 
 			/**
@@ -371,9 +377,10 @@ class TypeConsistencyTest
 			private val ANOTHER_ATOM_TYPE = Node(
 				"ANOTHER_ATOM_TYPE",
 				instanceType(
-					createAtom(
-						stringFrom("another"),
-						nil)),
+					createAtom(stringFrom("another"), nil).apply {
+						setAtomProperty(
+							OBJECT_FIELD_RESTRICTION_KEY.atom, Types.ANY())
+					}),
 				primitiveTypes[Types.ATOM]!!)
 
 			/**

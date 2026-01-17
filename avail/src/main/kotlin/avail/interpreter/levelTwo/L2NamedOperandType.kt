@@ -52,6 +52,8 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
  * @property hideInSimpleVisualization
  *   Whether this field should be hidden when producing a simple textual output
  *   of the containing instruction.
+ * @property hideInAllVisualizations
+ *   Whether this field should be hidden when producing any textual output.
  *
  * @constructor
  * Construct a new `L2NamedOperandType`.
@@ -65,12 +67,15 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
  * @param hideInSimpleVisualization
  *   Whether this field should be hidden when producing a simple textual output
  *   of the containing instruction.
+ * @param hideInAllVisualizations
+ *   Whether this field should be hidden when producing any textual output.
  */
 class L2NamedOperandType internal constructor(
 	val operandType: L2OperandType,
 	val name: String,
 	val purpose: Purpose?,
-	val hideInSimpleVisualization: Boolean)
+	val hideInSimpleVisualization: Boolean,
+	val hideInAllVisualizations: Boolean)
 {
 	/**
 	 * Answer the [L2OperandType] that this decorates.

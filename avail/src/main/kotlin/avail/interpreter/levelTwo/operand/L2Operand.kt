@@ -235,7 +235,10 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 */
 	open fun addEdgesTo(list: MutableList<L2PcOperand>) { }
 
-	override fun toString() = buildString { appendWithWarningsTo(0) { } }
+	override fun toString() = buildString { appendWithWarningsTo(0, false) { } }
+
+	fun toString(ignoreMisconnections: Boolean) =
+		buildString { appendWithWarningsTo(0, ignoreMisconnections) { } }
 
 	/**
 	 * Append a textual representation of this operand to the provided
@@ -247,25 +250,31 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   The [StringBuilder] on which to describe this operand.
 	 * @param indent
 	 *   How much additional indentation to add to successive lines.
+	 * @param ignoreMisconnections
+	 *   If true, suppress warnings about misconnected operands.
 	 * @param warningStyleChange
 	 *   A lambda to invoke to turn the warning style on or off, with a
 	 *   mechanism specified (or ignored) by the caller.
 	 */
 	fun StringBuilder.appendWithWarningsTo(
 		indent: Int,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		if (instructionOrNull === null)
+		if (!ignoreMisconnections)
 		{
-			warningStyleChange(true)
-			append("DEAD-OPERAND: ")
-			warningStyleChange(false)
-		}
-		else if (isMisconnected)
-		{
-			warningStyleChange(true)
-			append("MISCONNECTED: ")
-			warningStyleChange(false)
+			if (instructionOrNull === null)
+			{
+				warningStyleChange(true)
+				append("DEAD-OPERAND: ")
+				warningStyleChange(false)
+			}
+			else if (isMisconnected)
+			{
+				warningStyleChange(true)
+				append("MISCONNECTED: ")
+				warningStyleChange(false)
+			}
 		}
 		// Call the inner method that can be overridden.
 		val temp = StringBuilder()

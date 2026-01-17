@@ -209,11 +209,17 @@ class L1Disassembler constructor(
 		indent: Int,
 		action: (Int, Int, String)->Unit)
 	{
-		val tempBuilder = StringBuilder()
-		var instructionPc = -1
-		var instructionLine = -1
 		val visitor = object : L1DisassemblyVisitor
 		{
+			/** Where to write the current instruction's description. */
+			val tempBuilder = StringBuilder()
+
+			/** The pc of the current instruction. */
+			var instructionPc = -1
+
+			/** The source line number of the current instruction. */
+			var instructionLine = -1
+
 			override fun startOperation(
 				operation: L1Operation,
 				pc: Int,
@@ -286,13 +292,23 @@ class L1Disassembler constructor(
 	): List<AvailObjectFieldHelper>
 	{
 		val slots = mutableListOf<AvailObjectFieldHelper>()
-		var currentOperationPc: Int = Int.MIN_VALUE
-		var nybbles = code.nybbles
-		val operandValues = mutableListOf<AvailObject>()
-		val nameBuilder = StringBuilder()
-
 		val visitor = object : L1DisassemblyVisitor
 		{
+			/** The pc of the instruction being disassembled. */
+			var currentOperationPc: Int = Int.MIN_VALUE
+
+			/** The nybblecodes of the [A_RawFunction] being disassembled. */
+			var nybbles = code.nybbles
+
+			/**
+			 * The [AvailObject]s accumulated from the current instruction's
+			 * operands.
+			 */
+			val operandValues = mutableListOf<AvailObject>()
+
+			/** A [StringBuilder] for describing the current instruction. */
+			val nameBuilder = StringBuilder()
+
 			override fun startOperation(
 				operation: L1Operation,
 				pc: Int,
@@ -446,10 +462,12 @@ class L1Disassembler constructor(
 		 * and the second value is ignored.
 		 *
 		 * @param value
-		 *        The value to check for simple printability.
-		 * @return Whether to print the value instead of deconstructing it.
+		 *   The value to check for simple printability.
+		 * @return
+		 *   A [Pair] with (1) the value to print in place of the given [value],
+		 *   and (2) whether to deconstruct the object instead of printing it.
 		 */
-		fun simplePrintable(value: AvailObject) =
+		fun simplePrintable(value: AvailObject): Pair<A_BasicObject?, Boolean> =
 			when {
 				// Show some things textually.
 				value.isNil -> value to false

@@ -80,6 +80,7 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.optimizer.values.PatternBuilder.Companion.pattern
 import kotlin.math.min
 
@@ -238,6 +239,13 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)
 	{
+		// Merge with the commuted version, if present.
+		val regular = primitiveInvocation(this, arguments)
+		val commuted = primitiveInvocation(this, arguments.reversed())
+		manifest.mergeSemanticValueEquivalentsIfPresent(commuted, regular)
+		manifest.mergeSemanticValueEquivalentsIfPresent(
+			commuted.unboxedInt, regular.unboxedInt)
+
 		// Only attempt to do the propagation if the value is an enumeration,
 		// so that some entries might be eliminated by their hash.
 		if (!restriction.type.isEnumeration) return
@@ -287,6 +295,10 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 					?: return@matchForEach
 			val type = manifest.restrictionFor(equivalentIntValueToHash).type
 			if (!type.isEnumeration) return@matchForEach
+			// Ignore metatypes, since their instances' subtypes would also be
+			// considered members of the type, and they could have any hashes.
+			// TODO Refine this to handle bottomMeta and singleton metas.
+			if (type.isInstanceMeta) return@matchForEach
 			val values = type.instances.filter { v ->
 				restriction.containsValue(
 					fromInt((v.hash() ushr shiftInt) and maskInt))
@@ -297,7 +309,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 	}
 
-	override val semanticinfixOperatorString: String? get() = "And"
+	override val semanticInfixOperatorString: String? get() = "And"
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers, integers), integers)

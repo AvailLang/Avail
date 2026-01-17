@@ -37,7 +37,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.optimizer.OptimizationLevel.entries
 
 /**
  * [OptimizationLevel] is an enum class indicating the possible degrees of

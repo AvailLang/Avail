@@ -31,8 +31,14 @@
  */
 package avail.interpreter.levelTwo.operation.dispatch
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
+import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type.Companion.instanceTag
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.levelTwo.L2Instruction
@@ -42,12 +48,13 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.mapToSet
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -63,6 +70,7 @@ class L2_EXTRACT_TAG_ORDINAL(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -94,29 +102,33 @@ class L2_EXTRACT_TAG_ORDINAL(
 		tracer.continueTracing(value.register(), valueRestriction)
 	}
 
-	override fun L2Regenerator.generateReplacement(
-		originalInstruction: L2Instruction)
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		// If the tag is statically deducible at this point, use the constant.
-		val type = value.type()
-		val baseTag = type.instanceTag
-		if (baseTag.ordinal == baseTag.highOrdinal
-			&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
-				|| baseTag == TypeTag.BOTTOM_TYPE_TAG))
+		val baseTag = value.type().instanceTag
+		var exactTag = value.restriction().tag ?: let {
+			if (baseTag.ordinal == baseTag.highOrdinal
+				&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
+					|| baseTag == TypeTag.BOTTOM_TYPE_TAG
+					|| !value.restriction().canBeBottom))
+			{
+				baseTag
+			}
+			else null
+		}
+		if (exactTag != null)
 		{
 			// This tag always applies, and it has no children, not even the
 			// bottom type (which is special in the TypeTag hierarchy).
-			val existingValue =
-				tagOrdinal.semanticValues().firstOrNull {
-					currentManifest.hasSemanticValue(it)
-				}
+			val existingValue = tagOrdinal.semanticValues()
+				.firstOrNull(currentManifest::hasSemanticValue)
 			when (existingValue)
 			{
 				null -> moveIntRegister(
-					unboxedIntConstant(baseTag.ordinal).semanticValue(),
+					unboxedIntConstant(exactTag.ordinal).semanticValue(),
 					intWrite(
 						tagOrdinal.semanticValues(),
-						intRestrictionForConstant(baseTag.ordinal)
+						intRestrictionForConstant(exactTag.ordinal)
 					).semanticValues())
 				else -> tagOrdinal.semanticValues().forEach { otherValue ->
 					if (!currentManifest.hasSemanticValue(otherValue))
@@ -127,40 +139,17 @@ class L2_EXTRACT_TAG_ORDINAL(
 			}
 			return
 		}
-		emitTransformedInstruction()
-	}
-
-	override fun L2GeneratorInterface.emitTransformedInstruction()
-	{
-		// If the tag is statically deducible at this point, use the constant.
-		val type = value.type()
-		val baseTag = type.instanceTag
-		if (baseTag.ordinal == baseTag.highOrdinal
-			&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
-				|| baseTag == TypeTag.BOTTOM_TYPE_TAG))
-		{
-			// This tag always applies, and it has no children, not even the
-			// bottom type (which is special in the TypeTag hierarchy).
-			val existingValue =
-				tagOrdinal.semanticValues().firstOrNull {
-					currentManifest.hasSemanticValue(it)
+		// See if we can restrict the output tag.
+		tagOrdinal.restrict {
+			val newTags = (baseTag.ordinal..baseTag.highOrdinal)
+				.filter { ordinal ->
+					val tag = TypeTag.tagFromOrdinal(ordinal)
+					!tag.isAbstract
+						&& containsValue(fromInt(ordinal))
+						&& value.restriction().intersectsType(tag.supremum)
 				}
-			when (existingValue)
-			{
-				null -> moveIntRegister(
-					unboxedIntConstant(baseTag.ordinal).semanticValue(),
-					intWrite(
-						tagOrdinal.semanticValues(),
-						intRestrictionForConstant(baseTag.ordinal)
-					).semanticValues())
-				else -> tagOrdinal.semanticValues().forEach { otherValue ->
-					if (!currentManifest.hasSemanticValue(otherValue))
-					{
-						moveIntRegister(existingValue, setOf(otherValue))
-					}
-				}
-			}
-			return
+			intRestrictionForType(
+				enumerationWith(setFromCollection(newTags.map(::fromInt))))
 		}
 		+this@L2_EXTRACT_TAG_ORDINAL
 	}

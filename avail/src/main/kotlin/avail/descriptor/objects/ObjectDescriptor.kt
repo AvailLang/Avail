@@ -204,7 +204,7 @@ class ObjectDescriptor internal constructor(
 		FIELD_VALUES_
 	}
 
-	public override fun allowsImmutableToMutableReferenceInField(
+	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = (e === HASH_AND_MORE
 		|| e === KIND
@@ -292,26 +292,47 @@ class ObjectDescriptor internal constructor(
 		// must be in corresponding positions because we share the same variant.
 		for (i in 1..self.variableObjectSlotsCount())
 		{
-			if (!self[FIELD_VALUES_, i]
-					.equals(anObject[FIELD_VALUES_, i]))
+			if (!self[FIELD_VALUES_, i].equals(anObject[FIELD_VALUES_, i]))
 				return false
 		}
 		// They're equal objects.
-		val kind = self[KIND].ifNil { anObject[KIND] }
 		if (!isShared)
 		{
-			if (anObject.descriptor.isShared)
-				anObject[KIND] = kind.makeShared()
-			else
-				anObject[KIND] = kind.makeImmutable()
+			// Indirect self to anObject.
+			if (anObject[KIND].isNil)
+			{
+				val selfKind = self[KIND]
+				if (selfKind.notNil)
+				{
+					anObject[KIND] =
+						if (anObject.descriptor.isShared) selfKind.makeShared()
+						else selfKind.makeImmutable()
+				}
+			}
 			self.becomeIndirectionTo(anObject)
+			self.makeImmutable()//TODO
+			return true
 		}
-		else if (!anObject.descriptor.isShared)
+		if (!anObject.descriptor.isShared)
 		{
-			// We tested it above, and the receiver wasn't shared.
-			self[KIND] = kind.makeImmutable()
+			// Indirect anObject to self.
+			if (self[KIND].isNil)
+			{
+				val otherKind = anObject[KIND]
+				if (otherKind.notNil)
+				{
+					self[KIND] =
+						if (isShared) otherKind.makeShared()
+						else otherKind.makeImmutable()
+				}
+			}
 			anObject.becomeIndirectionTo(self)
+			anObject.makeImmutable()//TODO
+			return true
 		}
+		// They're both shared, so we can't changed one to an indirection.
+		if (anObject[KIND].isNil) anObject[KIND] = self[KIND]
+		if (self[KIND].isNil) self[KIND] = anObject[KIND]
 		return true
 	}
 

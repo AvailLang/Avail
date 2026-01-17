@@ -36,7 +36,6 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
@@ -129,6 +128,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -188,7 +188,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 				"offset to continue dummy", intRestrictionForType(i32))
 			val tempRegisterDump = boxedWriteTemp(
 				"dump for dummy continuation",
-				boxedRestrictionForType(Types.ANY()))
+				boxedRestrictionForType(Types.OTHER_NONTYPE()))
 			// Since this is a dummy continuation being constructed, it can't
 			// become immutable or shared, so we don't have to worry about
 			// capturing any elided variable values.
@@ -206,16 +206,16 @@ class L2_VIRTUAL_CREATE_LABEL(
 			val tempCaller = boxedWrite(
 				setOf(topFrame.reifiedCaller()),
 				boxedRestrictionForType(mostGeneralContinuationType))
-			val tempFunction = boxedWrite(
-				setOf(topFrame.function()),
-				boxedRestrictionForType(mostGeneralFunctionType()))
+			val readCurrentFunction = currentFunction(
+				topFrame,
+				function.restriction().constantOrNull,
+				function.restriction().type)
 			val dummyContinuation = boxedWriteTemp(
 				"dummy continuation",
 				boxedRestrictionForType(mostGeneralContinuationType))
 			+L2_GET_CURRENT_CONTINUATION(tempCaller)
-			+L2_GET_CURRENT_FUNCTION(tempFunction)
 			+L2_CREATE_CONTINUATION(
-				readBoxed(tempFunction),
+				readCurrentFunction,
 				code,
 				readBoxed(tempCaller),
 				L2IntImmediateOperand(Int.MAX_VALUE),
@@ -255,7 +255,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 			"offset to continue", intRestrictionForType(i32))
 		val writeRegisterDump = boxedWriteTemp(
 			"dump for label",
-			boxedRestrictionForType(Types.ANY()))
+			boxedRestrictionForType(Types.OTHER_NONTYPE()))
 		+L2_SAVE_ALL_AND_PC_TO_INT(
 			ifFallThrough = edgeTo(fallThrough),
 			// Force there to be nothing considered live in the edge

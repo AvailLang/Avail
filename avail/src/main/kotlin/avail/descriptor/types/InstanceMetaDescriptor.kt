@@ -170,7 +170,7 @@ private constructor(
 	 * @return
 	 *   The most specific type that is a supertype of both self and `another`.
 	 */
-	public override fun computeUnionWith(
+	override fun computeUnionWith(
 		self: AvailObject,
 		another: A_Type
 	): A_Type = when

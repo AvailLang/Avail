@@ -284,7 +284,7 @@ internal class LinearMapBinDescriptor private constructor(
 						// Ensure destruction of the old object doesn't drag
 						// along anything shared, but don't go to the expense of
 						// marking anything in common as shared.
-						self.setToInvalidDescriptor()
+						self.destroy()
 					isMutable -> self.makeSubobjectsImmutable()
 				}
 				check(result)

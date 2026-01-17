@@ -482,7 +482,7 @@ class CompilerDiagnostics constructor(
 					!= '\n'.code)
 			{
 				unnumbered = unnumbered.appendCanDestroy(
-					fromCodePoint('\n'.code), true)
+					fromCodePoint('\n'.code), true, true)
 			}
 
 			// Insert line numbers...

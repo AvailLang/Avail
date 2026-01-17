@@ -142,14 +142,16 @@ private constructor(
 		BYTE_BUFFER
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val originalSize = self.tupleSize
 		val newElementStrong = newElement as AvailObject
-		if (originalSize < maximumCopySize && newElementStrong.isInt)
+		if (originalSize < maximumCopySize && newElementStrong.isUnsignedByte)
 		{
 			val intValue = newElementStrong.extractInt
 			if (intValue and 255.inv() == 0)

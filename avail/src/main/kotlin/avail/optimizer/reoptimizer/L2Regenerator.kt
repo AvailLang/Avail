@@ -170,10 +170,10 @@ constructor(
 		): L2SemanticValue<K> = oldSemanticValue
 
 		/**
-		 * Transform the given [L2SemanticValue] into another, for the purpose
-		 * of writing to it.  By default this does nothing, but for a subclass
-		 * that performs inlining, this can be useful for indicating that a
-		 * semantic value is for the inlined frame rather than outer frame.
+		 * Transform the given [L2SemanticValue] into another, to write to it.
+		 * By default this does nothing, but for a subclass that performs
+		 * inlining, this can be useful for indicating that a semantic value is
+		 * for the inlined frame rather than outer frame.
 		 *
 		 * @param oldSemanticValue
 		 *   The original [L2SemanticValue] from the source graph.
@@ -335,8 +335,7 @@ constructor(
 				operand.semanticValues().mapToSet {
 					mapWriteSemanticValue(it) as L2SemanticUnboxedInt
 				},
-				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask),
-				L2IntRegister(nextUnique()))
+				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask))
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
@@ -345,9 +344,8 @@ constructor(
 				operand.semanticValues().mapToSet {
 					mapWriteSemanticValue(it) as L2SemanticUnboxedFloat
 				},
-				operand.restriction().restrictingKindsTo(
-					UNBOXED_FLOAT_FLAG.mask),
-				L2FloatRegister(nextUnique()))
+				operand.restriction()
+					.restrictingKindsTo(UNBOXED_FLOAT_FLAG.mask))
 		}
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
@@ -482,7 +480,7 @@ constructor(
 	/**
 	 * Answer whether this [L2Generator] is allowed to collapse unconditional
 	 * jumps during code generation.  This is usually allowed, but the code
-	 * splitter disallows it to make the logic simpler.
+	 * splitter disallows it for simplicity.
 	 */
 	open val canCollapseUnconditionalJumps: Boolean get() = true
 
@@ -672,82 +670,102 @@ constructor(
 				}
 			}
 			submap.forEach { (_, targetBlock) ->
-				startBlock(targetBlock)
-				if (!currentlyReachable()) return@forEach
-				if (mode == BySemanticValue)
-				{
-					// Since the incoming edges in the old graph are the only
-					// place where a relevant manifest still exists, we take the
-					// intersection of the sets of semantic values that were
-					// present along these edges.  And in case we're removing
-					// dead code, narrow this to the semantic values that are
-					// live here.
-					val commonSemanticValues = currentManifest.synonymsArray()
-						.flatMapTo(mutableSetOf(), L2Synonym<*>::semanticValues)
-					val manifests = originalBlock.predecessorEdges()
-						.map(L2PcOperand::manifest)
-					manifests.forEach { m ->
-						commonSemanticValues.retainAll(m::hasSemanticValue)
-					}
-					// For each semantic value, determine all other semantic
-					// values that are in the same synonym with it in all
-					// predecessors.  We'll use that to reconstitute any
-					// synonyms that we may have missed in the new manifest.
-					val commonSynonyms = commonSemanticValues
-						.associateWithTo(mutableMapOf()) { sv ->
-							manifests
-								.map {
-									it.semanticValueToSynonym(sv)
-										.semanticValues()
-								}
-								.reduce(Set<L2SemanticValue<*>>::intersect)
-								.intersect(commonSemanticValues)
-						}
-					// Compute the union of the restrictions for each semantic
-					// value.  We'll use that to narrow the restrictions in the
-					// new manifest.
-					val commonRestrictions =
-						commonSemanticValues.associateWith { sv ->
-							manifests
-								.map { it.restrictionFor(sv) }
-								.reduce(TypeRestriction::union)
-						}
-					// To ease computation, keep only one representative of each
-					// synonymous set.  The sets are disjoint, and their members
-					// were synonymous in each predecessor, so that will cover
-					// all current synonyms.
-					val synonymRepresentatives =
-						mutableSetOf<L2SemanticValue<*>>()
-					commonSynonyms.forEach { sv, set ->
-						if (set.intersect(synonymRepresentatives).isEmpty())
-						{
-							// Only keep a candidate if it's in the current
-							// manifest, since we might be stripping dead code.
-							// Either at least one will be alive, or we don't
-							// need to preserve the synonym's information.
-							if (currentManifest.hasSemanticValue(sv))
-							{
-								synonymRepresentatives.add(sv)
-							}
-						}
-					}
-					// We now have one (live) representative from each common
-					// incoming synonym.  We can iterate over them to process
-					// the synonym merges and restrictions.
-					synonymRepresentatives.forEach { sv ->
-						assert(currentManifest.hasSemanticValue(sv))
-						commonSynonyms[sv]!!.forEach { otherSv ->
-							currentManifest.dynamicMergeExistingSemanticValues(
-								sv, otherSv)
-						}
-						currentManifest.updateRestriction(sv) {
-							commonRestrictions[sv]!!
-						}
-					}
-				}
-				originalBlock.instructions().forEach(::processInstruction)
+				processBlock(targetBlock, originalBlock)
 			}
 		}
+	}
+
+	/**
+	 * We're transforming a graph, and are currently populating the new
+	 * [targetBlock] corresponding to [originalBlock] in the original graph.
+	 * Produce equivalent code in the new block, taking into account any new
+	 * restrictions or available semantic values, since the new block may be
+	 * specialized by code splitting.
+	 *
+	 * @param targetBlock
+	 *   The new block being generated.
+	 * @param originalBlock
+	 *   The block from the original graph being transformed non-destructively.
+	 */
+	private fun processBlock(
+		targetBlock: L2BasicBlock,
+		originalBlock: L2BasicBlock)
+	{
+		startBlock(targetBlock)
+		if (!currentlyReachable()) return
+		if (mode == BySemanticValue)
+		{
+			// Since the incoming edges in the old graph are the only place
+			// where a relevant manifest still exists, we take the intersection
+			// of the sets of semantic values that were present along these
+			// edges.  And in case we're removing dead code, narrow this to the
+			// semantic values that are live here.
+			val commonSemanticValues = currentManifest.synonymsArray()
+				.flatMapTo(mutableSetOf(), L2Synonym<*>::semanticValues)
+			val manifests = originalBlock.predecessorEdges()
+				.map(L2PcOperand::manifest)
+			manifests.forEach { m ->
+				commonSemanticValues.retainAll(m::hasLiveSemanticValue)
+			}
+			// For each semantic value, determine all other semantic values that
+			// are in the same synonym with it in all predecessors.  We'll use
+			// that to reconstitute any synonyms that we may have missed in the
+			// new manifest.
+			val commonSynonyms = commonSemanticValues
+				.associateWithTo(mutableMapOf()) { sv ->
+					manifests
+						.map { m ->
+							m.semanticValueToSynonym(sv)
+								.semanticValues()
+								.filter(m::hasLiveSemanticValue)
+								.filter(currentManifest::hasLiveSemanticValue)
+								.toSet()
+						}
+						.reduce(Set<L2SemanticValue<*>>::intersect)
+						.intersect(commonSemanticValues)
+				}
+			// Compute the union of the restrictions for each semantic value.
+			// We'll use that to narrow the restrictions in the new manifest.
+			val commonRestrictions =
+				commonSemanticValues.associateWith { sv ->
+					manifests
+						.map { it.restrictionFor(sv) }
+						.reduce(TypeRestriction::union)
+				}
+			// To ease computation, keep only one representative of each
+			// synonymous set.  The sets are disjoint, and their members were
+			// synonymous in each predecessor, so that will cover all current
+			// synonyms.
+			val synonymRepresentatives =
+				mutableSetOf<L2SemanticValue<*>>()
+			commonSynonyms.forEach { sv, set ->
+				if (set.intersect(synonymRepresentatives).isEmpty())
+				{
+					// Only keep a candidate if it's in the current manifest,
+					// since we might be stripping dead code.  Either at least
+					// one will be alive, or we don't need to preserve the
+					// synonym's information.
+					if (currentManifest.hasLiveSemanticValue(sv))
+					{
+						synonymRepresentatives.add(sv)
+					}
+				}
+			}
+			// We now have one (live) representative from each common incoming
+			// synonym.  We can iterate over them to process the synonym merges
+			// and restrictions.
+			synonymRepresentatives.forEach { sv ->
+				assert(currentManifest.hasLiveSemanticValue(sv))
+				commonSynonyms[sv]!!.forEach { otherSv ->
+					currentManifest.dynamicMergeExistingSemanticValues(
+						sv, otherSv)
+				}
+				currentManifest.updateRestriction(sv) {
+					commonRestrictions[sv]!!
+				}
+			}
+		}
+		originalBlock.instructions().forEach(::processInstruction)
 	}
 
 	/**

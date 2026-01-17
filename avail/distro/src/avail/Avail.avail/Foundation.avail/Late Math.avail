@@ -69,7 +69,7 @@ Names
 	"π",
 
 	/* Compound assignment. */
-	"_↑+=_", "_+=_",
+	/*"_↑+=_", "_+=_", -- defined in Tuples for appending. */
 	"_↑-=_", "_-=_",
 	"_↑×=_", "_×=_",
 	"_↑÷=_", "_÷=_",
@@ -563,7 +563,7 @@ Stable method "log_of_" is
  * @raises "cannot-add-unlike-infinities exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  */
-Public method "_↑+=_" is
+Method "_↑+=_" is
 [
 	var : read number/write ⊥,
 	delta : number
@@ -572,7 +572,7 @@ Public method "_↑+=_" is
 ] : ⊤
 styled by statement styler;
 
-Alias "_+=_" to "_↑+=_";
+/*Alias "_+=_" to "_↑+=_";  -- already aliased in Tuples. */
 
 /**
  * Decrement the variable by {@param "delta"}.

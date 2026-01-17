@@ -217,15 +217,15 @@ import kotlin.reflect.jvm.javaField
  * In particular, [AbstractDescriptor] is abstract and has two children, the
  * class [Descriptor] and the class [IndirectionDescriptor], the latter of which
  * has no classes.  When a new operation is added in an ordinary descriptor
- * class (below `Descriptor`), it should be added with an `@Override`
- * annotation.  A quick fix on that error allows an implementation to be
- * generated in AbstractDescriptor, which should be converted manually to an
- * abstract method.  That will make both `Descriptor` and
- * `IndirectionDescriptor` (and all subclasses of `Descriptor` except the one in
- * which the new method first appeared) to indicate an error, in that they need
- * to implement this method.  A quick fix can add it to `Descriptor`, after
- * which it can be tweaked to indicate a runtime error.  Another quick fix adds
- * it to `IndirectionDescriptor`, and copying nearby implementations leads it to
+ * class (below `Descriptor`), it should be added with the `override` keyword. A
+ * quick fix on that error allows an implementation to be generated in
+ * AbstractDescriptor, which should be converted manually to an abstract method.
+ * That will make both `Descriptor` and `IndirectionDescriptor` (and all
+ * subclasses of `Descriptor` except the one in which the new method first
+ * appeared) to indicate an error, in that they need to implement this method.
+ * A quick fix can add it to `Descriptor`, after which it can be tweaked to
+ * indicate a runtime error.  Another quick fix adds it to
+ * `IndirectionDescriptor`, and copying nearby implementations leads it to
  * invoke the non "o_" method in [AvailObject].  This will show up as an error,
  * and one more quick fix can generate the corresponding method in `AvailObject`
  * whose implementation, like methods near it, extracts the
@@ -629,6 +629,38 @@ abstract class AbstractDescriptor protected constructor (
 	}
 
 	/**
+	 * Print the leading part of an [AvailObject], having this
+	 * [AbstractDescriptor], to the [StringBuilder].  In particular, show the
+	 * appropriate article (a/an), then the name of this descriptor class,
+	 * without the "Descriptor" suffix, followed by a Unicode character
+	 * indicating the descriptor's [Mutability].
+	 *
+	 * @param builder
+	 *   Where to print the object header.
+	 */
+	fun printObjectHeaderOn (
+		builder: StringBuilder
+	) = with(builder)
+	{
+		append('a')
+		val className = this@AbstractDescriptor.javaClass.simpleName
+		val shortenedName = className.substring(0, className.length - 10)
+		when (shortenedName.codePointAt(0))
+		{
+			'A'.code,
+			'E'.code,
+			'I'.code,
+			'O'.code,
+			'U'.code ->
+				append('n')
+			else -> { }
+		}
+		append(' ')
+		append(shortenedName)
+		append(mutability.suffix)
+	}
+
+	/**
 	 * Print the [object][AvailObject] to the [StringBuilder]. By default show
 	 * it as the descriptor's name and a line-by-line list of fields. If the
 	 * indent is beyond the [maximumIndent], indicate it's too deep without
@@ -652,30 +684,7 @@ abstract class AbstractDescriptor protected constructor (
 		indent: Int
 	) = with(builder)
 	{
-		append('a')
-		val className = this@AbstractDescriptor.javaClass.simpleName
-		val shortenedName = className.substring(0, className.length - 10)
-		when (shortenedName.codePointAt(0))
-		{
-			'A'.code,
-			'E'.code,
-			'I'.code,
-			'O'.code,
-			'U'.code ->
-				append('n')
-			else ->
-			{
-			}
-		}
-		append(' ')
-		append(shortenedName)
-		when
-		{
-			// Circled Latin capital letter M.
-			isMutable -> append('\u24C2')
-			// Circled Latin capital letter S.
-			isShared -> append('\u24C8')
-		}
+		printObjectHeaderOn(builder)
 		val cls = this@AbstractDescriptor.javaClass.cast()!!
 		val loader = cls.classLoader
 		var definitionCls = cls
@@ -690,7 +699,7 @@ abstract class AbstractDescriptor protected constructor (
 				intSlots = intEnumClass.enumConstants
 				break
 			}
-			catch (e: ClassNotFoundException)
+			catch (_: ClassNotFoundException)
 			{
 				if (definitionCls !== AbstractDescriptor::class.java)
 				{
@@ -3356,7 +3365,9 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 
 	abstract fun o_LazyIncompleteCaseInsensitive (self: AvailObject): A_Map
 
@@ -4251,8 +4262,9 @@ abstract class AbstractDescriptor protected constructor (
 		 *   The requested annotation or null.
 		 */
 		private fun <A : Annotation> getAnnotation (
-				enumConstant: Enum<out Enum<*>>,
-				annotationClass: Class<A>): A? =
+			enumConstant: Enum<out Enum<*>>,
+			annotationClass: Class<A>
+		): A? =
 			try
 			{
 				enumConstant.javaClass

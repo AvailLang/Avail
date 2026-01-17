@@ -51,7 +51,10 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.FLOAT_IMMEDIATE
  * @param value
  *   The constant `double` itself.
  */
-class L2FloatImmediateOperand constructor(val value: Double) : L2Operand()
+class L2FloatImmediateOperand
+constructor(
+	val value: Double
+) : L2Operand()
 {
 	override val operandType: L2OperandType get() = FLOAT_IMMEDIATE
 

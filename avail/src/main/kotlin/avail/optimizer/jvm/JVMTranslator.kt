@@ -232,7 +232,8 @@ class JVMTranslator constructor(
 	private val chunkName: String,
 	private val sourceFileName: String?,
 	private val controlFlowGraph: L2ControlFlowGraph,
-	private val instructions: List<L2Instruction>)
+	private val instructions: List<L2Instruction>,
+	private val instrumentBranches: Boolean)
 {
 	/**
 	 * The [ClassWriter] responsible for writing the [JVMChunk] subclass. The
@@ -1383,8 +1384,9 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Generate a branch, with associated counter tracking.  The generated Java
-	 * bytecodes have this form:
+	 * Generate a branch, with associated counter tracking if
+	 * [instrumentBranches] is true.  In that case, the generated Java bytecodes
+	 * have this form:
 	 *
 	 * * jump to notTakenStub if the given opcode's condition *fails*
 	 * * increment takenCounter
@@ -1415,14 +1417,23 @@ class JVMTranslator constructor(
 		notTakenCounter: LongAdder,
 		takenEdge: L2PcOperand)
 	{
-		val logNotTaken = Label()
-		method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken)
-		loadLiteralObject(method, takenCounter)
-		longAdderIncrement.generateCall(method)
-		jump(method, takenEdge)
-		method.visitLabel(logNotTaken)
-		loadLiteralObject(method, notTakenCounter)
-		longAdderIncrement.generateCall(method)
+		if (instrumentBranches)
+		{
+			// Ensure a passed LongAdder is updated by the branch.
+			val logNotTaken = Label()
+			method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken)
+			loadLiteralObject(method, takenCounter)
+			longAdderIncrement.generateCall(method)
+			jump(method, takenEdge)
+			method.visitLabel(logNotTaken)
+			loadLiteralObject(method, notTakenCounter)
+			longAdderIncrement.generateCall(method)
+		}
+		else
+		{
+			// Ignore the LongAdders.
+			method.visitJumpInsn(branchOpcode, labelFor(takenEdge.offset()))
+		}
 	}
 
 	/**

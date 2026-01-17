@@ -32,24 +32,36 @@
 package avail.descriptor.methods
 
 import avail.annotations.HideFieldJustForPrinting
+import avail.descriptor.atoms.A_Atom.Companion.issuingModule
+import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.methods.A_Method.Companion.bundles
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK
 import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.MODULE
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.allAncestors
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * An object instance of `MethodDefinitionDescriptor` represents a function in
@@ -96,6 +108,40 @@ class MethodDefinitionDescriptor private constructor(
 					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
 						== MODULE.ordinal)
 			}
+		}
+	}
+
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
+		indent: Int)
+	{
+		printObjectHeaderOn(builder)
+		with(builder)
+		{
+			append('(')
+			self[DEFINITION_METHOD].bundles
+				.sortedBy {
+					when (val module = it.message.issuingModule)
+					{
+						nil -> Int.MAX_VALUE
+						else -> module.allAncestors.setSize
+					}
+				}
+				.joinTo(this, " a.k.a. ") { it.message.toString() }
+			val code: A_RawFunction = self[BODY_BLOCK].code()
+			val module = code.module
+			if (module.notNil)
+			{
+				append(", ")
+				append(module.shortModuleNameNative)
+				append(':')
+				append(code.codeStartingLineNumber)
+			}
+			append(": ")
+			append(code.functionType())
+			append(")")
 		}
 	}
 

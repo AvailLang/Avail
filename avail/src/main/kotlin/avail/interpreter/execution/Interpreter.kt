@@ -279,8 +279,8 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Renderer(
-	text = "toString",
-	childrenArray = "nameForDebugger")
+	text = "nameForDebugger()",
+	childrenArray = "describeForDebugger()")
 class Interpreter(
 	@ReferencedInGeneratedCode
 	@JvmField
@@ -3065,6 +3065,7 @@ class Interpreter(
 											1, 50, false)
 										.appendCanDestroy(
 											fromCodePoint('…'.code),
+											true,
 											false)
 										as A_String)
 							}

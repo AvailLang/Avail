@@ -302,12 +302,7 @@ Method "`«↓_`»" is
  *          The requested list.
  * @category "Phrases" "Constructors"
  */
-Public method "`«<«_‡,»>`»" is
-[
-	aTuple : <<>, expression phrase⇒any…|whole number>
-|
-	aTuple → list phrase
-] : list phrase;
+Alias "`«<«_‡,»>`»" to atom for "_→list phrase";
 
 Semantic restriction "`«<«_‡,»>`»" is
 [

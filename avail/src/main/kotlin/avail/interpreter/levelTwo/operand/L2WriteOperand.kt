@@ -35,6 +35,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
@@ -209,10 +210,22 @@ constructor(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
+		if (manifest.caresAboutSemanticValues)
+		{
+			// Directly overwriting a semantic value is not allowed.
+			val alreadyLive =
+				semanticValues.filter(manifest::hasLiveSemanticValue)
+			assert(alreadyLive.isEmpty())
+			{
+				// Create more detail for debugging.
+				"The ${instruction}\ninstruction is attempting to overwrite " +
+					"these semantic values: $alreadyLive"
+			}
+		}
 		super.instructionWasAdded(manifest)
 		register().addDefinition(this)
-		manifest.recordDefinition(this)
 		manifest.removePostponedInstructionFor(this)
+		manifest.recordDefinition(this)
 	}
 
 	/**
@@ -278,7 +291,14 @@ constructor(
 
 	override fun transformEachWrite(
 		transformer: (L2WriteOperand<*>)->L2WriteOperand<*>
-	): L2WriteOperand<K> = transformer(this).cast()
+	): L2WriteOperand<K>
+	{
+		val transformed = transformer(this)
+		assert(transformed !== this) {
+			"Transformed write was identical to original (not allowed)"
+		}
+		return transformed.cast()
+	}
 
 	/**
 	 * Add the given [L2SemanticValue] to this write operand's set of semantic
@@ -291,6 +311,10 @@ constructor(
 	 */
 	fun retroactivelyIncludeSemanticValue(newSemanticValue: L2SemanticValue<K>)
 	{
+		// If we allowed phis to be retroactively updated, it wouldn't get
+		// rebuilt properly (i.e., to include the targetSemanticValues) on the
+		// next pass, since it ignores phis of the old graph.
+		assert(instruction !is L2_PHI<*>)
 		semanticValues += newSemanticValue
 	}
 

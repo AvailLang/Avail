@@ -137,7 +137,7 @@ Public method "Read and execute the next command" is
 		[
 			If "NUMBER" ∈ node's next nodes then
 			[
-				args ++= <canonicalToken→extended integer>;
+				args += canonicalToken→extended integer;
 				canonicalToken := "NUMBER";
 			];
 		]
@@ -149,7 +149,7 @@ Public method "Read and execute the next command" is
 			If "STRING" ∈ node's next nodes then
 			[
 				/* Take a slice that doesn't include the quotation marks. */
-				args ++= <commandToken[2..|commandToken|-1]>;
+				args += commandToken[2..|commandToken|-1];
 				canonicalToken := "STRING";
 			];
 		];

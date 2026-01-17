@@ -289,6 +289,21 @@ fun <T> MutableSet<T>.drain(): MutableSet<T>
 	return elements
 }
 
+/**
+ * If the receiver is not empty, invoke the supplied [body] function with the
+ * receiver as its argument.
+ *
+ * @param T
+ *   The element type of the receiver list.
+ * @param body
+ *   The function to invoke if the receiver is not empty.
+ */
+fun <T> Collection<T>.ifNotEmpty(body: (Collection<T>)->Unit)
+{
+	if (isNotEmpty())
+		body(this)
+}
+
 interface Tuple
 
 /** Tuple of length 1. */

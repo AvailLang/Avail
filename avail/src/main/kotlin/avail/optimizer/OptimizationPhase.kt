@@ -306,7 +306,7 @@ internal enum class OptimizationPhase constructor(
 	private val requiresFlags = mutableListOf<KClass<out StateFlag>>()
 
 	/** The [StateFlag]s that should already be clear as preconditions. */
-	private val requiresNotFlags= mutableListOf<KClass<out StateFlag>>()
+	private val requiresNotFlags = mutableListOf<KClass<out StateFlag>>()
 
 	/** The [StateFlag]s to set after this phase. */
 	private val setsFlags = mutableListOf<KClass<out StateFlag>>()

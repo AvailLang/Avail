@@ -62,6 +62,7 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

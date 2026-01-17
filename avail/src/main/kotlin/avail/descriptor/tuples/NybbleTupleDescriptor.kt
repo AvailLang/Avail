@@ -65,6 +65,8 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSi
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -192,10 +194,12 @@ private constructor(
 		return fields.toTypedArray()
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val strongNewElement = newElement as AvailObject
 		val originalSize = self.tupleSize
@@ -225,6 +229,23 @@ private constructor(
 				// Enlarge it in place, using the pad nybbles of the last long.
 				result = self
 				result.descriptor = descriptorFor(MUTABLE, newSize)
+			}
+			else if (canPad && isMutable && newSize >= minSubrangeSize)
+			{
+				// The fact that this is still mutable suggests that padding
+				// will be effective.  Add ~25% in padding.
+				val addedSize = (originalSize shr 2) + 64
+				val padded = newLike(
+					descriptorFor(MUTABLE, newSize),
+					self,
+					0,
+					min(
+						// Convert nybbles to longs.
+						addedSize shr 4,
+						Int.MAX_VALUE - self.variableObjectSlotsCount()))
+				setNybble(padded, newSize, longValue.toByte())
+				padded[HASH_OR_ZERO] = 0
+				return createSubrange(padded, 1, newSize)
 			}
 			else
 			{

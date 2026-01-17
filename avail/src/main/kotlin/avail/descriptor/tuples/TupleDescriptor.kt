@@ -57,6 +57,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.bitsPerEntry
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.dummyElement
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -72,6 +73,8 @@ import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFr
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TupleDescriptor.Companion.preToggle
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticAppendToTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticConcatenateTuples
@@ -100,6 +103,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
+import avail.utility.cast
 import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
 import java.util.IdentityHashMap
@@ -668,7 +672,9 @@ protected constructor(
 			return self
 		}
 		if (!canDestroy && isMutable) self.makeImmutable()
-		return SubrangeTupleDescriptor.createSubrange(self, start, size)
+		// Subclasses should have ensured this.
+		assert(size >= minSubrangeSize)
+		return createSubrange(self, start, size)
 	}
 
 	override fun o_DummyElement(self: AvailObject) = falseObject as AvailObject
@@ -919,6 +925,7 @@ protected constructor(
 	 * Programming, Vol. 2, 2<sup>nd</sup> ed., page 102, row 26</cite>. See
 	 * also pages 19, 20, theorems B and C. The period of this cycle is
 	 * 2<sup>30</sup>.
+	 * </html>
 	 *
 	 * To append an (n+1)<sup>st</sup> element to a tuple, one can compute
 	 * the new hash by adding
@@ -949,7 +956,6 @@ protected constructor(
 	 * @param end
 	 *   The last index of elements to hash.
 	 */
-	@Suppress("SpellCheckingInspection")
 	override fun o_ComputeHashFromTo(
 		self: AvailObject,
 		start: Int,
@@ -1194,10 +1200,12 @@ protected constructor(
 	 * must ensure that either the elements are marked immutable, or one of the
 	 * copies is not kept after the call.
 	 */
-	abstract override fun o_AppendCanDestroy(
+	abstract override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 
 	// TreeTupleDescriptor overrides this.
 	override fun o_TreeTupleLevel(self: AvailObject): Int = 0
@@ -1517,7 +1525,7 @@ protected constructor(
 		fun staticAppendToTuple(
 			inputTuple: A_Tuple,
 			elementToAppend: A_BasicObject
-		): A_Tuple = inputTuple.appendCanDestroy(elementToAppend, true)
+		): A_Tuple = inputTuple.appendCanDestroy(elementToAppend, true, true)
 
 		/** The [CheckedMethod] for [staticAppendToTuple]. */
 		val appendToTupleMethod = staticMethod(
@@ -1624,6 +1632,36 @@ protected constructor(
 			::staticTupleCodepointAt.name,
 			Int::class.javaPrimitiveType!!,
 			A_Tuple::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		/**
+		 * Answer the specified elements of the tuple as another tuple.
+		 *
+		 * @param tuple
+		 *   The tuple from which to extract a subtuple.
+		 * @param firstIndex
+		 *   Which element should be at the start of the subtuple.
+		 * @param lastIndex
+		 *   Which element should be at the end of the subtuple.
+		 * @return
+		 *   The subtuple.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticTupleCopyFromTo(
+			tuple: A_Tuple,
+			firstIndex: Int,
+			lastIndex: Int
+		): AvailObject =
+			tuple.copyTupleFromToCanDestroy(firstIndex, lastIndex, false).cast()
+
+		/** The [CheckedMethod] for [staticTupleCopyFromTo]. */
+		val tupleCopyFromToMethod = staticMethod(
+			TupleDescriptor::class.java,
+			::staticTupleCopyFromTo.name,
+			AvailObject::class.java,
+			A_Tuple::class.java,
+			Int::class.javaPrimitiveType!!,
 			Int::class.javaPrimitiveType!!)
 
 		/**

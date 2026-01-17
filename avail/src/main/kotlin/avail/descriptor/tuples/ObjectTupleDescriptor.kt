@@ -37,6 +37,7 @@ import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.isLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -60,11 +61,14 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.generateTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import kotlin.math.min
 
 /**
  * This is a representation for [tuples][TupleDescriptor] that can consist of
@@ -125,10 +129,12 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		TUPLE_AT_
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val originalSize = self.tupleSize
 		if (originalSize >= maximumCopySize)
@@ -144,6 +150,25 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			{
 				self.makeImmutable()
 			}
+		}
+		val newSize = originalSize + 1
+		if (canPad && isMutable && newSize >= minSubrangeSize)
+		{
+			// The fact that this is still mutable suggests that padding will be
+			// effective.  Add ~25% in padding.
+			val addedSize = min(
+				(originalSize shr 2) + 10,
+				Int.MAX_VALUE - self.variableObjectSlotsCount())
+			val padded = newLike(
+				mutable,
+				self,
+				addedSize,
+				0)
+			padded[TUPLE_AT_, newSize] = newElement
+			padded.fillSlots(
+				TUPLE_AT_, newSize + 1, addedSize - 1, zero)
+			padded[HASH_OR_ZERO] = 0
+			return createSubrange(padded, 1, newSize)
 		}
 		val newTuple = newLike(mutable, self, 1, 0)
 		newTuple[TUPLE_AT_, originalSize + 1] = newElement

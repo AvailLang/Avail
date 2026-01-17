@@ -356,9 +356,8 @@ enum class NumericComparator(
 		).map(TypeRestriction::forUnboxedInt)
 		when
 		{
-			currentManifest.semanticValueToSynonym(int1Reg.semanticValue()) ==
-				currentManifest.semanticValueToSynonym(
-					int2Reg.semanticValue()) ->
+			currentManifest.isEquivalentSemanticValue(
+				int1Reg.semanticValue(), int2Reg.semanticValue()) ->
 			{
 				jumpTo(
 					(if (reflexive) ifTrue else ifFalse).targetBlock())

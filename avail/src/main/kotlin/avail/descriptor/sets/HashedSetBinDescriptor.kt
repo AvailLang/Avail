@@ -704,7 +704,8 @@ class HashedSetBinDescriptor private constructor(
 			level: Int,
 			size: Int,
 			generator: (Int)->A_BasicObject
-		): AvailObject {
+		): AvailObject
+		{
 			// First, group the elements by the relevant 6 bits of hash.
 			val groups = arrayOfNulls<MutableList<A_BasicObject>>(64)
 			val shift = 6 * level
@@ -750,7 +751,8 @@ class HashedSetBinDescriptor private constructor(
 			var written = 0
 			var hash = 0
 			var totalCount = 0
-			for (binIndex in 0..63) {
+			for (binIndex in 0..63)
+			{
 				groups[binIndex]?.let { group ->
 					val childBin = generateSetBinFrom(level + 1, group.size) {
 						group[it - 1]
@@ -758,7 +760,8 @@ class HashedSetBinDescriptor private constructor(
 					totalCount += childBin.setBinSize
 					hash += childBin.setBinHash
 					hashedBin[BIN_ELEMENT_AT_, ++written] = childBin
-					groups[binIndex] = null  // Allow GC to clean it up early.
+					// Allow GC to clean it up early.
+					groups[binIndex] = null
 				}
 			}
 			if (hashedBin.setBinSize == 1)

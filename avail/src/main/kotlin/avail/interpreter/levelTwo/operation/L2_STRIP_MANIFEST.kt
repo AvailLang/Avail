@@ -84,12 +84,13 @@ class L2_STRIP_MANIFEST(
 {
 	/**
 	 * Prevent this instruction from being removed, because it constrains the
-	 * manifest along a back-edge, even after optimization.
+	 * manifest (sometimes along a back-edge), even after optimization.
 	 */
 	override val hasSideEffect get() = true
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

@@ -75,7 +75,7 @@ delimited stream's head method is
 	rest : stream := aStream's decorated stream;
 	Until rest is empty ∨ rest starts with aStream's delimiter do
 	[
-		head ++= <rest's head>;
+		head += rest's head;
 		rest := eject rest's tail;
 	];
 	head
@@ -156,7 +156,7 @@ multiply delimited stream's head method is
 		[rest starts with delimiter]
 	do
 	[
-		head ++= <rest's head>;
+		head += rest's head;
 		rest := eject rest's tail;
 	];
 	head

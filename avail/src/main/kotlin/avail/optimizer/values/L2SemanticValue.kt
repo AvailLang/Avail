@@ -42,6 +42,7 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.optimizer.L2ValueManifest
+import avail.utility.cast
 import avail.utility.ifZero
 import avail.utility.notNullAnd
 
@@ -235,8 +236,8 @@ protected constructor(
 		 */
 		fun primitiveInvocation(
 			primitive: Primitive,
-			argumentSemanticValues: List<L2SemanticBoxedValue>
-		): L2SemanticPrimitiveInvocation =
-			L2SemanticPrimitiveInvocation(primitive, argumentSemanticValues)
+			argumentSemanticValues: List<L2SemanticValue<BOXED_KIND>>
+		) = L2SemanticPrimitiveInvocation(
+			primitive, argumentSemanticValues.cast())
 	}
 }

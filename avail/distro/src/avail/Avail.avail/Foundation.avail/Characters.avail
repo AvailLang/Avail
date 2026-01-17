@@ -226,8 +226,8 @@ names, categories ::=
 			value, category, name ::= triple;
 			Assert: value = i - 1 (
 				"Character types were not consecutively numbered");
-			tempNames ++= <name>;
-			tempCategories ++= <category>;
+			tempNames += name;
+			tempCategories += category;
 		];
 		<tempNames, tempCategories>
 	]();

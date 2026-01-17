@@ -50,7 +50,9 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
+import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -185,26 +187,10 @@ interface L2GeneratorInterface
 	fun addInstruction(instruction: L2Instruction)
 
 	/**
-	 * Add an [L2ConditionalJump] instruction, but if all but one of the edges
-	 * contains an impossible restriction, replace it immediately with an
-	 * unconditional jump along the remaining edge.
-	 *
-	 * Note that this is an overload of the version taking an arbitrary
-	 * [L2Instruction], so use an up or down cast at a call site if you want to
-	 * override the behavior.
-	 */
-	fun addInstruction(instruction: L2ConditionalJump)
-
-	/**
 	 * A convenience operation.  When an [L2GeneratorInterface] is in scope as a
 	 * receiver, the unary "+" will add a provided instruction.
 	 */
 	operator fun L2Instruction.unaryPlus() = addInstruction(this)
-
-	/**
-	 * Overridden convenience method for conditional jumps.
-	 */
-	operator fun L2ConditionalJump.unaryPlus() = addInstruction(this)
 
 	/** Add an instruction that's not supposed to be reachable at runtime. */
 	fun addUnreachableCode()
@@ -269,6 +255,39 @@ interface L2GeneratorInterface
 	fun moveIntRegister(
 		sourceSemanticValue: L2SemanticValue<INTEGER_KIND>,
 		targetSemanticValues: Iterable<L2SemanticValue<INTEGER_KIND>>)
+
+	/**
+	 * Write instructions to extract the current function, and answer an
+	 * [L2ReadBoxedOperand] for the register that will hold the function
+	 * afterward.
+	 */
+	@Override
+	fun currentFunction(
+		frame: Frame,
+		exactFunctionOrNull: A_Function?,
+		functionType: A_Type
+	): L2ReadBoxedOperand
+	{
+		val semanticFunction = frame.function()
+		if (currentManifest.hasSemanticValue(semanticFunction))
+		{
+			// Note the current function can't ever be an int or float.
+			return readBoxed(semanticFunction)
+		}
+		// We have to get it into a register.
+		if (exactFunctionOrNull !== null)
+		{
+			// The exact function is known.
+			return boxedConstant(exactFunctionOrNull)
+		}
+		// The exact function isn't known, but we know the raw function, so
+		// we statically know the function type.
+		val restriction = boxedRestrictionForType(functionType)
+		val functionWrite = boxedWrite(semanticFunction, restriction)
+		+L2_GET_CURRENT_FUNCTION(functionWrite)
+		return readBoxed(functionWrite)
+	}
+
 
 	/**
 	 * Cause a tuple to be constructed from the given [L2ReadBoxedOperand]s.
@@ -661,11 +680,10 @@ interface L2GeneratorInterface
 	 *   Where to go if the register's value does not equal the constant.
 	 */
 	fun jumpIfEqualsConstant(
-		registerToTest: L2ReadBoxedOperand,
+		readToTest: L2ReadBoxedOperand,
 		constantValue: A_BasicObject,
 		passBlock: L2BasicBlock,
-		failBlock: L2BasicBlock
-	)
+		failBlock: L2BasicBlock)
 
 	/**
 	 * Generate code to test the value in `valueRead` against the constant

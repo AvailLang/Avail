@@ -171,7 +171,7 @@ is
 					[
 						s : nonempty string
 					|
-						keyDecls ++= <⟦⦊‘s’⦉ is a new localization key;⟧>;
+						keyDecls += ⟦⦊‘s’⦉ is a new localization key;⟧;
 						atom for s
 					]’,      /* field name */
 				‘valueType’, /* field value */

@@ -395,7 +395,7 @@ is
 		While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
 		digits ::= source[start..i-1];
 		Exit body with ∅ if digits is empty;
-		cast digits into [s : Arabic numeral+ | s]
+		digits ?→ Arabic numeral+
 	];
 
 	// A digit group matches regex: /[0-9]+(_[0-9]+)*/

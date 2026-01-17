@@ -60,6 +60,7 @@ class L2_UNBOX_INT(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -74,6 +75,8 @@ class L2_UNBOX_INT(
 		destination.restrict { source.restriction().forUnboxedInt() }
 		super.instructionWasAdded(manifest)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

@@ -38,6 +38,8 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
+import avail.utility.notNullAnd
 import java.util.Collections
 
 /**
@@ -111,6 +113,7 @@ internal class DeadCodeAnalyzer constructor(
 			block.successorEdges().forEach {
 				neededEntities.addAll(edgeNeeds[it]!!)
 			}
+			assert(neededEntities.none { it == null} ) //TODO Romeve - kotlin type problem.
 			val predecessorCount = block.predecessorEdges().size
 			val instructions = block.instructions()
 			var index = instructions.size
@@ -144,6 +147,7 @@ internal class DeadCodeAnalyzer constructor(
 					{
 						dropInstruction = true
 					}
+					assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 				}
 				if (neededEntities.removeAll(
 						dataCouplingMode.writeEntitiesOf(instruction))
@@ -154,9 +158,11 @@ internal class DeadCodeAnalyzer constructor(
 						liveInstructions.add(instruction)
 						neededEntities.addAll(
 							dataCouplingMode.readEntitiesOf(instruction))
+						assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 					}
 				}
 			}
+			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 			assert(block.predecessorEdges().isNotEmpty()
 				|| neededEntities.isEmpty())
 			{
@@ -168,6 +174,8 @@ internal class DeadCodeAnalyzer constructor(
 				if (it == 0) neededEntities
 				else neededEntities.toMutableSet()
 			}
+			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
+			assert(entitiesByPredecessor.all { s -> s.none { it == null } }) //TODO Remove – Kotlin type weakness
 			// Customize
 			while (index >= 0)
 			{
@@ -187,34 +195,43 @@ internal class DeadCodeAnalyzer constructor(
 							readOperand, entities)
 						entities.addAll(
 							dataCouplingMode.readEntitiesOf(readOperand))
+						assert(entities.none { it == null }) // TODO – Remove, Kotlin type weakness.
 					}
 				}
 				index--
 			}
+			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 			block.predecessorEdges()
 				.zip(entitiesByPredecessor)
 				.forEach { (edge, needed) ->
 					// Some semantic constants get added to synonyms along edges
-					// with no instruction being the apparent cause.  That's
-					// due to a branching type test upstream.  If the downstream
-					// needs the constants, assume at least one other element of
-					// the synonym will be needed upstream to continue making it
-					// available.  Pick one, preferrably one that's needed
-					// downstream anyhow.
+					// with no instruction being the apparent cause.  That's due
+					// to a branching type test upstream.  If the downstream
+					// needs a semantic value but it has no definition, check if
+					// any equivalent (synonymous) semantic value has a
+					// definition. If so, replace the needed value with an
+					// equivalent that has a definition.
 					val manifest = edge.manifest()
 					needed
 						.filterIsInstance<L2SemanticValue<*>>()
-						.filter(L2SemanticValue<*>::isConstant)
-						.forEach { semanticConstant ->
-							if (manifest.getDefinitions(semanticConstant)
-									.isEmpty())
+						.toList()  // Copy to avoid concurrent modification
+						.forEach { semanticValue ->
+							val equivalent = manifest
+								.equivalentPopulatedSemanticValue(semanticValue)
+							if (equivalent.notNullAnd { this != semanticValue })
 							{
-								// The semantic constant is not listed as a
-								// target of any writes.
-								needed.remove(semanticConstant)
+								needed.remove(semanticValue)
+								needed.add(equivalent.cast())
+							}
+							else if (semanticValue.isConstant)
+							{
+								// The semantic constant has no equivalent
+								// with a definition. Remove it from needed.
+								needed.remove(semanticValue)
 							}
 						}
 				}
+			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 			block.predecessorEdges()
 				.zip(entitiesByPredecessor)
 				.forEach { (edge, needed) ->
@@ -222,6 +239,10 @@ internal class DeadCodeAnalyzer constructor(
 					if (!edge.isBackward)
 					{
 						// No need to copy it, as it won't be modified again.
+
+						// TODO - remove check for Kotlin type analysis weakness.
+						assert(needed.none { it == null })
+
 						edgeNeeds[edge] = needed
 					}
 				}

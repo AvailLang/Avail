@@ -34,6 +34,9 @@ package avail.interpreter.primitive.privatehelpers
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -88,6 +91,12 @@ object P_GetGlobalVariableValue : Primitive(
 	 * We can't express that yet, so we allow any function.
 	 */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
+
+	override fun checkSpecialForm(
+		numArgs: Int,
+		literals: A_Tuple
+	): Boolean = literals.tupleSize >= 1 &&
+		literals.tupleAt(1).isInitializedWriteOnceVariable
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

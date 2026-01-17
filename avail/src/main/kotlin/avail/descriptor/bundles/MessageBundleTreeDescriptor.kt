@@ -1001,7 +1001,7 @@ class MessageBundleTreeDescriptor private constructor(
 						newTarget.addPlanInProgress(
 							newPlanInProgress(plan, pc + 1)
 						)
-						successors.appendCanDestroy(newTarget, true)
+						successors.appendCanDestroy(newTarget, false, true)
 					}
 				// We added it to the actions, so don't fall through.
 				return
@@ -1015,7 +1015,7 @@ class MessageBundleTreeDescriptor private constructor(
 				val planInProgress = newPlanInProgress(plan, pc + 1)
 				val pair = tuple(phraseType, planInProgress)
 				lazyTypeFilterPairsTuple = lazyTypeFilterPairsTuple
-					.appendCanDestroy(pair, true)
+					.appendCanDestroy(pair, false, true)
 				// The new tuple size will be detected after all the updates.
 				return
 			}

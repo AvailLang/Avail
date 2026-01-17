@@ -272,13 +272,14 @@ protected constructor(
 			{
 				// Phi instructions are constructed with the incoming registers
 				// already set up.  Because otherwise the generator wouldn't be
-				// able to
+				// able to.
 				assert(registerOrNull != null)
 			}
 			else
 			{
 				registerOrNull =
-					generator.currentManifest.getDefinition(semanticValue)
+					generator.currentManifest.getDefinitionOrNull(semanticValue)
+				restrict { generator.restrictionFor(semanticValue) }
 			}
 		}
 		else

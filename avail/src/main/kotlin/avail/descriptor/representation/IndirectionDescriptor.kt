@@ -2968,8 +2968,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_AppendCanDestroy(
 		self: AvailObject,
 		newElement: A_BasicObject,
+		canPad: Boolean,
 		canDestroy: Boolean
-	): A_Tuple = self { appendCanDestroy(newElement, canDestroy) }
+	): A_Tuple = self { appendCanDestroy(newElement, canPad, canDestroy) }
 
 	override fun o_LazyIncompleteCaseInsensitive(
 		self: AvailObject

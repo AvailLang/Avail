@@ -82,6 +82,7 @@ class L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

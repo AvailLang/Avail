@@ -50,7 +50,10 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
  * @param comment
  *   The comment string.
  */
-class L2CommentOperand constructor(val comment: String) : L2Operand()
+class L2CommentOperand
+constructor(
+	val comment: String
+) : L2Operand()
 {
 	override val operandType: L2OperandType get() = COMMENT
 

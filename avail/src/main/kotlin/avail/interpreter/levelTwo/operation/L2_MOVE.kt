@@ -130,6 +130,7 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -139,20 +140,30 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			// Assume propagation of nil into a new semantic value will be
 			// both successful and uninteresting.
 			val tempDest = destination.run {
-				buildString { appendWithWarningsTo(0) { } }
+				buildString {
+					appendWithWarningsTo(0, ignoreMisconnections) { }
+				}
 			}
 			append(tempDest.truncateTo(30))
 			append(" ← ")
 			val tempSource = source.run {
-				buildString { appendWithWarningsTo(0) { } }
+				buildString {
+					appendWithWarningsTo(0, ignoreMisconnections) { }
+				}
 			}
 			append(tempSource.truncateTo(20))
 		}
 		else
 		{
-			destination.run { appendWithWarningsTo(0, warningStyleChange) }
+			destination.run {
+				appendWithWarningsTo(
+					0, ignoreMisconnections, warningStyleChange)
+			}
 			append(" ← ")
-			source.run { appendWithWarningsTo(0, warningStyleChange) }
+			source.run {
+				appendWithWarningsTo(
+					0, ignoreMisconnections, warningStyleChange)
+			}
 		}
 	}
 
@@ -169,11 +180,12 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			if (definingInstruction.basicBlock() == currentBlock()
 				&& definingInstruction !is L2_PHI<*>)
 			{
+				+L2_NOP("transformed move: $this@L2_MOVE")
 				// It was defined in the current block.  Augment the write.
 				// Note that phis don't count, since regeneration ignores them
 				// in BySemanticValue mode, regenerating them afresh.
 				destination.semanticValues().forEach { newSemanticValue ->
-					if (!currentManifest.hasSemanticValue(newSemanticValue))
+					if (!currentManifest.hasLiveSemanticValue(newSemanticValue))
 					{
 						definingWrite.retroactivelyIncludeSemanticValue(
 							newSemanticValue)
@@ -196,30 +208,63 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 	 */
 	override fun L2ValueManifest.rewritePostponed(): Boolean
 	{
+		val postponedCount1 = postponedInstructions().size //TODO Remove
 		val sourceValue = source.semanticValue()
-		val sourceInstruction = postponedInstructions()[sourceValue]
-		if (sourceInstruction != null)
-		{
+		postponedInstructions()[sourceValue]?.let { sourceInstruction ->
 			// Extend the relevant write in sourceInstruction to include this
 			// move's destination.
+			check()  //TODO Remove – detects modification.
 			val clone = sourceInstruction.transformEachWrite { write ->
+				var newValues = write.semanticValues()
 				if (sourceValue in write.semanticValues())
 				{
 					// Include the move destination in the sourceInstruction's
 					// write operand.
-					write.kind.createWrite(
-						(write.semanticValues() + destination.semanticValues())
-							.cast(),
-						write.restriction())
+					newValues += destination.semanticValues()
 				}
-				else
-				{
-					write
-				}
+				write.kind.createWrite(newValues.cast(), write.restriction())
 			}
+			check()  //TODO Remove – detects modification.
 			removePostponedSourceInstruction(this@L2_MOVE)
+			check()  //TODO Remove – detects modification.
 			removePostponedSourceInstruction(sourceInstruction)
+			check()  //TODO Remove – detects modification.
 			recordPostponedInstruction(clone)
+			check()  //TODO Remove – detects modification.
+			return true
+		}
+		val postponedCount2 = postponedInstructions().size //TODO Remove
+		val oldRestriction = source.restriction()
+		var newRestriction =
+			oldRestriction.intersection(destination.restriction())
+		equivalentSemanticValue(sourceValue)?.let {
+			newRestriction = newRestriction.intersection(restrictionFor(it))
+		}
+		destination.semanticValues().forEach { sv ->
+			equivalentSemanticValue(sv)?.let { eq ->
+				newRestriction = newRestriction.intersection(restrictionFor(eq))
+			}
+		}
+		val postponedCount3 = postponedInstructions().size //TODO Remove
+		if (newRestriction != oldRestriction)
+		{
+			check()  //TODO Remove – detects modification.
+			val clone = clone() as L2_MOVE<K>
+			clone.source.restrict { newRestriction }
+			clone.destination.restrict { newRestriction }
+			// ONLY update the manifest's restriction for the source.  This may
+			// seem counterintuitive, but it avoids some problems related to the
+			// invariant that a manifest can only have one synonym constrained
+			// to a particular constant.
+			setRestriction(clone.source.semanticValue(), newRestriction)
+			// Setting the restriction to a constant may have just removed the
+			// postponed move instruction.  If not, replace it with the clone.
+			if (destination.semanticValues()
+				.any(postponedInstructions()::containsKey))
+			{
+				removePostponedSourceInstruction(this@L2_MOVE)
+				recordPostponedInstruction(clone)
+			}
 			return true
 		}
 		return false

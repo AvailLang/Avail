@@ -1,5 +1,7 @@
 # Variable Elision
 
+## ***Note: This is not exactly what was implemented.***
+
 Continuations can have the constant `0` as a sentinel in variable slots to indicate they haven't been populated yet.  L2 registers that would hold those same slots can contain `0` to indicate the same condition.  When reifying a continuation from registers, those nils can usually be conserved.  However, the moment a continuation *becomes immutable or shared*,
 1. those variables have to be created and written to the slots, and
 2. the continuation has to be downgraded to another path to handle potentially escaped variables.

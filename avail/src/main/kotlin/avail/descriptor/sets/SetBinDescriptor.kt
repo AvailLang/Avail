@@ -140,7 +140,8 @@ abstract class SetBinDescriptor protected constructor(
 	): A_SetBin
 
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Generate a bin at the requested level with values produced by [size]
 		 * invocations of the [generator].

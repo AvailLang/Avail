@@ -262,6 +262,12 @@ constructor (
 	 * related [L2SemanticValue]s are populated with values from the given
 	 * sources.
 	 *
+	 * If there is already an [L2Register] common to all incoming edges'
+	 * manifests (and [forcePhiCreation] is false), we can avoid the [L2_PHI]
+	 * and instead use that register, moving the value into any semantic values
+	 * in [relatedSemanticValues] that aren't already covered in all incoming
+	 * edges.
+	 *
 	 * @receiver
 	 *   The [L2GeneratorInterface] on which to write instructions.
 	 * @param relatedSemanticValues
@@ -293,110 +299,90 @@ constructor (
 		val registers = sourceManifests
 			.map { m -> m.getDefinitions(pickSemanticValue).toSet() }
 			.reduce(Set<L2Register<Self>>::intersect)
+		if (registers.isNotEmpty() && !forcePhiCreation)
+		{
+			// There's at least one register common to all inputs, and the phi
+			// creation isn't forced.  There should be at least one semantic
+			// value in common along each input.  First update the manifest to
+			// make the register(s) and the semantic values visible.
+			currentManifest.introduceSynonym(
+				L2Synonym(relatedSemanticValues), typeRestriction)
+			currentManifest.updateDefinitions(pickSemanticValue) {
+				plus(registers)
+			}
+			return
+		}
 		val (inSynonym, notInSynonym) = relatedSemanticValuesSet
 			.partition(currentManifest::hasSemanticValue)
+		assert(inSynonym.isEmpty()) //TODO Is this a valid invariant?
 		val existingSynonyms = inSynonym
 			.mapToSet(transform = currentManifest::semanticValueToSynonym)
-		if (existingSynonyms.isNotEmpty())
+		if (registers.isNotEmpty() && !forcePhiCreation)
 		{
-			// There's at least one synonym.  Merge them, then add any new
-			// semantic values.
-			val pick = existingSynonyms.first().pickSemanticValue()
-			existingSynonyms.forEach {
-				currentManifest.mergeExistingSemanticValues(
-					pick, it.pickSemanticValue())
-			}
-			notInSynonym.forEach {
-				currentManifest.extendSynonym(
-					currentManifest.semanticValueToSynonym(pick), it)
-			}
-		}
-		else
-		{
-			// None of the semantic values is in a synonym yet, so create it in
-			// one step.
-			val restriction = sourceManifests
-				.map { m -> m.restrictionFor(pickSemanticValue) }
-				.reduce(TypeRestriction::union)
-				.intersection(typeRestriction)
-			currentManifest.introduceSynonym(
-				L2Synonym(relatedSemanticValues), restriction)
-		}
-		when
-		{
-			registers.isNotEmpty() && !forcePhiCreation ->
+			// There's at least one register common to all inputs, and the phi
+			// isn't forced.  First, merge the relevant synonyms, since they
+			// represent the same value.
+			if (existingSynonyms.size > 1)
 			{
-				// At least one register is common to all predecessors.  Expose
-				// them all directly.  The updateConstraint() works whether the
-				// synonym exists yet or not.
-				currentManifest.updateDefinitions(pickSemanticValue) {
-					this + registers
-				}
-				// Remove any postponed instructions that the common register
-				// was able to supply already.
-				currentManifest.removePostponedInstructionFor(pickSemanticValue)
-				// If any semantic value is in the situation that none of the
-				// common incoming registers has a definition that populates it,
-				// we'll need to introduce a move to ensure that semantic value
-				// has a visible definition point.
-				val valuesSetInRegisters = registers
-					.map { r -> r.definition().semanticValues() }
-					.reduce(Set<L2SemanticValue<Self>>::intersect)
-				val valuesNotSetInRegisters =
-					relatedSemanticValuesSet - valuesSetInRegisters
-				if (valuesNotSetInRegisters.isNotEmpty())
-				{
-					// Indeed, these semantic values have no visible writes in
-					// all historiess.  Move to them.
-					moveRegister(pickSemanticValue, valuesNotSetInRegisters)
-				}
-			}
-			else ->
-			{
-				// None of the registers was present in all incoming edges.
-				// Introduce a phi function to get it into a new register for
-				// the required synonym.
-				val sources = sourceManifests.map { man ->
-					readOperand(
-						pickSemanticValue,
-						man.restrictionFor(pickSemanticValue),
-						man.getDefinition(pickSemanticValue))
-				}
-				+createPhi(
-					createVector(sources),
-					createWrite(setOf(pickSemanticValue), typeRestriction))
-				if (relatedSemanticValuesSet.size > 1)
-				{
-					// Note: Subsequent phis will be inserted before moves like
-					// this.
-					moveRegister(
-						pickSemanticValue,
-						relatedSemanticValuesSet - pickSemanticValue)
-				}
-			}
-		}
-		typeRestriction.constantOrNull?.let { constant ->
-			// The value is constrained down to a constant, so make sure the
-			// semantic constant with that value (and kind) is in the new
-			// synonym. Either it's already present, it neeeds to be added to
-			// the new synonym, or an existing synonym containing it has to be
-			// merged with the new synonym.
-			val semanticConstant = createSemanticConstant(constant)
-			when
-			{
-				// Already in the new synonym.
-				semanticConstant in relatedSemanticValues -> { }
-				// Already in the manifest for another synonym.  Merge them.
-				currentManifest.hasSemanticValue(semanticConstant) ->
+				val pick = existingSynonyms.first().pickSemanticValue()
+				existingSynonyms.forEach {
 					currentManifest.mergeExistingSemanticValues(
-						pickSemanticValue, semanticConstant)
-				// Not yet in the manifest.  Augment the new synonym.
-				else -> currentManifest.extendSynonym(
-					currentManifest.semanticValueToSynonym(pickSemanticValue),
-					semanticConstant)
+						pick, it.pickSemanticValue())
+				}
 			}
+			if (notInSynonym.isNotEmpty())
+			{
+				// Move into any semantic values not already covered.
+				moveRegister(pickSemanticValue, notInSynonym)
+			}
+			else if (registers.isEmpty())
+			{
+				// There are no applicable registers that were in common along
+				// all incoming edges, so introduce an artificial move (to a
+				// dummy semantic value) to ensure there is a visible definition
+				// point (i.e., a visible register).
+				moveRegister(pickSemanticValue, setOf(createSemanticDummy(this)))
+			}
+			// Remove any postponed instructions that the common register was
+			// able to supply already.
+			currentManifest.removePostponedInstructionFor(pickSemanticValue)
+
+			//TODO Remove
+			//		typeRestriction.constantOrNull?.let { constant ->
+			//			// The value is constrained down to a constant, so make sure the
+			//			// semantic constant with that value (and kind) is in the new
+			//			// synonym. Either it's already present, it neeeds to be added to
+			//			// the new synonym, or an existing synonym containing it has to be
+			//			// merged with the new synonym.
+			//			val semanticConstant = createSemanticConstant(constant)
+			//			when
+			//			{
+			//				// Already in the new synonym.
+			//				semanticConstant in relatedSemanticValuesSet -> { }
+			//				// Already in the manifest for another synonym.  Merge them.
+			//				currentManifest.hasSemanticValue(semanticConstant) ->
+			//					currentManifest.mergeExistingSemanticValues(
+			//						pickSemanticValue, semanticConstant)
+			//				// Not yet in the manifest.  Augment the new synonym.
+			//				else -> currentManifest.extendSynonym(
+			//					currentManifest.semanticValueToSynonym(pickSemanticValue),
+			//					semanticConstant)
+			//			}
+			//		}
+			currentManifest.check()
+			return
 		}
-		currentManifest.check()
+		// Create a phi instruction, because we don't have the value in a
+		// common register in all inputs – or because the phi is forced.
+		val sources = sourceManifests.map { man ->
+			readOperand(
+				pickSemanticValue,
+				man.restrictionFor(pickSemanticValue),
+				man.getDefinition(pickSemanticValue))
+		}
+		+createPhi(
+			createVector(sources),
+			createWrite(relatedSemanticValuesSet, typeRestriction))
 	}
 
 	/**

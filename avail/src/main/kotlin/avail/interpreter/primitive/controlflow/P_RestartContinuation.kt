@@ -130,10 +130,7 @@ object P_RestartContinuation : Primitive(
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
-			val numArgs = code.numArgs()
-			val indices = 0 ..< numArgs
-			generateRestartContinuation(
-				indices.map { readSlot(it + 1) })
+			generateRestartContinuation((1..code.numArgs()).map(::readSlot))
 			return true
 		}
 

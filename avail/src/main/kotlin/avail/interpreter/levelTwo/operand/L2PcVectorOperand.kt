@@ -54,7 +54,8 @@ import avail.utility.cast
  * @param edges
  *   The list of [L2PcOperand]s.
  */
-class L2PcVectorOperand constructor(
+class L2PcVectorOperand
+constructor(
 	val edges: List<L2PcOperand>)
 : L2Operand()
 {

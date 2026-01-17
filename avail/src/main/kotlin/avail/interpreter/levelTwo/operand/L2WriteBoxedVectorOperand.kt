@@ -156,7 +156,8 @@ constructor(
 		for (write in elements)
 		{
 			if (!first) append(",")
-			if (big) append("\n\t\t") else append (" ")
+			if (big) append("\n\t\t")
+			else if (!first) append (" ")
 			append(write.registerString())
 			first = false
 		}
@@ -181,7 +182,7 @@ constructor(
 			&& elements.zip(other.elements).all { (a, b) -> a.equivalentTo(b) }
 
 	override val equivalentHash: Int get() =
-		elements.sumOf { it.equivalentHash }
+		elements.sumOf(L2WriteBoxedOperand::equivalentHash)
 
 	override fun mergeFromOperands(operands: List<L2Operand>)
 	{

@@ -116,6 +116,7 @@ enum class DataCouplingMode constructor(
 			{
 				accumulatingSet.add(readOperand.semanticValue())
 				accumulatingSet.add(readOperand.register())
+				assert(accumulatingSet.none { it == null }) //TODO Remove – Kotlin type weakness
 			}
 		}
 
@@ -125,6 +126,7 @@ enum class DataCouplingMode constructor(
 		{
 			accumulatingSet.addAll(writeOperand.semanticValues())
 			accumulatingSet.add(writeOperand.register())
+			assert(accumulatingSet.none { it == null }) //TODO Remove – Kotlin type weakness
 		}
 	};
 

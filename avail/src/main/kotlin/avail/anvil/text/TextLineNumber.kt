@@ -124,9 +124,9 @@ constructor(
 	}
 
 	/**
-	 * Draw the line numbers
+	 * Draw the line numbers.
 	 */
-	public override fun paintComponent(g: Graphics)
+	override fun paintComponent(g: Graphics)
 	{
 		super.paintComponent(g)
 

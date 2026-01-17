@@ -64,7 +64,9 @@ Names
 	"deserialize_based on_",
 
 	"_↑++=_",
+	"_↑+=_",
 	"_++=_",
+	"_+=_",
 
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
@@ -1268,6 +1270,37 @@ Semantic restriction "SHA-_digest of_" is
 ];
 
 /**
+ * Compute and answer a {@type "tuple"} whose first <code>N-1</code> elements
+ * are {@param "aTuple"} and whose <code>N<sup>th</sup></code> element is
+ * {@param "newElement"}.
+ *
+ * @category "Primitives" "Tuples"
+ * @method "_with_appended"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "newElement" "any"
+ *        The element that must be the tail of the resultant tuple.
+ * @returns "tuple"
+ *    A tuple that has the same elements as {@param "aTuple"} but with
+ *    {@param "newElement"} appended.
+ */
+Private method "_with_appended" is
+[
+	aTuple : tuple,
+	newElement : any
+|
+	Primitive TupleAppend;
+] : tuple;
+
+Semantic restriction "_with_appended" is
+[
+	tupleType : tuple meta,
+	newElementType : any meta
+|
+	tupleType ++ <<>, newElementType…|[1..1]>
+];
+
+/**
  * Concatenate the value of {@param "var"} and {@param "t"} and store the result
  * into {@param "var"}.
  *
@@ -1301,34 +1334,36 @@ Semantic restriction "_↑++=_" is
 ];
 
 /**
- * Compute and answer a {@type "tuple"} whose first <code>N-1</code> elements
- * are {@param "aTuple"} and whose <code>N<sup>th</sup></code> element is
- * {@param "newElement"}.
+ * Append {@param "element"} to the tuple in the variable {@param "var"},
+ * writing the result back to the variable.
  *
- * @category "Primitives" "Tuples"
- * @method "_with_appended"
- * @param "aTuple" "tuple"
- *        A tuple.
- * @param "newElement" "any"
- *        The element that must be the tail of the resultant tuple.
- * @returns "tuple"
- *    A tuple that has the same elements as {@param "aTuple"} but with
- *    {@param "newElement"} appended.
+ * @method "_↑+=_"
+ * @param "var" "read tuple/write ⊥"
+ * @param "element" "any"
+ * @returns "⊤"
+ * @category "Tuples"
  */
-Private method "_with_appended" is
+Public method "_↑+=_" is
 [
-	aTuple : tuple,
-	newElement : any
+	var : read tuple/write ⊥,
+	element : any
 |
-	Primitive TupleAppend;
-] : tuple;
+	var ?= eject var with element appended;
+] : ⊤
+styled by statement styler;
 
-Semantic restriction "_with_appended" is
+Semantic restriction "_↑+=_" is
 [
-	tupleType : tuple meta,
-	newElementType : any meta
+	varType : (read tuple/write ⊥)'s type,
+	elementType : any's type
 |
-	tupleType ++ <<>, newElementType…|[1..1]>
+	resultType ::= varType's read type ++ <<>, elementType…|[1..1]>;
+	If ¬resultType ⊆ varType's write type then
+	[
+		Reject parse,
+			expected: "variable to accept " ++ “resultType”
+	];
+	⊤
 ];
 
 /**
@@ -1371,6 +1406,7 @@ Macro "_↑++=_" is
 ];
 
 Alias "_++=_" to "_↑++=_";
+Alias "_+=_" to "_↑+=_";
 
 /**
  * @method "_reversed"

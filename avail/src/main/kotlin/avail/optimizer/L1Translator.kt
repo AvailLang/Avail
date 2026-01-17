@@ -152,7 +152,6 @@ import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_FALL_BACK_TO_L1
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
@@ -527,28 +526,10 @@ class L1Translator private constructor(
 	 * afterward.
 	 */
 	private val currentFunction: L2ReadBoxedOperand
-		get()
-		{
-			val semanticFunction = topFrame.function()
-			if (currentManifest.hasSemanticValue(semanticFunction))
-			{
-				// Note the current function can't ever be an int or float.
-				return readBoxed(semanticFunction)
-			}
-			// We have to get it into a register.
-			if (exactFunctionOrNull !== null)
-			{
-				// The exact function is known.
-				return boxedConstant(exactFunctionOrNull)
-			}
-			// The exact function isn't known, but we know the raw function, so
-			// we statically know the function type.
-			val restriction = boxedRestrictionForType(code.functionType())
-			val functionWrite =
-				boxedWrite(semanticFunction, restriction)
-			+L2_GET_CURRENT_FUNCTION(functionWrite)
-			return readBoxed(functionWrite)
-		}
+		get() = generator.currentFunction(
+			topFrame,
+			exactFunctionOrNull,
+			code.functionType())
 
 	/**
 	 * Write instructions to extract a numbered outer from the current function,
@@ -766,7 +747,7 @@ class L1Translator private constructor(
 			"resumption offset", intRestrictionForType(i32))
 		val writeRegisterDump = boxedWriteTemp(
 			"register dump",
-			boxedRestrictionForType(Types.ANY()))
+			boxedRestrictionForType(Types.OTHER_NONTYPE()))
 		val fallThrough = createBasicBlock("Off-ramp", zone)
 		+L2_SAVE_ALL_AND_PC_TO_INT(
 			ifFallThrough = edgeTo(fallThrough),
@@ -2263,7 +2244,7 @@ class L1Translator private constructor(
 			pcOfCurrentInstruction = instructionDecoder.pc
 			stackpOfCurrentInstruction = stackp
 			val operation = instructionDecoder.getOperation()
-			+L2_NOP(L2CommentOperand(nybblecodeMap[pcOfCurrentInstruction]!!))
+			+L2_NOP(nybblecodeMap[pcOfCurrentInstruction]!!)
 			operation.dispatch(this)
 		}
 

@@ -58,6 +58,8 @@ import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitialize
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
+import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
@@ -159,25 +161,25 @@ class ByteStringDescriptor private constructor(
 		}
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val originalSize = self.tupleSize
 		if (originalSize >= maximumCopySize
 			|| !(newElement as A_Character).isCharacter)
 		{
 			// Transition to a tree tuple.
-			val singleton = tuple(newElement)
-			return self.concatenateWith(singleton, canDestroy)
+			return self.concatenateWith(tuple(newElement), canDestroy)
 		}
 		val intValue: Int = newElement.codePoint
 		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
-			val singleton = tuple(newElement)
-			return self.concatenateWith(singleton, canDestroy)
+			return self.concatenateWith(tuple(newElement), canDestroy)
 		}
 		val newSize = originalSize + 1
 		if (isMutable && canDestroy && originalSize and 7 != 0)
@@ -187,6 +189,23 @@ class ByteStringDescriptor private constructor(
 			self.setByteSlot(RAW_LONGS_, newSize, intValue.toShort())
 			self[HASH_OR_ZERO] = 0
 			return self
+		}
+		if (canPad && isMutable && newSize >= minSubrangeSize)
+		{
+			// The fact that this is still mutable suggests that padding will be
+			// effective.  Add ~25% in padding.
+			val addedSize = (originalSize shr 2) + 32
+			val padded = newLike(
+				descriptorFor(MUTABLE, newSize),
+				self,
+				0,
+				min(
+					// Convert bytes to longs.
+					addedSize shr 3,
+					Int.MAX_VALUE - self.variableObjectSlotsCount()))
+			padded.setByteSlot(RAW_LONGS_, newSize, intValue.toShort())
+			padded[HASH_OR_ZERO] = 0
+			return createSubrange(padded, 1, newSize)
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
 		val result = newLike(

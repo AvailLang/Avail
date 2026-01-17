@@ -586,7 +586,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 			previousArgType ::= handlersType[inner][1];
 			If argType ⊆ previousArgType then
 			[
-				hidingArgTypes ++= <previousArgType>;
+				hidingArgTypes += previousArgType;
 			];
 		];
 		If ¬hidingArgTypes is empty then

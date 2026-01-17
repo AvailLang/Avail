@@ -33,6 +33,7 @@ package avail.interpreter.primitive.privatehelpers
 
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.Primitive
@@ -79,6 +80,11 @@ object P_PushArgument1 : Primitive(
 	 * primitive.
 	 */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
+
+	override fun checkSpecialForm(
+		numArgs: Int,
+		literals: A_Tuple
+	): Boolean = numArgs >= 1
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

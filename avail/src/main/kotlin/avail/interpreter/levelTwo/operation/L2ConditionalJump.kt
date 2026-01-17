@@ -89,7 +89,7 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 		allTargets.singleOrNull()?.let {
 			val jump = L2_JUMP(
 				edgeTo(targetEdges.first().targetBlock(), "elided branch"))
-			println("Reduced jump to $jump")
+			println("Reduced jump to $jump") //TODO Remove
 			jump.run {
 				generator.emitTransformedInstruction()
 			}

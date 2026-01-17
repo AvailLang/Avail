@@ -121,6 +121,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		val function = constantFunction.constant

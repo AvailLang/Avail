@@ -70,7 +70,7 @@ import kotlin.math.min
  * scope).
  *
  * @property name
- *   The name of the graph.
+ *   The name of the graph, or `null`.
  * @property isDirected
  *   If `true`, then a directed graph will be generated; otherwise, an
  *   undirected graph will be generated.
@@ -91,7 +91,7 @@ import kotlin.math.min
  * Construct a new `DotWriter`.
  *
  * @param name
- *   The name of the graph.
+ *   The name of the graph, or `null`.
  * @param isDirected
  *   If `true`, then a directed graph will be generated; otherwise, an
  *   undirected graph will be generated.

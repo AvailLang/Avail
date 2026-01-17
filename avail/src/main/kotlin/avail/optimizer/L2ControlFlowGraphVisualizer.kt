@@ -45,6 +45,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.allOperandTypes
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MOVE
@@ -52,8 +53,10 @@ import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.values.L2SemanticExtractedTag
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.repeated
@@ -99,6 +102,7 @@ import java.time.ZoneId
 import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
+import kotlin.collections.set
 
 /**
  * An `L2ControlFlowGraphVisualizer` generates a `dot` source file that
@@ -136,7 +140,7 @@ import java.util.regex.Pattern
  *   The name of the `dot` file.
  * @param name
  *   The [name][L2Chunk.name] of the [L2Chunk], to be used as the name of the
- *   graph.
+ *   graph, or `null`.
  * @param charactersPerLine
  *   The number of characters to emit per line. Only applies to formatting of
  *   block comments.
@@ -272,7 +276,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		val rhs = buildString {
 			tag(
 				"table",
-				"border" to (if (basicBlock.isCold) "0" else "5"),
+				"border" to (if (basicBlock.isCold) "1" else "5"),
 				"cellspacing" to "0"
 			) {
 				val instructions = basicBlock.instructions()
@@ -300,6 +304,10 @@ class L2ControlFlowGraphVisualizer constructor(
 						"#ffd394/604000",
 						"#c0c0c0/404040",
 						"#000000/e0e0e0")
+					basicBlock.isCold -> Triple(
+						coldInstructionBackColor,
+						coldInstructionGridColor,
+						"#000000/e0e0e0")
 					else -> Triple(
 						"#c1f0f6/104048",
 						"#c0c0c0/404040",
@@ -324,7 +332,7 @@ class L2ControlFlowGraphVisualizer constructor(
 						{
 							if (basicBlock.isCold)
 							{
-								append("COLD<br/>")
+								append("❄️ ")
 							}
 							append(escape(basicBlock.name()))
 						}
@@ -658,7 +666,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				source = node(
 					basicBlockName(sourceBlock),
 					sourcePortNamesByEdge[edge],
-					null),
+					if (edge in sourcePortNamesByEdge) null else CompassPoint.S),
 				target = when
 				{
 					edge.isBackward ->
@@ -800,12 +808,12 @@ class L2ControlFlowGraphVisualizer constructor(
 				if (semanticValues[0].kind == BOXED_KIND) postponementsColor
 				else unboxedSynonymColor))
 			{
-				for (semanticValue in semanticValues)
-				{
+				semanticValues.forEachIndexed { i, semanticValue ->
 					append(indentString)
 					append(semanticValue.kind.kindName)
 					append("/")
 					append(escape(semanticValue))
+					append(if (i == semanticValues.size - 1) " =" else ",")
 					append("<br/>")
 				}
 				append(indent2String)
@@ -815,13 +823,29 @@ class L2ControlFlowGraphVisualizer constructor(
 					.filter { it.restriction().isImpossible }
 				if (badReads.isNotEmpty() || badWrites.isNotEmpty())
 				{
-					append(escape("PROBLEMS: ${badReads + badWrites}\n"))
-					append(escape(increaseIndentation(instruction.toString(), 2)))
+					font(color = writer.adjust(errorTextColor))
+					{
+						val allBad = badReads + badWrites
+						append(escape("IMPOSSIBLE RESTRICTION: $allBad\n"))
+					}
+					append(indent2String)
 				}
-				else
+				val written = instruction.writeOperands.flatMapTo(
+					mutableSetOf(), L2WriteOperand<*>::semanticValues)
+				if (!semanticValues.toSet().equals(written))
 				{
-					append(escape(increaseIndentation(instruction.toString(), 2)))
+					val diff = written - semanticValues
+					font(color = writer.adjust(errorTextColor))
+					{
+						append(escape("INCONSISTENTLY ALSO WRITES: $diff\n"))
+					}
+					append(indent2String)
 				}
+				append(
+					escape(
+						increaseIndentation(
+							instruction.toString(ignoreMisconnections = true),
+							2)))
 				append("<br/>")
 			}
 		}
@@ -848,8 +872,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		var changedDefinitions = false
 		predecessorEdges.forEach { previousEdge ->
 			val otherManifest = previousEdge.manifest()
-			val pick = synonym.semanticValues().firstNotNullOfOrNull {
-				otherManifest.equivalentSemanticValue(it)
+			val pick = synonym.semanticValues().firstOrNull {
+				otherManifest.hasSemanticValue(it)
 			}
 			if (pick == null)
 			{
@@ -913,7 +937,12 @@ class L2ControlFlowGraphVisualizer constructor(
 		font(color = writer.adjust(restrictionColor ?: "")) {
 			append(indent2String)
 			append(":&nbsp;")
-			append(escape(increaseIndentation(restriction.toString(), 2)))
+			val anyIntTags = synonym.semanticValues().any {
+				it.kind == INTEGER_KIND
+					&& it.toBoxed is L2SemanticExtractedTag}
+			append(
+				escape(
+					increaseIndentation(restriction.toString(anyIntTags), 2)))
 		}
 		append("<br/>")
 		font(color = writer.adjust(definitionsColor ?: "")) {
@@ -1122,7 +1151,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				if (visualizeRegisterDescriptions)
 				{
 					instruction.run {
-						appendToWithWarnings(desiredTypes) { }
+						appendToWithWarnings(desiredTypes, false) { }
 					}
 				}
 				else
@@ -1143,7 +1172,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			if (visualizeRegisterDescriptions)
 			{
 				instruction.run {
-					appendToWithWarnings(desiredTypes) {
+					appendToWithWarnings(desiredTypes, false) {
 						assert(it == (styleChanges.size % 2 == 0))
 						styleChanges.add(length)
 					}

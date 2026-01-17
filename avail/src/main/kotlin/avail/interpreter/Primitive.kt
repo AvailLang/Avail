@@ -35,6 +35,7 @@ package avail.interpreter
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.specialPrimitivePatterns
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.phrases.A_Phrase
@@ -42,6 +43,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -746,8 +748,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			}
 		}
 
-
-
 		companion object
 		{
 			/** A map of all [PrimitiveHolder]s, by name. */
@@ -845,6 +845,29 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 */
 	fun canHaveNybblecodes(): Boolean =
 		!hasFlag(CannotFail) || hasFlag(SpecialForm)
+
+	/**
+	 * Determine whether this [Primitive], already identified as a [SpecialForm]
+	 * by the [specialPrimitivePatterns] map, actually applies, given the number
+	 * of arguments and the first literal, if any. This should only be called if
+	 * it has the flag [SpecialForm].  Return true if the primitive applies, or
+	 * false if it doesn't.
+	 *
+	 * @param numArgs
+	 *   The number of arguments the function takes.
+	 * @param literals
+	 *   The tuple of literals.
+	 * @return
+	 *   Whether the primitive applies to this situation.
+	 */
+	open fun checkSpecialForm(
+		numArgs: Int,
+		literals: A_Tuple
+	): Boolean
+	{
+		assert(hasFlag(SpecialForm))
+		return false
+	}
 
 	/**
 	 * Generate suitable primitive failure code on the given
@@ -1337,7 +1360,21 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			// unboxed and boxed registers end up in the same synonym, so
 			// subsequent uses of the result might use either register,
 			// depending whether an unboxed value is desired.
-			helper.ifOutputIsInt()
+
+			// Check if there's already an equivalent int value available.
+			val equivalent = helper.currentManifest
+				.equivalentPopulatedSemanticValue(
+					primitiveInvocation(
+						this,
+						arguments.map(L2ReadBoxedOperand::semanticValue)
+					).unboxedInt)
+			when (equivalent)
+			{
+				null -> helper.ifOutputIsInt()
+				else ->  callSiteHelper.translator.moveRegister(
+					equivalent,
+					intWriter.semanticValues())
+			}
 		}
 		else
 		{
@@ -1603,14 +1640,24 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 */
 	fun semanticInvocation(
 		vararg arguments: L2SemanticBoxedValue
-	): L2SemanticPrimitiveInvocation =
-		primitiveInvocation(this, arguments.toList())
+	): L2SemanticPrimitiveInvocation
+	{
+		assert(argCount == -1 || arguments.size == argCount)
+		return primitiveInvocation(this, arguments.toList())
+	}
 
 	/**
 	 * The [manifest] has just gotten a narrower [TypeRestriction] set for a
 	 * semantic invocation of this primitive with the given semantic
-	 * [arguments].  Within the given [manifest], ropagate that narrowing to any
-	 * related [L2SemanticValue]s.
+	 * [arguments].  Within the given [manifest], propagate that narrowing to
+	 * any related [L2SemanticValue]s.
+	 *
+	 * @param arguments
+	 *   The argument [L2SemanticBoxedValue]s of the primitive invocation.
+	 * @param manifest
+	 *   The [L2ValueManifest] to update.
+	 * @param restriction
+	 *   The current boxed [TypeRestriction] of the primitive invocation.
 	 */
 	open fun propagateManifestRestrictions(
 		arguments: List<L2SemanticValue<BOXED_KIND>>,
@@ -1634,7 +1681,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	): String
 	{
 		assert(invocation.primitive == this)
-		semanticinfixOperatorString?.let { infix ->
+		semanticInfixOperatorString?.let { infix ->
 			assert(argCount == 2)
 			val (left, right) = invocation.argumentSemanticValues
 			var leftString =
@@ -1659,5 +1706,5 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * described with an infix syntax, answer the infix operator string,
 	 * otherwise `null`.
 	 */
-	open val semanticinfixOperatorString: String? get() = null
+	open val semanticInfixOperatorString: String? get() = null
 }

@@ -109,12 +109,6 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_CatchException
-import avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
-import avail.interpreter.primitive.privatehelpers.P_PushArgument1
-import avail.interpreter.primitive.privatehelpers.P_PushArgument2
-import avail.interpreter.primitive.privatehelpers.P_PushArgument3
-import avail.interpreter.primitive.privatehelpers.P_PushConstant
-import avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import avail.io.NybbleOutputStream
 import java.util.ArrayDeque
 import java.util.BitSet
@@ -304,47 +298,6 @@ class AvailCodeGenerator private constructor(
 	private fun endBlock(originatingBlockPhrase: A_Phrase): A_RawFunction
 	{
 		fixFinalUses()
-		// Detect blocks that immediately return something and mark them with a
-		// special primitive.
-		if (primitive === null && instructions.size == 1)
-		{
-			val onlyInstruction = instructions[0]
-			if (onlyInstruction is AvailPushLiteral
-				&& onlyInstruction.index == 1)
-			{
-				// The block immediately answers a constant.
-				primitive = P_PushConstant
-			}
-			else if (numArgs >= 1 && onlyInstruction is AvailPushLocalVariable)
-			{
-				// The block immediately answers the specified argument.
-				when (onlyInstruction.index)
-				{
-					1 -> primitive = P_PushArgument1
-					2 -> primitive = P_PushArgument2
-					3 -> primitive = P_PushArgument3
-				}
-			}
-			else if (onlyInstruction is AvailPushOuterVariable)
-			{
-				// The block immediately answers the sole captured outer
-				// variable or constant.  There can only be one such outer since
-				// we only capture what's needed, and there are no other
-				// instructions that might use another outer.
-				assert(onlyInstruction.index == 1)
-				assert(onlyInstruction.isLastAccess)
-				primitive = P_PushLastOuter
-			}
-			// Only optimize module constants, not module variables.  Module
-			// variables can be unassigned, and reading an unassigned module
-			// variable must fail appropriately.
-			if (onlyInstruction is AvailGetLiteralVariable
-				&& onlyInstruction.index == 1
-				&& literals[0].isInitializedWriteOnceVariable)
-			{
-				primitive = P_GetGlobalVariableValue
-			}
-		}
 		// Make sure we're not closing over variables that don't get used.
 		val unusedOuters = BitSet(outerMap.size)
 		unusedOuters.flip(0, outerMap.size)

@@ -51,7 +51,10 @@ import java.lang.reflect.Array.getLength
  * @param constant
  *   The constant value.
  */
-class L2ArbitraryConstantOperand<T>(constant: T) : L2Operand()
+class L2ArbitraryConstantOperand<T>
+constructor(
+	constant: T
+) : L2Operand()
 {
 	/**
 	 * The actual constant value.

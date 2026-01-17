@@ -75,6 +75,7 @@ class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

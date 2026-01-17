@@ -91,7 +91,7 @@ import java.util.Collections.addAll
  *   The phrase that should be captured for this raw function.
  *   [nil] is also valid, but less informative.
  */
-class L1InstructionWriter constructor(
+open class L1InstructionWriter constructor(
 	internal val module: A_Module,
 	internal val startingLineNumber: Int,
 	internal val phrase: A_Phrase)
@@ -358,10 +358,10 @@ class L1InstructionWriter constructor(
 		currentLineNumber = newLineNumber
 
 		stackTracker.track(operation, *operands)
-		val opcode = operation.ordinal.toByte()
+		val opcode = operation.ordinal
 		if (opcode <= 15)
 		{
-			stream.write(opcode.toInt())
+			stream.write(opcode)
 		}
 		else
 		{
@@ -400,8 +400,13 @@ class L1InstructionWriter constructor(
 	 *   A compiled code object (which can be lexically closed to a
 	 *   [function][FunctionDescriptor] by supplying the outer variables to
 	 *   capture).
+	 *
+	 * @param forceNames
+	 *  If not `null`, use these names for the arguments, locals, constants,
+	 *  and outers, in that order, instead of deriving them from the
+	 *  [phrase][A_Phrase] or generating synthetic names.
 	 */
-	fun compiledCode(): AvailObject
+	fun compiledCode(forceNames: Iterable<String>? = null): AvailObject
 	{
 		primitive?.run {
 			assert(hasFlag(Flag.CannotFail) || constantTypes.isNotEmpty())
@@ -410,7 +415,11 @@ class L1InstructionWriter constructor(
 			}
 		}
 		val names = mutableListOf<String>()
-		if (phrase.notNil)
+		if (forceNames != null)
+		{
+			names.addAll(forceNames)
+		}
+		else if (phrase.notNil)
 		{
 			listOf(phrase.argumentsTuple, locals(phrase), constants(phrase))
 				.flatten()

@@ -605,7 +605,7 @@ Public method "Remove_[_]else_" is
 	For each keyPart of key do
 	[
 		subtrie := subtrie's next tries[keyPart] else exit;
-		path ++= <subtrie>;
+		path += subtrie;
 	];
 	If ↑subtrie's payload is unassigned then exit;
 	Clear ↑subtrie's payload;

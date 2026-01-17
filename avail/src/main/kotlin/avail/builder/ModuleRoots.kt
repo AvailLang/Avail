@@ -36,6 +36,7 @@ import avail.annotations.ThreadSafe
 import avail.descriptor.module.ModuleDescriptor
 import avail.error.ErrorCode
 import avail.files.FileManager
+import avail.optimizer.L2Optimizer
 import avail.persistence.cache.Repositories
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry.createResolver
@@ -305,6 +306,22 @@ class ModuleRoots constructor(
 		writer.writeArray {
 			roots.forEach { root ->
 				at(root.name) { root.writePathsOn(writer) }
+			}
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * Create a [ModuleRoots] suitable for use in [L2Optimizer] tests, which
+		 * don't access any source files.
+		 *
+		 * @return A new [ModuleRoots].
+		 */
+		fun moduleRootsForTest() = ModuleRoots(FileManager(), "") {
+			assert(it.isEmpty()) {
+				L2Optimizer
+				"There were no roots provided, so there should be no failures."
 			}
 		}
 	}

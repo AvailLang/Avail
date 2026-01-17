@@ -36,6 +36,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
@@ -44,6 +45,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.TypeTag
+import avail.utility.stackToString
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.VarHandle
 import java.util.Arrays
@@ -139,9 +141,11 @@ sealed class AvailObjectRepresentation constructor(
 			marker = { childObject: AvailObject ->
 				when
 				{
-					!childObject.descriptor.isMutable -> childObject
+					!childObject.descriptor.isMutable ->
+						nil //TODO childObject
 					// The excluded object was reached.
-					childObject.sameAddressAs(anotherObject) -> childObject
+					childObject.sameAddressAs(anotherObject) ->
+						nil //TODO childObject
 					else ->
 					{
 						// Recursively invoke the iterator on the subobjects of
@@ -151,7 +155,7 @@ sealed class AvailObjectRepresentation constructor(
 						// Indicate the object is no longer valid and should not
 						// ever be used again.
 						childObject.destroy()
-						childObject
+						nil //TODO childObject
 					}
 				}
 			}
@@ -267,7 +271,9 @@ sealed class AvailObjectRepresentation constructor(
 			}
 		}
 		// Check it the slow way.
-		val definitionClass = field.javaClass.enclosingClass
+		var definitionClass = field::class.java.enclosingClass
+		if (!AbstractDescriptor::class.java.isAssignableFrom(definitionClass))
+			definitionClass = definitionClass.enclosingClass
 		assert(definitionClass.isInstance(descriptor))
 		// Cache that field for next time.
 		val newPermittedFields: Array<IntegerSlotsEnum>
@@ -1864,6 +1870,34 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Replace the [descriptor][AbstractDescriptor] with a
+	 * [filler][FillerDescriptor]. This blows up for most messages, catching
+	 * further uses of this object. Note that all further uses are incorrect by
+	 * definition.
+	 */
+	fun destroy() {
+		// Switch to `true` to capture stack trace of circumstance of
+		// destruction inside every destroyed object.  This is slow but *very*
+		// useful.
+		if (false)
+		{
+			val stackTrace =
+				try
+				{
+					throw Throwable("just want the caller's frame")
+				}
+				catch (e: Throwable)
+				{
+					e.stackToString
+				}
+			objectSlots = Array(1) {
+				identityPojo(stackTrace)
+			}
+		}
+		descriptor = FillerDescriptor.mutable
+	}
+
+	/**
 	 * Search for the key in the 32-bit [Int]s encoded within the [longSlots]
 	 * that occur within those slots identified with the specified
 	 * [IntegerSlotsEnum].  The int slots must be in ascending sorted order, and
@@ -2022,7 +2056,7 @@ sealed class AvailObjectRepresentation constructor(
 		 * it's occasionally valuable to enable for a short time, especially
 		 * right after introducing new descriptor subclasses.
 		 */
-		const val shouldCheckSlots = false
+		const val shouldCheckSlots = true //TODO false
 
 		/**
 		 * Create a new [AvailObject] with the specified

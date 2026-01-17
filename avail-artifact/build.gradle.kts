@@ -5,11 +5,11 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "2.1.0"
+	kotlin("jvm") version "2.2.20"
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "1.8.20"
+	id("org.jetbrains.dokka") version "2.0.0"
 }
 
 group = "org.availlang"
@@ -20,9 +20,9 @@ repositories {
 	mavenCentral()
 }
 
-val targetJvm = JvmTarget.JVM_21
+val targetJvm = JvmTarget.JVM_23
 
-val kotlinVersion = KotlinVersion.KOTLIN_2_1
+val kotlinVersion = KotlinVersion.KOTLIN_2_2
 
 java {
 	toolchain {
@@ -82,6 +82,7 @@ tasks {
 			languageVersion = kotlinVersion
 		}
 	}
+
 	withType<Test> {
 		val toolChains =
 			project.extensions.getByType(JavaToolchainService::class)
@@ -105,15 +106,33 @@ tasks {
 		from(sourceSets["main"].allSource)
 	}
 
-	val dokkaHtml by getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+	dokka {
+		moduleName.set("Avail-artifact")
+		dokkaPublications.html {
+			suppressInheritedMembers.set(true)
+			failOnWarning.set(true)
+		}
+		dokkaSourceSets.main {
+			sourceLink {
+				localDirectory.set(file("src/main/kotlin"))
+				remoteUrl("https://github.com/AvailLang/Avail/blob/main/src/main/kotlin")
+				remoteLineSuffix.set("#L")
+			}
+		}
+		pluginsConfiguration.html {
+			//customStyleSheets.from("styles.css")
+			//customAssets.from("logo.png")
+			footerMessage.set("(c) The Avail Foundation")
+		}
+	}
 
 	val javadocJar by creating(Jar::class)
 	{
-		dependsOn(dokkaHtml)
+		// Use Dokka 2 task name for generating the html publication
+		dependsOn("dokkaGeneratePublicationHtml")
 		description = "Creates Javadoc JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("javadoc")
-		from(dokkaHtml.outputDirectory)
 	}
 
 	jar {

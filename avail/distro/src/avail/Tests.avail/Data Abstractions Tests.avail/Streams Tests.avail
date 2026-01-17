@@ -48,7 +48,7 @@ Test "for each of do" in streams test suite is
 [
 	a ::= a stream over <1,2,3,4>;
 	b : tuple := <>;
-	For each of a do [n : natural number | b ++= <n>;];
+	For each of a do [n : natural number | b += n;];
 	Require: b = <1,2,3,4>;
 ];
 

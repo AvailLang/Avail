@@ -89,8 +89,7 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 		return interpreter.primitiveSuccess(
 			try
 			{
-				val definition =
-					method.lookupByTypesFromTuple(argTypes)
+				val definition = method.lookupByTypesFromTuple(argTypes)
 				assert(definition.notNil)
 				trueObject
 			}

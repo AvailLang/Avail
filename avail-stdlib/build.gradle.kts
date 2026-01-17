@@ -37,11 +37,12 @@ import org.availlang.artifact.environment.location.Scheme.FILE
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 
 plugins {
+	kotlin("jvm") version "2.2.20"
 	id("java")
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "1.8.20"
+	id("org.jetbrains.dokka") version "2.0.0"
 	id("org.availlang.avail-plugin") version "2.0.0.alpha20"
 }
 
@@ -124,16 +125,41 @@ tasks {
 		from(sourceSets["main"].allSource)
 	}
 
-	val dokkaHtml by getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+	dokka {
+		moduleName.set("Avail")
+		dokkaPublications.html {
+			suppressInheritedMembers.set(true)
+			failOnWarning.set(true)
+		}
+		dokkaSourceSets.main {
+			sourceLink {
+				localDirectory.set(file("src/main/kotlin"))
+				remoteUrl(
+					"https://github.com/AvailLang/avail-artifact/blob/main/src/main/kotlin/")
+			}
+		}
+		pluginsConfiguration.html {
+			//customStyleSheets.from("styles.css")
+			//customAssets.from("logo.png")
+			//footerMessage.set("(c) The Avail Foundation")
+		}
+	}
 
 	val javadocJar by creating(Jar::class)
 	{
-		dependsOn(dokkaHtml)
+		// This subproject (avail-stdlib) contains Avail module data but
+		// no Kotlin/Java sources; avoid running Dokka here. Do not
+		// unconditionally depend on dokkaGeneratePublicationHtml because
+		// that forces Dokka execution even when there's nothing to document.
 		description = "Creates Javadoc JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("javadoc")
-		from(dokkaHtml.outputDirectory)
 	}
+
+	// If this project has no JVM sources and no includes configured for Dokka,
+	// do not unconditionally run Dokka during assemble. The actual disabling
+	// of Dokka tasks is performed at configuration time below (outside the
+	// `tasks {}` block) so the Kotlin DSL resolves correctly.
 
 	artifacts {
 		add("archives", sourceJar)
@@ -146,6 +172,12 @@ tasks {
 	publishToMavenLocal {
 		doLast { copyArtifactToDistroLib() }
 	}
+}
+
+// Disable Dokka tasks in this subproject (it contains no Kotlin/Java sources)
+// Move this to top-level so `tasks.matching` resolves properly in Kotlin DSL.
+tasks.matching { it.name.startsWith("dokka") }.configureEach {
+    enabled = false
 }
 
 val isReleaseVersion =

@@ -401,7 +401,7 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 		trueName ::= atom for name;
 		trueName[month ordinal] := ordinal;
 		trueName[month days] := days;
-		months ++= <trueName>;
+		months += trueName;
 	];
 	monthsSet ::= months;
 	Public stable method "months" is [monthsSet];
@@ -688,7 +688,7 @@ Semantic restriction "_-_" is
 		name is a new atom;
 		trueName ::= atom for name;
 		trueName[week day ordinal] := ordinal;
-		days ++= <trueName>;
+		days += trueName;
 	];
 	Public stable method "days of week" is [days];
 ]();

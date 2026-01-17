@@ -96,7 +96,8 @@ import java.util.concurrent.atomic.LongAdder
  *   If supplied, the [L2ValueManifest] linking semantic values and registers at
  *   this control flow edge.
  */
-class L2PcOperand constructor (
+class L2PcOperand
+constructor (
 	private var targetBlock: L2BasicBlock,
 	var isBackward: Boolean,
 	private var manifest: L2ValueManifest? = null,

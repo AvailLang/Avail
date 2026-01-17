@@ -127,6 +127,7 @@ constructor(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -204,10 +205,9 @@ constructor(
 	 * second path. For simplicity, just recursively force all postponed
 	 * instructions to be generated here.
 	 *
-	 * We allow an [L2_CREATE_VARIABLE] to go both ways, because it reports
-	 * `true` for [shouldPostponeEvenIfLiveIn].  It goes along the [reference]
-	 * edge to allow variable creation to be postponed until after the
-	 * reification completes and the continuation is returned into.  It also
+	 * We *do* allow an [L2_CREATE_VARIABLE] to go both ways.  It goes along the
+	 * [reference] edge to allow variable creation to be postponed until after
+	 * the reification completes and the continuation is returned into.  It also
 	 * goes along the [ifFallThrough] edge, where it gets transformed by the
 	 * eventual [L2_CREATE_CONTINUATION] in the reification part that captures
 	 * the initialization value in case the continuation becomes shared or

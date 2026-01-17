@@ -39,6 +39,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -52,16 +53,15 @@ import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.Companion.SIZE
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT
+import avail.descriptor.tuples.StringDescriptor.Companion.generateStringFromCodePoints
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
-import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.descriptor.types.A_Type
 import java.util.Collections
 import java.util.IdentityHashMap
@@ -249,6 +249,17 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		return false
 	}
 
+	override fun o_ComputeHashFromTo(
+		self: AvailObject,
+		start: Int,
+		end: Int): Int
+	{
+		val size = end - start + 1
+		val cumulativeMultiplier = cumulativeMultiplierFor(size)
+		val elementHash = self[ELEMENT].hash() xor preToggle
+		return cumulativeMultiplier * elementHash
+	}
+
 	override fun o_ConcatenateWith(
 		self: AvailObject,
 		otherTuple: A_Tuple,
@@ -407,15 +418,9 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			}
 			else if (element.isCharacter)
 			{
+				val elementCodePoint = element.codePoint
 				// Make it a string.
-				when (val codePoint = element.codePoint)
-				{
-					in 0 .. 0xFF ->
-						result = generateByteString(size) { codePoint }
-					in 0 .. 0xFFFF ->
-						result =
-							generateTwoByteString(size) { codePoint.toUShort() }
-				}
+				result = generateStringFromCodePoints(size) { elementCodePoint }
 			}
 			if (result === null)
 			{
@@ -429,14 +434,17 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		// and concatenate to construct what will probably be a tree tuple.
 		val left = self.copyTupleFromToCanDestroy(1, index - 1, false)
 		val right = self.copyTupleFromToCanDestroy(index + 1, size, false)
-		return left.appendCanDestroy(newValueObject, true).concatenateWith(
-			right, true)
+		return left
+			.appendCanDestroy(newValueObject, false, true)
+			.concatenateWith(right, true)
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		if (self[ELEMENT].equals(newElement))
 		{
@@ -491,7 +499,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		 * requested below this size will be created as standard tuples or the
 		 * empty tuple.
 		 */
-		private const val minimumRepeatSize = 2
+		private const val minimumRepeatSize = 3
 
 		/** The mutable [RepeatedElementTupleDescriptor]. */
 		val mutable = RepeatedElementTupleDescriptor(Mutability.MUTABLE)
@@ -552,6 +560,56 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(SIZE, size)
 			setSlot(ELEMENT, element!!)
+		}
+
+		/**
+		 * A table of 32 cumulative multipliers.  The element at index i
+		 * (zero-based) is the sum of m^1 through m^(2^i).
+		 */
+		val cumulativeMultipliers = IntArray(32).also { array ->
+			var cumulative = multiplier
+			var successiveSquareOfMultiplier = multiplier
+			array[0] = cumulative
+			for (i in 1..31)
+			{
+				// Cumulative is the sum of the low 2^(i-1) terms, from which we
+				// can produce the first 2^i terms by virtually concatenating,
+				// which is multilpying by m^(i-1) to get the adjustment for the
+				// left half, but +1 to include the same base value for the
+				// right half.
+				//
+				// As an example, entry 3 contains the sum of the first 8 powers
+				// of m (1..8).  Entry 4 should contain the sum of the first 16
+				// powers (1..16), so we add entry 3 for the low order 8, and
+				// add in another copy of it shifted left by 8 via
+				// multiplication by m^8.  Distributing the multiplication over
+				// addition, we get (m^8 + 1) * entry3.
+				cumulative = cumulative * (successiveSquareOfMultiplier + 1)
+				array[i] = cumulative
+				successiveSquareOfMultiplier *= successiveSquareOfMultiplier
+			}
+		}
+
+		/**
+		 * Calculate the sum of the first [n] powers of [multiplier].  Cache the
+		 * sum of multipliers up to each power of two (∑[i∈1..2^p]m^i).  We can
+		 * combine two of these all-one-coefficient polynomials by adding them,
+		 * as long as we multiply the left one by the m^r, where r is the number
+		 * of positions occupied by the right one.
+		 */
+		private fun cumulativeMultiplierFor(n : Int): Int
+		{
+			var cumulative = 0
+			var residue = n
+			while (residue != 0)
+			{
+				val lowBit = residue.takeLowestOneBit()
+				val shift = lowBit.countTrailingZeroBits()
+				cumulative = cumulative * multiplierRaisedTo(lowBit) +
+					cumulativeMultipliers[shift]
+				residue -= residue.takeLowestOneBit()
+			}
+			return cumulative
 		}
 	}
 }

@@ -114,7 +114,7 @@ Private method "Append record_" is
 	record : string+
 |
 	If columnCount is unassigned then [columnCount := |record|;];
-	records ++= <record>;
+	records += record;
 ];
 
 "end-of-line marker" is a new atom;

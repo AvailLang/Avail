@@ -172,7 +172,7 @@ Private stable method "format sites for_" is
 				Failed primitive with empty-format-variable code
 			];
 			varName ::= template[start + 1..index - 1];
-			sites ++= <<varName, interpType, start, index>>;
+			sites += <varName, interpType, start, index>;
 		];
 	invalid ::= [Failed primitive with invalid-format-metacharacter-use code];
 	While index ≤ |template| do
@@ -196,7 +196,7 @@ Private stable method "format sites for_" is
 							invalid-format-metacharacter-escape code
 					];
 					escaped ::= <template[index]>;
-					sites ++= <<escaped, escape, start, index>>;
+					sites += <escaped, escape, start, index>;
 				],
 				¢’ is invalid,
 				¢” is invalid,

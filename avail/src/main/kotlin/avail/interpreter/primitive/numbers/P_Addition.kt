@@ -68,18 +68,23 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readInt
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.utility.notNullAnd
 
 /**
@@ -313,5 +318,17 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		assert(!unreachable.currentlyReachable())
 	}
 
-	override val semanticinfixOperatorString: String? get() = "Add"
+	override fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		val regular = primitiveInvocation(this, arguments)
+		val commuted = primitiveInvocation(this, arguments.reversed())
+		manifest.mergeSemanticValueEquivalentsIfPresent(commuted, regular)
+		manifest.mergeSemanticValueEquivalentsIfPresent(
+			commuted.unboxedInt, regular.unboxedInt)
+	}
+
+	override val semanticInfixOperatorString: String? get() = "Add"
 }

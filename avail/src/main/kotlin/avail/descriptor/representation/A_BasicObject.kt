@@ -207,13 +207,6 @@ interface A_BasicObject : JSONFriendly
 	fun showValueInNameForDebugger(): Boolean
 
 	/**
-	 * Replace my descriptor field with a [FillerDescriptor].  This blows
-	 * up for most messages, catching incorrect (all, by definition) further
-	 * accidental uses of this object.
-	 */
-	fun setToInvalidDescriptor()
-
-	/**
 	 * Compute the 32-bit hash of the receiver.
 	 *
 	 * @return An [Int] hash value.

@@ -159,7 +159,7 @@ class ListPhraseDescriptor private constructor(
 		self: AvailObject,
 		newPhrase: A_Phrase
 	): A_Phrase = newListNode(
-		self[EXPRESSIONS_TUPLE].appendCanDestroy(newPhrase, true))
+		self[EXPRESSIONS_TUPLE].appendCanDestroy(newPhrase, true, true))
 
 	/**
 	 * Create a new [list&#32;phrase][ListPhraseDescriptor] with phrases from a

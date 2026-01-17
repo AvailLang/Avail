@@ -1,4 +1,4 @@
-Avail Artifact
+Package avail/avail-artifact
 --------------------------------------------------------------------------------
 [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://search.maven.org/artifact/org.availlang/avail-artifact)
 

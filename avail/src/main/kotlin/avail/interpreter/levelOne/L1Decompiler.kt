@@ -576,7 +576,7 @@ class L1Decompiler constructor(
 					{
 						// Extend an existing FirstOfSequence phrase.
 						penultimateExpression.statements.appendCanDestroy(
-							lastExpression, false)
+							lastExpression, false, false)
 					}
 					else
 					{

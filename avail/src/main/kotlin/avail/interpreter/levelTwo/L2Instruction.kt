@@ -75,7 +75,7 @@ import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.PublicCloneable
-import avail.utility.Strings
+import avail.utility.Strings.increaseIndentation
 import avail.utility.cast
 import avail.utility.mapToSet
 import org.objectweb.asm.MethodVisitor
@@ -100,6 +100,15 @@ constructor() :
 	L2AbstractInstruction,
 	PublicCloneable<L2Instruction>()
 {
+	/**
+	 * An [InstructionLayout] object, set during construction, which captures
+	 * the reflection information necessary for accessing the operands of the
+	 * instruction in a generic way.  The layouts are placed in a cache as they
+	 * are created, to minimize the reflection cost.
+	 */
+	val layout: InstructionLayout<out L2Instruction> =
+		InstructionLayout.layoutForClass(this::class)!!
+
 	/**
 	 * The [L2BasicBlock] to which the instruction belongs.  This only gets set
 	 * by [cloneFor] and special cases like [moveToBlock].  It gets cleared in
@@ -338,13 +347,6 @@ constructor() :
 	open val hasSideEffect get() = false
 
 	/**
-	 * Answer whether this instruction should be postponed, and therefore able
-	 * to move later in the graph, even if the current block's outbound edges
-	 * all indicate at least one produced value is always-live-out.
-	 */
-	open val shouldPostponeEvenIfLiveIn get() = false
-
-	/**
 	 * Check whether this instruction could cause any previously escaped
 	 * variables to become shared or to have a reactor installed.  Assume most
 	 * instructions can't do this, and override for instructions that can, like
@@ -542,6 +544,7 @@ constructor() :
 	 */
 	fun justAdded(manifest: L2ValueManifest)
 	{
+		val debugManifestCopy = L2ValueManifest(manifest) //TODO Remove
 		if (isEntryPoint)
 		{
 			assert(
@@ -562,7 +565,6 @@ constructor() :
 			manifest.removeRegisters(registersToBeOverwritten)
 		}
 		instructionWasAdded(manifest)
-
 		// The instruction may have restrictions set on its reads and writes
 		// that are stronger than what's in the manifest.  Force the manifest to
 		// be as accurate as possible.
@@ -594,7 +596,7 @@ constructor() :
 		}
 		writeOperands.forEach { write ->
 			manifest.updateRestriction(write.pickSemanticValue()) {
-				intersection(write.restriction())
+				write.restriction()
 			}
 		}
 		// All manifests have now been updated, including propagation for
@@ -693,6 +695,7 @@ constructor() :
 				}
 			}
 		}
+		manifest.check() //TODO Remove
 	}
 
 	/**
@@ -778,16 +781,26 @@ constructor() :
 	 * names and other information shared by instances of the same instruction
 	 * subclass.
 	 */
-	override fun toString() = buildString {
+	override fun toString() = toString(false)
+
+	/**
+	 * Print the instruction, using the layout's operandFields for the operand
+	 * names and other information shared by instances of the same instruction
+	 * subclass.
+	 */
+	fun toString(ignoreMisconnections: Boolean) = buildString {
 		val instruction = this@L2Instruction
 		append("${instruction.name}:\n\t")
 		var pairs = mutableListOf<Pair<String, L2Operand>>()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
-			pairs.add(namedOperandType.name to operand)
+			if (!namedOperandType.hideInAllVisualizations)
+			{
+				pairs.add(namedOperandType.name to operand)
+			}
 		}
 		pairs.joinTo(this, ",\n\t") { (name, operand) ->
 			val operandString =
-				Strings.increaseIndentation(operand.toString(), 2)
+				increaseIndentation(operand.toString(ignoreMisconnections), 2)
 			"$name = $operandString"
 		}
 	}
@@ -800,6 +813,8 @@ constructor() :
 	 *   Where to write the description of this instruction.
 	 * @param desiredOperandTypes
 	 *   Which [L2OperandType]s to include.
+	 * @param ignoreMisconnections
+	 *   If true, suppress presenting warnings for misconnected operands.
 	 * @param warningStyleChange
 	 *   A lambda that takes `true` to start the warning style at the
 	 *   current builder position, and `false` to end it.  It must be invoked in
@@ -807,16 +822,23 @@ constructor() :
 	 */
 	open fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
-			if (namedOperandType.operandType() in desiredOperandTypes)
+			if (!namedOperandType.hideInAllVisualizations)
 			{
-				append("\n\t")
-				append(namedOperandType.name())
-				append(" = ")
-				operand.run { appendWithWarningsTo(1, warningStyleChange) }
+				if (namedOperandType.operandType() in desiredOperandTypes)
+				{
+					append("\n\t")
+					append(namedOperandType.name())
+					append(" = ")
+					operand.run {
+						appendWithWarningsTo(
+							1, ignoreMisconnections, warningStyleChange)
+					}
+				}
 			}
 		}
 	}
@@ -935,27 +957,19 @@ constructor() :
 			forcePostponedTranslationNow()
 			return
 		}
-		if (!shouldPostponeEvenIfLiveIn)
+		if (targetEdges.size > 1 &&
+			destinationRegisters.all { writeReg ->
+				targetEdges.all { edge ->
+					writeReg in edge.alwaysLiveInEntities!!
+				}
+			})
 		{
-			if (targetEdges.size > 1 &&
-				destinationRegisters.all { writeReg ->
-					targetEdges.all { edge ->
-						writeReg in edge.alwaysLiveInEntities!!
-					}
-				})
-			{
-				// We're going to branch soon, but the result will be needed
-				// always along all the successor edges.  While we *could*
-				// postpone the instruction, we choose not to, since the
-				// increase of register pressure is minor compared to the cost
-				// of the duplicated code.
-				//
-				// Note that instructions that shouldPostponeEvenIfLiveIn *do*
-				// get postponed anyhow, since it may lead to useful
-				// cancellations further downstream.
-				forcePostponedTranslationNow()
-				return
-			}
+			// We're going to branch soon, but the result will be needed always
+			// along all the successor edges.  While we *could* postpone the
+			// instruction, we choose not to, since the increase of register
+			// pressure is minor compared to the cost of the duplicated code.
+			forcePostponedTranslationNow()
+			return
 		}
 		// Emit a constant move for each constant output, then postpone the
 		// instruction if any outputs were non-constant.
@@ -1107,8 +1121,8 @@ constructor() :
 	 * instructions, and perform instruction-specific special transformations as
 	 * they slip past this instruction.  Variable elision uses this technique,
 	 * allowing an [L2_CREATE_VARIABLE] to slip past an [L2_GET_VARIABLE], by
-	 * emitting a constant move (of the initialization value of the
-	 * create-variable) in place of the get.
+	 * emitting a move (of the initialization value of the create-variable) in
+	 * place of the get.
 	 *
 	 * TODO Make this iterative instead of recursive.
 	 *
@@ -1144,7 +1158,8 @@ constructor() :
 			// moves instead.
 			val liveWriteRepresentatives = writeOperands.map { write ->
 				write to
-					write.semanticValues().filter(currentManifest::hasSemanticValue)
+					write.semanticValues()
+						.filter(currentManifest::hasLiveSemanticValue)
 			}
 			if (liveWriteRepresentatives.all { (_, reps) -> reps.isNotEmpty() })
 			{
@@ -1162,7 +1177,9 @@ constructor() :
 		// the instruction has a side-effect), so we have to emit the postponed
 		// instruction.  Emit any necessary predecessors first.
 		readOperands.forEach { read ->
+			currentManifest.check() //TODO Remove
 			forceTranslationForRead(read.semanticValue())
+			currentManifest.check() //TODO Remove
 		}
 		cloneFor(this).run {
 			emitTransformedInstruction()
@@ -1295,7 +1312,8 @@ constructor() :
 		val sources = mutableListOf<String>()
 		val commands = mutableListOf<String>()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
-			if (!namedOperandType.hideInSimpleVisualization)
+			if (!namedOperandType.hideInSimpleVisualization
+				&& !namedOperandType.hideInAllVisualizations)
 			{
 				operand.simpleAppendOperand(commands, sources, targets)
 			}
@@ -1349,15 +1367,6 @@ constructor() :
 			0x59547A47)
 
 	/**
-	 * An [InstructionLayout] object, set during construction, which captures
-	 * the reflection information necessary for accessing the operands of the
-	 * instruction in a generic way.  The layouts are placed in a cache as they
-	 * are created, to minimize the reflection cost.
-	 */
-	val layout: InstructionLayout<out L2Instruction> =
-		InstructionLayout.layoutForClass(this::class)!!
-
-	/**
 	 * Generically render all [operands][L2Operand] of this [L2Instruction],
 	 * except for those linked to the given [Field]s.
 	 *
@@ -1382,7 +1391,7 @@ constructor() :
 				append("\n\t")
 				append(namedOperandType.name())
 				append(" = ")
-				append(Strings.increaseIndentation(operand.toString(), 2))
+				append(increaseIndentation(operand.toString(), 2))
 			}
 		}
 	}

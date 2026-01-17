@@ -108,7 +108,7 @@ internal constructor(
 		PrimaryVisualSortKey.PRIMITIVE_INVOCATION
 
 	override fun requiresParentheses(): Boolean =
-		primitive.semanticinfixOperatorString !== null
+		primitive.semanticInfixOperatorString !== null
 
 	companion object
 	{

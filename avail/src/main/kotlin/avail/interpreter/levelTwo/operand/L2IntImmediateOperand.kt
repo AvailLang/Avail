@@ -51,7 +51,10 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
  * @param value
  *   The constant [Int] itself.
  */
-class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
+class L2IntImmediateOperand
+constructor(
+	val value: Int
+) : L2Operand()
 {
 	override val operandType: L2OperandType get() = INT_IMMEDIATE
 

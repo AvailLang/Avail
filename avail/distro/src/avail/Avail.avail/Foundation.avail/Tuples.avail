@@ -647,6 +647,8 @@ Macro "For each…,…in|of_§do_" is
 	indexed two-input tuple body function($"For each of⁇_do_", ⊤)
 styled by loop styler;
 
+n31 ::= [1..1<<31);
+
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
@@ -666,20 +668,27 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥]→any
 |
+	$outer : tuple;
+	tupleSize ::= |aTuple|;
+	Exit outer with <> if tupleSize = 0;
 	[
-		index : natural number,
-		end : whole number,
+		index : n31,
+		end : n31,
 		accumulator : tuple,
 		innerTuple : tuple,
 		innerTransformer : [⊥]→any
 	|
 		$loop : tuple;
-		Exit loop with accumulator if index > end;
 		transformed ::= innerTransformer(innerTuple[index]);
 		newAccumulator ::= accumulator ++ <transformed>;
-		Restart loop
-			with <index + 1, end, newAccumulator, innerTuple, innerTransformer>
-	](1, |aTuple|, <>, aTuple, transformer)
+		Exit loop with newAccumulator if index ≥ end;
+		Restart loop with <
+			index + 1 ?→ n31,
+			end,
+			newAccumulator,
+			innerTuple,
+			innerTransformer>
+	](1, tupleSize ?→ n31, <>, aTuple, transformer)
 ] : tuple
 styled by loop styler;
 
@@ -1206,7 +1215,7 @@ Method "map and filter_by_" is
 			|
 				If ¬hasAlreadyKept then
 				[
-					result ++= <transformed>;
+					result += transformed;
 					hasAlreadyKept := true;
 				];
 			]
@@ -1697,9 +1706,9 @@ Private method "zip function" is
 			group : tuple := <>;
 			For each aTuple of tuples do
 			[
-				group ++= <aTuple[index]>;
+				group += aTuple[index];
 			];
-			accumulator ++= <group>;
+			accumulator += group;
 		];
 		accumulator
 	] : tuple
@@ -1800,14 +1809,14 @@ Private method "zip semantic restriction" is
 				 */
 				For each tupleType of types do
 				[
-					zipped ++= <tupleType[index]>;
+					zipped += tupleType[index];
 				];
 				nonempty ::= cast zipped
 					into [ t : <any meta…|1..> | t ];
 				zippedType ::=
 					<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
 						| ||tuplesType||>;
-				resultTypes ++= <zippedType>;
+				resultTypes += zippedType;
 			];
 			nonempty ::= cast resultTypes into [ t : <tuple meta…|1..> | t ];
 			resultSizes ::= [lower..upper + 1);
@@ -2301,7 +2310,7 @@ Public method "all indices of_where_" is
 	[
 		If predicate(aTuple[index]) then
 		[
-			indices ++= <index>;
+			indices += index;
 		];
 	];
 	indices
@@ -2413,7 +2422,7 @@ Public stable method "_to_" is
 	endCodePoint ::= end's code point;
 	For each value from startCodePoint to endCodePoint do
 	[
-		accumulator ++= <value→character>;
+		accumulator += value→character;
 	];
 	accumulator
 ] : string;
@@ -3084,7 +3093,7 @@ Semantic restriction "stripe_at_" is
 			innerIndex ::= ⌊index⌋ + delta;
 			union := eject union ∪ innerType[innerIndex];
 		];
-		stripeTypes ++= <union>;
+		stripeTypes += union;
 	];
 	nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
 	<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
@@ -4912,8 +4921,7 @@ Method "all indices of_in_" is
 			w := first index of subtuple in aTuple[index..];
 			if w > 0 then
 			[
-				occurrences ++= <cast w + index - 1 into
-					[n : natural number | n]>;
+				occurrences += (w + index - 1) ?→ natural number;
 				index := index + w + |subtuple| - 1;
 			]
 			else [index := index + |aTuple|;];

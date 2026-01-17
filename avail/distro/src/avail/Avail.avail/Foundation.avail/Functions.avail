@@ -121,15 +121,15 @@ Private method "_partial evaluator with_" is
 	[
 		param ::= arg «`"arg" ++ “index”` : paramTypes[index]»;
 		paramUse ::= «↓param»;
-		allParamUses ++= <paramUse>;
+		allParamUses += paramUse;
 		If optionalExpr = <> then
 		[
-			innerParams ++= <param>;
+			innerParams += param;
 		]
 		else
 		[
-			outerParams ++= <param>;
-			outerInvokeArgs ++= <optionalExpr[1]>;
+			outerParams += param;
+			outerInvokeArgs += optionalExpr[1];
 		];
 	];
 	innerFunction ::=
@@ -247,7 +247,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
 			];
 			argumentType ::= originalFunction[index];
-			argumentTypes ++= <argumentType>;
+			argumentTypes += argumentType;
 		]
 		else if underscoreType = false's type then
 		[

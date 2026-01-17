@@ -31,6 +31,9 @@
  */
 package avail.descriptor.representation
 
+import avail.exceptions.AvailUnsupportedOperationException
+import avail.utility.stackToString
+
 /**
  * `AbstractAvailObject` specifies the essential layout and storage requirements
  * of an Avail object, but does not specify a particular representation. As
@@ -84,16 +87,6 @@ abstract class AbstractAvailObject protected constructor(
 	 *   Whether the receiver and the other object occupy the same storage.
 	 */
 	fun sameAddressAs(anotherObject: A_BasicObject) = this === anotherObject
-
-	/**
-	 * Replace the [descriptor][AbstractDescriptor] with a
-	 * [filler][FillerDescriptor]. This blows up for most messages, catching
-	 * further uses of this object. Note that all further uses are incorrect by
-	 * definition.
-	 */
-	fun destroy() {
-		descriptor = FillerDescriptor.mutable
-	}
 
 	/**
 	 * Has this [object][AvailObject] been [destroyed][destroy]?

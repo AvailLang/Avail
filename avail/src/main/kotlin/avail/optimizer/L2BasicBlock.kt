@@ -422,8 +422,8 @@ constructor(
 
 	/**
 	 * Determine whether code added after the last instruction of this block
-	 * would be reachable.  Take into account whether the block itself seems to
-	 * be reachable.
+	 * would be reachable.  Take into account whether the block itself seems
+	 * reachable.
 	 *
 	 * @return
 	 *   Whether it would be possible to reach a new instruction added to this
@@ -478,7 +478,7 @@ constructor(
 	override fun toString(): String
 	{
 		var suffix = ""
-		if (instructions.size > 0)
+		if (instructions.isNotEmpty())
 		{
 			val firstOffset = instructions[0].offset
 			val lastOffset = instructions.last().offset

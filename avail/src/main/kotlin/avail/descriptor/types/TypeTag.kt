@@ -34,6 +34,7 @@ package avail.descriptor.types
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.maps.A_Map.Companion.mapSize
+import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
@@ -73,7 +74,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedInteg
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
@@ -89,12 +89,13 @@ import avail.descriptor.types.TypeTag.Modifier.Co
 import avail.descriptor.types.TypeTag.Modifier.Contra
 import avail.descriptor.types.TypeTag.Modifier.Sup
 import avail.descriptor.types.TypeTag.Modifier.Unique
-import avail.descriptor.types.TypeTag.entries
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -455,6 +456,11 @@ constructor(
 		.split("_")
 		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
 
+	/**
+	 * Capture the ordinal as an Avail integer.
+	 */
+	lateinit var ordinalInteger: A_Number private set
+
 	init
 	{
 		instance?.metaTag = this
@@ -642,6 +648,11 @@ constructor(
 				else -> allIn = false
 			}
 		}
+		// Special case for bottom.
+		if (!tagRestriction.containsValue(BOTTOM_TYPE_TAG.ordinalInteger))
+		{
+			excludedTags.add(BOTTOM_TYPE_TAG)
+		}
 		if (allIn) return
 		if (allOut)
 		{
@@ -655,12 +666,6 @@ constructor(
 			val tag = tagFromOrdinal(scan)
 			tag.collectExclusions(tagRestriction, excludedTags)
 			scan = tag.highOrdinal + 1
-		}
-		// Special case for bottom.
-		if (!tagRestriction.containsEntireType(
-				singleInt(BOTTOM_TYPE_TAG.ordinal)))
-		{
-			excludedTags.add(BOTTOM_TYPE_TAG)
 		}
 	}
 
@@ -696,15 +701,22 @@ constructor(
 				return bottomRestriction
 			val tagRestriction = givenTagRestriction.intersectionWithType(
 				inclusive(TOP_TAG.ordinal, TypeTag.count - 1))
-			// If the bottom tag is omitted, exclude it from the result.
 			assert(tagRestriction.isUnboxedInt)
 			tagRestriction.makeShared()
+			val excludingBottomTag = tagRestriction.minusValue(
+				BOTTOM_TYPE_TAG.ordinalInteger)
+			excludingBottomTag.makeShared()
+			if (excludingBottomTag.isImpossible)
+			{
+				// Only the bottom tag was possible.
+				return restrictionForConstant(bottom, BOXED_FLAG).makeShared()
+			}
+			// If the bottom tag is omitted, exclude it from the result.
 			val tagRange = tagRestriction.type
 			val low = tagRange.lowerBound.extractInt
 			val high = tagRange.upperBound.extractInt
-			val lowTag = tagFromOrdinal(low)
-			val highTag = tagFromOrdinal(high)
-			val baseTag = lowTag.commonAncestorWith(highTag)
+			val baseTag = tagFromOrdinal(low).commonAncestorWith(
+				tagFromOrdinal(high))
 			assert(baseTag.ordinal <= low && high <= baseTag.highOrdinal)
 			// Now scan the tag tree, excluding suprema of tags that are
 			// entirely excluded from the tagRange.
@@ -714,6 +726,9 @@ constructor(
 			return excludedTags
 				.map(TypeTag::supremum)
 				.fold(baseRestriction, TypeRestriction::minusType)
+				.withCanBeBottom(
+					tagRestriction.containsValue(
+						BOTTOM_TYPE_TAG.ordinalInteger))
 				.makeShared()
 		}
 
@@ -737,13 +752,14 @@ constructor(
 			UNKNOWN_TAG.metaTag = UNKNOWN_TAG
 
 			all.forEach { tag ->
+				tag.ordinalInteger = fromInt(tag.ordinal)
 				if (tag.metaTag === null && tag != UNKNOWN_TAG)
 				{
 					tag.metaTag = tag.parent!!.metaTag
 				}
 			}
-			// Working backwards, set the highOrdinal of any tag that hasn't
-			// had a child set it already, implying it has no children.  Then
+			// Working backwards, set the highOrdinal of any tag that hasn't had
+			// a child set for it already, implying it has no children.  Then
 			// attempt to copy the highOrdinal into the parent's highOrdinal, if
 			// it hasn't already been set yet.
 			all.reversed().forEach { tag ->

@@ -34,6 +34,7 @@ package avail.interpreter.primitive.privatehelpers
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -75,6 +76,11 @@ object P_PushLastOuter : Primitive(
 	 * primitive could only be applied if the function returns any.
 	 */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
+
+	override fun checkSpecialForm(
+		numArgs: Int,
+		literals: A_Tuple
+	): Boolean = true
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

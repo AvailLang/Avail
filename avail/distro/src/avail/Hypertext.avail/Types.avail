@@ -112,7 +112,7 @@ Public stable method "_«fully»?escaped" is
 			]
 			else
 			[
-				t0 ++= <c>;
+				t0 += c;
 			];
 		];
 		t := t0;

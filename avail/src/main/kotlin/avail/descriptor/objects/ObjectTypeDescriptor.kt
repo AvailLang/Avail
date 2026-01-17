@@ -227,7 +227,7 @@ class ObjectTypeDescriptor internal constructor(
 		UNDETERMINED
 	}
 
-	public override fun allowsImmutableToMutableReferenceInField(
+	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === IntegerSlots.HASH_AND_MORE
 		|| e === ObjectSlots.WEAK_REFERENCE_POJO

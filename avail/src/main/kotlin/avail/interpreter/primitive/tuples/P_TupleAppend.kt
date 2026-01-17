@@ -78,7 +78,7 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 		val newElement = interpreter.argument(1)
 
 		return interpreter.primitiveSuccess(
-			tuple.appendCanDestroy(newElement, true))
+			tuple.appendCanDestroy(newElement, true, true))
 	}
 
 	override fun returnTypeGuaranteedByVM(

@@ -348,12 +348,17 @@ class L2ControlFlowGraph
 			block.predecessorEdges().forEach { edge: L2PcOperand? ->
 				append("\t\tFrom: ")
 				append(edge!!.sourceBlock().name())
-				append("\n\t\t\t[")
-				append("always live-in: ")
-				append(edge.alwaysLiveInEntities)
-				append(", sometimes live-in: ")
-				append(edge.sometimesLiveInEntities)
-				append("]\n")
+				if (edge.alwaysLiveInEntities != null
+					|| edge.sometimesLiveInEntities != null)
+				{
+					append("\n\t\t\t[")
+					append("always live-in: ")
+					append(edge.alwaysLiveInEntities)
+					append(", sometimes live-in: ")
+					append(edge.sometimesLiveInEntities)
+					append("]")
+				}
+				append("\n")
 			}
 			for (instruction in block.instructions())
 			{
@@ -417,7 +422,7 @@ class L2ControlFlowGraph
 	) = StringBuilder().let { builder ->
 		L2ControlFlowGraphVisualizer(
 			fileName = "«control flow graph»",
-			name = "«chunk»",
+			name = "",
 			charactersPerLine = 80,
 			controlFlowGraph = this,
 			visualizeLiveness = true,
@@ -444,7 +449,7 @@ class L2ControlFlowGraph
 	) = StringBuilder().let { builder ->
 		L2ControlFlowGraphVisualizer(
 			fileName = "«SIMPLE control flow graph»",
-			name = "«chunk»",
+			name = "",
 			charactersPerLine = 80,
 			controlFlowGraph = this,
 			visualizeLiveness = false,

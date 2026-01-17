@@ -142,10 +142,12 @@ private constructor(
 		BYTE_ARRAY_POJO
 	}
 
-	override fun o_AppendCanDestroy(
+	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 	{
 		val newElementStrong = newElement as AvailObject
 		val originalSize = self.tupleSize

@@ -65,6 +65,7 @@ class L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

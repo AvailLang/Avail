@@ -37,7 +37,9 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -55,6 +57,7 @@ class L2_TUPLE_AT_NO_FAIL(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -65,6 +68,43 @@ class L2_TUPLE_AT_NO_FAIL(
 		append("(no fail)[")
 		append(subscript)
 		append(']')
+	}
+
+	/**
+	 * In theory, reading from a tuple doesn't destroy the tuple, and doesn't
+	 * have to mark the resulting value as immutable either.  However, any
+	 * access to the tuple later could see a mutated form of this element, so
+	 * until we can couple the mutability constraints between the tuple and its
+	 * elements, we must make the extracted element immutable.
+	 */
+	override fun propagateMutability(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>)
+	{
+		// If the tuple has already become immutable, there's no need to mark
+		// the extracted element as immutable.
+		if (tuple.register() in mutables)
+		{
+			// Tuple is still potentially mutable, so the extracted element
+			// is potentially mutable.  Force it to be immutable, regardless of
+			// whether it gets used multiple times or not.
+			mutables -= destination.register()
+			val instructionIndex = basicBlock().instructions().indexOf(this)
+			// Blame the next instruction, so that we generate the makeImmutable
+			// right after this tupleAt.
+			firstUses[destination.register()] =
+				(instructionIndex + 1) to L2ReadBoxedOperand(
+					destination.pickSemanticValue(),
+					destination.restriction(),
+					destination.register())
+		}
+		else
+		{
+			// The tuple is immutable at this point (perhaps because at least
+			// two uses have been encountered).  Therefore, all its elements are
+			// already immutable.
+			return
+		}
 	}
 
 	override fun translateToJVM(

@@ -106,6 +106,9 @@
     <RsCodeStyleSettings>
       <option name="ALIGN_WHERE_BOUNDS" value="false" />
     </RsCodeStyleSettings>
+    <ScalaCodeStyleSettings>
+      <option name="MULTILINE_STRING_CLOSING_QUOTES_ON_NEW_LINE" value="true" />
+    </ScalaCodeStyleSettings>
     <ScssCodeStyleSettings>
       <option name="HEX_COLOR_UPPER_CASE" value="true" />
       <option name="HEX_COLOR_LONG_FORMAT" value="true" />
@@ -426,6 +429,8 @@
       <option name="CATCH_ON_NEW_LINE" value="true" />
       <option name="FINALLY_ON_NEW_LINE" value="true" />
       <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
+      <option name="CALL_PARAMETERS_RPAREN_ON_NEXT_LINE" value="false" />
+      <option name="METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE" value="false" />
       <option name="EXTENDS_LIST_WRAP" value="5" />
       <option name="METHOD_CALL_CHAIN_WRAP" value="5" />
       <option name="WRAP_FIRST_METHOD_IN_CALL_CHAIN" value="true" />

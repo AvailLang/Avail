@@ -41,12 +41,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 plugins {
-	kotlin("jvm") version "2.1.0"
+	kotlin("jvm") version "2.2.20"
 	id("java")
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "1.8.20"
+	id("org.jetbrains.dokka") version "2.0.0"
 	id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -59,7 +59,7 @@ group = "org.availlang"
 version = "2.0.0.alpha28"
 
 /** The version of Kotlin to be used by Avail. */
-val kotlin = "2.1.0"
+val kotlin = "2.2.20"
 
 /** The `com.github.johnrengelman.shadow` version. */
 val shadow = "8.1.1"
@@ -83,13 +83,13 @@ val apacheCommonsVersion = "4.4"
 val jsrVersion = "3.0.2"
 
 /** The `org.junit.jupiter:junit-jupiter` version. */
-val junitVersion = "5.11.2"
+val junitVersion = "5.12.2"
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "1.9"
+val kotlinLanguage = "2.2.20"
 
 /** The JVM target version for Kotlin. */
-val jvmTarget = 21
+val jvmTarget = 23
 
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
@@ -156,14 +156,14 @@ val relativePathBootstrapClasses =
 kotlin {
 	jvmToolchain {
 		languageVersion = JavaLanguageVersion.of(jvmTarget)
-		vendor = JvmVendorSpec.ADOPTIUM
+		vendor = JvmVendorSpec.ORACLE
 	}
 }
 
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(jvmTarget)
-		vendor = JvmVendorSpec.ADOPTIUM
+		vendor = JvmVendorSpec.ORACLE
 	}
 }
 
@@ -206,10 +206,10 @@ tasks {
 	withType<Test> {
 		val toolChains =
 			project.extensions.getByType(JavaToolchainService::class)
-		javaLauncher.set(
+		javaLauncher =
 			toolChains.launcherFor {
 				languageVersion.set(JavaLanguageVersion.of(jvmTarget))
-			})
+			}
 		testLogging {
 			events = setOf(TestLogEvent.FAILED)
 			exceptionFormat = TestExceptionFormat.FULL
@@ -256,6 +256,7 @@ tasks {
 		testLogging {
 			events("passed", "skipped", "failed")
 		}
+		systemProperty("java.awt.headless", "true")
 	}
 
 	jar {
@@ -316,15 +317,32 @@ tasks {
 		from(sourceSets["main"].allSource)
 	}
 
-	val dokkaHtml by getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+	dokka {
+		moduleName = "Avail"
+		dokkaPublications.html {
+			suppressInheritedMembers.set(true)
+			failOnWarning.set(true)
+		}
+		dokkaSourceSets.main {
+			sourceLink {
+				localDirectory.set(file("src/main/kotlin"))
+				remoteUrl("https://github.com/AvailLang/Avail/blob/main/src/main/kotlin")
+				remoteLineSuffix.set("#L")
+			}
+		}
+		pluginsConfiguration.html {
+			//customStyleSheets.from("styles.css")
+			//customAssets.from("logo.png")
+			footerMessage.set("(c) The Avail Foundation")
+		}
+	}
 
-	val javadocJar by creating(Jar::class)
-	{
-		dependsOn(dokkaHtml)
+	val javadocJar by creating(Jar::class) {
+		// Dokka 2 task name for the html publication
+		dependsOn("dokkaGeneratePublicationHtml")
 		description = "Creates Javadoc JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("javadoc")
-		from(dokkaHtml.outputDirectory)
 	}
 
 	publish {

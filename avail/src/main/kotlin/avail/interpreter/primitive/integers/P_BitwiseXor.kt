@@ -185,5 +185,5 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 			})
 	}
 
-	override val semanticinfixOperatorString: String? get() = "Xor"
+	override val semanticInfixOperatorString: String? get() = "Xor"
 }

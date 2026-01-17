@@ -963,14 +963,14 @@ Public macro "«_‡«=|≤|<»!»" is
 	|
 		entryList ::= expressions[i] ?→ list phrase ⇒ <number, [1..3]…|1..2>;
 		entry ::= entryList's expressions;
-		argPhrases ++= <entry[1]>;
+		argPhrases += entry[1];
 		argType ::= entry[1]'s semantic type;
-		argTypes ++= <argType>;
-		blockArgs ++= <arg «keyword("arg" ++ “i”)@0:0 : argType»>;
+		argTypes += argType;
+		blockArgs += arg «keyword("arg" ++ “i”)@0:0 : argType»;
 		If |entry| = 2 then
 		[
 			operatorLiteral ::= entry[2] ?→ literal phrase ⇒ [1..3];
-			operatorIndices ++= <operatorLiteral's token's value>;
+			operatorIndices += operatorLiteral's token's value;
 		];
 		true
 	];
@@ -999,10 +999,10 @@ Public macro "«_‡«=|≤|<»!»" is
 				if operatorIndex = 2 then [⟦⦊get1⦉ ≤ ⦊get2⦉⟧]
 				else [⟦⦊get1⦉ < ⦊get2⦉⟧]
 			];
-		statements ++= <⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧>;
+		statements += ⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧;
 		true
 	];
-	statements ++= <⟦true⟧>;
+	statements += ⟦true⟧;
 	⟦
 		invoke ⦊ «[blockArgs | statements] : boolean» ⦉
 		with ⦊argPhrases → list phrase⦉
@@ -1069,14 +1069,14 @@ Public macro "«_‡«=|≥|>»!»" is
 	|
 		entryList ::= expressions[i] ?→ list phrase ⇒ <number, [1..3]…|1..2>;
 		entry ::= entryList's expressions;
-		argPhrases ++= <entry[1]>;
+		argPhrases += entry[1];
 		argType ::= entry[1]'s semantic type;
-		argTypes ++= <argType>;
-		blockArgs ++= <arg «keyword("arg" ++ “i”)@0:0 : argType»>;
+		argTypes += argType;
+		blockArgs += arg «keyword("arg" ++ “i”)@0:0 : argType»;
 		If |entry| = 2 then
 		[
 			operatorLiteral ::= entry[2] ?→ literal phrase ⇒ [1..3];
-			operatorIndices ++= <operatorLiteral's token's value>;
+			operatorIndices += operatorLiteral's token's value;
 		];
 		true
 	];
@@ -1101,10 +1101,10 @@ Public macro "«_‡«=|≥|>»!»" is
 			else [
 				if operatorIndex = 2 then [⟦⦊get1⦉ ≥ ⦊get2⦉⟧]
 				else [⟦⦊get1⦉ > ⦊get2⦉⟧]];
-		statements ++= <⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧>;
+		statements += ⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧;
 		true
 	];
-	statements ++= <⟦true⟧>;
+	statements += ⟦true⟧;
 	⟦
 		invoke ⦊ «[blockArgs | statements] : boolean» ⦉
 		with ⦊argPhrases → list phrase⦉

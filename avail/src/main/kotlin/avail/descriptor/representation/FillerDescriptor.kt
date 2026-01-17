@@ -50,8 +50,16 @@ import java.util.IdentityHashMap
  *
  */
 class FillerDescriptor private constructor() : Descriptor(
-	Mutability.MUTABLE, TypeTag.UNKNOWN_TAG, null, null
+	Mutability.MUTABLE,
+	TypeTag.UNKNOWN_TAG,
+	ObjectSlots::class.java,
+	null
 ) {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
+		OPTIONAL_DEBUG_INFO_
+	}
+
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,

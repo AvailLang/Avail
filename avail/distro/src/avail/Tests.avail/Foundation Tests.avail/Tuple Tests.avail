@@ -115,7 +115,7 @@ Test "for each of do" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
 	b : tuple := <>;
-	For each of a do [n : natural number | b ++= <n>;];
+	For each of a do [n : natural number | b += n;];
 	Require: b = a;
 
 	c : tuple := <>;
@@ -123,8 +123,8 @@ Test "for each of do" in tuple test suite is
 		n : natural number,
 		index : [1..4]
 	|
-		c ++= <n>;
-		c ++= <index>;
+		c += n;
+		c += index;
 
 	];
 	Require: c = <1,1,2,2,3,3,4,4>;
@@ -136,7 +136,7 @@ Test "macro for each of do" in tuple test suite is
 	b : natural number* := <>;
 	For each element of a do
 	[
-		If element is even then [b ++= <element>;];
+		If element is even then [b += element;];
 	];
 	Require: b = <2,4>;
 
@@ -144,8 +144,8 @@ Test "macro for each of do" in tuple test suite is
 	For each element, i of a do
 	[
 		If element is odd then [
-			c ++= <element>;
-			c ++= <i>;
+			c += element;
+			c += i;
 		];
 	];
 	Require: c = <1,1,3,3,5,5>;
@@ -680,7 +680,7 @@ Test "integer interval tuple" in tuple test suite is
 				[
 					For each i from start to end by delta do
 					[
-						expected ++= <i>;
+						expected += i;
 					];
 				];
 				Guard
@@ -709,7 +709,7 @@ Test "integer interval tuple" in tuple test suite is
 	 * Create a simple integer interval tuple that is not small.
 	 */
 	expected : tuple := <>;
-	For each i from 12345678901 to 12345678907 by 2 do [expected ++= <i>;];
+	For each i from 12345678901 to 12345678907 by 2 do [expected += i;];
 	Require: 12345678901 to 12345678907 by 2 = expected;
 
 	/*
@@ -848,7 +848,7 @@ Test "serialization" in tuple test suite is
 			If actualImplementation's nybblecodes
 				≠ expectedImplementation's nybblecodes then
 			[
-				failed ++= <index>;
+				failed += index;
 			];
 		]
 		/* Functions have identity. */
@@ -859,7 +859,7 @@ Test "serialization" in tuple test suite is
 			If actualFunction's implementation's nybblecodes
 				≠ expectedFunction's implementation's nybblecodes then
 			[
-				failed ++= <index>;
+				failed += index;
 			];
 		]
 		/* Variables have identity. */
@@ -869,13 +869,13 @@ Test "serialization" in tuple test suite is
 			actualVariable ::= expectedValue ?→ ↑string;
 			If ↓actualVariable ≠ ↓expectedVariable then
 			[
-				failed ++= <index>;
+				failed += index;
 			];
 		]
 		/* All other values in the input tuple are identityless. */
 		else if actualValue ≠ expectedValue then
 		[
-			failed ++= <index>;
+			failed += index;
 		];
 	];
 	Require: failed = <> ("serialization failed");
@@ -895,14 +895,14 @@ Test "tuple appending" in tuple test suite is
 	/* strongly typed appends */
 	a : <1's type, 2's type, 3's type…|3> := <1,2,3>;
 	b : <1's type, 2's type, 3's type,4's type…|3..> := a;
-	b ++= <4>;
+	b += 4;
 	Require: b = <1,2,3,4>;
 
 	/* strongly typed multiple appends */
 	c ::= <"b", 1, -2>;
 	d : <string, 1's type, number, any…|3..> := c;
 	d ++= <"a">;
-	d ++= <5>;
+	d += 5;
 	d ++= <0.1>;
 	Require: d = <"b", 1, -2, "a", 5, 0.1>;
 
@@ -910,18 +910,18 @@ Test "tuple appending" in tuple test suite is
 	ti1 : tuple := <0, 2, 4, 6, 8, 10, 12, 14, 16, 18>;
 	ti2 : tuple := 0 to 18 by 2;
 	ti1 := ti1 ++ <20>;
-	ti1 ++= <22>;
+	ti1 += 22;
 	ti2 := ti2 ++ <20>;
-	ti2 ++= <22>;
+	ti2 += 22;
 	Require: ti1[1..12] = ti2[1..12];
 
 	/* byte tuple / repeated tuple */
 	tr1 : tuple := <5, 5, 5, 5, 5, 5, 5, 5, 5, 5>;
 	tr2 : tuple := 10 occurrences of 5;
 	tr1 := tr1 ++ <5>;
-	tr1 ++= <5>;
+	tr1 += 5;
 	tr2 := tr2 ++ <5>;
-	tr2 ++= <5>;
+	tr2 += 5;
 	Require: tr1[1..12] = tr2[1..12];
 
 	/* two-byte string */

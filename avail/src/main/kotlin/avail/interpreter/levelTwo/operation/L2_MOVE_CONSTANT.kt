@@ -151,10 +151,13 @@ protected constructor(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
-		destination().run { appendWithWarningsTo(0, warningStyleChange) }
+		destination().run {
+			appendWithWarningsTo(0, ignoreMisconnections, warningStyleChange)
+		}
 		append(" ← ")
 		brief {
 			this.append(increaseIndentation(constant().toString(), 2))

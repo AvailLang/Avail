@@ -77,6 +77,7 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -110,7 +111,7 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			return
 		}
 		val postponed = currentManifest.postponedInstruction(semanticVariable)!!
-		val originValue: L2ReadBoxedOperand = when (postponed)
+		val originOfValue: L2ReadBoxedOperand = when (postponed)
 		{
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite
 			is L2_CREATE_VARIABLE -> postponed.initialValueOrNil
@@ -121,20 +122,28 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			}
 		}
 		// The move from variable to variableOut is unconditional.
-		val originType = currentManifest.restrictionFor(originValue)
+		val originRestriction = currentManifest.restrictionFor(originOfValue)
 		when
 		{
-			originType.containedByType(ANY()) ->
+			originRestriction.containedByType(ANY()) ->
 			{
 				// The variable is definitely assigned.
 				currentManifest.recordPostponedInstruction(
 					L2_MOVE_BOXED(variable, variableOut))
+				// Make sure to strengthen the restriction on the destination of
+				// the move, since the restriction on the origin valueOfValue
+				// can be far more precise than the variable type.
 				currentManifest.recordPostponedInstruction(
-					L2_MOVE_BOXED(originValue, extractedValue))
+					L2_MOVE_BOXED(
+						originOfValue,
+						L2WriteBoxedOperand(
+							extractedValue.semanticValues(),
+							extractedValue.restriction().intersection(
+								originOfValue.restriction()))))
 				jumpTo(ifReadSucceeded.targetBlock())
 				return
 			}
-			originType.constantOrNull.notNullAnd { isNil } ->
+			originRestriction.constantOrNull.notNullAnd { isNil } ->
 			{
 				// The variable is definitely unassigned.
 				currentManifest.recordPostponedInstruction(

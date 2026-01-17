@@ -47,7 +47,7 @@ Test "for each of do" in iterators test suite is
 [
 	a ::= a reader over <1,2,3,4>;
 	b : tuple := <>;
-	For each of a do [n : natural number | b ++= <n>;];
+	For each of a do [n : natural number | b += n;];
 	Require: b = <1,2,3,4>;
 ];
 

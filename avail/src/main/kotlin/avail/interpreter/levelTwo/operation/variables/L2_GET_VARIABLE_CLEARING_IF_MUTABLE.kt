@@ -65,6 +65,7 @@ class L2_GET_VARIABLE_CLEARING_IF_MUTABLE(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()

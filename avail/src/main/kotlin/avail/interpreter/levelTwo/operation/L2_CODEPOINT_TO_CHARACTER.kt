@@ -73,9 +73,9 @@ class L2_CODEPOINT_TO_CHARACTER(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		A_Character
 		renderPreamble()
 		append(' ')
 		append(destination.registerString())

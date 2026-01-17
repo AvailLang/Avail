@@ -448,7 +448,7 @@ is
 				|
 					Lock m for
 					[
-						queue ++= <f>;
+						queue += f;
 						Signal notEmpty;
 					];
 				]);
@@ -508,7 +508,7 @@ is
 		environment env
 		success
 		[
-			Guard [Repeat [c ::= next character; out ++= <c>;]]
+			Guard [Repeat [c ::= next character; out += c;]]
 			intercept [e : I/O exception | /* Expected. */]
 			intercept [e : exception | killer := e;];
 		]

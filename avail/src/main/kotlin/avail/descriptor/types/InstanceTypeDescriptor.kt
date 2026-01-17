@@ -284,7 +284,8 @@ private constructor(
 	 */
 	override fun o_HasObjectInstance(
 		self: AvailObject,
-		potentialInstance: AvailObject): Boolean =
+		potentialInstance: AvailObject
+	): Boolean =
 		getInstance(self).equals(potentialInstance)
 
 	override fun o_Hash(self: AvailObject): Int =

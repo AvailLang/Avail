@@ -48,33 +48,33 @@ import avail.utility.cast
  * An `L2ReadFloatOperand` is an operand of type [L2OperandType.READ_FLOAT]. It
  * holds the actual [L2FloatRegister] that is to be accessed.
  *
+ * @constructor
+ *   Create a new `L2ReadFloatOperand`.
+ * @param semanticValue
+ *   The [L2SemanticValue] that is being read when an [L2Instruction] uses this
+ *   [L2Operand].
+ * @param restriction
+ *   The [TypeRestriction] to constrain this particular read. This restriction
+ *   has been guaranteed by the VM at the point where this operand's instruction
+ *   occurs.
+ * @param register
+ *   An optional [L2FloatRegister] to use for this operand.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2ReadFloatOperand : L2ReadOperand<FLOAT_KIND>
+class L2ReadFloatOperand
+constructor(
+	semanticValue: L2SemanticValue<FLOAT_KIND>,
+	restriction: TypeRestriction,
+	register: L2Register<FLOAT_KIND>? = null
+) : L2ReadOperand<FLOAT_KIND>(semanticValue, restriction, register)
 {
-	override val operandType: L2OperandType get() = READ_FLOAT
-
-	/**
-	 * Construct a new `L2ReadFloatOperand` for the specified [L2SemanticValue]
-	 * and [TypeRestriction].
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
-	 *   this [L2Operand].
-	 * @param restriction
-	 *   The [TypeRestriction] to constrain this particular read. This
-	 *   restriction has been guaranteed by the VM at the point where this
-	 *   operand's instruction occurs.
-	 */
-	constructor(
-		semanticValue: L2SemanticValue<FLOAT_KIND>,
-		restriction: TypeRestriction,
-		register: L2Register<FLOAT_KIND>? = null
-	) : super(semanticValue, restriction, register)
-	{
+	init {
 		assert(restriction.isUnboxedFloat)
 	}
+
+	override val operandType: L2OperandType get() = READ_FLOAT
 
 	override fun semanticValue(): L2SemanticUnboxedFloat =
 		super.semanticValue().cast()

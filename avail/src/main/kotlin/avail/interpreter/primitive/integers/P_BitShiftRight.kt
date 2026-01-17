@@ -275,5 +275,5 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 
-	override val semanticinfixOperatorString: String? get() = "Shr"
+	override val semanticInfixOperatorString: String? get() = "Shr"
 }

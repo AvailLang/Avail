@@ -174,7 +174,7 @@ private constructor(
 		ARGS_TUPLE_TYPE
 	}
 
-	public override fun allowsImmutableToMutableReferenceInField(
+	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	): Boolean = e === HASH_AND_MORE
 

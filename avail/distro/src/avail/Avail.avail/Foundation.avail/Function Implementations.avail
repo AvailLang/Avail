@@ -615,7 +615,7 @@ Public stable method "L1 operations for_" is
 	While index ≤ |nybblecodes| do
 	[
 		operation, newIndex ::= nybblecodes' nybblecoded operation[index];
-		operations ++= <operation>;
+		operations += operation;
 		index := newIndex;
 		/* Skip over the appropriate number of encoded operands. */
 		Repeat
@@ -720,10 +720,10 @@ Public stable method "L1 raw disassembly of_" is
 		[
 			operand, nextOperandIndex ::=
 				nybblecodes' nybblecoded operand[index];
-			instruction ++= <operand>;
+			instruction += operand;
 			index := nextOperandIndex;
 		] |operation's operands| times;
-		instructions ++= <instruction>;
+		instructions += instruction;
 	];
 	instructions
 ] : L1 raw instruction*;

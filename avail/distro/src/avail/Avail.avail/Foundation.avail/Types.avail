@@ -168,7 +168,7 @@ Semantic restriction "<_,_`…`|_>" is
 		[
 			element := (element ∪ defaultType) ?→ any meta;
 		];
-		typesTuple ++= <element>;
+		typesTuple += element;
 		true
 	];
 	result ::= <typesTuple, defaultType…|cardinalityType>'s type;

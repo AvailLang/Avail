@@ -692,7 +692,8 @@ is
 	];
 	last ::= aTuple's last;
 	tx ::= cast last into [t : string | t] else [“last”];
-	s ++= <"and ", "or ">[mode] ++ tx;
+	s ++= <"and ", "or ">[mode];
+	s ++= tx;
 	s
 ] : string;
 
@@ -856,7 +857,8 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	s ++= tx;
 	last ::= aTuple's last;
 	tx := cast last into [t : string | t] else [“last”];
-	s ++= <" and ", " or ">[mode] ++ tx;
+	s ++= <" and ", " or ">[mode];
+	s ++= tx;
 	s
 ] : string;
 
@@ -934,7 +936,8 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	s ++= tx;
 	last ::= aTuple's last;
 	tx := cast last into [t : string | t] else [“last”];
-	s ++= <" and ", " or ">[mode] ++ tx;
+	s ++= <" and ", " or ">[mode];
+	s ++= tx;
 	s
 ] : string;
 
@@ -1371,7 +1374,7 @@ Public method "_with Avail message⁇metacharacters escaped" is
 	For each c of s do
 	[
 		If c is an Avail metacharacter then [t ++= "`";];
-		t ++= <c>;
+		t += c;
 	];
 	t
 ];

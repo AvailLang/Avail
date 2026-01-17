@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -77,6 +78,11 @@ object P_PushConstant : Primitive(
 
 	/** This primitive is suitable for any block signature. */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
+
+	override fun checkSpecialForm(
+		numArgs: Int,
+		literals: A_Tuple
+	): Boolean = true
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,

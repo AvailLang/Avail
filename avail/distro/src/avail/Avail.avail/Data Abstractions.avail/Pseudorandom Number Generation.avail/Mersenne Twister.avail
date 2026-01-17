@@ -150,7 +150,7 @@ Private method "untwisted Mersenne Twister from_" is
 	[
 		last ::= vector's last;
 		value ::= 1812433253 × (last bit⊕ (last >> 30)) + i;
-		vector ++= <value bit∧ ((1<<32)-1)>;
+		vector += value bit∧ ((1<<32)-1);
 	];
 	a Mersenne Twister with
 		element type ::= u32,

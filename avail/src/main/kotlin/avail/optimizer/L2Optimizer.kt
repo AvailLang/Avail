@@ -37,7 +37,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
-import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -657,14 +656,12 @@ class L2Optimizer internal constructor(
 		regenerateGraph(BySemanticValue) { sourceInstruction ->
 			val basicTransformed = basicTransformInstruction(sourceInstruction)
 			basicTransformed.run {
-				if (altersControlFlow)
-				{
-					// We've just reached the last instruction of a block in the
-					// original graph.  Now's probably a good time to reduce the
-					// postponed instructions.
-					currentManifest.rewriteAllPostponed()
-				}
+				currentManifest.check() //TODO remove
 				regenerateForPostponement()
+				if (!basicTransformed.altersControlFlow)
+				{
+					currentManifest.check() //TODO remove
+				}
 			}
 		}
 	}
@@ -833,8 +830,7 @@ class L2Optimizer internal constructor(
 		) { sourceInstruction ->
 			assert (sourceInstruction !is L2_PHI<*>)
 			inserts[sourceInstruction]?.let { movesToInsert ->
-				+L2_NOP(L2CommentOperand(
-					"Inserted ${movesToInsert.size} phi moves:"))
+				+L2_NOP("Inserted ${movesToInsert.size} phi moves:")
 				movesToInsert.forEach { newMove ->
 					+basicTransformInstruction(newMove)
 				}

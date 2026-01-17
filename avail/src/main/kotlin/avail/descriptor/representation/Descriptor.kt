@@ -130,8 +130,8 @@ import java.util.stream.Stream
  * IndirectionDescriptor.
  *
  * When a new method is added in a subclass, it should be added with the
- * [@Override][Override] annotation. That way the project will indicate errors
- * until an abstract declaration is added to [AbstractDescriptor], a default
+ * `override` keyword. That way the project will indicate errors until an
+ * abstract declaration is added to [AbstractDescriptor], a default
  * implementation is added to `Descriptor`, and a redirecting implementation is
  * added to [IndirectionDescriptor]. Any code attempting to send the
  * corresponding message to an [AvailObject] will also indicate a problem until
@@ -286,7 +286,9 @@ protected constructor (
 	override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple = unsupported
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple = unsupported
 
 	override fun o_ArgumentsListNode (self: AvailObject): A_Phrase =
 		unsupported
@@ -1703,12 +1705,11 @@ protected constructor (
 
 	override fun o_IsEnumeration (self: AvailObject) = false
 
-	override fun o_IsInstanceOf (self: AvailObject, aType: A_Type): Boolean
-	{
-		return (
-			if (aType.isEnumeration) aType.enumerationIncludesInstance(self)
-			else self.isInstanceOfKind(aType))
-	}
+	override fun o_IsInstanceOf (self: AvailObject, aType: A_Type): Boolean =
+		when {
+			aType.isEnumeration -> aType.enumerationIncludesInstance(self)
+			else -> self.isInstanceOfKind(aType)
+		}
 
 	override fun o_EnumerationIncludesInstance (
 		self: AvailObject,

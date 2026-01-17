@@ -196,27 +196,14 @@ internal class PatternBuilder
 
 		/**
 		 * Attempt to match the given [L2SemanticValue] against the pattern,
-		 * updating the [captures] array, and answering `true` only if this
-		 * section of the pattern matches this section of the [L2SemanticValue].
+		 * updating the [captures] array, and invoking the [body] only if this
+		 * pattern matches the [L2SemanticValue].
 		 */
-		open fun privateMatchForEach(
+		abstract fun privateMatchForEach(
 			value: L2SemanticValue<BOXED_KIND>,
 			manifest: L2ValueManifest?,
 			captures: Array<L2SemanticValue<BOXED_KIND>?>,
 			body: ()->Unit)
-		{
-			privateMatchForEach(
-				value,
-				manifest,
-				captures
-			) {
-				assert(captures.all { it !== null })
-				body()
-			}
-			// Backtracking from the semi-unification must clear any introduced
-			// bindings.
-			assert(captures.all { it === null })
-		}
 	}
 
 	/**

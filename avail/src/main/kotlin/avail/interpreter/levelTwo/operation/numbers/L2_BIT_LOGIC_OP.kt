@@ -126,6 +126,7 @@ constructor(
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -328,9 +329,9 @@ constructor(
 			rule(K1, Sub(X, K2)) { Sub(C(k1 + k2), X) }
 			rule(K1, Add(X, K2)) { Sub(C(k1 - k2), X) }
 			rule(X, Sub(Y, Z)) { Sub(Add(X, Z), Y) }
-			// x - (x * (x / y))  --> x mod y
-			rule(X, Mul(X, Div(X, Y))) { Mod(X, Y) }
-			rule(X, Mul(Div(X, Y), X)) { Mod(X, Y) }
+			// x - (y * (x / y))  --> x mod y
+			rule(X, Mul(Y, Div(X, Y))) { Mod(X, Y) }
+			rule(X, Mul(Div(X, Y), Y)) { Mod(X, Y) }
 		}),
 
 		/**
@@ -377,6 +378,10 @@ constructor(
 			rule(Mul(X, Y), X) { C(0) }
 			rule(Mul(Y, X), X) { C(0) }
 			rule(X, K1, {k1.takeLowestOneBit() == k1}) { And(X, C(k1 - 1)) }
+			// X mod (k<<z) where k=2^n --> X & ((k<<z)-1)
+			rule(X, Shl(K1, Z), {k1.takeLowestOneBit() == k1}) {
+				And(X, Sub(Shl(K1, Z), C(1)))
+			}
 		}),
 
 		/**
@@ -388,6 +393,7 @@ constructor(
 		Ushr(Opcodes.IUSHR, Int::ushr, ::ushrBound, {
 			rule(X, C(0)) { X }
 			rule(Ushr(X, K1), K2, {k1 + k2 <= 31}) { Ushr(X, C(k1 + k2)) }
+			rule(Ushr(X, K1), K2, {k1 + k2 > 31}) { C(0) }
 		}),
 
 		/**
@@ -421,6 +427,7 @@ constructor(
 			rule(X, X) { X }
 			rule(K1, K2) { C(max(k1, k2)) }
 			rule(X, Y, {x.high <= y.low}) { Y }
+			rule(X, Y, {x.low >= y.high}) { X }
 		}),
 
 		/**
@@ -430,6 +437,7 @@ constructor(
 			rule(X, X) { X }
 			rule(K1, K2) { C(min(k1, k2)) }
 			rule(X, Y, {x.high <= y.low}) { X }
+			rule(X, Y, {x.low >= y.high}) { Y }
 		}),
 
 		/**
@@ -603,18 +611,14 @@ constructor(
 					val tempWriter = intWrite(
 						setOf(intSemanticPrimitive),
 						intRestrictionForType(typeGuarantee))
-					// Note that both the unboxed and boxed registers end up in
-					// the same synonym, so subsequent uses of the result might
-					// use either register, depending whether an unboxed value
-					// is desired.
 					+L2_BIT_LOGIC_OP(this@BitOperation, intA, intB, tempWriter)
 					// Even though we're just using the boxed value again, the
-					// unboxed form is also still available for use by
-					// subsequent primitives, which could allow the boxing
-					// instruction to evaporate.
+					// unboxed form is also still available in the manifest for
+					// use by subsequent primitives, which might allow the
+					// boxing instruction to evaporate.
 					callSiteHelper.useAnswer(
 						readBoxed(semanticPrimitive),
-						// Bit logic can't cause escaped locals to be endangered.
+						// Bit logic can't endanger escaped locals.
 						false)
 				}
 				return true

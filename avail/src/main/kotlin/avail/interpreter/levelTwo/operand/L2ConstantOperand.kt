@@ -53,7 +53,10 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
  * @param constant
  *   The constant value.
  */
-class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
+class L2ConstantOperand
+constructor(
+	constant: A_BasicObject
+) : L2Operand()
 {
 	/**
 	 * The actual constant value.

@@ -1710,8 +1710,9 @@ private constructor(messageName: A_String)
 						return existing
 					}
 				}
-				val after =
-					before.appendCanDestroy(permutation, false).makeShared()
+				val after = before
+					.appendCanDestroy(permutation, false, false)
+					.makeShared()
 				if (permutations.compareAndSet(before, after))
 				{
 					// Added it successfully. `permutation` is now shared, so

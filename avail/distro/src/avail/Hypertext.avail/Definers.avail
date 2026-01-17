@@ -179,7 +179,7 @@ Private method "Require:every hypertext element of_is one of_" is
 		i : natural number
 	|
 		sub ::= subelements[i];
-		Cast sub into [elem : hypertext element's type | pairs ++= <<i, elem>>;]
+		Cast sub into [elem : hypertext element's type | pairs += <i, elem>;]
 		else [/* Nothing. */];
 	];
 	For each pair of pairs do
@@ -220,7 +220,7 @@ Private method "Require:every attribute of_is one of_" is
 	[
 		i : natural number
 	|
-		names ++= <attributes[i][1]'s instance's lexeme>;
+		names += attributes[i][1]'s instance's lexeme;
 	];
 	For each name of names do
 	[

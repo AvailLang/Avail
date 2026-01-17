@@ -904,8 +904,8 @@ class ModuleDescriptor private constructor(
 		self.updateSlotShared(SEALS) {
 			mapAtPuttingCanDestroy(
 				methodName,
-				(mapAtOrNull(methodName) ?: emptyTuple).appendCanDestroy(
-					argumentTypes, true),
+				(mapAtOrNull(methodName) ?: emptyTuple)
+					.appendCanDestroy(argumentTypes, false, true),
 				true)
 		}
 	}
@@ -1081,7 +1081,7 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		assertState(Loading)
 		self.updateSlotShared(POST_LOAD_FUNCTIONS) {
-			appendCanDestroy(postLoadFunction, true)
+			appendCanDestroy(postLoadFunction, false, true)
 		}
 	}
 
@@ -1091,7 +1091,7 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		assertState(Loading)
 		self.updateSlotShared(UNLOAD_FUNCTIONS) {
-			appendCanDestroy(unloadFunction, true)
+			appendCanDestroy(unloadFunction, false, true)
 		}
 	}
 
@@ -1189,7 +1189,7 @@ class ModuleDescriptor private constructor(
 		assert(blockPhrase.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
 		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES) {
 			assert(isTuple)
-			appendCanDestroy(blockPhrase.makeShared(), false)
+			appendCanDestroy(blockPhrase.makeShared(), false, false)
 		}
 		newTuple.tupleSize
 	}

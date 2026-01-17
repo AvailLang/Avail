@@ -316,5 +316,5 @@ object P_Division : Primitive(2, CanFold, CanInline)
 	/** The type for strictly positive 32-bit integers. */
 	val positiveI31 = inclusive(1, Int.MAX_VALUE)
 
-	override val semanticinfixOperatorString: String? get() = "Div"
+	override val semanticInfixOperatorString: String? get() = "Div"
 }

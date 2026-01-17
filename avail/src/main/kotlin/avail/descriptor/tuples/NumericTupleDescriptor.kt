@@ -88,10 +88,12 @@ protected constructor(
 	override fun o_DummyElement(self: AvailObject): AvailObject = zero
 
 	/** Subclasses need to implement this. */
-	abstract override fun o_AppendCanDestroy(
+	abstract override fun o_AppendCanDestroy (
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple
+		canPad: Boolean,
+		canDestroy: Boolean
+	): A_Tuple
 
 	/**
 	 * This is the fallback mechanism for appending a long to a numeric tuple.

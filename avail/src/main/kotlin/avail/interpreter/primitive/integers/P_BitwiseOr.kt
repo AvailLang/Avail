@@ -133,5 +133,5 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 			})
 	}
 
-	override val semanticinfixOperatorString: String? get() = "Or"
+	override val semanticInfixOperatorString: String? get() = "Or"
 }

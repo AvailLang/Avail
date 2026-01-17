@@ -102,6 +102,7 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTup
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -121,11 +122,21 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1OperandType
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1Operation.Companion.lookup
+import avail.interpreter.levelOne.L1_doGetLocalClearing_ord
+import avail.interpreter.levelOne.L1_doPushLastLocal_ord
+import avail.interpreter.levelOne.L1_doPushLastOuter_ord
+import avail.interpreter.levelOne.L1_doPushLiteral_ord
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
+import avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
+import avail.interpreter.primitive.privatehelpers.P_PushArgument1
+import avail.interpreter.primitive.privatehelpers.P_PushArgument2
+import avail.interpreter.primitive.privatehelpers.P_PushArgument3
+import avail.interpreter.primitive.privatehelpers.P_PushConstant
+import avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.OptimizationLevel.Companion.countdownResetAfterEnoughFallbackLookups
 import avail.optimizer.OptimizationLevel.Companion.maxSlowLookupsBeforeReoptimization
@@ -1179,56 +1190,17 @@ open class CompiledCodeDescriptor protected constructor(
 
 	@Deprecated(
 		"Not supported",
-		ReplaceWith(
-			"""newCompiledCode(
-			A_Tuple,
-			Int,
-			A_Type,
-			Primitive?,
-			A_Tuple,
-			A_Tuple,
-			A_Tuple,
-			A_Tuple,
-			A_Module,
-			Int,
-			A_Tuple,
-			A_Phrase"""))
+		ReplaceWith("newCompiledCode"))
 	override fun mutable() = unsupported
 
 	@Deprecated(
 		"Not supported",
-		ReplaceWith(
-			"""newCompiledCode(
-			A_Tuple,
-			Int,
-			A_Type,
-			Primitive?,
-			A_Tuple,
-			A_Tuple,
-			A_Tuple,
-			A_Tuple,
-			A_Module,
-			Int,
-			A_Tuple,
-			A_Phrase"""))
+		ReplaceWith("newCompiledCode"))
 	override fun immutable() = unsupported
 
 	@Deprecated(
 		"Not supported",
-		ReplaceWith(
-			"""newCompiledCode(
-			A_Tuple,
-			Int,
-			A_Type,
-			Primitive?,
-			A_Tuple,
-			A_Tuple,
-			A_Tuple,
-			A_Tuple,
-			A_Module,
-			Int,
-			A_Tuple,
-			A_Phrase"""))
+		ReplaceWith("newCompiledCode"))
 	override fun shared() = unsupported
 
 	companion object
@@ -1322,6 +1294,16 @@ open class CompiledCodeDescriptor protected constructor(
 		val unknownFunctionName: A_String =
 			stringFrom("Unknown function").makeShared()
 
+		val specialPrimitivePatterns: Map<A_Tuple, Primitive> =
+			mapOf(
+				listOf(L1_doPushLiteral_ord, 1) to P_PushConstant,
+				listOf(L1_doPushLastLocal_ord, 1) to P_PushArgument1,
+				listOf(L1_doPushLastLocal_ord, 2) to P_PushArgument2,
+				listOf(L1_doPushLastLocal_ord, 3) to P_PushArgument3,
+				listOf(L1_doPushLastOuter_ord, 1) to P_PushLastOuter,
+				listOf(L1_doGetLocalClearing_ord, 1) to P_GetGlobalVariableValue
+			).mapKeys { (k, v) -> tupleFromIntegerList(k).makeShared() }
+
 		/**
 		 * Create a new compiled code object with the given properties.
 		 *
@@ -1384,9 +1366,22 @@ open class CompiledCodeDescriptor protected constructor(
 			packedDeclarationNames: A_String
 		): AvailObject
 		{
-			when (primitive)
+			val argCounts = functionType.argsTupleType.sizeRange
+			val numArgs = argCounts.lowerBound.extractInt
+			val numLiterals = literals.tupleSize
+			val primitiveToUse = when (primitive)
 			{
-				null -> assert(nybbles.tupleSize > 0)
+				null ->
+				{
+					// See if we should supply a special primitive for certain
+					// forms of short functions.
+					assert(nybbles.tupleSize > 0)
+					specialPrimitivePatterns[nybbles]
+						?.run {
+							if (checkSpecialForm(numArgs, literals)) this
+							else null
+						}
+				}
 				else ->
 				{
 					// Sanity check for primitive blocks.  Use this to hunt
@@ -1395,14 +1390,12 @@ open class CompiledCodeDescriptor protected constructor(
 					assert(canHaveCode == nybbles.tupleSize > 0)
 					val restrictionSignature = primitive.blockTypeRestriction()
 					assert(restrictionSignature.isSubtypeOf(functionType))
+					primitive
 				}
 			}
-			val argCounts = functionType.argsTupleType.sizeRange
-			val numArgs = argCounts.lowerBound.extractInt
 			assert(argCounts.upperBound.extractInt == numArgs)
 			val numLocals = localVariableTypes.tupleSize
 			val numConstants = localConstantTypes.tupleSize
-			val numLiterals = literals.tupleSize
 			val numOuters = outerTypes.tupleSize
 			val numSlots = numArgs + numLocals + numConstants + stackDepth
 			assert(numSlots in 0 .. 0xFFFF)
@@ -1460,12 +1453,12 @@ open class CompiledCodeDescriptor protected constructor(
 				literalIndex += tuple.tupleSize
 			}
 			code[HASH] = AvailRuntimeSupport.nextNonzeroHash()
-			if (primitive != null)
+			if (primitiveToUse != null)
 			{
 				code.descriptor =
 					PrimitiveCompiledCodeDescriptor(
 						Mutability.SHARED,
-						primitive,
+						primitiveToUse,
 						returnTypeIfPrimitiveFails.makeShared(),
 						module.makeShared(),
 						originatingPhraseIndex,

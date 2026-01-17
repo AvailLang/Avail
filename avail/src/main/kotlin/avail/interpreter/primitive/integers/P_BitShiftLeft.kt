@@ -37,6 +37,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
@@ -59,6 +60,7 @@ import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -106,7 +108,7 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 		argumentTypes: List<A_Type>
 	): Fallibility
 	{
-		val (_, shiftFactors) = argumentTypes
+		val (baseRange, shiftFactors) = argumentTypes
 		return when
 		{
 			shiftFactors.upperBound.lessOrEqual(zero) ->
@@ -116,7 +118,13 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 				// wasn't already in violation.
 				Fallibility.CallSiteCannotFail
 			}
-			else -> super.fallibilityForArgumentTypes(argumentTypes)
+			shiftFactors.upperBound.isInt && baseRange.isSubtypeOf(i64) ->
+			{
+				// The base is at most 8 bytes of data, and the shift amount is
+				// at most 2^31.  It might be big, but it won't overflow.
+				Fallibility.CallSiteCannotFail
+			}
+ 			else -> super.fallibilityForArgumentTypes(argumentTypes)
 		}
 	}
 
@@ -168,7 +176,7 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 			// There are values < -1, which can grow in magnitude under shifts.
 			// If the left shift would be huge, estimate it as -∞ instead.
 			bounds.add(
-				if (mostLeftShift.greaterThan(fromInt(64))) negativeInfinity
+				if (mostLeftShift.greaterThan(fromInt(10000))) negativeInfinity
 				else lowBase.bitShift(mostLeftShift, false))
 			// Now find the negative output with least magnitude.
 			val highBaseBelowNegativeOne =
@@ -184,7 +192,7 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 			// There are values > 0, which can grow in magnitude under shifts.
 			// If the left shift would be huge, estimate it as ∞ instead.
 			bounds.add(
-				if (mostLeftShift.greaterThan(fromInt(64))) positiveInfinity
+				if (mostLeftShift.greaterThan(fromInt(10000))) positiveInfinity
 				else highBase.bitShift(mostLeftShift, false))
 			// Now find the positive output with least magnitude.
 			val lowBaseAboveZero =
@@ -277,5 +285,5 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 
-	override val semanticinfixOperatorString: String? get() = "Shl"
+	override val semanticInfixOperatorString: String? get() = "Shl"
 }

@@ -115,8 +115,12 @@ Test "path decomposition permutations" in file names test suite is
 
 Test "parent path" in file names test suite is
 [
-	Require: ./""'s parent path = ./"";
-	Require: ./"a"'s parent path = ./"";
-	Require: ./"a"/"b"'s parent path = ./"a";
-	Require: ./"a"/"b"/"c"/"d"/"e"'s parent path = ./"a"/"b"/"c"/"d";
+	// TODO Unwrap from loop.
+	Repeat
+	[
+		Require: ./""'s parent path = ./"";
+		Require: ./"a"'s parent path = ./"";
+		Require: ./"a"/"b"'s parent path = ./"a";
+		Require: ./"a"/"b"/"c"/"d"/"e"'s parent path = ./"a"/"b"/"c"/"d";
+	] 10000 times;
 ];

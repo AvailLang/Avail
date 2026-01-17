@@ -1467,10 +1467,9 @@ class JumpBackward constructor(
 }
 
 /**
- * Parse the [operand]<sup>th</sup>
- * [message&#32;part][MessageSplitter.messageParts] of the current message. This
- * will be a specific [token][TokenDescriptor]. It should be matched case
- * sensitively against the source token.
+ * Parse the [operand]ᵗʰ [message&#32;part][MessageSplitter.messageParts] of the
+ * current message. This will be a specific [token][TokenDescriptor]. It should
+ * be matched case sensitively against the source token.
  */
 class ParsePart constructor(override val operand: Int):
 	ArityOneParsingOperation<Int>(false, false),

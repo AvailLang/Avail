@@ -39,6 +39,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -57,6 +58,7 @@ class L2_FUNCTION_PARAMETER_TYPE(
 {
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
+		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
@@ -68,6 +70,24 @@ class L2_FUNCTION_PARAMETER_TYPE(
 		append(parameterIndex.value)
 		append(']')
 	}
+
+	/**
+	 * A function's type is stored in its raw function, which is always shared,
+	 * so the function type and its parameter types are therefore always shared.
+	 */
+	override fun propagateMutability(
+		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
+		mutables: MutableSet<L2BoxedRegister>)
+	{
+		// The produced parameterType is always shared, and therefore immutable.
+		return
+	}
+
+	/**
+	 * Since the function's type is always shared, there's no need to treat this
+	 * parameter type extraction as a potential destruction of the function.
+	 */
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

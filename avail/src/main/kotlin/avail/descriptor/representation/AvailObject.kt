@@ -333,16 +333,6 @@ class AvailObject private constructor(
 	}
 
 	/**
-	 * Replace my descriptor field with a [FillerDescriptor].  This blows up for
-	 * most messages, catching incorrect (all, by definition) further accidental
-	 * uses of this object.
-	 */
-	override fun setToInvalidDescriptor() {
-		assert(descriptor.isMutable)
-		descriptor = FillerDescriptor.mutable
-	}
-
-	/**
 	 * Compute the 32-bit hash of the receiver.
 	 *
 	 * @return

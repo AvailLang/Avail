@@ -82,7 +82,7 @@ class PatternBuilderTest
 		manifest
 		val matches = mutableListOf<List<L2SemanticBoxedValue>>()
 		pattern.matchForEach(value) { matches.add(it.toList()) }
-		val (a, b, c) = matches
+		val (a, b, c) = matches[0]
 		assertEquals(a, constant(trueObject))
 		assertEquals(b, constant(fromInt(20)))
 		assertEquals(c, constant(fromInt(31)))

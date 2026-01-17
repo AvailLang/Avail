@@ -70,8 +70,8 @@ import java.util.concurrent.atomic.AtomicReference
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Renderer(
-	text = "nameForDebugger",
-	childrenArray = "describeForDebugger")
+	text = "nameForDebugger()",
+	childrenArray = "describeForDebugger()")
 class AvailObjectFieldHelper(
 	private val parentObject: A_BasicObject?,
 	val slot: AbstractSlotsEnum,

@@ -91,6 +91,14 @@ class L2_JUMP_BACK(
 		// too confusing to process backward jumps and doesn't add any value.
 	}
 
+	/**
+	 * Don't count the [registersToKeep] as being consumed by this instruction,
+	 * as they'll already be counted as consumed by the backward edge, and we
+	 * don't want to unnecessarily force them to be immutable due to the two
+	 * uses.
+	 */
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)

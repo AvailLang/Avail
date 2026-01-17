@@ -116,12 +116,14 @@ internal constructor(
 		 * [L2PcOperand] edge leaving the instruction is labeled with the same
 		 * [Purpose].
 		 */
-		val namedOperandType: L2NamedOperandType = L2NamedOperandType(
-			operandTypeForOperandClass(type),
-			name,
-			property.javaField!!.getAnnotation(On::class.java)?.purpose,
-			property.javaField!!
-				.isAnnotationPresent(HideInSimpleVisualization::class.java))
+		val namedOperandType: L2NamedOperandType = property.javaField!!.run {
+			L2NamedOperandType(
+				operandTypeForOperandClass(this@OperandField.type),
+				name,
+				getAnnotation(On::class.java)?.purpose,
+				isAnnotationPresent(HideInSimpleVisualization::class.java),
+				isAnnotationPresent(HideInAllVisualizations::class.java))
+		}
 
 		/**
 		 * Read the field from an [L2Instruction] of the required type.

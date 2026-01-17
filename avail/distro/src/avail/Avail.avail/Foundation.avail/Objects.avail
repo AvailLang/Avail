@@ -1606,7 +1606,7 @@ is
 								\| section (because it is public)"
 					];
 				];
-				allNamesTuple ++= <accessorName>;
+				allNamesTuple += accessorName;
 			];
 			If fieldAtom ∈ newDefinitions then
 			[
@@ -1712,7 +1712,7 @@ is
 						++ "\" to be included in the module's \"Names\" section\
 						\| (because it is public)"
 				];
-				allNamesTuple ++= <accessorName>;
+				allNamesTuple += accessorName;
 				If referable then
 				[
 					If |orderedNames[3]| ≠ 1 then
@@ -1750,7 +1750,7 @@ is
 							++ "\" to be included in the module's \"Names\"\
 								\| section (because it is public)"
 					];
-					allNamesTuple ++= <referrerName>;
+					allNamesTuple += referrerName;
 				]
 				else
 				[
@@ -1809,7 +1809,7 @@ is
 							++ "\" to be included in the module's \"Names\"\
 								\| section (because it is public)"
 					];
-					allNamesTuple ++= <mutatorName>;
+					allNamesTuple += mutatorName;
 				];
 			];
 			If fieldAtom ∈ newDefinitions then
@@ -1847,7 +1847,7 @@ is
 			atomType ::= atomsType[atomTypeIndex];
 			If |atomType| = 1 then
 			[
-				fieldAtoms ++= <atomType's instance>;
+				fieldAtoms += atomType's instance;
 			];
 		];
 		If publicSpec ∧ |fieldAtoms| = relevant |atomsType| then
@@ -1972,7 +1972,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 				|
 					readType ::= varType's read type ?→ any meta;
 					var ::= new variable of type readType;
-					syntheticAssignments ++= <<fieldAtom, var>>;
+					syntheticAssignments += <fieldAtom, var>;
 				]
 				else
 				[
@@ -2071,12 +2071,12 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 			createVar ::= restricted send $"new`↑_initialized to_"
 				with <`varType` → literal phrase, valueExpr> → list phrase
 				: read varType / write varType;
-			tuplePhrases ++= <«<atomExpr, createVar>»>;
+			tuplePhrases += «<atomExpr, createVar>»;
 		]
 		else
 		[
 			/* Just use the produced value for the object slot. */
-			tuplePhrases ++= <«<atomExpr, valueExpr>»>;
+			tuplePhrases += «<atomExpr, valueExpr>»;
 		];
 	];
 	/* Synthesize assignments whenever appropriate and necessary, taking care
@@ -2110,9 +2110,9 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 					createVar ::= restricted send $"new`↑_"
 						with <`readType` → literal phrase> → list phrase
 						: varType;
-					tuplePhrases ++= <«<
+					tuplePhrases += «<
 						fieldAtomToken → literal phrase,
-						createVar>»>;
+						createVar>»;
 				]
 				else
 				[

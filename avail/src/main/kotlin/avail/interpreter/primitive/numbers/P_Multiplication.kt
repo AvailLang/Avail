@@ -68,12 +68,18 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Multiply two extended integers.
@@ -306,5 +312,17 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				edgeTo(intSuccess))
 		})
 
-	override val semanticinfixOperatorString: String? get() = "Multiplication"
+	override fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		val regular = primitiveInvocation(this, arguments)
+		val commuted = primitiveInvocation(this, arguments.reversed())
+		manifest.mergeSemanticValueEquivalentsIfPresent(commuted, regular)
+		manifest.mergeSemanticValueEquivalentsIfPresent(
+			commuted.unboxedInt, regular.unboxedInt)
+	}
+
+	override val semanticInfixOperatorString: String? get() = "Mul"
 }

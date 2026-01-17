@@ -63,6 +63,12 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 *
 		 * @param newElement
 		 *   The element to append to the receiver to produce a new tuple.
+		 * @param canPad
+		 *   Whether extra space can be reserved in the tuple to allow
+		 *   subsequent appends or concatenates to avoid additional allocations,
+		 *   if they also fit.  By making the extra space proportional to the
+		 *   length of the tuple, growing a tuple from a minimal size to some
+		 *   length N takes O(N) time (and total allocated space).
 		 * @param canDestroy
 		 *   Whether the receiver may be destroyed if it's mutable.
 		 * @return
@@ -71,8 +77,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 */
 		fun A_Tuple.appendCanDestroy(
 			newElement: A_BasicObject,
+			canPad: Boolean,
 			canDestroy: Boolean
-		): A_Tuple = dispatch { o_AppendCanDestroy(it, newElement, canDestroy) }
+		): A_Tuple =
+			dispatch { o_AppendCanDestroy(it, newElement, canPad, canDestroy) }
 
 		/**
 		 * Construct a Java [set][Set] from the receiver, a

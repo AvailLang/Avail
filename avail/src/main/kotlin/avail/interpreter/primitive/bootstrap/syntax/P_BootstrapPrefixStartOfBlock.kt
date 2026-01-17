@@ -80,7 +80,7 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 		val bindings = clientData.mapAt(compilerScopeMapKey)
 		var stack: A_Tuple = clientData.mapAtOrNull(compilerScopeStackKey) ?:
 			emptyTuple
-		stack = stack.appendCanDestroy(bindings, false)
+		stack = stack.appendCanDestroy(bindings, false, false)
 		clientData = clientData.mapAtPuttingCanDestroy(
 			compilerScopeStackKey, stack, true)
 		fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(

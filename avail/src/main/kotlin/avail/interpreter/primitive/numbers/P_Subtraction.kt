@@ -192,5 +192,5 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				edgeTo(intSuccess))
 		})
 
-	override val semanticinfixOperatorString: String? get() = "Sub"
+	override val semanticInfixOperatorString: String? get() = "Sub"
 }

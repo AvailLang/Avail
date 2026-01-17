@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.sets
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.sets.A_Set.Companion.asTuple
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -39,8 +41,11 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.contentType
+import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
@@ -74,8 +79,15 @@ object P_SetToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 
 		// The order of elements is unstable, but we can still say how many
 		// elements, and bound each element to the set's element type.
+		val setRange = setType.sizeRange
+		var resultRange = when
+		{
+			setRange.lowerBound.greaterThan(zero) ->
+				setRange.typeIntersection(naturalNumbers)
+			else -> setRange
+		}
 		return tupleTypeForSizesTypesDefaultType(
-			setType.sizeRange, emptyTuple, setType.contentType)
+			resultRange, emptyTuple, setType.contentType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

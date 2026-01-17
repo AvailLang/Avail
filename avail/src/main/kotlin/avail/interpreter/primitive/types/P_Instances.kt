@@ -101,7 +101,11 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 				setOf(typeRegister),
 				boxedRestrictionForConstant(bottom)))
 		// Knowing the instance count can help constrain the set size.
-		add(existsCondition(setOf(P_InstanceCount.semanticInvocation())))
+		add(
+			existsCondition(
+				setOf(
+					P_InstanceCount.semanticInvocation(
+						readBoxedOperands[0].semanticValue()))))
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(

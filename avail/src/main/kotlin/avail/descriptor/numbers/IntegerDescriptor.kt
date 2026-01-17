@@ -1661,6 +1661,7 @@ class IntegerDescriptor private constructor(
 					createUninitializedInteger(1).apply {
 						setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
 						makeShared()
+						// Harmless race.
 						smallIntegers[anInteger] = this
 					}
 				else -> createUninitializedInteger(1).apply {

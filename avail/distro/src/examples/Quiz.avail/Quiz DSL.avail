@@ -561,7 +561,7 @@ Semantic restriction "Short Answer(_)._«A:_»" is
 		anAnswer ::= correctAnswers[index]'s instance;
 		If trim anAnswer ≠ anAnswer then
 		[
-			noncanonical ++= <anAnswer>;
+			noncanonical += anAnswer;
 		];
 		uniqueAnswers := uniqueAnswers + anAnswer;
 	];

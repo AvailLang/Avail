@@ -883,7 +883,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 * statically. So dynamically create a variable of the right type.
 		 */
 		sceneVar ::= new variable of type sceneType;
-		sceneVaultUpdates ++= <<sceneVar, name>>;
+		sceneVaultUpdates += <sceneVar, name>;
 
 		/* Generate the scene accessor as a method that answers the variable
 		 * that contains the corresponding scene. Originally this variable will
@@ -1192,7 +1192,7 @@ Private method "Generate scene transition constructors" is
 			[
 				argName ::= argNames[index];
 				arg ::= arg «`argName` : argType»;
-				args ++= <arg>;
+				args += arg;
 				outputIndex++;
 				argMap := argMap + index→outputIndex;
 			]

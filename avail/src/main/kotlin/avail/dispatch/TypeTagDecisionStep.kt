@@ -42,6 +42,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.TypeTag
@@ -307,7 +308,7 @@ constructor(
 				null,
 				currentRestriction))
 		reducedMap.entries.sortedBy { it.key }.forEach { (tag, subtree) ->
-			val index = runs.binarySearch { (low, high, _, _) ->
+			val index = runs.binarySearch { (low, high) ->
 				when
 				{
 					tag.highOrdinal < low -> 1
@@ -319,8 +320,16 @@ constructor(
 			// Subtract the new tag's supremum from all existing spans, then
 			// insert the new tag's spans at the appropriate place.
 			runs.forEach { span ->
-				span.restriction?.let {
-					span.restriction = it.minusType(tag.supremum)
+				if (span.restriction != null)
+				{
+					val spanIsBottom =
+						BOTTOM_TYPE_TAG.ordinal in span.low..span.high
+					span.restriction = span.restriction!!
+						.minusType(tag.supremum)
+					if (!spanIsBottom)
+					{
+						span.restriction = span.restriction!!.minusValue(bottom)
+					}
 				}
 			}
 			// Replace the existing element with a left part, the new value,
@@ -337,19 +346,22 @@ constructor(
 						tag.ordinal - 1,
 						existing,
 						oldTag,
-						oldRestriction),
+						oldRestriction?.withCanBeBottom(false)),
 					Span(
 						tag.ordinal,
 						tag.ordinal,
 						if (tag.isAbstract) null else subtree,
 						if (tag.isAbstract) null else tag,
-						newRestriction),
+						newRestriction.withCanBeBottom(
+							tag == TypeTag.BOTTOM_TYPE_TAG)),
 					Span(
 						tag.ordinal + 1,
 						tag.highOrdinal,
 						subtree,
 						tag,
-						newRestriction),
+						newRestriction.withCanBeBottom(
+							tag.highOrdinal ==
+								TypeTag.BOTTOM_TYPE_TAG.ordinal)),
 					Span(
 						tag.highOrdinal + 1,
 						high,
@@ -376,7 +388,7 @@ constructor(
 		// Exclude all abstract type tags from the ordinalRestriction, since
 		// there are no values that have exactly those tags.
 		val impossibleOrdinals =
-			(restrictionTag.ordinal..<restrictionTag.highOrdinal)
+			(restrictionTag.ordinal..restrictionTag.highOrdinal)
 				.filter { ord ->
 					val tag = tagFromOrdinal(ord)
 					tag.isAbstract
