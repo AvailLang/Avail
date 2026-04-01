@@ -34,8 +34,6 @@ package avail.interpreter.primitive.controlflow
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.stackDumpAtom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -67,18 +65,16 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
 
-		// The call stack should have been reified prior to invoking this
+		// The call stack should have been reified before invoking this
 		// primitive.
 		assert(interpreter.unreifiedCallDepth() == 0)
 
 		// Attach the current continuation to the exception, so that a stack
 		// dump can be obtained later.
-		val fieldMap = exception.fieldMap()
-		val newFieldMap = fieldMap.mapAtPuttingCanDestroy(
+		val newException = exception.fieldAtPuttingCanDestroy(
 			stackDumpAtom,
 			interpreter.getReifiedContinuation()!!.makeImmutable(),
 			false)
-		val newException = objectFromMap(newFieldMap)
 		// Search for an applicable exception handler, and invoke it if found.
 		return interpreter.searchForExceptionHandler(newException)
 	}

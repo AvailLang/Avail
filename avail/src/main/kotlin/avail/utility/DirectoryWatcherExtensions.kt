@@ -32,28 +32,110 @@
 
 package avail.utility
 
-import io.methvin.watcher.DirectoryWatcher
+import io.methvin.watcher.DirectoryChangeEvent
+import io.methvin.watcher.DirectoryWatcher as MethvinDirectoryWatcher
+import io.methvin.watcher.hashing.FileHasher
+import org.slf4j.helpers.NOPLogger
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
+import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.nio.file.WatchKey
+import java.nio.file.WatchService
 import kotlin.concurrent.thread
 
-/**
- * Run a daemon [thread][Thread] that drives the [receiver][DirectoryWatcher].
- *
- * @author Richard Arriaga
- * @author Todd Smith &lt;todd@availlang.org&gt;
- */
-fun DirectoryWatcher.launch(name: String) = apply {
-	thread (isDaemon = true, name = name) {
-		while (true)
-		{
-			try
-			{
-				watch()
-				break
-			}
-			catch (t: Throwable)
-			{
-				// Try again.
+/** Interface for watching directory changes. */
+interface DirectoryWatcherInterface {
+	/** Launch the watcher with the given name and return the interface. */
+	fun launch(name: String): DirectoryWatcherInterface
+
+	/** Close the watcher. */
+	fun close()
+}
+
+/** Directory watcher using Java's native [WatchService]. */
+class JvmDirectoryWatcher(
+	private val path: Path,
+	private val onCreated: (Path) -> Unit = {},
+	private val onModified: (Path) -> Unit = {},
+	private val onDeleted: (Path) -> Unit = {}
+) : DirectoryWatcherInterface {
+	private val watchService: WatchService =
+		FileSystems.getDefault().newWatchService()
+	@Volatile private var running = false
+
+	override fun launch(name: String) = apply {
+		path.register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE)
+		running = true
+		thread(isDaemon = true, name = name) {
+			while (running) {
+				try {
+					val key: WatchKey = watchService.take()
+					for (event in key.pollEvents()) {
+						val kind = event.kind()
+						@Suppress("UNCHECKED_CAST")
+						val eventPath = path.resolve(
+							event.context() as Path)
+						when (kind) {
+							ENTRY_CREATE -> onCreated(eventPath)
+							ENTRY_MODIFY -> onModified(eventPath)
+							ENTRY_DELETE -> onDeleted(eventPath)
+						}
+					}
+					key.reset()
+				}
+				catch (t: Throwable) {
+					if (running) {
+						// Try again.
+					}
+				}
 			}
 		}
+	}
+
+	override fun close() {
+		running = false
+		watchService.close()
+	}
+}
+
+/** Directory watcher using methvin's directory-watcher (requires JNA). */
+class NativeDirectoryWatcher(
+	private val path: Path,
+	private val onCreated: (Path) -> Unit = {},
+	private val onModified: (Path) -> Unit = {},
+	private val onDeleted: (Path) -> Unit = {}
+) : DirectoryWatcherInterface {
+	private val directoryWatcher = MethvinDirectoryWatcher.builder()
+		.logger(NOPLogger.NOP_LOGGER)
+		.fileHasher(FileHasher.LAST_MODIFIED_TIME)
+		.path(path)
+		.listener { event ->
+			when (event.eventType()!!) {
+				DirectoryChangeEvent.EventType.CREATE -> onCreated(event.path())
+				DirectoryChangeEvent.EventType.MODIFY -> onModified(event.path())
+				DirectoryChangeEvent.EventType.DELETE -> onDeleted(event.path())
+				DirectoryChangeEvent.EventType.OVERFLOW -> {}
+			}
+		}
+		.build()
+
+	override fun launch(name: String) = apply {
+		thread(isDaemon = true, name = name) {
+			while (true) {
+				try {
+					directoryWatcher.watch()
+					break
+				}
+				catch (t: Throwable) {
+					// Try again.
+				}
+			}
+		}
+	}
+
+	override fun close() {
+		directoryWatcher.close()
 	}
 }

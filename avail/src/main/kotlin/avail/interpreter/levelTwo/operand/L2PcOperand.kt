@@ -58,7 +58,6 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Entity
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
@@ -66,7 +65,6 @@ import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.util.concurrent.atomic.LongAdder
 
@@ -266,6 +264,13 @@ constructor (
 
 	override fun appendTo(builder: StringBuilder)
 	{
+		// Lead with #block!instr coordinates when both have been assigned.
+		val blockNum = targetBlock.blockNumber
+		val firstInstrOffset = targetBlock.instructions().firstOrNull()?.offset ?: -1
+		if (blockNum >= 0 && firstInstrOffset >= 0)
+		{
+			builder.append("#$blockNum!$firstInstrOffset ")
+		}
 		// Show the basic block's name.
 		if (offset() != -1)
 		{
@@ -273,58 +278,6 @@ constructor (
 		}
 		builder.append("--> ")
 		builder.append(targetBlock.name())
-	}
-
-	/**
-	 * Create a new [L2BasicBlock] that will be the new target of this edge, and
-	 * write an [L2_JUMP] into the new block to jump to the old target of this
-	 * edge.  Be careful to maintain predecessor order at the target block.
-	 *
-	 * @param generator
-	 *   The [L2GeneratorInterface] holding the [L2ControlFlowGraph] being
-	 *   updated.
-	 * @return
-	 *   The new [L2BasicBlock] that splits the given edge. This block has not
-	 *   yet been added to the controlFlowGraph, and the client should do this
-	 *   to keep the graph consistent.
-	 */
-	fun splitEdgeWith(generator: L2GeneratorInterface): L2BasicBlock
-	{
-		assert(instructionHasBeenEmitted)
-
-		// Capture where this edge originated.
-		val source = instruction
-
-		// Create a new intermediary block that initially just contains a jump
-		// to itself.
-		val newBlock = L2BasicBlock(
-			"edge-split [${source.basicBlock().name()} / "
-				+ "${targetBlock.name()}]",
-			source.basicBlock().zone,
-			isCold = targetBlock().isCold)
-		generator.startBlock(newBlock)
-		val manifestCopy = L2ValueManifest(manifest())
-		val jumpToInsert =
-			L2_JUMP(L2PcOperand(newBlock, isBackward, manifestCopy))
-				.cloneFor(generator, newBlock)
-				as L2_JUMP
-		jumpToInsert.target.manifest = manifestCopy
-		newBlock.insertInstruction(0, jumpToInsert)
-		assert(newBlock.instructions()[0] == jumpToInsert)
-		val jumpEdge = jumpToInsert.target
-
-		// Now swap my target with the new jump's target.  I'll end up pointing
-		// to the new block, which will contain a jump pointing to the block I
-		// used to point to.
-		val finalTarget = targetBlock
-		targetBlock = jumpEdge.targetBlock
-		jumpEdge.targetBlock = finalTarget
-		isBackward = false
-
-		// Fix up the blocks' predecessors edges.
-		newBlock.replacePredecessorEdge(jumpEdge, this)
-		finalTarget.replacePredecessorEdge(this, jumpEdge)
-		return newBlock
 	}
 
 	/**
@@ -384,17 +337,13 @@ constructor (
 	 * lifetime of a dummy continuation, and no way for that continuation to
 	 * become immutable or shared.
 	 *
-	 * @param translator
+	 * @receiver
 	 *   The [JVMTranslator] in which to record the saved register dump.
-	 * @param method
-	 *   The [MethodVisitor] on which to write code to push the register dump.
 	 * @param fallbackChunkEntry
 	 *   The [ChunkEntryPoint] to jump to in the [unoptimizedChunk] if the
 	 *   continuation becomes immutable or shared and later resumed.
 	 */
-	fun createAndPushRegisterDump(
-		translator: JVMTranslator,
-		method: MethodVisitor,
+	fun JVMTranslator.createAndPushRegisterDump(
 		fallbackChunkEntry: ChunkEntryPoint)
 	{
 		// Capture both the constant L2 offset of the target, and a register
@@ -423,14 +372,13 @@ constructor (
 
 		// Stably deduplicate them.
 		val liveLocalsByKind = liveMap.mapValues { (_, list) ->
-			list.map(translator::localNumberFromRegister).distinct()
+			list.map(::localNumberFromRegister).distinct()
 		}
 		when (val targetInstruction = targetBlock.instructions()[0])
 		{
 			is L2_ENTER_L2_CHUNK ->
 			{
-				translator.entryPointLiveInfo[targetInstruction.offset] =
-					liveLocalsByKind
+				entryPointLiveInfo[targetInstruction.offset] = liveLocalsByKind
 			}
 			is L2_ENTER_L2_CHUNK_FOR_CALL ->
 			{
@@ -447,16 +395,14 @@ constructor (
 			// also the case that there are no saved values that would be used
 			// to initialize new variables if the continuation becomes immutable
 			// or shared.
-			translator.loadLiteralObject(
-				method,
-				emptyRegisterDump(fallbackChunkEntry))
+			loadLiteralObject(emptyRegisterDump(fallbackChunkEntry))
 			return
 		}
 		// The stack is now AvailObject[], long[].  At least one of the arrays
 		// is non-empty.  Create the encoded tuple of local/source info for
 		// initializing variables.  See ENCODED_ELIDED_LOCALS in
 		// RegisterDumpDescriptor.
-		translator.loadLiteralObject(method, fallbackChunkEntry)
+		loadLiteralObject(fallbackChunkEntry)
 		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
 		{
 			// This is a real continuation that can become immutable or shared,
@@ -475,7 +421,7 @@ constructor (
 				ints.add(encodeLocalValue(read.kind, liveIndexInKind))
 			}
 			val intTuple = tupleFromIntegerList(ints).makeShared()
-			translator.loadLiteralObject(method, intTuple)
+			loadLiteralObject(intTuple)
 			// :: encodedIntTuple
 		}
 		else
@@ -485,34 +431,33 @@ constructor (
 			// first).  A dummy continuation only survivess during the chain of
 			// reifications, and no L1 progress can be made during that time, so
 			// it cannot become immutable or shared.
-			translator.loadLiteralObject(method, nil)
+			loadLiteralObject(nil)
 		}
 		// Emit code to save live registers' values.  Start with the objects.
 		// :: array = new «arrayClass»[«limit»];
 		// :: array[0] = ...; array[1] = ...;
 		val boxedLocal: List<L2BoxedRegister> = liveMap[BOXED_KIND]!!.cast()
-		translator.objectArrayFromRegisters(
-			method, boxedLocal, AvailObject::class.java)
+		objectArrayFromRegisters(boxedLocal, AvailObject::class.java)
 		// Now create the array of longs, including both ints and doubles.
 		val intLocals = liveMap[INTEGER_KIND]!!
 		val floatLocals = liveMap[FLOAT_KIND]!!
 		val count = intLocals.size + floatLocals.size
 		if (count == 0)
 		{
-			JVMChunk.noLongsField.generateRead(method)
+			load(JVMChunk.noLongsField)
 		}
 		else
 		{
-			translator.intConstant(method, count)
+			intConstant(count)
 			method.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG)
 			var i = 0
 			while (i < intLocals.size)
 			{
 				method.visitInsn(Opcodes.DUP)
-				translator.intConstant(method, i)
+				intConstant(i)
 				method.visitVarInsn(
-					INTEGER_KIND.loadInstruction,
-					translator.localNumberFromRegister(intLocals[i]))
+					INTEGER_KIND.jvmLoadInstruction,
+					localNumberFromRegister(intLocals[i]))
 				method.visitInsn(Opcodes.I2L)
 				method.visitInsn(Opcodes.LASTORE)
 				i++
@@ -520,16 +465,16 @@ constructor (
 			for (floatIndex in 0 until floatLocals.size)
 			{
 				method.visitInsn(Opcodes.DUP)
-				translator.intConstant(method, i)
+				intConstant(i)
 				method.visitVarInsn(
-					FLOAT_KIND.loadInstruction,
-					translator.localNumberFromRegister(floatLocals[floatIndex]))
-				bitCastDoubleToLongMethod.generateCall(method)
+					FLOAT_KIND.jvmLoadInstruction,
+					localNumberFromRegister(floatLocals[floatIndex]))
+				generateCall(bitCastDoubleToLongMethod)
 				method.visitInsn(Opcodes.LASTORE)
 				i++
 			}
 		}
-		createRegisterDumpMethod.generateCall(method)
+		generateCall(createRegisterDumpMethod)
 	}
 
 	/** Instructions that branch are not eligible for postponement. */

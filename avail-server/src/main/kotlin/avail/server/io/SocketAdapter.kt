@@ -101,7 +101,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		ScheduledThreadPoolExecutor(1) { r ->
 			val thread = Thread(r)
 			thread.isDaemon = true
-			thread.name = "SocketAdapterTimer ${thread.id}"
+			thread.name = "SocketAdapterTimer ${thread.threadId()}"
 			thread
 		}
 

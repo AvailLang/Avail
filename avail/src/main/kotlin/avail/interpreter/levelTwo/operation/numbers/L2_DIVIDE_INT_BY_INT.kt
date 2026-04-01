@@ -54,7 +54,6 @@ import avail.interpreter.primitive.numbers.P_Division.positiveI31
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -134,25 +133,23 @@ class L2_DIVIDE_INT_BY_INT(
 		+this@L2_DIVIDE_INT_BY_INT
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (divisor <= 0) goto outOfRangeOrZeroDiv;
-		translator.load(method, divisor)
-		translator.jumpIf(method, Opcodes.IFLE, outOfRangeOrZeroDiv)
+		load(divisor)
+		jumpIf(Opcodes.IFLE, outOfRangeOrZeroDiv)
 		// :: if (dividend < 0) goto outOfRangeOrZeroDiv;
-		translator.load(method, dividend)
-		translator.jumpIf(method, Opcodes.IFLT, outOfRangeOrZeroDiv)
+		load(dividend)
+		jumpIf(Opcodes.IFLT, outOfRangeOrZeroDiv)
 
-		translator.load(method, dividend)
+		load(dividend)
 		// :: dividend
-		translator.load(method, divisor)
+		load(divisor)
 		// :: dividend, divisor
 		method.visitInsn(Opcodes.IDIV)
 		// :: quotient
-		translator.store(method, quotient.register())
+		store(quotient.register())
 		// ::
-		translator.jump(method, success)
+		jump(success)
 	}
 }

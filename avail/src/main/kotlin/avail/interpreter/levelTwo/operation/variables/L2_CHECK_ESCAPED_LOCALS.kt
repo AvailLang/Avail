@@ -34,7 +34,6 @@ package avail.interpreter.levelTwo.operation.variables
 
 import avail.descriptor.variables.A_Variable.Companion.checkForSharedOrReactorsMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -52,10 +51,9 @@ import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L1Translator
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -101,33 +99,23 @@ class L2_CHECK_ESCAPED_LOCALS(
 	/** Examining the variable doesn't add a reference to it. */
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun L2Regenerator.generateReplacement(
-		originalInstruction: L2Instruction)
-	{
-		// Omit the check (and moves) if the vector is empty.
-		if (localsToCheck.elements.isEmpty())
-		{
-			jumpTo(ifSafe.targetBlock())
-			return
-		}
-		emitTransformedInstruction()
-	}
-
-	override fun L2Regenerator.regenerateForPostponement()
+	override fun aboutToAdd(generator: L2GeneratorInterface): Boolean
 	{
 		val keptLocals = mutableListOf<L2ReadBoxedOperand>()
 		val keptWrites = mutableListOf<L2WriteBoxedOperand>()
-		localsToCheck.elements.zip(localsOutput.elements).map { (read, write) ->
-			val postponed =
-				currentManifest.postponedInstruction(read.semanticValue())
+		localsToCheck.elements.zip(localsOutput.elements).forEach { pair ->
+			val (read, write) = pair
+			val postponed = generator.currentManifest
+				.postponedInstructionFor(read.semanticValue())
 			when (postponed)
 			{
 				is L2_CREATE_VARIABLE ->
 				{
-					// Keep he instruction postponed, and add a postponed move
+					// Keep the instruction postponed, and add a postponed move
 					// from the old register with the variable to the new one.
-					currentManifest.recordPostponedInstruction(
-						L2_MOVE_BOXED(read, write))
+					generator.run {
+						+L2_MOVE_BOXED(read, write)
+					}
 				}
 				else ->
 				{
@@ -135,26 +123,29 @@ class L2_CHECK_ESCAPED_LOCALS(
 					// besides a variable creation that produced the variable.
 					// The second case probably shouldn't happen, but play it
 					// safe and force it to generate.
-					forceTranslationForRead(read.semanticValue())
+					generator.forceTranslationForRead(read.semanticValue())
 					keptLocals.add(read)
 					keptWrites.add(write)
 				}
 			}
 		}
-		if (keptLocals.isEmpty())
+		when (keptLocals.size)
 		{
 			// Skip the check entirely.
-			jumpTo(ifSafe.targetBlock())
+			0 -> generator.jumpTo(ifSafe.targetBlock())
+			// The instruction was unchanged.
+			localsToCheck.elements.size -> return true
+			// Produce a reduced instruction.
+			else -> generator.addInstruction(
+				L2_CHECK_ESCAPED_LOCALS(
+					reason,
+					L2ReadBoxedVectorOperand(keptLocals),
+					L2WriteBoxedVectorOperand(keptWrites),
+					ifSafe,
+					ifFallBack))
 		}
-		else
-		{
-			+L2_CHECK_ESCAPED_LOCALS(
-				reason,
-				L2ReadBoxedVectorOperand(keptLocals),
-				L2WriteBoxedVectorOperand(keptWrites),
-				ifSafe,
-				ifFallBack)
-		}
+		// An alternative instruction was created.
+		return false
 	}
 
 	override fun StringBuilder.appendToWithWarnings(
@@ -169,7 +160,6 @@ class L2_CHECK_ESCAPED_LOCALS(
 		localsOutput.elements.joinTo(this) { it.registerString() }
 	}
 
-
 	override fun sourceOfMoveToRegister(
 		destinationRegister: L2Register<*>
 	): L2Register<*>?
@@ -180,24 +170,21 @@ class L2_CHECK_ESCAPED_LOCALS(
 		return sourceRegisters[index]
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		localsToCheck.elements.forEach { local ->
-			translator.load(method, local)
+			load(local)
 			// :: local-variable
-			checkForSharedOrReactorsMethod.generateCall(method)
+			generateCall(checkForSharedOrReactorsMethod)
 			// :: local-shared-or-has-reactor
 			method.visitJumpInsn(
-				Opcodes.IFNE, translator.labelFor(ifFallBack.offset()))
+				Opcodes.IFNE, labelFor(ifFallBack.offset()))
 		}
 		// Transfer from the sources to the corresponding destinations.  Most of
 		// these pairs will have been assigned to the same register, and can be
 		// elided.
 		assert(localsToCheck.elements.size == localsOutput.elements.size)
-		translator.transferPairwise(
-			method, localsToCheck.registers(), localsOutput.registers())
-		translator.jump(method, ifSafe)
+		transferPairwise(localsToCheck.registers(), localsOutput.registers())
+		jump(ifSafe)
 	}
 }

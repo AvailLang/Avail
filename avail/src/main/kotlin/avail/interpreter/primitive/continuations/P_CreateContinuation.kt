@@ -101,7 +101,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralFunctionType(),
+				mostGeneralFunctionType,
 				wholeNumbers,
 				mostGeneralTupleType,
 				naturalNumbers,

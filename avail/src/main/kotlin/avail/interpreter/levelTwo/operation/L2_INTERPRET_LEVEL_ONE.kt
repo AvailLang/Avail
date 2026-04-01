@@ -39,7 +39,6 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -67,14 +66,12 @@ class L2_INTERPRET_LEVEL_ONE(
 
 	override val isEntryPoint get() = true
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: return interpreter.levelOneStepper.run();
-		translator.loadInterpreter(method)
-		Interpreter.levelOneStepperField.generateRead(method)
-		L1InstructionStepper.runMethod.generateCall(method)
+		loadInterpreter()
+		load(Interpreter.levelOneStepperField)
+		generateCall(L1InstructionStepper.runMethod)
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }

@@ -33,135 +33,110 @@
 package avail.anvil
 
 import avail.anvil.streams.StreamStyle
-import avail.utility.launch
-import io.methvin.watcher.DirectoryChangeEvent
-import io.methvin.watcher.DirectoryWatcher
-import io.methvin.watcher.hashing.FileHasher
+import avail.utility.DirectoryWatcherInterface
+import avail.utility.JvmDirectoryWatcher
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
 import org.availlang.artifact.environment.project.LocalSettings.Companion.LOCAL_SETTINGS_FILE
-import org.slf4j.helpers.NOPLogger
 import java.io.File
 
 /**
- * Responsible for watching changes to [AvailProject] configuration files on
- * disk using a [DirectoryWatcher].
+ * Responsible for watching changes to [AvailProject] configuration files.
  *
  * @author Richard Arriaga
  */
 class ProjectWatcher constructor(val workbench: AvailWorkbench)
 {
-	/**
-	 * The [DirectoryWatcher] that observes the [project][AvailProject]
-	 * configuration files for changes.
-	 */
-	@Suppress("unused")
-	private val configurationWatcher = DirectoryWatcher.builder()
-		.logger(NOPLogger.NOP_LOGGER)
-		.fileHasher(FileHasher.LAST_MODIFIED_TIME)
-		.path(File(workbench.projectConfigDirectory).toPath())
-		.listener { event ->
-			try
+	private fun handleConfigUpdate(eventPath: java.nio.file.Path)
+	{
+		try
+		{
+			val parent = eventPath.toFile().parent
+			val isRoot = workbench.projectConfigDirectory != parent
+			when
 			{
-				when (event.eventType()!!)
+				eventPath.endsWith(TEMPLATE_FILE_NAME) ->
 				{
-					DirectoryChangeEvent.EventType.DELETE ->
+					if (isRoot)
 					{
-
-						workbench.errorStream().println(
-							"configuration file deleted: ${event.path()}")
+						workbench.availProject
+							.rootFromConfigDirPath(parent)
+							?.refreshTemplates(parent)
 					}
-					DirectoryChangeEvent.EventType.CREATE,
-					DirectoryChangeEvent.EventType.MODIFY ->
+					else
 					{
-						val parent = event.path().toFile().parent
-						val isRoot = workbench.projectConfigDirectory != parent
-						when
-						{
-							event.path().endsWith(TEMPLATE_FILE_NAME) ->
-							{
-								if (isRoot)
-								{
-									workbench.availProject
-										.rootFromConfigDirPath(parent)
-										?.refreshTemplates(parent)
-								}
-								else
-								{
-									workbench.availProject.refreshTemplates(
-										workbench.projectConfigDirectory)
-								}
-								workbench.refreshTemplates()
-								workbench.writeText(
-									"configuration file refreshed: "
-										+ "${event.path()}\n",
-									StreamStyle.INFO)
-							}
-							event.path().endsWith(STYLE_FILE_NAME) ->
-							{
-								if (isRoot)
-								{
-									workbench.availProject
-										.rootFromConfigDirPath(parent)
-										?.refreshStyles(parent)
-								}
-								else
-								{
-									workbench.availProject.refreshStyles(
-										workbench.projectConfigDirectory)
-								}
-								workbench.refreshStylesheetAction.runAction()
-								workbench.writeText(
-									"configuration file refreshed: "
-										+ "${event.path()}\n",
-									StreamStyle.INFO)
-							}
-							event.path().endsWith(LOCAL_SETTINGS_FILE) ->
-							{
-								if (isRoot)
-								{
-									workbench.availProject
-										.rootFromConfigDirPath(parent)
-										?.refreshLocalSettings(parent)
-								}
-								else
-								{
-									workbench.availProject.refreshLocalSettings(
-										workbench.projectConfigDirectory)
-								}
-								workbench.refreshStylesheetAction.runAction()
-								workbench.writeText(
-									"configuration file refreshed: "
-										+ "${event.path()}\n",
-									StreamStyle.INFO)
-							}
-						}
-						workbench.refreshStylesheetAction.runAction()
-						workbench.refreshTemplates()
-						workbench.writeText(
-							// TODO what do we need to report here
-							"configuration file refreshed: "
-								+ "${event.path()}\n",
-							StreamStyle.INFO
-						)
+						workbench.availProject.refreshTemplates(
+							workbench.projectConfigDirectory)
 					}
-					DirectoryChangeEvent.EventType.OVERFLOW ->
+					workbench.refreshTemplates()
+					workbench.writeText(
+						"configuration file refreshed: $eventPath\n",
+						StreamStyle.INFO)
+				}
+				eventPath.endsWith(STYLE_FILE_NAME) ->
+				{
+					if (isRoot)
 					{
-						// No implementation required.
+						workbench.availProject
+							.rootFromConfigDirPath(parent)
+							?.refreshStyles(parent)
 					}
+					else
+					{
+						workbench.availProject.refreshStyles(
+							workbench.projectConfigDirectory)
+					}
+					workbench.refreshStylesheetAction.runAction()
+					workbench.writeText(
+						"configuration file refreshed: $eventPath\n",
+						StreamStyle.INFO)
+				}
+				eventPath.endsWith(LOCAL_SETTINGS_FILE) ->
+				{
+					if (isRoot)
+					{
+						workbench.availProject
+							.rootFromConfigDirPath(parent)
+							?.refreshLocalSettings(parent)
+					}
+					else
+					{
+						workbench.availProject.refreshLocalSettings(
+							workbench.projectConfigDirectory)
+					}
+					workbench.refreshStylesheetAction.runAction()
+					workbench.writeText(
+						"configuration file refreshed: $eventPath\n",
+						StreamStyle.INFO)
 				}
 			}
-			catch (e: Throwable)
-			{
-				workbench.errorStream().println(
-					"Failed to process configuration file update: "
-						+ "$event.eventType():\n"
-						+ "${event.path()}:\n"
-						+ e.stackTraceToString()
-				)
-			}
+			workbench.refreshStylesheetAction.runAction()
+			workbench.refreshTemplates()
+			workbench.writeText(
+				// TODO what do we need to report here?
+				"configuration file refreshed: $eventPath\n",
+				StreamStyle.INFO
+			)
 		}
-		.build()
-		.launch("configuration watcher: ${workbench.projectConfigDirectory}")
+		catch (e: Throwable)
+		{
+			workbench.errorStream().println(
+				"Failed to process configuration file update: $eventPath:\n"
+					+ e.stackTraceToString())
+		}
+	}
+
+	/** The [DirectoryWatcherInterface] that observes configuration files. */
+	@Suppress("unused")
+	private val configurationWatcher: DirectoryWatcherInterface =
+		JvmDirectoryWatcher(
+			path = File(workbench.projectConfigDirectory).toPath(),
+			onCreated = ::handleConfigUpdate,
+			onModified = ::handleConfigUpdate,
+			onDeleted = { eventPath ->
+				workbench.errorStream().println(
+					"configuration file deleted: $eventPath")
+			}
+		).launch("configuration watcher: ${workbench.projectConfigDirectory}")
 }

@@ -78,6 +78,7 @@ import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
+import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -2540,7 +2541,6 @@ class Interpreter(
 			chunk = frame.levelTwoChunk
 			offset = frame.levelTwoOffset
 		}
-		assert(!isReifying)
 	}
 
 	/**
@@ -2648,11 +2648,9 @@ class Interpreter(
 	{
 		val returner = returningFunction!!
 		val caller = function!!
-		val wrappedReturnValue = newVariableWithContentType(Types.ANY())
-		if (returnedValueOrNil.notNil)
-		{
-			wrappedReturnValue.setValueNoCheck(returnedValueOrNil)
-		}
+		val wrappedReturnValue = newVariableWithContentType(
+			Types.ANY(),
+			returnedValueOrNil)
 		argsBuffer.clear()
 		argsBuffer.add(returner as AvailObject)
 		argsBuffer.add(expectedReturnType as AvailObject)
@@ -2690,9 +2688,8 @@ class Interpreter(
 		sample: Double,
 		module: A_Module)
 	{
-		var statistic: Statistic
-		synchronized(topStatementEvaluationStats) {
-			statistic = topStatementEvaluationStats.computeIfAbsent(
+		var statistic = synchronized(topStatementEvaluationStats) {
+			topStatementEvaluationStats.computeIfAbsent(
 				module.moduleName
 			) {
 				Statistic(TOP_LEVEL_STATEMENTS, it.asNativeString())
@@ -2792,7 +2789,7 @@ class Interpreter(
 		 * Note that this only has an effect if one of the above debug flags is
 		 * set.
 		 */
-		private const val debugIntoFiberDebugLog = true
+		private const val debugIntoFiberDebugLog = false
 
 		/**
 		 * Whether to print debug information related to a specific problem

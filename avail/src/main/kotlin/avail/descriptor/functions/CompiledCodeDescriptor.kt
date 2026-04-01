@@ -1376,11 +1376,10 @@ open class CompiledCodeDescriptor protected constructor(
 					// See if we should supply a special primitive for certain
 					// forms of short functions.
 					assert(nybbles.tupleSize > 0)
-					specialPrimitivePatterns[nybbles]
-						?.run {
-							if (checkSpecialForm(numArgs, literals)) this
-							else null
-						}
+					specialPrimitivePatterns[nybbles]?.run {
+						if (checkSpecialForm(numArgs, literals)) this
+						else null
+					}
 				}
 				else ->
 				{

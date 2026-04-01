@@ -229,10 +229,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				append('[')
 				append(tempBuilder)
-				if (endsWithStatement)
-				{
-					append(';')
-				}
+				if (endsWithStatement) append(';')
 				append(']')
 				return
 			}
@@ -246,10 +243,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			wroteAnything = true
 			for (argIndex in 1 .. argCount)
 			{
-				if (argIndex > 1)
-				{
-					append(',')
-				}
+				if (argIndex > 1) append(',')
 				newlineTab(indent)
 				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
 					this, recursionMap, indent)
@@ -285,10 +279,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			statement.printOnAvoidingIndent(this, recursionMap, indent)
 			if (index < statementsSize || endsWithStatement) append(';')
 		}
-		if (wroteAnything)
-		{
-			newlineTab(indent - 1)
-		}
+		if (wroteAnything) newlineTab(indent - 1)
 		append(']')
 		if (explicitResultType !== null)
 		{
@@ -337,7 +328,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self[DECLARED_EXCEPTIONS]
 
 	/**
-	 * The expression `[`someExpression`]` has no effect, only a value (the
+	 * The expression `[...someExpression...]` has no effect, only a value (the
 	 * function itself).
 	 */
 	override fun o_EmitEffectOn(

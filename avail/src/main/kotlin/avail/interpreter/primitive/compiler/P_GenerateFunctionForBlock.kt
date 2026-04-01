@@ -104,7 +104,7 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 		functionType(
 			tuple(
 				BLOCK_PHRASE.mostGeneralType),
-			mostGeneralFunctionType())
+			mostGeneralFunctionType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

@@ -31,7 +31,6 @@
  */
 package avail.optimizer.jvm
 
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.lang.reflect.Constructor
@@ -85,15 +84,15 @@ class CheckedConstructor private constructor(
 	private val methodDescriptorString: String
 
 	/**
-	 * Emit a call to this method on the given [MethodVisitor]. The arguments
+	 * Emit a call to this method on the given [JVMTranslator]. The arguments
 	 * must already be ready on the stack.
 	 *
-	 * @param methodVisitor
+	 * @receiver
 	 *   Where to write the call.
 	 */
-	fun generateCall(methodVisitor: MethodVisitor)
+	fun JVMTranslator.generateCall()
 	{
-		methodVisitor.visitMethodInsn(
+		method.visitMethodInsn(
 			Opcodes.INVOKESPECIAL,
 			receiverClassInternalName,
 			methodNameString,

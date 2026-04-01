@@ -36,7 +36,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Clear a variable; i.e., make it have no assigned value.
@@ -60,13 +59,11 @@ class L2_CLEAR_VARIABLE(
 		append(variable)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// TODO: [MvG] clearValue() can throw VariableSetException. Deal.
 		// :: variable.clearValue();
-		translator.load(method, variable)
-		clearVariableMethod.generateCall(method)
+		load(variable)
+		generateCall(clearVariableMethod)
 	}
 }

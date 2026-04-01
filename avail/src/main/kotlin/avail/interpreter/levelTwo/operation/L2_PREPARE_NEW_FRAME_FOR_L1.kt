@@ -42,9 +42,10 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1.Companion.prepare
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -53,7 +54,6 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -76,20 +76,18 @@ class L2_PREPARE_NEW_FRAME_FOR_L1(
 {
 	override val hasSideEffect get() = true
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: reifier = L2_PREPARE_NEW_FRAME_FOR_L1.prepare(interpreter);
-		translator.loadInterpreter(method)
-		prepareMethod.generateCall(method)
+		loadInterpreter()
+		generateCall(prepareMethod)
 		method.visitInsn(Opcodes.DUP)
-		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
+		method.visitVarInsn(Opcodes.ASTORE, reifierLocal())
 		// :: if (reifier === null) goto noReification;
 		val noReification = Label()
 		method.visitJumpInsn(Opcodes.IFNULL, noReification)
 		// :: else return reifier;
-		method.visitVarInsn(Opcodes.ALOAD, translator.reifierLocal())
+		method.visitVarInsn(Opcodes.ALOAD, reifierLocal())
 		method.visitInsn(Opcodes.ARETURN)
 		method.visitLabel(noReification)
 	}

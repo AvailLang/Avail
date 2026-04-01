@@ -46,7 +46,6 @@ import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.isNullOr
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Create a new [variable&#32;object][VariableDescriptor] of the specified
@@ -106,17 +105,15 @@ constructor(
 	override fun L2Regenerator.regenerateForPostponement()
 	{
 		// Always try to postpone the local variable creation instruction.
-		currentManifest.recordPostponedInstruction(this@L2_CREATE_VARIABLE)
+		+this@L2_CREATE_VARIABLE
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: newVar = newVariableWithOuterType(outerType  [,null] );
-		translator.loadLiteralObject(method, outerType.constant)
-		translator.load(method, initialValueOrNil)
-		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method)
-		translator.store(method, variable.register())
+		loadLiteralObject(outerType.constant)
+		load(initialValueOrNil)
+		generateCall(VariableDescriptor.newVariableWithOuterTypeMethod)
+		store(variable.register())
 	}
 }

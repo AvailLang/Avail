@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -76,19 +75,16 @@ class L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 		append(")")
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: return interpreter.reifierToRestart(
 		// ::    continuation, argsArray);
-		translator.loadInterpreter(method)
-		translator.load(method, continuationToRestart)
-		translator.objectArray(
-			method,
+		loadInterpreter()
+		load(continuationToRestart)
+		objectArray(
 			arguments.elements,
 			AvailObject::class.java)
-		Interpreter.reifierToRestartWithArgumentsMethod.generateCall(method)
+		generateCall(Interpreter.reifierToRestartWithArgumentsMethod)
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }

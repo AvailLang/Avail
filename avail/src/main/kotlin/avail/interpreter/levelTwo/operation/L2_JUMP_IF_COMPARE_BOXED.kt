@@ -48,7 +48,6 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -168,28 +167,24 @@ class L2_JUMP_IF_COMPARE_BOXED(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (num1 op num2) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, number1)
-		translator.load(method, number2)
-		numericComparator.constant.comparatorMethod.generateCall(method)
+		load(number1)
+		load(number2)
+		generateCall(numericComparator.constant.comparatorMethod)
 		// The boolean is now on the stack.  See if we can emit a single branch
 		// and fall-through, versus having to emit a branch and a jump.
 		when (offset + 1)
 		{
-			ifTrue.instruction.offset ->
-				translator.jumpIf(method, Opcodes.IFEQ, ifFalse)
-			ifFalse.instruction.offset ->
-				translator.jumpIf(method, Opcodes.IFNE, ifTrue)
+			ifTrue.instruction.offset -> jumpIf(Opcodes.IFEQ, ifFalse)
+			ifFalse.instruction.offset -> jumpIf(Opcodes.IFNE, ifTrue)
 			else ->
 			{
 				// Can't fall through.  Emit a branch and a jump.
-				translator.jumpIf(method, Opcodes.IFEQ, ifFalse)
-				translator.jump(method, ifTrue)
+				jumpIf(Opcodes.IFEQ, ifFalse)
+				jump(ifTrue)
 			}
 		}
 	}

@@ -31,13 +31,13 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.optimizer.L2ControlFlowGraph
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
+import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * Do nothing.  This is useful to insert comments into an [L2ControlFlowGraph].
@@ -56,15 +56,23 @@ constructor(
 		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		append("----------------")
+		append("---- ")
+		append(comment.comment)
 	}
 
-	override val isPlaceholder: Boolean get() = true
+	override val canBePostponed: Boolean get() = false
+
+	override fun L2GeneratorInterface.emitTransformedInstruction()
+	{
+		// Drop no-ops on regeneration.  They only last one pass.
+	}
+
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		// Drop no-ops on regeneration.  They only last one pass.
+	}
 
 	override val producesAnyJvmCode: Boolean get() = false
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor
-	) = unsupported
+	override fun JVMTranslator.translateToJVM() = Unit
 }

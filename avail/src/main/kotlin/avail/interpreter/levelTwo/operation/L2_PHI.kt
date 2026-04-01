@@ -60,7 +60,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
-import org.objectweb.asm.MethodVisitor
 
 /**
  * The `L2_PHI` occurs at the start of a [L2BasicBlock].  It's
@@ -109,6 +108,13 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		generator: L2GeneratorInterface,
 		forceBlock: L2BasicBlock?
 	): L2_PHI<K> = super.cloneFor(generator, forceBlock).cast()
+
+	override fun aboutToAdd(generator: L2GeneratorInterface): Boolean
+	{
+		// The reads are specific to each incoming edge, and the writes will be
+		// handled later by instructionWasAdded.
+		return true
+	}
 
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -173,7 +179,7 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 	 *
 	 * @param updater
 	 *   What to do to a copied mutable [List] of read operands that starts out
-	 *   having all of the vector operand's elements.
+	 *   having all the vector operand's elements.
 	 */
 	private fun updateVectorOperand(
 		updater: (MutableList<L2ReadOperand<K>>) -> Unit)
@@ -234,7 +240,8 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 	 *   The [L2GeneratorInterface] through which to write the instruction's
 	 *   equivalent effect.
 	 */
-	override fun L2GeneratorInterface.emitTransformedInstruction()
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction?
 	{
 		val defined = mutableListOf<L2SemanticValue<K>>()
 		val undefined = mutableListOf<L2SemanticValue<K>>()
@@ -251,6 +258,7 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		{
 			moveRegister(source, setOf(eachTarget))
 		}
+		return null
 	}
 
 	/**
@@ -266,7 +274,8 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		ignoreMisconnections: Boolean,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		append("ϕ ")
+		renderPreamble()
+		append(" ")
 		append(destination)
 		append(" ← ")
 		append(sources)
@@ -274,9 +283,7 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 
 	override val name: String get() = "ϕ"
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		throw UnsupportedOperationException(
 			"This instruction should be factored out before JVM translation")

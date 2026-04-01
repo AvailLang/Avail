@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -70,23 +69,21 @@ class L2_GET_TYPE(
 		append(value.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.load(method, value)
+		load(value)
 		// [value]
 		when
 		{
 			value.restriction().containedByType(NONTYPE()) ->
 			{
 				// The value will *never* be a type.
-				InstanceTypeDescriptor.instanceTypeMethod.generateCall(method)
+				generateCall(InstanceTypeDescriptor.instanceTypeMethod)
 			}
 			value.restriction().containedByType(topMeta) ->
 			{
 				// The value will *always* be a type. Strengthen to AvailObject.
-				InstanceMetaDescriptor.instanceMetaMethod.generateCall(method)
+				generateCall(InstanceMetaDescriptor.instanceMetaMethod)
 				method.visitTypeInsn(
 					Opcodes.CHECKCAST,
 					Type.getInternalName(AvailObject::class.java))
@@ -94,7 +91,7 @@ class L2_GET_TYPE(
 			else ->
 			{
 				// The value could be either a type or a non-type.
-				instanceTypeOrMetaOnMethod.generateCall(method)
+				generateCall(instanceTypeOrMetaOnMethod)
 				// Strengthen to AvailObject
 				method.visitTypeInsn(
 					Opcodes.CHECKCAST,
@@ -102,6 +99,6 @@ class L2_GET_TYPE(
 			}
 		}
 		// [type]
-		translator.store(method, type.register())
+		store(type.register())
 	}
 }

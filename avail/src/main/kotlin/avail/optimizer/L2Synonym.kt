@@ -136,6 +136,19 @@ constructor(
 		append('〗')
 	}
 
+
+	fun toString(
+		valuesHavingDefinitions: Set<L2SemanticValue<*>>
+	): String = buildString {
+		append('〖')
+		val defined = semanticValues.intersect(valuesHavingDefinitions)
+;		val undefined = semanticValues - defined
+		if (defined.isNotEmpty()) appendSemanticValues(defined, true)
+		if (defined.isNotEmpty() && undefined.isNotEmpty()) append(" & ")
+		if (undefined.isNotEmpty()) appendSemanticValues(undefined, true, "⌛")
+		append('〗')
+	}
+
 	override fun compareTo(other: L2Synonym<K>) =
 		semanticValues.minOrNull()!!.compareTo(
 			other.semanticValues.minOrNull()!!)
@@ -144,7 +157,8 @@ constructor(
 	{
 		fun StringBuilder.appendSemanticValues(
 			semanticValues: Iterable<L2SemanticValue<*>>,
-			canWrap: Boolean)
+			canWrap: Boolean,
+			prefix: String = "")
 		{
 			val sortedValues = semanticValues.sorted()
 			var column = 1
@@ -158,12 +172,12 @@ constructor(
 				}
 				val string: String = when
 				{
-					previous == null -> value.toStringForSynonym()
+					previous == null -> prefix + value.toStringForSynonym()
 					(previous is L2SemanticSlot
 						&& value is L2SemanticSlot
 						&& previous.slotIndex == value.slotIndex
 						) -> "/" + value.pcAfter.toString()
-					else -> " & " + value.toStringForSynonym()
+					else -> " & " + prefix + value.toStringForSynonym()
 				}
 				append(string)
 				column += string.codePointCount(0, string.length)

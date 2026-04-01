@@ -37,16 +37,19 @@ import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.optimizer.L2Generator
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -74,11 +77,10 @@ class L2_CONCATENATE_TUPLES(
 		tuples.elements.joinTo(this, " ++ ") { it.registerString() }
 	}
 
-	override fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	override fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator)
+		destinationSemanticValues: Set<L2SemanticBoxedValue>)
 	{
 		// If we can tell (1) which subtuple we're getting the value from, and
 		// (2) the index within that subtuple, then extract the value from the
@@ -92,14 +94,14 @@ class L2_CONCATENATE_TUPLES(
 			if (!lowerBound.isInt)
 			{
 				// Should be impossible, other than abnormal intermediate types.
-				generator.addUnreachableCode()
+				addUnreachableCode()
 				return
 			}
 			val lowerBoundInt = lowerBound.extractInt
 			if (residualIndex <= lowerBoundInt)
 			{
 				// It's definitely in this subtuple.
-				generator.extractTupleElement(
+				extractTupleElement(
 					elementRead, residualIndex, destinationSemanticValues)
 				return
 			}
@@ -111,28 +113,31 @@ class L2_CONCATENATE_TUPLES(
 			}
 			residualIndex -= lowerBoundInt
 		}
-		// It fell back, so do the default tuple element extraction.
-		super.extractTupleElement(
-			tupleRead, index, destinationSemanticValues, generator)
+		// Fall back to the default tuple element extraction.
+		+L2_TUPLE_AT_CONSTANT(
+			readBoxed(synonym.pickSemanticValue()),
+			L2IntImmediateOperand(index),
+			boxedWrite(
+				destinationSemanticValues,
+				boxedRestrictionForType(
+					concatenatedTuple.restriction().type.typeAtIndex(index))))
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		val elements = tuples.elements
 		val tupleCount = elements.size
 		assert(tupleCount > 0)
-		translator.load(method, elements[0])
+		load(elements[0])
 		for (i in 1 until tupleCount)
 		{
-			translator.load(method, elements[i])
-			TupleDescriptor.concatenateTupleMethod.generateCall(method)
+			load(elements[i])
+			generateCall(TupleDescriptor.concatenateTupleMethod)
 		}
 		// Strengthen the final result to AvailObject.
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST,
 			Type.getInternalName(AvailObject::class.java))
-		translator.store(method, concatenatedTuple.register())
+		store(concatenatedTuple.register())
 	}
 }

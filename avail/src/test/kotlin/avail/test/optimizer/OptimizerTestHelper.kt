@@ -36,9 +36,13 @@ import avail.AvailRuntime
 import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.A_Atom.Companion.setAtomBundle
+import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
@@ -53,6 +57,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.MapDescriptor.Companion.mapWithBindings
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
@@ -61,19 +67,24 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
 import avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.setNameForType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive
@@ -163,6 +174,24 @@ class OptimizerTestHelper(
 		}
 
 		/**
+		 * Call a dummy method synthesized for just this call site.
+		 */
+		fun callNewDummy(
+			bundleName: String,
+			argumentTypes: List<A_Type>,
+			returnType: A_Type)
+		{
+			defineMethod(bundleName, returnType) {
+				argumentTypes(*argumentTypes.toTypedArray())
+				pushLiteral(stringFrom("$bundleName is a stub"))
+				call("Crash:_", bottom)
+			}
+			L1_doCall(
+				addLiteral(bundle(bundleName)),
+				addLiteral(returnType))
+		}
+
+		/**
 		 * Used to set up the names of arguments, locals, constants, and outers,
 		 * in that order.  Each call adds one name and returns its one-based
 		 * index.
@@ -197,6 +226,12 @@ class OptimizerTestHelper(
 	 * a map from Kotlin [String] to the corresponding [A_Bundle].
 	 */
 	private val allBundles = mutableMapOf<String, A_Bundle>()
+
+	/**
+	 * The method definitions that should not be pre-looked up before performing
+	 * test optimizaations.
+	 */
+	private val noLookupDefinitions = mutableSetOf<A_Definition>()
 
 	/**
 	 * Look up the [A_Bundle] with the specified name, creating it if it does
@@ -353,28 +388,38 @@ class OptimizerTestHelper(
 	 *   The [List] of argument [A_Type]s.
 	 * @param returnType
 	 *   The return [A_Type] for the abstract method definition.
+	 * @param suppressLookup
+	 *   If true, do not pre-fetch the method definition from the lookup tree.
+	 *   This is useful for reproducing problems that only show up when some
+	 *   paths in an inlined dispatch have to fall back to a slow lookup.
 	 */
 	fun defineAbstractMethod(
 		name: String,
 		argumentTypes: List<A_Type>,
-		returnType: A_Type)
+		returnType: A_Type,
+		suppressLookup: Boolean = false)
 	{
 		val method = lookupOrCreate(name).bundleMethod
 		val abstractDefinition = newAbstractDefinition(
 			method,
 			nil,
 			functionType(tupleFromList(argumentTypes), returnType))
+		if (suppressLookup) noLookupDefinitions += abstractDefinition
 		method.methodAddDefinition(abstractDefinition)
 	}
 
 	/**
-	 * Define a method with the specified name, and return type, using the
-	 * given [SimpleWriter] lambda to generate the body of the method.
+	 * Define a method with the specified name, and return type, using the given
+	 * [SimpleWriter] lambda to generate the body of the method.
 	 *
 	 * @param name
 	 *   The name of the method to define.
 	 * @param returnType
 	 *   The return type of the method.
+	 * @param suppressLookup
+	 *   If true, do not pre-fetch the method definition from the lookup tree.
+	 *   This is useful for reproducing problems that only show up when some
+	 *   paths in an inlined dispatch have to fall back to a slow lookup.
 	 * @param functionBuilder
 	 *   A lambda that takes an [SimpleWriter] receiver, and uses it to add
 	 *   instructions to the method body.
@@ -382,6 +427,7 @@ class OptimizerTestHelper(
 	fun defineMethod(
 		name: String,
 		returnType: A_Type,
+		suppressLookup: Boolean = false,
 		functionBuilder: SimpleWriter.()->Unit)
 	{
 		val method = lookupOrCreate(name).bundleMethod
@@ -389,6 +435,7 @@ class OptimizerTestHelper(
 		rawFunction.methodName = stringFrom(name)
 		val function = createFunction(rawFunction, emptyTuple)
 		val definition = newMethodDefinition(method, nil, function)
+		if (suppressLookup) noLookupDefinitions += definition
 		method.methodAddDefinition(definition)
 	}
 
@@ -451,11 +498,20 @@ class OptimizerTestHelper(
 			{
 				val method = literal.bundleMethod
 				method.definitionsTuple.forEach { def: A_Definition ->
+					// Don't force lookups if the definition said it shouldn't
+					// warm up that part of the lookup tree.
+					if (def in noLookupDefinitions) return@forEach
 					val signature = def.bodySignature()
 					val argumentsType = signature.argsTupleType
 					val argumentTypes = argumentsType.tupleOfTypesFromTo(
 						1, argumentsType.sizeRange.upperBound.extractInt)
-					// Force a lookup to populate the tree.
+					// Force a lookup to populate the tree.  This won't be quite
+					// right for some types of [DecisionStep]s, since there may
+					// be a different subtrees for type-based rather than
+					// value-based lookups, but it should be close enough for
+					// now.  If a particular test requires more precision, it
+					// can manually look up method definitions by example
+					// values.
 					method.lookupByTypesFromTuple(argumentTypes)
 				}
 			}
@@ -486,5 +542,78 @@ class OptimizerTestHelper(
 			val (name, argTypes) = nameAndArgTypes
 			defineAbstractMethod(name, argTypes, returnType)
 		}
+	}
+
+	/** Create an atom to use as a field in an object type. */
+	fun fieldAtom(name: String, type: A_Type): A_Atom
+	{
+		val atom = createAtom(stringFrom(name), nil)
+		atom.setAtomProperty(
+			SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY.atom,
+			type.makeShared())
+		return atom.makeShared()
+	}
+
+	/**
+	 * Create an atom to use as an explicit-subclass field in an object type.
+	 */
+	fun explicitSubclassAtom(name: String): A_Atom
+	{
+		val atom = createAtom(stringFrom(name), nil)
+		atom.setAtomProperty(
+			SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom,
+			trueObject)
+		return atom.makeShared()
+	}
+
+	class ObjectTypeBuilder(private val supertype: A_Type?)
+	{
+		private val fields = mutableMapOf<A_Atom, A_Type>()
+
+		init
+		{
+			supertype?.run {
+				fieldTypeMap.forEach { k, v -> fields[k] = v }
+			}
+		}
+
+		operator fun A_Atom.invoke(fieldType: A_Type)
+		{
+			fields[this] = fieldType
+		}
+
+		operator fun String.invoke(fieldType: A_Type)
+		{
+			val atom = createAtom(stringFrom(this), nil)
+			atom.setAtomProperty(
+				SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY.atom,
+				fieldType.makeShared())
+			fields[atom] = fieldType
+		}
+
+		val objectType: A_Type get() = objectTypeFromMap(
+			mapWithBindings(
+				tupleFromList(fields.map { (k, v) -> tuple(k, v) })))
+	}
+
+	fun objectType(
+		name: String,
+		explicit: Boolean,
+		supertype: A_Type? = null,
+		setup: ObjectTypeBuilder.()->Unit
+	): A_Type
+	{
+		val builder = ObjectTypeBuilder(supertype)
+		builder.setup()
+		if (explicit)
+		{
+			val explicitAtom = explicitSubclassAtom("explicit-$name")
+			builder.run {
+				explicitAtom(instanceType(explicitAtom))
+			}
+		}
+		val objectType = builder.objectType.makeShared()
+		setNameForType(objectType, stringFrom(name), false)
+		return objectType
 	}
 }

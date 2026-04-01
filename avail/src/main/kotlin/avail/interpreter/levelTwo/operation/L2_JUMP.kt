@@ -33,7 +33,6 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Unconditionally jump to the level two offset in my only operand.
@@ -50,11 +49,9 @@ class L2_JUMP(var target: L2PcOperand
 	override val producesAnyJvmCode: Boolean
 		get() = offset == -1 || target.offset() != offset
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: goto offset;
-		translator.jumpOrFallThrough(method, target)
+		jumpOrFallThrough(target)
 	}
 }

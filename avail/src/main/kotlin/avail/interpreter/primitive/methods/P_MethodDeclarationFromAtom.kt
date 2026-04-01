@@ -160,7 +160,7 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 		functionType(
 			tuple(
 				ATOM(),
-				mostGeneralFunctionType(),
+				mostGeneralFunctionType,
 				zeroOrOneOf(stylerFunctionType)),
 			TOP())
 

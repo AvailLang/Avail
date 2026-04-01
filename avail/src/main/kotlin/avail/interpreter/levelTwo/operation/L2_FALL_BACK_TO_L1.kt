@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -86,22 +85,19 @@ class L2_FALL_BACK_TO_L1(
 		frameValues.elements.joinTo(this) { "\n\t\t" + it.registerString() }
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: interpreter
-		translator.intConstant(method, pc.value)
+		intConstant(pc.value)
 		// :: interpreter, pc
-		translator.intConstant(method, stackp.value)
+		intConstant(stackp.value)
 		// :: interpreter, pc, stackp
-		translator.objectArray(
-			method,
+		objectArray(
 			frameValues.elements,
 			A_BasicObject::class.java)
 		// :: interpreter, pc, stackp, frameValues
-		fallBackToL1Method.generateCall(method)
+		generateCall(fallBackToL1Method)
 		// :: stack reifier (= null)
 		method.visitInsn(Opcodes.ARETURN)
 	}

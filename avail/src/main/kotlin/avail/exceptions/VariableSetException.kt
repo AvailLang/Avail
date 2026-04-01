@@ -32,11 +32,10 @@
 
 package avail.exceptions
 
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.variables.A_Variable.Companion.setValue
 
 /**
- * `VariableSetException` is thrown when [AvailObject.setValue] fails for any
- * reason.
+ * `VariableSetException` is thrown when [setValue] fails for any reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

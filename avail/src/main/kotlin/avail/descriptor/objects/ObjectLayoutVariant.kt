@@ -277,10 +277,9 @@ private constructor(
 				throw ObjectFieldTypeException(badFields)
 			}
 			// Didn't find it while holding the read lock.  We could create it
-			// outside of the lock, then test for its presence again inside the
-			// write lock, abandoning it for the existing one if found.
-			// Instead, hold the write lock, test again, and create and add if
-			// necessary.
+			// outside the lock, then test for its presence again inside the
+			// write lock, abandoning it for the existing one if found. Instead,
+			// hold the write lock, test again, and create and add if necessary.
 			return variantsLock.safeWrite {
 				when (val theirVariant = variantsByFieldSet[allFields]?.get()) {
 					null ->

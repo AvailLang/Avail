@@ -40,10 +40,22 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
+import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Mutable
 import avail.utility.Strings.increaseIndentation
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
+import java.awt.Desktop
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.Collections
 import kotlin.reflect.KClass
+import kotlin.time.Clock
 
 /**
  * This is a control graph. The vertices are [L2BasicBlock]s, which are
@@ -51,7 +63,7 @@ import kotlin.reflect.KClass
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2ControlFlowGraph
+class L2ControlFlowGraph : L2Visualizable
 {
 	/**
 	 * Flags that indicate the current state of the graph.
@@ -67,13 +79,6 @@ class L2ControlFlowGraph
 		 * predecessor edge by which the block was reached.
 		 */
 		object IS_SSA : StateFlag()
-
-		/**
-		 * Whether the control flow graph is in edge-split form, which ensures
-		 * that no edge both leads from a node with multiple successor edges and
-		 * leads to a node with multiple predecessor edges.
-		 */
-		object IS_EDGE_SPLIT : StateFlag()
 
 		/**
 		 * Indicates that every [L2_PHI] has been replaced by
@@ -228,6 +233,16 @@ class L2ControlFlowGraph
 	val basicBlockOrder = mutableListOf<L2BasicBlock>()
 
 	/**
+	 * The JVM internal class name reserved for this graph's compiled output,
+	 * or `null` if not yet reserved.  When [L2Optimizer] pre-reserves a naming
+	 * counter slot (for per-pass dump output), it stores the resulting
+	 * [classInternalName][JVMTranslator.classInternalName] here so that the
+	 * subsequent [JVMTranslator] can reuse the same slot rather than
+	 * incrementing the counter a second time.
+	 */
+	var reservedClassInternalName: String? = null
+
+	/**
 	 * Begin code generation in the given block.
 	 *
 	 * @param block
@@ -279,17 +294,47 @@ class L2ControlFlowGraph
 	/**
 	 * Visit the blocks of the graph in reverse order, successors before
 	 * predecessors, ignoring backward branches.
+	 *
+	 * @param handlePartialGraph
+	 *   If true, handle partial graphs during construction by including
+	 *   successor blocks that aren't yet in the graph as end nodes.
+	 * @param action
+	 *   The action to perform on each block.
 	 */
-	fun backwardVisit(action: (L2BasicBlock)->Unit)
+	fun backwardVisit(
+		handlePartialGraph: Boolean = false,
+		action: (L2BasicBlock)->Unit)
 	{
 		val countdowns = mutableMapOf<L2BasicBlock, Mutable<Int>>()
 		basicBlockOrder.forEach { block ->
 			countdowns[block] =
 				Mutable(block.successorEdges().count { !it.isBackward })
 		}
+
+		// Handle partial graphs during construction by adding missing successors
+		if (handlePartialGraph)
+		{
+			// Make a copy to avoid concurrent modification
+			val currentBlocks = countdowns.keys.toList()
+			currentBlocks.forEach { block ->
+				block.successorEdges().forEach { edge ->
+					if (!edge.isBackward)
+					{
+						val successor = edge.targetBlock()
+						if (successor !in countdowns)
+						{
+							// Treat missing successors as end nodes (0 successors)
+							countdowns[successor] = Mutable(0)
+						}
+					}
+				}
+			}
+		}
+
 		val queue = ArrayDeque<L2BasicBlock>()
 		val ends = mutableListOf<L2BasicBlock>()
-		basicBlockOrder.filterTo(ends) { block ->
+		// Find all blocks with no forward successors (end nodes)
+		countdowns.keys.filterTo(ends) { block ->
 			block.successorEdges().all { it.isBackward }
 		}
 		queue.addAll(ends)
@@ -407,8 +452,9 @@ class L2ControlFlowGraph
 	}
 
 	/**
-	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
+	 * Open a visualization of this `L2ControlFlowGraph`. This is a
 	 * debug method, intended to be called via evaluation during debugging.
+	 * It opens in an external program associated with the ".dot" file type.
 	 *
 	 * @param generator
 	 *   The [L2Generator], if any, that is in the process of populating this
@@ -416,11 +462,13 @@ class L2ControlFlowGraph
 	 * @return
 	 *   The requested visualization.
 	 */
-	@Suppress("unused")
-	fun visualize(
-		generator: L2Generator? = null
-	) = StringBuilder().let { builder ->
-		L2ControlFlowGraphVisualizer(
+	override fun visualize(
+		generator: L2Generator?,
+		focusValue: L2SemanticValue<*>?
+	): Unit
+	{
+		val builder = StringBuilder()
+		val visualizer = L2ControlFlowGraphVisualizer(
 			fileName = "«control flow graph»",
 			name = "",
 			charactersPerLine = 80,
@@ -429,14 +477,21 @@ class L2ControlFlowGraph
 			visualizeManifest = true,
 			visualizeRegisterDescriptions = true,
 			accumulator = builder,
-			generator = generator
-		).visualize()
-		builder.toString()
+			currentBlock = generator?.currentBlockOrNull(),
+			currentManifest = generator?.currentManifest,
+			focusValue = focusValue,
+			deltaManifestOnly = false)
+		visualizer.visualize()
+
+		val tempFile = createTemporaryFile()
+		tempFile.writeText(builder.toString())
+		Desktop.getDesktop().open(tempFile)
 	}
 
 	/**
 	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
 	 * debug method, intended to be called via evaluation during debugging.
+	 * It opens in an external program associated with the ".dot" file type.
 	 *
 	 * @param generator
 	 *   The [L2Generator], if any, that is in the process of populating this
@@ -444,10 +499,13 @@ class L2ControlFlowGraph
 	 * @return
 	 *   The requested visualization.
 	 */
-	fun simplyVisualize(
-		generator: L2Generator? = null
-	) = StringBuilder().let { builder ->
-		L2ControlFlowGraphVisualizer(
+	override fun simplyVisualize(
+		generator: L2Generator?,
+		focusValue: L2SemanticValue<*>?
+	): Unit
+	{
+		val builder = StringBuilder()
+		val visualizer = L2ControlFlowGraphVisualizer(
 			fileName = "«SIMPLE control flow graph»",
 			name = "",
 			charactersPerLine = 80,
@@ -456,8 +514,46 @@ class L2ControlFlowGraph
 			visualizeManifest = false,
 			visualizeRegisterDescriptions = false,
 			accumulator = builder,
-			generator = generator
-		).visualize()
-		builder.toString()
+			currentBlock = generator?.currentBlock(),
+			currentManifest = generator?.currentManifest,
+			focusValue = focusValue,
+			deltaManifestOnly = true)
+		visualizer.visualize()
+
+		val tempFile = createTemporaryFile()
+		tempFile.writeText(builder.toString())
+		Desktop.getDesktop().open(tempFile)
+	}
+
+	companion object
+	{
+		/** The format of dates used in naming temp visualization files. */
+		val timeFormat = LocalDateTime.Format {
+			date(LocalDate.Formats.ISO)
+			char('T')
+			hour()
+			char('.')
+			minute()
+			char('.')
+			second()
+		}
+
+		/**
+		 * Create a suitable temporary [File], and build the directory structure
+		 * within the file system.
+		 */
+		private fun createTemporaryFile(): File
+		{
+			val dir = listOf("avail", "optimizer", "jvm", "temp")
+				.fold<String, Path>(
+					JVMTranslator.baseDirectoryForGraphs, Path::resolve)
+			val now = Clock.System.now()
+				.toLocalDateTime(TimeZone.currentSystemDefault())
+			val nowString = timeFormat.format(now)
+			dir.resolve(nowString)
+			runCatching { Files.createDirectories(dir) }
+			val tempFile = File.createTempFile("$nowString ", ".dot", dir.toFile())
+			return tempFile
+		}
 	}
 }

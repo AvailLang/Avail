@@ -53,12 +53,12 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.cast
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -91,14 +91,18 @@ class L2_INVOKE(
 	override val hasSideEffect get() = true
 
 	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun mightMakeEscapedVariableShared(): Boolean
+	override fun mightMakeEscapedVariableShared(
+		manifest: L2ValueManifest
+	): Boolean
 	{
-		calledFunction.definitionSkippingMoves().constantCode?.let { code ->
-			code.codePrimitive()?.let { prim ->
-				return prim.mightMakeEscapedVariableShared(
-					arguments.elements.map(L2ReadBoxedOperand::type))
+		calledFunction.definitionSkippingMoves(manifest)
+			.getConstantCode(manifest)
+			?.let { code ->
+				code.codePrimitive()?.let { prim ->
+					return prim.mightMakeEscapedVariableShared(
+						arguments.elements.map(L2ReadBoxedOperand::type))
+				}
 			}
-		}
 		return true
 	}
 
@@ -119,7 +123,7 @@ class L2_INVOKE(
 		get()
 		{
 			val functionType = calledFunction.restriction().type
-			assert(functionType.isSubtypeOf(mostGeneralFunctionType()))
+			assert(functionType.isSubtypeOf(mostGeneralFunctionType))
 			return functionType.returnType.isBottom
 		}
 
@@ -153,7 +157,7 @@ class L2_INVOKE(
 		append(" ← ")
 		append(calledFunction.registerString())
 		append("(")
-		append(arguments.elements)
+		append(arguments.elements.joinToString(", "))
 		append(")")
 		renderOperandsExcludingFields(
 			desiredOperandTypes,
@@ -162,23 +166,19 @@ class L2_INVOKE(
 			::arguments)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: [interpreter]
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: [interpreter, interpreter]
-		Interpreter.chunkField.generateRead(method)
+		load(Interpreter.chunkField)
 		// :: [interpreter, callingChunk]
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: [interpreter, callingChunk, interpreter]
-		translator.load(method, calledFunction)
+		load(calledFunction)
 		// :: [interpreter, callingChunk, interpreter, function]
 		generatePushArgumentsAndInvoke(
-			translator,
-			method,
 			arguments.elements,
 			result,
 			ifReturn,
@@ -203,22 +203,19 @@ class L2_INVOKE(
 		 * another occurrence of the [Interpreter], and the [A_Function]
 		 * to be invoked.
 		 *
-		 * @param translator
-		 * The translator on which to generate the invocation.
-		 * @param method
-		 * The [MethodVisitor] controlling the method being written.
+		 * @receiver
+		 *   The translator on which to generate the invocation.
 		 * @param argsRegsList
-		 * The [List] of [L2ReadBoxedOperand] arguments.
+		 *   The [List] of [L2ReadBoxedOperand] arguments.
 		 * @param result
-		 * Where to write the return result if the call returns without reification.
+		 *   Where to write the return result if the call returns without
+		 *   reification.
 		 * @param onNormalReturn
-		 * Where to jump if the call completes.
+		 *   Where to jump if the call completes.
 		 * @param onReification
-		 * Where to jump if reification is requested during the call.
+		 *   Where to jump if reification is requested during the call.
 		 */
-		fun generatePushArgumentsAndInvoke(
-			translator: JVMTranslator,
-			method: MethodVisitor,
+		fun JVMTranslator.generatePushArgumentsAndInvoke(
 			argsRegsList: List<L2ReadOperand<BOXED_KIND>>,
 			result: L2WriteBoxedOperand,
 			onNormalReturn: L2PcOperand,
@@ -228,27 +225,26 @@ class L2_INVOKE(
 			val numArgs = argsRegsList.size
 			if (numArgs < preinvokeMethods.size)
 			{
-				argsRegsList.forEach { translator.load(method, it) }
+				argsRegsList.forEach { load(it) }
 				// :: [interpreter, callingChunk, interpreter, function, [args...]]
-				preinvokeMethods[numArgs].generateCall(method)
+				generateCall(preinvokeMethods[numArgs])
 			}
 			else
 			{
-				translator.objectArray(
-					method, argsRegsList.cast(), AvailObject::class.java)
+				objectArray(argsRegsList.cast(), AvailObject::class.java)
 				// :: [interpreter, callingChunk, interpreter, function, argsArray]
-				Interpreter.preinvokeMethod.generateCall(method)
+				generateCall(Interpreter.preinvokeMethod)
 			}
 			// :: [interpreter, callingChunk, callingFunction]
-			translator.loadInterpreter(method)
+			loadInterpreter()
 			// :: [interpreter, callingChunk, callingFunction, interpreter]
-			Interpreter.interpreterRunChunkMethod.generateCall(method)
+			generateCall(Interpreter.interpreterRunChunkMethod)
 			// :: [interpreter, callingChunk, callingFunction, reifier]
-			Interpreter.postinvokeMethod.generateCall(method)
+			generateCall(Interpreter.postinvokeMethod)
 			// :: [reifier]
-			method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
+			method.visitVarInsn(Opcodes.ASTORE, reifierLocal())
 			// :: []
-			method.visitVarInsn(Opcodes.ALOAD, translator.reifierLocal())
+			method.visitVarInsn(Opcodes.ALOAD, reifierLocal())
 			// :: if (reifier !== null) goto onReificationPreamble;
 			// :: result = interpreter.getLatestResult();
 			// :: goto onNormalReturn;
@@ -256,16 +252,16 @@ class L2_INVOKE(
 			val onReificationPreamble = Label()
 			method.visitJumpInsn(Opcodes.IFNONNULL, onReificationPreamble)
 
-			translator.loadInterpreter(method)
+			loadInterpreter()
 			// :: [interpreter]
-			Interpreter.getLatestResultMethod.generateCall(method)
+			generateCall(Interpreter.getLatestResultMethod)
 			// :: [latestResult]
-			translator.store(method, result.register())
+			store(result.register())
 			// :: []
-			translator.jump(method, onNormalReturn)
+			jump(onNormalReturn)
 
 			method.visitLabel(onReificationPreamble)
-			translator.generateReificationPreamble(method, onReification)
+			generateReificationPreamble(onReification)
 		}
 	}
 }

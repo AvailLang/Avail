@@ -104,7 +104,7 @@ import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readInt
+import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
@@ -122,7 +122,6 @@ import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.isNullOr
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACONST_NULL
 import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ARETURN
@@ -1326,10 +1325,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val valueB = boxedB.semanticValue()
 		val intSuccess = translator.createBasicBlock("output is i32")
 		val intFallback = translator.createBasicBlock("fall back to boxed")
-		val intA = translator.readInt(valueA.unboxedInt, intFallback) {
-			return false
-		}
-		val intB = translator.readInt(valueB.unboxedInt, intFallback) {
+		val (intA, intB) = translator.readTwoInts(
+			valueA.unboxedInt,
+			valueB.unboxedInt,
+			intFallback)
+		{
 			return false
 		}
 		assert(translator.currentlyReachable())
@@ -1482,26 +1482,22 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * free to neglect the statistics.  However, the [result] register must be
 	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
 	 *
-	 * @param translator
+	 * @receiver
 	 *   The [JVMTranslator] through which to write bytecodes.
-	 * @param method
-	 *   The [MethodVisitor] into which bytecodes are being written.
 	 * @param arguments
 	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
 	 * @param result
 	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
 	 *   the primitive, if successful.
 	 */
-	fun generateJvmCode(
-		translator: JVMTranslator,
-		method: MethodVisitor,
+	fun JVMTranslator.generateJvmCode(
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
 		// :: argsBuffer = interpreter.argsBuffer;
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// [interpreter]
-		argsBufferField.generateRead(method)
+		load(argsBufferField)
 		// [argsBuffer]
 		// :: argsBuffer.clear();
 		if (arguments.elements.isNotEmpty())
@@ -1509,7 +1505,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			method.visitInsn(DUP)
 		}
 		// [argsBuffer[, argsBuffer if #args > 0]]
-		JavaLibrary.listClearMethod.generateCall(method)
+		generateCall(JavaLibrary.listClearMethod)
 		// [argsBuffer if #args > 0]
 		val limit = arguments.elements.size
 		for (i in 0 until limit)
@@ -1519,31 +1515,31 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			{
 				method.visitInsn(DUP)
 			}
-			translator.load(method, arguments.elements[i])
-			JavaLibrary.listAddMethod.generateCall(method)
+			load(arguments.elements[i])
+			generateCall(JavaLibrary.listAddMethod)
 			method.visitInsn(POP)
 		}
 		// []
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// [interpreter]
-		translator.loadLiteralObject(method, this)
+		loadLiteralObject(this@Primitive)
 		// [interpreter, prim]
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// [interpreter, prim, interpreter]
-		translator.loadLiteralObject(method, this)
+		loadLiteralObject(this@Primitive)
 		// [interpreter, prim, interpreter, prim]
 		// :: long timeBefore = beforeAttemptPrimitive(primitive);
-		beforeAttemptPrimitiveMethod.generateCall(method)
+		generateCall(beforeAttemptPrimitiveMethod)
 		// [interpreter, prim, timeBeforeLong]
-		translator.loadLiteralObject(method, this)
+		loadLiteralObject(this@Primitive)
 		// [interpreter, prim, timeBeforeLong, prim]
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// [interpreter, prim, timeBeforeLong, prim, interpreter]
 		// :: Result success = primitive.attempt(interpreter)
-		attemptMethod.generateCall(method)
+		generateCall(attemptMethod)
 		// [interpreter, prim, timeBeforeLong, success]
 		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
-		afterAttemptPrimitiveMethod.generateCall(method)
+		generateCall(afterAttemptPrimitiveMethod)
 		// :: [success] (returned as a nicety by afterAttemptPrimitive)
 
 		// If the infallible primitive definitely switches continuations, then
@@ -1559,43 +1555,42 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			}
 			hasFlag(CanSwitchContinuations) ->
 			{
-				translator.loadInterpreter(method)
+				loadInterpreter()
 				// :: [success, interpreter]
 				method.visitInsn(SWAP)
 				// :: [interpreter, success]
-				translator.loadLiteralObject(method, this)
+				loadLiteralObject(this@Primitive)
 				// :: [interpreter, success, primitive]
 				method.visitInsn(SWAP)
 				// :: [interpreter, primitive, success]
 
 				// :: reifier = interpreter.optionalReifierIfCanSwitchContinuations(
 				//     primitive, success);
-				optionalReifierIfCanSwitchContinuationsMethod.generateCall(
-					method)
-				method.visitVarInsn(ASTORE, translator.reifierLocal())
+				generateCall(optionalReifierIfCanSwitchContinuationsMethod)
+				method.visitVarInsn(ASTORE, reifierLocal())
 				val noSwitchContinuationsLabel = Label()
 				// We switched continuations, so we have to return from the
 				// method with the reifier to ensure the JVM call stack is
 				// cleared before resuming the continuation.
 				// :: if (reifier != null) return reifier;
-				method.visitVarInsn(ALOAD, translator.reifierLocal())
+				method.visitVarInsn(ALOAD, reifierLocal())
 				method.visitJumpInsn(IFNULL, noSwitchContinuationsLabel)
-				method.visitVarInsn(ALOAD, translator.reifierLocal())
+				method.visitVarInsn(ALOAD, reifierLocal())
 				method.visitInsn(ARETURN)
 
 				// :: destReg = interpreter.getLatestResult()
 				method.visitLabel(noSwitchContinuationsLabel)
-				translator.loadInterpreter(method)
-				getLatestResultMethod.generateCall(method)
-				translator.store(method, result.register())
+				loadInterpreter()
+				generateCall(getLatestResultMethod)
+				store(result.register())
 			}
 			else ->
 			{
 				// :: result = interpreter.getLatestResult();
 				method.visitInsn(POP)
-				translator.loadInterpreter(method)
-				getLatestResultMethod.generateCall(method)
-				translator.store(method, result.register())
+				loadInterpreter()
+				generateCall(getLatestResultMethod)
+				store(result.register())
 			}
 		}
 	}

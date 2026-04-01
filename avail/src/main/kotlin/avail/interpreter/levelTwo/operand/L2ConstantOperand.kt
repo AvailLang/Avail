@@ -74,6 +74,10 @@ constructor(
 		{
 			append(decompile(constant))
 		}
+		else if (constant.isFunction && constant.code().codePrimitive() != null)
+		{
+			append(TypeRestriction.valueToString(constant, false))
+		}
 		else
 		{
 			brief { append(constant.toString()) }

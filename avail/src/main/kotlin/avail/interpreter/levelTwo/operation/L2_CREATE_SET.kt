@@ -33,12 +33,11 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Create a set from the values in the specified vector of object registers.
@@ -64,19 +63,17 @@ class L2_CREATE_SET(
 		append('}')
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: set = SetDescriptor.emptySet;
-		SetDescriptor.emptySetMethod.generateCall(method)
+		generateCall(SetDescriptor.emptySetMethod)
 		for (operand in values.elements)
 		{
 			// :: set = setWithElementStatic(set, «register»);
-			translator.load(method, operand)
-			A_Set.setWithElementMethod.generateCall(method)
+			load(operand)
+			generateCall(A_Set.setWithElementMethod)
 		}
 		// :: destinationSet = set;
-		translator.store(method, newSet.register())
+		store(newSet.register())
 	}
 }

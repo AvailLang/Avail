@@ -35,16 +35,15 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -75,23 +74,21 @@ class L2_TRY_OPTIONAL_PRIMITIVE(
 	 */
 	override val hasSideEffect get() = true
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// if (interpreter.function.code().primitive() === null)
 		//     goto noPrimitive;
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: interpreter
 		method.visitInsn(Opcodes.DUP)
 		// :: interpreter, interpreter
-		Interpreter.interpreterFunctionField.generateRead(method)
+		load(Interpreter.interpreterFunctionField)
 		// :: interpreter, function
 		method.visitInsn(Opcodes.DUP)
 		// :: interpreter, function, function
-		FunctionDescriptor.functionCodeMethod.generateCall(method)
+		generateCall(FunctionDescriptor.functionCodeMethod)
 		// :: interpreter, function, code
-		CompiledCodeDescriptor.codePrimitiveMethod.generateCall(method)
+		generateCall(CompiledCodeDescriptor.codePrimitiveMethod)
 		// :: interpreter, function, primitive
 		method.visitInsn(Opcodes.DUP)
 		// :: interpreter, function, primitive, primitive
@@ -100,7 +97,7 @@ class L2_TRY_OPTIONAL_PRIMITIVE(
 		// return L2_TRY_OPTIONAL_PRIMITIVE.attemptThePrimitive(
 		//     interpreter, function, primitive);
 		// :: interpreter, function, primitive
-		Interpreter.attemptThePrimitiveMethod.generateCall(method)
+		generateCall(Interpreter.attemptThePrimitiveMethod)
 		// :: stackReifier
 		method.visitInsn(Opcodes.ARETURN)
 

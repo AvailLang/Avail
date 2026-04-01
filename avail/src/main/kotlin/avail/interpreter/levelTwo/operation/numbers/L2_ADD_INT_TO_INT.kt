@@ -52,7 +52,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -133,19 +132,17 @@ class L2_ADD_INT_TO_INT(
 			::sum)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: longSum = (long) augend + (long) addend;
-		translator.load(method, augend)
+		load(augend)
 		method.visitInsn(Opcodes.I2L)
-		translator.load(method, addend)
+		load(addend)
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LADD)
 		val longSumStart = Label()
 		val longSumEnd = Label()
-		val longSumLocal = translator.nextLocal(Type.LONG_TYPE)
+		val longSumLocal = nextLocal(Type.LONG_TYPE)
 		method.visitLocalVariable(
 			"longSum",
 			Type.LONG_TYPE.descriptor,
@@ -161,16 +158,16 @@ class L2_ADD_INT_TO_INT(
 		method.visitInsn(Opcodes.I2L)
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
 		method.visitInsn(Opcodes.LCMP)
-		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
+		jumpIf(Opcodes.IFNE, outOfRange)
 		// :: else {
 		// ::    sum = (int)longSum;
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
 		method.visitInsn(Opcodes.L2I)
-		translator.store(method, sum.register())
-		translator.jump(method, inRange)
+		store(sum.register())
+		jump(inRange)
 		method.visitLabel(longSumEnd)
-		translator.endLocal(longSumLocal, Type.LONG_TYPE)
+		endLocal(longSumLocal, Type.LONG_TYPE)
 	}
 }

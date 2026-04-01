@@ -33,11 +33,8 @@ package avail.interpreter.levelTwo.operation.dispatch
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
-import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type.Companion.instanceTag
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
@@ -54,8 +51,6 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.jvm.JVMTranslator
-import avail.utility.mapToSet
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the [TypeTag] of the given object, then extract its
@@ -102,7 +97,8 @@ class L2_EXTRACT_TAG_ORDINAL(
 		tracer.continueTracing(value.register(), valueRestriction)
 	}
 
-	override fun L2GeneratorInterface.emitTransformedInstruction()
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction?
 	{
 		// If the tag is statically deducible at this point, use the constant.
 		val baseTag = value.type().instanceTag
@@ -137,32 +133,34 @@ class L2_EXTRACT_TAG_ORDINAL(
 					}
 				}
 			}
-			return
+			return null
 		}
 		// See if we can restrict the output tag.
 		tagOrdinal.restrict {
-			val newTags = (baseTag.ordinal..baseTag.highOrdinal)
+			var newTags = (baseTag.ordinal..baseTag.highOrdinal)
 				.filter { ordinal ->
 					val tag = TypeTag.tagFromOrdinal(ordinal)
 					!tag.isAbstract
 						&& containsValue(fromInt(ordinal))
 						&& value.restriction().intersectsType(tag.supremum)
 				}
+			if (value.restriction().canBeBottom)
+			{
+				newTags += TypeTag.BOTTOM_TYPE_TAG.ordinal
+			}
 			intRestrictionForType(
 				enumerationWith(setFromCollection(newTags.map(::fromInt))))
 		}
-		+this@L2_EXTRACT_TAG_ORDINAL
+		return this@L2_EXTRACT_TAG_ORDINAL
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: tagOrdinal = value.staticTypeTagOrdinal();
-		translator.load(method, value)
-		staticTypeTagOrdinalMethod.generateCall(method)
-		translator.store(method, tagOrdinal.register())
+		load(value)
+		generateCall(staticTypeTagOrdinalMethod)
+		store(tagOrdinal.register())
 	}
 }

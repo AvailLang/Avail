@@ -32,8 +32,8 @@
 package avail.anvil.manager
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.environment.GlobalEnvironmentSettings
+import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.projects.KnownAvailProject
 import java.awt.Color
 import java.awt.Dimension
@@ -50,6 +50,7 @@ import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
 
 /**
  * The [JPanel] that displays a [KnownAvailProject] in
@@ -189,7 +190,8 @@ internal class KnownProjectRow constructor(
 	 */
 	@Suppress("unused")
 	private val projectName: JLabel = JLabel(project.name).apply {
-		font = font.deriveFont(font.style or Font.BOLD)
+		val baseFont = UIManager.getFont("Label.font") ?: Font("Dialog", Font.PLAIN, 12)
+		font = baseFont.deriveFont(baseFont.style or Font.BOLD)
 		namePanel.add(this)
 	}
 
@@ -198,9 +200,10 @@ internal class KnownProjectRow constructor(
 	 */
 	@Suppress("unused")
 	private val location: JLabel = JLabel(project.projectConfigFile).apply {
-		font = font.deriveFont(
-			font.style or Font.ITALIC,
-			(font.size - 3).toFloat())
+		val baseFont = UIManager.getFont("Label.font") ?: Font("Dialog", Font.PLAIN, 12)
+		font = baseFont.deriveFont(
+			baseFont.style or Font.ITALIC,
+			(baseFont.size - 3).toFloat())
 		if (!project.exists)
 		{
 			foreground = Color(0x73706F)

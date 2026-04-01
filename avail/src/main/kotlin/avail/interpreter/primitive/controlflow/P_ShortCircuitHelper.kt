@@ -91,11 +91,11 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 		// the passed function in the 2nd (=args[1]) argument, instead.  The
 		// client will generate any needed type strengthening, so don't do it
 		// here.
-		val functionReg = arguments[1]
+		val functionRead = arguments[1]
 		// the function in the 2nd (=args[1]) argument.
 		// takes no arguments.
 		generateGeneralFunctionInvocation(
-			functionReg, true, callSiteHelper, emptyList())
+			functionRead, true, callSiteHelper, emptyList())
 		return true
 	}
 }

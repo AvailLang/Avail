@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract a tuple in specified range of subscripts from a
@@ -109,16 +108,14 @@ class L2_TUPLE_SUBRANGE_NO_FAIL(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination =
 		//       tuple.staticTupleCopyFromTo(lowSubscript, highSubscript)
-		translator.load(method, tuple)
-		translator.load(method, lowSubscript)
-		translator.load(method, highSubscript)
-		TupleDescriptor.tupleCopyFromToMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(tuple)
+		load(lowSubscript)
+		load(highSubscript)
+		generateCall(TupleDescriptor.tupleCopyFromToMethod)
+		store(destination.register())
 	}
 }

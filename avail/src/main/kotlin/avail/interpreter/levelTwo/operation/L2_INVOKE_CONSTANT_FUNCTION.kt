@@ -57,10 +57,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
+import avail.utility.Strings.increaseIndentation
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
@@ -92,9 +93,10 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 {
 	override val hasSideEffect get() = true
 
-
 	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun mightMakeEscapedVariableShared(): Boolean =
+	override fun mightMakeEscapedVariableShared(
+		manifest: L2ValueManifest
+	): Boolean =
 		when (val prim = constantFunction.constant.code().codePrimitive())
 		{
 			null -> true
@@ -136,7 +138,8 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		append("(")
 		val argNames = code.declarationNames.take(code.numArgs())
 		arguments.elements.zip(argNames).joinTo(this, ",") { (arg, name) ->
-			"\n\t\t${name.asNativeString()} ← ${arg.registerString()}"
+			val valueString = increaseIndentation(arg.registerString(), 2)
+			"\n\t\t${name.asNativeString()} ← $valueString"
 		}
 		append(")")
 		renderOperandsExcludingFields(
@@ -202,26 +205,24 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		+this@L2_INVOKE_CONSTANT_FUNCTION
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: [interpreter]
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: [interpreter, interpreter]
-		Interpreter.chunkField.generateRead(method)
+		load(Interpreter.chunkField)
 		// :: [interpreter, callingChunk]
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: [interpreter, callingChunk, interpreter]
-		translator.loadLiteralObject(method, constantFunction.constant)
+		loadLiteralObject(constantFunction.constant)
 		// :: [interpreter, callingChunk, interpreter, function]
-		L2_INVOKE.generatePushArgumentsAndInvoke(
-			translator,
-			method,
-			arguments.elements,
-			result,
-			ifReturn,
-			ifReification)
+		L2_INVOKE.run {
+			generatePushArgumentsAndInvoke(
+				arguments.elements,
+				result,
+				ifReturn,
+				ifReification)
+		}
 	}
 }

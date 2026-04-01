@@ -52,7 +52,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -135,9 +134,7 @@ constructor (
 			::caller)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: continuation = createContinuationExceptFrame(
 		// ::    function,
@@ -147,15 +144,15 @@ constructor (
 		// ::    levelOneStackp,
 		// ::    interpreter.chunk,
 		// ::    onRampOffset);
-		translator.load(method, function)
-		translator.load(method, caller)
-		translator.load(method, registerDump)
-		translator.intConstant(method, levelOnePc.value)
-		translator.intConstant(method, levelOneStackp.value)
-		translator.loadInterpreter(method)
-		Interpreter.chunkField.generateRead(method)
-		translator.load(method, labelAddress)
-		createContinuationExceptFrameMethod.generateCall(method)
+		load(function)
+		load(caller)
+		load(registerDump)
+		intConstant(levelOnePc.value)
+		intConstant(levelOneStackp.value)
+		loadInterpreter()
+		load(Interpreter.chunkField)
+		load(labelAddress)
+		generateCall(createContinuationExceptFrameMethod)
 		val slotCount = slotValues.elements.size
 		var pushed = 0
 		for (i in 0 until slotCount)
@@ -168,11 +165,11 @@ constructor (
 			{
 				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
 				// [continuation]
-				translator.intConstant(method, i + 1)
-				translator.load(method, slotValues.elements[i])
+				intConstant(i + 1)
+				load(slotValues.elements[i])
 				if (++pushed == 6)
 				{
-					AvailObject.frameAtPut6Method.generateCall(method)
+					generateCall(AvailObject.frameAtPut6Method)
 					// Method returns continuation to simplify stack handling.
 					// [continuation]
 					pushed = 0
@@ -182,15 +179,15 @@ constructor (
 		when (pushed)
 		{
 			0 -> { }
-			1 -> AvailObject.frameAtPutMethod.generateCall(method)
-			2 -> AvailObject.frameAtPut2Method.generateCall(method)
-			3 -> AvailObject.frameAtPut3Method.generateCall(method)
-			4 -> AvailObject.frameAtPut4Method.generateCall(method)
-			5 -> AvailObject.frameAtPut5Method.generateCall(method)
+			1 -> generateCall(AvailObject.frameAtPutMethod)
+			2 -> generateCall(AvailObject.frameAtPut2Method)
+			3 -> generateCall(AvailObject.frameAtPut3Method)
+			4 -> generateCall(AvailObject.frameAtPut4Method)
+			5 -> generateCall(AvailObject.frameAtPut5Method)
 			else -> throw AssertionError(
 				"Internal error - wrong bulk write size for frame")
 		}
 		// [continuation]
-		translator.store(method, destination.register())
+		store(destination.register())
 	}
 }

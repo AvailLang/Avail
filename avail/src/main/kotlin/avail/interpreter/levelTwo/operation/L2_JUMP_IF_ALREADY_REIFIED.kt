@@ -38,7 +38,6 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -62,18 +61,14 @@ class L2_JUMP_IF_ALREADY_REIFIED(
 	@On(FAILURE) var ifNotAlreadyReified: L2PcOperand
 ): L2ConditionalJump()
 {
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
-		translator.loadInterpreter(method)
-		Interpreter.callerIsReifiedMethod.generateCall(method)
+		loadInterpreter()
+		generateCall(Interpreter.callerIsReifiedMethod)
 		emitBranch(
-			translator,
-			method,
-			this,
+			this@L2_JUMP_IF_ALREADY_REIFIED,
 			Opcodes.IFNE,
 			ifAlreadyReified,
 			ifNotAlreadyReified)

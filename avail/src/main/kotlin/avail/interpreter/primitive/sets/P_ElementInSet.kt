@@ -88,7 +88,7 @@ object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (value, set) = arguments
-		val setSource = set.definitionSkippingMoves()
+		val setSource = set.definitionSkippingMoves(currentManifest)
 		val allSources = when
 		{
 			setSource is L2_CREATE_SET -> setSource.values.elements

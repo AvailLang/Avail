@@ -41,14 +41,13 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readInt
+import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.sameSynonymCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -69,8 +68,9 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 	{
 		super.instructionWasAdded(manifest)
 		// Merge the source and destination only along the ifEqual branch.
-		ifEqual.manifest().mergeExistingSemanticValues(
-			first.semanticValue(), second.semanticValue())
+		ifEqual.manifest().agglomerateSynonym(
+			setOf(first.semanticValue(), second.semanticValue()),
+			first.restriction().intersection(second.restriction()))
 	}
 
 	override fun StringBuilder.appendToWithWarnings(
@@ -125,26 +125,26 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		// The values are definitely ints, even if they're not necessarily both
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
-		val int1Reg = readInt(first.semanticValue().unboxedInt, unreachable) {
-			+this@L2_JUMP_IF_OBJECTS_EQUAL
-			return
-		}
-		val int2Reg = readInt(second.semanticValue().unboxedInt, unreachable) {
+		val (int1Read, int2Read) = readTwoInts(
+			first.semanticValue().unboxedInt,
+			second.semanticValue().unboxedInt,
+			unreachable)
+		{
 			+this@L2_JUMP_IF_OBJECTS_EQUAL
 			return
 		}
 		// Note that we *must not* reuse the manifests in the translated edges
 		// ifTrue and ifFalse, since they might not include information about
-		// registers freshly generated for int1Reg and int2Reg, which might have
-		// had to be constructed from boxed forms.  In particular, there was a
-		// case where a boxed value was unboxed (unconditionally), but removed
-		// as dead code in the same pass that translated a downstream occurrence
-		// of L2_JUMP_IF_OBJECT_EQUAL, which could be translated to an
-		// L2_JUMP_IF_COMPARE_INT by the compareAndBranchInt() below.
+		// registers freshly generated for int1Read and int2Read, which might
+		// have had to be constructed from boxed forms.  In particular, there
+		// was a case where a boxed value was unboxed (unconditionally), but
+		// removed as dead code in the same pass that translated a downstream
+		// occurrence of L2_JUMP_IF_OBJECT_EQUAL, which could be translated to
+		// an L2_JUMP_IF_COMPARE_INT by the compareAndBranchInt() below.
 		compareAndBranchInt(
 			NumericComparator.Equal,
-			int1Reg,
-			int2Reg,
+			int1Read,
+			int2Read,
 			L2PcOperand(ifEqual.targetBlock(), ifEqual.isBackward),
 			L2PcOperand(ifNotEqual.targetBlock(), ifNotEqual.isBackward))
 		assert(!unreachable.currentlyReachable())
@@ -167,16 +167,17 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (first.equals(second)) goto ifEqual;
 		// :: else goto notEqual;
-		translator.load(method, first)
-		translator.load(method, second)
-		A_BasicObject.equalsMethod.generateCall(method)
+		load(first)
+		load(second)
+		generateCall(A_BasicObject.equalsMethod)
 		emitBranch(
-			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
+			this@L2_JUMP_IF_OBJECTS_EQUAL,
+			Opcodes.IFNE,
+			ifEqual,
+			ifNotEqual)
 	}
 }

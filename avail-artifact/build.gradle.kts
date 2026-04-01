@@ -3,13 +3,14 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
 
 plugins {
-	kotlin("jvm") version "2.2.20"
+	kotlin("jvm") version "2.3.10"
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "2.0.0"
+	id("org.jetbrains.dokka") version "2.1.0"
 }
 
 group = "org.availlang"
@@ -20,9 +21,9 @@ repositories {
 	mavenCentral()
 }
 
-val targetJvm = JvmTarget.JVM_23
+val targetJvm = JvmTarget.JVM_25
 
-val kotlinVersion = KotlinVersion.KOTLIN_2_2
+val kotlinVersion = KotlinVersion.KOTLIN_2_3
 
 java {
 	toolchain {
@@ -78,16 +79,16 @@ tasks {
 	withType<KotlinCompile> {
 		compilerOptions {
 			jvmTarget = targetJvm
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+			freeCompilerArgs = listOf()
 			languageVersion = kotlinVersion
 		}
 	}
 
+	// Access JavaToolchainService at project level for configuration cache compatibility
+	val javaToolchains = extensions.getByType(JavaToolchainService::class)
 	withType<Test> {
-		val toolChains =
-			project.extensions.getByType(JavaToolchainService::class)
 		javaLauncher =
-			toolChains.launcherFor {
+			javaToolchains.launcherFor {
 				languageVersion = JavaLanguageVersion.of(targetJvm.target)
 			}
 		testLogging {
@@ -99,7 +100,7 @@ tasks {
 		}
 	}
 
-	val sourceJar by creating(Jar::class) {
+	val sourceJar by registering(Jar::class) {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
@@ -126,7 +127,7 @@ tasks {
 		}
 	}
 
-	val javadocJar by creating(Jar::class)
+	val javadocJar by registering(Jar::class)
 	{
 		// Use Dokka 2 task name for generating the html publication
 		dependsOn("dokkaGeneratePublicationHtml")
@@ -135,25 +136,26 @@ tasks {
 		archiveClassifier.set("javadoc")
 	}
 
-	jar {
-		manifest.attributes["Implementation-Version"] =
-			project.version
-		doFirst {
-			delete(fileTree("${layout.buildDirectory}/libs").matching {
-				include("**/*.jar")
-				exclude("**/*-all.jar")
-			})
-		}
-	}
-
-//    artifacts {
-//        add("archives", sourceJar)
-//    }
 	publish {
 		checkCredentials()
 		dependsOn(build)
 		dependsOn(sourceJar)
 		dependsOn(javadocJar)
+	}
+}
+
+// Configure jar task outside tasks {} block for configuration cache compatibility
+tasks.named<Jar>("jar") {
+	manifest.attributes["Implementation-Version"] = version.toString()
+	// Capture path as String at configuration time for configuration cache compatibility
+	val libsDirPath = layout.buildDirectory.dir("libs").get().asFile.absolutePath
+	doFirst {
+		// Use Java file operations to avoid project access at execution time
+		File(libsDirPath).listFiles()?.forEach { file ->
+			if (file.isFile && file.name.endsWith(".jar") && !file.name.endsWith("-all.jar")) {
+				file.delete()
+			}
+		}
 	}
 }
 
@@ -188,7 +190,7 @@ publishing {
 
 		create<MavenPublication>("avail-artifact") {
 			pom {
-				groupId = project.group.toString()
+				groupId = group.toString()
 				name.set("Avail Artifact")
 				packaging = "jar"
 				description.set(

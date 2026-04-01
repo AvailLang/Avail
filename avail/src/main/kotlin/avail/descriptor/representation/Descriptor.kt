@@ -2531,7 +2531,7 @@ protected constructor (
 		self: AvailObject,
 		field: A_Atom,
 		value: A_BasicObject,
-		canDestroy: Boolean): A_BasicObject = unsupported
+		canDestroy: Boolean): AvailObject = unsupported
 
 	override fun o_FieldTypeAt (
 		self: AvailObject,

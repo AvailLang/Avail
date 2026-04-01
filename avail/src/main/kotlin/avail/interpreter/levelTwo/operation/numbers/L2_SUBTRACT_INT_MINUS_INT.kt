@@ -51,7 +51,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -133,19 +132,17 @@ class L2_SUBTRACT_INT_MINUS_INT(
 		+this@L2_SUBTRACT_INT_MINUS_INT
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: longDifference = (long) minuend - (long) subtrahend;
-		translator.load(method, minuend)
+		load(minuend)
 		method.visitInsn(Opcodes.I2L)
-		translator.load(method, subtrahend)
+		load(subtrahend)
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LSUB)
 		val longDifferenceStart = Label()
 		val longDifferenceEnd = Label()
-		val longDifferenceLocal = translator.nextLocal(Type.LONG_TYPE)
+		val longDifferenceLocal = nextLocal(Type.LONG_TYPE)
 		method.visitLocalVariable(
 			"longDifference",
 			Type.LONG_TYPE.descriptor,
@@ -161,16 +158,16 @@ class L2_SUBTRACT_INT_MINUS_INT(
 		method.visitInsn(Opcodes.I2L)
 		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
 		method.visitInsn(Opcodes.LCMP)
-		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
+		jumpIf(Opcodes.IFNE, outOfRange)
 		// :: else {
 		// ::    sum = (int)longDifference;
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
 		method.visitInsn(Opcodes.L2I)
-		translator.store(method, difference.register())
-		translator.jump(method, inRange)
+		store(difference.register())
+		jump(inRange)
 		method.visitLabel(longDifferenceEnd)
-		translator.endLocal(longDifferenceLocal, Type.LONG_TYPE)
+		endLocal(longDifferenceLocal, Type.LONG_TYPE)
 	}
 }

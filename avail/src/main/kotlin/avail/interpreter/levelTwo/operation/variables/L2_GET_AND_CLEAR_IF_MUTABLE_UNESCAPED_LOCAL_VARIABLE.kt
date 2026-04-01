@@ -1,5 +1,5 @@
 /*
- * L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE.kt
+ * L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE.kt
  * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -49,13 +49,15 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.utility.notNullAnd
-import org.objectweb.asm.MethodVisitor
 
 /**
- * Extract the value of a [variable] into [extractedValue], clearing the
- * variable, then jumping to [ifReadSucceeded]. If the variable is unassigned,
- * then branch to [ifReadFailed] instead.  Also transfer [variable] to
- * [variableOut] unconditionally.
+ * Extract the value of a [variable] into [extractedValue].  If the variable is
+ * mutable, clear it, without forcing the extracted value to be immutable.  If
+ * the variable is immutable or shared, do not clear the variable; note that the
+ * extracted value will already be immutable.  If the variable had a (non-nil)
+ * value, jump to [ifReadSucceeded].  If the variable was unassigned, branch to
+ * [ifReadFailed] instead.  Also transfer [variable] to [variableOut]
+ * unconditionally.
  *
  * This instruction is a marker that transforms arriving postponed writes and
  * creations during the [L2Optimizer.postponeConditionallyUsedValues]
@@ -66,7 +68,7 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
+class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 	var frame: L2ArbitraryConstantOperand<Frame>,
 	var variable: L2ReadBoxedOperand,
 	var variableOut: L2WriteBoxedOperand,
@@ -81,7 +83,7 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
-		append(" Virtual get clearing ↓")
+		append(" Virtual get clearing if mutable ↓")
 		append(variable.registerString())
 		append(" → ")
 		append(extractedValue.registerString())
@@ -110,7 +112,8 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			basicRegenerateForPostponement()
 			return
 		}
-		val postponed = currentManifest.postponedInstruction(semanticVariable)!!
+		val postponed =
+			currentManifest.postponedInstructionFor(semanticVariable)!!
 		val originOfValue: L2ReadBoxedOperand = when (postponed)
 		{
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite
@@ -129,11 +132,13 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			{
 				// The variable is definitely assigned.
 				currentManifest.recordPostponedInstruction(
+					variableOut.pickSemanticValue(),
 					L2_MOVE_BOXED(variable, variableOut))
 				// Make sure to strengthen the restriction on the destination of
 				// the move, since the restriction on the origin valueOfValue
 				// can be far more precise than the variable type.
 				currentManifest.recordPostponedInstruction(
+					extractedValue.pickSemanticValue(),
 					L2_MOVE_BOXED(
 						originOfValue,
 						L2WriteBoxedOperand(
@@ -147,6 +152,7 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 			{
 				// The variable is definitely unassigned.
 				currentManifest.recordPostponedInstruction(
+					variableOut.pickSemanticValue(),
 					L2_MOVE_BOXED(variable, variableOut))
 				jumpTo(ifReadFailed.targetBlock())
 				return
@@ -164,22 +170,20 @@ class L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE(
 		else -> null
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: variableOut = variable;
 		if (variableOut.finalIndex() != variable.finalIndex())
 		{
-			translator.load(method, variable)
-			translator.store(method, variableOut.register())
+			load(variable)
+			store(variableOut.register())
 		}
-		GetClearMode.AlwaysClear.translateJvmVariableRead(
-			method,
-			translator,
-			variable,
-			extractedValue,
-			ifReadSucceeded = ifReadSucceeded,
-			ifReadFailed = ifReadFailed)
+		GetClearMode.ClearIfMutable.run {
+			translateJvmVariableRead(
+				variable,
+				extractedValue,
+				ifReadSucceeded = ifReadSucceeded,
+				ifReadFailed = ifReadFailed)
+		}
 	}
 }

@@ -42,8 +42,8 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
@@ -139,18 +139,18 @@ constructor(
 	): L2Instruction
 	{
 		edges.forEach { edge -> edge.setManifestToCloneOf(manifest) }
-		populateEdgeManifests(readValue, edges)
+		populateEdgeManifests(readValue, edges, manifest)
 		val possibleEdges = edges.filterNot { edge ->
 			edge.manifest().hasImpossibleRestriction
 				|| edge.manifest().restrictionFor(readValue.semanticValue())
-				.intersection(readValue.restriction())
-				.isImpossible
+					.intersection(readValue.restriction())
+					.isImpossible
 		}.toSet()
 
 		when
 		{
 			// Shouldn't happen, but play nice.
-			possibleEdges.size == 0 -> return L2_UNREACHABLE_CODE()
+			possibleEdges.size == 0 -> return L2_IMPOSSIBLE_CODE()
 			possibleEdges.size == 1 -> return L2_JUMP(possibleEdges.single())
 			edges.size == 2 -> return L2_JUMP_IF_COMPARE_INT(
 				numericComparator = L2ArbitraryConstantOperand(GreaterOrEqual),
@@ -255,7 +255,8 @@ constructor(
 	 */
 	abstract fun populateEdgeManifests(
 		readInt: L2ReadIntOperand,
-		edges: List<L2PcOperand>)
+		edges: List<L2PcOperand>,
+		manifest: L2ValueManifest)
 
 	fun originalValueSource(
 		readInt: L2ReadIntOperand

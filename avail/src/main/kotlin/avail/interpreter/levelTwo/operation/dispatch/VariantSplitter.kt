@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestricti
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2ValueManifest
 
 /**
  * Used for splitting control flow based on some object or object type's
@@ -93,7 +94,7 @@ class VariantSplitter(
 		edges: List<L2PcOperand>
 	): List<L2SplitCondition?> = buildList {
 		addAll(super.interestingConditions(read, edges))
-		val sourceInstructionOfInt = read.definitionSkippingMoves()
+		val sourceInstructionOfInt = read.definitionSkippingMoves(null)
 		val intVariantRegister = read.register()
 		edgeVariants.filterNotNull().forEach { variant ->
 			// Split if this variant id is a match upstream.
@@ -190,11 +191,14 @@ class VariantSplitter(
 	}
 
 	/**
-	 * Adjust the original value that the tag was extracted from.
+	 * Adjust the original value that the tag was extracted from.  The provided
+	 * [manifest] is the manifest that the edges' manifests were just cloned
+	 * from.
 	 */
 	override fun populateEdgeManifests(
 		readInt: L2ReadIntOperand,
-		edges: List<L2PcOperand>)
+		edges: List<L2PcOperand>,
+		manifest: L2ValueManifest)
 	{
 		val intValue = readInt.semanticValue()
 		(edges zip edgeVariants).forEachIndexed { i, (edge, _) ->
@@ -206,7 +210,7 @@ class VariantSplitter(
 				intersectionWithType(inclusive(low, high))
 			}
 		}
-		val sourceInstruction = readInt.definitionSkippingMoves()
+		val sourceInstruction = readInt.definitionSkippingMoves(manifest)
 		when (sourceInstruction)
 		{
 			is L2_EXTRACT_OBJECT_VARIANT_ID ->
@@ -236,8 +240,8 @@ class VariantSplitter(
 				}
 			}
 		}
-		// The semantic value for the int tag and the semantic value for the
-		// value that's the source of that tag are already automatically updated
-		// in lockstep by the manifest, so there's nothing more to do here.
+		// The manifest already automatically updates the semantic value for the
+		// int tag and the semantic value for the source of that tag in
+		// lockstep, so there's nothing more to do here.
 	}
 }

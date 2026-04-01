@@ -3897,7 +3897,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		field: A_Atom,
 		value: A_BasicObject,
-		canDestroy: Boolean): A_BasicObject
+		canDestroy: Boolean): AvailObject
 
 	abstract fun o_FieldTypeAt (self: AvailObject, field: A_Atom): A_Type
 

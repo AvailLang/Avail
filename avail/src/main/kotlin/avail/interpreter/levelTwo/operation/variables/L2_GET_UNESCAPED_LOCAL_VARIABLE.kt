@@ -43,13 +43,13 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.utility.notNullAnd
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the value of a [variable] into [extractedValue], jumping to
@@ -107,13 +107,14 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 			basicRegenerateForPostponement()
 			return
 		}
-		val postponed = currentManifest.postponedInstruction(semanticVariable)!!
-		val originValue: L2ReadBoxedOperand = when (postponed)
+		val postponed =
+			currentManifest.postponedInstructionFor(semanticVariable)!!
+		val originValue = when (postponed)
 		{
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite
 			is L2_CREATE_VARIABLE -> postponed.initialValueOrNil
 			is L2_GET_UNESCAPED_LOCAL_VARIABLE ->
-				currentManifest.readBoxed(
+				currentManifest.read(
 					postponed.extractedValue.pickSemanticValue())
 			else ->
 			{
@@ -122,8 +123,10 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 			}
 		}
 		// The move from variable to variableOut is unconditional.
-		currentManifest.removePostponedInstructionFor(variableOut)
+		currentManifest.removePostponedInstructionFor(
+			variableOut.pickSemanticValue())
 		currentManifest.recordPostponedInstruction(
+			variableOut.pickSemanticValue(),
 			L2_MOVE_BOXED(variable, variableOut))
 		val originRestriction = currentManifest.restrictionFor(originValue)
 		when
@@ -132,7 +135,8 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 			{
 				// The variable is definitely assigned.
 				currentManifest.recordPostponedInstruction(
-					L2_MOVE_BOXED(originValue, extractedValue))
+					extractedValue.pickSemanticValue(),
+					BOXED_KIND.move(originValue, extractedValue))
 				jumpTo(ifReadSucceeded.targetBlock())
 				return
 			}
@@ -155,22 +159,20 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 		else -> null
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: variableOut = variable;
 		if (variableOut.finalIndex() != variable.finalIndex())
 		{
-			translator.load(method, variable)
-			translator.store(method, variableOut.register())
+			load(variable)
+			store(variableOut.register())
 		}
-		GetClearMode.NeverClear.translateJvmVariableRead(
-			method,
-			translator,
-			variable,
-			extractedValue,
-			ifReadSucceeded = ifReadSucceeded,
-			ifReadFailed = ifReadFailed)
+		GetClearMode.NeverClear.run {
+			translateJvmVariableRead(
+				variable,
+				extractedValue,
+				ifReadSucceeded = ifReadSucceeded,
+				ifReadFailed = ifReadFailed)
+		}
 	}
 }

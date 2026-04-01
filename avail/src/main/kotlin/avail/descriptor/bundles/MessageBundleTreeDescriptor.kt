@@ -707,7 +707,7 @@ class MessageBundleTreeDescriptor private constructor(
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress,
 		treesToVisit: Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-	) = lock.safeWrite {
+	): Unit = lock.safeWrite {
 		val plan = planInProgress.parsingPlan
 		if (unclassified.hasKey(plan.bundle))
 		{

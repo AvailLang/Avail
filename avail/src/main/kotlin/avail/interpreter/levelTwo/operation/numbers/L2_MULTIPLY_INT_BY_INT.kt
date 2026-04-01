@@ -67,7 +67,6 @@ import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.utility.mapToSet
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -155,7 +154,14 @@ class L2_MULTIPLY_INT_BY_INT(
 				}
 			for (div in divisions)
 			{
-				val (numerator, denominator) = div.argumentSemanticValues
+				val (numeratorOriginal, denominatorOriginal) =
+					div.argumentSemanticValues
+				val numerator = currentManifest
+					.equivalentSemanticValue(numeratorOriginal)
+					?: continue
+				val denominator = currentManifest
+					.equivalentSemanticValue(denominatorOriginal)
+					?: continue
 				val numeratorType =
 					currentManifest.restrictionFor(numerator).type
 				val denominatorType =
@@ -205,6 +211,7 @@ class L2_MULTIPLY_INT_BY_INT(
 					+L2_MOVE_CONSTANT_INT(
 						L2IntImmediateOperand(range.upperBound.extractInt),
 						product)
+					jumpTo(inRange.targetBlock())
 				}
 				else
 				{
@@ -214,8 +221,8 @@ class L2_MULTIPLY_INT_BY_INT(
 						boxedWrite(
 							product.semanticValues().mapToSet { it.boxed },
 							boxedRestrictionForType(range)))
+					jumpTo(outOfRange.targetBlock())
 				}
-				jumpTo(inRange.targetBlock())
 			}
 			range.isSubtypeOf(i32) ->
 			{
@@ -242,19 +249,17 @@ class L2_MULTIPLY_INT_BY_INT(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: longProduct = (long) multiplicand * (long) multiplier;
-		translator.load(method, multiplicand)
+		load(multiplicand)
 		method.visitInsn(Opcodes.I2L)
-		translator.load(method, multiplier)
+		load(multiplier)
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LMUL)
 		val longProductStart = Label()
 		val longProductEnd = Label()
-		val longProductLocal = translator.nextLocal(Type.LONG_TYPE)
+		val longProductLocal = nextLocal(Type.LONG_TYPE)
 		method.visitLocalVariable(
 			"longProduct",
 			Type.LONG_TYPE.descriptor,
@@ -270,16 +275,16 @@ class L2_MULTIPLY_INT_BY_INT(
 		method.visitInsn(Opcodes.I2L)
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
 		method.visitInsn(Opcodes.LCMP)
-		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
+		jumpIf(Opcodes.IFNE, outOfRange)
 		// :: else {
 		// ::    product = (int)longProduct;
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
 		method.visitInsn(Opcodes.L2I)
-		translator.store(method, product.register())
-		translator.jump(method, inRange)
+		store(product.register())
+		jump(inRange)
 		method.visitLabel(longProductEnd)
-		translator.endLocal(longProductLocal, Type.LONG_TYPE)
+		endLocal(longProductLocal, Type.LONG_TYPE)
 	}
 }

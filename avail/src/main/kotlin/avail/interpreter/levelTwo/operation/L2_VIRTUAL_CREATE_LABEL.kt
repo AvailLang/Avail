@@ -61,7 +61,6 @@ import avail.optimizer.L2GeneratorInterface.SpecialBlock
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * This is a placeholder instruction, which is replaced if still live after data
@@ -222,7 +221,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 				L2IntImmediateOperand(Int.MAX_VALUE),
 				L2ReadBoxedVectorOperand(emptyList()),
 				dummyContinuation,
-				currentManifest.readInt(tempOffset.pickSemanticValue()),
+				readIntNoFail(tempOffset.pickSemanticValue()),
 				readBoxed(tempRegisterDump),
 				L2CommentOperand("Dummy reification continuation."))
 			+L2_RETURN_FROM_REIFICATION_HANDLER(readBoxed(dummyContinuation))
@@ -289,9 +288,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 			L2CommentOperand("Create label."))
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		throw UnsupportedOperationException(
 			"${javaClass.simpleName} should " +

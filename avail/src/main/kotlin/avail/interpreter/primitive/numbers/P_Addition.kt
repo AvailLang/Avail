@@ -79,7 +79,7 @@ import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readInt
+import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt
@@ -300,20 +300,17 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val intWrite = intWrite(
 			result.semanticValues().map(::L2SemanticUnboxedInt).toSet(),
 			resultRestriction.forUnboxedInt())
-		+L2_BIT_LOGIC_OP(
-			Add,
-			readInt(
-				arg1.semanticValue().unboxedInt,
-				unreachable
-			) { return },
-			readInt(
-				arg2.semanticValue().unboxedInt,
-				unreachable
-			) { return },
-			intWrite)
+		val (int1, int2) = readTwoInts(
+			arg1.semanticValue().unboxedInt,
+			arg2.semanticValue().unboxedInt,
+			unreachable)
+		{
+			return
+		}
+		+L2_BIT_LOGIC_OP(Add, int1, int2, intWrite)
 		// Unbox it, in case something needs it unboxed downstream.
 		+L2_BOX_INT(
-			manifest.readInt(intWrite.pickSemanticValue()),
+			readIntNoFail(intWrite.pickSemanticValue()),
 			result)
 		assert(!unreachable.currentlyReachable())
 	}

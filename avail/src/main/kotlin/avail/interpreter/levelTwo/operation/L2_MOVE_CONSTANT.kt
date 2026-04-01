@@ -55,8 +55,8 @@ import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.RegisterKind
-import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -66,7 +66,6 @@ import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.increaseIndentation
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Move a constant [AvailObject] into a register.  There are subclasses for the
@@ -109,14 +108,10 @@ protected constructor(
 	 * Emit JVM code that causes the constant value of the appropriate type to
 	 * be pushed.
 	 *
-	 * @param translator
+	 * @receiver
 	 *   The [JVMTranslator] on which to emit the code.
-	 * @param method
-	 *   The [MethodVisitor] that indicates which method is being written.
 	 */
-	abstract fun pushConstant(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	abstract fun JVMTranslator.pushConstant()
 
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -155,6 +150,7 @@ protected constructor(
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
+		append(' ')
 		destination().run {
 			appendWithWarningsTo(0, ignoreMisconnections, warningStyleChange)
 		}
@@ -164,13 +160,11 @@ protected constructor(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = constant;
-		pushConstant(translator, method)
-		translator.store(method, destination().register())
+		pushConstant()
+		store(destination().register())
 	}
 }
 
@@ -188,10 +182,8 @@ constructor(
 
 	override fun getConstantSemanticValue() = constant(source.constant)
 
-	override fun pushConstant(
-		translator: JVMTranslator,
-		method: MethodVisitor
-	) = translator.loadLiteralObject(method, constant().constant)
+	override fun JVMTranslator.pushConstant() =
+		loadLiteralObject(constant().constant)
 
 	override fun L2GeneratorInterface.extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
@@ -204,19 +196,13 @@ constructor(
 		return boxedConstant(constantFunction.outerVarAt(outerIndex))
 	}
 
-	override fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	override fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator)
-	{
-		// Extract the element from the constant right now.
-		val tupleElement = constant().constant.tupleAt(index)
-		generator.moveBoxedRegister(
-			generator.boxedConstant(tupleElement).semanticValue(),
-			destinationSemanticValues)
-	}
-
+		destinationSemanticValues: Set<L2SemanticBoxedValue>
+	): Unit = moveBoxedRegister(
+		boxedConstant(constant().constant.tupleAt(index)).semanticValue(),
+		destinationSemanticValues)
 
 	override fun propagateMutability(
 		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
@@ -226,7 +212,7 @@ constructor(
 	}
 
 	/** The constant must be a function at this point. */
-	override val constantCode: A_RawFunction get() = source.constant.code()
+	override fun getConstantCode(manifest: L2ValueManifest): A_RawFunction = source.constant.code()
 }
 
 class L2_MOVE_CONSTANT_INT
@@ -244,10 +230,8 @@ constructor(
 	override fun getConstantSemanticValue() =
 		constant(source.value).unboxedInt
 
-	override fun pushConstant(
-		translator: JVMTranslator,
-		method: MethodVisitor
-	) = translator.intConstant(method, constant().value)
+	override fun JVMTranslator.pushConstant() =
+		intConstant(constant().value)
 }
 
 class L2_MOVE_CONSTANT_FLOAT
@@ -265,8 +249,6 @@ constructor(
 	override fun getConstantSemanticValue(): L2SemanticUnboxedFloat =
 		constant(fromDouble(source.value)).unboxedFloat
 
-	override fun pushConstant(
-		translator: JVMTranslator,
-		method: MethodVisitor
-	) = translator.doubleConstant(method, constant().value)
+	override fun JVMTranslator.pushConstant() =
+		doubleConstant(constant().value)
 }

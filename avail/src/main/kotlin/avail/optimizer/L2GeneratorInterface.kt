@@ -51,15 +51,14 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
@@ -74,14 +73,16 @@ import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.structures.EnumMap
 
 /**
  * The interface for objects that can act as the target of L2 code generation.
  */
-interface L2GeneratorInterface
+interface L2GeneratorInterface : L2Visualizable
 {
 	/**
 	 * The amount of [effort][OptimizationLevel] to apply to the current
@@ -190,9 +191,57 @@ interface L2GeneratorInterface
 	 * A convenience operation.  When an [L2GeneratorInterface] is in scope as a
 	 * receiver, the unary "+" will add a provided instruction.
 	 */
-	operator fun L2Instruction.unaryPlus() = addInstruction(this)
+	operator fun L2Instruction.unaryPlus()
+	{
+		assert(this !is L2_PHI<*>)
+		if (!canBePostponed || mode != BySemanticValue)
+		{
+			addInstruction(this)
+			return
+		}
+		val originalWrite = writeOperands.single()
+		assert(originalWrite.semanticValues().isNotEmpty())
+		if (this is L2_MOVE<*>)
+		{
+			currentManifest.dynamicAgglomerateSynonym(
+				destination.semanticValues() + source.semanticValue(),
+				destination.restriction())
+			currentManifest.restrictionFor(source).constantOrNull?.let { c ->
+				val semanticConstant = source.kind.createSemanticConstant(c)
+				if (semanticConstant !in
+					currentManifest
+						.semanticValueToSynonym(source.semanticValue())
+						.semanticValues())
+				{
+					// The restriction is now constant, but there isn't a
+					// semantic constant in the synonym.  Add it.
+					currentManifest.dynamicAgglomerateSynonym(
+						setOf(source.semanticValue(), semanticConstant),
+						semanticConstant.defaultRestriction)
+				}
+			}
+			val existingPostponed = currentManifest.postponedInstructionFor(
+				destination.pickSemanticValue())
+			// If there's already a postponed instruction, we're done, because
+			// it will populate the whole synonym when needed.
+			if (existingPostponed != null) return
+			// Fall through to add a move that ensures the new destinations will
+			// get populated.
+		}
+		else
+		{
+			currentManifest.agglomerateSynonym(
+				originalWrite.semanticValues(),
+				originalWrite.restriction())
+		}
+		currentManifest.recordPostponedInstruction(
+			originalWrite.pickSemanticValue(),
+			clone().apply {
+				writeOperands[0].retroactivelySetSemanticValues(emptySet())
+			})
+	}
 
-	/** Add an instruction that's not supposed to be reachable at runtime. */
+	/** Add an instruction that should not be reachable at runtime. */
 	fun addUnreachableCode()
 
 	/**
@@ -288,7 +337,6 @@ interface L2GeneratorInterface
 		return readBoxed(functionWrite)
 	}
 
-
 	/**
 	 * Cause a tuple to be constructed from the given [L2ReadBoxedOperand]s.
 	 *
@@ -336,14 +384,24 @@ interface L2GeneratorInterface
 	): L2WriteIntOperand
 
 	/**
+	 * An instruction is being forced, and this is one of its reads.  Ensure any
+	 * postponed instructions needed to populate it (recursively) are also
+	 * forced.
+	 *
+	 * @param read
+	 *   The [L2ReadOperand] whose [L2SemanticValue] needs to be populaated by
+	 *   forcing a postponed instruction.
+	 */
+	fun <K : RegisterKind<K>> populateForRead(read: L2ReadOperand<K>)
+
+	/**
 	 * Emit an instruction to jump to the specified [L2BasicBlock].
 	 *
 	 * @param targetBlock
 	 *   The target [L2BasicBlock].
 	 * @param optionalName
 	 *   An optional name to display for the edge for presenting in graphs, if
-	 *   the branching operation's name for that edge isn't sufficiently
-	 *   informative.
+	 *   the branching operation's name for that edge isn't informative.
 	 */
 	fun jumpTo(
 		targetBlock: L2BasicBlock,
@@ -387,6 +445,21 @@ interface L2GeneratorInterface
 	fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 
 	/**
+	 * Populate the [L2SemanticValue] if it isn't already.  Handle it already
+	 * being populated, being a postponed value in a synonym that has at least
+	 * one value with a definition, being a constant, and being output from a
+	 * postponed instruction.
+	 *
+	 * This method *must* populate the semantic value before returning.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to ensure is populated.
+	 */
+	fun <K: RegisterKind<K>> ensureDefinedOrEmitMove(
+		semanticValue: L2SemanticValue<K>
+	): Unit
+
+	/**
 	 * Answer an [L2ReadBoxedOperand] for the given [L2SemanticValue],
 	 * generating code to transform it as necessary.
 	 *
@@ -418,9 +491,9 @@ interface L2GeneratorInterface
 	 * @param semanticUnboxed
 	 *   The [L2SemanticUnboxedInt] to read as an unboxed int.
 	 * @param onFailure
-	 *   Where to jump in the event that an [L2_JUMP_IF_UNBOX_INT] fails. The
-	 *   manifest at this location will not contain bindings for the unboxed
-	 *   `int` (since unboxing was not possible).
+	 *   Where to jump in the event that a dynamic type test against [i32]
+	 *   fails. The manifest at this location will not contain bindings for
+	 *   the unboxed `int` (since unboxing was not possible).
 	 * @return
 	 *   The unboxed [L2ReadIntOperand], with this generator set to the success
 	 *   path if possible, otherwise answer `null` with no current block.
@@ -514,6 +587,20 @@ interface L2GeneratorInterface
 	): L2WriteBoxedOperand
 
 	/**
+	 * Return an [L2ReadFloatOperand] for the given [L2SemanticUnboxedFloat].
+	 * The [TypeRestriction] *must* have been proven by the VM.  If the semantic
+	 * value only has a boxed form, generate code to unbox it.
+	 *
+	 * @param semanticUnboxed
+	 *   The [L2SemanticUnboxedFloat] to read as an unboxed double.
+	 * @return
+	 *   The unboxed [L2ReadFloatOperand].
+	 */
+	fun readFloatNoFail(
+		semanticUnboxed: L2SemanticValue<FLOAT_KIND>
+	): L2ReadFloatOperand
+
+	/**
 	 * Attempt to read the given [L2SemanticValue], answering a suitable
 	 * [L2ReadOperand] for with the same [RegisterKind].  If the requested
 	 * [semanticValue] is not present in the [currentManifest], but an
@@ -532,12 +619,20 @@ interface L2GeneratorInterface
 	): L2ReadOperand<K>?
 
 	/**
+	 * Answer the current [L2BasicBlock] being generated, or `null` if none.
+	 *
+	 * @return
+	 *   The current [L2BasicBlock] or `null`.
+	 */
+	fun currentBlockOrNull(): L2BasicBlock?
+
+	/**
 	 * Answer the current [L2BasicBlock] being generated.
 	 *
 	 * @return
 	 *   The current [L2BasicBlock].
 	 */
-	fun currentBlock(): L2BasicBlock
+	fun currentBlock(): L2BasicBlock = currentBlockOrNull()!!
 
 	/**
 	 * Start code regeneration for the given [L2BasicBlock].  This is not a loop
@@ -670,10 +765,10 @@ interface L2GeneratorInterface
 	 * If the value of the boolean-producing instruction is not used, it will
 	 * eventually be removed as dead code.
 	 *
-	 * @param registerToTest
-	 *   The register whose content should be compared.
+	 * @param readToTest
+	 *   The [L2ReadBoxedOperand] whose content should be compared.
 	 * @param constantValue
-	 *   The constant value to compare against.
+	 *   The [A_BasicObject] to compare against.
 	 * @param passBlock
 	 *   Where to go if the register's value equals the constant.
 	 * @param failBlock
@@ -709,13 +804,13 @@ interface L2GeneratorInterface
 	 * Given a register that holds the function to invoke, answer either the
 	 * [A_RawFunction] it will be known to run, or `null`.
 	 *
-	 * @param functionToCallReg
+	 * @param functionToCallRead
 	 *   The [L2ReadBoxedOperand] containing the function to invoke.
 	 * @return
 	 *   Either `null` or the function's [A_RawFunction].
 	 */
 	fun determineRawFunction(
-		functionToCallReg: L2ReadBoxedOperand
+		functionToCallRead: L2ReadBoxedOperand
 	): A_RawFunction?
 
 	/**
@@ -814,18 +909,45 @@ interface L2GeneratorInterface
 	 * all* of the incoming edges had their values postponed by the same
 	 * instruction.
 	 *
-	 * Go back to just before the edge (safe because it's in edge-split SSA
-	 * form), and generate the postponed instruction responsible for the given
-	 * kind and semantic value.  It's safe to generate these just prior to the
-	 * last (control-flow altering) instruction of a predecessor block, because
-	 * the control flow instruction didn't produce the desired semantic value,
-	 * and new instructions won't interfere.  Update the edge's manifest during
-	 * this code generation.
+	 * Go back to just before the edge (the caller must call [splitEdge] if
+	 * necessary, to ensure it's in edge-split SSA form locally, so the new
+	 * instruction won't appear on irrelevant paths), and generate the postponed
+	 * instruction responsible for the given semantic value.  Due to edge-split
+	 * form (locally), the predecessor block always ends with an unconditional
+	 * jump, so we ensure the instruction plays its effect against that jump's
+	 * sole edge's manifest.
+	 *
+	 * Do this for each semantic value in the iterable.
 	 */
-	fun forcePostponedTranslationBeforeEdge(
+	fun forcePostponedTranslationsBeforeEdge(
 		edge: L2PcOperand,
-		semanticValue: L2SemanticValue<*>)
+		semanticValues: Iterable<L2SemanticValue<*>>)
 
+	/**
+	 * Split the given edge into two, with a new block in the middle.  Given the
+	 * edge
+	 *
+	 * ```A --e1-> C```
+	 *
+	 * between blocks A and C, the end state should be
+	 *
+	 * ```A --e2-> B --e1-> C```
+	 *
+	 * Note that the orignal edge stays connected to the final target block C,
+	 * and e2 is added between A and the new block B. e2's initial manifest is a
+	 * copy of e1's manifest.  B contains only an unconditional [L2_JUMP], whose
+	 * sole [L2PcOperand] is the edge e1.
+	 *
+	 * * Be careful to maintain predecessor order at the target block C.
+	 * * Block B is inserted into the list of blocks immediately after A.
+	 * * Block B will be in the same [Zone] as block A.
+	 * * Block B will be considered [L2BasicBlock.isCold] if C is cold.
+	 *
+	 * @param generator
+	 *   The [L2GeneratorInterface] holding the [L2ControlFlowGraph] being
+	 *   updated.
+	 */
+	fun splitEdge(edge: L2PcOperand)
 
 	/**
 	 * Force emission of any delayed writes to local variables.
@@ -834,19 +956,21 @@ interface L2GeneratorInterface
 
 	/**
 	 * Pass-through to [L2ControlFlowGraph].  This can be used in the debugger
-	 * to produce a String suitable for opening in Graphviz, even for an
-	 * incomplete code generation.
+	 * to open a view of the graph in an external program associated with the
+	 * ".dot" file type.
 	 */
-	@Suppress("Unused")
-	fun visualize(): String
+	abstract override fun visualize(
+		generator: L2Generator?,
+		focusValue: L2SemanticValue<*>?)
 
 	/**
 	 * Pass-through to [L2ControlFlowGraph].  This can be used in the debugger
-	 * to produce a String suitable for opening in Graphviz, even for an
-	 * incomplete code generation.
+	 * to open a view of the graph in an external program associated with the
+	 * ".dot" file type.
 	 */
-	@Suppress("Unused")
-	fun simplyVisualize(): String
+	abstract override fun simplyVisualize(
+		generator: L2Generator?,
+		focusValue: L2SemanticValue<*>?)
 
 	companion object
 	{
@@ -871,12 +995,12 @@ interface L2GeneratorInterface
 		 * @param semanticUnboxed
 		 *   The [L2SemanticUnboxedInt] to read as an unboxed int.
 		 * @param onFailure
-		 *   Where to jump in the event that an [L2_JUMP_IF_UNBOX_INT] fails.
-		 *   The manifest at this location will not contain bindings for the
-		 *   unboxed `int` (since unboxing was not possible).
+		 *   Where to jump in the event that a dynamic type test against [i32]
+		 *   fails. The manifest at this location will not contain bindings for
+		 *   the unboxed `int` (since unboxing was not possible).
 		 * @param ifCannotSucceed
 		 *   What to execute if the unboxing will always fail.  This is
-		 *   evaluated with no current block.
+		 *   evaluated without having affected the initial current block.
 		 * @return
 		 *   The unboxed [L2ReadIntOperand], with this generator set to the
 		 *   success path.
@@ -892,6 +1016,84 @@ interface L2GeneratorInterface
 				assert(!currentlyReachable())
 				ifCannotSucceed()
 			}
+		}
+
+		/**
+		 * Generate code to extract two boxed values into int registers.  If
+		 * there's a path where they both succeed, return the [Pair] of [L2ReadIntOperand]s,
+		 * with the generator positioned at the success path.  If there was a
+		 * way for one or the other extraction to fail, there will be a path
+		 * to the supplied onFailure [L2BasicBlock].  If one of the extractions
+		 * *cannot* succeed, control flow is merged if necessary (i.e., if this
+		 * is detected during the second extraction), and [ifCannotSucceed] is
+		 * invoked with control flow unaffected.  Since the lambda has a return
+		 * type of [Nothing], the invocation should escape in some way.
+		 *
+		 * @param semanticUnboxed1
+		 *   The first [L2SemanticUnboxedInt] to read as an unboxed int.
+		 * @param semanticUnboxed2
+		 *   The second [L2SemanticUnboxedInt] to read as an unboxed int.
+		 * @param onFailure
+		 *   Where to jump in the event that a dynamic type test against [i32]
+		 *   fails. The manifest at this location will not contain bindings for
+		 *   the unboxed `int` (since unboxing was not possible).
+		 * @param ifCannotSucceed
+		 *   What to execute if one of the unboxings will always fail.  This
+		 *   is evaluated without having affected the initial current block.
+		 * @return
+		 *   The [Pair] of unboxed [L2ReadIntOperand]s, with this generator
+		 *   set to the success path.
+		 */
+		inline fun L2GeneratorInterface.readTwoInts(
+			semanticUnboxed1: L2SemanticUnboxedInt,
+			semanticUnboxed2: L2SemanticUnboxedInt,
+			onFailure: L2BasicBlock,
+			ifCannotSucceed: ()->Nothing
+		): Pair<L2ReadIntOperand, L2ReadIntOperand>
+		{
+			if (!currentManifest.canUnboxInt(semanticUnboxed1)
+				|| !currentManifest.canUnboxInt(semanticUnboxed2))
+			{
+				ifCannotSucceed()
+			}
+			val firstInt = readInt(semanticUnboxed1, onFailure) {
+				error("First unboxing should have been possible")
+			}
+			val secondInt = readInt(semanticUnboxed2, onFailure) {
+				error("Second unboxing should have been possible")
+			}
+			return Pair(firstInt, secondInt)
+		}
+	}
+
+	/**
+	 * Using the manifest in the implied receiver, answer whether it's possible
+	 * to extract a 32-bit integer from the given unboxed semantic value.
+	 *
+	 * @receiver
+	 *   The [L2ValueManifest] to use for checking unboxing possibility.
+	 * @param semanticUnboxed
+	 *   The target [L2SemanticUnboxedInt] to check for unboxability.
+	 * @return
+	 *   Whether unboxing the given semantic value is possible.
+	 */
+	fun L2ValueManifest.canUnboxInt(
+		semanticUnboxed: L2SemanticUnboxedInt
+	): Boolean = when
+	{
+		hasSemanticValue(semanticUnboxed) ->
+			restrictionFor(semanticUnboxed).intersectsType(i32)
+		hasSemanticValue(semanticUnboxed.boxed) ->
+			restrictionFor(semanticUnboxed.boxed).intersectsType(i32)
+		else ->
+		{
+			equivalentSemanticValue(semanticUnboxed)?.let {
+				return restrictionFor(it).intersectsType(i32)
+			}
+			equivalentSemanticValue(semanticUnboxed.boxed)?.let {
+				return restrictionFor(it).intersectsType(i32)
+			}
+			return false
 		}
 	}
 }

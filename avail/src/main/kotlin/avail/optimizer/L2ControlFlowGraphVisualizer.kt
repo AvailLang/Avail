@@ -32,7 +32,6 @@
 package avail.optimizer
 
 import avail.anvil.AvailWorkbench.Companion.darkMode
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
@@ -48,7 +47,6 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
@@ -72,6 +70,7 @@ import avail.utility.dot.DotWriter.BooleanAttributeName.overlap
 import avail.utility.dot.DotWriter.BooleanAttributeName.splines
 import avail.utility.dot.DotWriter.ColorAttributeName.bgcolor
 import avail.utility.dot.DotWriter.ColorAttributeName.color
+import avail.utility.dot.DotWriter.ColorAttributeName.fillcolor
 import avail.utility.dot.DotWriter.ColorAttributeName.fontcolor
 import avail.utility.dot.DotWriter.Companion.node
 import avail.utility.dot.DotWriter.CompassPoint
@@ -80,14 +79,18 @@ import avail.utility.dot.DotWriter.GraphWriter
 import avail.utility.dot.DotWriter.JustificationAttributeName.Justification.left
 import avail.utility.dot.DotWriter.JustificationAttributeName.labeljust
 import avail.utility.dot.DotWriter.NumberAttributeName.fontsize
+import avail.utility.dot.DotWriter.NumberAttributeName.height
 import avail.utility.dot.DotWriter.NumberAttributeName.labelangle
 import avail.utility.dot.DotWriter.NumberAttributeName.labeldistance
+import avail.utility.dot.DotWriter.NumberAttributeName.margin
 import avail.utility.dot.DotWriter.NumberAttributeName.penwidth
+import avail.utility.dot.DotWriter.NumberAttributeName.width
 import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.RankDirection.TopBottom
 import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.rankdir
 import avail.utility.dot.DotWriter.StringAttributeName.arrowhead
 import avail.utility.dot.DotWriter.StringAttributeName.fontname
 import avail.utility.dot.DotWriter.StringAttributeName.headlabel
+import avail.utility.dot.DotWriter.StringAttributeName.taillabel
 import avail.utility.dot.DotWriter.StringAttributeName.id
 import avail.utility.dot.DotWriter.StringAttributeName.label
 import avail.utility.dot.DotWriter.StringAttributeName.shape
@@ -101,8 +104,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.regex.Pattern
-import kotlin.collections.set
+import kotlin.collections.sorted
 
 /**
  * An `L2ControlFlowGraphVisualizer` generates a `dot` source file that
@@ -156,8 +158,24 @@ import kotlin.collections.set
  *   Whether to include descriptions with registers.
  * @param accumulator
  *   The [accumulator][Appendable] for the generated `dot` source text.
- * @param generator
- *   The [L2Generator], if any, that is in the process of populating the graph.
+ * @param currentBlock
+ *   The [L2BasicBlock] currently under construction, if any.
+ * @param currentManifest
+ *   The [L2ValueManifest] that was current in the generator, if any.
+ * @param focusValue
+ *   The [L2SemanticValue] to highlight in the visualization, if any.  It should
+ *   trace the history of the value, each time finding instructions that write
+ *   it, and continuing back through semantic values in read operands of those
+ *   instructions.  The presented manifests are trimmed to this information, as
+ *   are the instructions and blocks, to highlight the origins of relevant
+ *   values and restrictions.
+ * @param deltaManifestOnly
+ *   When `true`, edge manifests show only synonym entries that changed since the
+ *   predecessor edges (new, changed membership, changed restriction, or changed
+ *   definitions), plus any entries that are in error.  Useful for per-pass dumps
+ *   where unchanged synonyms are noise.  The edge taillabel shows `#block!instr`
+ *   when [L2BasicBlock.blockNumber] and [L2Instruction.offset] have been
+ *   assigned (i.e., are ≥ 0), enabling cross-referencing with `.l2` output.
  */
 class L2ControlFlowGraphVisualizer constructor(
 	private val fileName: String,
@@ -168,8 +186,23 @@ class L2ControlFlowGraphVisualizer constructor(
 	private val visualizeManifest: Boolean,
 	private val visualizeRegisterDescriptions: Boolean,
 	private val accumulator: Appendable,
-	private val generator: L2Generator? = null)
+	private val currentBlock: L2BasicBlock? = null,
+	private val currentManifest: L2ValueManifest? = null,
+	private val focusValue: L2SemanticValue<*>? = null,
+	private val deltaManifestOnly: Boolean = false)
 {
+	/**
+	 * The visualization filter that controls what information is displayed.
+	 * Either [NoFilter] to show everything, or [FocusFilter] to trace a
+	 * specific semantic value.
+	 */
+	private val filter: L2ControlFlowGraphVisualizationFilter = when
+	{
+		focusValue != null ->
+			FocusFilter(focusValue, currentBlock, controlFlowGraph)
+		else -> NoFilter()
+	}
+
 	/**
 	 * The set of manifests that occur on more than one edge, which is
 	 * forbidden.
@@ -226,12 +259,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 */
 	private val basicBlockNames =
 		controlFlowGraph.basicBlockOrder.withIndex().associate {
-			(index, block) ->
-			val offset = block.offset()
-			val id = if (offset == -1) index else offset
-			val prefix = if (offset == -1) "[id: $id]" else "[pc: $id]"
-			val clean = matchUglies.matcher(block.name()).replaceAll("")
-			block to "$prefix $clean"
+			(index, block) -> block to "block_$index"
 		}
 
 	/**
@@ -241,15 +269,15 @@ class L2ControlFlowGraphVisualizer constructor(
 	private val sourcePortNamesByEdge = mutableMapOf<L2PcOperand, String>()
 
 	/**
-	 * Answer a descriptive, not necessarily unique name for the specified
-	 * [L2BasicBlock].
+	 * Answer the stable dot node identifier for the specified [L2BasicBlock].
+	 * The name has the form `block_N`, where N is the block's zero-based index
+	 * in [basicBlockOrder][L2ControlFlowGraph.basicBlockOrder], matching the
+	 * `#N` shown in the block's header cell.
 	 *
 	 * @param basicBlock
 	 *   The [L2BasicBlock].
 	 * @return
-	 *   A unique name that includes the [L2BasicBlock]'s level two
-	 *   [program&#32;counter][L2BasicBlock.offset] and its non-unique semantic
-	 *   [name][L2BasicBlock.name].
+	 *   The dot node name, or a fallback string if the block is not in the map.
 	 */
 	private fun basicBlockName(basicBlock: L2BasicBlock) =
 		basicBlockNames[basicBlock]?:"(not generated: ${basicBlock.name()})"
@@ -269,10 +297,68 @@ class L2ControlFlowGraphVisualizer constructor(
 		basicBlock: L2BasicBlock,
 		started: Boolean)
 	{
-		val isCurrent = generator.notNullAnd {
-			currentlyReachable() &&
-				currentBlock() == basicBlock && !basicBlock.hasControlFlowAtEnd
+		// Render uninteresting blocks as small numbered nodes.
+		if (!filter.isBlockInteresting(basicBlock))
+		{
+			try
+			{
+				val fillColor = when
+				{
+					!started -> adjust("#202080/303000")
+					basicBlock.isCold -> adjust(coldInstructionBackColor)
+					else -> adjust("#c1f0f6/104048")
+				}
+
+				var labelString = buildString {
+					tag(
+						"table",
+						"color" to fillColor,
+						"border" to "0",
+						"cellspacing" to "0")
+					{
+						tag("tr")
+						{
+							tag(
+								"td",
+								"align" to "center",
+								"balign" to "center",
+								"border" to "0",
+								"bgcolor" to fillColor)
+							{
+								font(face = "Arial", size = 8)
+								{
+									if (basicBlock.isCold) append("❄️")
+									append("#")
+									append(basicBlockNumbers[basicBlock] ?: "?")
+								}
+							}
+						}
+					}
+				}
+				node(basicBlockName(basicBlock)) {
+					shape("none")
+					fillcolor(fillColor)
+					margin(0)
+
+					// Correct DOT's broken minimum box size by forcing it to
+					// "fixedsize" of 0.35x0.20.  This seems correct for all
+					// single-line strings, somehow.
+					fixedsize(true)
+					width(0.35)
+					height(0.20)
+
+					label(labelString)
+				}
+			}
+			catch (e: IOException)
+			{
+				throw UncheckedIOException(e)
+			}
+			return
 		}
+
+		val isCurrent = basicBlock == currentBlock
+			&& !currentBlock.hasControlFlowAtEnd
 		val rhs = buildString {
 			tag(
 				"table",
@@ -336,7 +422,8 @@ class L2ControlFlowGraphVisualizer constructor(
 							}
 							append(escape(basicBlock.name()))
 						}
-						if (basicBlock.debugNote.isNotEmpty())
+						if (basicBlock.debugNote.isNotEmpty()
+							&& focusValue == null)
 						{
 							font(
 								face = "Arial",
@@ -394,7 +481,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			node(basicBlockName(basicBlock)) {
 				label(rhs)
 			}
-			if (isCurrent)
+			if (isCurrent && currentManifest != null)
 			{
 				val manifestText = buildString {
 					tag("table", "border" to "0", "cellspacing" to "0") {
@@ -405,16 +492,16 @@ class L2ControlFlowGraphVisualizer constructor(
 								"bgcolor" to adjust(currentBlockBackColor)
 							) {
 								manifest(
-									generator!!.currentManifest,
+									currentManifest,
 									this@basicBlock,
-									generator.currentBlock().predecessorEdges())
+									currentBlock.predecessorEdges(),
+									null)  // No edge for current manifest
 							}
 						}
 					}
 				}
 				val manifestNodeName = "(current manifest)"
 				node(manifestNodeName) {
-					style("rounded,dashed")
 					label(manifestText)
 				}
 				// Draw an edge from the current block to its manifest, which is
@@ -438,6 +525,11 @@ class L2ControlFlowGraphVisualizer constructor(
 		writer: GraphWriter,
 		basicBlock: L2BasicBlock)
 	{
+		val interesting = filter.isInstructionInteresting(instruction)
+		if (!interesting && instruction is L2_PHI<*>) return
+		if (!interesting && instruction is L2_NOP
+			&& !instruction.comment.comment.contains("retroactive")) return
+
 		tag("tr") {
 			val cellAttributes = mutableMapOf(
 				"colspan" to "2",
@@ -459,62 +551,84 @@ class L2ControlFlowGraphVisualizer constructor(
 					cellAttributes["color"] = coldInstructionGridColor
 				}
 			}
-			if (!instruction.altersControlFlow
-				|| instruction.targetEdges.size <= 1)
-			{
-				tagIf(true, "td", cellAttributes) {
-					append(writer.instruction(instruction))
-				}
-			}
-			else
-			{
-				// Add outbound connection ports in a table
-				// nested in its own row.  Have the final
-				// instruction produce the port labels.
-				var portNamesByEdge = instruction.suggestVisualPortNames()
-				assert(portNamesByEdge.size
-					== portNamesByEdge.values.toSet().size)
-				if (portNamesByEdge.isNotEmpty())
+
+			// Show just short name for uninteresting instructions
+			when {
+				!interesting ->
 				{
-					tag(
-						"td",
-						"colspan" to "2",
-						"border" to "0",
-						"cellspacing" to "0",
-						"cellpadding" to "0"
-					) {
-						tag(
-							"table",
-							"border" to "0",
-							"cellspacing" to "0"
-						) {
-							tag("tr") {
-								cellAttributes["colspan"] =
-									portNamesByEdge.size.toString()
-								tagIf(true, "td", cellAttributes) {
-									append(writer.instruction(instruction))
-								}
+					tagIf(true, "td", cellAttributes) {
+						font(
+							italic = true,
+							color = writer.adjust("#808080/a0a0a0"))
+						{
+							append(escape(instruction.name))
+							if (instruction is L2_NOP)
+							{
+								append(" ")
+								append(
+									instruction.comment.comment.truncateTo(30))
 							}
-							tag("tr") {
-								var leftmost = true
-								portNamesByEdge.forEach { edge, port ->
-									sourcePortNamesByEdge[edge] = port
-									tag(
-										"td",
-										"border" to "1",
-										"color" to gridcolor,
-										"sides" to
-											(if (leftmost) "BLR" else "BR"),
-										"port" to port
-									) {
-										font(
-											italic = true,
-											size = 10)
-										{
-											append(escape(port))
-										}
+						}
+					}
+				}
+				!instruction.altersControlFlow
+					|| instruction.targetEdges.size <= 1 ->
+				{
+					tagIf(true, "td", cellAttributes) {
+						append(writer.instruction(instruction))
+					}
+				}
+				else ->
+				{
+					// Add outbound connection ports in a table
+					// nested in its own row.  Have the final
+					// instruction produce the port labels.
+					var portNamesByEdge = instruction.suggestVisualPortNames()
+					assert(
+						portNamesByEdge.size
+							== portNamesByEdge.values.toSet().size)
+					if (portNamesByEdge.isNotEmpty())
+					{
+						tag(
+							"td",
+							"colspan" to "2",
+							"border" to "0",
+							"cellspacing" to "0",
+							"cellpadding" to "0"
+						) {
+							tag(
+								"table",
+								"border" to "0",
+								"cellspacing" to "0"
+							) {
+								tag("tr") {
+									cellAttributes["colspan"] =
+										portNamesByEdge.size.toString()
+									tagIf(true, "td", cellAttributes) {
+										append(writer.instruction(instruction))
 									}
-									leftmost = false
+								}
+								tag("tr") {
+									var leftmost = true
+									portNamesByEdge.forEach { edge, port ->
+										sourcePortNamesByEdge[edge] = port
+										tag(
+											"td",
+											"border" to "1",
+											"color" to gridcolor,
+											"sides" to
+												(if (leftmost) "BLR" else "BR"),
+											"port" to port
+										) {
+											font(
+												italic = true,
+												size = 10)
+											{
+												append(escape(port))
+											}
+										}
+										leftmost = false
+									}
 								}
 							}
 						}
@@ -557,89 +671,70 @@ class L2ControlFlowGraphVisualizer constructor(
 					if (edge in operand.edges) namedOperandType = namedType
 			}
 		}
-		val basicName = edge.optionalName ?: namedOperandType!!.name()
-		val edgeLabel = buildString {
-			tag(
-				"table",
-				"border" to "0",
-				"cellspacing" to "0"
-			) {
-				tag("tr") {
-					tag("td",
-						"balign" to "left",
-						// Spacing between the edge line and its label.
-						"cellpadding" to "5"
-					) {
-						font(bold = true) {
-							append(escape(basicName))
-							namedOperandType?.purpose?.let {
-								append(" ($it)")
-							}
-						}
-						append("<br/>")
+		val basicName = edge.optionalName
+			?: namedOperandType?.name()
+			?: "NO OPERAND TYPE FOUND"
 
-						if ((visualizeLiveness || visualizeManifest)
-							&& edge.forcedClampedEntities !== null)
-						{
-							// Show any clamped entities for this edge.  These
-							// are registers and semantic values that are
-							// declared always live along this edge, and act as
-							// the (cycle breaking) end-roots for dead code
-							// analysis.
-							font(
-								italic = true,
-								size = 20,
-								color = writer.adjust("#400000/ff0000")
-							) { append("CLAMPED:") }
-							append("<br/>")
+		// Check if we should show the manifest label for this edge
+		val showManifest = filter.shouldShowEdgeManifest(edge)
+		val edgeLabel = when
+		{
+			showManifest -> buildString {
+				tag(
+					"table",
+					"border" to "0",
+					"cellspacing" to "0"
+				) {
+					tag("tr") {
+						tag("td",
+							"balign" to "left",
+							// Spacing between the edge line and its label.
+							"cellpadding" to "5"
+						) {
 							font(bold = true) {
-								append(indentString)
-								append(escape(edge.forcedClampedEntities))
+								append(escape(basicName))
+								namedOperandType?.purpose?.let {
+									append(" ($it)")
+								}
 							}
 							append("<br/>")
-						}
-						if (visualizeLiveness)
-						{
-							if (!edge.alwaysLiveInEntities.isNullOrEmpty())
+
+							if ((visualizeLiveness || visualizeManifest)
+								&& edge.forcedClampedEntities !== null)
 							{
-								val alwaysEscaped = edge.alwaysLiveInEntities!!
-									.sorted()
-									.map(::escape)
-								val sizeEstimate =
-									alwaysEscaped.sumOf { it.length + 2 }
-								font(italic = true) {
-									append("always live-in:")
-								}
+								// Show any clamped entities for this edge.  These
+								// are registers and semantic values that are
+								// declared always live along this edge, and act as
+								// the (cycle breaking) end-roots for dead code
+								// analysis.
+								font(
+									italic = true,
+									size = 20,
+									color = writer.adjust("#400000/ff0000")
+								) { append("CLAMPED:") }
 								append("<br/>")
 								font(bold = true) {
 									append(indentString)
-									alwaysEscaped.joinTo(
-										this,
-										if (sizeEstimate > 50)
-											",<br/>" + indentString
-										else ", ")
+									append(escape(edge.forcedClampedEntities))
 								}
 								append("<br/>")
 							}
-							edge.sometimesLiveInEntities?.let { sometimes ->
-								val notAlwaysLiveInRegisters =
-									sometimes.toMutableSet()
-								notAlwaysLiveInRegisters.removeAll(
-									edge.alwaysLiveInEntities ?: emptySet())
-								if (notAlwaysLiveInRegisters.isNotEmpty())
+							if (visualizeLiveness)
+							{
+								if (!edge.alwaysLiveInEntities.isNullOrEmpty())
 								{
-									val someEscaped = notAlwaysLiveInRegisters
+									val alwaysEscaped = edge.alwaysLiveInEntities!!
 										.sorted()
 										.map(::escape)
 									val sizeEstimate =
-										someEscaped.sumOf { it.length + 2 }
+										alwaysEscaped.sumOf { it.length + 2 }
 									font(italic = true) {
-										append("sometimes live-in:")
+										append("always live-in:")
 									}
 									append("<br/>")
 									font(bold = true) {
 										append(indentString)
-										someEscaped.joinTo(
+										alwaysEscaped.joinTo(
 											this,
 											if (sizeEstimate > 50)
 												",<br/>" + indentString
@@ -647,18 +742,46 @@ class L2ControlFlowGraphVisualizer constructor(
 									}
 									append("<br/>")
 								}
+								edge.sometimesLiveInEntities?.let { sometimes ->
+									val notAlwaysLiveInRegisters =
+										sometimes.toMutableSet()
+									notAlwaysLiveInRegisters.removeAll(
+										edge.alwaysLiveInEntities ?: emptySet())
+									if (notAlwaysLiveInRegisters.isNotEmpty())
+									{
+										val someEscaped = notAlwaysLiveInRegisters
+											.sorted()
+											.map(::escape)
+										val sizeEstimate =
+											someEscaped.sumOf { it.length + 2 }
+										font(italic = true) {
+											append("sometimes live-in:")
+										}
+										append("<br/>")
+										font(bold = true) {
+											append(indentString)
+											someEscaped.joinTo(
+												this,
+												if (sizeEstimate > 50)
+													",<br/>" + indentString
+												else ", ")
+										}
+										append("<br/>")
+									}
+								}
 							}
-						}
-						val manifest = edge.manifestOrNull()
-						val predecessorEdges =
-							edge.instruction.basicBlock().predecessorEdges()
-						if (visualizeManifest && manifest != null)
-						{
-							manifest(manifest, writer, predecessorEdges)
+							val manifest = edge.manifestOrNull()
+							val predecessorEdges =
+								edge.instruction.basicBlock().predecessorEdges()
+							if (visualizeManifest && manifest != null)
+							{
+								manifest(manifest, writer, predecessorEdges, edge)
+							}
 						}
 					}
 				}
 			}
+			else -> "" // Empty label when not showing manifest
 		}
 		try
 		{
@@ -682,7 +805,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				}
 				else
 				{
-					penwidth(0.4)
+					penwidth(1)
 				}
 				if (!started)
 				{
@@ -692,7 +815,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				else if (isTargetTheUnreachableBlock)
 				{
 					color("#804040/c06060")
-					style("dotted")
+					style("dashed")
 				}
 				else if (edge.isBackward)
 				{
@@ -704,7 +827,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				}
 				else
 				{
-					when (namedOperandType!!.purpose)
+					when (namedOperandType?.purpose)
 					{
 						// Nothing. The default styling will be fine.
 						null -> Unit
@@ -723,7 +846,12 @@ class L2ControlFlowGraphVisualizer constructor(
 						}
 					}
 				}
-				label(edgeLabel)
+				// Only set label if we're showing the manifest
+				if (showManifest)
+				{
+					label(edgeLabel)
+				}
+				// Always show headlabel for input numbering, even without manifest
 				if (targetBlock.instructions().any { it is L2_PHI<*> })
 				{
 					// The target includes phi instructions, so label this
@@ -743,6 +871,25 @@ class L2ControlFlowGraphVisualizer constructor(
 							}
 						})
 				}
+				// Show the target block's coordinates as a taillabel when
+				// blockNumber and offset have been assigned, disambiguating
+				// multigraph edges sharing the same source and target blocks.
+				val targetBlockNumber = targetBlock.blockNumber
+				val targetFirstOffset =
+					targetBlock.instructions().firstOrNull()?.offset ?: -1
+				if (targetBlockNumber >= 0 && targetFirstOffset >= 0)
+				{
+					taillabel(
+						buildString
+						{
+							font(
+								size = 8,
+								color = writer.adjust("#404040/b0b0b0"))
+							{
+								append("#$targetBlockNumber!$targetFirstOffset")
+							}
+						})
+				}
 			}
 		}
 		catch (e: IOException)
@@ -753,11 +900,16 @@ class L2ControlFlowGraphVisualizer constructor(
 
 	/**
 	 * Output a description of the given manifest to the receiver.
+	 *
+	 * @param edge
+	 *   The edge this manifest is on, or `null` for currentManifest display.
+	 *   Used to filter synonyms when focus filtering is active.
 	 */
 	private fun StringBuilder.manifest(
 		manifest: L2ValueManifest,
 		writer: GraphWriter,
-		predecessorEdges: Iterable<L2PcOperand>)
+		predecessorEdges: Iterable<L2PcOperand>,
+		edge: L2PcOperand?)
 	{
 		if (manifest in duplicateManifests)
 		{
@@ -767,87 +919,36 @@ class L2ControlFlowGraphVisualizer constructor(
 				color = writer.adjust("#400000/ff0000")
 			) { append("DUPLICATE MANIFEST!!!") }
 		}
-		val synonyms = manifest.synonymsArray()
-		if (synonyms.isNotEmpty())
+		val allSynonyms = manifest.synonymsArray()
+		if (allSynonyms.isEmpty()) return
+
+		// Filter synonyms based on filter
+		val interestingSet = edge?.let { filter.interestingSynonymsFor(it) }
+		val synonymsToShow = when
 		{
-			font(italic = true) { append("manifest:") }
-			synonyms.sort()
-			for (synonym in synonyms)
-			{
-				val pick = synonym.pickSemanticValue()
-				synonym(
-					writer,
-					synonym,
-					manifest.restrictionFor(pick),
-					manifest.getAllDefinitions(pick),
-					predecessorEdges)
-			}
+			interestingSet != null ->
+				// Filter to only interesting synonyms
+				allSynonyms.intersect(interestingSet)
+			else ->
+				// Show all (NoFilter case or currentManifest)
+				allSynonyms.toList()
 		}
-		val postponements = manifest.postponedInstructions()
-		if (postponements.isNotEmpty())
+
+		if (synonymsToShow.isEmpty()) return
+
+		font(italic = true) { append("manifest:") }
+		val synonymArray = synonymsToShow.toTypedArray()
+		synonymArray.sort()
+		for (synonym in synonymArray)
 		{
-			append("<br/>")
-			font(italic = true) { append("postponements:") }
-			append("<br/>")
-		}
-		val sortedSubmap = postponements.entries.sortedBy { it.key }
-		// Group the postponements by instruction, capturing the list of
-		// semantic values that would be written.
-		val grouped = sortedSubmap.groupBy(
-			keySelector = Map.Entry<*, L2Instruction>::value,
-			valueTransform = Map.Entry<L2SemanticValue<*>, *>::key)
-		grouped.forEach { (instruction, semanticValues) ->
-			if (instruction is L2_MOVE<*>
-				&& instruction.source.constantOrNull
-					.notNullAnd(nil::equals))
-			{
-				// Skip propagations of nil, since they're noisy.
-				return@forEach
-			}
-			font(color = writer.adjust(
-				if (semanticValues[0].kind == BOXED_KIND) postponementsColor
-				else unboxedSynonymColor))
-			{
-				semanticValues.forEachIndexed { i, semanticValue ->
-					append(indentString)
-					append(semanticValue.kind.kindName)
-					append("/")
-					append(escape(semanticValue))
-					append(if (i == semanticValues.size - 1) " =" else ",")
-					append("<br/>")
-				}
-				append(indent2String)
-				val badReads = instruction.readOperands
-					.filter { it.restriction().isImpossible }
-				val badWrites = instruction.writeOperands
-					.filter { it.restriction().isImpossible }
-				if (badReads.isNotEmpty() || badWrites.isNotEmpty())
-				{
-					font(color = writer.adjust(errorTextColor))
-					{
-						val allBad = badReads + badWrites
-						append(escape("IMPOSSIBLE RESTRICTION: $allBad\n"))
-					}
-					append(indent2String)
-				}
-				val written = instruction.writeOperands.flatMapTo(
-					mutableSetOf(), L2WriteOperand<*>::semanticValues)
-				if (!semanticValues.toSet().equals(written))
-				{
-					val diff = written - semanticValues
-					font(color = writer.adjust(errorTextColor))
-					{
-						append(escape("INCONSISTENTLY ALSO WRITES: $diff\n"))
-					}
-					append(indent2String)
-				}
-				append(
-					escape(
-						increaseIndentation(
-							instruction.toString(ignoreMisconnections = true),
-							2)))
-				append("<br/>")
-			}
+			val pick = synonym.pickSemanticValue()
+			synonym(
+				writer,
+				synonym,
+				manifest.restrictionFor(pick),
+				manifest.getAllDefinitions(pick),
+				manifest.postponedInstructionFor(pick),
+				predecessorEdges)
 		}
 	}
 
@@ -855,7 +956,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		writer: GraphWriter,
 		synonym: L2Synonym<*>,
 		restriction: TypeRestriction,
-		definitions: Iterable<L2Register<*>>,
+		definitions: Collection<L2Register<*>>,
+		postponed: L2Instruction?,
 		predecessorEdges: Iterable<L2PcOperand>)
 	{
 		// If the restriction flags and the available register kinds disagree,
@@ -901,9 +1003,18 @@ class L2ControlFlowGraphVisualizer constructor(
 				changedDefinitions = true
 			}
 		}
-		val isError = (kindsOfRegisters.size != 1 || restriction.isImpossible)
+		val isError = kindsOfRegisters.size != 1
+			|| restriction.isImpossible
+			|| (restriction.isConstant
+				!= synonym.semanticValues().any(L2SemanticValue<*>::isConstant))
+		// In delta-manifest mode, suppress synonyms that are identical to all
+		// predecessor edges (i.e., nothing new or changed, and no error).
+		if (deltaManifestOnly
+			&& !newSynonym && !changedSynonym && !changedRestriction
+			&& !changedDefinitions && !isError)
+			return
 		val isUnboxed = kindsOfRegisters != setOf(BOXED_KIND)
-		val noRegs = definitions.toList().isEmpty()
+		val noRegs = definitions.isEmpty()
 		val (synonymColor, restrictionColor, definitionsColor) = when
 		{
 			isError -> Triple(errorTextColor, errorTextColor, errorTextColor)
@@ -926,7 +1037,12 @@ class L2ControlFlowGraphVisualizer constructor(
 			append(indentString)
 			// Truncate synonyms of Constant(nil), since they tend to be long
 			// and not very interesting.
-			var synonymText = synonym.toString()
+			var synonymText = synonym.toString(
+				definitions
+					.flatMap(L2Register<*>::definitions)
+					.flatMapTo(
+						mutableSetOf<L2SemanticValue<*>>(),
+						L2WriteOperand<*>::semanticValues))
 			if (restriction.constantOrNull.notNullAnd { isNil })
 			{
 				synonymText = synonymText.truncateTo(30)
@@ -942,12 +1058,49 @@ class L2ControlFlowGraphVisualizer constructor(
 					&& it.toBoxed is L2SemanticExtractedTag}
 			append(
 				escape(
-					increaseIndentation(restriction.toString(anyIntTags), 2)))
+					increaseIndentation(
+						restriction.toString(anyIntTags, bare = true),
+						2)))
 		}
-		append("<br/>")
-		font(color = writer.adjust(definitionsColor ?: "")) {
-			append(indent2String)
-			definitions.joinTo(this, ", ", "in {", "}")
+		if (definitions.toList().isNotEmpty())
+		{
+			append("<br/>")
+			font(color = writer.adjust(definitionsColor ?: "")) {
+				append(indent2String)
+				definitions.joinTo(this, ", ", "in {", "}")
+			}
+		}
+		if (postponed != null)
+		{
+			font(color = writer.adjust(
+				if (synonym.kind == BOXED_KIND) postponementsColor
+				else unboxedSynonymColor))
+			{
+				append("<br/>")
+				append(indent2String)
+				//append("postponed: ")
+				append(
+					escape(
+						increaseIndentation(
+							postponed.toString(
+								ignoreMisconnections = true,
+								omitEmptyWrite = true),
+							2)))
+				val badReads = postponed.readOperands
+					.filter { it.restriction().isImpossible }
+				val badWrites = postponed.writeOperands
+					.filter { it.restriction().isImpossible }
+				if (badReads.isNotEmpty() || badWrites.isNotEmpty())
+				{
+					font(color = writer.adjust(errorTextColor))
+					{
+						append("\n")
+						append(indent2String)
+						val allBad = badReads + badWrites
+						append(escape("IMPOSSIBLE RESTRICTION: $allBad\n"))
+					}
+				}
+			}
 		}
 	}
 
@@ -1049,10 +1202,10 @@ class L2ControlFlowGraphVisualizer constructor(
 					fontname("Helvetica")
 					bgcolor("#ffffff/a0a0a0")
 					color("#000000/b0b0b0")
-					fixedsize(false)
 					fontsize(11)
 					fontcolor("#000000/d0d0d0")
 					shape("none")
+					margin(0)
 				}
 				defaultAttributeBlock(DefaultAttributeBlockType.EDGE) {
 					labeldistance(3)
@@ -1251,9 +1404,6 @@ class L2ControlFlowGraphVisualizer constructor(
 		private const val coldInstructionBackColor = "#e0ffff/407070"
 
 		private const val coldInstructionGridColor = "#405050/98b0b0"
-
-		/** Characters that should be removed outright from class names. */
-		private val matchUglies = Pattern.compile("[\"\\\\]")
 
 		/**
 		 * Escape the specified text for inclusion into an HTML-like identifier.

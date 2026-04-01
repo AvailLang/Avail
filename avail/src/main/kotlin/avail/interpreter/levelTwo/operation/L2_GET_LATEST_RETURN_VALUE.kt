@@ -32,13 +32,12 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
-import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Ask the [Interpreter] for its [Interpreter.getLatestResult], which is how
@@ -70,13 +69,11 @@ class L2_GET_LATEST_RETURN_VALUE(
 		append(latestResult.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: target = interpreter.getLatestResult();
-		translator.loadInterpreter(method)
-		Interpreter.getLatestResultMethod.generateCall(method)
-		translator.store(method, latestResult.register())
+		loadInterpreter()
+		generateCall(Interpreter.getLatestResultMethod)
+		store(latestResult.register())
 	}
 }

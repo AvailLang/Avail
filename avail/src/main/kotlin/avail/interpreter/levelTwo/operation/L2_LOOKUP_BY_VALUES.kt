@@ -76,7 +76,6 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.util.logging.Level
 
@@ -177,24 +176,21 @@ constructor(
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
 		get() = emptyList()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: interpreter
-		translator.loadLiteralObject(method, messageBundle.constant)
+		loadLiteralObject(messageBundle.constant)
 		// :: interpreter, bundle
-		translator.objectArray(
-			method, arguments.elements, AvailObject::class.java)
+		objectArray(arguments.elements, AvailObject::class.java)
 		// :: interpreter, bundle, argsArray
 		if (trackForReoptimzation.constant)
 		{
-			lookupWithTrackingMethod.generateCall(method)
+			generateCall(lookupWithTrackingMethod)
 		}
 		else
 		{
-			lookupMethod.generateCall(method)
+			generateCall(lookupMethod)
 		}
 
 		// :: function?
@@ -207,14 +203,14 @@ constructor(
 		// :: null
 		method.visitInsn(Opcodes.POP)
 		// ::
-		translator.jump(method, ifLookupFailed)
+		jump(ifLookupFailed)
 
 		method.visitLabel(ifFound)
 		// The function was not null, indicating a lookup success.
 		// :: function
-		translator.store(method, lookedUpFunction.register())
+		store(lookedUpFunction.register())
 		// ::
-		translator.jumpOrFallThrough(method, ifLookupSucceeded)
+		jumpOrFallThrough(ifLookupSucceeded)
 	}
 
 	companion object

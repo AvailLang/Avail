@@ -82,7 +82,7 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 
 	override fun toString(): String
 	{
-		var valueString = value.toString()
+		var valueString = TypeRestriction.valueToString(value, false)
 		if (valueString.length > 50)
 		{
 			valueString = valueString.substring(0, 50) + '…'

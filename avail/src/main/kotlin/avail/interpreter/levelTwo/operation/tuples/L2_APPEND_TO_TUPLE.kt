@@ -37,15 +37,19 @@ import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.optimizer.L2Generator
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -74,11 +78,10 @@ class L2_APPEND_TO_TUPLE(
 		append(elementToAppend.registerString())
 	}
 
-	override fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	override fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator)
+		destinationSemanticValues: Set<L2SemanticBoxedValue>)
 	{
 		// If the index is between 1 and the lower bound of the inputTuple's
 		// size, we can just extract the element from the inputTuple.  If the
@@ -92,7 +95,7 @@ class L2_APPEND_TO_TUPLE(
 			if (index <= lowerBoundInt)
 			{
 				// It's definitely in the inputTuple.
-				generator.extractTupleElement(
+				extractTupleElement(
 					inputTuple, index, destinationSemanticValues)
 				return
 			}
@@ -100,28 +103,31 @@ class L2_APPEND_TO_TUPLE(
 				&& index == lowerBoundInt + 1)
 			{
 				// It's definitely the elementToAppend.
-				generator.moveBoxedRegister(
+				moveBoxedRegister(
 					elementToAppend.semanticValue(),
 					destinationSemanticValues)
 				return
 			}
 		}
 		// Fall back to the default tuple element extraction.
-		super.extractTupleElement(
-			tupleRead, index, destinationSemanticValues, generator)
+		+L2_TUPLE_AT_CONSTANT(
+			readBoxed(synonym.pickSemanticValue()),
+			L2IntImmediateOperand(index),
+			boxedWrite(
+				destinationSemanticValues,
+				boxedRestrictionForType(
+					outputTuple.restriction().type.typeAtIndex(index))))
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.load(method, inputTuple)
-		translator.load(method, elementToAppend)
-		TupleDescriptor.appendToTupleMethod.generateCall(method)
+		load(inputTuple)
+		load(elementToAppend)
+		generateCall(TupleDescriptor.appendToTupleMethod)
 		// Strengthen the final result to AvailObject.
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST,
 			Type.getInternalName(AvailObject::class.java))
-		translator.store(method, outputTuple.register())
+		store(outputTuple.register())
 	}
 }

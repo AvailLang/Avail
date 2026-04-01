@@ -41,7 +41,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Jump to `"if satisfied"` if some condition is met, otherwise jump to
@@ -69,6 +68,8 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 	/** This instruction jumps, which counts as a side effect. */
 	override val hasSideEffect: Boolean get() = true
 
+	override fun canReduceToJumpIfOnePathRemains(): Boolean = true
+
 	/**
 	 * If this instruction leads to the same target block after skipping all
 	 * blocks that only contain jumps, then replace it with a jump to that block
@@ -79,7 +80,7 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 	 * @return
 	 *   Whether an [L2_JUMP] was emitted.
 	 */
-	fun replaceWithJumpIfPossible(generator: L2GeneratorInterface): Boolean
+	open fun replaceWithJumpIfPossible(generator: L2GeneratorInterface): Boolean
 	{
 		// If optimizations have caused the branches to go to the same place,
 		// eliminate the branch entirely.
@@ -168,10 +169,8 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 		 * Emit a conditional branch, including an increment for the counters
 		 * along each path.
 		 *
-		 * @param translator
+		 * @receiver
 		 *   The [JVMTranslator] controlling code generation.
-		 * @param method
-		 *   The [MethodVisitor] on which to write the instructions.
 		 * @param instruction
 		 *   The [L2Instruction] causing this code generation.
 		 * @param opcode
@@ -182,16 +181,13 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 		 *   Where to jump if the condition does not hold.
 		 */
 		@JvmStatic
-		protected fun emitBranch(
-			translator: JVMTranslator,
-			method: MethodVisitor,
+		protected fun JVMTranslator.emitBranch(
 			instruction: L2Instruction,
 			opcode: Int,
 			conditionHolds: L2PcOperand,
 			conditionDoesNotHold: L2PcOperand)
 		{
-			translator.branch(
-				method,
+			branch(
 				instruction,
 				opcode,
 				conditionHolds,

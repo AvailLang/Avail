@@ -291,6 +291,7 @@ private constructor(
 	override fun o_LowerInclusive(self: AvailObject): Boolean =
 		lowerInclusive
 
+	@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?

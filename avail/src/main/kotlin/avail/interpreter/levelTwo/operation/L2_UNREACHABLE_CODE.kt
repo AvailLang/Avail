@@ -31,11 +31,11 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE.Companion.throwUnreachableCodeException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -51,6 +51,8 @@ class L2_UNREACHABLE_CODE(
 {
 	override val isCold get() = true
 
+	override val altersControlFlow: Boolean get() = true
+
 	override val hasSideEffect get() = true
 
 	/**
@@ -59,12 +61,10 @@ class L2_UNREACHABLE_CODE(
 	 */
 	class UnreachableCodeException : RuntimeException()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: throw throwUnreachableCodeException();
-		throwUnreachableCodeExceptionMethod.generateCall(method)
+		generateCall(throwUnreachableCodeExceptionMethod)
 		method.visitInsn(Opcodes.ATHROW)
 	}
 

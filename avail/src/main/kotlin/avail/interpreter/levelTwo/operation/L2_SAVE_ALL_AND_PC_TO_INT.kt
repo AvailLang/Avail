@@ -32,9 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor
-import avail.interpreter.levelTwo.L2Instruction
+import avail.descriptor.variables.VariablePlaceholderDescriptor
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -47,21 +48,18 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L2BasicBlock
-import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the given "reference" edge's target level two offset as an [Int],
@@ -71,8 +69,9 @@ import org.objectweb.asm.MethodVisitor
  * edge is not known until just before JVM code generation.
  *
  * This is a special operation, in that during final JVM code generation it
- * saves all objects in a register dump ([RegisterDumpDescriptor]), and the
- * [L2_ENTER_L2_CHUNK] at the reference target will restore them.
+ * saves all live register values in a register dump ([RegisterDumpDescriptor]),
+ * and the [L2_ENTER_L2_CHUNK] at the reference target will restore them into
+ * the same registers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -112,18 +111,14 @@ constructor(
 	var finalSavedBoxedRegisters: L2ReadBoxedVectorOperand,
 	var dirtyLocals: L2ReadMixedVectorOperand,
 	var dirtyLocalIndices: L2ArbitraryConstantOperand<IntArray>
-): L2Instruction()
+): L2ControlFlowInstruction()
 {
 	init
 	{
 		assert(dirtyLocals.elements.size == dirtyLocalIndices.constant.size)
 	}
 
-	override val targetEdges: List<L2PcOperand> get() = layout.pcOperands(this)
-
 	override val hasSideEffect get() = true
-
-	override val altersControlFlow get() = true
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
@@ -164,87 +159,38 @@ constructor(
 		}
 	}
 
-	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
-		// A backward `reference` edge is strictly for creating a label.
-		val strippedManifest: L2ValueManifest
-		if (reference.isBackward)
-		{
-			// Now only the `reference` edge has to be processed.  Restrict the
-			// manifest to those entities mentioned in `preserveOnReferenceEdge`.
-			strippedManifest = L2ValueManifest(manifest)
-			strippedManifest.clearPostponedInstructions()
-			strippedManifest.retainSemanticValues(emptySet())
-			strippedManifest.retainRegisters(emptySet())
-			// Indicate on the edge that these values are all that should be
-			// visible.
-			reference.forcedClampedEntities = emptySet()
-		}
-		else
-		{
-			// For forward edges, ignore `preserveOnReferenceEdge`, or more
-			// precisely, make sure it's empty.
-			strippedManifest = manifest
-		}
-		// Note: We process `reference` with the strippedManifest.
-		reference.instructionWasAdded(strippedManifest)
-		referenceOffset.instructionWasAdded(manifest)
-		registerDump.instructionWasAdded(manifest)
-		ifFallThrough.instructionWasAdded(manifest)
-		dirtyLocals.instructionWasAdded(manifest)
-	}
-
 	/**
-	 * Don't allow instructions to be delayed across an instruction that goes
-	 * both ways, since that would make the computation in one of the forks
-	 * redundant with the computation in the other. Specifically, an
-	 * [L2_SAVE_ALL_AND_PC_TO_INT] must act as a barrier against postponement,
-	 * since values created after the fork will not affect the collection of
-	 * registers that need to be saved in a register dump and restored on the
-	 * second path. For simplicity, just recursively force all postponed
-	 * instructions to be generated here.
-	 *
-	 * We *do* allow an [L2_CREATE_VARIABLE] to go both ways.  It goes along the
-	 * [reference] edge to allow variable creation to be postponed until after
-	 * the reification completes and the continuation is returned into.  It also
-	 * goes along the [ifFallThrough] edge, where it gets transformed by the
-	 * eventual [L2_CREATE_CONTINUATION] in the reification part that captures
-	 * the initialization value in case the continuation becomes shared or
-	 * immutable, allowing that local variable to be initialized correctly on
-	 * creation (and switch to L1 execution).  Note that the [dirtyLocals] and
-	 * [dirtyLocalIndices] lists have to be updated to capture this information,
-	 * since the transformation of the current ([L2_SAVE_ALL_AND_PC_TO_INT])
-	 * instruction is what creates the [A_RegisterDump] subsequently used by the
-	 * [L2_CREATE_CONTINUATION].
+	 * Specially handle postponed [L2_CREATE_VARIABLE] instructions.  Record
+	 * their information in the [dirtyLocals] and [dirtyLocalIndices] operands.
+	 * Along the [ifFallThrough] edge, restrict these variables to the constant
+	 * placeholder variables ([VariablePlaceholderDescriptor]), but allow them
+	 * to stay postponed along the reference edge.
 	 */
-	override fun L2Regenerator.regenerateForPostponement()
+	override fun aboutToAdd(generator: L2GeneratorInterface): Boolean
 	{
-		if (reference.isBackward)
+		if (reference.isBackward ||
+			!generator.currentManifest.caresAboutSemanticValues)
 		{
 			// It's preparing to create a label or transient continuation.
 			// Either way, the reference is to (near) the top of the graph, so
 			// we can just let the postponed instructions go both ways and the
-			// addInstruction() that happens later will clear them from the
+			// instructionwasAdded() that happens later will clear them from the
 			// reference edge.
-			basicRegenerateForPostponement()
-			return
+			return super.aboutToAdd(generator)
 		}
 		// Look for L2_CREATE_VARIABLE instructions that can stay postponed.
-		val creations = currentManifest.postponedInstructions()
-			.values
-			.toSet()
-			.filterIsInstance<L2_CREATE_VARIABLE>()
+		val creations = generator.currentManifest.allPostponedInstructions()
+			.filterValues { it is L2_CREATE_VARIABLE }
+			.mapValues { it.value as L2_CREATE_VARIABLE }
 		if (creations.isEmpty())
 		{
 			// There's nothing new to elide here.
-			basicRegenerateForPostponement()
-			return
+			return super.aboutToAdd(generator)
 		}
 		// There's at least one elision to add.
 		val elidedVariables = dirtyLocals.elements.toMutableList()
 		val elidedVariableIndices = dirtyLocalIndices.constant.toMutableList()
-		creations.forEach { postponedCreation ->
+		creations.values.forEach { postponedCreation ->
 			// We can postpone the creation of this local along the reference
 			// edge, but also record the source of the value for creating the
 			// register dump that will be used by the continuation creation
@@ -253,51 +199,65 @@ constructor(
 			// along the ifFallThrough path, to indicate the continuation can
 			// keep it elided unless the continuation is made immutable or
 			// shared (in which case it will exit to L1).
+			val manifest = generator.currentManifest
 			val valueRead = postponedCreation.initialValueOrNil
 			val semanticValue = valueRead.semanticValue()
-			val semanticInt = currentManifest.equivalentSemanticValue(
+			val semanticInt = manifest.equivalentSemanticValue(
 				semanticValue.unboxedInt)
-			val semanticFloat = currentManifest.equivalentSemanticValue(
+			val semanticFloat = manifest.equivalentSemanticValue(
 				semanticValue.unboxedFloat)
 			val source = semanticInt ?: semanticFloat ?: semanticValue
-			elidedVariables.add(source.createRead(currentManifest))
+			val newElidedVariable = source.createRead(manifest)
+			elidedVariables.add(newElidedVariable)
+			newElidedVariable.adjustCloneForInstruction(this, generator)
 			elidedVariableIndices.add(postponedCreation.localIndex.value)
 		}
-		val fallThroughSplitBlock = L2BasicBlock(
-			name = "Fallthrough split",
-			zone = currentBlock().zone)
-		val replacement = L2_SAVE_ALL_AND_PC_TO_INT(
-			ifFallThrough = edgeTo(fallThroughSplitBlock),
-			reference = reference,
-			referenceOffset = referenceOffset,
-			registerDump = registerDump,
-			finalSavedBoxedRegisters = finalSavedBoxedRegisters.clone(),
-			dirtyLocals = L2ReadMixedVectorOperand(elidedVariables),
-			dirtyLocalIndices = L2ArbitraryConstantOperand(
-				elidedVariableIndices.toIntArray()))
-		replacement.run {
-			basicRegenerateForPostponement()
+		dirtyLocals = L2ReadMixedVectorOperand(elidedVariables)
+		dirtyLocalIndices =
+			L2ArbitraryConstantOperand(elidedVariableIndices.toIntArray())
+		return super.aboutToAdd(generator)
+	}
+
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
+	{
+		val manifestAlongReference = L2ValueManifest(manifest).apply {
+			if (reference.isBackward)
+			{
+				// A backward `reference` edge is strictly for creating a label.
+				// Restrict the 'reference' edge's manifest to those entities
+				// mentioned in `preserveOnReferenceEdge`.
+				clearPostponedInstructions()
+				retainSemanticValues(emptySet())
+				retainRegisters(emptySet())
+				// Indicate on the edge that these values are all that should be
+				// visible.
+				reference.forcedClampedEntities = emptySet()
+			}
 		}
-		// Edit the new fallThrough edge.
-		val fallThroughEdge = fallThroughSplitBlock.predecessorEdges()[0]
-		creations.forEach { postponedCreation ->
-			fallThroughEdge.manifest().removePostponedInstructionFor(
-				postponedCreation.variable)
+		val fallThroughManifest = L2ValueManifest(manifest).apply {
+			// Finish what instructionWasAdded() started, removing any variable
+			// creations from the ifFallThrough path, replacing them with elided
+			// variable placeholders.
+			if (reference.isBackward) return@apply
+			manifest.allPostponedInstructions()
+				.filterValues { it is L2_CREATE_VARIABLE }
+				.mapValues { it.value as L2_CREATE_VARIABLE }
+				.forEach { (synonym, postponedCreation) ->
+					val elidedVariable =
+						postponedCreation.constantVariableIfElided.constant
+					removePostponedInstructionFor(synonym.pickSemanticValue())
+					agglomerateSynonym(
+						synonym.semanticValues(),
+						boxedRestrictionForConstant(elidedVariable))
+				}
 		}
-		startBlock(fallThroughSplitBlock)
-		// Use a placeholder variable in place of the freshly postponed variable
-		// creations, so that the variables can be elided even through
-		// reification, as long as the continuation stays mutable.
-		creations.forEach { postponedCreation ->
-			val elidedVariable =
-				postponedCreation.constantVariableIfElided.constant
-			moveBoxedRegister(
-				boxedConstant(elidedVariable).semanticValue(),
-				postponedCreation.variable.semanticValues())
-		}
-		// Jump to the original (mapped) fallThrough target, so that code
-		// regeneration will continue correctly there at some point.
-		jumpTo(ifFallThrough.targetBlock())
+
+		dirtyLocals.instructionWasAdded(manifest)
+		referenceOffset.instructionWasAdded(fallThroughManifest)
+		registerDump.instructionWasAdded(fallThroughManifest)
+		ifFallThrough.instructionWasAdded(fallThroughManifest)
+		reference.instructionWasAdded(manifestAlongReference)
 	}
 
 	override fun replaceConstantReads(
@@ -328,34 +288,31 @@ constructor(
 		if (boxedRegisters.isEmpty()) return
 		val reads = boxedRegisters.map { register ->
 			val read = L2ReadBoxedOperand(
-				L2SemanticDummy(uniqueGenerator()),
+				L2SemanticDummy(uniqueGenerator(), "before saveAll"),
 				topRestriction,
-				register
-			)
+				register)
 			register.addUse(read)
 			read
 		}
 		finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(reads)
+		finalSavedBoxedRegisters.setInstruction(this)
 		sourceRegisters.addAll(boxedRegisters)
 		super.processForMakeImmutable(
 			firstUses, insertions, mutables, uniqueGenerator)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		reference.createAndPushRegisterDump(
-			translator,
-			method,
-			ChunkEntryPoint.TO_RETURN_INTO)
+		reference.run {
+			createAndPushRegisterDump(ChunkEntryPoint.TO_RETURN_INTO)
+		}
 		// :: [registerDump]
-		translator.store(method, registerDump.register())
+		store(registerDump.register())
 		// :: []
-		translator.intConstant(method, reference.offset())
-		translator.store(method, referenceOffset.register())
+		intConstant(reference.offset())
+		store(referenceOffset.register())
 
 		// Jump is usually elided.
-		translator.jumpOrFallThrough(method, ifFallThrough)
+		jumpOrFallThrough(ifFallThrough)
 	}
 }

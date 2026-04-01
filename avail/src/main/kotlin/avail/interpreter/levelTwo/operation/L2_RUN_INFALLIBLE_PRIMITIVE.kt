@@ -52,9 +52,9 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.cast
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Execute a primitive with the provided arguments, writing the result into the
@@ -147,7 +147,9 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		}
 
 	/** Defer to the primitive. */
-	override fun mightMakeEscapedVariableShared(): Boolean =
+	override fun mightMakeEscapedVariableShared(
+		manifest: L2ValueManifest
+	): Boolean =
 		primitive.constant.mightMakeEscapedVariableShared(
 			arguments.elements.map(L2ReadBoxedOperand::type))
 
@@ -231,12 +233,11 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		primitive.constant.generateJvmCode(
-			translator, method, arguments, result)
+		primitive.constant.run {
+			generateJvmCode(arguments, result)
+		}
 	}
 
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>

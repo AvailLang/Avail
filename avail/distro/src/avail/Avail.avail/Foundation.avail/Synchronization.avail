@@ -1000,9 +1000,9 @@ Public method "Signal_" is
 	If ¬↓queue is empty then
 	[
 		mutex ::= aCondition's originating monitor;
-		/* Place the current fiber from onto the monitor's queue of signaler
-		 * fibers, also leaving it on the main queue. This will give it
-		 * preference during the next scheduling operation.
+		/* Place the current fiber onto the monitor's queue of signaler fibers,
+		 * also leaving it on the main queue. This will give it preference
+		 * during the next scheduling operation.
 		 */
 		Ignore: priority enqueue current fiber on ↑mutex's signaler fibers;
 		head ::= ↓queue[1];

@@ -36,8 +36,8 @@ import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.sets.A_Set.Companion.setSize
+import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instances
@@ -50,6 +50,11 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
+import avail.optimizer.CallSiteHelper
+import avail.optimizer.L1Translator
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
 * **Primitive:** Extract the [code&#32;point][IntegerDescriptor] from a
@@ -65,6 +70,27 @@ object P_CharacterCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(fromInt(character.codePoint))
 	}
 
+	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		callSiteHelper: CallSiteHelper): Boolean
+	{
+		if (!currentManifest.caresAboutSemanticValues) return false
+		val characterRead = arguments.single()
+		val characterInstruction =
+			characterRead.definitionSkippingMoves(currentManifest)
+		if (characterInstruction is L2_CODEPOINT_TO_CHARACTER)
+		{
+			callSiteHelper.useAnswer(
+				readBoxed(characterInstruction.source.semanticValue().boxed),
+				false)
+			return true
+		}
+		return false
+	}
+
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -72,12 +98,12 @@ object P_CharacterCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		val charType = argumentTypes[0]
 		if (charType.equals(CHARACTER())) return characterCodePoints
-		var codePoints = emptySet
-		for (char in charType.instances)
-		{
-			codePoints = codePoints.setWithElementCanDestroy(
-				fromInt(char.codePoint), true)
+		val characters = charType.instances
+		val charactersIterator = characters.iterator()
+		val codePoints = generateSetFrom(characters.setSize) {
+			fromInt(charactersIterator.next().codePoint)
 		}
+		assert(!charactersIterator.hasNext())
 		return enumerationWith(codePoints)
 	}
 

@@ -73,13 +73,13 @@ Method "“_”" is
 [
 	t : map meta
 |
-	s : nonempty string :=
-		"{" ++ “t's key type” ++ "→" ++ “t's value type” ++ "|";
-	lower ::= ⌊t⌋;
-	upper ::= ⌈t⌉;
-	s ++= “||t||” (cardinality restriction);
-	s ++= "}";
-	s
+	"{"
+		++ “t's key type”
+		++ "→"
+		++ “t's value type”
+		++ "|"
+		++ “||t||” (cardinality restriction)
+		++ "}"
 ] : string;
 
 /**

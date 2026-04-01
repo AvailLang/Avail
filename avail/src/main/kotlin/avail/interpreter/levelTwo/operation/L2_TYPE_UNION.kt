@@ -32,12 +32,11 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Given two input types in registers, compute their union and write it to the
@@ -66,14 +65,12 @@ class L2_TYPE_UNION(
 		append(secondType.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: unionType = firstInputType.typeUnion(secondInputType);
-		translator.load(method, firstType)
-		translator.load(method, secondType)
-		A_Type.typeUnionMethod.generateCall(method)
-		translator.store(method, outputType.register())
+		load(firstType)
+		load(secondType)
+		generateCall(A_Type.typeUnionMethod)
+		store(outputType.register())
 	}
 }

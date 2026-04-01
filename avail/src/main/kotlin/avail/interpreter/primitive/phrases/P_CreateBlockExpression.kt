@@ -101,8 +101,10 @@ object P_CreateBlockExpression : Primitive(5, CanInline)
 		// Approximate where the block's "first line" is.
 		val allTokens = (argDecls + statements)
 			.flatMapTo(mutableSetOf()) { it.tokens }
-		val earliestLine =
-			allTokens.minOfOrNull(A_Token::lineNumber) ?: 0
+		val earliestLine = allTokens
+			.map(A_Token::lineNumber)
+			.filter { it != 0 }
+			.minOrNull() ?: 0
 		val block = newBlockNode(
 			argDecls,
 			primitive,

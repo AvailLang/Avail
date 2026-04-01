@@ -39,7 +39,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -74,14 +73,12 @@ constructor(
 		append(continuation.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: interpreter.setReifiedContinuation(continuation)
-		translator.loadInterpreter(method)
-		translator.load(method, continuation)
-		Interpreter.setReifiedContinuationMethod.generateCall(method)
+		loadInterpreter()
+		load(continuation)
+		generateCall(Interpreter.setReifiedContinuationMethod)
 		// :: return null
 		method.visitInsn(Opcodes.ACONST_NULL)
 		method.visitInsn(Opcodes.ARETURN)

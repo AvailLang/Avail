@@ -36,8 +36,8 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportWrongReturnTypeMethod
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -45,7 +45,6 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -91,21 +90,18 @@ class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 		frameValues.elements.joinTo(this, limit = 5) { it.registerString() }
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// :: interpreter
-		translator.load(method, returnedValue)
-		translator.loadLiteralObject(method, expectedType.constant)
-		translator.intConstant(method, pc.value)
-		translator.intConstant(method, stackp.value)
+		load(returnedValue)
+		loadLiteralObject(expectedType.constant)
+		intConstant(pc.value)
+		intConstant(stackp.value)
 		// :: interpreter, value, expected, pc, stackp
-		translator.objectArray(
-			method, frameValues.elements, AvailObject::class.java)
+		objectArray(frameValues.elements, AvailObject::class.java)
 		// :: interpreter, value, expected, pc, stackp, frameArray
-		reportWrongReturnTypeMethod.generateCall(method)
+		generateCall(reportWrongReturnTypeMethod)
 		// :: stackReifier
 		// Note that the above call took responsibility for creating the
 		// reified continuation as needed.

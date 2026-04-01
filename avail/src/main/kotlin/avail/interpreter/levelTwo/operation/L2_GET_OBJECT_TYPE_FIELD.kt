@@ -32,14 +32,13 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.notNullAnd
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the specified field type of the given object type.
@@ -88,11 +87,9 @@ class L2_GET_OBJECT_TYPE_FIELD(
 			}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.load(method, objectType)
+		load(objectType)
 		val variants = objectType.restriction().positiveGroup.objectTypeVariants
 		if (variants.notNullAnd { distinctBy { it.variantId }.size == 1 })
 		{
@@ -100,14 +97,14 @@ class L2_GET_OBJECT_TYPE_FIELD(
 			// point.  Get the field by index.
 			val variant = variants!!.first()
 			val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-			translator.intConstant(method, fieldIndex)
-			AvailObject.fieldTypeAtIndexMethod.generateCall(method)
+			intConstant(fieldIndex)
+			generateCall(AvailObject.fieldTypeAtIndexMethod)
 		}
 		else
 		{
-			translator.loadLiteralObject(method, fieldAtom.constant)
-			AvailObject.fieldTypeAtMethod.generateCall(method)
+			loadLiteralObject(fieldAtom.constant)
+			generateCall(AvailObject.fieldTypeAtMethod)
 		}
-		translator.store(method, fieldType.register())
+		store(fieldType.register())
 	}
 }

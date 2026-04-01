@@ -41,7 +41,6 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
-import avail.optimizer.L2Synonym
 import avail.optimizer.L2Synonym.Companion.appendSemanticValues
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
@@ -224,7 +223,7 @@ constructor(
 		}
 		super.instructionWasAdded(manifest)
 		register().addDefinition(this)
-		manifest.removePostponedInstructionFor(this)
+		manifest.removePostponedInstructionFor(pickSemanticValue())
 		manifest.recordDefinition(this)
 	}
 
@@ -242,6 +241,9 @@ constructor(
 		source: L2ReadOperand<K>,
 		manifest: L2ValueManifest)
 	{
+		manifest.agglomerateSynonym(
+			semanticValues + source.semanticValue(),
+			manifest.restrictionFor(source))
 		super.instructionWasAdded(manifest)
 		register().addDefinition(this)
 		manifest.recordDefinitionForMove(this, source.semanticValue())
@@ -264,16 +266,9 @@ constructor(
 		assert(semanticConstant.isConstant)
 		super.instructionWasAdded(manifest)
 		register().addDefinition(this)
-		val (old, new) = (semanticValues() + semanticConstant)
-			.partition(manifest::hasSemanticValue)
-		if (new.isNotEmpty())
-		{
-			manifest.introduceSynonym(L2Synonym(new), restriction)
-			if (old.isNotEmpty())
-			{
-				manifest.mergeExistingSemanticValues(old.first(), new.first())
-			}
-		}
+		manifest.agglomerateSynonym(
+			semanticValues() + semanticConstant,
+			restriction)
 		manifest.recordDefinitionForMove(this, semanticConstant)
 	}
 
@@ -316,6 +311,23 @@ constructor(
 		// next pass, since it ignores phis of the old graph.
 		assert(instruction !is L2_PHI<*>)
 		semanticValues += newSemanticValue
+	}
+
+	/**
+	 * Replace the set of [L2SemanticValue]s affected by this write operand. DO
+	 * NOT update any other structures to reflect this change, as this is the
+	 * caller's responsibility.
+	 *
+	 * @param newSemanticValues
+	 *   The new [L2SemanticValue]s to replace the existing ones.
+	 */
+	fun retroactivelySetSemanticValues(
+		newSemanticValues: Iterable<L2SemanticValue<*>>)
+	{
+		// The caller should ensure the instruction isn't an L2_PHI.  We can't
+		// check here, since the instruction isn't set yet for postponed
+		// instructions.
+		semanticValues = newSemanticValues.toSet().cast()
 	}
 
 	override fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)

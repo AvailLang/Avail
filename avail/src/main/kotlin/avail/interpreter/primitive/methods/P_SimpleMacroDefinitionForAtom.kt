@@ -199,7 +199,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 		functionType(
 			tuple(
 				ATOM(),
-				zeroOrMoreOf(mostGeneralFunctionType()),
+				zeroOrMoreOf(mostGeneralFunctionType),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType),
 				zeroOrOneOf(A_Styler.stylerFunctionType)),
 			TOP())

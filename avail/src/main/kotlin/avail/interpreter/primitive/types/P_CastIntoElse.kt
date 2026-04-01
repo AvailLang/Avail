@@ -127,7 +127,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		val castBlock = createBasicBlock("cast type matched")
 		val elseBlock = createBasicBlock("cast type did not match")
 
-		val typeTest = castFunctionRead.exactSoleArgumentType()
+		val typeTest = castFunctionRead.exactSoleArgumentType(currentManifest)
 		if (typeTest !== null)
 		{
 			// By tracing where the castBlock came from, we were able to

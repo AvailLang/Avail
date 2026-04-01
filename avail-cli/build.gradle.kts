@@ -34,8 +34,8 @@ import java.io.File
 
 plugins {
 	id("java")
-	kotlin("jvm") version "1.9.0"
-	id("com.github.johnrengelman.shadow") version "8.1.1"
+	kotlin("jvm") version "2.3.10"
+	id("com.gradleup.shadow") version "9.3.1"
 }
 
 repositories {
@@ -44,10 +44,10 @@ repositories {
 }
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "1.9"
+val kotlinLanguage = "2.3"
 
 /** The JVM target version for Kotlin. */
-val jvmTarget = 17
+val jvmTarget = 25
 
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
@@ -78,7 +78,7 @@ fun systemPath(vararg path: String): String =
  */
 fun Project.cleanupJars ()
 {
-	delete(fileTree("$buildDir/libs").matching {
+	delete(fileTree(layout.buildDirectory.dir("libs")).matching {
 		include("**/*.jar")
 		exclude("**/*-all.jar")
 	})
@@ -106,12 +106,12 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] = "avail.tools.compiler.Compiler"
-		manifest.attributes["Build"] = project.version
+		manifest.attributes["Build"] = version
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 
 	// Copy the JAR into the distribution directory.
-	val releaseAvailCLI by creating(Copy::class) {
+	val releaseAvailCLI by registering(Copy::class) {
 		group = "release"
 		from(shadowJar.get().outputs.files)
 		into(file("${rootProject.projectDir}/$distroLib"))
@@ -122,8 +122,10 @@ tasks {
 	// Update the dependencies of "assemble".
 	assemble { dependsOn(releaseAvailCLI) }
 }
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-	languageVersion = kotlinLanguage
-	apiVersion = kotlinLanguage
+
+tasks.withType<KotlinCompile>().configureEach {
+	compilerOptions {
+		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+	}
 }

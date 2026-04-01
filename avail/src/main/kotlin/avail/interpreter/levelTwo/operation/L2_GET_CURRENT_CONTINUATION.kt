@@ -32,13 +32,12 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Ask the [Interpreter] for the current continuation, writing it into the
@@ -65,13 +64,11 @@ class L2_GET_CURRENT_CONTINUATION(
 		append(currentContinuation.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: target = interpreter.getReifiedContinuation();
-		translator.loadInterpreter(method)
-		Interpreter.getReifiedContinuationMethod.generateCall(method)
-		translator.store(method, currentContinuation.register())
+		loadInterpreter()
+		generateCall(Interpreter.getReifiedContinuationMethod)
+		store(currentContinuation.register())
 	}
 }

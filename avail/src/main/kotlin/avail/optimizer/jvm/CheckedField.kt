@@ -31,7 +31,6 @@
  */
 package avail.optimizer.jvm
 
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.lang.reflect.Field
@@ -130,19 +129,19 @@ class CheckedField private constructor(
 	 * Emit a read of this field.  The receiver, if this is not static, must
 	 * already be on the stack.
 	 *
-	 * @param methodVisitor
-	 *   Which [MethodVisitor] to emit the read into.
+	 * @param jvmTranslator
+	 *   Which [JVMTranslator] to emit the read into.
 	 */
-	fun generateRead(methodVisitor: MethodVisitor) = when
+	fun generateRead(jvmTranslator: JVMTranslator) = when
 	{
-		!isStatic -> methodVisitor.visitFieldInsn(
+		!isStatic -> jvmTranslator.method.visitFieldInsn(
 			Opcodes.GETFIELD,
 			receiverClassInternalName,
 			fieldNameString,
 			fieldTypeDescriptorString)
 		isFinal && field.get(null) === null ->
-			methodVisitor.visitInsn(Opcodes.ACONST_NULL)
-		else -> methodVisitor.visitFieldInsn(
+			jvmTranslator.method.visitInsn(Opcodes.ACONST_NULL)
+		else -> jvmTranslator.method.visitFieldInsn(
 			Opcodes.GETSTATIC,
 			receiverClassInternalName,
 			fieldNameString,
@@ -150,20 +149,19 @@ class CheckedField private constructor(
 	}
 
 	/**
-	 * Emit a write of this field for the given [JVMTranslator] and
-	 * [MethodVisitor].  The receiver, if any, and the new field value must
-	 * already be on the stack.  Fail right away if the field is final.
+	 * Emit a write of this field for the given [JVMTranslator].  The receiver,
+	 * if any, and the new field value must already be on the stack.  Fail right
+	 * away if the field is final.
 	 *
-	 * @param methodVisitor
-	 *   Which [MethodVisitor] to emit the read into.
+	 * @param jvmTranslator
+	 *   Which [JVMTranslator] to emit the read into.
 	 */
-	fun generateWrite(
-		methodVisitor: MethodVisitor)
+	fun generateWrite(jvmTranslator: JVMTranslator)
 	{
 		assert(!isFinal)
 		if (isStatic)
 		{
-			methodVisitor.visitFieldInsn(
+			jvmTranslator.method.visitFieldInsn(
 				Opcodes.PUTSTATIC,
 				receiverClassInternalName,
 				fieldNameString,
@@ -171,7 +169,7 @@ class CheckedField private constructor(
 		}
 		else
 		{
-			methodVisitor.visitFieldInsn(
+			jvmTranslator.method.visitFieldInsn(
 				Opcodes.PUTFIELD,
 				receiverClassInternalName,
 				fieldNameString,

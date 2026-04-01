@@ -46,7 +46,6 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticUnboxedInt
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Unbox an [Int] from an [AvailObject].
@@ -78,14 +77,12 @@ class L2_UNBOX_INT(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = source.extractInt();
-		translator.load(method, source)
-		A_Number.extractIntStaticMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(source)
+		generateCall(A_Number.extractIntStaticMethod)
+		store(destination.register())
 	}
 
 	override fun interestingConditions(): List<L2SplitCondition?> = buildList {

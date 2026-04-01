@@ -32,7 +32,6 @@
 package avail.optimizer.jvm
 
 import avail.descriptor.representation.AvailObject
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.CHECKCAST
 import org.objectweb.asm.Opcodes.INVOKEINTERFACE
@@ -108,19 +107,18 @@ class CheckedMethod private constructor(
 	private var internalNameToCheckCastOrNull: String? = null
 
 	/**
-	 * Emit a call to this method on the given [MethodVisitor].  The arguments
+	 * Emit a call to this method on the given [JVMTranslator].  The arguments
 	 * must already be ready on the stack.
 	 *
-	 * @param methodVisitor
+	 * @param jvmTranslator
 	 *   Where to write the call.
 	 */
-	fun generateCall(methodVisitor: MethodVisitor)
-	{
+	fun generateCall(jvmTranslator: JVMTranslator) = jvmTranslator.method.run {
 		when
 		{
 			isStatic ->
 			{
-				methodVisitor.visitMethodInsn(
+				visitMethodInsn(
 					INVOKESTATIC,
 					receiverClassInternalName,
 					methodNameString,
@@ -129,7 +127,7 @@ class CheckedMethod private constructor(
 			}
 			isInterface ->
 			{
-				methodVisitor.visitMethodInsn(
+				visitMethodInsn(
 					INVOKEINTERFACE,
 					receiverClassInternalName,
 					methodNameString,
@@ -138,7 +136,7 @@ class CheckedMethod private constructor(
 			}
 			else ->
 			{
-				methodVisitor.visitMethodInsn(
+				visitMethodInsn(
 					INVOKEVIRTUAL,
 					receiverClassInternalName,
 					methodNameString,
@@ -148,8 +146,7 @@ class CheckedMethod private constructor(
 		}
 		if (internalNameToCheckCastOrNull !== null)
 		{
-			methodVisitor.visitTypeInsn(
-				CHECKCAST, internalNameToCheckCastOrNull)
+			visitTypeInsn(CHECKCAST, internalNameToCheckCastOrNull)
 		}
 	}
 

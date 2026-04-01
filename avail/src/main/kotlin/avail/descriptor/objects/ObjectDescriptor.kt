@@ -362,7 +362,8 @@ class ObjectDescriptor internal constructor(
 		field: A_Atom,
 		value: A_BasicObject,
 		canDestroy: Boolean
-	): A_BasicObject {
+	): AvailObject
+	{
 		if (!canDestroy && isMutable) {
 			self.makeImmutable()
 		}
@@ -377,13 +378,11 @@ class ObjectDescriptor internal constructor(
 					newVariant.realSlotCount
 				) {
 					variant.fieldToSlotIndex.forEach { (key, value1) ->
-						@Suppress("MapGetWithNotNullAssertionOperator")
-						(setSlot(
+						setSlot(
 							FIELD_VALUES_,
 							newVariantSlotMap[key]!!,
-							self[FIELD_VALUES_, value1]))
+							self[FIELD_VALUES_, value1])
 					}
-					@Suppress("MapGetWithNotNullAssertionOperator")
 					val newVariantSlotIndex = newVariantSlotMap[field]!!
 					if (newVariantSlotIndex != 0)
 					{

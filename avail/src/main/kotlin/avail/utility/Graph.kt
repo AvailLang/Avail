@@ -585,11 +585,11 @@ class Graph<Vertex> constructor ()
 		assert(!isCyclic)
 		val safetyCheck = AtomicBoolean(false)
 		val workQueue = ArrayDeque<() -> Unit>()
-		val monitor = Object()
+		val monitor = Any()
 		val wrappedAction = { vertex: Vertex, doneOne: () -> Unit ->
 			synchronized(monitor) {
 				workQueue.add { visitAction(vertex, doneOne) }
-				monitor.notify()
+				monitor.javaNotify()
 			}
 		}
 		var allDoneFlag = false
@@ -600,7 +600,7 @@ class Graph<Vertex> constructor ()
 				assert(!old) { "Reached end of graph traversal twice" }
 				synchronized(monitor) {
 					allDoneFlag = true
-					monitor.notify()
+					monitor.javaNotify()
 				}
 			})
 		var isDone: Boolean
@@ -612,7 +612,7 @@ class Graph<Vertex> constructor ()
 					workQueue.remove()()
 				}
 				isDone = allDoneFlag
-				if (!isDone) monitor.wait()
+				if (!isDone) monitor.javaWait()
 			}
 			while (!isDone)
 		}

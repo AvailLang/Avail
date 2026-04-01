@@ -133,13 +133,13 @@ object P_ExitContinuationWithResultIf : Primitive(
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val (continuationReg, valueReg, conditionReg) = arguments
+		val (continuationRead, valueRead, conditionRead) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val manifest = currentManifest
 		val synonym =
-			manifest.semanticValueToSynonym(continuationReg.semanticValue())
+			manifest.semanticValueToSynonym(continuationRead.semanticValue())
 		val label = topFrame.label()
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
@@ -147,13 +147,9 @@ object P_ExitContinuationWithResultIf : Primitive(
 			// We're conditionally exiting the current frame.
 			val exit = createBasicBlock("Exit")
 			val noExit = createBasicBlock("Don't exit")
-			jumpIfEqualsConstant(
-				readBoxed(conditionReg.originalBoxedWriteSkippingMoves()),
-				trueObject,
-				exit,
-				noExit)
+			jumpIfEqualsConstant(conditionRead, trueObject, exit, noExit)
 			startBlock(exit)
-			+L2_RETURN(valueReg)
+			+L2_RETURN(valueRead)
 			startBlock(noExit)
 			if (currentlyReachable())
 			{

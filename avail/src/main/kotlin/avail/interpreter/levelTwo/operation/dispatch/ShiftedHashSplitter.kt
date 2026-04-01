@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2ValueManifest
 import avail.utility.cast
 
 /**
@@ -141,21 +142,21 @@ class ShiftedHashSplitter constructor(
 		read: L2ReadIntOperand
 	): L2ReadBoxedOperand?
 	{
-		val sourceInstructionOfMasked = read.definitionSkippingMoves()
+		val sourceInstructionOfMasked = read.definitionSkippingMoves(null)
 		if (sourceInstructionOfMasked.isBitLogicOperation(And))
 		{
 			return null
 		}
 		val sourceInstructionOfShifted = sourceInstructionOfMasked
 			.readOperands.first()  // value & mask
-			.definitionSkippingMoves()
+			.definitionSkippingMoves(null)
 		val sourceInstructionOfHash: L2Instruction = when
 		{
 			sourceInstructionOfShifted.isBitLogicOperation(Ushr) ->
 			{
 				sourceInstructionOfShifted
 					.readOperands.first() // value >>> shift
-					.definitionSkippingMoves()
+					.definitionSkippingMoves(null)
 			}
 			// No shift was needed in this case.
 			else -> sourceInstructionOfShifted
@@ -186,7 +187,8 @@ class ShiftedHashSplitter constructor(
 	 */
 	override fun populateEdgeManifests(
 		readInt: L2ReadIntOperand,
-		edges: List<L2PcOperand>)
+		edges: List<L2PcOperand>,
+		manifest: L2ValueManifest)
 	{
 		val active = activeInts.filterNotNull()
 		assert(edges.size == active.size)

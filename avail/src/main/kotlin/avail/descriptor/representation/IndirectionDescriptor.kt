@@ -3114,9 +3114,7 @@ class IndirectionDescriptor private constructor(
 		self { methodName }
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		//TODO Replace
-		//"IND" + mutability.suffix + "→" + (self { nameForDebugger() })
-		"IND" + mutability.suffix + "→(omitted)"
+		"IND" + mutability.suffix + "→" + (self { nameForDebugger() })
 
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
@@ -3692,8 +3690,7 @@ class IndirectionDescriptor private constructor(
 		field: A_Atom,
 		value: A_BasicObject,
 		canDestroy: Boolean
-	): A_BasicObject =
-		self { fieldAtPuttingCanDestroy(field, value, canDestroy) }
+	): AvailObject = self { fieldAtPuttingCanDestroy(field, value, canDestroy) }
 
 	override fun o_FieldTypeAt(
 		self: AvailObject, field: A_Atom

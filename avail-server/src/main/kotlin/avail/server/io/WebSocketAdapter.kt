@@ -143,7 +143,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			ThreadFactory {
 				Thread(it).apply {
 					isDaemon = true
-					name = "WebSocketAdapterTimer$id"
+					name = "WebSocketAdapterTimer${threadId()}"
 				}
 			})
 

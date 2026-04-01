@@ -49,16 +49,25 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
  *
  * @constructor
  *   Create a new [L2SemanticDummy].
+ * @param index
+ *   An [Int] that uniquely identifies this dummy semantic value in the graph.
+ * @param comment
+ *   An optional [String] describing the purpose of this dummy semantic value.
  */
 class L2SemanticDummy
 internal constructor(
-	val index: Int
+	val index: Int,
+	val comment: String? = null
 ) : L2SemanticBoxedValue(index.hashCode())
 {
 	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other === this
 
-	override fun toString(): String = "Dummy#$index"
+	override fun toString(): String = when (comment)
+	{
+		null -> "Dummy#$index"
+		else -> "Dummy#$index($comment)"
+	}
 
 	override fun transform(
 		semanticValueTransformer:

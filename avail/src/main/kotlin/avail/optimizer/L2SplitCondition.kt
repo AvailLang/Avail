@@ -57,7 +57,7 @@ import avail.utility.mapToSet
 /**
  * An [L2SplitCondition] is a predicate on an [L2ValueManifest] which would be
  * profitable to sustain through portions of the [L2ControlFlowGraph] by
- * duplication of some of the vertices.
+ * duplication of some vertices.
  *
  * Sets of these conditions are used by [L2Optimizer.doCodeSplitting] to control
  * how an [L2Regenerator] is to avoid prematurely merging control flow and
@@ -74,6 +74,14 @@ sealed class L2SplitCondition
 	 *   The current manifest used to check if the condition currently holds.
 	 */
 	abstract fun holdsFor(manifest: L2ValueManifest): Boolean
+
+	/**
+	 * Whether this condition should be excluded if it is already known to hold
+	 * after the instruction suggesting it, which is captured in the given
+	 * [L2ValueManifest].
+	 */
+	open fun excludeIfAlreadyHolds(manifest: L2ValueManifest): Boolean =
+		true
 
 	abstract override fun equals(other: Any?): Boolean
 
@@ -153,7 +161,7 @@ sealed class L2SplitCondition
 
 		override fun toString(): String = buildString {
 			append("Restrict: ")
-			append(requiredRestriction)
+			append(requiredRestriction.toString(isTag = false, bare = true))
 			append(" for ")
 			appendSemanticValues(semanticValues, false)
 		}.truncateTo(200)

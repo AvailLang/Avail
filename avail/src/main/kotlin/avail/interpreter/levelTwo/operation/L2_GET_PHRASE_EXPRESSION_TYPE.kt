@@ -32,12 +32,11 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.phrases.A_Phrase
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Given a phrase, extract its expression type.
@@ -61,13 +60,11 @@ class L2_GET_PHRASE_EXPRESSION_TYPE(
 		append(phrase)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: phrase.
-		translator.load(method, phrase)
-		A_Phrase.phraseExpressionTypeMethod.generateCall(method)
-		translator.store(method, expressionType.register())
+		load(phrase)
+		generateCall(A_Phrase.phraseExpressionTypeMethod)
+		store(expressionType.register())
 	}
 }

@@ -36,14 +36,13 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
-import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
 import avail.optimizer.L2ControlFlowGraph.StateFlag.HAS_ELIMINATED_PHIS
-import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_EDGE_SPLIT
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import avail.optimizer.annotations.Clears
 import avail.optimizer.annotations.Requires
@@ -80,14 +79,6 @@ internal enum class OptimizationPhase constructor(
 		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
 
 	/**
-	 * Transform into SSA edge-split form, to avoid inserting redundant
-	 * phi-moves.
-	 */
-	@Requires(IS_SSA::class)
-	@Sets(IS_EDGE_SPLIT::class)
-	BECOME_EDGE_SPLIT_SSA(L2Optimizer::transformToEdgeSplitSSA),
-
-	/**
 	 * Find places where control flow diverges due to a condition that was known
 	 * at some point earlier in the chain of phis leading to it.  Find all
 	 * vertices from the phi where control flow merged and the knowledge of the
@@ -103,18 +94,8 @@ internal enum class OptimizationPhase constructor(
 	 * take advantage of the stronger condition along that path... at the
 	 * expense of producing more code.
 	 */
-	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
-	@Clears(IS_EDGE_SPLIT::class)
-	DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
-
-	/**
-	 * Code splitting preserves SSA, but can lose the edge-split property.
-	 * Restore it by explicitly splitting the appropriate edges.
-	 */
 	@Requires(IS_SSA::class)
-	@Sets(IS_EDGE_SPLIT::class)
-	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING_1(
-		L2Optimizer::transformToEdgeSplitSSA),
+	DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -144,18 +125,8 @@ internal enum class OptimizationPhase constructor(
 	 * For example, variable elision can allow i32 values to stay in int
 	 * registers longer without needing to be boxed as often.
 	 */
-	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
-	@Clears(IS_EDGE_SPLIT::class)
-	DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
-
-	/**
-	 * Code splitting preserves SSA, but can lose the edge-split property.
-	 * Restore it by explicitly splitting the appropriate edges.
-	 */
 	@Requires(IS_SSA::class)
-	@Sets(IS_EDGE_SPLIT::class)
-	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING_2(
-		L2Optimizer::transformToEdgeSplitSSA),
+	DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the

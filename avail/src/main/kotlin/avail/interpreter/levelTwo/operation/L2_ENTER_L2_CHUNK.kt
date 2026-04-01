@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedLongAtMethod
 import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedObjectAtMethod
 import avail.descriptor.representation.AvailObject
@@ -49,7 +50,6 @@ import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -59,7 +59,10 @@ import org.objectweb.asm.Opcodes
  *
  * This instruction also occurs at places that a reified continuation can be
  * re-entered, such as returning into it, restarting it, or continuing it after
- * an interrupt has been handled.
+ * an interrupt has been handled.  In that case, the entry point is lookeed up
+ * during JVM code generation in the [JVMTranslator.entryPointLiveInfo], and any
+ * registers saved by the [L2_SAVE_ALL_AND_PC_TO_INT] into an [A_RegisterDump]
+ * will be restored in the generated JVM code.
  */
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
@@ -81,9 +84,7 @@ constructor(
 		renderPreamble()
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
@@ -91,9 +92,9 @@ constructor(
 			ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk)
 		{
 			// :: if (!checkValidity()) {
-			translator.loadInterpreter(method)
-			translator.intConstant(method, entryPointOffsetInDefaultChunk.value)
-			Interpreter.checkValidityMethod.generateCall(method)
+			loadInterpreter()
+			intConstant(entryPointOffsetInDefaultChunk.value)
+			generateCall(Interpreter.checkValidityMethod)
 			val isValidLabel = Label()
 			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
 			// ::    return null;
@@ -107,7 +108,7 @@ constructor(
 		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set
 		// up for us the lists of registers that were saved.  The interpreter
 		// should have extracted the registerDump for us already.
-		translator.entryPointLiveInfo[offset]?.let { localNumberLists ->
+		entryPointLiveInfo[offset]?.let { localNumberLists ->
 			val boxedList = localNumberLists[BOXED_KIND]!!
 			val intsList = localNumberLists[INTEGER_KIND]!!
 			val floatsList = localNumberLists[FLOAT_KIND]!!
@@ -118,9 +119,9 @@ constructor(
 			if (countdown > 0)
 			{
 				// Extract the register dump from the current continuation.
-				translator.loadInterpreter(method)
-				Interpreter.getReifiedContinuationMethod.generateCall(method)
-				AvailObject.registerDumpMethod.generateCall(method)
+				loadInterpreter()
+				generateCall(Interpreter.getReifiedContinuationMethod)
+				generateCall(AvailObject.registerDumpMethod)
 				// Stack now has the registerDump.
 				for (i in 0 until boxedCount)
 				{
@@ -129,10 +130,10 @@ constructor(
 						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i + 1) //one-based
-					extractDumpedObjectAtMethod.generateCall(method)
+					intConstant(i + 1) //one-based
+					generateCall(extractDumpedObjectAtMethod)
 					method.visitVarInsn(
-						BOXED_KIND.storeInstruction, boxedList[i])
+						BOXED_KIND.jvmStoreInstruction, boxedList[i])
 				}
 				var i = 1  //one-based
 				for (intRegisterIndex in intsList)
@@ -142,11 +143,11 @@ constructor(
 						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i++) //one-based
-					extractDumpedLongAtMethod.generateCall(method)
+					intConstant(i++) //one-based
+					generateCall(extractDumpedLongAtMethod)
 					method.visitInsn(Opcodes.L2I)
 					method.visitVarInsn(
-						INTEGER_KIND.storeInstruction, intRegisterIndex)
+						INTEGER_KIND.jvmStoreInstruction, intRegisterIndex)
 				}
 				for (floatRegisterIndex in floatsList)
 				{
@@ -155,19 +156,19 @@ constructor(
 						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i++) //one-based
-					extractDumpedLongAtMethod.generateCall(method)
-					bitCastLongToDoubleMethod.generateCall(method)
+					intConstant(i++) //one-based
+					generateCall(extractDumpedLongAtMethod)
+					generateCall(bitCastLongToDoubleMethod)
 					method.visitVarInsn(
-						FLOAT_KIND.storeInstruction, floatRegisterIndex)
+						FLOAT_KIND.jvmStoreInstruction, floatRegisterIndex)
 				}
 				assert(countdown == 0)
 				// The last copy of registerDumps was popped.
 			}
 
 			// :: interpreter.popContinuation();
-			translator.loadInterpreter(method)
-			Interpreter.popContinuationMethod.generateCall(method)
+			loadInterpreter()
+			generateCall(Interpreter.popContinuationMethod)
 		}
 	}
 }

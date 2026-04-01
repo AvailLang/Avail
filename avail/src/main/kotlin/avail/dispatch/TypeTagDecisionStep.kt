@@ -460,13 +460,19 @@ constructor(
 		// Generate a multi-way branch.
 		val splits = reducedSpans.drop(1).map(Span::low)
 		val semanticTag = L2SemanticExtractedTag(semanticSource).unboxedInt
-		if (!currentManifest.hasSemanticValue(semanticTag))
+		if (!currentManifest.hasLiveSemanticValue(semanticTag))
 		{
 			// Assume the base type is sufficient to limit the possible tag
 			// ordinals.
-			+L2_EXTRACT_TAG_ORDINAL(
-				readBoxed(semanticSource),
-				intWrite(setOf(semanticTag), ordinalRestriction))
+			val equivalentTag =
+				currentManifest.equivalentPopulatedSemanticValue(semanticTag)
+			when (equivalentTag)
+			{
+				null -> +L2_EXTRACT_TAG_ORDINAL(
+					readBoxed(semanticSource),
+					intWrite(setOf(semanticTag), ordinalRestriction))
+				else -> moveIntRegister(equivalentTag, setOf(semanticTag))
+			}
 		}
 		val edges = reducedSpans.map {
 				(givenLow, givenHigh, subtree, _, restriction) ->
@@ -507,7 +513,9 @@ constructor(
 		}
 		val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
 		splitter.run {
-			emitSplitterInstruction(currentManifest.readInt(semanticTag), edges)
+			emitSplitterInstruction(
+				readIntNoFail(semanticTag),
+				edges)
 		}
 		return reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
 			subtree?.let {

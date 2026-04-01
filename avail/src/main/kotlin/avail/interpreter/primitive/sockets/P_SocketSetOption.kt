@@ -98,6 +98,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 			{
 				Options.socketOptions[key.extractInt]?.let { option ->
 					val type = option.type()
+					@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 					if (type === java.lang.Boolean::class.java
 						&& value.isBoolean)
 					{

@@ -136,7 +136,11 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		val (functionTypeRead, _) = arguments
 		val (functionMeta, indexType) = argumentTypes
 
-		val functionTypeDefinition = functionTypeRead.definition().instruction
+		val functionTypeDefinition = currentManifest
+			.getDefinitionOrNull(functionTypeRead.semanticValue())
+			?.run { definition().instruction }
+			?: currentManifest.postponedInstructionFor(
+				functionTypeRead.semanticValue())
 		val exactIndex = indexType.lowerBound
 		if (!indexType.upperBound.equals(exactIndex)) return false
 		// The exact index is known.

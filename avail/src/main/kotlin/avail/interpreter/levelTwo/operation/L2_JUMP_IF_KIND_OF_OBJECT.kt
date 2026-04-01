@@ -31,10 +31,14 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.A_Number.Companion.isDoubleMethod
+import avail.descriptor.numbers.A_Number.Companion.isIntMethod
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -49,7 +53,7 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
+import avail.utility.notNullAnd
 import org.objectweb.asm.Opcodes
 
 /**
@@ -137,15 +141,55 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		// :: if (value.isInstanceOf(type)) goto isKind;
+		when
+		{
+			// See if this is just a test for the i32 range.  The type may have
+			// been narrowed, but if intersecting the value's restriction type
+			// with i32 yields the same as intersecting the value's restriction
+			// type with the test type, then there is no additional narrowing
+			// and we can use the isInt method (to avoid the more general and
+			// more expensive boundary tests).
+			type.constantOrNull.notNullAnd {
+				val valueType = value.restriction().type
+				isSubtypeOf(i32)
+					&& !isEnumeration
+					&& valueType.typeIntersection(this).equals(
+						valueType.typeIntersection(i32)) } ->
+			{
+				// :: (value.isInt)
+				load(value)
+				generateCall(isIntMethod)
+			}
+
+			// Same, but for doubles.
+			type.constantOrNull.notNullAnd {
+				isSubtypeOf(Types.DOUBLE())
+					&& !isEnumeration
+					&& equals(
+					value.restriction()
+						.intersectionWithType(Types.DOUBLE()).type) } ->
+			{
+				// :: (value.isDouble)
+				load(value)
+				generateCall(isDoubleMethod)
+			}
+
+			else ->
+			{
+				// :: (value.isInstanceOf(type))
+				load(value)
+				load(type)
+				generateCall(A_BasicObject.isInstanceOfMethod)
+			}
+		}
+		// :: if (...) goto isKind;
 		// :: else goto isNotKind;
-		translator.load(method, value)
-		translator.load(method, type)
-		A_BasicObject.isInstanceOfMethod.generateCall(method)
-		emitBranch(translator, method, this, Opcodes.IFNE, ifKind, ifNotKind)
+		emitBranch(
+			this@L2_JUMP_IF_KIND_OF_OBJECT,
+			Opcodes.IFNE,
+			ifKind,
+			ifNotKind)
 	}
 }

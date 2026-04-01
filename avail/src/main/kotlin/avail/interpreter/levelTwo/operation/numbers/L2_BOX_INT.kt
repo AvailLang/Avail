@@ -43,7 +43,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Box an [Int] into an [AvailObject].
@@ -81,13 +80,11 @@ class L2_BOX_INT(
 		tracer.continueTracing(source.register(), restriction.forUnboxedInt())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = IntegerDescriptor.fromInt(source);
-		translator.load(method, source)
-		fromIntMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(source)
+		generateCall(fromIntMethod)
+		store(destination.register())
 	}
 }

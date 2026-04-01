@@ -1244,6 +1244,7 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [extractInt].
 		 */
+		@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 		val extractIntStaticMethod = staticMethod(
 			A_Number::class.java,
 			::extractIntStatic.name,

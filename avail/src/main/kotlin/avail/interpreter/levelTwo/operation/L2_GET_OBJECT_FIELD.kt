@@ -46,7 +46,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the specified field of the object.
@@ -93,8 +92,8 @@ class L2_GET_OBJECT_FIELD(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val originalWrite = sourceObject.originalBoxedWriteSkippingMoves()
-		val originalWriteInstruction = originalWrite.instruction
+		val originalWriteInstruction =
+			sourceObject.definitionSkippingMoves(currentManifest)
 		if (originalWriteInstruction is L2_CREATE_OBJECT)
 		{
 			val variant = originalWriteInstruction.variant.constant
@@ -146,11 +145,9 @@ class L2_GET_OBJECT_FIELD(
 			L2WriteBoxedOperand(fieldValue.semanticValues(), fieldRestriction))
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.load(method, sourceObject)
+		load(sourceObject)
 		val variants = sourceObject.restriction().positiveGroup.objectVariants
 		val indices = variants
 			?.mapToSet { it.fieldToSlotIndex[fieldAtom.constant]!! }
@@ -158,14 +155,14 @@ class L2_GET_OBJECT_FIELD(
 		{
 			// The field index is the same for every variant possible at this
 			// point.  Get the field by index.
-			translator.intConstant(method, indices!!.single())
-			AvailObject.fieldAtIndexMethod.generateCall(method)
+			intConstant(indices!!.single())
+			generateCall(AvailObject.fieldAtIndexMethod)
 		}
 		else
 		{
-			translator.loadLiteralObject(method, fieldAtom.constant)
-			AvailObject.fieldAtMethod.generateCall(method)
+			loadLiteralObject(fieldAtom.constant)
+			generateCall(AvailObject.fieldAtMethod)
 		}
-		translator.store(method, fieldValue.register())
+		store(fieldValue.register())
 	}
 }

@@ -391,14 +391,16 @@ Private method "Private guard_intercept_ensure_" is
 			 * the L1 code will see what has been written as part of the
 			 * catch/unwind mechanism.
 			 */
-			shouldUnwind ::= guardVariable = 0;
+			previousValue ::= guardVariable;
+			shouldUnwind ::= previousValue = 0;
 			guardVariable :=
 				if shouldUnwind then [handlerSentinel]
-				else [guardVariable];
+				else [previousValue];
 			If shouldUnwind then unwind;
+			valueAfterUnwind ::= guardVariable;
 			guardVariable :=
 				if shouldUnwind then [unwindSentinel]
-				else [guardVariable];
+				else [valueAfterUnwind];
 		];
 ] : ⊤
 styled by nonlocal control styler;

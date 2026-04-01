@@ -202,7 +202,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				compareAndBranchInt(
 					NumericComparator.LessOrEqual,
 					readSubscript,
-					currentManifest.readInt(unboxedSemanticSize),
+					readIntNoFail(unboxedSemanticSize),
 					edgeTo(inBounds),
 					edgeTo(outOfBounds))
 				startBlock(inBounds)

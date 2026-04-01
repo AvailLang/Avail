@@ -43,7 +43,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
@@ -102,14 +101,12 @@ class L2_MOVE_OUTER_VARIABLE(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = function.outerVarAt(outerIndex);
-		translator.load(method, function)
-		translator.intConstant(method, outerIndex.value)
-		FunctionDescriptor.outerVarAtMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(function)
+		intConstant(outerIndex.value)
+		generateCall(FunctionDescriptor.outerVarAtMethod)
+		store(destination.register())
 	}
 }

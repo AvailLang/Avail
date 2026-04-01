@@ -51,7 +51,6 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.mapToSet
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Given an integer and a constant tuple of N distinct integers in ascending
@@ -117,7 +116,8 @@ constructor(
 		}
 		if (manifest.mode == BySemanticValue)
 		{
-			splitter.constant.populateEdgeManifests(value, branchEdges.edges)
+			splitter.constant.populateEdgeManifests(
+				value, branchEdges.edges, manifest)
 		}
 	}
 
@@ -144,16 +144,12 @@ constructor(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		val targetsToLabels = branchEdges.edges
 			.mapToSet(transform = L2PcOperand::targetBlock)
 			.associateWith { Label() }
 		translateRegionToJVM(
-			translator,
-			method,
 			0,
 			splitter.constant.splitPoints.size - 1,
 			value.restriction(),
@@ -166,10 +162,8 @@ constructor(
 	 * Here is where the decision is made whether to use a tablelookup
 	 * instruction or a tree of branches, or some combination.
 	 *
-	 * @param translator
+	 * @receiver
 	 *   The [JVMTranslator] on which to write the dispatch code.
-	 * @param method
-	 *   The [MethodVisitor] on which to write the dispatch code.
 	 * @param firstSplitIndex
 	 *   The zero-based index into the [List] of splitPoints of the first split
 	 *   value to be tested.
@@ -182,9 +176,7 @@ constructor(
 	 * @param targetsToLabels
 	 *   A [Map] from each outgoing edge's target block to a [Label].
 	 */
-	private fun translateRegionToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor,
+	private fun JVMTranslator.translateRegionToJVM(
 		firstSplitIndex: Int,
 		lastSplitIndex: Int,
 		restriction: TypeRestriction,
@@ -193,7 +185,7 @@ constructor(
 		assert(!restriction.isImpossible)
 		if (firstSplitIndex > lastSplitIndex)
 		{
-			translator.jump(method, branchEdges.edges[firstSplitIndex])
+			jump(branchEdges.edges[firstSplitIndex])
 			return
 		}
 		val splits = splitter.constant.splitPoints
@@ -215,12 +207,10 @@ constructor(
 			val medianIndex = (firstSplitIndex + lastSplitIndex) / 2
 			val medianValue = splits[medianIndex]
 			val greaterOrEqualLabel = Label()
-			translator.load(method, value)
-			translator.intConstant(method, medianValue)
+			load(value)
+			intConstant(medianValue)
 			method.visitJumpInsn(GreaterOrEqual.opcode, greaterOrEqualLabel)
 			translateRegionToJVM(
-				translator,
-				method,
 				firstSplitIndex,
 				medianIndex - 1,
 				restriction.intersectionWithType(
@@ -228,8 +218,6 @@ constructor(
 				targetsToLabels)
 			method.visitLabel(greaterOrEqualLabel)
 			translateRegionToJVM(
-				translator,
-				method,
 				medianIndex + 1,
 				lastSplitIndex,
 				restriction.intersectionWithType(
@@ -247,12 +235,12 @@ constructor(
 			// a value is possible *and* the first and last edges go somewhere
 			// different, precluding a trivial use of the default target of the
 			// tablelookup instruction.
-			translator.load(method, value)
-			translator.intConstant(method, splits[firstSplitIndex])
+			load(value)
+			intConstant(splits[firstSplitIndex])
 			val notTooLow = Label()
 			method.visitJumpInsn(GreaterOrEqual.opcode, notTooLow)
 			// At this point the value is left of the first split.
-			translator.jump(method, edges[firstSplitIndex])
+			jump(edges[firstSplitIndex])
 			method.visitLabel(notTooLow)
 		}
 		// At this point the value is at or after the first split.
@@ -268,7 +256,7 @@ constructor(
 			}
 		}
 		assert(labelTable.isNotEmpty())
-		translator.load(method, value)
+		load(value)
 		method.visitTableSwitchInsn(
 			splits[firstSplitIndex],
 			splits[lastSplitIndex] - 1,
@@ -276,7 +264,7 @@ constructor(
 			*labelTable.toTypedArray())
 		targetsToLabels.forEach { target, label ->
 			method.visitLabel(label)
-			translator.jump(method, target)
+			jump(target)
 		}
 	}
 }

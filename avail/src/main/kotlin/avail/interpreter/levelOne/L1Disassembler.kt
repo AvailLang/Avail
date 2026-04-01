@@ -488,7 +488,7 @@ class L1Disassembler constructor(
 				value.isBottom -> value to false
 				value.isInstanceOf(mostGeneralCompiledCodeType()) ->
 					value.methodName to true
-				value.isInstanceOf(mostGeneralFunctionType()) ->
+				value.isInstanceOf(mostGeneralFunctionType) ->
 					value.code().methodName to true
 				else -> null to true
 			}

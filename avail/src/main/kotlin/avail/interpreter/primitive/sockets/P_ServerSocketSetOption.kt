@@ -73,7 +73,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Suppress("unused")
+@Suppress("unused", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

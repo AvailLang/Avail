@@ -50,7 +50,6 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Jump to the target if int1 compares to int2 in the way requested by the
@@ -93,16 +92,16 @@ class L2_JUMP_IF_COMPARE_INT(
 		if (numericComparator.constant == NumericComparator.Equal)
 		{
 			// Along the <"=", ifTrue> branch, the values are now synonyms.
-			ifTrue.manifest().mergeExistingSemanticValues(
-				int1.semanticValue(),
-				int2.semanticValue())
+			ifTrue.manifest().agglomerateSynonym(
+				setOf(int1.semanticValue(), int2.semanticValue()),
+				int1.restriction().intersection(int2.restriction()))
 		}
 		else if (numericComparator.constant == NumericComparator.NotEqual)
 		{
 			// Along the <"≠", ifFalse> branch, the values are now synonyms.
-			ifFalse.manifest().mergeExistingSemanticValues(
-				int1.semanticValue(),
-				int2.semanticValue())
+			ifFalse.manifest().agglomerateSynonym(
+				setOf(int1.semanticValue(), int2.semanticValue()),
+				int1.restriction().intersection(int2.restriction()))
 		}
 	}
 
@@ -166,18 +165,14 @@ class L2_JUMP_IF_COMPARE_INT(
 			numericComparator.constant, int1, int2, ifTrue, ifFalse)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (int1 op int2) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, int1)
-		translator.load(method, int2)
+		load(int1)
+		load(int2)
 		emitBranch(
-			translator,
-			method,
-			this,
+			this@L2_JUMP_IF_COMPARE_INT,
 			numericComparator.constant.opcode,
 			ifTrue,
 			ifFalse)

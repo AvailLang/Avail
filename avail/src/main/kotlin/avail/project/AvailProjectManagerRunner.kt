@@ -35,12 +35,12 @@ package avail.project
 import avail.anvil.AvailWorkbench
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.setupEnvironment
+import avail.anvil.invokeAndWaitIfNecessary
 import avail.anvil.manager.AvailProjectManager
-import com.formdev.flatlaf.FlatDarculaLaf
-import com.formdev.flatlaf.util.SystemInfo
-import java.util.concurrent.Semaphore
+import org.pushingpixels.radiance.theming.api.RadianceThemingCortex.GlobalScope.setSkin
+import org.pushingpixels.radiance.theming.api.skin.NightShadeSkin
+import org.pushingpixels.radiance.theming.api.skin.SaharaSkin
 import javax.swing.UIManager
-import kotlin.concurrent.thread
 
 /**
  * A launcher of the [AvailProjectManager].
@@ -61,40 +61,47 @@ object AvailProjectManagerRunner
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-	// Do the slow Swing setup in parallel with other things...
-		val swingReady = Semaphore(0)
 		System.setProperty("apple.awt.application.name", "Anvil")
-		if (SystemInfo.isMacOS)
+		if (System.getProperty("os.name").startsWith("Mac"))
 		{
 			// enable screen menu bar
 			// (moves menu bar from JFrame window to top of screen)
 			System.setProperty("apple.laf.useScreenMenuBar", "true")
-			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Anvil")
-
-			// appearance of window title bars
-			// possible values:
-			//   - "system": use current macOS appearance (light or dark)
-			//   - "NSAppearanceNameAqua": use light appearance
-			//   - "NSAppearanceNameDarkAqua": use dark appearance
+			System.setProperty(
+				"com.apple.mrj.application.apple.menu.about.name", "Anvil")
 			System.setProperty("apple.awt.application.appearance", "system")
 		}
-		if (AvailWorkbench.darkMode)
-		{
-			thread(name = "Set up LAF") {
-				try
+
+		// Set up Radiance skin synchronously on EDT before any Swing components
+		invokeAndWaitIfNecessary {
+			try
+			{
+				val skin = when
 				{
-					FlatDarculaLaf.setup()
+					AvailWorkbench.darkMode -> NightShadeSkin()
+					else -> SaharaSkin()
 				}
-				catch (ex: Exception)
-				{
-					System.err.println("Failed to initialize LaF")
-				}
+				setSkin(skin)
 				UIManager.put("ScrollPane.smoothScrolling", false)
-				swingReady.release()
 			}
-			swingReady.acquire()
+			catch (ex: Exception)
+			{
+				System.err.println(
+					"Failed to initialize Look and Feel: ${ex.message}")
+				ex.printStackTrace()
+			}
 		}
+
 		setupEnvironment()
-		AvailProjectManager(GlobalEnvironmentSettings.getGlobalSettings())
+		invokeAndWaitIfNecessary {
+			try
+			{
+				AvailProjectManager(GlobalEnvironmentSettings.getGlobalSettings())
+			}
+			catch (e: Exception)
+			{
+				e.printStackTrace()
+			}
+		}
 	}
 }

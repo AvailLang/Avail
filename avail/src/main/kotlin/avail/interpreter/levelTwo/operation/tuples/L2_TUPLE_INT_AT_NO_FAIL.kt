@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract an [i32] at a subscript from a [tuple][TupleDescriptor] that is known
@@ -72,14 +71,12 @@ class L2_TUPLE_INT_AT_NO_FAIL(
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
 		get() = emptyList()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = tuple.tupleAt(subscript);
-		translator.load(method, tuple)
-		translator.load(method, subscript)
-		TupleDescriptor.tupleIntAtMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(tuple)
+		load(subscript)
+		generateCall(TupleDescriptor.tupleIntAtMethod)
+		store(destination.register())
 	}
 }

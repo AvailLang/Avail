@@ -199,7 +199,7 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 		functionType(
 			tuple(
 				stringType,
-				zeroOrMoreOf(mostGeneralFunctionType()),
+				zeroOrMoreOf(mostGeneralFunctionType),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType),
 				zeroOrOneOf(stylerFunctionType)),
 			TOP())

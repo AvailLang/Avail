@@ -37,11 +37,9 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract an element at a subscript from a [tuple][TupleDescriptor] that
@@ -107,14 +105,12 @@ class L2_TUPLE_AT_NO_FAIL(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = tuple.tupleAt(subscript);
-		translator.load(method, tuple)
-		translator.load(method, subscript)
-		TupleDescriptor.tupleAtMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(tuple)
+		load(subscript)
+		generateCall(TupleDescriptor.tupleAtMethod)
+		store(destination.register())
 	}
 }

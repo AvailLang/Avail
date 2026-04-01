@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the value of a [variable] into [extractedValue], jumping to
@@ -86,16 +85,14 @@ class L2_GET_VARIABLE(
 		else super.propagateMutability(firstUses, mutables)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		GetClearMode.NeverClear.translateJvmVariableRead(
-			method,
-			translator,
-			variable = variable,
-			extractedValue = extractedValue,
-			ifReadSucceeded = ifReadSucceeded,
-			ifReadFailed = ifReadFailed)
+		GetClearMode.NeverClear.run {
+			translateJvmVariableRead(
+				variable = variable,
+				extractedValue = extractedValue,
+				ifReadSucceeded = ifReadSucceeded,
+				ifReadFailed = ifReadFailed)
+		}
 	}
 }

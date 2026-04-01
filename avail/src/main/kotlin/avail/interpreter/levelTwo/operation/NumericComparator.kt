@@ -42,9 +42,9 @@ import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -263,11 +263,11 @@ enum class NumericComparator(
 				ifFalse)
 			return
 		}
-		if (!restriction1.containedByType(integers)
-			|| !restriction2.containedByType(integers))
+		if (!restriction1.containedByType(extendedIntegers)
+			|| !restriction2.containedByType(extendedIntegers))
 		{
-			// They're not just integers, so don't bother doing a range
-			// analysis.  With concerns like infinities, NaNs, and mixing
+			// They're not just extended integers, so don't bother doing a range
+			// analysis.  With concerns like float infinities, NaNs, and mixing
 			// numeric kinds, it would be too tricky anyhow.  Plus, only the
 			// integers have range types.
 			+L2_JUMP_IF_COMPARE_BOXED(

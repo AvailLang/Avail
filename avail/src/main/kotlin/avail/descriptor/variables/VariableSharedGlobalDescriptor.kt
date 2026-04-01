@@ -141,6 +141,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		/**
 		 * The [contents][AvailObject] of the [variable][VariableDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		VALUE,
 
 		/**

@@ -36,7 +36,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the sole instance, itself a type, of the specified metatype.
@@ -49,12 +48,10 @@ class L2_INSTANCE_OF_META(
 	var instanceOfMeta: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.load(method, meta)
-		instanceOfMetaMethod.generateCall(method)
-		translator.store(method, instanceOfMeta.register())
+		load(meta)
+		generateCall(instanceOfMetaMethod)
+		store(instanceOfMeta.register())
 	}
 }

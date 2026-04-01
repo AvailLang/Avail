@@ -58,7 +58,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.characterRes
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Given an [Int] representing a codepoint, produce the corresponding
@@ -170,17 +169,15 @@ class L2_CODEPOINT_TO_CHARACTER(
 		tracer.continueTracing(source.register(), restriction.forUnboxedInt())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = CharacterDescriptor.fromCodePoint(source);
-		translator.load(method, source)
+		load(source)
 		when (source.type().isSubtypeOf(u8))
 		{
-			true -> staticFromByteCodePointMethod.generateCall(method)
-			else -> staticFromCodePointMethod.generateCall(method)
+			true -> generateCall(staticFromByteCodePointMethod)
+			else -> generateCall(staticFromCodePointMethod)
 		}
-		translator.store(method, destination.register())
+		store(destination.register())
 	}
 }

@@ -53,6 +53,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.test.ArithmeticTest.Companion.baseOffsetsForShifting
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
@@ -63,6 +64,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.support.ParameterDeclarations
 import java.math.BigInteger
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -181,13 +183,15 @@ class ArithmeticTest
 	}
 
 	/**
-	 * Test helper for producing the Cartesian product of sample
-	 * [BigInteger]s to add and subtract pairwise.
+	 * Test helper for producing the Cartesian product of sample [BigInteger]s
+	 * to add and subtract pairwise.
 	 */
 	class BigIntegerPairs : ArgumentsProvider
 	{
 		override fun provideArguments(
-			context: ExtensionContext): Stream<out Arguments>
+			parameters: ParameterDeclarations,
+			context: ExtensionContext
+		): Stream<out Arguments>
 		{
 			return additionAndSubtractionCases.stream()
 				.flatMap { v1: BigInteger? ->

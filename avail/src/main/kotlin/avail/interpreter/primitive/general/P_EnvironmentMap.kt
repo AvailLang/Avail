@@ -90,7 +90,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 					stringFrom(value),
 					true)
 			}
-			environmentMap = SoftReference(result!!.makeShared())
+			environmentMap = SoftReference(result.makeShared())
 		}
 		return result
 	}

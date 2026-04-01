@@ -73,6 +73,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnionOfTupleType
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
@@ -82,6 +83,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
@@ -159,117 +161,90 @@ private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Unit>,
-		indent: Int)
+		indent: Int
+	): Unit = with(builder)
 	{
-		if (self[TYPE_TUPLE].tupleSize == 0)
+		val leadingTypes = self[TYPE_TUPLE]
+		val defaultType = self[DEFAULT_TYPE]
+		val range = self[SIZE_RANGE]
+		if (leadingTypes.tupleSize == 0)
 		{
-			// There are no leading types.
-			when (self[SIZE_RANGE])
+			// There are no leading types (the tuple type is homogenous).
+			if (range == wholeNumbers)
 			{
-				wholeNumbers ->
+				if (defaultType == ANY())
 				{
-					if (self[DEFAULT_TYPE].equals(ANY()))
-					{
-						builder.append("tuple")
-						return
-					}
-					if (self[DEFAULT_TYPE].equals(CHARACTER()))
-					{
-						builder.append("string")
-						return
-					}
-					// Okay, it's homogeneous and of arbitrary size…
-					builder.brief {
-						self.defaultType.printOnAvoidingIndent(
-							this,
-							recursionMap,
-							indent + 1
-						)
-						append("*")
-					}
+					append("tuple")
 					return
 				}
-				naturalNumbers ->
+				if (defaultType == CHARACTER())
 				{
-					// Okay, it's homogeneous and nonempty…
-					builder.run {
-						self.defaultType.printOnAvoidingIndent(
-							this,
-							recursionMap,
-							indent + 1
-						)
-						append("+")
-					}
+					append("string")
 					return
 				}
-				u1 ->
-				{
-					// It's an optional.
-					builder.run {
-						self.defaultType.printOnAvoidingIndent(
-							this,
-							recursionMap,
-							indent + 1
-						)
-						append("?")
-					}
-					return
-				}
+			}
+			// Add more cases to improve clarity, or at some point generalize it
+			// so each type can say whether it needs parens when used this way.
+			val parens = when
+			{
+				defaultType.isBottom -> false
+				defaultType.isSubtypeOf(mostGeneralFunctionType) -> true
+				defaultType.isSubtypeOf(PARSE_PHRASE.mostGeneralType) -> true
+				else -> false
+			}
+			if (parens) append("(")
+			brief {
+				defaultType.printOnAvoidingIndent(
+					this,
+					recursionMap,
+					indent + 1)
+			}
+			if (parens) append(")")
+			when (range)
+			{
+				wholeNumbers -> append("*")
+				naturalNumbers -> append("+")
+				u1 -> append("?")
 				else ->
 				{
-					builder.run {
-						self.defaultType.printOnAvoidingIndent(
-							this,
-							recursionMap,
-							indent + 1
-						)
-						append("^")
-						self.sizeRange.printOnAvoidingIndent(
-							this,
-							recursionMap,
-							indent + 1
-						)
-					}
-					return
+					append("^")
+					range.printOnAvoidingIndent(
+						this,
+						recursionMap,
+						indent + 1)
 				}
 			}
+			return
 		}
 		// Handle the complex case.
-		builder.run {
-			append('<')
-			val end = self[TYPE_TUPLE].tupleSize
-			for (i in 1 .. end)
-			{
-				self.typeAtIndex(i).printOnAvoidingIndent(
-					this,
-					recursionMap,
-					indent + 1
-				)
-				append(", ")
-			}
-			self[DEFAULT_TYPE].printOnAvoidingIndent(
+		append('<')
+		val end = leadingTypes.tupleSize
+		for (i in 1 .. end)
+		{
+			self.typeAtIndex(i).printOnAvoidingIndent(
 				this,
 				recursionMap,
-				indent + 1
-			)
-			append("…|")
-			val sizeRange: A_Type = self[SIZE_RANGE]
-			sizeRange.lowerBound.printOnAvoidingIndent(
-				this,
-				recursionMap,
-				indent + 1
-			)
-			if (!sizeRange.lowerBound.equals(sizeRange.upperBound))
-			{
-				append("..")
-				sizeRange.upperBound.printOnAvoidingIndent(
-					this,
-					recursionMap,
-					indent + 1
-				)
-			}
-			append('>')
+				indent + 1)
+			append(", ")
 		}
+		defaultType.printOnAvoidingIndent(
+			this,
+			recursionMap,
+			indent + 1)
+		append("…|")
+		range.lowerBound.printOnAvoidingIndent(
+			this,
+			recursionMap,
+			indent + 1)
+		if (!range.lowerBound.equals(range.upperBound))
+		{
+			append("..")
+			range.upperBound.printOnAvoidingIndent(
+				this,
+				recursionMap,
+				indent + 1)
+		}
+		append('>')
 	}
 
 	override fun o_DefaultType(self: AvailObject): A_Type =

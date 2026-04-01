@@ -196,9 +196,10 @@ private constructor(
 					break
 				}
 			}
-			if (isShared)
+			cached = when
 			{
-				cached = cached.traversed().makeShared()
+				isShared -> cached.traversed().makeShared()
+				else -> cached.traversed().makeImmutable()
 			}
 			self[CACHED_SUPERKIND] = cached
 		}

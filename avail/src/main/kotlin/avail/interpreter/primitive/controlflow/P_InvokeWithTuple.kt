@@ -120,7 +120,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralFunctionType(),
+				mostGeneralFunctionType,
 				mostGeneralTupleType),
 			TOP())
 
@@ -241,10 +241,10 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val (functionReg, tupleReg) = arguments
+		val (functionRead, tupleRead) = arguments
 
 		// Examine the function type.
-		val functionType = functionReg.type()
+		val functionType = functionRead.type()
 		val functionArgsType = functionType.argsTupleType
 		val functionTypeSizes = functionArgsType.sizeRange
 		val upperBound = functionTypeSizes.upperBound
@@ -258,13 +258,13 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 
 		// Note: Uses any as each type, since we're going to do strengthening
 		// checks ourselves, below.
-		val explodedArgumentRegisters =
+		val explodedArgumentReads =
 			explodeTupleIfPossible(
-				tupleReg,
+				tupleRead,
 				nCopies(argsSize, Types.ANY()))
 
 		// Fall back if we couldn't even pin down the argument count.
-		explodedArgumentRegisters ?: return false
+		explodedArgumentReads ?: return false
 		val functionArgTypes = functionArgsType.tupleOfTypesFromTo(1, argsSize)
 
 		// Fall back if the count will always be wrong.
@@ -274,9 +274,9 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			isCold = true)
 		for (i in 1 .. argsSize)
 		{
-			val argReg = explodedArgumentRegisters[i - 1]
+			val argReg = explodedArgumentReads[i - 1]
 			val argType = argReg.type()
-			val exactTypeReg = extractParameterTypeFromFunction(functionReg, i)
+			val exactTypeReg = extractParameterTypeFromFunction(functionRead, i)
 			val constantExactArgType = exactTypeReg.constantOrNull
 			if (constantExactArgType === null
 				|| !argType.isSubtypeOf(constantExactArgType))
@@ -310,10 +310,10 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
 		generateGeneralFunctionInvocation(
-			functionReg,
+			functionRead,
 			true,
 			callSiteHelper,
-			explodedArgumentRegisters)
+			explodedArgumentReads)
 
 		startBlock(failurePath)
 		// At least one argument disagreed with the required type, so call the

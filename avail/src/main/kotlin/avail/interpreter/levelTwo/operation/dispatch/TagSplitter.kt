@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2ValueManifest
 import kotlin.math.max
 import kotlin.math.min
 
@@ -89,7 +90,7 @@ class TagSplitter(
 		edges: List<L2PcOperand>
 	): List<L2SplitCondition?> = buildList {
 		addAll(super.interestingConditions(read, edges))
-		val sourceInstructionOfInt = read.definitionSkippingMoves()
+		val sourceInstructionOfInt = read.definitionSkippingMoves(null)
 		if (sourceInstructionOfInt is L2_EXTRACT_TAG_ORDINAL)
 		{
 			val originalSource = sourceInstructionOfInt.value
@@ -144,7 +145,8 @@ class TagSplitter(
 	 */
 	override fun populateEdgeManifests(
 		readInt: L2ReadIntOperand,
-		edges: List<L2PcOperand>)
+		edges: List<L2PcOperand>,
+		manifest: L2ValueManifest)
 	{
 		val intValue = readInt.semanticValue()
 		val bottomOrdinal = BOTTOM_TYPE_TAG.ordinal

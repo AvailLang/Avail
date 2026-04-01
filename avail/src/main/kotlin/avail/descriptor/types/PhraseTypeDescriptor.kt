@@ -201,7 +201,7 @@ open class PhraseTypeDescriptor protected constructor(
 			TypeTag.BLOCK_PHRASE_TAG)
 		{
 			override fun produceMostGeneralYieldType(): A_Type =
-				mostGeneralFunctionType()
+				mostGeneralFunctionType
 		},
 
 		/**

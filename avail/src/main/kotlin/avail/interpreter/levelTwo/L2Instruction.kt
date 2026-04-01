@@ -50,7 +50,10 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
@@ -59,16 +62,19 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer
-import avail.optimizer.L2Optimizer.Companion.shouldSanityCheck
+import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -78,7 +84,6 @@ import avail.utility.PublicCloneable
 import avail.utility.Strings.increaseIndentation
 import avail.utility.cast
 import avail.utility.mapToSet
-import org.objectweb.asm.MethodVisitor
 import javax.annotation.CheckReturnValue
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
@@ -106,8 +111,8 @@ constructor() :
 	 * instruction in a generic way.  The layouts are placed in a cache as they
 	 * are created, to minimize the reflection cost.
 	 */
-	val layout: InstructionLayout<out L2Instruction> =
-		InstructionLayout.layoutForClass(this::class)!!
+	val layout: InstructionLayout<*> =
+		InstructionLayout.layoutForClass(this::class.cast())!!
 
 	/**
 	 * The [L2BasicBlock] to which the instruction belongs.  This only gets set
@@ -145,7 +150,7 @@ constructor() :
 			basicBlock = null
 			sourceRegisters = mutableListOf()
 			destinationRegisters = mutableListOf()
-			layout.updateOperands(this@apply, L2Operand::clone)
+			layout.updateOperands(this, L2Operand::clone)
 		}
 
 	/**
@@ -346,13 +351,28 @@ constructor() :
 	 */
 	open val hasSideEffect get() = false
 
+	open val canBePostponed: Boolean
+		get() = !hasSideEffect && layout.hasSingleWriteOperand
+
+	/**
+	 * Answer whether, upon discovering all edges out of this instruction but
+	 * one have become impossible, the instruction may be replaced with a simple
+	 * [L2_JUMP] along  the remaining edge.
+	 */
+	open fun canReduceToJumpIfOnePathRemains(): Boolean = false
+
 	/**
 	 * Check whether this instruction could cause any previously escaped
 	 * variables to become shared or to have a reactor installed.  Assume most
 	 * instructions can't do this, and override for instructions that can, like
 	 * invocations of general functions, or of primitives that say they can.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] in which to trace postponed instructions.
 	 */
-	open fun mightMakeEscapedVariableShared(): Boolean = false
+	open fun mightMakeEscapedVariableShared(
+		manifest: L2ValueManifest
+	): Boolean = false
 
 	/**
 	 * Answer whether this instruction produces any JVM code.  Examples of
@@ -382,39 +402,43 @@ constructor() :
 	 * produced or passed along by this instruction.  Answer `null` if it cannot
 	 * be determined statically.
 	 *
+	 * @param
+	 *   The [L2ValueManifest] in which to trace postponed instructions.
 	 * @return
 	 *   The constant [A_RawFunction] extracted from the instruction, or `null`
 	 *   if unknown.
 	 */
-	open val constantCode: A_RawFunction? get() = null
+	open fun getConstantCode(manifest: L2ValueManifest): A_RawFunction? = null
 
 	/**
-	 * Produce code to extract the specified [index] of the [tupleRead], writing
-	 * it to the [destinationSemanticValues].
+	 * Produce code to extract the specified [index] of the tuple constructed by
+	 * this instruction, writing it to the [destinationSemanticValues].
 	 *
-	 * @param tupleRead
-	 *   The [L2ReadBoxedOperand] holding the tuple.
+	 * @param synonym
+	 *   The [L2Synonym] that either will be or has been (perhaps partially)
+	 *   populated by this instruction.
 	 * @param index
 	 *   The one-based index of the tuple element to extract.
 	 * @param destinationSemanticValues
 	 *   The [L2SemanticBoxedValue]s that will containing the element.
-	 * @param generator
+	 * @param this@extractTupleElement
 	 *   The [L2Generator] on which to write code to extract the tuple element,
 	 *   if necessary.
 	 */
-	open fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	open fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator
-	) = generator.run {
+		destinationSemanticValues: Set<L2SemanticBoxedValue>
+	): Unit =
 		+L2_TUPLE_AT_CONSTANT(
-			tupleRead,
+			readBoxed(synonym.pickSemanticValue()),
 			L2IntImmediateOperand(index),
 			boxedWrite(
 				destinationSemanticValues,
-				boxedRestrictionForType(tupleRead.type().typeAtIndex(index))))
-	}
+				boxedRestrictionForType(
+					currentManifest.restrictionFor(synonym.pickSemanticValue())
+						.type
+						.typeAtIndex(index))))
 
 	/**
 	 * Emit code to extract the specified outer value from the function produced
@@ -519,7 +543,7 @@ constructor() :
 	 */
 	fun canCommuteWith(another: L2Instruction): Boolean = when
 	{
-		hasSideEffect && another.hasSideEffect -> false
+		!canBePostponed && !another.canBePostponed -> false
 		destinationRegisters.intersect(another.sourceRegisters).isNotEmpty() ->
 			false
 		another is L2_SAVE_ALL_AND_PC_TO_INT
@@ -536,6 +560,62 @@ constructor() :
 	}
 
 	/**
+	 * This instruction is about to be passed to cloneFor(), and the result
+	 * added at the current position in the [generator].  Force any postponed
+	 * instructions to be written if they produce values consumed by this
+	 * instruction's reads.
+	 *
+	 * @return
+	 *   Whether the instruction should actually be emitted.
+	 */
+	open fun aboutToAdd(generator: L2GeneratorInterface): Boolean
+	{
+		if (!generator.currentManifest.caresAboutSemanticValues)
+		{
+			return true
+		}
+
+		// We're going to emit the instructioon, so ensure that all values it
+		// consumes have been made available.
+		readOperands.forEach { generator.populateForRead(it) }
+
+		writeOperands.singleOrNull()?.let { write ->
+			// Intercept instruction emission to see if we can replace it with a
+			// move from a populated equivalent semantic value.
+			val manifest = generator.currentManifest
+			val targets = write.semanticValues()
+			val (sources, allTargets) = targets
+				.mapNotNull {
+					manifest.equivalentPopulatedSemanticValue(it)
+				}
+				.plus(targets)
+				.partition(manifest::hasLiveSemanticValue)
+			if (allTargets.isEmpty())
+			{
+				// All targets are already populated.  Emit nothing.
+				return false
+			}
+			if (sources.isNotEmpty()
+				&& (this !is L2_MOVE<*> || allTargets.size > targets.size))
+			{
+				// We have a defined source and at least one notDefined target.
+				// Emit a move.
+				val source = sources.first()
+				val restriction = manifest.restrictionFor(source)
+					.intersection(write.restriction())
+				val move = source.kind.dynamicMove(
+					source,
+					allTargets.toSet(),
+					manifest,
+					restriction)
+				generator.addInstruction(move)
+				return false
+			}
+		}
+		return true
+	}
+
+	/**
 	 * This instruction was just added to its [L2BasicBlock].
 	 *
 	 * @param manifest
@@ -544,7 +624,6 @@ constructor() :
 	 */
 	fun justAdded(manifest: L2ValueManifest)
 	{
-		val debugManifestCopy = L2ValueManifest(manifest) //TODO Remove
 		if (isEntryPoint)
 		{
 			assert(
@@ -601,33 +680,41 @@ constructor() :
 		}
 		// All manifests have now been updated, including propagation for
 		// related semantic values.  Narrow the restrictions for my reads and
-		// writes.
-		val allManifests = manifestByPurpose.values + manifest
-		readOperands.forEach { read ->
-			// The outbound edges may vary in how they've deduced a stronger
-			// restriction for the semantic value being read here, so only
-			// strengthen the read up to the *union* of what the manifests have
-			// recorded.
-			val union = allManifests
-				.map { it.restrictionFor(read) }
-				.reduce(TypeRestriction::union)
-			read.restrict { union }
-		}
-		writesAndPurposesDo { write, purpose ->
-			if (purpose == null)
-			{
-				val intersection = allManifests
-					.map { it.restrictionFor(write.pickSemanticValue()) }
-					.reduce(TypeRestriction::intersection)
-				write.restrict { intersection }
+		// writes.  Phi instructions are excluded: their read operands each
+		// belong to a specific incoming edge's manifest (not the merged
+		// currentManifest), and their write restriction was already set
+		// correctly by populateOneSynonym as the union of incoming restrictions.
+		// Using the (stale, pre-merge) currentManifest here would incorrectly
+		// intersect those restrictions down to bottom.
+		if (this !is L2_PHI<*>)
+		{
+			val allManifests = manifestByPurpose.values + manifest
+			readOperands.forEach { read ->
+				// The outbound edges may vary in how they've deduced a stronger
+				// restriction for the semantic value being read here, so only
+				// strengthen the read up to the *union* of what the manifests
+				// have recorded.
+				val union = allManifests
+					.map { it.restrictionFor(read) }
+					.reduce(TypeRestriction::union)
+				read.restrict { union }
 			}
-			else
-			{
-				// The write is associated with only one edge, so use the
-				// manifest that was just updated on that edge.
-				write.restrict {
-					manifestByPurpose[purpose]!!
-						.restrictionFor(write.pickSemanticValue())
+			writesAndPurposesDo { write, purpose ->
+				if (purpose == null)
+				{
+					val intersection = allManifests
+						.map { it.restrictionFor(write.pickSemanticValue()) }
+						.reduce(TypeRestriction::intersection)
+					write.restrict { intersection }
+				}
+				else
+				{
+					// The write is associated with only one edge, so use the
+					// manifest that was just updated on that edge.
+					write.restrict {
+						manifestByPurpose[purpose]!!
+							.restrictionFor(write.pickSemanticValue())
+					}
 				}
 			}
 		}
@@ -695,7 +782,6 @@ constructor() :
 				}
 			}
 		}
-		manifest.check() //TODO Remove
 	}
 
 	/**
@@ -781,27 +867,50 @@ constructor() :
 	 * names and other information shared by instances of the same instruction
 	 * subclass.
 	 */
-	override fun toString() = toString(false)
+	override fun toString() = toString(false, false)
 
 	/**
 	 * Print the instruction, using the layout's operandFields for the operand
 	 * names and other information shared by instances of the same instruction
 	 * subclass.
+	 *
+	 * @param ignoreMisconnections
+	 *   If true, don't bring attention to the lack of backlink to the
+	 *   instruction, as that's normal for a postponed instruction.
+	 * @param omitEmptyWrite
+	 *   If true, *omit* writes to an empty set of semantic values, which is
+	 *   normal for a postponed instruction.
 	 */
-	fun toString(ignoreMisconnections: Boolean) = buildString {
+	fun toString(
+		ignoreMisconnections: Boolean,
+		omitEmptyWrite: Boolean
+	) = buildString {
 		val instruction = this@L2Instruction
-		append("${instruction.name}:\n\t")
 		var pairs = mutableListOf<Pair<String, L2Operand>>()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
-			if (!namedOperandType.hideInAllVisualizations)
+			if (!namedOperandType.hideInAllVisualizations
+				&& (operand !is L2WriteOperand<*>
+					|| !omitEmptyWrite
+					|| operand.semanticValues().isNotEmpty()))
 			{
 				pairs.add(namedOperandType.name to operand)
 			}
 		}
-		pairs.joinTo(this, ",\n\t") { (name, operand) ->
+		if (pairs.size == 1)
+		{
+			val (name, operand) = pairs.single()
 			val operandString =
 				increaseIndentation(operand.toString(ignoreMisconnections), 2)
-			"$name = $operandString"
+			append("${instruction.name}: $name = $operandString")
+		}
+		else
+		{
+			append("${instruction.name}:\n\t")
+			pairs.joinTo(this, ",\n\t") { (name, operand) ->
+				val operandString =
+					increaseIndentation(operand.toString(ignoreMisconnections), 2)
+				"$name = $operandString"
+			}
 		}
 	}
 
@@ -885,9 +994,62 @@ constructor() :
 		regenerator: L2Regenerator
 	): L2Instruction
 	{
-		val clone = clone()
-		layout.updateOperands(clone, regenerator::transformOperand)
-		return clone
+		val manifest = regenerator.currentManifest
+		if (readOperands.any { manifest.restrictionFor(it).isImpossible }
+			|| writeOperands.any { manifest.restrictionFor(it).isImpossible })
+		{
+			return L2_IMPOSSIBLE_CODE()
+		}
+		if (regenerator.mode is WithFixedRegisterMap
+			|| !altersControlFlow
+			|| this is L2_SAVE_ALL_AND_PC_TO_INT)
+		{
+			return clone().also { clone ->
+				layout.updateOperands(clone, regenerator::transformOperand)
+			}
+		}
+		// See if all but one path was deemed impossible in a previous pass.
+		// Note that this isn't appropriaate for L2_JUMP_IF_UNBOX_INT, since the
+		// in-range path still has to do the unboxing anyhow, so it overrides
+		// this method.
+		val (impossible, possible) =
+			targetEdges.partition { originalEdge ->
+				originalEdge.targetBlock().instructions().last() is
+					L2_IMPOSSIBLE_CODE
+			}
+		if (impossible.isNotEmpty())
+		{
+			when (possible.size)
+			{
+				// All paths are impossible, and none are possible. Rewrite as
+				// an impossible instruction.
+				0 -> return L2_IMPOSSIBLE_CODE()
+				// At least one edge is impossible, but there's only one that's
+				// still possible, so rewrite it as a jump.
+				1 if canReduceToJumpIfOnePathRemains() ->
+				{
+					return L2_JUMP(possible.single())
+						.transformedByRegenerator(regenerator)
+				}
+			}
+		}
+		readOperands.forEach { read ->
+			if (manifest.restrictionFor(read).isImpossible)
+			{
+				// Even though we're attempting to generate this instruction, a
+				// condition exists in the ancestry that makes the instruction
+				// unreachable, even though branches leading to the current
+				// block didn't detect it.  Just write an L2_IMPOSSIBLE_CODE
+				// instruction instead, and hope it really isn't hiding a bug,
+				// since it shouldn't be executed at runtime.  This instruction
+				// will propagate backward in a later pass, eventually
+				// eliminating the arm of the branch instruction that led to it.
+				return L2_IMPOSSIBLE_CODE()
+			}
+		}
+		return clone().also { clone ->
+			layout.updateOperands(clone, regenerator::transformOperand)
+		}
 	}
 
 	/**
@@ -931,63 +1093,20 @@ constructor() :
 	}
 
 	/**
-	 * This intsruction, adapted from a previous control flow graph, was
-	 * encountered during postponement optimization.  Depending on the kind of
-	 * instruction, either emit it to the regenerator, record it as a postponed
-	 * instruction, or do something else like writing an arbitrary
-	 * transformation.
+	 * After transformation, analyze and optionally rewrite this instruction.
+	 * Read operands have already been strengthened via manifest intersection.
 	 *
-	 * @receiver
-	 *   The [L2Regenerator] on which to write the effect.
+	 * The typical pattern:
+	 * 1. Strengthen write restrictions based on read restrictions,
+	 * 2. Check for constant folding opportunities,
+	 * 3. Return replacement instruction or this.
+	 *
+	 * @return
+	 *   The instruction to emit, or null if it already handled emission.
 	 */
-	open fun L2Regenerator.regenerateForPostponement()
+	open fun L2GeneratorInterface.analyzeAndOptionallyRewrite(): L2Instruction?
 	{
-		basicRegenerateForPostponement()
-	}
-
-	/**
-	 * The default implementation of [regenerateForPostponement], since super is
-	 * not possible for Kotlin methods taking an extra receiver.
-	 */
-	fun L2Regenerator.basicRegenerateForPostponement()
-	{
-		if (hasSideEffect)
-		{
-			// Emit the translation right now.
-			forcePostponedTranslationNow()
-			return
-		}
-		if (targetEdges.size > 1 &&
-			destinationRegisters.all { writeReg ->
-				targetEdges.all { edge ->
-					writeReg in edge.alwaysLiveInEntities!!
-				}
-			})
-		{
-			// We're going to branch soon, but the result will be needed always
-			// along all the successor edges.  While we *could* postpone the
-			// instruction, we choose not to, since the increase of register
-			// pressure is minor compared to the cost of the duplicated code.
-			forcePostponedTranslationNow()
-			return
-		}
-		// Emit a constant move for each constant output, then postpone the
-		// instruction if any outputs were non-constant.
-		var anyNonconstant = false
-		for (write in writeOperands)
-		{
-			val constant = write.restriction().constantOrNull
-			when (constant)
-			{
-				null -> anyNonconstant = true
-				else -> write.moveConstantForWrite(constant, this)
-			}
-		}
-		if (anyNonconstant)
-		{
-			// At least one output was non-constant.  Postpone the instruction.
-			currentManifest.recordPostponedInstruction(this@L2Instruction)
-		}
+		return this@L2Instruction
 	}
 
 	/**
@@ -1001,7 +1120,58 @@ constructor() :
 	 */
 	open fun L2GeneratorInterface.emitTransformedInstruction(): Unit
 	{
-		+this@L2Instruction
+		analyzeAndOptionallyRewrite()?.let(::addInstruction)
+	}
+
+	/**
+	 * This instruction, adapted from a previous control flow graph, was
+	 * encountered during postponement optimization.  Depending on the kind of
+	 * instruction, either emit it to the regenerator, record it as a postponed
+	 * instruction, or do something else like writing an arbitrary
+	 * transformation.
+	 *
+	 * @receiver
+	 *   The [L2Regenerator] on which to write the effect.
+	 */
+	open fun L2Regenerator.regenerateForPostponement()
+	{
+		analyzeAndOptionallyRewrite()?.run { basicRegenerateForPostponement() }
+	}
+
+	/**
+	 * The default implementation of [regenerateForPostponement], since super is
+	 * not possible for Kotlin methods taking an extra receiver.
+	 */
+	fun L2GeneratorInterface.basicRegenerateForPostponement()
+	{
+		if (!canBePostponed)
+		{
+			// Emit the translation right now.
+			forcePostponedTranslationNow()
+			return
+		}
+		if (targetEdges.size > 1 &&
+			destinationRegisters.all { writeReg ->
+				targetEdges.all { edge ->
+					writeReg in edge.alwaysLiveInEntities!!
+				}
+			})
+		{
+			// We're going to branch soon, but the result will always be needed
+			// along all the successor edges.  While we *could* postpone the
+			// instruction, we choose not to, since the increase of register
+			// pressure is minor compared to the cost of the duplicated code.
+			forcePostponedTranslationNow()
+			return
+		}
+		// Emit a constant move for each constant output, then postpone the
+		// instruction if any outputs were non-constant.
+		val write = writeOperands.single()
+		val constant = write.restriction().constantOrNull
+		if (constant == null)
+			+this@L2Instruction
+		else
+			write.moveConstantForWrite(constant, this)
 	}
 
 	/**
@@ -1020,47 +1190,122 @@ constructor() :
 	): Boolean
 	{
 		// If it has side effect, do the default processing.
-		if (hasSideEffect) return false
-		writeOperands.singleOrNull()?.let { write ->
-			// See if there's an equivalent value alredy computed, and
-			// if so just move it to the sole write, eliding the
-			// sourceInstruction.
-			val semanticValues = write.semanticValues()
-			val possibleSources = semanticValues.mapNotNull {
-				currentManifest.equivalentSemanticValue(it)
-			}
-			if (possibleSources.isNotEmpty())
+		if (!canBePostponed) return false
+		return populateForMoveTo(writeOperands.single())
+	}
+
+	private fun <K: RegisterKind<K>> L2GeneratorInterface.populateForMoveTo(
+		write: L2WriteOperand<K>
+	): Boolean
+	{
+		// See if there's an equivalent value alredy computed, and if so, just
+		// move it to that write's destinations, eliding the sourceInstruction.
+		val semanticValues = write.semanticValues()
+		val unpopulated = semanticValues
+			.filterNotTo(mutableSetOf(), currentManifest::isPopulated)
+		val constantSource = semanticValues.find(L2SemanticValue<*>::isConstant)
+		val constant =
+			constantSource?.constant ?: write.restriction().constantOrNull
+		if (constant != null)
+		{
+			// The value is known, so do a constant move if any destinations are
+			// not yet populated.
+			if (unpopulated.isNotEmpty())
 			{
-				val unpopulated = semanticValues - possibleSources
-				if (unpopulated.isEmpty())
+				write.moveConstantForWrite(constant, this)
+			}
+			return true
+		}
+		val possibleSources = semanticValues.mapNotNull {
+			currentManifest.equivalentPopulatedSemanticValue(it)
+		}
+		if (possibleSources.isEmpty()) return false
+		if (unpopulated.isEmpty())
+		{
+			// All destination semantic values are already populated, so
+			// there's no need to do anything else.  However, since we
+			// know they're supposed to be equivalent to each other, we
+			// merge their synonyms.  Note that since there won't be an
+			// instruction to repeat this in subsequent passes, we'll
+			// lose out on the values being synonymous, but at least we
+			// can cause them now to all to have the intersection of the
+			// restrictions.
+			val synonymRepresentatives = possibleSources.mapToSet {
+				currentManifest.semanticValueToSynonym(it)
+					.pickSemanticValue()
+			}.toList()
+			for (i in 1 ..< synonymRepresentatives.size)
+			{
+				currentManifest.dynamicMergeExistingSemanticValues(
+					synonymRepresentatives[0],
+					synonymRepresentatives[i])
+			}
+			return true
+		}
+		// Not all destinations have been filled, so populate them with
+		// a move.
+		when (constantSource)
+		{
+			null ->
+				+write.kind.dynamicMove(
+					possibleSources.first(),
+					unpopulated,
+					currentManifest,
+					write.restriction())
+
+			else -> +constantSource.kind.moveConstant(
+				constantSource.constant!!,
+				currentManifest.getDefinitionOrNull(constantSource)
+					?.let { unpopulated }
+					?: (unpopulated + constantSource))
+		}
+		return true
+	}
+
+	/**
+	 * Find the [currentEdge] within this [L2Instruction] and replace it with
+	 * [newEdge].  Also set the operand's reference to the instruction.  Don't
+	 * do any other adjustments.
+	 */
+	fun replaceEdgeWith(
+		currentEdge: L2PcOperand,
+		newEdge: L2PcOperand)
+	{
+		var found = 0
+		layout.updateOperands(this) { operand ->
+			when (operand)
+			{
+				currentEdge ->
 				{
-					// All destination semantic values are already populated, so
-					// there's no need to do anything else.  However, since we
-					// know they're supposed to be equivalent to each other, we
-					// merge their synonyms.  Note that since there won't be an
-					// instruction to repeat this in subsequent passes, we'll
-					// lose out on the values being synonymous, but at least we
-					// can cause them now to all to have the intersection of the
-					// restrictions.
-					val synonymRepresentatives = possibleSources.mapToSet {
-						currentManifest.semanticValueToSynonym(it)
-							.pickSemanticValue()
-					}.toList()
-					for (i in 1..<synonymRepresentatives.size)
-					{
-						currentManifest.dynamicMergeExistingSemanticValues(
-							synonymRepresentatives[0],
-							synonymRepresentatives[i])
-					}
-					return true
+					found++
+					newEdge.setInstruction(this)
+					newEdge
 				}
-				// Not all destinations have been filled, so populate them with
-				// a move.
-				moveRegister(possibleSources.first(), unpopulated.cast())
-				return true
+				is L2PcVectorOperand ->
+				{
+					var replacedCount = 0
+					val newVector = operand.edges.map { edge ->
+						if (edge == currentEdge)
+						{
+							++replacedCount
+							newEdge.setInstruction(this)
+							newEdge
+						}
+						else edge
+					}
+					if (replacedCount == 0) operand
+					else
+					{
+						found += replacedCount
+						val replacement = L2PcVectorOperand(newVector)
+						replacement.setInstruction(this)
+						replacement
+					}
+				}
+				else -> operand
 			}
 		}
-		return false
+		assert(found == 1)
 	}
 
 	/**
@@ -1087,7 +1332,7 @@ constructor() :
 		{
 			// Rebuild the sourceRegisters list if anything changed.
 			sourceRegisters.clear()
-			readOperands.forEach { operand ->
+			operands.forEach { operand ->
 				operand.addSourceRegistersTo(sourceRegisters)
 			}
 		}
@@ -1100,12 +1345,20 @@ constructor() :
 	 * both can be replaced by an [L2_CREATE_VARIABLE] that has the more
 	 * up-to-date value as its initialization value.
 	 *
+	 * Since postponed instructions have an empty list for their write operand's
+	 * semantic values, we pass the synonym under which the instruction has been
+	 * postponed.
+	 *
 	 * @receiver
 	 *   The [L2ValueManifest] containing this postponed instruction.
+	 * @param
+	 *   The [L2Synonym] under which the instruction is to be postponed.
 	 * @return
 	 *   `true` if a replacement was made, otherwise `false`.
 	 */
-	open fun L2ValueManifest.rewritePostponed(): Boolean = false
+	open fun L2ValueManifest.rewritePostponed(
+		synonym: L2Synonym<*>
+	): Boolean = false
 
 	/**
 	 * We're performing [L2Optimizer.postponeConditionallyUsedValues], and we
@@ -1124,8 +1377,6 @@ constructor() :
 	 * emitting a move (of the initialization value of the create-variable) in
 	 * place of the get.
 	 *
-	 * TODO Make this iterative instead of recursive.
-	 *
 	 * @receiver
 	 *   The [L2GeneratorInterface] on which to generate.
 	 */
@@ -1140,18 +1391,7 @@ constructor() :
 	 */
 	fun L2GeneratorInterface.basicForcePostponedTranslationNow()
 	{
-		assert(
-			!shouldSanityCheck ||
-				writeOperands
-					.flatMap(L2WriteOperand<*>::semanticValues)
-					.all { sv ->
-						currentManifest.postponedInstruction(sv) !=
-							this@L2Instruction
-					}
-		) {
-			"instruction should have been removed from postponed map"
-		}
-		if (!hasSideEffect)
+		if (canBePostponed)
 		{
 			// If we already have a live value for each of the *writes* of this
 			// instruction, we can elide the instruction and write extending
@@ -1222,15 +1462,10 @@ constructor() :
 	/**
 	 * Translate the [L2Instruction] into corresponding JVM instructions.
 	 *
-	 * @param translator
+	 * @receiver
 	 *   The [JVMTranslator] responsible for the translation.
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 */
-	abstract fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	abstract fun JVMTranslator.translateToJVM()
 
 	/**
 	 * Answer the [L2BasicBlock] to which this instruction belongs.  Fail if it
@@ -1346,9 +1581,9 @@ constructor() :
 	}
 
 	/**
-	 * Compare this [L2Instruction] to an [other] one, for the purpose of
-	 * determining whether the two postponed instructions can be combined into
-	 * one at a control flow merge point.
+	 * Compare this [L2Instruction] to an [other] one, to detirmine whether the
+	 * two postponed instructions can be combined into one at a control flow
+	 * merge point.
 	 */
 	open fun equivalentTo(other: L2Instruction): Boolean
 	{
@@ -1470,6 +1705,7 @@ constructor() :
 	{
 		val instruction = this
 		instruction.readsThatMightDestroy.forEach { read ->
+			if (read.restriction().isImmutable) return@forEach
 			val readReg = read.register()
 			val pair = firstUses[readReg]
 			when
@@ -1500,19 +1736,26 @@ constructor() :
 	 * from different incoming edges at a contral flow merge. Its equality and
 	 * hash semantics defer to the wrapped instruction's [equivalentTo] and
 	 * [equivalentHash].
+	 *
+	 * An [L2Synonym] is also captured.  This is the synonym that would be
+	 * populated by the postponed instruction.
 	 */
-	class InstructionEquivalence(val instruction: L2Instruction)
+	class InstructionEquivalence(
+		val instruction: L2Instruction,
+		val synonym: L2Synonym<*>)
 	{
 		/** Cache the instruction's [equivalentHash] upon creation. */
-		private val cachedHash = instruction.equivalentHash
+		private val cachedHash =
+			instruction.equivalentHash xor synonym.hashCode()
 
 		override fun equals(other: Any?): Boolean =
 			other is InstructionEquivalence
 				&& cachedHash == other.cachedHash
 				&& instruction.equivalentTo(other.instruction)
+				&& synonym == other.synonym
 
 		override fun hashCode(): Int = cachedHash
 
-		override fun toString(): String = "EQ($instruction)"
+		override fun toString(): String = "EQ($instruction for $synonym)"
 	}
 }

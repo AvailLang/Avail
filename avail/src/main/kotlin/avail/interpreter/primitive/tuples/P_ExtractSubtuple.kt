@@ -83,7 +83,7 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readInt
+import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -313,16 +313,17 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		// Generate code that does range checks, under the assumption that some
 		// of them might become moot and be elided if integer inequalities are
 		// checked later.
-		val outOfRange = createBasicBlock("out of range")
-		val lowInt = readInt(low.semanticValue().unboxedInt, outOfRange) {
+		val outOfRange =
+			createBasicBlock("out of range for ExtractSubtuple")
+		val (lowInt, highInt) = readTwoInts(
+			low.semanticValue().unboxedInt,
+			high.semanticValue().unboxedInt,
+			outOfRange)
+		{
 			return false
 		}
 		val lowType = lowInt.restriction().type
 		assert(lowType.isSubtypeOf(naturalNumbers))
-
-		val highInt = readInt(high.semanticValue().unboxedInt, outOfRange) {
-			return false
-		}
 		val highType = highInt.restriction().type
 		assert(highType.isSubtypeOf(wholeNumbers))
 
@@ -365,7 +366,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		}
 		// :: if (lowInt - 1 > highInt) goto outOfBounds.
 		if (lowInt.type().upperBound.noFailMinusCanDestroy(one, false)
-				.greaterThan(highInt.type().lowerBound))
+			.greaterThan(highInt.type().lowerBound))
 		{
 			// Dynamic check is needed.
 			val lowMinusOne = primitiveInvocation(
@@ -412,7 +413,11 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		{
 			// Deal with indices being out of range by doing the general case.
 			generateGeneralFunctionInvocation(
-				functionToCallReg, false, callSiteHelper, arguments, false)
+				functionToCallReg,
+				false,
+				callSiteHelper,
+				arguments,
+				willAlwaysFailPrimitive = true)
 		}
 		return true
 	}

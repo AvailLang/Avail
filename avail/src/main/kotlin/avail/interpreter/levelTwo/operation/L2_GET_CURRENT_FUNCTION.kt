@@ -33,13 +33,12 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -67,15 +66,13 @@ class L2_GET_CURRENT_FUNCTION(
 		append(currentFunction.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: register = interpreter.function;
-		translator.loadInterpreter(method)
-		Interpreter.interpreterFunctionField.generateRead(method)
+		loadInterpreter()
+		load(Interpreter.interpreterFunctionField)
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
-		translator.store(method, currentFunction.register())
+		store(currentFunction.register())
 	}
 }

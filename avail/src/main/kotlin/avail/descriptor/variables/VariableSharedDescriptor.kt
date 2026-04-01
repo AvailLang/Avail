@@ -141,6 +141,7 @@ open class VariableSharedDescriptor protected constructor(
 		/**
 		 * The [contents][AvailObject] of the [variable][VariableDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		VALUE,
 
 		/**

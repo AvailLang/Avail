@@ -389,7 +389,7 @@ constructor(
 		val splitter = VariantSplitter(true, splits, variants)
 		splitter.run {
 			emitSplitterInstruction(
-				currentManifest.readInt(semanticVariantId),
+				readIntNoFail(semanticVariantId),
 				graphEdges)
 		}
 		return triples.map { (block, subtree, _) ->

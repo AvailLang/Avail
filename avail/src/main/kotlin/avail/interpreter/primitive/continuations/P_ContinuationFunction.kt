@@ -62,5 +62,5 @@ object P_ContinuationFunction : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralContinuationType),
-			mostGeneralFunctionType())
+			mostGeneralFunctionType)
 }

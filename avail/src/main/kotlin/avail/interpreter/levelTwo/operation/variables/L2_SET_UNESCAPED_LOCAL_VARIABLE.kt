@@ -42,16 +42,15 @@ import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.utility.notNullAnd
-import org.objectweb.asm.MethodVisitor
 
 /**
- * Assign a value to a [variable][VariableDescriptor] *without*
- * checking that it's of the correct type, or handling exceptions thrown by
- * write reactors.  There must not be any write reactors attached at this point,
- * and the variable must not have become shared.
+ * Assign a value to a [variable][VariableDescriptor] *without* checking that
+ * it's of the correct type, or handling exceptions thrown by write reactors.
+ * There must not be any write reactors attached at this point, and the variable
+ * must not have become shared.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -65,7 +64,11 @@ constructor(
 {
 	init
 	{
-		assert(variable.restriction().containedByType(mostGeneralVariableType))
+		assert(this.variable.restriction()
+			.containedByType(mostGeneralVariableType))
+		assert(!this.variable.isConstantRead) {
+			"L2_SET_UNESCAPED_LOCAL_VARIABLE is an elided local here."
+		}
 	}
 
 	override fun StringBuilder.appendToWithWarnings(
@@ -103,43 +106,45 @@ constructor(
 	 *
 	 * @receiver
 	 *   The [L2ValueManifest] containing this postponed instruction.
+	 * @param
+	 *   The [L2Synonym] under which the instruction is to be postponed.
 	 * @return
 	 *   `true` if a replacement was made, otherwise `false`.
 	 */
-	override fun L2ValueManifest.rewritePostponed(): Boolean
+	override fun L2ValueManifest.rewritePostponed(
+		synonym: L2Synonym<*>
+	): Boolean
 	{
 		// Check if the value to be written depends on this variable.
 		// If so, we must not merge the assignment with the creation, or
 		// it would introduce an unsatisfiable dependency order.
-		if (
-			postponedInstruction(variable.semanticValue()).notNullAnd {
-				checkDependency(
-					valueToWrite.semanticValue(),
-					this@notNullAnd,
-					mutableSetOf())
-			})
+		val variableOrigin = postponedInstructionFor(variable.semanticValue())
+		if (variableOrigin != null
+			&& checkDependency(
+				valueToWrite.semanticValue(),
+				variableOrigin,
+				mutableSetOf()))
 		{
 			// The variable must already exist to know what to assign.
 			// Don't merge the assignment into the creation.
 			return false
 		}
-		val variableOrigin = postponedInstructions()[variable.semanticValue()]
 		when (variableOrigin)
 		{
 			is L2_CREATE_VARIABLE ->
 			{
 				// A create/setter pair can be collapsed to be a create with the
 				// setter's value as its initial value.
-				removePostponedSourceInstruction(
-					this@L2_SET_UNESCAPED_LOCAL_VARIABLE)
-				removePostponedSourceInstruction(variableOrigin)
+				removePostponedInstructionFor(synonym.pickSemanticValue())
+				removePostponedInstructionFor(variable.semanticValue())
+				assert(variable.restriction() == variableOut.restriction())
 				recordPostponedInstruction(
+					synonym.pickSemanticValue(),
 					L2_CREATE_VARIABLE(
 						localIndex = variableOrigin.localIndex,
 						outerType = variableOrigin.outerType,
 						variable = L2WriteBoxedOperand(
-							variableOrigin.variable.semanticValues() +
-								variableOut.semanticValues(),
+							variableOut.semanticValues(),
 							variableOut.restriction()),
 						initialValueOrNil = valueToWrite,
 						constantVariableIfElided =
@@ -158,10 +163,13 @@ constructor(
 				// instruction's input variable, sets the second instruction's
 				// value, and produces the second instruction's output variable.
 				// This effectively removes an unobserved write.
-				removePostponedSourceInstruction(
-					this@L2_SET_UNESCAPED_LOCAL_VARIABLE)
-				removePostponedSourceInstruction(variableOrigin)
+				removePostponedInstructionFor(synonym.pickSemanticValue())
+				removePostponedInstructionFor(variable.semanticValue())
+				assert(!variableOrigin.variable.isConstantRead) {
+					"This would read from an elided local variable"
+				}
 				recordPostponedInstruction(
+					synonym.pickSemanticValue(),
 					L2_SET_UNESCAPED_LOCAL_VARIABLE(
 						variable = variableOrigin.variable,
 						valueToWrite = valueToWrite,
@@ -175,19 +183,17 @@ constructor(
 		return false
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// It's not allowed to fail.
 		if (variable.finalIndex() != variableOut.finalIndex())
 		{
-			translator.load(method, variable)
-			translator.store(method, variableOut.register())
+			load(variable)
+			store(variableOut.register())
 		}
 		// :: variable.setUnescapedLocalValueNoCheck(valueToWrite);
-		translator.load(method, variable)
-		translator.load(method, valueToWrite)
-		A_Variable.setValueNoCheckMethod.generateCall(method)
+		load(variable)
+		load(valueToWrite)
+		generateCall(A_Variable.setValueNoCheckMethod)
 	}
 }

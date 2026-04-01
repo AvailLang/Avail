@@ -139,7 +139,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val ifSubtype = createBasicBlock("if subtype")
 		val ifNotSubtype = createBasicBlock("not subtype")
 
-		val xDef = xTypeReg.definitionSkippingMoves()
+		val xDef = xTypeReg.definitionSkippingMoves(currentManifest)
 		if (xDef is L2_GET_TYPE)
 		{
 			// X is an L2_GET_TYPE of some other register.

@@ -39,6 +39,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -47,6 +48,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -133,46 +135,40 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 			+L2_MOVE_BOXED(boxedConstant(constant.instanceCount), result)
 			return
 		}
-		val minCount =
-			if (restriction.intersectsType(bottomMeta)) zero
-			else one
 		val instanceType = restriction.type
-		if (instanceType.isInstanceMeta)
+		if (instanceType.equals(bottomMeta))
 		{
-			val innerType = instanceType.instance
-			if (innerType.isEnumeration && !innerType.isInstanceMeta)
-			{
-				// Say we statically have a metatype whose instance is an
-				// enumeration type of N non-types.  For example, boolean's type
-				// has the instance boolean, which is just an enumeration of the
-				// true and false atoms.  If a call site for this primitive has
-				// the argument typed as boolean's type, then it may be called
-				// at runtime with boolean, {true}ᵀ, {false}ᵀ, or ⊥. These would
-				// have an instance count of 2, 1, 1, and 0, respectively.
-				var range = inclusive(minCount, innerType.instanceCount)
-				if (range.lowerBound.equals(range.upperBound))
-				{
-					// There's only one value it can be.
-					+L2_MOVE_BOXED(boxedConstant(range.lowerBound), result)
-					return
-				}
-				// At least we can narrow (possibly) the result type.
-				emitBasicInfalliblePrimitive(
-					rawFunction,
-					arguments,
-					L2WriteBoxedOperand(
-						result.semanticValues(),
-						result.restriction().intersectionWithType(range)))
-				return
-			}
+			+L2_MOVE_BOXED(boxedConstant(zero), result)
+			return
+		}
+		val minCount = if (restriction.canBeBottom) zero else one
+		val innerType = instanceType.instance
+		val maxCount = when
+		{
+			innerType.isInstanceMeta -> one
+			// Say we statically have a metatype whose instance is an
+			// enumeration type of N non-types.  For example, boolean's type
+			// has the instance boolean, which is just an enumeration of the
+			// true and false atoms.  If a call site for this primitive has
+			// the argument typed as boolean's type, then it may be called
+			// at runtime with boolean, {true}ᵀ, {false}ᵀ, or ⊥. These would
+			// have an instance count of 2, 1, 1, and 0, respectively.
+			innerType.isSubtypeOf(Types.NONTYPE()) -> innerType.instanceCount
+			else -> positiveInfinity
+		}
+		val rangeRestriction = result.restriction().intersectionWithType(
+			inclusive(minCount, maxCount))
+		if (rangeRestriction.type.lowerBound
+			.equals(rangeRestriction.type.upperBound))
+		{
+			// There's only one value it can be.
+			+L2_MOVE_BOXED(boxedConstant(rangeRestriction.type.lowerBound), result)
+			return
 		}
 		emitBasicInfalliblePrimitive(
 			rawFunction,
 			arguments,
-			L2WriteBoxedOperand(
-				result.semanticValues(),
-				result.restriction().intersectionWithType(
-					inclusive(minCount, positiveInfinity))))
+			L2WriteBoxedOperand(result.semanticValues(), rangeRestriction))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

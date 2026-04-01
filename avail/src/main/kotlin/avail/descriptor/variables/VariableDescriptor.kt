@@ -186,6 +186,7 @@ open class VariableDescriptor protected constructor(
 		/**
 		 * The [contents][AvailObject] of the [variable][VariableDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		VALUE,
 
 		/**
@@ -890,8 +891,13 @@ open class VariableDescriptor protected constructor(
 		): AvailObject = mutable.create {
 			setSlot(KIND, variableType)
 			setSlot(HASH_OR_ZERO, 0)
-			setSlot(VALUE, optionalInitialValue)
 			setSlot(WRITE_REACTORS, nil)
+			if (optionalInitialValue.notNil)
+			{
+				setSlot(VALUE, nil)
+				mutable.handleVariableWriteTracing(this)
+			}
+			setSlot(VALUE, optionalInitialValue)
 		}
 
 		/**

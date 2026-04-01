@@ -54,6 +54,7 @@ import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
 
 /**
  * A [JPanel] that displays the [GlobalEnvironmentSettings.knownProjects].
@@ -132,7 +133,8 @@ internal class KnownProjectsPanel constructor(
 		preferredSize = Dimension(750, 50)
 		maximumSize = Dimension(750, 50)
 		val sortLabel = JLabel("Sort by: ").apply {
-			font = font.deriveFont(font.style or Font.BOLD)
+			val baseFont = UIManager.getFont("Label.font") ?: Font("Dialog", Font.PLAIN, 12)
+			font = baseFont.deriveFont(baseFont.style or Font.BOLD)
 		}
 		add(sortLabel)
 	}

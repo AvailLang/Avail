@@ -228,7 +228,7 @@ interface A_BasicObject : JSONFriendly
 	@Deprecated(
 		message = "Don't compare AvailObject and arbitrary Object",
 		replaceWith = ReplaceWith("equals(AvailObject)"))
-	@Suppress("Deprecation")
+	@Suppress("POTENTIALLY_NON_REPORTED_ANNOTATION")
 	override fun equals(other: Any?): Boolean
 
 	/**
@@ -1076,7 +1076,7 @@ interface A_BasicObject : JSONFriendly
 	fun fieldAtPuttingCanDestroy(
 		field: A_Atom,
 		value: A_BasicObject,
-		canDestroy: Boolean): A_BasicObject
+		canDestroy: Boolean): AvailObject
 
 	/**
 	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor].

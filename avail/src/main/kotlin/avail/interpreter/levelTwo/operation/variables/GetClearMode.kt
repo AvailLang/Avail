@@ -45,7 +45,6 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -96,9 +95,7 @@ enum class GetClearMode(
 	 * program flow continues at [ifReadSucceeded].  Otherwise, [extractedValue]
 	 * is unaffected and flow continues at [ifReadFailed].
 	 *
-	 * @param method
-	 *   The [MethodVisitor] on which to write the JVM code.
-	 * @param translator
+	 * @receiver
 	 *   The [JVMTranslator] handling code generation.
 	 * @param variable
 	 *   The [L2BoxedRegister] containing the variable to read.
@@ -109,9 +106,7 @@ enum class GetClearMode(
 	 * @param ifReadFailed
 	 *   Where to jump if the read failed in any way.
 	 */
-	fun translateJvmVariableRead(
-		method: MethodVisitor,
-		translator: JVMTranslator,
+	fun JVMTranslator.translateJvmVariableRead(
 		variable: L2ReadBoxedOperand,
 		extractedValue: L2WriteBoxedOperand,
 		ifReadSucceeded: L2PcOperand,
@@ -132,21 +127,20 @@ enum class GetClearMode(
 			Type.getInternalName(VariableSetException::class.java))
 		method.visitLabel(tryStart)
 		// ::    extractedValueReg = variable.getValue[Clearing]();
-		translator.load(method, variable)
-		getterMethod.generateCall(method)
-		translator.store(method, extractedValue.register())
+		load(variable)
+		generateCall(getterMethod)
+		store(extractedValue.register())
 		// ::       goto success;
-		translator.jump(method, ifReadSucceeded)
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// VariableGetException to be pushed onto the stack. So always do the
 		// jump.
-		translator.jump(method, ifReadSucceeded)
+		jump(ifReadSucceeded)
 		// :: } catch (VariableGetException|VariableSetException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto failure;
-		translator.jumpOrFallThrough(method, ifReadFailed)
+		jumpOrFallThrough(ifReadFailed)
 		// :: }
 	}
 }

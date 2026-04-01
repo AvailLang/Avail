@@ -69,7 +69,7 @@ constructor(
 	 * A Java [Object] to use as a monitor for threads to block on, waiting for
 	 * a suitable task to become available.
 	 */
-	private val monitor = Object()
+	private val monitor = Any()
 
 	/** Choose the queue on which to add a task. */
 	private val localQueue get() = queues[Interpreter.currentIndexOrZero()]
@@ -149,12 +149,12 @@ constructor(
 		// threads, wake them all up.
 		when (oldHeap.size + 1)
 		{
-			1, 2 -> synchronized(monitor) { monitor.notify() }
+			1, 2 -> synchronized(monitor) { monitor.javaNotify() }
 			5 -> synchronized(monitor) {
-				monitor.notify()
-				monitor.notify()
+				monitor.javaNotify()
+				monitor.javaNotify()
 			}
-			parallelism + 1 -> synchronized(monitor) { monitor.notifyAll() }
+			parallelism + 1 -> synchronized(monitor) { monitor.javaNotifyAll() }
 		}
 		return true
 	}
@@ -211,7 +211,7 @@ constructor(
 			synchronized(monitor) {
 				while (true)
 				{
-					monitor.wait()
+					monitor.javaWait()
 					// Re-check, because someone woke us up.
 					poll()?.let { return it }
 				}
@@ -227,7 +227,7 @@ constructor(
 					// Actually timed out.
 					return null
 				}
-				monitor.wait(
+				monitor.javaWait(
 					nanos / 1_000_000,
 					(nanos % 1_000_000).toInt())
 				// Re-check, even if it just timed out.
@@ -248,7 +248,7 @@ constructor(
 		synchronized(monitor) {
 			while (true)
 			{
-				monitor.wait()
+				monitor.javaWait()
 				// Re-check, because someone woke us up.
 				poll()?.let { return it }
 			}

@@ -39,17 +39,14 @@ import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Answer the [hash][A_BasicObject.hash] of the specified value.
@@ -61,28 +58,18 @@ class L2_HASH(
 	var hash: L2WriteIntOperand
 ): L2Instruction()
 {
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction?
 	{
-		// :: hash = tuple.hash();
-		translator.load(method, value)
-		hashMethod.generateCall(method)
-		translator.store(method, hash.register())
-	}
-
-	override fun L2GeneratorInterface.emitTransformedInstruction()
-	{
-		val restriction = currentManifest.restrictionFor(value)
-		restriction.constantOrNull?.let { constant ->
+		value.constantOrNull?.let { constant ->
 			// Hash the constant now.
-			+L2_MOVE_CONSTANT_INT(
-				L2IntImmediateOperand(constant.hash()),
-				hash)
-			return
+			moveIntRegister(
+				unboxedIntConstant(constant.hash()).semanticValue(),
+				hash.semanticValues())
+			return null
 		}
 		// Fall back to hashing dynamically.
-		+this@L2_HASH
+		return this@L2_HASH
 	}
 
 	override fun traceCandidateSplitConditions(
@@ -120,5 +107,13 @@ class L2_HASH(
 		val valueRestriction = boxedRestrictionForType(
 			enumerationWith(setFromCollection(satisfiedValues)))
 		tracer.continueTracing(value.register(), valueRestriction)
+	}
+
+	override fun JVMTranslator.translateToJVM()
+	{
+		// :: hash = tuple.hash();
+		load(value)
+		generateCall(hashMethod)
+		store(hash.register())
 	}
 }

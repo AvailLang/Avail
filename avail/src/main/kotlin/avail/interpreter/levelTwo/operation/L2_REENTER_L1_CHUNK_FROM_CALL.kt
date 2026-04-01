@@ -42,13 +42,13 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_CALL.Companion.reenter
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.util.logging.Level
 
@@ -78,14 +78,12 @@ class L2_REENTER_L1_CHUNK_FROM_CALL(
 
 	override val isEntryPoint get() = true
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if ((temp = reenter(interpreter)) != null) return temp;
 		val okLabel = Label()
-		translator.loadInterpreter(method)
-		reenterMethod.generateCall(method)
+		loadInterpreter()
+		generateCall(reenterMethod)
 		method.visitInsn(Opcodes.DUP)
 		method.visitJumpInsn(Opcodes.IFNULL, okLabel)
 		method.visitInsn(Opcodes.ARETURN)

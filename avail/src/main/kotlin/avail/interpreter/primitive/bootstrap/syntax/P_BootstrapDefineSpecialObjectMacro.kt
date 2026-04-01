@@ -120,7 +120,7 @@ object P_BootstrapDefineSpecialObjectMacro
 						tuple(specialObjectLiteral),
 						literalType,
 						emptySet,
-						0),
+						specialObjectLiteral.token.lineNumber()),
 					emptyListNode())),
 			TOP())
 		// Create a send of the bootstrap macro definer that, when actually
@@ -142,10 +142,8 @@ object P_BootstrapDefineSpecialObjectMacro
 						getValue,
 						syntheticLiteralNodeFor(
 							specialObjectLiteral.token.string()),
-						syntheticLiteralNodeFor(
-							fromInt(0)),
-						syntheticLiteralNodeFor(
-							fromInt(0)),
+						syntheticLiteralNodeFor(fromInt(0)),
+						syntheticLiteralNodeFor(fromInt(0)),
 						emptyListNode())),
 				literalTokenType(literalType))
 		val createLiteralNode =
@@ -171,7 +169,7 @@ object P_BootstrapDefineSpecialObjectMacro
 							LITERAL_PHRASE.create(
 								literalType),
 							emptySet,
-							0),
+							specialObjectLiteral.token.lineNumber()),
 						emptyListNode())),
 				TOP())
 		return interpreter.primitiveSuccess(

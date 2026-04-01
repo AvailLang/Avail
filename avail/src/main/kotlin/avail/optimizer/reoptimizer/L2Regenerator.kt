@@ -58,6 +58,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -205,6 +206,7 @@ constructor(
 			// complete manifest information for the edge yet.
 			val manifestInOldGraph = operand.manifest()
 			val manifestCopy = L2ValueManifest(currentManifest)
+			assert(manifestInOldGraph !== manifestCopy)
 			fun <K: RegisterKind<K>> local(relatedRead: L2ReadOperand<K>)
 			{
 				val equivalentInOldGraph = manifestInOldGraph
@@ -231,7 +233,7 @@ constructor(
 			val edge = L2PcOperand(
 				mapBlock(operand.targetBlock()),
 				operand.isBackward,
-				L2ValueManifest(manifestCopy),
+				manifestCopy,
 				operand.optionalName)
 			// Leave it up to the instruction's instructionWasAdded() to set up
 			// the correct clamped values.
@@ -295,7 +297,6 @@ constructor(
 			val equivalent = currentManifest
 				.equivalentPopulatedSemanticValue(oldSemanticValue)
 			if (equivalent !== null) return equivalent
-			assert(oldSemanticValue in currentManifest.postponedInstructions())
 			return oldSemanticValue
 		}
 
@@ -607,6 +608,16 @@ constructor(
 		}
 		blockMap[firstSourceBlock] = mutableMapOf(
 			emptySet<L2SplitCondition>() to start)
+		val impossibleBlocks = mutableSetOf<L2BasicBlock>()
+		oldGraph.backwardVisit { originalBlock ->
+			if (originalBlock.instructions().last() is L2_IMPOSSIBLE_CODE
+				|| originalBlock.successorEdges().run {
+					isNotEmpty() && all { it.targetBlock() in impossibleBlocks }
+				})
+			{
+				impossibleBlocks.add(originalBlock)
+			}
+		}
 		oldGraph.forwardVisit { originalBlock ->
 			// All predecessors must have already been processed.
 			val submap = blockMap[originalBlock]!!
@@ -670,28 +681,34 @@ constructor(
 				}
 			}
 			submap.forEach { (_, targetBlock) ->
-				processBlock(targetBlock, originalBlock)
+				if (targetBlock.predecessorEdges().isNotEmpty()
+					|| targetBlock.isIrremovable)
+				{
+					assert(targetBlock.predecessorEdges().isNotEmpty()
+						|| targetBlock.isIrremovable)
+					startBlock(targetBlock)
+					processBlock(
+						originalBlock,
+						originalBlock in impossibleBlocks)
+				}
 			}
 		}
 	}
 
 	/**
-	 * We're transforming a graph, and are currently populating the new
-	 * [targetBlock] corresponding to [originalBlock] in the original graph.
+	 * We're transforming a graph, and are currently populating the
+	 * [currentBlock], corresponding to [originalBlock] in the original graph.
 	 * Produce equivalent code in the new block, taking into account any new
 	 * restrictions or available semantic values, since the new block may be
 	 * specialized by code splitting.
 	 *
-	 * @param targetBlock
-	 *   The new block being generated.
 	 * @param originalBlock
 	 *   The block from the original graph being transformed non-destructively.
 	 */
 	private fun processBlock(
-		targetBlock: L2BasicBlock,
-		originalBlock: L2BasicBlock)
+		originalBlock: L2BasicBlock,
+		isImpossible: Boolean)
 	{
-		startBlock(targetBlock)
 		if (!currentlyReachable()) return
 		if (mode == BySemanticValue)
 		{
@@ -702,7 +719,7 @@ constructor(
 			// semantic values that are live here.
 			val commonSemanticValues = currentManifest.synonymsArray()
 				.flatMapTo(mutableSetOf(), L2Synonym<*>::semanticValues)
-			val manifests = originalBlock.predecessorEdges()
+			val manifests = currentBlock().predecessorEdges()
 				.map(L2PcOperand::manifest)
 			manifests.forEach { m ->
 				commonSemanticValues.retainAll(m::hasLiveSemanticValue)
@@ -711,19 +728,24 @@ constructor(
 			// are in the same synonym with it in all predecessors.  We'll use
 			// that to reconstitute any synonyms that we may have missed in the
 			// new manifest.
-			val commonSynonyms = commonSemanticValues
-				.associateWithTo(mutableMapOf()) { sv ->
-					manifests
-						.map { m ->
-							m.semanticValueToSynonym(sv)
-								.semanticValues()
-								.filter(m::hasLiveSemanticValue)
-								.filter(currentManifest::hasLiveSemanticValue)
-								.toSet()
+			val commonSynonyms = commonSemanticValues.associateWith { sv ->
+				manifests
+					.map { m ->
+						val synonym = m.semanticValueToSynonymOrNull(sv)
+						when (synonym)
+						{
+							null -> emptySet<L2SemanticValue<*>>()
+							else -> synonym.semanticValues()
+								.filter(m::hasSemanticValue)
+								.filterTo(
+									mutableSetOf(),
+									currentManifest::hasSemanticValue)
 						}
-						.reduce(Set<L2SemanticValue<*>>::intersect)
-						.intersect(commonSemanticValues)
-				}
+					}
+					.reduceOrNull(Set<L2SemanticValue<*>>::intersect)
+					?.intersect(commonSemanticValues)
+					?: emptySet<L2SemanticValue<*>>()
+			}
 			// Compute the union of the restrictions for each semantic value.
 			// We'll use that to narrow the restrictions in the new manifest.
 			val commonRestrictions =
@@ -765,7 +787,22 @@ constructor(
 				}
 			}
 		}
-		originalBlock.instructions().forEach(::processInstruction)
+		if (isImpossible)
+		{
+			// Discard any code leading only to impossible code, since it can't
+			// be reached.  This eliminates any intervening instructions that
+			// would have been pointlessly recreated, and makes it easier for
+			// branch elimination later, by detecting this instruction directly
+			// in the target blocks of branches.
+			addInstruction(L2_IMPOSSIBLE_CODE())
+		}
+		else
+		{
+			originalBlock.instructions().forEach {
+				if (currentlyReachable())
+					processInstruction(it)
+			}
+		}
 	}
 
 	/**
@@ -774,7 +811,7 @@ constructor(
 	 * instruction rewriting, code splitting, and inlining.  The typical result
 	 * is to rewrite some translation of the instruction to the target graph.
 	 *
-	 * By default, simply transform the instruction's operands, updating the
+	 * By default, transform the instruction's operands, updating the
 	 * isomorphism, and emit the same kind of instruction.
 	 *
 	 * @param sourceInstruction
@@ -783,8 +820,7 @@ constructor(
 	open fun processInstruction(sourceInstruction: L2Instruction)
 	{
 		val transformed = basicTransformInstruction(sourceInstruction)
-		if (!transformed.hasSideEffect
-			&& sourceInstruction.writeOperands.size == 1)
+		if (transformed.canBePostponed)
 		{
 			// No side-effect, and it only produces one value.  See if there is
 			// already an extant equivalent value that we can just move.  This
@@ -841,8 +877,8 @@ constructor(
 				{
 					assert(
 						currentManifest.hasSemanticValue(semanticValue) ||
-							semanticValue in
-								currentManifest.postponedInstructions())
+							currentManifest
+								.postponedInstructionFor(semanticValue) != null)
 				}
 			}
 		}

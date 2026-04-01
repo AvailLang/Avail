@@ -41,7 +41,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the value of a [variable] into [extractedValue], while simultaneously
@@ -76,16 +75,14 @@ class L2_GET_VARIABLE_CLEARING(
 			desiredOperandTypes, ::variable, ::extractedValue)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		GetClearMode.AlwaysClear.translateJvmVariableRead(
-			method,
-			translator,
-			variable,
-			extractedValue,
-			ifReadSucceeded = ifReadSucceeded,
-			ifReadFailed = ifReadFailed)
+		GetClearMode.AlwaysClear.run {
+			translateJvmVariableRead(
+				variable,
+				extractedValue,
+				ifReadSucceeded = ifReadSucceeded,
+				ifReadFailed = ifReadFailed)
+		}
 	}
 }

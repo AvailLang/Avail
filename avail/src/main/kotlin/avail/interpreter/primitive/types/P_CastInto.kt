@@ -154,7 +154,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			isCold = true)
 
 		val constantValue = valueRead.constantOrNull
-		val typeTest = castFunctionRead.exactSoleArgumentType()
+		val typeTest = castFunctionRead.exactSoleArgumentType(currentManifest)
 		val passedTest: Boolean? = typeTest?.run {
 			when
 			{

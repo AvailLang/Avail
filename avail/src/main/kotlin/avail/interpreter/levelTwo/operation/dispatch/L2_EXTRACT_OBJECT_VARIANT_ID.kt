@@ -35,7 +35,6 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantFromId
-import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -47,8 +46,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the [ObjectLayoutVariant] of the given object, then extract its
@@ -74,7 +71,8 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		append(")")
 	}
 
-	override fun L2GeneratorInterface.emitTransformedInstruction()
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction?
 	{
 		variantId.semanticValues()
 			.firstOrNull { readIfAvailable(it) != null }
@@ -85,31 +83,12 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 				if (others.isNotEmpty())
 				{
 					moveIntRegister(existingValue, others)
-					return
+					return null
 				}
 			}
 		// There wasn't an equivalent register handy.  Fall back to emitting a
 		// copy of this instruction.
-		+this@L2_EXTRACT_OBJECT_VARIANT_ID
-	}
-
-	override fun L2Regenerator.generateReplacement(
-		originalInstruction: L2Instruction)
-	{
-		// If the variantId is statically deducible at this point, use the
-		// constant.
-		val restriction =
-			currentManifest.restrictionFor(sourceObject.semanticValue())
-		restriction.constantOrNull?.let { constant ->
-			// Extract the variantId from the actual constant right now.
-			val variant = constant.objectVariant
-			moveIntRegister(
-				unboxedIntConstant(variant.variantId)
-					.semanticValue(),
-				variantId.semanticValues())
-			return
-		}
-		emitTransformedInstruction()
+		return this@L2_EXTRACT_OBJECT_VARIANT_ID
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
@@ -155,13 +134,11 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: variantId = staticObjectVariantId(value);
-		translator.load(method, sourceObject)
-		staticObjectVariantIdMethod.generateCall(method)
-		translator.store(method, variantId.register())
+		load(sourceObject)
+		generateCall(staticObjectVariantIdMethod)
+		store(variantId.register())
 	}
 }

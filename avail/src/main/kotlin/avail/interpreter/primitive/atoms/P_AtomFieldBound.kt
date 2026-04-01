@@ -60,7 +60,7 @@ import avail.interpreter.execution.Interpreter
  * **Primitive:** Extract the type previously set for this field atom via
  * [P_AtomSetFieldBound], or fail if there is none.  Note that the type is
  * permanent once set, so L2 can make use of the type as a constant if it's
- * found to be already set.  If not set, it will fail until it has bene set,
+ * found to be already set.  If not set, it will fail until it has been set,
  * which actually makes it foldable ([CanFold]).
  */
 @Suppress("unused")

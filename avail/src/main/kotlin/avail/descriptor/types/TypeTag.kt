@@ -83,7 +83,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TypeTag.Companion.restrictionsByTagRange
-import avail.descriptor.types.TypeTag.Modifier
 import avail.descriptor.types.TypeTag.Modifier.Abstract
 import avail.descriptor.types.TypeTag.Modifier.Co
 import avail.descriptor.types.TypeTag.Modifier.Contra
@@ -148,7 +147,7 @@ constructor(
 	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType }),
 	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION() }),
 	FIBER_TAG(NONTYPE_TAG, null, Sup { mostGeneralFiberType() }),
-	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType() }),
+	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType }),
 	LEXER_TAG(NONTYPE_TAG, null, Sup { Types.LEXER() }),
 	MAP_TAG(NONTYPE_TAG, null, Sup { mostGeneralMapType() }),
 	MODULE_TAG(NONTYPE_TAG, null, Sup { Types.MODULE() }),
@@ -342,7 +341,7 @@ constructor(
 	FUNCTION_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = FUNCTION_TAG,
-		Sup { instanceMeta(mostGeneralFunctionType()) },
+		Sup { instanceMeta(mostGeneralFunctionType) },
 		Contra("arguments") { argsTupleType },
 		Co("return") { returnType }),
 	OBJECT_TYPE_TAG(

@@ -42,11 +42,11 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_INTERRUPT.Companion.reenter
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import org.objectweb.asm.MethodVisitor
 import java.util.logging.Level
 
 /**
@@ -70,13 +70,11 @@ class L2_REENTER_L1_CHUNK_FROM_INTERRUPT(
 
 	override val isEntryPoint get() = true
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: L2_REENTER_L1_CHUNK_FROM_INTERRUPT.reenter();
-		translator.loadInterpreter(method)
-		reenterMethod.generateCall(method)
+		loadInterpreter()
+		generateCall(reenterMethod)
 	}
 
 	companion object

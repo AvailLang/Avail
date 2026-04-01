@@ -55,7 +55,6 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -145,7 +144,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 				// Otherwise, compare as ints.
 				compareAndBranchInt(
 					NumericComparator.Equal,
-					currentManifest.readInt(value.semanticValue().unboxedInt),
+					readIntNoFail(value.semanticValue().unboxedInt),
 					unboxedIntConstant(constant.constant.extractInt),
 					ifEqual,
 					ifNotEqual)
@@ -184,27 +183,28 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		if (constant.constant.isInstanceOf(i32))
 		{
 			// Even though the value might not be an i32, we can use the
 			// A_Number.equalsIntStatic(i32) method.
-			translator.load(method, value)
-			translator.intConstant(method, constant.constant.extractInt)
-			A_Number.equalsIntMethod.generateCall(method)
+			load(value)
+			intConstant(constant.constant.extractInt)
+			generateCall(A_Number.equalsIntMethod)
 		}
 		else
 		{
 			// :: if (value.equals(constant)) goto ifEqual;
 			// :: else goto ifUnequal;
-			translator.load(method, value)
-			translator.loadLiteralObject(method, constant.constant)
-			A_BasicObject.equalsMethod.generateCall(method)
+			load(value)
+			loadLiteralObject(constant.constant)
+			generateCall(A_BasicObject.equalsMethod)
 		}
 		emitBranch(
-			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
+			this@L2_JUMP_IF_EQUALS_CONSTANT,
+			Opcodes.IFNE,
+			ifEqual,
+			ifNotEqual)
 	}
 }

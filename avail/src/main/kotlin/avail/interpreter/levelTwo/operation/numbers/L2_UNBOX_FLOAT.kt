@@ -43,7 +43,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Unbox an `float` from an [AvailObject].
@@ -81,13 +80,11 @@ class L2_UNBOX_FLOAT(
 		tracer.continueTracing(source.register(), restriction.forBoxed())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = source.extractDouble();
-		translator.load(method, source)
-		A_Number.extractDoubleMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(source)
+		generateCall(A_Number.extractDoubleMethod)
+		store(destination.register())
 	}
 }

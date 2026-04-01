@@ -37,8 +37,8 @@ import java.util.Locale
 
 plugins {
 	id("java")
-	kotlin("jvm") version "1.9.0"
-	id("com.github.johnrengelman.shadow") version "8.1.1"
+	kotlin("jvm") version "2.3.10"
+	id("com.gradleup.shadow") version "9.3.1"
 }
 
 repositories {
@@ -47,10 +47,10 @@ repositories {
 }
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "1.9"
+val kotlinLanguage = "2.3"
 
 /** The JVM target version for Kotlin. */
-val jvmTarget = 17
+val jvmTarget = 25
 
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
@@ -64,7 +64,7 @@ val jsrVersion = "3.0.2"
  */
 fun Project.cleanupJars ()
 {
-	delete(fileTree("$buildDir/libs").matching {
+	delete(fileTree(layout.buildDirectory.dir("libs")).matching {
 		include("**/*.jar")
 		exclude("**/*-all.jar")
 	})
@@ -76,7 +76,7 @@ fun Project.cleanupJars ()
  */
 fun Project.cleanupAllJars ()
 {
-	delete(fileTree("$buildDir/libs").matching {
+	delete(fileTree(layout.buildDirectory.dir("libs")).matching {
 		include("**/*-all.jar")
 	})
 }
@@ -133,7 +133,7 @@ tasks {
 	}
 
 	// Copy the JAR into the distribution directory.
-	val releaseAvailServer by creating(Copy::class) {
+	val releaseAvailServer by registering(Copy::class) {
 		group = "release"
 		from(shadowJar.get().outputs.files)
 		into(file("${rootProject.projectDir}/distro/lib"))
@@ -144,8 +144,10 @@ tasks {
 	// Update the dependencies of "assemble".
 	assemble { dependsOn(releaseAvailServer) }
 }
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-	languageVersion = kotlinLanguage
-	apiVersion = kotlinLanguage
+
+tasks.withType<KotlinCompile>().configureEach {
+	compilerOptions {
+		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+	}
 }

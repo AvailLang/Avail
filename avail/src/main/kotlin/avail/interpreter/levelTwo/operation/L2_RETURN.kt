@@ -37,7 +37,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -74,23 +73,21 @@ class L2_RETURN(
 		basicRegenerateForPostponement()
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: interpreter.setLatestResult(value);
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		method.visitInsn(Opcodes.DUP)
-		translator.load(method, returnValue)
-		Interpreter.setLatestResultMethod.generateCall(method)
+		load(returnValue)
+		generateCall(Interpreter.setLatestResultMethod)
 		// :: interpreter.returnNow = true;
 		method.visitInsn(Opcodes.DUP)
-		translator.intConstant(method, 1)
-		Interpreter.returnNowField.generateWrite(method)
+		intConstant(1)
+		store(Interpreter.returnNowField)
 		// interpreter.returningFunction = interpreter.function;
 		method.visitInsn(Opcodes.DUP)
-		Interpreter.interpreterFunctionField.generateRead(method)
-		Interpreter.interpreterReturningFunctionField.generateWrite(method)
+		load(Interpreter.interpreterFunctionField)
+		store(Interpreter.interpreterReturningFunctionField)
 		// :: return null;
 		method.visitInsn(Opcodes.ACONST_NULL)
 		method.visitInsn(Opcodes.ARETURN)

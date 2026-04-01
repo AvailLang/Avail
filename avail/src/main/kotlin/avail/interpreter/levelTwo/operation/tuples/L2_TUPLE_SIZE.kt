@@ -44,7 +44,6 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.primitive.tuples.P_TupleSize
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Answer the [size][tupleSize] of the specified [tuple][A_Tuple].
@@ -70,37 +69,31 @@ class L2_TUPLE_SIZE(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: size = tuple.tupleSize();
-		translator.load(method, tuple)
-		TupleDescriptor.tupleSizeMethod.generateCall(method)
-		translator.store(method, tupleSize.register())
+		load(tuple)
+		generateCall(TupleDescriptor.tupleSizeMethod)
+		store(tupleSize.register())
 	}
 
-	/**
-	 * During regeneration, the input tuple may have become more restricted, so
-	 * we might be able to produce a better bound on the size.
-	 */
-	override fun L2GeneratorInterface.emitTransformedInstruction()
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction?
 	{
 		val strongerResultType = P_TupleSize.returnTypeGuaranteedByVM(
-			null,
-			listOf(tuple.type()))
+			null, listOf(tuple.type()))
 		tupleSize.restrict { intersectionWithType(strongerResultType) }
 		assert(!tupleSize.restriction().isImpossible)
+		// Try constant folding.
 		val sizeType = tupleSize.restriction().type
 		if (sizeType.lowerBound.equals(sizeType.upperBound))
 		{
-			// The exact tuple size is now known.
 			moveIntRegister(
 				unboxedIntConstant(sizeType.lowerBound.extractInt)
 					.semanticValue(),
 				tupleSize.semanticValues())
-			return
+			return null
 		}
-		+this@L2_TUPLE_SIZE
+		return this@L2_TUPLE_SIZE
 	}
 }

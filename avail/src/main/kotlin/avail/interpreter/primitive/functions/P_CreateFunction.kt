@@ -85,7 +85,7 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType(), mostGeneralTupleType),
-			mostGeneralFunctionType())
+			mostGeneralFunctionType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_WRONG_OUTERS))

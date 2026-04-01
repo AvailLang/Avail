@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Force the specified object to be immutable.  Maintenance of conservative
@@ -102,13 +101,11 @@ class L2_MAKE_IMMUTABLE(
 		}
 
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: output = input.makeImmutable();
-		translator.load(method, input)
-		A_BasicObject.makeImmutableMethod.generateCall(method)
-		translator.store(method, output.register())
+		load(input)
+		generateCall(A_BasicObject.makeImmutableMethod)
+		store(output.register())
 	}
 }

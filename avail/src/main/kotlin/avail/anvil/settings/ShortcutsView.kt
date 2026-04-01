@@ -298,13 +298,13 @@ class ShortcutsPanel constructor(
  *   The [KeyboardShortcut] to show.
  * @property settingsView
  *   The [SettingsView] this [ShortcutRow] ultimately belongs to.
- * @property parent
+ * @property parentPanel
  *   The parent [ShortcutsPanel].
  */
 internal class ShortcutRow constructor(
 	private val shortcut: KeyboardShortcut,
 	private val settingsView: SettingsView,
-	val parent: ShortcutsPanel
+	val parentPanel: ShortcutsPanel
 ): JPanel(GridBagLayout())
 {
 	/**
@@ -339,7 +339,7 @@ internal class ShortcutRow constructor(
 	 */
 	private fun openEditDialog ()
 	{
-		EditShortcutDialog(settingsView, parent, shortcut)
+		EditShortcutDialog(settingsView, parentPanel, shortcut)
 	}
 
 	/**

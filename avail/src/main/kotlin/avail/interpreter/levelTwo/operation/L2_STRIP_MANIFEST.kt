@@ -43,7 +43,6 @@ import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgument
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
-import org.objectweb.asm.MethodVisitor
 
 /**
  * This is a special operation which limits which [L2Register]s and
@@ -144,14 +143,11 @@ class L2_STRIP_MANIFEST(
 			firstUses, insertions, mutables, uniqueGenerator)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// Transfer from the sources to the corresponding destinations.  Most of
 		// these pairs will have been assigned to the same register, and can be
 		// elided.
-		translator.transferPairwise(
-			method, inputs.registers(), outputs.registers())
+		transferPairwise(inputs.registers(), outputs.registers())
 	}
 }

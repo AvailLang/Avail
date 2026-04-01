@@ -71,6 +71,7 @@ import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.W
 import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.X
 import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.Y
 import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.Z
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.integers.P_BitShiftLeft
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
@@ -84,11 +85,11 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readInt
+import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
-import org.objectweb.asm.MethodVisitor
+import avail.utility.cast
 import org.objectweb.asm.Opcodes
 import kotlin.math.max
 import kotlin.math.min
@@ -166,15 +167,13 @@ constructor(
 				output.restriction().intersectionWithType(newBound)))
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: output = input1 op input2;
-		translator.load(method, input1)
-		translator.load(method, input2)
-		bitOperation.constant.jvmGenerator(method)
-		translator.store(method, output.register())
+		load(input1)
+		load(input2)
+		bitOperation.constant.jvmGenerator(this)
+		store(output.register())
 	}
 
 	class RulesSyntax constructor(
@@ -248,12 +247,12 @@ constructor(
 	 *   A function for computing a type bound on the result, given type bounds
 	 *   for the two arguments.
 	 * @property ruleCreator
-	 *   A lambda that is able to produce rules, via [RulesSyntax], once all of
-	 *   the enum values have been created, since rules for an operation refer
-	 *   to other operations, sometimes cyclically.
+	 *   A lambda that is able to produce rules, via [RulesSyntax], once all the
+	 *   enum values have been created, since rules for an operation refer to
+	 *   other operations, sometimes cyclically.
 	 */
 	enum class BitOperation private constructor(
-		val jvmGenerator: MethodVisitor.()->Unit,
+		val jvmGenerator: JVMTranslator.()->Unit,
 		val folder: (Int, Int)->Int,
 		val bounder: (A_Type, A_Type)->A_Type,
 		private val ruleCreator: RulesSyntax.()->Unit)
@@ -448,15 +447,15 @@ constructor(
 		SelectBit(
 			jvmGenerator = {
 				// :: a, b
-				visitLdcInsn(31)
+				method.visitLdcInsn(31)
 				// :: a, b, 31
 				intMinMethod.generateCall(this)
 				// :: a, min(b,31)
-				visitInsn(Opcodes.IUSHR)
+				method.visitInsn(Opcodes.IUSHR)
 				// :: a>>min(b,31)
-				visitLdcInsn(1)
+				method.visitLdcInsn(1)
 				// :: a>>min(b,31), 1
-				visitInsn(Opcodes.IAND)
+				method.visitInsn(Opcodes.IAND)
 				// :: (a>>min(b,31)) & 1
 			},
 			folder = { a, b -> (a ushr min(b, 31)) and 1 },
@@ -484,7 +483,7 @@ constructor(
 		 *   bounds for the two arguments.
 		 * @param ruleCreator
 		 *   A lambda that is able to produce rules, via [RulesSyntax], once all
-		 *   of the enum values have been created, since rules for an operation
+		 *   the enum values have been created, since rules for an operation
 		 *   refer to other operations, sometimes cyclically.
 		 */
 		private constructor(
@@ -493,7 +492,7 @@ constructor(
 			bounder: (A_Type, A_Type)->A_Type,
 			ruleCreator: RulesSyntax.()->Unit
 		) : this(
-			{ visitInsn(jvmOpcode) },
+			{ method.visitInsn(jvmOpcode) },
 			folder,
 			bounder,
 			ruleCreator)
@@ -565,10 +564,11 @@ constructor(
 			val fallback = createBasicBlock("fall back to boxed logic")
 			try
 			{
-				val intA = readInt(a.semanticValue().unboxedInt, fallback) {
-					return false
-				}
-				val intB = readInt(b.semanticValue().unboxedInt, fallback) {
+				val (intA, intB) = readTwoInts(
+					a.semanticValue().unboxedInt,
+					b.semanticValue().unboxedInt,
+					fallback)
+				{
 					return false
 				}
 				if (currentlyReachable())
@@ -608,10 +608,25 @@ constructor(
 							false)
 						return true
 					}
-					val tempWriter = intWrite(
-						setOf(intSemanticPrimitive),
-						intRestrictionForType(typeGuarantee))
-					+L2_BIT_LOGIC_OP(this@BitOperation, intA, intB, tempWriter)
+					when (val lower = typeGuarantee.lowerBound)
+					{
+						// It's a constant value.
+						typeGuarantee.upperBound ->
+						{
+							+INTEGER_KIND.moveConstant(
+								lower,
+								setOf(
+									intSemanticPrimitive,
+									INTEGER_KIND.createSemanticConstant(lower.cast())))
+						}
+						else ->
+						{
+							val tempWriter = intWrite(
+								setOf(intSemanticPrimitive),
+								intRestrictionForType(typeGuarantee))
+							+L2_BIT_LOGIC_OP(this@BitOperation, intA, intB, tempWriter)
+						}
+					}
 					// Even though we're just using the boxed value again, the
 					// unboxed form is also still available in the manifest for
 					// use by subsequent primitives, which might allow the

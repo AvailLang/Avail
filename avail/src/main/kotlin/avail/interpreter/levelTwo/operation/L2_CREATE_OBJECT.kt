@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Create an object using a constant pojo holding an [ObjectLayoutVariant]
@@ -74,22 +73,20 @@ class L2_CREATE_OBJECT(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadLiteralObject(method, variant.constant)
-		translator.loadLiteralObject(method, guaranteedType.constant)
-		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
+		loadLiteralObject(variant.constant)
+		loadLiteralObject(guaranteedType.constant)
+		generateCall(ObjectDescriptor.createUninitializedObjectMethod)
 		val fieldSources = fieldValues.elements
 		val limit = fieldSources.size
 		for (i in 0 until limit)
 		{
-			translator.intConstant(method, i + 1)
-			translator.load(method, fieldSources[i])
+			intConstant(i + 1)
+			load(fieldSources[i])
 			// Note: returns the object for chaining.
-			ObjectDescriptor.setFieldMethod.generateCall(method)
+			generateCall(ObjectDescriptor.setFieldMethod)
 		}
-		translator.store(method, newObject.register())
+		store(newObject.register())
 	}
 }

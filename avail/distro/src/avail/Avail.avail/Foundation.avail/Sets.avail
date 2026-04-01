@@ -80,12 +80,11 @@ Method "“_”" is
 [
 	t : set meta
 |
-	s : nonempty string := "{" ++ “t's element type” ++ "|";
-	lower ::= ⌊t⌋;
-	upper ::= ⌈t⌉;
-	s ++= “||t||” (cardinality restriction);
-	s ++= "}";
-	s
+	"{"
+		++ “t's element type”
+		++ "|"
+		++ “||t||” (cardinality restriction)
+		++ "}"
 ] : string;
 
 Method "_+_" is stable at [set, any]→set;
@@ -211,13 +210,14 @@ Method "For each of⁇_do_" is
 	[
 		index : natural number,
 		end : whole number,
-		aTuple : tuple
+		aTuple : tuple,
+		innerAction : [⊥]→⊤
 	|
 		$loop : ⊤;
 		Exit loop if index > end;
-		action(aTuple[index]);
-		Restart loop with <index + 1, end, aTuple>
-	](1, |aSet|, aSet→tuple);
+		innerAction(aTuple[index]);
+		Restart loop with <index + 1, end, aTuple, innerAction>
+	](1, |aSet|, aSet→tuple, action);
 ] : ⊤
 styled by loop styler;
 

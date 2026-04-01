@@ -38,7 +38,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -69,14 +68,12 @@ class L2_RESTART_CONTINUATION(
 		append(continuationToRestart.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: return interpreter.reifierToRestart(continuation);
-		translator.loadInterpreter(method)
-		translator.load(method, continuationToRestart)
-		Interpreter.reifierToRestartMethod.generateCall(method)
+		loadInterpreter()
+		load(continuationToRestart)
+		generateCall(Interpreter.reifierToRestartMethod)
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }

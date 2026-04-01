@@ -307,7 +307,7 @@ class TypeConsistencyTest
 			/** The most general function type. */
 			private val MOST_GENERAL_FUNCTION = Node(
 				"MOST_GENERAL_FUNCTION",
-				mostGeneralFunctionType(),
+				mostGeneralFunctionType,
 				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
@@ -440,6 +440,7 @@ class TypeConsistencyTest
 			/**
 			 * The pojo type representing [Comparable]&lt;[Int]&gt;.
 			 */
+			@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 			private val COMPARABLE_OF_JAVA_INTEGER_POJO = Node(
 				"COMPARABLE_OF_JAVA_INTEGER_POJO",
 				pojoTypeForClassWithTypeArguments(
@@ -450,6 +451,7 @@ class TypeConsistencyTest
 			/**
 			 * The pojo type representing [Int].
 			 */
+			@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 			private val JAVA_INTEGER_POJO = Node(
 				"JAVA_INTEGER_POJO",
 				pojoTypeForClass(Integer::class.java),
@@ -1647,7 +1649,9 @@ class TypeConsistencyTest
 		{
 			// Force early initialization of the Avail runtime in order to
 			// prevent initialization errors.
+			@Suppress("UnusedExpression")
 			AvailRuntime
+
 			Node.createTypes()
 			@Suppress("ConstantConditionIf")
 			if (false)

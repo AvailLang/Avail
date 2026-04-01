@@ -53,6 +53,7 @@ import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.StackReifier
+import avail.utility.Strings.increaseIndentation
 import java.util.logging.Level
 import kotlin.math.max
 
@@ -271,12 +272,14 @@ constructor(
 			while (off < size)
 			{
 				val instruction = instructions[off++]
+				val instructionText = increaseIndentation(
+					instruction.toString(), depth + 2)
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
 					"{0}L2Simple step: {1}",
 					interpreter.debugModeString,
-					instruction)
+					instructionText)
 				val reifier = instruction.step(registers, interpreter)
 				if (reifier !== null)
 				{

@@ -34,14 +34,13 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Given an input register containing a function (not a function type), extract
@@ -89,18 +88,16 @@ class L2_FUNCTION_PARAMETER_TYPE(
 	 */
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)
-		translator.load(method, function)
-		FunctionDescriptor.functionCodeMethod.generateCall(method)
-		A_RawFunction.functionTypeMethod.generateCall(method)
-		A_Type.argsTupleTypeMethod.generateCall(method)
-		translator.intConstant(method, parameterIndex.value)
-		A_Type.typeAtIndexMethod.generateCall(method)
-		translator.store(method, parameterType.register())
+		load(function)
+		generateCall(FunctionDescriptor.functionCodeMethod)
+		generateCall(A_RawFunction.functionTypeMethod)
+		generateCall(A_Type.argsTupleTypeMethod)
+		intConstant(parameterIndex.value)
+		generateCall(A_Type.typeAtIndexMethod)
+		store(parameterType.register())
 	}
 }

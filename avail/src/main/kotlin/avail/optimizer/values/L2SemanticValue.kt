@@ -122,8 +122,8 @@ protected constructor(
 
 	/**
 	 * Answer whether a move that adds this to a synonym should be kept around
-	 * just to make the synonym visible for reuse, even though the register that
-	 * is written by the move is dead.
+	 * just to make the synonym visible for reuse, even though the register
+	 * written by the move is dead.
 	 */
 	open val isUsefulForGlobalValueNumbering: Boolean get() = false
 

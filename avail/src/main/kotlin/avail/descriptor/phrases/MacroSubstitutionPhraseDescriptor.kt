@@ -74,16 +74,20 @@ import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.primitive
 import avail.descriptor.phrases.A_Phrase.Companion.sequence
+import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import avail.descriptor.phrases.A_Phrase.Companion.stripMacro
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.variable
+import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PHRASE
 import avail.descriptor.representation.A_BasicObject
@@ -429,8 +433,35 @@ class MacroSubstitutionPhraseDescriptor(
 				MACRO_SUBSTITUTION_PHRASE -> macroSend.macroOriginalSendNode
 				else -> throw IllegalArgumentException()
 			}
+			// Replace the output if it's a block that doesn't have a starting
+			// line number, but the original phrase has any tokens with non-zero
+			// line numbers.
+			var adjustedOutputPhrase = outputPhrase
+			if (outputPhrase.phraseKind == PhraseKind.BLOCK_PHRASE)
+			{
+				if (outputPhrase.startingLineNumber == 0)
+				{
+					val originalLine = original.tokens
+						.map(A_Token::lineNumber)
+						.filter { it != 0 }
+						.minOrNull() ?: 0
+					if (originalLine != 0)
+					{
+						adjustedOutputPhrase = with (outputPhrase)
+						{
+							newBlockNode(
+								argumentsTuple,
+								primitive,
+								statementsTuple,
+								resultType(),
+								declaredExceptions,
+								originalLine)
+						}
+					}
+				}
+			}
 			setSlot(MACRO_ORIGINAL_SEND, original)
-			setSlot(OUTPUT_PHRASE, outputPhrase)
+			setSlot(OUTPUT_PHRASE, adjustedOutputPhrase)
 			initHash()
 		}
 

@@ -44,7 +44,6 @@ import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -83,9 +82,7 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// While it's true that the raw function's starting chunk will be
 		// switched to the default chunk during invalidation, we can still reach
@@ -95,10 +92,9 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 		// that there can't be a primitive for such continuations.
 
 		// :: if (!checkValidity()) {
-		translator.loadInterpreter(method)
-		translator.intConstant(
-			method, L2JVMChunk.ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
-		Interpreter.checkValidityMethod.generateCall(method)
+		loadInterpreter()
+		intConstant(L2JVMChunk.ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
+		generateCall(Interpreter.checkValidityMethod)
 		val isValidLabel = Label()
 		method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
 		// ::    return null;
@@ -111,8 +107,8 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 		if (argWrites.isNotEmpty())
 		{
 			// Populate the argument registers from the argsBuffer.
-			translator.loadInterpreter(method)
-			Interpreter.argsBufferField.generateRead(method)
+			loadInterpreter()
+			load(Interpreter.argsBufferField)
 			// [argsBuffer]
 			argWrites.forEachIndexed { i, write ->
 				if (i < argWrites.size - 1)
@@ -121,14 +117,14 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 					method.visitInsn(Opcodes.DUP)
 				}
 				// [... argsBuffer]
-				translator.intConstant(method, i)
+				intConstant(i)
 				// [... argsBuffer, i]
-				listGetMethod.generateCall(method)
+				generateCall(listGetMethod)
 				// [... argsBuffer[i]]
 				method.visitTypeInsn(
 					Opcodes.CHECKCAST,
 					Type.getInternalName(AvailObject::class.java))
-				translator.store(method, write.register())
+				store(write.register())
 				// [...]
 			}
 		}

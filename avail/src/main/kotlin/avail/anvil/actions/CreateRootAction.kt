@@ -145,7 +145,7 @@ constructor (
 			tg,
 			extensions,
 			editable = editor.editable.isSelected,
-			visible = editor.visible.isSelected)
+			visible = editor.visibleBox.isSelected)
 		newProjectRoot.description = description
 		newProjectRoot.saveLocalSettingsToDisk()
 		newProjectRoot.saveTemplatesToDisk()
@@ -343,7 +343,7 @@ constructor(
 	val editable = JCheckBox("Editable", true)
 
 	/** A checkbox to indicate the root is visible. */
-	val visible = JCheckBox("Visible", true)
+	val visibleBox = JCheckBox("Visible", true)
 
 	/**
 	 * The [JList] showing root names within the current selected jar file.
@@ -381,7 +381,7 @@ constructor(
 				fill = GridBagConstraints.HORIZONTAL
 				add(editable, this)
 				gridy++
-				add(visible, this)
+				add(visibleBox, this)
 				// All the slack space goes at the bottom.
 				fill = GridBagConstraints.BOTH
 				weighty = 1.0

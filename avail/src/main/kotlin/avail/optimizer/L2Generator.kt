@@ -44,6 +44,7 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isDouble
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.numericComparator
@@ -120,7 +121,9 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
@@ -134,17 +137,13 @@ import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
-import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
-import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_UNBOX_FLOAT
-import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_CREATE_TUPLE
-import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_UPDATE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -163,6 +162,7 @@ import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIV
 import avail.optimizer.L2Optimizer.Companion.shouldSanityCheck
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -178,7 +178,6 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.cast
-import avail.utility.ifNotEmpty
 import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
@@ -341,7 +340,7 @@ constructor(
 	override fun unboxedIntConstant(value: Int): L2ReadIntOperand
 	{
 		// We require that the current code position is reachable, since
-		// otherwise the addInstruction() below will produce nothing, and the
+		// otherwise the unaryPlus() below will produce nothing, and the
 		// attempt to use the (not) written value will fail.
 		assert(currentlyReachable())
 		val boxedValue: A_Number = fromInt(value)
@@ -349,28 +348,17 @@ constructor(
 		val semanticUnboxedValue = semanticConstant.unboxedInt
 		if (currentManifest.hasSemanticValue(semanticUnboxedValue))
 		{
-			return currentManifest.readInt(semanticUnboxedValue)
+			return readIntNoFail(semanticUnboxedValue)
 		}
 		val unboxedSet = setOf(semanticUnboxedValue)
-		val synonym = L2Synonym(unboxedSet)
 		val restriction = intRestrictionForConstant(value)
-		currentManifest.introduceSynonym(synonym, restriction)
+		currentManifest.introduceSynonym(unboxedSet, restriction)
 		+L2_MOVE_CONSTANT_INT(
 			L2IntImmediateOperand(value),
 			intWrite(unboxedSet, restriction))
 		return L2ReadIntOperand(semanticUnboxedValue, restriction)
 	}
 
-	/**
-	 * Generate code to move the given `double` constant into an unboxed float
-	 * register, if it's not already known to be in such a register. Answer an
-	 * [L2ReadFloatOperand] to retrieve this value.
-	 *
-	 * @param value
-	 *   The constant `double` to write to a float register.
-	 * @return
-	 *   The [L2ReadFloatOperand] that retrieves the value.
-	 */
 	override fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 	{
 		// We require that the current code position is reachable, since
@@ -382,22 +370,73 @@ constructor(
 		val semanticUnboxedValue = semanticConstant.unboxedFloat
 		if (currentManifest.hasSemanticValue(semanticUnboxedValue))
 		{
-			return currentManifest.readFloat(semanticUnboxedValue)
+			return currentManifest.read(semanticUnboxedValue).cast()
 		}
 		val unboxedSet = setOf(semanticUnboxedValue)
-		val synonym = L2Synonym(unboxedSet)
 		val restriction = restrictionForConstant(boxedValue, UNBOXED_FLOAT_FLAG)
-		currentManifest.introduceSynonym(synonym, restriction)
+		currentManifest.introduceSynonym(unboxedSet, restriction)
 		+L2_MOVE_CONSTANT_FLOAT(
 			L2FloatImmediateOperand(value),
 			floatWrite(unboxedSet, restriction))
 		return L2ReadFloatOperand(semanticUnboxedValue, restriction)
 	}
 
+	override fun <K: RegisterKind<K>> ensureDefinedOrEmitMove(
+		semanticValue: L2SemanticValue<K>
+	): Unit
+	{
+		// Happy path – here's already a definition/register backing it.
+		if (currentManifest.hasLiveSemanticValue(semanticValue)) return
+		val synonym = currentManifest.semanticValueToSynonym(semanticValue)
+		val restriction = currentManifest.restrictionFor(semanticValue)
+		val defined = currentManifest.getAllDefinitions(semanticValue)
+			.flatMap(L2Register<K>::definitions)
+			.flatMap(L2WriteOperand<K>::semanticValues)
+			.toSet()
+		val notDefined = synonym.semanticValues() - defined
+		// We already concluded that (at least) semanticValue is not yet live.
+		assert(semanticValue in notDefined)
+		val origin: L2SemanticValue<K>? = when
+		{
+			defined.isNotEmpty() -> defined.first()
+			// Look for a value already computed in something we can determine
+			// is equivalent, even if it's currently in another synonym.
+			else -> currentManifest
+				.equivalentPopulatedSemanticValue(semanticValue)
+		}
+		// Always clear the postponed instruction, if any, perhaps emitting it
+		// below.
+		val postponed =
+			currentManifest.removePostponedInstructionFor(semanticValue)
+
+		when
+		{
+			// The value is populated within the synonym, or in an equivalent
+			// semantic value, so move the value into the notDefined set.
+			origin != null -> addInstruction(
+				semanticValue.kind.dynamicMove(
+					origin,
+					notDefined.toSet(),
+					currentManifest,
+					restrictionFor(semanticValue)))
+			// It's constant, so emit a constant move.
+			restriction.isConstant -> addInstruction(
+				semanticValue.kind.moveConstant(
+					restriction.constantOrNull!!,
+					notDefined))
+			// Otherwise there must be a postponed instruction to emit.
+			else -> addInstruction(
+				postponed!!.clone().apply {
+					writeOperands.single()
+						.retroactivelySetSemanticValues(notDefined)
+				})
+		}
+	}
+
 	override fun readBoxed(
 		write: L2WriteOperand<BOXED_KIND>
 	): L2ReadBoxedOperand =
-		currentManifest.readBoxed(write.pickSemanticValue()).also { read ->
+		readBoxed(write.pickSemanticValue()).also { read ->
 			write.registerIfKnown()?.let(read::setRegister)
 		}
 
@@ -406,39 +445,46 @@ constructor(
 	): L2ReadBoxedOperand
 	{
 		// Does it already exist or can we move it from another boxed value?
-		currentManifest.equivalentPopulatedSemanticValue(semanticBoxed)
-			?.let { populated ->
-				if (populated != semanticBoxed)
-				{
-					moveRegister(populated, listOf(semanticBoxed))
-				}
-				return currentManifest.readBoxed(semanticBoxed)
+		currentManifest.equivalentSemanticValue(semanticBoxed)
+			?.let { existing ->
+				currentManifest.agglomerateSynonym(
+					setOf(semanticBoxed, existing),
+					currentManifest.restrictionFor(existing))
+				return currentManifest.read(semanticBoxed).cast()
 			}
 		// Can we box it from an existing int value?
 		currentManifest
-			.equivalentPopulatedSemanticValue(semanticBoxed.unboxedInt)
+			.equivalentSemanticValue(semanticBoxed.unboxedInt)
 			?.let { unboxedInt ->
+				currentManifest.agglomerateSynonym(
+					setOf(semanticBoxed.unboxedInt, unboxedInt),
+					currentManifest.restrictionFor(unboxedInt))
 				val restriction = currentManifest.restrictionFor(unboxedInt)
 				val writer = L2WriteBoxedOperand(
 					currentManifest.semanticValueToSynonym(unboxedInt)
 						.semanticValues()
 						.mapToSet { it.boxed },
 					restriction.forBoxed())
-				+L2_BOX_INT(currentManifest.readInt(unboxedInt), writer)
-				return currentManifest.readBoxed(semanticBoxed)
+				+L2_BOX_INT(readIntNoFail(unboxedInt), writer)
+				return currentManifest.read(semanticBoxed).cast()
 			}
 		// Can we box it from an existing float value?
 		currentManifest
-			.equivalentPopulatedSemanticValue(semanticBoxed.unboxedFloat)
+			.equivalentSemanticValue(semanticBoxed.unboxedFloat)
 			?.let { unboxedFloat ->
+				currentManifest.agglomerateSynonym(
+					setOf(semanticBoxed.unboxedFloat, unboxedFloat),
+					currentManifest.restrictionFor(unboxedFloat))
 				val restriction = currentManifest.restrictionFor(unboxedFloat)
 				val writer = L2WriteBoxedOperand(
 					currentManifest.semanticValueToSynonym(unboxedFloat)
 						.semanticValues()
 						.mapToSet { it.boxed },
 					restriction.forBoxed())
-				+L2_BOX_FLOAT(currentManifest.readFloat(unboxedFloat), writer)
-				return currentManifest.readBoxed(semanticBoxed)
+				+L2_BOX_FLOAT(
+					readFloatNoFail(unboxedFloat),
+					writer)
+				return currentManifest.read(semanticBoxed).cast()
 			}
 		throw AssertionError(
 			"Boxed value not available, even from unboxed versions")
@@ -453,7 +499,7 @@ constructor(
 		if (currentManifest.hasSemanticValue(semanticUnboxed))
 		{
 			// It already exists in an unboxed int register.
-			return currentManifest.readInt(semanticUnboxed)
+			return currentManifest.read(semanticUnboxed).cast()
 		}
 		// Synonyms of ints are tricky, so check if there's an int version of a
 		// synonym available.
@@ -475,7 +521,7 @@ constructor(
 					// boxed value in the synonym.
 					moveIntRegister(alternateInt, unassignedUnboxed)
 				}
-				return currentManifest.readInt(alternateInt)
+				return currentManifest.read(alternateInt).cast()
 			}
 		}
 		// Because of the way synonyms work, the boxed form might have
@@ -488,7 +534,7 @@ constructor(
 				if (currentManifest.hasSemanticValue(equivalentUnboxed))
 				{
 					moveIntRegister(equivalentUnboxed, setOf(semanticUnboxed))
-					return currentManifest.readInt(semanticUnboxed)
+					return currentManifest.read(semanticUnboxed).cast()
 				}
 			}
 
@@ -508,23 +554,28 @@ constructor(
 		}
 		// Extract it to a new int register.
 		val intWrite = L2WriteIntOperand(
-			setOf(semanticUnboxed),
+			buildSet {
+				add(semanticUnboxed)
+				currentManifest.semanticValueToSynonymOrNull(semanticUnboxed)
+					?.semanticValues()
+					?.mapTo(this) { it }
+				currentManifest.semanticValueToSynonymOrNull(semanticBoxed)
+					?.semanticValues()
+					?.mapTo(this) { it.unboxedInt }
+			},
 			restriction.forUnboxedInt(),
 			L2IntRegister(nextUnique()))
-		val boxedRead = currentManifest.readBoxed(semanticBoxed)
-		if (restriction.containedByType(i32))
-		{
-			+L2_UNBOX_INT(boxedRead, intWrite)
-		}
-		else
+		val readBoxed =
+			currentManifest.read(semanticBoxed) as L2ReadBoxedOperand
+		if (!restriction.containedByType(i32))
 		{
 			// Conversion may succeed or fail at runtime.
-			val onSuccess = createBasicBlock("successfully unboxed")
-			+L2_JUMP_IF_UNBOX_INT(
-				boxedRead,
-				intWrite,
-				edgeTo(onFailure),
-				edgeTo(onSuccess))
+			val onSuccess = createBasicBlock("isInt $semanticUnboxed")
+			jumpIfKindOfConstant(
+				readBoxed,
+				i32,
+				onSuccess,
+				onFailure)
 			startBlock(onSuccess)
 			if (!currentlyReachable())
 			{
@@ -532,7 +583,8 @@ constructor(
 				return null
 			}
 		}
-		return currentManifest.readInt(semanticUnboxed)
+		+L2_UNBOX_INT(readBoxed, intWrite)
+		return currentManifest.read(semanticUnboxed).cast()
 	}
 
 	/**
@@ -568,7 +620,7 @@ constructor(
 		if (currentManifest.hasSemanticValue(semanticUnboxed))
 		{
 			// It already exists in an unboxed int register.
-			return currentManifest.readInt(semanticUnboxed)
+			return currentManifest.read(semanticUnboxed).cast()
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
@@ -584,7 +636,7 @@ constructor(
 			val otherUnboxed = otherBoxed.unboxedInt
 			if (currentManifest.hasSemanticValue(otherUnboxed))
 			{
-				return currentManifest.readInt(otherUnboxed)
+				return currentManifest.read(otherUnboxed).cast()
 			}
 		}
 		// Because of the way synonyms work, the boxed form might have
@@ -598,19 +650,19 @@ constructor(
 				if (currentManifest.hasSemanticValue(equivalentUnboxed))
 				{
 					moveIntRegister(equivalentUnboxed, setOf(semanticUnboxed))
-					return currentManifest.readInt(semanticUnboxed)
+					return currentManifest.read(semanticUnboxed).cast()
 				}
 			}
 
 		// It's not available as an unboxed int, so generate code to unbox it.
 		// Extract it to a new int register.
-		val intWrite = L2WriteIntOperand(
-			setOf(semanticUnboxed),
-			restriction.forUnboxedInt(),
-			L2IntRegister(nextUnique()))
-		val boxedRead = currentManifest.readBoxed(semanticBoxed)
-		+L2_UNBOX_INT(boxedRead, intWrite)
-		return currentManifest.readInt(semanticUnboxed)
+		+L2_UNBOX_INT(
+			currentManifest.read(semanticBoxed).cast(),
+			L2WriteIntOperand(
+				setOf(semanticUnboxed),
+				restriction.forUnboxedInt(),
+				L2IntRegister(nextUnique())))
+		return currentManifest.read(semanticUnboxed).cast()
 	}
 
 	/**
@@ -631,13 +683,12 @@ constructor(
 	 * @param semanticUnboxed
 	 *   The [L2SemanticUnboxedFloat] to read as an unboxed float.
 	 * @param onFailure
-	 *   Where to jump in the event that an [L2_JUMP_IF_UNBOX_FLOAT] fails. The
-	 *   manifest at this location will not contain bindings for the unboxed
-	 *   `float` (since unboxing was not possible).
+	 *   Where to jump in the event that an [isDouble] fails. The manifest at
+	 *   this location will not contain bindings for the unboxed `float` (since
+	 *   unboxing was not possible).
 	 * @return
 	 *   The unboxed [L2ReadFloatOperand].
 	 */
-	@Suppress("unused")
 	fun readFloat(
 		semanticUnboxed: L2SemanticValue<FLOAT_KIND>,
 		onFailure: L2BasicBlock
@@ -646,7 +697,7 @@ constructor(
 		if (currentManifest.hasSemanticValue(semanticUnboxed))
 		{
 			// It already exists in an unboxed float register.
-			return currentManifest.readFloat(semanticUnboxed)
+			return currentManifest.read(semanticUnboxed).cast()
 		}
 		// It's not available as an unboxed float, so generate code to unbox it.
 		val semanticBoxed = semanticUnboxed.boxed
@@ -657,7 +708,7 @@ constructor(
 			// double, so it must always fail.
 			jumpTo(onFailure)
 			// Return a dummy, which should get suppressed or optimized away.
-			return unboxedFloatConstant(-99.9)
+			return unboxedFloatConstant(-999.999)
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
@@ -666,29 +717,48 @@ constructor(
 		}
 		// Extract it to a new float register.
 		val floatWrite = L2WriteFloatOperand(
-			currentManifest.semanticValueToSynonym(semanticUnboxed)
-				.semanticValues(),
-			restriction
-				.intersectionWithType(Types.DOUBLE())
-				.withFlag(UNBOXED_FLOAT_FLAG),
+			buildSet {
+				add(semanticUnboxed)
+				currentManifest.semanticValueToSynonymOrNull(semanticUnboxed)
+					?.semanticValues()
+					?.mapTo(this) { it }
+				currentManifest.semanticValueToSynonymOrNull(semanticBoxed)
+					?.semanticValues()
+					?.mapTo(this) { it.unboxedFloat }
+			},
+			restriction.forUnboxedFloat(),
 			L2FloatRegister(nextUnique()))
-		val boxedRead = currentManifest.readBoxed(semanticBoxed)
-		if (restriction.containedByType(Types.DOUBLE()))
-		{
-			+L2_UNBOX_FLOAT(boxedRead, floatWrite)
-		}
-		else
+		val readBoxed =
+			currentManifest.read(semanticBoxed) as L2ReadBoxedOperand
+		if (!restriction.containedByType(Types.DOUBLE()))
 		{
 			// Conversion may succeed or fail at runtime.
-			val onSuccess = createBasicBlock("successfully unboxed")
-			+L2_JUMP_IF_UNBOX_FLOAT(
-				boxedRead,
-				floatWrite,
-				edgeTo(onFailure),
-				edgeTo(onSuccess))
+			val onSuccess = createBasicBlock("isDouble $semanticUnboxed")
+			jumpIfKindOfConstant(
+				readBoxed,
+				Types.DOUBLE(),
+				onSuccess,
+				onFailure)
 			startBlock(onSuccess)
+			if (!currentlyReachable())
+			{
+				// The success path might have ended up being impossible. Return
+				// a dummy, which should get suppressed or optimized away.
+				return unboxedFloatConstant(-999.999)
+			}
 		}
-		return currentManifest.readFloat(semanticUnboxed)
+		+L2_UNBOX_FLOAT(readBoxed, floatWrite)
+		return currentManifest.read(semanticUnboxed).cast()
+	}
+
+	override fun readFloatNoFail(
+		semanticUnboxed: L2SemanticValue<FLOAT_KIND>
+	): L2ReadFloatOperand
+	{
+		val ifNotFloat = createBasicBlock("not a double")
+		val result = readFloat(semanticUnboxed, ifNotFloat)
+		assert(ifNotFloat.predecessorEdges().isEmpty())
+		return result
 	}
 
 	override fun <K: RegisterKind<K>> readIfAvailable(
@@ -698,13 +768,13 @@ constructor(
 		if (currentManifest.hasSemanticValue(semanticValue)
 			&& currentManifest.getDefinitions(semanticValue).isNotEmpty())
 		{
-			return semanticValue.kind.createRead(semanticValue, currentManifest)
+			return currentManifest.read(semanticValue)
 		}
 		val equivalent =
 			currentManifest.equivalentPopulatedSemanticValue(semanticValue)
 		equivalent?.let {
 			moveRegister(equivalent, listOf(semanticValue))
-			return semanticValue.kind.createRead(semanticValue, currentManifest)
+			return currentManifest.read(semanticValue)
 		}
 		return null
 	}
@@ -713,84 +783,11 @@ constructor(
 		sourceSemanticValue: L2SemanticValue<K>,
 		targetSemanticValues: Iterable<L2SemanticValue<K>>)
 	{
-		val block = currentBlock()
-		val sourceRegisters =
-			currentManifest.getDefinitions(sourceSemanticValue)
-		val sourceWritesInBlock = sourceRegisters
-			.flatMap(L2Register<K>::definitions)
-			.filter { it.instruction.basicBlock() == block }
-		if (sourceWritesInBlock.isNotEmpty())
-		{
-			// Find the latest equivalent write in this block.
-			val latestWrite = sourceWritesInBlock.maxBy {
-				it.instruction.basicBlock().instructions()
-					.indexOf(it.instruction)
-			}
-			if (latestWrite.instruction !is L2_PHI<*>)
-			{
-				// Walk backward through instructions until the latest
-				// equivalent write, watching for disqualifying pitfalls.
-				for (i in block.instructions().indices.reversed())
-				{
-					val eachInstruction = block.instructions()[i]
-					// Don't allow an L2_STRIP_MANIFEST to intervene, because
-					// the register and semantic value written in prior
-					// instructions may not be visible (that's literally what
-					// the instruction is there to ensure).
-					if (eachInstruction is L2_STRIP_MANIFEST) break
-					if (eachInstruction == latestWrite.instruction)
-					{
-						// If we allowed phis to be retroactively updated, it
-						// wouldn't get rebuilt properly (i.e., to include the
-						// targetSemanticValues) on the next pass, since it
-						// ignores phis of the old graph.
-						if (eachInstruction is L2_PHI<*>) break
-						// We reached the writing instruction without trouble.
-						// Augment the write's semantic values retroactively to
-						// include the targetSemanticValue.
-						val pickedSemanticValue =
-							latestWrite.pickSemanticValue()
-						// This line must be after we pick a representative
-						// semantic value, otherwise it might choose the new
-						// one.
-						targetSemanticValues.forEach { targetSemanticValue ->
-							latestWrite.retroactivelyIncludeSemanticValue(
-								targetSemanticValue)
-							if (currentManifest
-								.hasSemanticValue(targetSemanticValue))
-							{
-								currentManifest.mergeExistingSemanticValues(
-									pickedSemanticValue,
-									targetSemanticValue)
-							}
-							else
-							{
-								currentManifest.extendSynonym(
-									currentManifest.semanticValueToSynonym(
-										pickedSemanticValue),
-									targetSemanticValue)
-							}
-						}
-						currentManifest.check()  //TODO Remove
-						return
-					}
-					// Here's where we would check eachInstruction to see if
-					// it's a pitfall that prevents us from retroactively
-					// updating an earlier write.  Break if this happens.
-				}
-			}
-			// Fall through, due to a break from a pitfall.
-		}
-		// Note that even though we couldn't avoid the move in this case, this
-		// move can still be updated by subsequent moves from the same synonym.
 		val restriction = currentManifest.restrictionFor(sourceSemanticValue)
-		val register = currentManifest.getDefinition(sourceSemanticValue)
 		val kind = sourceSemanticValue.kind
 		+kind.move(
-			kind.readOperand(sourceSemanticValue, restriction, register),
-			kind.createWrite(
-				targetSemanticValues.toSet(),
-				restriction))
+			kind.readOperand(sourceSemanticValue, restriction),
+			kind.createWrite(targetSemanticValues.toSet(), restriction))
 	}
 
 	override fun moveBoxedRegister(
@@ -904,24 +901,14 @@ constructor(
 		index: Int,
 		destinationSemanticValues: Set<L2SemanticBoxedValue>)
 	{
-		val tupleDefinitions = tupleRead.register().definitions()
-		if (tupleDefinitions.size == 1)
-		{
-			// Either the graph is still SSA or at least this particular
-			// register has one defining write.
-			tupleDefinitions.single().instruction.extractTupleElement(
-				tupleRead, index, destinationSemanticValues, this)
-			return
+		assert(currentManifest.caresAboutSemanticValues)
+		val tupleInstruction =
+			tupleRead.definitionSkippingMoves(currentManifest)
+		val tupleSynonym =
+			currentManifest.semanticValueToSynonym(tupleRead.semanticValue())
+		tupleInstruction.run {
+			extractTupleElement(tupleSynonym, index, destinationSemanticValues)
 		}
-		// The graph is not in SSA, so just emit the default tuple element
-		// extraction instruction.
-		val elementType = tupleRead.type().typeAtIndex(index)
-		val write = boxedWrite(
-			destinationSemanticValues, boxedRestrictionForType(elementType))
-		+L2_TUPLE_AT_CONSTANT(
-			tupleRead,
-			L2IntImmediateOperand(index),
-			write)
 	}
 
 	override fun explodeTupleIfPossible(
@@ -983,7 +970,7 @@ constructor(
 	 */
 	private fun exactFunctionSignatureFor(
 		functionReg: L2ReadBoxedOperand
-	): A_Type? = functionReg.exactFunctionType()
+	): A_Type? = functionReg.exactFunctionType(currentManifest)
 
 	override fun extractParameterTypeFromFunction(
 		functionRead: L2ReadBoxedOperand,
@@ -1078,8 +1065,9 @@ constructor(
 					// unconditionally jumps to it.  Remove the jump and
 					// continue generation in the predecessor block.  Restore
 					// the manifest from the jump edge.
+					predecessorBlock.debugNote.appendLine("Eliding jump to $block")
 					currentManifest.clear()
-					currentManifest.populateFromIntersection(
+					currentManifest.populateForMerge(
 						listOf(predecessorEdge.manifest()),
 						regenerator ?: this,
 						false)
@@ -1096,49 +1084,66 @@ constructor(
 		block.startIn(regenerator ?: this)
 	}
 
-	override fun currentBlock(): L2BasicBlock = currentBlock!!
+	override fun currentBlockOrNull(): L2BasicBlock? = currentBlock
 
 	override fun currentlyReachable(): Boolean =
 		currentBlock.notNullAnd(L2BasicBlock::currentlyReachable)
 
 	override fun addInstruction(instruction: L2Instruction)
 	{
-		currentBlock ?: return
-		if (currentManifest.caresAboutSemanticValues
-			&& instruction !is L2_MOVE<*>)
+		if (currentBlock.isNullOr { hasControlFlowAtEnd }) return
+		// Force emission of any postponed instructions that produce values
+		// consumed by this instruction.
+		if (!currentManifest.caresAboutSemanticValues
+			|| instruction is L2_MOVE<*>
+			|| instruction is L2_MOVE_CONSTANT<*, *>
+			|| instruction is L2_PHI<*>
+			|| instruction.hasSideEffect)
 		{
-			instruction.writeOperands.singleOrNull()?.let { write ->
-				val targets = write.semanticValues()
-				// Intercept instruction emission to see if we can replace it
-				// with a move from a populated equivalent semantic value.
-				targets.forEach { target ->
-					currentManifest.equivalentPopulatedSemanticValue(target)
-						?.let { equivalent ->
-							// We found a semantic value that already has the
-							// value that the instruction would compute.  Write
-							// a move instead, if necessary.
-							targets
-								.filterNot(currentManifest::hasSemanticValue)
-								.ifNotEmpty { otherValues ->
-									val move = target.kind.dynamicMove(
-										equivalent,
-										otherValues.toSet(),
-										currentManifest,
-										currentManifest
-											.restrictionFor(equivalent)
-											.intersection(write.restriction()))
-									addInstruction(move)
-								}
-							return
-						}
-				}
+			if (currentManifest.hasImpossibleRestriction
+				&& mode !is WithFixedRegisterMap)
+			{
+				addToCurrentBlock(L2_IMPOSSIBLE_CODE())
 			}
+			else
+			{
+				addToCurrentBlock(instruction)
+			}
+			return
 		}
-		currentBlock!!.addInstruction(
-			instruction.cloneFor(this), currentManifest)
-		//TODO Remove
-		if (!instruction.altersControlFlow)
-			currentManifest.check()
+
+		// Actually emit the instruction.
+		addToCurrentBlock(instruction)
+	}
+
+	/**
+	 * Clone the given instruction for this generator, give it a chance to force
+	 * needed postponed instructions or do other setup, then write the clone to
+	 * the current block.
+	 */
+	private fun addToCurrentBlock(instruction: L2Instruction)
+	{
+		val clone = instruction.cloneFor(this)
+		val keep = clone.aboutToAdd(this)
+		if (keep)
+		{
+			currentBlock!!.addInstruction(clone, currentManifest)
+		}
+	}
+
+	override fun <K : RegisterKind<K>> populateForRead(read: L2ReadOperand<K>)
+	{
+		val value = read.semanticValue()
+		if (!currentManifest.hasLiveSemanticValue(value))
+		{
+			// The requested semantic value isn't defined yet.  Create a
+			// suitable clone of the postponed instruction with all
+			// not-yet-defined semantic values plugged into the write operand,
+			// remove the original, and emit the clone.
+			ensureDefinedOrEmitMove(value)
+			assert(currentManifest.hasLiveSemanticValue(value))
+		}
+		read.restrict { restrictionFor(value) }
 	}
 
 	override fun jumpTo(
@@ -1221,7 +1226,7 @@ constructor(
 				else failBlock)
 			return
 		}
-		val valueSource = readToTest.definitionSkippingMoves()
+		val valueSource = readToTest.definitionSkippingMoves(currentManifest)
 		if (constantValue.isBoolean)
 		{
 			val constantBool = constantValue.equals(trueObject)
@@ -1270,7 +1275,7 @@ constructor(
 					val firstTypeOperand = valueSource.firstType
 					val secondTypeOperand = valueSource.seccondType
 					val firstTypeSource =
-						firstTypeOperand.definitionSkippingMoves()
+						firstTypeOperand.definitionSkippingMoves(currentManifest)
 					if (firstTypeSource is L2_GET_TYPE)
 					{
 						// There's a get-type followed by an is-subtype followed
@@ -1446,14 +1451,14 @@ constructor(
 				val firstSuccess = L2BasicBlock("low bound ok")
 				compareAndBranchInt(
 					NumericComparator.GreaterOrEqual,
-					currentManifest.readInt(unboxed),
+					readIntNoFail(unboxed),
 					unboxedIntConstant(low),
 					edgeTo(firstSuccess),
 					edgeTo(failedCheck))
 				startBlock(firstSuccess)
 				compareAndBranchInt(
 					NumericComparator.LessOrEqual,
-					currentManifest.readInt(unboxed),
+					readIntNoFail(unboxed),
 					unboxedIntConstant(high),
 					edgeTo(passedCheck),
 					edgeTo(failedCheck))
@@ -1470,15 +1475,17 @@ constructor(
 	}
 
 	override fun determineRawFunction(
-		functionToCallReg: L2ReadBoxedOperand
+		functionToCallRead: L2ReadBoxedOperand
 	): A_RawFunction?
 	{
-		functionToCallReg.constantOrNull?.let { function ->
+		functionToCallRead.constantOrNull?.let { function ->
 			return function.code()
 		}
 		// See if we can at least find out the raw function that the function
 		// was created from.
-		return functionToCallReg.definitionSkippingMoves().constantCode
+		return functionToCallRead
+			.definitionSkippingMoves(currentManifest)
+			.getConstantCode(currentManifest)
 	}
 
 	/**
@@ -1490,8 +1497,14 @@ constructor(
 	 */
 	fun generateRetroactivelyBeforeEdge(
 		edge: L2PcOperand,
+		comment: String?,
 		body: L2Generator.()->Unit)
 	{
+		assert(edge.sourceBlock().successorEdges().size == 1) {
+			"Can't generate retroactively before an unsplit edge: " +
+				edge.sourceBlock().successorEdges()
+		}
+
 		val sourceBlock = edge.sourceBlock()
 
 		val savedManifest = currentManifest
@@ -1502,9 +1515,15 @@ constructor(
 		sourceBlock.removedControlFlowInstruction()
 		try
 		{
-			+L2_NOP("Start retroactive generation...")
+			currentManifest.check()
+			comment?.let {
+				addInstruction(L2_NOP("Start retroactive generation$it"))
+			}
 			body()
-			+L2_NOP("...End retroactive generation")
+			comment?.let {
+				addInstruction(L2_NOP("...End retroactive generation"))
+			}
+			currentManifest.check()
 		}
 		finally
 		{
@@ -1550,93 +1569,29 @@ constructor(
 	override fun <K: RegisterKind<K>> forceTranslationForRead(
 		semanticValue: L2SemanticValue<K>)
 	{
-		val before = currentManifest.postponedInstructions().size
-		if (currentManifest.hasLiveSemanticValue(semanticValue))
-		{
-			// The requested semantic value is already known.  There may be a
-			// postponed instruction that could be needed for another write, but
-			// for this particular semantic value it should be removed.
-//			+L2_NOP("Forced read was already live for $semanticValue") //TODO remove
-			currentManifest.removePostponedInstructionFor(semanticValue)
-			assert(currentManifest.hasSemanticValue(semanticValue))
-			val after = currentManifest.postponedInstructions().size
-			assert(before == after)
-			return
-		}
-		val postponedInstruction =
-			currentManifest.postponedInstruction(semanticValue)!!
-		val write: L2WriteOperand<K> =
-			postponedInstruction.writeOperands.single().cast()
-		val writtenValues = write.semanticValues()
-		// Since we allow synonyms to be present without a backing register to
-		// allow equality and type restrictions to be represented even for
-		// postponed values, we need to take care of semantic values that
-		// weren't written by the instruction, but were in the same synonym as a
-		// value that was written.  Also consider multiple target semantic
-		// values within postponed instructions that would populate any of the
-		// synonyms, extending the set with synonyms and postponed writes until
-		// a fixed point is reached.
-		//
-		val encounteredSynonyms = mutableSetOf<L2Synonym<K>>()
-		val allValues = writtenValues.toMutableSet()
-		do
-		{
-			var changed = false
-			allValues.toList().forEach { sv ->
-				if (currentManifest.hasSemanticValue(sv))
-				{
-					val synonym = currentManifest.semanticValueToSynonym(sv)
-					if (encounteredSynonyms.add(synonym))
-					{
-						changed = changed ||
-							allValues.addAll(synonym.semanticValues())
-					}
-				}
-				currentManifest.postponedInstruction(sv)?.let { postponed ->
-					changed = changed ||
-						allValues.addAll(
-							postponed.writeOperands.single()
-								.semanticValues()
-								.cast())
-				}
-			}
-		} while (changed)
-		// Drop all postponed instructions in all of those related synonyms and
-		// writes.
-		allValues.forEach(
-			currentManifest::removePostponedInstructionFor)
-		+L2_NOP("Forced read of $semanticValue -> $postponedInstruction")
-		postponedInstruction.run {
-			forcePostponedTranslationNow()
-		}
-		val otherValues =
-			allValues.filterNot(currentManifest::hasLiveSemanticValue)
-		if (otherValues.isNotEmpty())
-		{
-			// Move into any values that weren't written by the new instruction.
-			+L2_NOP("Moving into related values: $otherValues")
-			moveRegister(semanticValue, otherValues)
-		}
-		assert(currentManifest.hasSemanticValue(semanticValue))
-		val after = currentManifest.postponedInstructions().size
-		+L2_NOP("(postponed $before -> $after)")
+		ensureDefinedOrEmitMove(semanticValue)
 	}
 
 	override fun forceAllPostponedTranslationsExceptConstantMoves(
 		omitConstantMoves: Boolean)
 	{
-		val manifest = currentManifest
-		manifest.postponedInstructions().keys.toList().forEach { sv ->
+		// Copy the collection of postponed instructions to visit.
+		val initialInstructions =
+			currentManifest.allPostponedInstructions().toList()
+		initialInstructions.forEach { (synonym, _) ->
+			val value = synonym.pickSemanticValue()
 			// We're modifying postponedInstructions, so check if it's still
 			// present.
-			if (sv in manifest.postponedInstructions())
-			{
-				forceTranslationForRead(sv)
+			currentManifest.postponedInstructionFor(value)?.let { postponed ->
+				if (!omitConstantMoves || postponed !is L2_MOVE_CONSTANT<*, *>)
+				{
+					forceTranslationForRead(value)
+				}
 			}
 		}
 		if (shouldSanityCheck)
 		{
-			manifest.postponedInstructions().values.forEach { instruction ->
+			currentManifest.allPostponedInstructions().forEach { instruction ->
 				assert(
 					instruction is L2_MOVE<*> ||
 						instruction is L2_MOVE_CONSTANT<*, *>)
@@ -1644,34 +1599,139 @@ constructor(
 		}
 	}
 
-	override fun forcePostponedTranslationBeforeEdge(
+	override fun forcePostponedTranslationsBeforeEdge(
 		edge: L2PcOperand,
-		semanticValue: L2SemanticValue<*>)
+		semanticValues: Iterable<L2SemanticValue<*>>)
 	{
+		assert(currentManifest.caresAboutSemanticValues)
 		// Skip if we already have the value live.
-		if (edge.manifest().hasLiveSemanticValue(semanticValue))
-			return
-		currentManifest.check() //TODO Remove
-		generateRetroactivelyBeforeEdge(edge) {
-			forceTranslationForRead(semanticValue)
+		val filtered = semanticValues.filterNot(
+			edge.manifest()::hasLiveSemanticValue)
+		if (filtered.isEmpty()) return
+		val grouped = filtered
+			.groupBy { edge.manifest().semanticValueToSynonym(it) }
+			.values
+		val groupedFormatted = grouped.joinToString(",\n\t", ":\n\t") {
+			group -> group.joinToString()
 		}
-		currentManifest.check() //TODO Remove
+		generateRetroactivelyBeforeEdge(
+			edge, groupedFormatted
+		) {
+			filtered.forEach { semanticValue ->
+				// Recheck, in case a previous generated instruction populated
+				// the semantic value.  Note that the edge's manifest is current
+				// here.
+				if (!currentManifest.hasLiveSemanticValue(semanticValue))
+					forceTranslationForRead(semanticValue)
+			}
+		}
+	}
+
+	override fun splitEdge(edge: L2PcOperand)
+	{
+		assert(edge.instructionHasBeenEmitted)
+		// Don't split if the edge is just a jump target.
+		when (edge.sourceBlock().instructions().last())
+		{
+			is L2_JUMP -> return
+			is L2_JUMP_BACK -> return
+		}
+
+		currentManifest.check()
+		edge.manifest().check()
+
+		// Capture where this edge originated.
+		val originalSourceInstruction = edge.instruction
+		val originalSourceBlock = originalSourceInstruction.basicBlock()
+		val originalTargetBlock = edge.targetBlock()
+
+		// Create a new intermediary block that initially just contains a jump
+		// to itself.
+		val newBlock = L2BasicBlock(
+			"edge-split ${nextUnique()} to ${originalTargetBlock.name()}",
+			originalTargetBlock.zone,
+			isCold = originalTargetBlock.isCold)
+		var prototypeJump = L2_JUMP(
+			L2PcOperand(newBlock, false, null, edge.optionalName)
+		).cloneFor(this, newBlock) as L2_JUMP
+		prototypeJump.target.setManifestToCloneOf(edge.manifest())
+		newBlock.insertInstruction(0, prototypeJump)
+		val jump = newBlock.instructions()[0] as L2_JUMP
+		val jumpEdge = jump.target
+
+		// Add the newBlock somewhere that looks sensible for debugging,
+		// although we'll order the blocks later.
+		val blocks = controlFlowGraph.basicBlockOrder
+		blocks.add(blocks.indexOf(originalSourceBlock) + 1, newBlock)
+
+		// At this point, nothing previously in the graph has been modified:
+		//
+		// ```A --e1-> C```
+		//
+		// plus block B, not yet in the graph, containing a jump to itself with
+		// a copy of e1's manifest.
+		//
+		// ```B --e2-> B (a loop)```
+		//
+		// Now swap edge's target field with jumpEdge's target field, to get:
+		//
+		// ```A --e2-> B --e1-> C```
+		//
+		// Note how e1->C and e2->B are unaffected.  We just have to switch
+		// the operands in the two instructions (the one ending A,
+		// originalSourceInstruction, and the one ending B, jump).  This also
+		// adjusts the L2PcOperands' instruction backpointers.
+		jump.replaceEdgeWith(jumpEdge, edge)
+		originalSourceInstruction.replaceEdgeWith(edge, jumpEdge)
+
+		// The block caches predecessor and successor edges, so update them.
+		newBlock.replaceSuccessorEdge(jumpEdge, edge)
+		originalSourceBlock.replaceSuccessorEdge(edge, jumpEdge)
+
+		// Now make sure we did it all correctly.  Start with the new edge.
+		assert(jumpEdge.sourceBlock() === originalSourceBlock)
+		assert(jumpEdge.targetBlock() === newBlock)
+		assert(jumpEdge in originalSourceBlock.successorEdges())
+		assert(jumpEdge in newBlock.predecessorEdges())
+		assert(jumpEdge.instruction.basicBlock() === originalSourceBlock)
+		assert(jumpEdge in
+			originalSourceBlock.instructions().last().targetEdges)
+		// Now check the original edge, which should lead from the newBlock to
+		// the originalTargetBlock.
+		assert(edge.sourceBlock() === newBlock)
+		assert(edge.targetBlock() === originalTargetBlock)
+		assert(edge in newBlock.successorEdges())
+		assert(edge in originalTargetBlock.predecessorEdges())
+		assert(edge.instruction.basicBlock() === newBlock)
+		assert(edge in newBlock.instructions().last().targetEdges)
+		//
+		jumpEdge.manifest().check()
+		edge.manifest().check()
 	}
 
 	override fun forcePostponedWritesToLocals()
 	{
-		currentManifest.postponedInstructions()
-			.values
-			.filterIsInstance<L2_SET_UNESCAPED_LOCAL_VARIABLE>()
-			.forEach { setLocal ->
-				forceTranslationForRead(
-					setLocal.variableOut.pickSemanticValue())
+		currentManifest.allPostponedInstructions()
+			.filterValues { it is L2_SET_UNESCAPED_LOCAL_VARIABLE }
+			.mapValues { it.value as L2_SET_UNESCAPED_LOCAL_VARIABLE }
+			.forEach { (synonym, _) ->
+				forceTranslationForRead(synonym.pickSemanticValue())
 			}
 	}
 
-	override fun visualize() = controlFlowGraph.visualize(this)
+	override fun visualize(
+		generator: L2Generator?,
+		focusValue: L2SemanticValue<*>?)
+	{
+		controlFlowGraph.visualize(generator ?: this, focusValue)
+	}
 
-	override fun simplyVisualize() = controlFlowGraph.simplyVisualize(this)
+	override fun simplyVisualize(
+		generator: L2Generator?,
+		focusValue: L2SemanticValue<*>?)
+	{
+		controlFlowGraph.simplyVisualize(generator ?: this, focusValue)
+	}
 
 	/**
 	 * A class for finding the highest numbered register of each time.

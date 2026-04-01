@@ -63,6 +63,6 @@ object P_CreateStubFunction : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(functionMeta(), mostGeneralFunctionType()),
-			mostGeneralFunctionType())
+			tuple(functionMeta(), mostGeneralFunctionType),
+			mostGeneralFunctionType)
 }

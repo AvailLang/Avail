@@ -48,7 +48,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -99,9 +98,7 @@ class L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
 			::valueToWrite)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: try {
 		val tryStart = Label()
@@ -113,23 +110,23 @@ class L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
 			Type.getInternalName(VariableSetException::class.java))
 		method.visitLabel(tryStart)
 		// ::    variable.setValueNoCheck(value);
-		translator.load(method, variable)
-		translator.load(method, reference)
-		translator.load(method, valueToWrite)
-		compareAndSwapValuesNoCheckMethod.generateCall(method)
+		load(variable)
+		load(reference)
+		load(valueToWrite)
+		generateCall(compareAndSwapValuesNoCheckMethod)
 		// ::    ifeq failure
-		translator.jumpIf(method, Opcodes.IFEQ, ifSwapFailed)
+		jumpIf(Opcodes.IFEQ, ifSwapFailed)
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// VariableSetException to be pushed onto the stack. So always do the
 		// jump.
-		translator.jump(method, ifSwapSucceeded)
+		jump(ifSwapSucceeded)
 		// :: } catch (VariableSetException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto exception;
-		translator.jumpOrFallThrough(method, ifVariableSetException)
+		jumpOrFallThrough(ifVariableSetException)
 		// :: }
 	}
 }

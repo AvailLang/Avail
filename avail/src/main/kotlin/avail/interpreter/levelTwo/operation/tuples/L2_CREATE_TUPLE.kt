@@ -33,38 +33,49 @@
 package avail.interpreter.levelTwo.operation.tuples
 
 import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.ByteStringDescriptor
-import avail.descriptor.tuples.ByteTupleDescriptor
-import avail.descriptor.tuples.IntTupleDescriptor
-import avail.descriptor.tuples.LongTupleDescriptor
-import avail.descriptor.tuples.NybbleTupleDescriptor
+import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteStringMethod
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.createUninitializedByteTupleMethod
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.createUninitializedIntTupleMethod
+import avail.descriptor.tuples.LongTupleDescriptor.Companion.createUninitializedLongTupleMethod
+import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.createUninitializedNybbleTupleMethod
 import avail.descriptor.tuples.ObjectTupleDescriptor
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple1Method
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple2Method
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple3Method
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple4Method
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple5Method
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArrayMethod
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.tuples.TwentyOneBitStringDescriptor
-import avail.descriptor.tuples.TwoByteStringDescriptor
+import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.createUninitializedTwentyOneBitStringMethod
+import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.createUninitializedTwoByteStringMethod
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.BottomTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.optimizer.L2Generator
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.increaseIndentation
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -95,30 +106,24 @@ class L2_CREATE_TUPLE(
 		append("\n>")
 	}
 
-	override fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	override fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator)
-	{
-		val instruction = tupleRead.definition().instruction
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		generator.moveBoxedRegister(
-			values.elements[index - 1].semanticValue(),
+		destinationSemanticValues: Set<L2SemanticBoxedValue>
+	): Unit =
+		moveBoxedRegister(
+			elements.elements[index - 1].semanticValue(),
 			destinationSemanticValues)
-	}
 
 	/**
 	 * Generated code uses:
 	 *
 	 *  * [TupleDescriptor.emptyTuple] (zero arguments)
-	 *  * [ObjectTupleDescriptor.tuple] (1..5 arguments)
-	 *  * [ObjectTupleDescriptor.tupleFromArray] (>5 arguments)
+	 *  * [ObjectTupleDescriptor.Companion.tuple] (1..5 arguments)
+	 *  * [ObjectTupleDescriptor.Companion.tupleFromArray] (>5 arguments)
 	 *
 	 */
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		val size = elements.elements.size
 
@@ -128,7 +133,7 @@ class L2_CREATE_TUPLE(
 		}
 
 		// Special cases for characters and integers
-		val unionType = elements.elements.fold(BottomTypeDescriptor.bottom) { t, read ->
+		val unionType = elements.elements.fold(bottom) { t, read ->
 			t.typeUnion(read.type())
 		}
 		when
@@ -141,81 +146,78 @@ class L2_CREATE_TUPLE(
 					.maxOfOrNull { it.instances.maxOf { c -> c.codePoint} }
 				val constantEntries = elements.elements.map { read ->
 					read.type().run {
-						if (instanceCount.equals(IntegerDescriptor.one)) instance
+						if (instanceCount.equals(one)) instance
 						else null
 					}
 				}
 				if (constantEntries.any { it !== null })
 				{
-					// Some of the elements are constant.  Pre-build a constant
-					// string with those values filled in, and dummy characters
-					// for the rest, then generate code to push that string and
-					// perform necessary updates on it (the first update will
-					// clone it as mutable).
+					// Some elements are constant.  Pre-build a constant string
+					// with those values filled in, and dummy characters for the
+					// rest, then generate code to push that string and perform
+					// necessary updates on it (the first update will clone it
+					// as mutable).
 					val template = StringDescriptor
 						.generateStringFromCodePoints(size) {
 							constantEntries[it]?.codePoint ?: 0
 						}.makeShared()
-					translator.loadLiteralObject(method, template)
+					loadLiteralObject(template)
 					// :: template-string
 					elements.elements.forEachIndexed { zeroIndex, read ->
 						if (constantEntries[zeroIndex] === null)
 						{
 							// Replace the dummy character, cloning the template
 							// and even changing its representation if needed.
-							translator.intConstant(method, zeroIndex + 1)
-							translator.load(method, read)
-							TupleDescriptor.tupleAtPuttingMethod.generateCall(method)
+							intConstant(zeroIndex + 1)
+							load(read)
+							generateCall(tupleAtPuttingMethod)
 						}
 					}
 					// :: string
-					translator.store(method, tuple.register())
+					store(tuple.register())
 					return
 				}
 				// There weren't any literal character elements.
-				translator.intConstant(method, size)
+				intConstant(size)
 				// :: size
 				if (maxCodepoint === null || maxCodepoint <= 0xFF)
 				{
 					// There are no enumeration character types present, or
 					// they're all single-bytes. Guess that we're creating a
 					// byte string, although it may have to be upgraded.
-					ByteStringDescriptor.createUninitializedByteStringMethod.generateCall(method)
+					generateCall(createUninitializedByteStringMethod)
 					// :: uninitiaalized-byte-string
 				}
 				else if (maxCodepoint <= 0xFFFF)
 				{
 					// A two-byte character may be present.
-					TwoByteStringDescriptor.createUninitializedTwoByteStringMethod.generateCall(method)
+					generateCall(createUninitializedTwoByteStringMethod)
 					// :: uninitialized-two-byte-string
 				}
 				else
 				{
 					// One of the enumerations for an element indicated a
 					// possible value beyond the 16-bit range.
-					TwentyOneBitStringDescriptor.createUninitializedTwentyOneBitStringMethod.generateCall(
-						method)
+					generateCall(createUninitializedTwentyOneBitStringMethod)
 					// :: uninitialized-21-bit-string
 				}
 			}
-			unionType.isSubtypeOf(IntegerRangeTypeDescriptor.i64) ->
+			unionType.isSubtypeOf(i64) ->
 			{
 				// It'll be a numeric tuple that we're able to optimize. Call
 				// the appropriate operation to create an uninitialized tuple
 				// with the best representation.
-				translator.intConstant(method, size)
+				intConstant(size)
 				// :: size
 				when
 				{
-					unionType.isSubtypeOf(IntegerRangeTypeDescriptor.u4) ->
-						NybbleTupleDescriptor.createUninitializedNybbleTupleMethod.generateCall(
-							method)
-					unionType.isSubtypeOf(IntegerRangeTypeDescriptor.u8) ->
-						ByteTupleDescriptor.createUninitializedByteTupleMethod.generateCall(method)
-					unionType.isSubtypeOf(IntegerRangeTypeDescriptor.i32) ->
-						IntTupleDescriptor.createUninitializedIntTupleMethod.generateCall(method)
-					else ->
-						LongTupleDescriptor.createUninitializedLongTupleMethod.generateCall(method)
+					unionType.isSubtypeOf(u4) ->
+						generateCall(createUninitializedNybbleTupleMethod)
+					unionType.isSubtypeOf(u8) ->
+						generateCall(createUninitializedByteTupleMethod)
+					unionType.isSubtypeOf(i32) ->
+						generateCall(createUninitializedIntTupleMethod)
+					else -> generateCall(createUninitializedLongTupleMethod)
 				}
 				// :: uninitialized-numeric-tuple
 			}
@@ -224,27 +226,24 @@ class L2_CREATE_TUPLE(
 				// Build a general object tuple.  First, push the elements.
 				if (size <= 5)
 				{
-					elements.elements.forEach {
-						translator.load(method, it)
-					}
+					elements.elements.forEach { load(it) }
 					// :: element1... elementN
 				}
 				when (size)
 				{
-					1 -> ObjectTupleDescriptor.tuple1Method.generateCall(method)
-					2 -> ObjectTupleDescriptor.tuple2Method.generateCall(method)
-					3 -> ObjectTupleDescriptor.tuple3Method.generateCall(method)
-					4 -> ObjectTupleDescriptor.tuple4Method.generateCall(method)
-					5 -> ObjectTupleDescriptor.tuple5Method.generateCall(method)
+					1 -> generateCall(tuple1Method)
+					2 -> generateCall(tuple2Method)
+					3 -> generateCall(tuple3Method)
+					4 -> generateCall(tuple4Method)
+					5 -> generateCall(tuple5Method)
 					else ->
 					{
 						// The elements are NOT already pushed.
-						translator.objectArray(
-							method,
+						objectArray(
 							elements.elements,
 							A_BasicObject::class.java)
 						// :: initialized_array
-						ObjectTupleDescriptor.tupleFromArrayMethod.generateCall(method)
+						generateCall(tupleFromArrayMethod)
 					}
 				}
 				// :: A_Tuple
@@ -252,17 +251,17 @@ class L2_CREATE_TUPLE(
 					Opcodes.CHECKCAST,
 					Type.getInternalName(AvailObject::class.java))
 				// :: AvailObject
-				translator.store(method, tuple.register())
+				store(tuple.register())
 				return
 			}
 		}
 		// :: an-uninitialized-tuple
 		elements.elements.forEachIndexed { zeroIndex, read ->
-			translator.intConstant(method, zeroIndex + 1)
-			translator.load(method, read)
-			TupleDescriptor.tupleAtPuttingMethod.generateCall(method)
+			intConstant(zeroIndex + 1)
+			load(read)
+			generateCall(tupleAtPuttingMethod)
 		}
 		// :: AvailObject
-		translator.store(method, tuple.register())
+		store(tuple.register())
 	}
 }

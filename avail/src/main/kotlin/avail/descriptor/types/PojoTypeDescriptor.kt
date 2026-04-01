@@ -792,6 +792,7 @@ protected constructor(
 			val aClass: Class<*> = marshalledType.cast()
 			if (aClass.isPrimitive)
 			{
+				@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 				return when (aClass)
 				{
 					java.lang.Boolean::class.javaPrimitiveType ->
@@ -831,6 +832,7 @@ protected constructor(
 		fun unmarshal(self: Any?, type: A_Type): AvailObject
 		{
 			self ?: return nullPojo()
+			@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 			val availObject = when (self.javaClass)
 			{
 				AvailObject::class.java -> self as AvailObject
@@ -884,6 +886,7 @@ protected constructor(
 				if (type.isPrimitive)
 				{
 					// If type represents Java void, then answer top.
+					@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 					return when (type)
 					{
 						Void.TYPE -> Types.TOP()
@@ -903,6 +906,7 @@ protected constructor(
 							"There are only nine primitive types!")
 					}
 				}
+				@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 				when (type)
 				{
 					Void::class.java -> return Types.TOP()

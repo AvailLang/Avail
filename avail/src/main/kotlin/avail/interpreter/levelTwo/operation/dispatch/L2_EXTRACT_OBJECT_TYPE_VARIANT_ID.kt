@@ -47,7 +47,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the [ObjectLayoutVariant] of the given object type, then extract its
@@ -135,13 +134,11 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: variantId = staticObjectVariantId(value);
-		translator.load(method, objectType)
-		staticObjectTypeVariantIdMethod.generateCall(method)
-		translator.store(method, variantId.register())
+		load(objectType)
+		generateCall(staticObjectTypeVariantIdMethod)
+		store(variantId.register())
 	}
 }

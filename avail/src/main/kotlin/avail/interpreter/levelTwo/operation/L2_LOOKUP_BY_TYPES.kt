@@ -76,7 +76,6 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.util.logging.Level
@@ -136,9 +135,7 @@ class L2_LOOKUP_BY_TYPES(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: try {
 		val tryStart = Label()
@@ -150,25 +147,24 @@ class L2_LOOKUP_BY_TYPES(
 			Type.getInternalName(MethodDefinitionException::class.java))
 		method.visitLabel(tryStart)
 		// ::    function = lookup(interpreter, bundle, types);
-		translator.loadInterpreter(method)
-		translator.loadLiteralObject(method, messageBundle.constant)
-		translator.objectArray(
-			method, argumentTypes.elements, AvailObject::class.java)
-		lookupMethod.generateCall(method)
-		translator.store(method, lookedUpFunction.register())
+		loadInterpreter()
+		loadLiteralObject(messageBundle.constant)
+		objectArray(argumentTypes.elements, AvailObject::class.java)
+		generateCall(lookupMethod)
+		store(lookedUpFunction.register())
 		// ::    goto lookupSucceeded;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// MethodDefinitionException to be pushed onto the stack. So always do
 		// the jump.
-		translator.jump(method, ifLookupSucceeded)
+		jump(ifLookupSucceeded)
 		// :: } catch (MethodDefinitionException e) {
 		method.visitLabel(catchStart)
 		// [:: e]
 		method.visitInsn(Opcodes.POP)
 		// [::]
 		// ::    goto lookupFailed;
-		translator.jumpOrFallThrough(method, ifLookupFailed)
+		jumpOrFallThrough(ifLookupFailed)
 		// :: }
 	}
 	companion object

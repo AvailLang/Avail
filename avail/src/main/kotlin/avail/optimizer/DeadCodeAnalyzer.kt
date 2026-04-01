@@ -113,7 +113,6 @@ internal class DeadCodeAnalyzer constructor(
 			block.successorEdges().forEach {
 				neededEntities.addAll(edgeNeeds[it]!!)
 			}
-			assert(neededEntities.none { it == null} ) //TODO Romeve - kotlin type problem.
 			val predecessorCount = block.predecessorEdges().size
 			val instructions = block.instructions()
 			var index = instructions.size
@@ -147,7 +146,6 @@ internal class DeadCodeAnalyzer constructor(
 					{
 						dropInstruction = true
 					}
-					assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 				}
 				if (neededEntities.removeAll(
 						dataCouplingMode.writeEntitiesOf(instruction))
@@ -158,11 +156,9 @@ internal class DeadCodeAnalyzer constructor(
 						liveInstructions.add(instruction)
 						neededEntities.addAll(
 							dataCouplingMode.readEntitiesOf(instruction))
-						assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 					}
 				}
 			}
-			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 			assert(block.predecessorEdges().isNotEmpty()
 				|| neededEntities.isEmpty())
 			{
@@ -174,13 +170,10 @@ internal class DeadCodeAnalyzer constructor(
 				if (it == 0) neededEntities
 				else neededEntities.toMutableSet()
 			}
-			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
-			assert(entitiesByPredecessor.all { s -> s.none { it == null } }) //TODO Remove – Kotlin type weakness
 			// Customize
 			while (index >= 0)
 			{
-				val phiInstruction = instructions[index]
-				phiInstruction as L2_PHI<*>
+				val phiInstruction = instructions[index] as L2_PHI<*>
 				for (predecessorIndex in 0 until predecessorCount)
 				{
 					val entities = entitiesByPredecessor[predecessorIndex]
@@ -195,12 +188,10 @@ internal class DeadCodeAnalyzer constructor(
 							readOperand, entities)
 						entities.addAll(
 							dataCouplingMode.readEntitiesOf(readOperand))
-						assert(entities.none { it == null }) // TODO – Remove, Kotlin type weakness.
 					}
 				}
 				index--
 			}
-			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 			block.predecessorEdges()
 				.zip(entitiesByPredecessor)
 				.forEach { (edge, needed) ->
@@ -231,7 +222,6 @@ internal class DeadCodeAnalyzer constructor(
 							}
 						}
 				}
-			assert(neededEntities.none { it == null }) //TODO Remove – Kotlin type weakness
 			block.predecessorEdges()
 				.zip(entitiesByPredecessor)
 				.forEach { (edge, needed) ->
@@ -239,10 +229,6 @@ internal class DeadCodeAnalyzer constructor(
 					if (!edge.isBackward)
 					{
 						// No need to copy it, as it won't be modified again.
-
-						// TODO - remove check for Kotlin type analysis weakness.
-						assert(needed.none { it == null })
-
 						edgeNeeds[edge] = needed
 					}
 				}

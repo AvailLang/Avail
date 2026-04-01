@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -79,16 +78,17 @@ class L2_JUMP_IF_SUBTYPE(
 		+this@L2_JUMP_IF_SUBTYPE
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (first.isSubtypeOf(second)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, firstType)
-		translator.load(method, seccondType)
-		A_Type.isSubtypeOfMethod.generateCall(method)
+		load(firstType)
+		load(seccondType)
+		generateCall(A_Type.isSubtypeOfMethod)
 		emitBranch(
-			translator, method, this, Opcodes.IFNE, ifSubtype, ifNotSubtype)
+			this@L2_JUMP_IF_SUBTYPE,
+			Opcodes.IFNE,
+			ifSubtype,
+			ifNotSubtype)
 	}
 }

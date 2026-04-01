@@ -251,7 +251,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private val mostGeneralType: A_Type =
 			compiledCodeTypeForFunctionType(
-				mostGeneralFunctionType()
+				mostGeneralFunctionType
 			).makeShared()
 
 		/**

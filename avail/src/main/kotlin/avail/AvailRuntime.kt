@@ -659,7 +659,7 @@ class AvailRuntime constructor(
 			"«return result disagreed with expected type»",
 			functionType(
 				tuple(
-					mostGeneralFunctionType(),
+					mostGeneralFunctionType,
 					topMeta,
 					variableTypeFor(Types.ANY())
 				),
@@ -698,7 +698,7 @@ class AvailRuntime constructor(
 			"«variable with a write reactor was written without write-tracing»",
 			functionType(
 				tuple(
-					mostGeneralFunctionType(),
+					mostGeneralFunctionType,
 					mostGeneralTupleType),
 				TOP()),
 			null),
@@ -726,7 +726,7 @@ class AvailRuntime constructor(
 			"«base frame»",
 			functionType(
 				tuple(
-					mostGeneralFunctionType(),
+					mostGeneralFunctionType,
 					mostGeneralTupleType),
 				TOP()),
 			P_InvokeWithTuple),
@@ -742,7 +742,7 @@ class AvailRuntime constructor(
 			"«debuggable base frame»",
 			functionType(
 				tuple(
-					mostGeneralFunctionType(),
+					mostGeneralFunctionType,
 					mostGeneralTupleType),
 				TOP()),
 			null,
@@ -753,7 +753,7 @@ class AvailRuntime constructor(
 				// pause.
 				L1InstructionWriter(nil, 0, nil).run {
 					argumentTypes(
-						mostGeneralFunctionType(),
+						mostGeneralFunctionType,
 						mostGeneralTupleType)
 					returnType = TOP()
 					returnTypeIfPrimitiveFails = TOP()

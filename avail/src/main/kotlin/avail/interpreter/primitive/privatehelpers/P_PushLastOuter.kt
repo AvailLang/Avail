@@ -106,7 +106,7 @@ object P_PushLastOuter : Primitive(
 		// the original register that provided the value for the outer.  This
 		// should allow us to skip the creation of the function.
 		val functionCreationInstruction =
-			functionToCallReg.definitionSkippingMoves()
+			functionToCallReg.definitionSkippingMoves(currentManifest)
 		val returnType = functionToCallReg.type().returnType
 		val outerReg = functionCreationInstruction.run {
 			extractFunctionOuter(functionToCallReg, 1, returnType)

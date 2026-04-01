@@ -40,7 +40,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Unconditionally jump to the level two offset in my [L2PcOperand], while also
@@ -99,11 +98,9 @@ class L2_JUMP_BACK(
 	 */
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: goto offset;
-		translator.jumpOrFallThrough(method, target)
+		jumpOrFallThrough(target)
 	}
 }

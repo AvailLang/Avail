@@ -590,23 +590,16 @@ private constructor(
 		private val shared = FunctionTypeDescriptor(Mutability.SHARED)
 
 		/**
-		 * The most general function type.
+		 * The most general function type.  This is the type "[…]→⊤".
 		 */
-		private val mostGeneralType: A_Type =
+		val mostGeneralFunctionType: A_Type =
 			functionTypeReturning(TOP()).makeShared()
-
-		/**
-		 * Answer the top (i.e., most general) function type.
-		 *
-		 * @return
-		 *   The function type "[…]→⊤".
-		 */
-		fun mostGeneralFunctionType(): A_Type = mostGeneralType
 
 		/**
 		 * The metatype of any function types.
 		 */
-		private val meta: A_Type = instanceMeta(mostGeneralType).makeShared()
+		private val meta: A_Type =
+			instanceMeta(mostGeneralFunctionType).makeShared()
 
 		/**
 		 * Answer the metatype for all function types.  This is just an

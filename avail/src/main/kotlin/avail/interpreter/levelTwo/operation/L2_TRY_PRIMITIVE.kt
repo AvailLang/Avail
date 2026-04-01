@@ -45,7 +45,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -76,27 +75,25 @@ class L2_TRY_PRIMITIVE(
 
 	override fun equivalentTo(other: L2Instruction) = unsupported
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.loadInterpreter(method)
+		loadInterpreter()
 		// interpreter
 		method.visitInsn(Opcodes.DUP)
 		// interpreter, interpreter
-		Interpreter.interpreterFunctionField.generateRead(method)
+		load(Interpreter.interpreterFunctionField)
 		// interpreter, fn
-		translator.loadLiteralObject(method, primitive.constant)
+		loadLiteralObject(primitive.constant)
 		// interpreter, fn, prim
 		if (primitive.constant.hasFlag(CanInline))
 		{
 			// :: return interpreter.attemptInlinePrimitive(function, primitive)
-			attemptTheInlinePrimitiveMethod.generateCall(method)
+			generateCall(attemptTheInlinePrimitiveMethod)
 		}
 		else
 		{
 			// :: return attemptNonInlinePrimitive(function, primitive)
-			attemptTheNonInlinePrimitiveMethod.generateCall(method)
+			generateCall(attemptTheNonInlinePrimitiveMethod)
 		}
 		method.visitInsn(Opcodes.ARETURN)
 	}

@@ -43,11 +43,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
-import avail.optimizer.L2Generator
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Given a tuple, an immediate index, and a new value to write, create the tuple
@@ -92,7 +92,7 @@ class L2_TUPLE_AT_UPDATE(
 		// have this element pre-populated.
 
 		val updates = mutableListOf<Pair<Int, L2ReadBoxedOperand>>()
-		var trace = inputTuple.definitionSkippingMoves()
+		var trace = inputTuple.definitionSkippingMoves(currentManifest)
 		while (trace is L2_TUPLE_AT_UPDATE)
 		{
 			// Ignore updates at the same index, since the receiver would be
@@ -101,7 +101,7 @@ class L2_TUPLE_AT_UPDATE(
 			{
 				updates.add(trace.updateIndex.value to trace.newElement)
 			}
-			trace = trace.inputTuple.definitionSkippingMoves()
+			trace = trace.inputTuple.definitionSkippingMoves(currentManifest)
 		}
 		if (trace !is L2_MOVE_CONSTANT_BOXED)
 		{
@@ -135,32 +135,27 @@ class L2_TUPLE_AT_UPDATE(
 			outputTuple.semanticValues())
 	}
 
-	override fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	override fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator)
+		destinationSemanticValues: Set<L2SemanticBoxedValue>
+	): Unit = when (index)
 	{
-		when (index)
-		{
-			// Use the value that was used to update that element.
-			updateIndex.value -> generator.moveBoxedRegister(
-				newElement.semanticValue(),
-				destinationSemanticValues)
-			// It wasn't affected by this tuple update.
-			else -> generator.extractTupleElement(
-				inputTuple, index, destinationSemanticValues)
-		}
+		// Use the value that was used to update that element.
+		updateIndex.value -> moveBoxedRegister(
+			newElement.semanticValue(),
+			destinationSemanticValues)
+		// It wasn't affected by this tuple update.
+		else -> extractTupleElement(
+			inputTuple, index, destinationSemanticValues)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		translator.load(method, inputTuple)
-		translator.intConstant(method, updateIndex.value)
-		translator.load(method, newElement)
-		TupleDescriptor.tupleAtPuttingMethod.generateCall(method)
-		translator.store(method, outputTuple.register())
+		load(inputTuple)
+		intConstant(updateIndex.value)
+		load(newElement)
+		generateCall(TupleDescriptor.tupleAtPuttingMethod)
+		store(outputTuple.register())
 	}
 }

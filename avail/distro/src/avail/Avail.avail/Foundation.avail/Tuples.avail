@@ -140,8 +140,6 @@ Method "“_”" is
 		While index ≤ |leadingTypes|
 		do [s ++= “leadingTypes[(index++)]” ++ ", ";];
 		s ++= “t's default type” ++ "…|";
-		lower ::= ⌊t⌋;
-		upper ::= ⌈t⌉;
 		s ++= “||t||” (cardinality restriction);
 		s ++= ">";
 		s

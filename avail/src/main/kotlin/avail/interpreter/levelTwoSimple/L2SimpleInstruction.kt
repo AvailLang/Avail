@@ -207,7 +207,7 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 		{
 			value.isInstanceOf(mostGeneralCompiledCodeType()) ->
 				value.methodName.toString()
-			value.isInstanceOf(mostGeneralFunctionType()) ->
+			value.isInstanceOf(mostGeneralFunctionType) ->
 				value.code().methodName.toString()
 			else -> value.toString()
 		}
@@ -1250,8 +1250,7 @@ constructor(
 			args.clear()
 			args.add(function as AvailObject)
 			args.add(expectedType as AvailObject)
-			val wrappedReturnValue = newVariableWithContentType(ANY())
-			if (result.notNil) wrappedReturnValue.setValueNoCheck(result)
+			val wrappedReturnValue = newVariableWithContentType(ANY(), result)
 			args.add(wrappedReturnValue)
 			reifier = interpreter.invokeFunction(
 				interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
@@ -1326,8 +1325,7 @@ constructor(
 			args.clear()
 			args.add(registers[0])
 			args.add(expectedType as AvailObject)
-			val wrappedReturnValue = newVariableWithContentType(ANY())
-			if (result.notNil) wrappedReturnValue.setValueNoCheck(result)
+			val wrappedReturnValue = newVariableWithContentType(ANY(), result)
 			args.add(wrappedReturnValue)
 			val reifier = interpreter.invokeFunction(
 				interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])

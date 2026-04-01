@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the value of a variable, clearing it if the variable is still
@@ -77,16 +76,14 @@ class L2_GET_VARIABLE_CLEARING_IF_MUTABLE(
 			desiredOperandTypes, ::variable, ::extractedValue)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
-		GetClearMode.ClearIfMutable.translateJvmVariableRead(
-			method,
-			translator,
-			variable,
-			extractedValue,
-			ifReadSucceeded = ifReadSucceeded,
-			ifReadFailed = ifReadFailed)
+		GetClearMode.ClearIfMutable.run {
+			translateJvmVariableRead(
+				variable,
+				extractedValue,
+				ifReadSucceeded = ifReadSucceeded,
+				ifReadFailed = ifReadFailed)
+		}
 	}
 }

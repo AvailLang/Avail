@@ -55,13 +55,14 @@ import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.notNullAnd
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Move an [AvailObject] from the source to the destination.  The [L2Generator]
@@ -175,7 +176,21 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			// coupled by semantic values, we can look for a write to the source
 			// register within the current block, and if present we can simply
 			// augment the write to include one more semantic value.
-			val definingWrite = source.definition()
+			val postponed =
+				currentManifest.postponedInstructionFor(source.semanticValue())
+			if (postponed != null)
+			{
+				// The source of the move is still postponed, so we can just
+				// augment the synonym.
+				currentManifest.agglomerateSynonym(
+					destination.semanticValues() + source.semanticValue(),
+					destination.restriction())
+				return
+			}
+			// The instruction providing the source has already been written.
+			val sourceRegister =
+				currentManifest.getDefinition(source.semanticValue())
+			val definingWrite = sourceRegister.definition()
 			val definingInstruction = definingWrite.instruction
 			if (definingInstruction.basicBlock() == currentBlock()
 				&& definingInstruction !is L2_PHI<*>)
@@ -202,73 +217,27 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 	}
 
 	/**
+	 * Moves shouldn't normally be postponed – they can combine the source and
+	 * destination synonyms instead, while strengthening the restriction.
+	 */
+	override fun L2Regenerator.regenerateForPostponement()
+	{
+		val values = destination.semanticValues().toMutableSet()
+		values.add(source.semanticValue())
+		currentManifest.agglomerateSynonym(values, destination.restriction())
+	}
+
+	/**
 	 * If the instruction providing the source of this move is also postponed,
 	 * replace both with a copy of that instruction that also populates the
 	 * move's destination semantic values.
+	 *
+	 * Since a postponed move has already merged the source and destination
+	 * synonyms, there's nothing to do here.
 	 */
-	override fun L2ValueManifest.rewritePostponed(): Boolean
-	{
-		val postponedCount1 = postponedInstructions().size //TODO Remove
-		val sourceValue = source.semanticValue()
-		postponedInstructions()[sourceValue]?.let { sourceInstruction ->
-			// Extend the relevant write in sourceInstruction to include this
-			// move's destination.
-			check()  //TODO Remove – detects modification.
-			val clone = sourceInstruction.transformEachWrite { write ->
-				var newValues = write.semanticValues()
-				if (sourceValue in write.semanticValues())
-				{
-					// Include the move destination in the sourceInstruction's
-					// write operand.
-					newValues += destination.semanticValues()
-				}
-				write.kind.createWrite(newValues.cast(), write.restriction())
-			}
-			check()  //TODO Remove – detects modification.
-			removePostponedSourceInstruction(this@L2_MOVE)
-			check()  //TODO Remove – detects modification.
-			removePostponedSourceInstruction(sourceInstruction)
-			check()  //TODO Remove – detects modification.
-			recordPostponedInstruction(clone)
-			check()  //TODO Remove – detects modification.
-			return true
-		}
-		val postponedCount2 = postponedInstructions().size //TODO Remove
-		val oldRestriction = source.restriction()
-		var newRestriction =
-			oldRestriction.intersection(destination.restriction())
-		equivalentSemanticValue(sourceValue)?.let {
-			newRestriction = newRestriction.intersection(restrictionFor(it))
-		}
-		destination.semanticValues().forEach { sv ->
-			equivalentSemanticValue(sv)?.let { eq ->
-				newRestriction = newRestriction.intersection(restrictionFor(eq))
-			}
-		}
-		val postponedCount3 = postponedInstructions().size //TODO Remove
-		if (newRestriction != oldRestriction)
-		{
-			check()  //TODO Remove – detects modification.
-			val clone = clone() as L2_MOVE<K>
-			clone.source.restrict { newRestriction }
-			clone.destination.restrict { newRestriction }
-			// ONLY update the manifest's restriction for the source.  This may
-			// seem counterintuitive, but it avoids some problems related to the
-			// invariant that a manifest can only have one synonym constrained
-			// to a particular constant.
-			setRestriction(clone.source.semanticValue(), newRestriction)
-			// Setting the restriction to a constant may have just removed the
-			// postponed move instruction.  If not, replace it with the clone.
-			if (destination.semanticValues()
-				.any(postponedInstructions()::containsKey))
-			{
-				removePostponedSourceInstruction(this@L2_MOVE)
-				recordPostponedInstruction(clone)
-			}
-			return true
-		}
-		return false
-	}
+	override fun L2ValueManifest.rewritePostponed(
+		synonym: L2Synonym<*>
+	): Boolean = false
 
 	override fun sourceOfMoveToRegister(
 		destinationRegister: L2Register<*>
@@ -286,16 +255,14 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		tracer.continueTracing(source.register(), restriction)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		assert(source.register() != destination.register()) {
 			"vacuous move should have been skipped by shouldEmit."
 		}
 		// :: destination = source;
-		translator.load(method, source)
-		translator.store(method, destination.register())
+		load(source)
+		store(destination.register())
 	}
 }
 
@@ -311,16 +278,15 @@ constructor(
 
 	override val destination: L2WriteBoxedOperand get() = moveDestination
 
-	override val constantCode: A_RawFunction?
-		get() = source.definitionSkippingMoves().constantCode
+	override fun getConstantCode(manifest: L2ValueManifest): A_RawFunction? =
+		source.definitionSkippingMoves(manifest)
+			.getConstantCode(manifest)
 
-	override fun extractTupleElement(
-		tupleRead: L2ReadBoxedOperand,
+	override fun L2GeneratorInterface.extractTupleElement(
+		synonym: L2Synonym<BOXED_KIND>,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>,
-		generator: L2Generator
-	): Unit = generator.extractTupleElement(
-		source, index, destinationSemanticValues)
+		destinationSemanticValues: Set<L2SemanticBoxedValue>
+	): Unit = extractTupleElement(source, index, destinationSemanticValues)
 
 	override fun processForMakeImmutable(
 		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,

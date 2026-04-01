@@ -37,12 +37,12 @@ import org.availlang.artifact.environment.location.Scheme.FILE
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 
 plugins {
-	kotlin("jvm") version "2.2.20"
+	kotlin("jvm") version "2.3.10"
 	id("java")
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "2.0.0"
+	id("org.jetbrains.dokka") version "2.1.0"
 	id("org.availlang.avail-plugin") version "2.0.0.alpha20"
 }
 
@@ -59,7 +59,7 @@ avail {
 	rootsDirectory = ProjectHome(
 		"../avail/distro/src",
 		FILE,
-		project.rootDir.absolutePath,
+		rootDir.absolutePath,
 		rootNameInJar = "avail")
 	projectRoot(
 		"avail",
@@ -72,12 +72,12 @@ avail {
 			ProjectHome(
 				"../avail/$CONFIG_FILE_NAME",
 				FILE,
-				project.projectDir.absolutePath,
+				projectDir.absolutePath,
 				null)
 	}
 }
 
-val availExtension get() = project.extensions
+val availExtension get() = extensions
 	.findByType(AvailExtension::class.java)!!
 
 /**
@@ -86,7 +86,7 @@ val availExtension get() = project.extensions
  */
 fun copyArtifactToDistroLib ()
 {
-	val availExtension = project.extensions
+	val availExtension = extensions
 		.findByType(AvailExtension::class.java)!!
 	File(availExtension.targetOutputJar).apply {
 		copyTo(File("../avail/distro/lib/${name}"), true)
@@ -94,31 +94,16 @@ fun copyArtifactToDistroLib ()
 }
 
 tasks {
-	jar {
-		doLast {
-			// This re-creates the JAR, deleting the present JAR first. This
-			// is done due to the publishing sanity check introduced in Gradle
-			// 6.3 that does an internal check to confirm that the jar was
-			// effectively constructed by the standard JAR task in some
-			// predetermined internal order. This problem manifests with this
-			// error message:
-			// `Artifact <TARGET JAR>.jar wasn't produced by this build.`
-			// At the time of writing this was the only solution identified so
-			// far that overcame the issue.
-			availExtension.createArtifact()
-		}
-	}
-
 	// Copy the library into the distribution directory. This is used by the
 	// workbench configuration that uses the standard library jar to start the
 	// workbench with the Avail Standard Library.
-	val copyToDistroLib by creating(DefaultTask::class) {
+	val copyToDistroLib by registering(DefaultTask::class) {
 		dependsOn(availArtifactJar)
 		doLast { copyArtifactToDistroLib() }
 	}
 
 
-	val sourceJar by creating(Jar::class) {
+	val sourceJar by registering(Jar::class) {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
@@ -145,7 +130,7 @@ tasks {
 		}
 	}
 
-	val javadocJar by creating(Jar::class)
+	val javadocJar by registering(Jar::class)
 	{
 		// This subproject (avail-stdlib) contains Avail module data but
 		// no Kotlin/Java sources; avoid running Dokka here. Do not
@@ -161,10 +146,6 @@ tasks {
 	// of Dokka tasks is performed at configuration time below (outside the
 	// `tasks {}` block) so the Kotlin DSL resolves correctly.
 
-	artifacts {
-		add("archives", sourceJar)
-		add("archives", javadocJar)
-	}
 	publish {
 		PublishingUtility.checkCredentials()
 		doLast { copyArtifactToDistroLib() }
@@ -214,7 +195,7 @@ publishing {
 
 		create<MavenPublication>("avail-stdlib") {
 			pom {
-				groupId = project.group.toString()
+				groupId = group.toString()
 				name.set("Avail Standard Library")
 				packaging = "jar"
 				description.set("This module provides the entire Avail standard library.")

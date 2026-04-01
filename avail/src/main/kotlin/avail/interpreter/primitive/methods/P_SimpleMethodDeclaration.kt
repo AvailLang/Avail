@@ -163,7 +163,7 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type = functionType(
 		tuple(
 			stringType,
-			mostGeneralFunctionType(),
+			mostGeneralFunctionType,
 			zeroOrOneOf(stylerFunctionType)),
 		TOP())
 

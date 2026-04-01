@@ -38,12 +38,8 @@ import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
-import avail.descriptor.numbers.A_Number.Companion.extractDouble
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -94,15 +90,15 @@ import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2FloatRegister
-import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
+import avail.optimizer.L2Optimizer
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
+import avail.optimizer.jvm.JVMTranslator.Companion.prepareOutputDirectory
 import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
 import avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
@@ -278,6 +274,9 @@ class JVMTranslator constructor(
 	val entryPointLiveInfo =
 		mutableMapOf<Int, Map<RegisterKind<*>, List<Int>>>()
 
+	/** The current [MethodVisitor] being generated. */
+	lateinit var method : MethodVisitor private set
+
 	/**
 	 * We're at a point where reification has been requested.  A [StackReifier]
 	 * has already been stashed in the [Interpreter], and already-popped calls
@@ -293,37 +292,34 @@ class JVMTranslator constructor(
 	 * continue constructing the real continuation, with the knowledge that the
 	 * [Interpreter.getReifiedContinuation] represents the caller.
 	 *
-	 * @param method
-	 *   The JVM method being written.
 	 * @param onReification
 	 *   Where to jump to after everything below this frame has been fully
 	 *   reified.
 	 */
 	fun generateReificationPreamble(
-		method: MethodVisitor,
 		onReification: L2PcOperand)
 	{
 		method.visitVarInsn(ALOAD, reifierLocal())
 		// [reifier]
-		loadInterpreter(method)
+		loadInterpreter()
 		// [reifier, interpreter]
-		Interpreter.interpreterFunctionField.generateRead(method)
+		load(Interpreter.interpreterFunctionField)
 		// [reifier, fn]
-		onReification.createAndPushRegisterDump(
-			this,
-			method,
-			L2JVMChunk.ChunkEntryPoint.TO_RESUME)
+		onReification.run {
+			createAndPushRegisterDump(
+				L2JVMChunk.ChunkEntryPoint.TO_RESUME)
+		}
 		// [reifier, fn, dump]
-		loadInterpreter(method)
-		Interpreter.chunkField.generateRead(method)
+		loadInterpreter()
+		load(Interpreter.chunkField)
 		// [reifier, fn, dump, chunk]
-		intConstant(method, onReification.offset())
+		intConstant(onReification.offset())
 		// [reifier, fn, dump, chunk, offset]
-		createDummyContinuationMethod.generateCall(method)
+		generateCall(createDummyContinuationMethod)
 		// [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
 		// continuation.
-		StackReifier.pushContinuationActionMethod.generateCall(method)
+		generateCall(StackReifier.pushContinuationActionMethod)
 		// [reifier]
 		// Now return the reifier to the next level out on the stack.
 		method.visitInsn(ARETURN)
@@ -492,43 +488,32 @@ class JVMTranslator constructor(
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param read
 	 *   An [L2ReadOperand] providing the value to push.
 	 */
-	fun load(method: MethodVisitor, read: L2ReadOperand<*>)
+	fun load(read: L2ReadOperand<*>)
 	{
-		loadRegister(method, read.register())
+		loadRegister(read.register())
 	}
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun loadRegister(method: MethodVisitor, register: L2Register<*>)
+	fun loadRegister(register: L2Register<*>)
 	{
 		if (register.isConstant)
 		{
-			val constant = register.constant!!
-			when (register)
-			{
-				is L2BoxedRegister -> loadLiteralObject(method, constant)
-				is L2IntRegister -> intConstant(method, constant.extractInt)
-				is L2FloatRegister ->
-					doubleConstant(method, constant.extractDouble)
+			register.kind.run {
+				jvmLoadConstant(register.constant!!)
 			}
 		}
 		else
 		{
 			method.visitVarInsn(
-				register.kind.loadInstruction,
+				register.kind.jvmLoadInstruction,
 				localNumberFromRegister(register))
 		}
 	}
@@ -538,17 +523,26 @@ class JVMTranslator constructor(
 	 * [L2Register]. The value to be stored should already be on top of the
 	 * stack and correctly typed.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun store(method: MethodVisitor, register: L2Register<*>)
+	fun store(register: L2Register<*>)
 	{
 		method.visitVarInsn(
-			register.kind.storeInstruction,
+			register.kind.jvmStoreInstruction,
 			localNumberFromRegister(register))
+	}
+
+	/** Generate a write to the specified [CheckedField]. */
+	fun store(checkedField: CheckedField)
+	{
+		checkedField.generateWrite(this)
+	}
+
+	/** Generate a call to the specified [CheckedMethod]. */
+	fun generateCall(checkedMethod: CheckedMethod)
+	{
+		checkedMethod.generateCall(this)
 	}
 
 	/**
@@ -598,15 +592,12 @@ class JVMTranslator constructor(
 	 * an [Array] of objects in the [JVMChunkClassLoader] instance, and having
 	 * the class initializer read it and write to each static field.
 	 *
-	 * @param method
-	 *   The [MethodVisitor] for the JVM method being generated.
 	 * @param value
 	 *   The actual literal value to push.  Unboxed forms of [Int] and [Double]
 	 *   have their own separate methods, since objectweb provides automatic
 	 *   constant tracking for those.
 	 */
 	fun loadLiteralObject(
-		method: MethodVisitor,
 		value: Any)
 	{
 		val accessor = literals.computeIfAbsent(value) { constant: Any ->
@@ -622,7 +613,7 @@ class JVMTranslator constructor(
 					"ATOM_${tidy(value.atomName)}"
 				value.isInstanceOfKind(Types.MESSAGE_BUNDLE()) ->
 					"BUNDLE_${tidy(value.message.atomName)}"
-				value.isInstanceOfKind(mostGeneralFunctionType()) ->
+				value.isInstanceOfKind(mostGeneralFunctionType) ->
 					"FUNCTION_${tidy(value.code().methodName)}"
 				value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
 					"CODE_${tidy(value.methodName)}"
@@ -670,13 +661,11 @@ class JVMTranslator constructor(
 	 * [L2Operand] as a JVM literal, so this method is marked as [Deprecated] to
 	 * protect against code cloning and refactoring errors by a programmer.
 	 *
-	 * @param method
-	 *   Unused.
 	 * @param operand
 	 *   Unused.
 	 */
 	@Deprecated("L2Operands should not be captured as literals")
-	fun loadLiteralObject(method: MethodVisitor?, operand: L2Operand)
+	fun loadLiteralObject(operand: L2Operand)
 	{
 		throw UnsupportedOperationException()
 	}
@@ -686,13 +675,11 @@ class JVMTranslator constructor(
 	 * [L2Register] as a Java literal, so this method is marked as [Deprecated]
 	 * to protect against code cloning and refactoring errors by a programmer.
 	 *
-	 * @param method
-	 *   Unused.
 	 * @param reg
 	 *   Unused.
 	 */
 	@Deprecated("L2Registers should not be captured as literals")
-	fun loadLiteralObject(method: MethodVisitor?, reg: L2Register<*>?)
+	fun loadLiteralObject(reg: L2Register<*>?)
 	{
 		throw UnsupportedOperationException()
 	}
@@ -866,17 +853,12 @@ class JVMTranslator constructor(
 		}
 
 	/**
-	 * Finish visiting the [MethodVisitor] by calling
-	 * [MethodVisitor.visitMaxs] and then
-	 * [visitEnd][MethodVisitor.visitEnd]. If [debugJVM] is `true`, then an
-	 * attempt will be made to write out a trace file.
-	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
+	 * Finish visiting the [MethodVisitor] by calling [MethodVisitor.visitMaxs]
+	 * and then [visitEnd][MethodVisitor.visitEnd]. If [debugJVM] is `true`,
+	 * then an attempt will be made to write out a trace file.
 	 */
 	@Suppress("SpellCheckingInspection")
-	private fun finishMethod(method: MethodVisitor)
+	private fun finishMethod()
 	{
 		// These are useless formalisms to close the open method context, which
 		// had no effect at the time of writing (2021.08.20). But they are still
@@ -893,7 +875,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateStaticInitializer()
 	{
-		val method = classNode.visitMethod(
+		method = classNode.visitMethod(
 			ACC_STATIC or ACC_PUBLIC,
 			"<clinit>",
 			Type.getMethodDescriptor(Type.VOID_TYPE),
@@ -902,7 +884,7 @@ class JVMTranslator constructor(
 		method.visitCode()
 		// :: «generated JVMChunk».class.getClassLoader()
 		method.visitLdcInsn(Type.getType("L$classInternalName;"))
-		getClassLoader.generateCall(method)
+		generateCall(getClassLoader)
 		method.visitTypeInsn(
 			CHECKCAST,
 			Type.getInternalName(JVMChunkClassLoader::class.java))
@@ -916,7 +898,7 @@ class JVMTranslator constructor(
 		{
 			// :: «generated JVMChunk».class.getClassLoader().parameters
 			method.visitInsn(DUP)
-			JVMChunkClassLoader.parametersField.generateRead(method)
+			load(JVMChunkClassLoader.parametersField)
 			val limit = accessors.size
 			accessors.forEachIndexed { i, accessor ->
 				// :: literal_«i» = («typeof(literal_«i»)») parameters[«i»];
@@ -924,26 +906,22 @@ class JVMTranslator constructor(
 				{
 					method.visitInsn(DUP)
 				}
-				intConstant(method, accessor.classLoaderIndex)
+				intConstant(accessor.classLoaderIndex)
 				method.visitInsn(AALOAD)
 				accessor.setter!!(method)
 			}
 		}
 		// :: «generated JVMChunk».class.getClassLoader().parameters = null;
 		method.visitInsn(ACONST_NULL)
-		JVMChunkClassLoader.parametersField.generateWrite(method)
+		store(JVMChunkClassLoader.parametersField)
 		method.visitInsn(RETURN)
-		finishMethod(method)
+		finishMethod()
 	}
 
 	/**
 	 * Generate access of the receiver (i.e., `this`).
-	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 */
-	fun loadReceiver(method: MethodVisitor)
+	fun loadReceiver()
 	{
 		method.visitVarInsn(ALOAD, receiverLocal())
 	}
@@ -951,14 +929,16 @@ class JVMTranslator constructor(
 	/**
 	 * Generate access to the JVM local for the [Interpreter] formal parameter
 	 * of a generated implementation of [JVMChunk.runChunk].
-	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 */
-	fun loadInterpreter(method: MethodVisitor)
+	fun loadInterpreter()
 	{
 		method.visitVarInsn(ALOAD, interpreterLocal())
+	}
+
+	/** Generate a read from the specified [CheckedField]. */
+	fun load(checkedField: CheckedField)
+	{
+		checkedField.generateRead(this)
 	}
 
 	/**
@@ -980,16 +960,12 @@ class JVMTranslator constructor(
 	fun reifierLocal(): Int = 3
 
 	/**
-	 * Emit the effect of loading a constant `int` to the specified
-	 * [MethodVisitor].
+	 * Emit the effect of loading a constant `int`.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param value
-	 * The `int`.
+	 *   The `int`.
 	 */
-	fun intConstant(method: MethodVisitor, value: Int)
+	fun intConstant(value: Int)
 	{
 		when (value)
 		{
@@ -1009,16 +985,12 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Emit the effect of loading a constant `long` to the specified
-	 * [MethodVisitor].
+	 * Emit the effect of loading a constant `long`.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param value
 	 *   The `long`.
 	 */
-	fun longConstant(method: MethodVisitor, value: Long)
+	fun longConstant(value: Long)
 	{
 		when (value)
 		{
@@ -1026,7 +998,7 @@ class JVMTranslator constructor(
 			1L -> method.visitInsn(LCONST_1)
 			in Int.MIN_VALUE..Int.MAX_VALUE ->
 			{
-				intConstant(method, value.toInt())
+				intConstant(value.toInt())
 				// Emit a conversion, so that we end up with a long on the stack.
 				method.visitInsn(I2L)
 			}
@@ -1037,17 +1009,13 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Emit the effect of loading a constant `float` to the specified
-	 * [MethodVisitor].
+	 * Emit the effect of loading a constant `float`.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param value
 	 *   The `float`.
 	 */
 	@Suppress("unused")
-	fun floatConstant(method: MethodVisitor, value: Float)
+	fun floatConstant(value: Float)
 	{
 		when (value)
 		{
@@ -1061,16 +1029,12 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Emit the effect of loading a constant `double` to the specified
-	 * [MethodVisitor].
+	 * Emit the effect of loading a constant `double`.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param value
 	 *   The `double`.
 	 */
-	fun doubleConstant(method: MethodVisitor, value: Double)
+	fun doubleConstant(value: Double)
 	{
 		when (value)
 		{
@@ -1086,21 +1050,16 @@ class JVMTranslator constructor(
 	 * Emit code to store each of the values from the [L2ReadBoxedOperand]s into
 	 * a new array. Leave the new array on top of the stack.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param readOperands
 	 *   The [L2ReadBoxedOperand]s holding values to put in the array.
 	 * @param arrayClass
 	 *   The element type of the new array.
 	 */
 	fun objectArray(
-		method: MethodVisitor,
 		readOperands: List<L2ReadBoxedOperand>,
 		arrayClass: Class<out A_BasicObject>)
 	{
-		objectArrayFromRegisters(
-			method, readOperands.map { it.register() }, arrayClass)
+		objectArrayFromRegisters(readOperands.map { it.register() }, arrayClass)
 	}
 
 
@@ -1109,30 +1068,26 @@ class JVMTranslator constructor(
 	 * values as needed, into a new array. Leave the new array on top of the
 	 * stack.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param registers
 	 *   The [L2Register]s holding values to put in the array, boxing into
 	 *   *Java* boxed values if needed.
 	 */
 	fun arbitraryValueArrayFromRegisters(
-		method: MethodVisitor,
 		registers: List<L2Register<*>>)
 	{
 		val size = registers.size
-		intConstant(method, size)
+		intConstant(size)
 		method.visitTypeInsn(
 			Opcodes.ANEWARRAY,
 			Type.getInternalName(Any::class.java))
 		registers.forEachIndexed { i, register ->
 			method.visitInsn(Opcodes.DUP)
-			intConstant(method, i)
-			loadRegister(method, register)
+			intConstant(i)
+			loadRegister(register)
 			when (register.kind)
 			{
-				INTEGER_KIND -> javaUnboxIntegerMethod.generateCall(method)
-				FLOAT_KIND -> javaUnboxDoubleMethod.generateCall(method)
+				INTEGER_KIND -> generateCall(javaUnboxIntegerMethod)
+				FLOAT_KIND -> generateCall(javaUnboxDoubleMethod)
 				else -> { }
 			}
 			method.visitInsn(Opcodes.AASTORE)
@@ -1143,16 +1098,12 @@ class JVMTranslator constructor(
 	 * Emit code to store each of the [L2BoxedRegister]s into a new array. Leave
 	 * the new array on top of the stack.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param registers
 	 *   The [L2BoxedRegister]s holding values to put in the array.
 	 * @param arrayClass
 	 *   The element type of the new array.
 	 */
 	fun objectArrayFromRegisters(
-		method: MethodVisitor,
 		registers: List<L2BoxedRegister>,
 		arrayClass: Class<out A_BasicObject>)
 	{
@@ -1161,7 +1112,7 @@ class JVMTranslator constructor(
 		{
 			0 ->
 			{
-				JVMChunk.noObjectsField.generateRead(method)
+				load(JVMChunk.noObjectsField)
 				return
 			}
 			1 -> JVMChunk.createObjectArray1Method
@@ -1171,14 +1122,14 @@ class JVMTranslator constructor(
 			5 -> JVMChunk.createObjectArray5Method
 			else ->
 			{
-				intConstant(method, size)
+				intConstant(size)
 				method.visitTypeInsn(
 					Opcodes.ANEWARRAY,
 					Type.getInternalName(arrayClass))
 				registers.forEachIndexed { i, register ->
 					method.visitInsn(Opcodes.DUP)
-					intConstant(method, i)
-					loadRegister(method, register)
+					intConstant(i)
+					loadRegister(register)
 					method.visitInsn(Opcodes.AASTORE)
 				}
 				return
@@ -1186,9 +1137,9 @@ class JVMTranslator constructor(
 		}
 		for (local in registers)
 		{
-			loadRegister(method, local)
+			loadRegister(local)
 		}
-		factory.generateCall(method)
+		generateCall(factory)
 	}
 
 	/**
@@ -1228,21 +1179,17 @@ class JVMTranslator constructor(
 	 * [program&#32;counter][L2PcOperand].  Skip if the edge indicates it
 	 * follows the operand's owning instruction.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param operand
 	 *   The [L2PcOperand] that specifies the branch target.
 	 */
 	fun jumpOrFallThrough(
-		method: MethodVisitor,
 		operand: L2PcOperand)
 	{
 		// If the jump target is the very next instruction, then don't emit a
 		// jump at all; just fall through.
 		if (operand.offset() != operand.instruction.offset + 1)
 		{
-			jump(method, operand)
+			jump(operand)
 		}
 	}
 
@@ -1250,36 +1197,28 @@ class JVMTranslator constructor(
 	 * Emit code to unconditionally branch to the specified
 	 * [program&#32;counter][L2PcOperand].
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param operand
 	 *   The [L2PcOperand] that specifies the branch target.
 	 */
 	fun jump(
-		method: MethodVisitor,
 		operand: L2PcOperand)
 	{
-		jump(method, operand.targetBlock())
+		jump(operand.targetBlock())
 	}
 
 	/**
 	 * Emit code to unconditionally branch to the specified [L2BasicBlock].
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param target
 	 *   The [L2BasicBlock] to jump to.
 	 */
 	fun jump(
-		method: MethodVisitor,
 		target: L2BasicBlock)
 	{
 		val pc = target.offset()
 		if (debugNicerJavaDecompilation)
 		{
-			intConstant(method, pc)
+			intConstant(pc)
 			method.visitVarInsn(ISTORE, offsetLocal())
 			method.visitJumpInsn(GOTO, jumper)
 		}
@@ -1295,16 +1234,12 @@ class JVMTranslator constructor(
 	 * [program&#32;counter][L2PcOperand].  If condition is not satisfied,
 	 * control continues at the next JVM instruction.
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param branchOpcode
 	 *   The JVM opcode for the branch instruction, as an [Int].
 	 * @param edge
 	 *   The [L2PcOperand] that indicates where to jump to.
 	 */
 	fun jumpIf(
-		method: MethodVisitor,
 		branchOpcode: Int,
 		edge: L2PcOperand)
 	{
@@ -1312,7 +1247,7 @@ class JVMTranslator constructor(
 		{
 			val tempLabel = Label()
 			method.visitJumpInsn(reverseOpcode(branchOpcode), tempLabel)
-			intConstant(method, edge.offset())
+			intConstant(edge.offset())
 			method.visitVarInsn(ISTORE, offsetLocal())
 			method.visitJumpInsn(GOTO, jumper)
 			method.visitLabel(tempLabel)
@@ -1327,9 +1262,6 @@ class JVMTranslator constructor(
 	 * Emit code to conditionally branch to one of the specified
 	 * [program&#32;counters][L2PcOperand].
 	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
 	 * @param instruction
 	 *   The [L2Instruction] that includes the operands.
 	 * @param opcode
@@ -1349,7 +1281,6 @@ class JVMTranslator constructor(
 	 */
 	@Suppress("SpellCheckingInspection")
 	fun branch(
-		method: MethodVisitor,
 		instruction: L2Instruction,
 		opcode: Int,
 		success: L2PcOperand,
@@ -1365,21 +1296,19 @@ class JVMTranslator constructor(
 			// the branch directions.  Make sure to handle this case when
 			// collecting all blocks that are targets of non-fallthrough
 			// branches.
-			generateBranch(
-				method, opcode, successCounter, failureCounter, success)
+			generateBranch(opcode, successCounter, failureCounter, success)
 			// Fall through to failurePc.
 		}
 		else
 		{
 			generateBranch(
-				method,
 				reverseOpcode(opcode),
 				failureCounter,
 				successCounter,
 				failure)
 			// If the success branch targets the next instruction, jump() will
 			// fall through, otherwise it will jump to failure.
-			jumpOrFallThrough(method, success)
+			jumpOrFallThrough(success)
 		}
 	}
 
@@ -1398,8 +1327,6 @@ class JVMTranslator constructor(
 	 * * takenPc:
 	 * * ...
 	 *
-	 * @param method
-	 *   The [MethodVisitor] on which to generate the branch.
 	 * @param branchOpcode
 	 *   The opcode to effect the branch.  This will be reversed internally to
 	 *   make it easier to increment the notTakenCounter before falling through.
@@ -1411,7 +1338,6 @@ class JVMTranslator constructor(
 	 *   The [L2PcOperand] to jump to if the branch is taken.
 	 */
 	private fun generateBranch(
-		method: MethodVisitor,
 		branchOpcode: Int,
 		takenCounter: LongAdder,
 		notTakenCounter: LongAdder,
@@ -1419,15 +1345,15 @@ class JVMTranslator constructor(
 	{
 		if (instrumentBranches)
 		{
-			// Ensure a passed LongAdder is updated by the branch.
+			// Ensure the branch edge updates the passed LongAdder.
 			val logNotTaken = Label()
 			method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken)
-			loadLiteralObject(method, takenCounter)
-			longAdderIncrement.generateCall(method)
-			jump(method, takenEdge)
+			loadLiteralObject(takenCounter)
+			generateCall(longAdderIncrement)
+			jump(takenEdge)
 			method.visitLabel(logNotTaken)
-			loadLiteralObject(method, notTakenCounter)
-			longAdderIncrement.generateCall(method)
+			loadLiteralObject(notTakenCounter)
+			generateCall(longAdderIncrement)
 		}
 		else
 		{
@@ -1437,21 +1363,23 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Generate the default constructor [`()V`] of the target [JVMChunk].
+	 * Generate the default constructor `[()V]` of the target [JVMChunk].
 	 */
 	fun generateConstructorV()
 	{
-		val method = classNode.visitMethod(
+		method = classNode.visitMethod(
 			ACC_PUBLIC or ACC_MANDATED,
 			"<init>",
 			Type.getMethodDescriptor(Type.VOID_TYPE),
 			null,
 			null)
 		method.visitCode()
-		loadReceiver(method)
-		JVMChunk.chunkConstructor.generateCall(method)
+		loadReceiver()
+		JVMChunk.chunkConstructor.run {
+			generateCall()
+		}
 		method.visitInsn(RETURN)
-		finishMethod(method)
+		finishMethod()
 	}
 
 	/**
@@ -1459,7 +1387,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateName()
 	{
-		val method = classNode.visitMethod(
+		method = classNode.visitMethod(
 			ACC_PUBLIC,
 			"name",
 			Type.getMethodDescriptor(Type.getType(String::class.java)),
@@ -1468,7 +1396,7 @@ class JVMTranslator constructor(
 		method.visitCode()
 		method.visitLdcInsn(chunkName)
 		method.visitInsn(ARETURN)
-		finishMethod(method)
+		finishMethod()
 	}
 
 	/**
@@ -1538,7 +1466,8 @@ class JVMTranslator constructor(
 				visualizeLiveness = full,
 				visualizeManifest = full,
 				visualizeRegisterDescriptions = full,
-				accumulator = builder)
+				accumulator = builder,
+				deltaManifestOnly = false)
 			visualizer.visualize()
 			val buffer = StandardCharsets.UTF_8.encode(builder.toString())
 			val bytes = ByteArray(buffer.limit())
@@ -1570,7 +1499,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateRunChunk()
 	{
-		val method = classNode.visitMethod(
+		method = classNode.visitMethod(
 			ACC_PUBLIC,
 			"runChunk",
 			Type.getMethodDescriptor(
@@ -1592,8 +1521,7 @@ class JVMTranslator constructor(
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
 			val pkg = classInternalName.substring(0, lastSlash)
-			val tempDir = Paths.get("debug", "jvm")
-			val dir = tempDir.resolve(Paths.get(pkg))
+			val dir = baseDirectoryForGraphs.resolve(Paths.get(pkg))
 			runCatching { Files.createDirectories(dir) }
 			var baseFileName = classInternalName.substring(lastSlash + 1)
 			code?.let {
@@ -1697,7 +1625,7 @@ class JVMTranslator constructor(
 				"reifier",
 				Type.getDescriptor(StackReifier::class.java),
 				null,
-				labelHere(method),
+				labelHere(),
 				endLabel,
 				reifierLocal())
 			// Initialize the register locals.
@@ -1712,15 +1640,15 @@ class JVMTranslator constructor(
 					when (kind)
 					{
 						BOXED_KIND -> method.visitInsn(ACONST_NULL)
-						INTEGER_KIND -> intConstant(method, 0)
-						FLOAT_KIND -> doubleConstant(method, 0.0)
+						INTEGER_KIND -> intConstant(0)
+						FLOAT_KIND -> doubleConstant(0.0)
 					}
-					method.visitVarInsn(kind.storeInstruction, localIndex)
+					method.visitVarInsn(kind.jvmStoreInstruction, localIndex)
 					method.visitLocalVariable(
 						kind.prefix + finalIndex,
 						kind.jvmTypeString,
 						null,
-						labelHere(method),
+						labelHere(),
 						endLabel,
 						localIndex)
 				}
@@ -1739,33 +1667,31 @@ class JVMTranslator constructor(
 		// Translate the instructions.
 		for (instruction in instructions)
 		{
-			val label = labels[instruction.offset]
-			if (label !== null)
-			{
-				method.visitLabel(label)
-				method.visitLineNumber(
-					when (l2LineTableByL2)
-					{
-						null -> instruction.offset
-						else -> l2LineTableByL2[instruction.offset]
-					},
-					label)
-			}
+			val label = labels[instruction.offset] ?: Label()
+			method.visitLabel(label)
+			method.visitLineNumber(
+				when (l2LineTableByL2)
+				{
+					null -> instruction.offset
+					else -> l2LineTableByL2[instruction.offset]
+				},
+				label)
 			if (callTraceL2AfterEveryInstruction)
 			{
-				loadReceiver(method) // this, the executable chunk.
-				intConstant(method, instruction.offset)
+				loadReceiver() // this, the executable chunk.
+				intConstant(instruction.offset)
 				// First line of the instruction toString
 				method.visitLdcInsn(
 					instruction.toString()
 						.split("\\n".toRegex(), 2).toTypedArray()[0])
 
 				// Output the first read operand's value, as an Object, or null.
-				arbitraryValueArrayFromRegisters(
-					method, instruction.sourceRegisters)
-				Interpreter.traceL2Method.generateCall(method)
+				arbitraryValueArrayFromRegisters(instruction.sourceRegisters)
+				generateCall(Interpreter.traceL2Method)
 			}
-			instruction.translateToJVM(this, method)
+			instruction.run {
+				translateToJVM()
+			}
 		}
 		// An L2Chunk always ends with an explicit transfer of control, so we
 		// shouldn't generate a return here.
@@ -1773,7 +1699,7 @@ class JVMTranslator constructor(
 
 		// :: JVMChunk.badOffset(interpreter.offset);
 		method.visitVarInsn(ILOAD, offsetLocal())
-		JVMChunk.badOffsetMethod.generateCall(method)
+		generateCall(JVMChunk.badOffsetMethod)
 		method.visitInsn(ATHROW)
 
 		if (debugNicerJavaDecompilation)
@@ -1782,15 +1708,15 @@ class JVMTranslator constructor(
 			method.visitJumpInsn(GOTO, methodHead)
 		}
 
-		// Visit each of the local variables in order to bind them to artificial
-		// register names. At present, we just claim that every variable is live
-		// from the methodHead until the endLabel, but we can always tighten
-		// this up later if we care.
+		// Visit each of the local variables to bind them to artificial register
+		// names. At present, we just claim that every variable is live from the
+		// methodHead until the endLabel, but we can always tighten this up
+		// later if we care.
 		method.visitLabel(endLabel)
-		finishMethod(method)
+		finishMethod()
 	}
 
-	private fun labelHere(method: MethodVisitor): Label =
+	private fun labelHere(): Label =
 		Label().also { method.visitLabel(it) }
 
 	/** The final phase of JVM code generation. */
@@ -1974,7 +1900,6 @@ class JVMTranslator constructor(
 	 * avoid clobbering them if the lists overlap.
 	 */
 	fun transferPairwise(
-		method: MethodVisitor,
 		inputs: List<L2Register<*>>,
 		outputs: List<L2Register<*>>)
 	{
@@ -1989,11 +1914,11 @@ class JVMTranslator constructor(
 		{
 			// First push each (non-elided) read.
 			transferPairs.forEach { (read, _) ->
-				loadRegister(method, read)
+				loadRegister(read)
 			}
 			// Now pop into each corresponding write register in reverse order.
 			transferPairs.reversed().forEach { (_,  write) ->
-				store(method, write)
+				store(write)
 			}
 		}
 
@@ -2055,10 +1980,6 @@ class JVMTranslator constructor(
 		private val classNameSpaceReplacement =
 			Pattern.compile("\\s")
 
-		/** A regex [Pattern] to strip the prefix of a module name. */
-		private val moduleNameStripper =
-			Pattern.compile("^.*/([^/]+)$")
-
 		/**
 		 * Whether to emit JVM instructions to invoke [Interpreter.traceL2]
 		 * before each [L2Instruction].
@@ -2066,7 +1987,7 @@ class JVMTranslator constructor(
 		 * NOTE: This is a feature switch. If you want to enter the area of
 		 * code that is protected by this switch, set the to true.
 		 */
-		const val callTraceL2AfterEveryInstruction = false
+		const val callTraceL2AfterEveryInstruction = true
 
 		/** Helper for stripping "_TAG" from end of tag names. */
 		val tagEndPattern: Pattern = Pattern.compile("_TAG$")
@@ -2101,43 +2022,93 @@ class JVMTranslator constructor(
 		 */
 		val nameCounters: MutableMap<String, AtomicInteger> =
 			ConcurrentHashMap()
+
+		/**
+		 * The [Path] under which L2 optimizer trace information is recorded,
+		 * when [debugJVM] is enabled.
+		 */
+		val baseDirectoryForGraphs: Path = Paths.get("debug", "jvm")
+
+		/**
+		 * Compute the JVM class name, output directory, and base file name,
+		 * incrementing the per-function usage counter.  Creates the output
+		 * directory when [debugJVM] is `true`.
+		 *
+		 * This single method is the canonical source of the naming and
+		 * directory layout used for all L2 debug output.  Both [JVMTranslator]
+		 * (for the final output files) and [L2Optimizer] (for per-pass
+		 * snapshots, when [L2Optimizer.perPassL2] is `true`) call this method,
+		 * each obtaining their own sibling output directory.
+		 *
+		 * @param pathData
+		 *   The [CodeLoggingPathData] containing the naming fields.
+		 * @return
+		 *   A [Triple] of `(classInternalName, dir, baseFileName)`.
+		 */
+		fun prepareOutputDirectory(
+			pathData: CodeLoggingPathData
+		): Triple<String, Path, String>
+		{
+			val (moduleName, methodName, lineNumber) = pathData
+			var cleanFunctionName =
+				subblockRewriter.matcher(methodName).replaceAll("#$1")
+			cleanFunctionName =
+				classNameUnquoter.matcher(cleanFunctionName).replaceAll("$1$2")
+			cleanFunctionName =
+				classNameForbiddenCharacters.matcher(cleanFunctionName)
+					.replaceAll("\\%")
+			cleanFunctionName =
+				classNameSpaceReplacement.matcher(cleanFunctionName).replaceAll("_")
+			if (cleanFunctionName.length > 50)
+			{
+				cleanFunctionName = cleanFunctionName.take(25) + "%%%" +
+					cleanFunctionName.takeLast(25)
+			}
+			val classDirPrefix =
+				"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
+			val counter = nameCounters
+				.computeIfAbsent(classDirPrefix) { AtomicInteger(1) }
+			val counterValue = counter.getAndIncrement()
+			val counterString = " ($counterValue)"
+			val lineString = "%04d_".format(lineNumber)
+			val computedClassName = "avail.optimizer.jvm.generated." +
+				"$moduleName.$lineString$cleanFunctionName$counterString." +
+				cleanFunctionName
+			val classInternalName = computedClassName.replace('.', '/')
+			val lastSlash = classInternalName.lastIndexOf('/')
+			val pkg = classInternalName.substring(0, lastSlash)
+			var baseFileName = classInternalName.substring(lastSlash + 1)
+			if (lineNumber != 0)
+			{
+				baseFileName = "%04d %s".format(lineNumber, baseFileName)
+			}
+			if (baseFileName.length > 100)
+			{
+				baseFileName = baseFileName.take(100) + "…"
+			}
+			val dir = baseDirectoryForGraphs.resolve(Paths.get(pkg))
+			if (debugJVM) runCatching { Files.createDirectories(dir) }
+			return Triple(classInternalName, dir, baseFileName)
+		}
+
+		/**
+		 * Convenience overload of [prepareOutputDirectory] that builds a
+		 * [CodeLoggingPathData] from [code] first.
+		 *
+		 * @param code
+		 *   The [A_RawFunction] being compiled, or `null` for the default chunk.
+		 * @return
+		 *   A [Triple] of `(classInternalName, dir, baseFileName)`.
+		 */
+		fun prepareOutputDirectory(code: A_RawFunction?): Triple<String, Path, String> =
+			prepareOutputDirectory(CodeLoggingPathData.from(code))
 	}
 
 	init
 	{
-		val module = code?.module ?: nil
-		val moduleName = when
-			{
-				module === nil -> "NoModule"
-				else -> moduleNameStripper.matcher(module.moduleNameNative)
-					.replaceAll("$1")
-			}
-
-		val originalFunctionName =
-			if (code === null) "DEFAULT" else code.methodName.asNativeString()
-		var cleanFunctionName =
-			subblockRewriter.matcher(originalFunctionName).replaceAll("#$1")
-		cleanFunctionName =
-			classNameUnquoter.matcher(cleanFunctionName).replaceAll("$1$2")
-		cleanFunctionName =
-			classNameForbiddenCharacters.matcher(cleanFunctionName)
-				.replaceAll("\\%")
-		cleanFunctionName =
-			classNameSpaceReplacement.matcher(cleanFunctionName).replaceAll("_")
-		if (cleanFunctionName.length > 50)
-		{
-			cleanFunctionName = cleanFunctionName.take(25) + "%%%" +
-				cleanFunctionName.takeLast(25)
-		}
-		val classDirPrefix =
-			"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
-		val counter = nameCounters
-			.computeIfAbsent(classDirPrefix) { AtomicInteger(1) }
-		val counterValue = counter.getAndIncrement()
-		val counterString = " ($counterValue)"
-		val lineString = "%04d_".format(code?.codeStartingLineNumber ?: 0)
-		className = "avail.optimizer.jvm.generated." +
-			"$moduleName.$lineString$cleanFunctionName$counterString.$cleanFunctionName"
-		classInternalName = className.replace('.', '/')
+		val computedInternalName = controlFlowGraph.reservedClassInternalName
+			?: prepareOutputDirectory(code).first
+		classInternalName = computedInternalName
+		className = computedInternalName.replace('/', '.')
 	}
 }

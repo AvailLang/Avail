@@ -48,7 +48,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.Strings.increaseIndentation
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -142,13 +141,11 @@ class L2_REIFY(
 		}
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: reifier = interpreter.reify(processInterrupt, statistic)
-		translator.loadInterpreter(method)
-		translator.intConstant(method, processInterrupt.value)
+		loadInterpreter()
+		intConstant(processInterrupt.value)
 		val statistic = if (processInterrupt.value != 0)
 		{
 			StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic
@@ -157,11 +154,11 @@ class L2_REIFY(
 		{
 			Statistic(REIFICATIONS, statisticName.constant.asNativeString())
 		}
-		translator.loadLiteralObject(method, statistic)
-		Interpreter.reifyMethod.generateCall(method)
-		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
+		loadLiteralObject(statistic)
+		generateCall(Interpreter.reifyMethod)
+		method.visitVarInsn(Opcodes.ASTORE, reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an
 		// L2_ENTER_L2_CHUNK.
-		translator.generateReificationPreamble(method, ifReification)
+		generateReificationPreamble(ifReification)
 	}
 }

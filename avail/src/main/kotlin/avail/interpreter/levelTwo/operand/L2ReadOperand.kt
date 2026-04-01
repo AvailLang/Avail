@@ -229,6 +229,10 @@ protected constructor(
 				}
 			}
 		}
+		if (manifest.caresAboutSemanticValues && instruction !is L2_PHI<*>)
+		{
+			setRegister(manifest.getDefinition(semanticValue))
+		}
 		register().addUse(this)
 	}
 
@@ -275,12 +279,6 @@ protected constructor(
 				// able to.
 				assert(registerOrNull != null)
 			}
-			else
-			{
-				registerOrNull =
-					generator.currentManifest.getDefinitionOrNull(semanticValue)
-				restrict { generator.restrictionFor(semanticValue) }
-			}
 		}
 		else
 		{
@@ -314,19 +312,26 @@ protected constructor(
 	 * this register. Skip over move instructions. The containing graph must be
 	 * in SSA form.
 	 *
+	 * @param manifest
+	 *   The manifest in which to follow a postponed instruction chain, if
+	 *   necessary.
 	 * @return
-	 *   The requested `L2Instruction`.
+	 *   The requested [L2Instruction], which could still be postponed or
+	 *   already emitted.
 	 */
-	fun definitionSkippingMoves(): L2Instruction
+	fun definitionSkippingMoves(manifest: L2ValueManifest?): L2Instruction
 	{
-		var other = definition().instruction
-		while (true)
+		val sourceInstruction: L2Instruction =
+			registerOrNull?.definition()?.instruction
+				?: (manifest!!.getDefinitionOrNull(semanticValue)?.definition()
+					?.instruction)
+				?: (manifest!!.postponedInstructionFor(semanticValue)!!)
+		return when (sourceInstruction)
 		{
-			other = when
-			{
-				other is L2_MOVE<*> -> other.source.definition().instruction
-				else -> return other
-			}
+			// Recurse.  Iteration wouldn't be worth it here.
+			is L2_MOVE<*> ->
+				sourceInstruction.source.definitionSkippingMoves(manifest)
+			else -> sourceInstruction
 		}
 	}
 
@@ -401,36 +406,6 @@ protected constructor(
 	}
 
 	/**
-	 * Answer the [L2WriteBoxedOperand] which produces the value that will
-	 * populate this register. Skip over move instructions. Also skip over
-	 * boxing and unboxing operations that don't alter the value. The containing
-	 * graph must be in SSA form.
-	 *
-	 * @return
-	 *   The requested `L2Instruction`.
-	 */
-	fun originalBoxedWriteSkippingMoves(): L2WriteBoxedOperand
-	{
-		var def: L2WriteOperand<*> = definition()
-		var earliestBoxed: L2WriteBoxedOperand? = null
-		while (true)
-		{
-			if (def is L2WriteBoxedOperand)
-			{
-				earliestBoxed = def
-			}
-			val instruction = def.instruction
-			if (instruction is L2_MOVE<*>)
-			{
-				def = instruction.source.definition()
-				continue
-			}
-			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
-			return earliestBoxed!!
-		}
-	}
-
-	/**
 	 * Create a new *consstant* pseudo-register, using the restriction to
 	 * determine the constant value.
 	 */
@@ -454,6 +429,7 @@ protected constructor(
 	fun replaceIfConstantRead(): Boolean
 	{
 		if (constantOrNull === null) return false
+
 		instruction.sourceRegisters.remove(register())
 		register().removeUse(this)
 		registerOrNull = createConstantRegister()

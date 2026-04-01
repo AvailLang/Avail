@@ -1013,7 +1013,8 @@ class AvailObject private constructor(
 		field: A_Atom,
 		value: A_BasicObject,
 		canDestroy: Boolean
-	) = descriptor.o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
+	): AvailObject =
+		descriptor.o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
 
 	@ReferencedInGeneratedCode
 	override fun fieldTypeAt(field: A_Atom) =

@@ -36,15 +36,11 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
-import avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
-import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign.NEGATIVE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign.POSITIVE
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
-import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
@@ -83,11 +79,16 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.TypeTag
@@ -602,6 +603,26 @@ class TypeRestriction private constructor(
 				newExclusions.add(t2)
 			}
 		}
+		val typeUnion = type.typeUnion(other.type)
+		if (typeUnion.equals(NUMBER()))
+		{
+			// We've produced a numeric type, but not an integer range type, as
+			// the restriction type.  See if we can exclude specific kinds,
+			// namely float, double, and extended integer, to make the
+			// restriction more precise than a conservative union.  This
+			// increased precision can assist with lookups, or prevent useless
+			// attempts at extracting an int from something that can only be a
+			// float or a double.
+			listOf(
+				FLOAT(), DOUBLE(), extendedIntegers, integers
+			).forEach { broadType ->
+				if (!intersectsType(broadType)
+					&& !other.intersectsType(broadType))
+				{
+					newExclusions.add(broadType)
+				}
+			}
+		}
 
 		newExclusions.remove(bottom)
 		// It's also safe to remove bottomMeta, because that's already handled
@@ -638,7 +659,7 @@ class TypeRestriction private constructor(
 			other.excludedTags?.let(excluded1::intersect)
 		}?.ifEmpty { null }
 		return restriction(
-			givenType = type.typeUnion(other.type),
+			givenType = typeUnion,
 			constantOrNull = null,
 			givenExcludedTypes = newExclusions,
 			givenExcludedValues = newExcludedValues,
@@ -986,7 +1007,7 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new [TypeRestriction].
 	 */
-	fun minusObjectVariant(variantToRemove: ObjectLayoutVariant) = when
+	fun minusObjectVariant(variantToRemove: ObjectLayoutVariant): TypeRestriction = when
 	{
 		isImpossible -> this
 		positiveGroup.objectVariants == null ->
@@ -1023,7 +1044,7 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new [TypeRestriction].
 	 */
-	fun minusObjectTypeVariant(variantToRemove: ObjectLayoutVariant) = when
+	fun minusObjectTypeVariant(variantToRemove: ObjectLayoutVariant): TypeRestriction = when
 	{
 		isImpossible -> this
 		positiveGroup.objectTypeVariants == null ->
@@ -1249,7 +1270,7 @@ class TypeRestriction private constructor(
 	{
 		hasFlag(UNBOXED_FLOAT_FLAG) -> this
 		else -> restriction(
-			givenType = type.typeIntersection(Types.DOUBLE()),
+			givenType = type.typeIntersection(DOUBLE()),
 			constantOrNull = constantOrNull,
 			givenExcludedTypes = excludedTypes,
 			givenExcludedValues = excludedValues,
@@ -1467,13 +1488,14 @@ class TypeRestriction private constructor(
 		else ""
 	}
 
-	override fun toString(): String = toString(false)
+	override fun toString() = toString(false, false)
 
 	/**
 	 * Produce a string for this [TypeRestriction].  If [isTag], include
-	 * symbolic information about the tags covered by this int restriction.
+	 * symbolic information about the tags covered by this int restriction.  If
+	 * [bare], leave off the "restriction(...)" wrapper.
 	 */
-	fun toString(isTag: Boolean): String
+	fun toString(isTag: Boolean, bare: Boolean): String
 	{
 		val parts: Map<String, Collection<Any>?> = buildMap {
 			constantOrNull?.let { put("c", listOf(it)) }
@@ -1502,9 +1524,13 @@ class TypeRestriction private constructor(
 		val estimate = strings.entries.sumOf { (k, v) ->
 			k.length + v.sumOf(String::length)
 		}
-		return if (estimate < 100)
+		return if (estimate < 100 || bare)
 		{
-			strings.entries.joinToString(", ", "restriction(", ")") { (k, v) ->
+			strings.entries.joinToString(
+				", ",
+				if (bare) "" else "restriction(",
+				if (bare) "" else ")",
+			) { (k, v) ->
 				when (v.size)
 				{
 					1 -> "$k=${v[0]}"
@@ -2116,7 +2142,7 @@ class TypeRestriction private constructor(
 			}
 			if (flags and UNBOXED_FLOAT_FLAG.mask != 0)
 			{
-				type = type.typeIntersection(Types.DOUBLE())
+				type = type.typeIntersection(DOUBLE())
 			}
 			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance.isBottom))
@@ -2452,46 +2478,48 @@ class TypeRestriction private constructor(
 		 * information about which tag, if any, has that integer as its ordinal.
 		 * Drill into Kotlin collections and extended integer range types.
 		 */
-		private fun valueToString(value: Any, isTag: Boolean): String
+		fun valueToString(value: Any, isTag: Boolean): String = when (value)
 		{
-			if (!isTag) return value.toString()
-			return when (value)
+			is String -> value
+			is AvailObject -> when
 			{
-				is String -> value
-				is AvailObject -> when
+				value.isEnumeration -> when
 				{
-					value.isEnumeration -> when
-					{
-						value.isBottom -> value.toString()
-						else -> value.instances.joinToString(", ", "{", "}ᵀ") {
-							valueToString(it, true)
-						}
+					value.isBottom -> value.toString()
+					else -> value.instances.joinToString(", ", "{", "}ᵀ") {
+						valueToString(it, isTag)
 					}
-					value.isIntegerRangeType -> buildString {
-						append(if (value.lowerInclusive) "[" else "(")
-						append(valueToString(value.lowerBound, true))
-						append("..")
-						append(valueToString(value.upperBound, true))
-						append(if (value.upperInclusive) "]" else ")")
-					}
-					value.isInt ->
-					{
-						val intValue = value.extractInt
-						if (intValue >= TypeTag.TOP_TAG.ordinal
-							&& intValue < TypeTag.count)
-						{
-							val tag = TypeTag.tagFromOrdinal(intValue)
-							"$intValue(${tag.shorterName})"
-						}
-						else value.toString()
-					}
-					else -> value.toString()
 				}
-				is Collection<*> -> value.joinToString(", ", "(", ")") {
-					valueToString(it!!, true)
+				value.isIntegerRangeType -> buildString {
+					append(if (value.lowerInclusive) "[" else "(")
+					append(valueToString(value.lowerBound, isTag))
+					append("..")
+					append(valueToString(value.upperBound, isTag))
+					append(if (value.upperInclusive) "]" else ")")
+				}
+				value.isInt ->
+				{
+					val intValue = value.extractInt
+					if (isTag
+						&& intValue >= TypeTag.TOP_TAG.ordinal
+						&& intValue < TypeTag.count)
+					{
+						val tag = TypeTag.tagFromOrdinal(intValue)
+						"$intValue(${tag.shorterName})"
+					}
+					else value.toString()
+				}
+				value.isFunction && value.code().codePrimitive() != null ->
+				{
+					val primName = value.code().codePrimitive()!!.name
+					"[...Primitive $primName...]"
 				}
 				else -> value.toString()
 			}
+			is Collection<*> -> value.joinToString(", ", "(", ")") {
+				valueToString(it!!, isTag)
+			}
+			else -> value.toString()
 		}
 	}
 }

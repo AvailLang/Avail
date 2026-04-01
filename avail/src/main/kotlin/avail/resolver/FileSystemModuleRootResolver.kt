@@ -32,7 +32,6 @@
 
 package avail.resolver
 
-import avail.AvailRuntime
 import avail.builder.ModuleNameResolver.Companion.availExtension
 import avail.builder.ModuleRoot
 import avail.builder.ModuleRootErrorCode
@@ -46,11 +45,8 @@ import avail.io.SimpleCompletionHandler
 import avail.resolver.ModuleRootResolver.WatchEventType.CREATE
 import avail.resolver.ModuleRootResolver.WatchEventType.DELETE
 import avail.resolver.ModuleRootResolver.WatchEventType.MODIFY
-import avail.utility.launch
-import io.methvin.watcher.DirectoryChangeEvent
-import io.methvin.watcher.DirectoryChangeEvent.EventType
-import io.methvin.watcher.DirectoryWatcher
-import io.methvin.watcher.hashing.FileHasher
+import avail.utility.DirectoryWatcherInterface
+import avail.utility.JvmDirectoryWatcher
 import org.availlang.artifact.ResourceType
 import org.availlang.artifact.ResourceType.DIRECTORY
 import org.availlang.artifact.ResourceType.MODULE
@@ -58,7 +54,6 @@ import org.availlang.artifact.ResourceType.PACKAGE
 import org.availlang.artifact.ResourceType.REPRESENTATIVE
 import org.availlang.artifact.ResourceType.RESOURCE
 import org.availlang.artifact.ResourceType.ROOT
-import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -627,6 +622,7 @@ class FileSystemModuleRootResolver constructor(
 					{
 						dirURI = URI("file://$dir")
 					}
+					@Suppress("AssignedValueIsNeverRead")
 					isRoot = false
 					val qualifiedName = "/${moduleRoot.name}"
 					val reference = ResolverReference(
@@ -782,139 +778,146 @@ class FileSystemModuleRootResolver constructor(
 	 */
 	inner class FileSystemWatcher
 	{
-		/**
-		 * The [DirectoryWatcher] watching the [FileManager] directories where
-		 * the [AvailRuntime] loaded [ModuleRoot]s are stored.
-		 */
-		private val directoryWatcher = DirectoryWatcher.builder()
-			.logger(NOPLogger.NOP_LOGGER)
-			.fileHasher(FileHasher.LAST_MODIFIED_TIME)
-			.listener { event ->
-				try
-				{
-					resolveEvent(event)
-				}
-				catch (t: Throwable)
-				{
-					println(
-						"Processing ${event.eventType()}: ${event.path()},"
-						+ " encountered error: $t\n${t.stackTraceToString()}")
-				}
-			}
-			.path(Path.of(File(moduleRoot.resolver.uri).path))
-			.build()
-			.launch("module root observer")
-
-		/**
-		 * Shutdown this [FileSystemWatcher].
-		 */
-		fun close ()
+		private fun handleEvent(eventPath: Path)
 		{
-			directoryWatcher.close()
-		}
+			try
+			{
+				if (shouldIgnorePath(eventPath)) return
+				val base = moduleRoot.resolver.uri
+				val uri = eventPath.toUri()
+				val file = File(base.resolve(uri))
+				val isDirectory = file.isDirectory
+				val qualifiedName = getQualifiedName(file.toString())
 
-		private fun resolveEvent (event: DirectoryChangeEvent)
-		{
-			val path = event.path()
-			if (shouldIgnorePath(path)) return
-			val base = moduleRoot.resolver.uri
-			val uri = path?.toUri() ?: return
-			val file = File(base.resolve(uri))
-			val isDirectory = file.isDirectory
-			val eventType = event.eventType()
-			if (isDirectory
-				&& (eventType == EventType.MODIFY
-					|| eventType == EventType.CREATE))
-			{
-				return
-			}
-			val qualifiedName = getQualifiedName(file.toString())
-			when (eventType)
-			{
-				EventType.DELETE ->
+				if (isDirectory)
 				{
-					val ref = referenceMap.remove(qualifiedName) ?: return
-					val parent = referenceMap[ref.parentName]
-					if (parent !== null)
+					// Handle directory creation specifically
+					if (file.exists())
 					{
-						val children = when (ref.isResource)
-						{
-							true -> parent.resources
-							false -> parent.modules
-						}
-						children.remove(ref)
+						handleCreate(file, qualifiedName)
 					}
-					watchEventSubscriptions.values.forEach { subscriber ->
-						subscriber(DELETE, ref)
+					else
+					{
+						handleDelete(qualifiedName)
 					}
 				}
-				EventType.MODIFY ->
-				{
-					val ref = referenceMap[qualifiedName] ?: return
-					this@FileSystemModuleRootResolver.refreshResolverMetaData(
-						ref,
-						{
-							watchEventSubscriptions.values.forEach {
-								subscriber -> subscriber(MODIFY, ref)
-							}
-						},
-						{ _, _ -> })
-				}
-				EventType.CREATE ->
+				else if (file.exists())
 				{
 					if (referenceMap[qualifiedName] != null)
 					{
-						// Already exists.
-						return
+						handleModify(qualifiedName)
 					}
-					val type = determineResourceType(file)
-					val added = LinkedList<ResolverReference>()
-					var ref = resolverReference(
-						file.toPath(),
-						qualifiedName,
-						type)
-					added.addFirst(ref)
-					referenceMap[qualifiedName] = ref
-					do
+					else
 					{
-						// When moving a directory into place, the directory
-						// and its children may be notified in arbitrary order,
-						// so take care to create entries for the missing
-						// parents as needed.
-						var parent = referenceMap[ref.parentName]
-						val parentExisted = parent != null
-						if (!parentExisted)
-						{
-							val parentFile = File(ref.uri).parentFile
-							val parentType = determineResourceType(parentFile)
-							parent = resolverReference(
-								parentFile.toPath(),
-								ref.parentName,
-								parentType)
-							added.addFirst(parent)
-							referenceMap[parent.qualifiedName] = parent
-						}
-						// Assert that the parent is not null (because the
-						// flow analyzer isn't quite powerful enough to prove
-						// this).
-						parent!!
-						val children = when (ref.isResource)
-						{
-							true -> parent.resources
-							false -> parent.modules
-						}
-						children.add(ref)
-						ref = parent
-					}
-					while (!parentExisted)
-					added.forEach { newRef ->
-						watchEventSubscriptions.values.forEach { subscriber ->
-							subscriber(CREATE, newRef)
-						}
+						handleCreate(file, qualifiedName)
 					}
 				}
-				else -> {}
+				else
+				{
+					handleDelete(qualifiedName)
+				}
 			}
+			catch (t: Throwable)
+			{
+				println(
+					"Processing event: $eventPath, encountered error: "
+					+ "$t\n${t.stackTraceToString()}")
+			}
+		}
+
+		private fun handleDelete(qualifiedName: String)
+		{
+			val ref = referenceMap.remove(qualifiedName) ?: return
+			val parent = referenceMap[ref.parentName]
+			if (parent !== null)
+			{
+				val children = when (ref.isResource)
+				{
+					true -> parent.resources
+					false -> parent.modules
+				}
+				children.remove(ref)
+			}
+			watchEventSubscriptions.values.forEach { subscriber ->
+				subscriber(DELETE, ref)
+			}
+		}
+
+		private fun handleModify(qualifiedName: String)
+		{
+			val ref = referenceMap[qualifiedName] ?: return
+			this@FileSystemModuleRootResolver.refreshResolverMetaData(
+				ref,
+				{
+					watchEventSubscriptions.values.forEach { subscriber ->
+						subscriber(MODIFY, ref)
+					}
+				},
+				{ _, _ -> })
+		}
+
+		private fun handleCreate(file: File, qualifiedName: String)
+		{
+			if (referenceMap[qualifiedName] != null)
+			{
+				// Already exists.
+				return
+			}
+			val type = determineResourceType(file)
+			val added = LinkedList<ResolverReference>()
+			var ref = resolverReference(
+				file.toPath(),
+				qualifiedName,
+				type)
+			added.addFirst(ref)
+			referenceMap[qualifiedName] = ref
+			do
+			{
+				// When moving a directory into place, the directory and its
+				// children may be notified in arbitrary order, so take care
+				// to create entries for the missing parents as needed.
+				var parent = referenceMap[ref.parentName]
+				val parentExisted = parent != null
+				if (!parentExisted)
+				{
+					val parentFile = File(ref.uri).parentFile
+					val parentType = determineResourceType(parentFile)
+					parent = resolverReference(
+						parentFile.toPath(),
+						ref.parentName,
+						parentType)
+					added.addFirst(parent)
+					referenceMap[parent.qualifiedName] = parent
+				}
+				val children = when (ref.isResource)
+				{
+					true -> parent.resources
+					false -> parent.modules
+				}
+				children.add(ref)
+				ref = parent
+			}
+			while (!parentExisted)
+			added.forEach { newRef ->
+				watchEventSubscriptions.values.forEach { subscriber ->
+					subscriber(CREATE, newRef)
+				}
+			}
+		}
+
+		/** The [DirectoryWatcherInterface] watching the module root. */
+		private val directoryWatcher: DirectoryWatcherInterface =
+			JvmDirectoryWatcher(
+				path = Path.of(File(moduleRoot.resolver.uri).path),
+				onCreated = ::handleEvent,
+				onModified = ::handleEvent,
+				onDeleted = ::handleEvent
+			).launch("module root observer")
+
+		/** Shutdown this [FileSystemWatcher]. */
+		fun close ()
+		{
+			directoryWatcher.close()
 		}
 	}
 

@@ -1466,6 +1466,7 @@ class IntegerDescriptor private constructor(
 		return SerializerOperation.BIG_INTEGER
 	}
 
+	@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?

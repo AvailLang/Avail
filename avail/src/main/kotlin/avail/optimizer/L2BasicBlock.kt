@@ -86,6 +86,13 @@ constructor(
 	/** A place to write notes for marking up a graph. */
 	val debugNote = StringBuilder()
 
+	/**
+	 * The zero-based index of this block within the current
+	 * [basicBlockOrder][L2ControlFlowGraph.basicBlockOrder], or `-1` if not yet
+	 * assigned.  Set just before a debug dump by [L2Optimizer.dumpPassFiles].
+	 */
+	var blockNumber: Int = -1
+
 	/** The sequence of instructions within this basic block. */
 	private val instructions = mutableListOf<L2Instruction>()
 
@@ -297,7 +304,7 @@ constructor(
 		}
 		// Keep semantic values that are common to all incoming paths.  Create
 		// phi functions if the registers disagree.
-		generator.currentManifest.populateFromIntersection(
+		generator.currentManifest.populateForMerge(
 			predecessorEdges.map(L2PcOperand::manifest),
 			generator,
 			isLoopHead)
@@ -321,6 +328,8 @@ constructor(
 		assert(isIrremovable || predecessorEdges().isNotEmpty())
 		justAddInstruction(instruction)
 		instruction.justAdded(manifest)
+
+		manifest.check()
 	}
 
 	/**
@@ -386,20 +395,20 @@ constructor(
 	}
 
 	/**
-	 * One of my predecessors has been replaced.  Update my list of predecessors
+	 * One of my successors has been replaced.  Update my list of successors
 	 * to account for this change.
 	 *
-	 * @param oldPredecessorEdge
-	 *   The [L2PcOperand] that used to point here.
-	 * @param newPredecessorEdge
-	 *   The [L2PcOperand] that points here instead.
+	 * @param oldSuccessorEdge
+	 *   The [L2PcOperand] that used to be a successor edge.
+	 * @param newSuccessorEdge
+	 *   The [L2PcOperand] that is a replacement successor edge.
 	 */
-	fun replacePredecessorEdge(
-		oldPredecessorEdge: L2PcOperand,
-		newPredecessorEdge: L2PcOperand)
+	fun replaceSuccessorEdge(
+		oldSuccessorEdge: L2PcOperand,
+		newSuccessorEdge: L2PcOperand)
 	{
-		predecessorEdges[predecessorEdges.indexOf(oldPredecessorEdge)] =
-			newPredecessorEdge
+		successorEdges[successorEdges.indexOf(oldSuccessorEdge)] =
+			newSuccessorEdge
 	}
 
 	/**

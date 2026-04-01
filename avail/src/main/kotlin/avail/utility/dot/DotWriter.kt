@@ -36,9 +36,6 @@ package avail.utility.dot
 
 import avail.utility.Strings.tabs
 import avail.utility.dot.DotWriter.Companion.label
-import avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
-import avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
-import avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE
 import avail.utility.dot.DotWriter.JustificationAttributeName.Justification
 import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.RankDirection
 import java.io.IOException
@@ -146,8 +143,7 @@ class DotWriter constructor(
 	 */
 	interface TypedAttributeName<T>
 	{
-		@Suppress("UNCHECKED_CAST")
-		open val attributeName: String get() = (this as Enum<T>).name
+		open val attributeName: String get() = (this as Enum<*>).name
 
 		open fun getString(
 			value: T,
@@ -183,6 +179,7 @@ class DotWriter constructor(
 		fontname,
 		shape, //This can be specialized to an enum.
 		headlabel,
+		taillabel
 	}
 
 	/**
@@ -195,7 +192,12 @@ class DotWriter constructor(
 		fontsize,
 		labeldistance,
 		labelangle,
-		penwidth
+		penwidth,
+		margin,
+		// The "minimum width" of a node, in some unspecified coordinates.
+		width,
+		// The "minimum height" of a node, in some unspecified coordinates.
+		height
 	}
 
 	/**
@@ -207,7 +209,8 @@ class DotWriter constructor(
 	{
 		color,
 		fontcolor,
-		bgcolor;
+		bgcolor,
+		fillcolor;
 
 		override fun getString(value: String, writer: AttributeWriter): String =
 			writer.adjust(value)

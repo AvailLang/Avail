@@ -89,7 +89,7 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 			tuple(
 				functionType(
 					tuple(
-						mostGeneralFunctionType(),
+						mostGeneralFunctionType,
 						topMeta,
 						variableTypeFor(ANY())),
 					bottom)),

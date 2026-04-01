@@ -128,7 +128,7 @@ class TwoByteStringDescriptor private constructor(
 				val offset = (subscript - 1) shl 2
 				for (i in offset + 1 .. min(self.tupleSize, offset + 4))
 				{
-					val c = self.shortSlot(this, i).toInt()
+					val c = self.shortSlot(this, i)
 					builder.appendCodePoint(
 						when
 						{

@@ -186,6 +186,12 @@ internal constructor(
 	/** The list of [OperandField]s, in declaration order. */
 	private val operandFields: List<OperandField<out L2Operand>>
 
+	/**
+	 * Whether this instruction has exactly one scalar write operand and no
+	 * vector write operands.
+	 */
+	val hasSingleWriteOperand: Boolean
+
 	init
 	{
 		// Make sure there aren't any accidental val fields, since that won't
@@ -221,10 +227,6 @@ internal constructor(
 				"${instructionClass.simpleName} " +
 					"has non-L2Operand var fields: $names")
 		}
-		//assert(illegalFields.isEmpty()) {
-		//	"${instructionClass.simpleName} " +
-		//		"has non-L2Operand var fields: $illegalFields"
-		//}
 
 		// In Kotlin/JVM, `declaredFields` seems to produce the fields in
 		// declaration order, so this is a handy sorting index for preserving
@@ -412,6 +414,9 @@ internal constructor(
 			}
 		}
 		writesHiddenVariablesMask = writeMask
+
+		hasSingleWriteOperand = scalarWriteOperandFields.size == 1
+			&& vectorWriteOperandFields.isEmpty()
 	}
 
 	companion object

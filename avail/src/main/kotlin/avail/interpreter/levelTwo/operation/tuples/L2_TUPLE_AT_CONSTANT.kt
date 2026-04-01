@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract an element at a fixed subscript from a [tuple][TupleDescriptor]
@@ -76,14 +75,12 @@ class L2_TUPLE_AT_CONSTANT(
 			tuple, subscript.value, destination.semanticValues())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = tuple.tupleAt(subscript);
-		translator.load(method, tuple)
-		translator.intConstant(method, subscript.value)
-		TupleDescriptor.tupleAtMethod.generateCall(method)
-		translator.store(method, destination.register())
+		load(tuple)
+		intConstant(subscript.value)
+		generateCall(TupleDescriptor.tupleAtMethod)
+		store(destination.register())
 	}
 }

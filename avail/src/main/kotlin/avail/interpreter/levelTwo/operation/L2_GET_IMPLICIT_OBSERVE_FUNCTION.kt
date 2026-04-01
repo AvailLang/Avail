@@ -38,7 +38,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
 
 /**
  * Extract the
@@ -64,14 +63,12 @@ class L2_GET_IMPLICIT_OBSERVE_FUNCTION(
 		append(implicitObserveFunction.registerString())
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: register = interpreter.runtime().implicitObserveFunction();
-		translator.loadInterpreter(method)
-		Interpreter.runtimeField.generateRead(method)
-		AvailRuntime.implicitObserveFunctionMethod.generateCall(method)
-		translator.store(method, implicitObserveFunction.register())
+		loadInterpreter()
+		load(Interpreter.runtimeField)
+		generateCall(AvailRuntime.implicitObserveFunctionMethod)
+		store(implicitObserveFunction.register())
 	}
 }

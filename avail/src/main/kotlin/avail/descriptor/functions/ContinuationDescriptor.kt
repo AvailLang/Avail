@@ -880,18 +880,12 @@ class ContinuationDescriptor private constructor(
 		/**
 		 * A substitute for [nil][AvailObject], for use by
 		 * [P_ContinuationStackData].
-		 */
-		private val nilSubstitute: AvailObject =
-			newVariableWithContentType(bottom).makeShared()
-
-		/**
-		 * Answer a substitute for [nil] for a non-existent caller. This is
-		 * primarily for use by [P_ContinuationStackData].
 		 *
 		 * @return
 		 *   An immutable bottom-typed variable.
 		 */
-		fun nilSubstitute() = nilSubstitute
+		val nilSubstitute: AvailObject =
+			newVariableWithContentType(bottom).makeShared()
 
 		/**
 		 * The receiver is becoming immutable or shared from a mutable state, or
@@ -951,6 +945,12 @@ class ContinuationDescriptor private constructor(
 				// just the local slots.  That allows a variable to be pushed
 				// without the fast path having to create it, even in the event
 				// of simple reification.
+				//
+				// 2026.02.28 This seems a bit wonky, but I think it's just a
+				// consequence of the way pushees happen in the L1Translator,
+				// simply augmenting a synonym, and subsequently how those
+				// values get captured in a continuation, potentially in
+				// multiple slots.
 				for (slotIndex in 1 .. code.numSlots)
 				{
 					val entry = this[FRAME_AT_, slotIndex]

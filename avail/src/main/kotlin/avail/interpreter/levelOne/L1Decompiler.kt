@@ -36,6 +36,7 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
@@ -122,6 +123,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRA
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import java.util.function.Function
@@ -281,7 +283,7 @@ class L1Decompiler constructor(
 			tupleFromList(statements),
 			code.functionType().returnType,
 			code.functionType().declaredExceptions,
-			0)
+			code.codeStartingLineNumber)
 	}
 
 	/**
@@ -396,7 +398,7 @@ class L1Decompiler constructor(
 		override fun L1_doPushLiteral()
 		{
 			val value = code.literalAt(instructionDecoder.getOperand())
-			if (value.isInstanceOfKind(mostGeneralFunctionType()))
+			if (value.isInstanceOfKind(mostGeneralFunctionType))
 			{
 				val functionOuters = Array(value.numOuterVars) {
 					// Due to stub-building primitives, it's possible for a
@@ -594,7 +596,8 @@ class L1Decompiler constructor(
 
 		override fun L1_doSetOuter()
 		{
-			val outer = outers[instructionDecoder.getOperand() - 1]
+			val outerIndex = instructionDecoder.getOperand()
+			val outer = outers[outerIndex - 1]
 			val declaration =
 				if (outer.phraseKindIsUnder(LITERAL_PHRASE))
 				{
@@ -602,8 +605,12 @@ class L1Decompiler constructor(
 					// decompiling a block without decompiling its outer
 					// scopes).
 					val token = outer.token
-					val variableObject = token.literal()
-					newModuleVariable(token, variableObject, nil, nil)
+					newModuleVariable(
+						token,
+						newVariableWithContentType(
+							code.outerTypeAt(outerIndex)),
+						nil,
+						nil)
 				}
 				else
 				{
@@ -684,7 +691,7 @@ class L1Decompiler constructor(
 		{
 			val label = when
 			{
-				statements.size > 0
+				statements.isNotEmpty()
 					&& statements[0]
 						.isInstanceOfKind(LABEL_PHRASE.mostGeneralType) ->
 				{
@@ -904,7 +911,9 @@ class L1Decompiler constructor(
 		 *   A [variable&#32;reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		private fun outerPhraseForDecompiler(
-			outerIndex: Int, type: A_Type): A_Phrase
+			outerIndex: Int,
+			type: A_Type
+		): A_Phrase
 		{
 			val name = stringFrom("Outer#$outerIndex")
 			val variable = newVariableWithOuterType(variableTypeFor(type))

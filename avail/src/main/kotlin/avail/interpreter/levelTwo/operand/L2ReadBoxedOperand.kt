@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
@@ -98,13 +99,17 @@ constructor(
 	override val kind get() = BOXED_KIND
 
 	/**
-	 * See if we can determine the exact type of this register, which holds a
-	 * function.  If the function type is known, answer it, otherwise `null`.
+	 * See if we can determine the exact type of value handled by this read,
+	 * which produces a function.  If the function type is known, answer it,
+	 * otherwise `null`.
 	 *
+	 * @param manifest
+	 *   The manifest to use for looking up the definition of this read, if it
+	 *   involves postponed instructions.
 	 * @return
 	 *   Either `null` or an exact [A_Type] for the function in this register.
 	 */
-	fun exactFunctionType(): A_Type?
+	fun exactFunctionType(manifest: L2ValueManifest): A_Type?
 	{
 		val constantFunction: A_Function? = constantOrNull
 		if (constantFunction !== null)
@@ -112,20 +117,19 @@ constructor(
 			// Function is a constant.
 			return constantFunction.code().functionType()
 		}
-		val originOfFunction = definitionSkippingMoves()
-		if (originOfFunction is L2_MOVE_CONSTANT_BOXED)
+		val originOfFunction = definitionSkippingMoves(manifest)
+		return when (originOfFunction)
 		{
 			// Function came from a constant (although the TypeRestriction
 			// should have ensured the clause above caught it).
-			return originOfFunction.constant().constant.code().functionType()
+			is L2_MOVE_CONSTANT_BOXED ->
+				originOfFunction.constant().constant.code().functionType()
+			// We found where the function was closed from a raw function, which
+			// knows the exact function type that it'll be.  Use that.
+			is L2_CREATE_FUNCTION ->
+				originOfFunction.code.constant.functionType()
+			else -> null
 		}
-		if (originOfFunction is L2_CREATE_FUNCTION)
-		{
-			// We found where the function was closed from a raw function,
-			// which knows the exact function type that it'll be.  Use that.
-			return originOfFunction.code.constant.functionType()
-		}
-		return null
 	}
 
 	/**
@@ -133,14 +137,17 @@ constructor(
 	 * the function produced by this read.  If the exact type is known, answer
 	 * it, otherwise `null`.
 	 *
+	 * @param manifest
+	 *   The manifest to use for looking up the definition of this read, if it
+	 *   involves postponed instructions.
 	 * @return
-	 *   Either `null` or an exact [A_Type] to compare some value against in
-	 *   order to determine whether the one-argument function will accept the
-	 *   given argument.
+	 *   Either `null` or an exact [A_Type] to compare some value against to
+	 *   determine whether the one-argument function will accept the given
+	 *   argument.
 	 */
-	fun exactSoleArgumentType(): A_Type?
+	fun exactSoleArgumentType(manifest: L2ValueManifest): A_Type?
 	{
-		val functionType = exactFunctionType() ?: return null
+		val functionType = exactFunctionType(manifest) ?: return null
 		return functionType.argsTupleType.typeAtIndex(1)
 	}
 }

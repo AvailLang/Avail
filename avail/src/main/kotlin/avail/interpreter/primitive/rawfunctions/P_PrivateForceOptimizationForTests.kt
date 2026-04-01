@@ -33,13 +33,15 @@ package avail.interpreter.primitive.rawfunctions
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
@@ -54,16 +56,25 @@ import avail.optimizer.OptimizationLevel
  */
 @WritesHiddenVariable(GLOBAL_STATE::class)
 object P_PrivateForceOptimizationForTests : Primitive(
-	1, Private, CannotFail, HasSideEffect)
+	1, Private, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
-		L1Translator.`🌼translateToLevelTwo`(
-			code,
-			OptimizationLevel.FIRST_JVM_TRANSLATION,
-			interpreter)
+		try
+		{
+			L1Translator.`🌼translateToLevelTwo`(
+				code,
+				OptimizationLevel.FIRST_JVM_TRANSLATION,
+				interpreter)
+		}
+		catch (e: Throwable)
+		{
+			// Reuse an easily identified error code that isn't likely to be
+			// encountered otherwise.
+			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
+		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
@@ -72,6 +83,9 @@ object P_PrivateForceOptimizationForTests : Primitive(
 			tuple(
 				mostGeneralCompiledCodeType()),
 			Types.TOP())
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_ILLEGAL_TRACE_MODE))
 
 	override val canDestroyArguments get() = false
 }

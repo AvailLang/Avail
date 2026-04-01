@@ -195,8 +195,6 @@ import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.parallelMapThen
 import avail.utility.safeWrite
-import com.formdev.flatlaf.FlatDarculaLaf
-import com.formdev.flatlaf.util.SystemInfo
 import com.thizzer.jtouchbar.JTouchBar
 import com.thizzer.jtouchbar.JTouchBarJNI
 import com.thizzer.jtouchbar.item.TouchBarItem
@@ -270,8 +268,8 @@ import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
 import javax.swing.SwingUtilities.invokeLater
-import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
 import javax.swing.text.StyleConstants
@@ -2537,31 +2535,34 @@ class AvailWorkbench internal constructor(
 		calculateRefreshedTreesThen { modules, entryPoints ->
 			val after = currentTimeMillis()
 			writeText(format("...done (%,3dms)\n", after - before), INFO)
-			// Now select an initial module, if specified.
-			refreshFor(modules, entryPoints)
-			if (initial.isNotEmpty())
-			{
-				val path = modulePath(initial)
-				if (path !== null)
+			// Ensure all UI updates run on EDT.
+			invokeAndWaitIfNecessary {
+				// Now select an initial module, if specified.
+				refreshFor(modules, entryPoints)
+				if (initial.isNotEmpty())
 				{
-					moduleTree.selectionPath = path
-					moduleTree.scrollRowToVisible(
-						moduleTree.getRowForPath(path))
+					val path = modulePath(initial)
+					if (path !== null)
+					{
+						moduleTree.selectionPath = path
+						moduleTree.scrollRowToVisible(
+							moduleTree.getRowForPath(path))
+					}
+					else
+					{
+						writeText(
+							"Command line argument '$initial' was "
+								+ "not a valid module path",
+							ERR)
+					}
 				}
-				else
-				{
-					writeText(
-						"Command line argument '$initial' was "
-							+ "not a valid module path",
-						ERR)
-				}
+				backgroundTask = null
+				setEnablements()
+				afterExecute()
+				ignoreRepaint = false
+				repaint()
+				isVisible = true
 			}
-			backgroundTask = null
-			setEnablements()
-			afterExecute()
-			ignoreRepaint = false
-			repaint()
-			isVisible = true
 			invokeLater {
 				screenState.openEditors.values.forEach {
 					it.open(this@AvailWorkbench)
@@ -2884,137 +2885,169 @@ class AvailWorkbench internal constructor(
 		allDefinitionsThen(nameInModule) { allEntries ->
 			if (allEntries.isNotEmpty())
 			{
-				// Disambiguate local names only when necessary.
-				val localNames = allEntries.groupBy { (module, _) ->
-					module.localName
+				invokeAndWaitIfNecessary {
+					privateNavigateToDefinitions(
+						nameInModule,
+						tokenIndexInName,
+						allEntries,
+						mouseEvent)
 				}
-				val shortModuleNames = allEntries.associate { (module, _) ->
-					val localName = module.localName
-					val distinct = localNames[localName]!!
-						.map(Pair<ResolvedModuleName, *>::first)
-						.distinct()
-					module to
-						if (distinct.size == 1) localName
-						else module.qualifiedName
-				}
-				val title = htmlTitleString(
-					nameInModule.atomName, tokenIndexInName)
-				val titlePanel = JPanel()
-				titlePanel.add(JLabel(title))
-				val menu = JPopupMenu()
-				menu.add(titlePanel)
-				menu.addSeparator()
-				val groupedEntries = allEntries.groupBy(
-					keySelector = { (moduleName, manifestEntry) ->
-						Triple(
-							moduleName,
-							manifestEntry.nameInModule,
-							manifestEntry.definitionStartingLine.ifZero {
-								manifestEntry.topLevelStartingLine
-							})
-					},
-					valueTransform = { (_, manifestEntry) -> manifestEntry })
-				groupedEntries.forEach { (key, entries) ->
-					val (moduleName, _, line) = key
-					val entriesWithTypeSize = entries.map { entry ->
-						entry to entry.argumentTypes.sumOf { it.length } +
-							(entry.returnType?.length ?: 0)
-					}
-					val (bestEntry, typeSize) =
-						entriesWithTypeSize.maxBy(Pair<*, Int>::second)
-					// We now have an estimate of how many characters are in the
-					// print representation of the type.  It omits brackets and
-					// commas and such.
-					val typeString = buildString {
-						val (arguments, returnType) =
-							bestEntry.run { argumentTypes to returnType }
-						when
-						{
-							returnType == null ->
-							{
-								// Output nothing.
-							}
-							typeSize < 60
-								&& '\n' !in returnType
-								&& arguments.none { '\n' in it } ->
-							{
-								// The arguments are all short and have no
-								// embedded line breaks.
-								arguments.joinTo(
-									buffer = this,
-									prefix = "[",
-									separator = ", ",
-									postfix = "]→",
-									transform = { it.escapedForHTML() })
-								append(returnType)
-							}
-							else ->
-							{
-								// Print on multiple lines.
-								arguments.joinTo(
-									buffer = this,
-									prefix = "\n[",
-									separator = ",",
-									postfix =
-									if (arguments.isEmpty()) "]→"
-									else "\n]→",
-									transform = {
-										"\n\t" +
-											it.escapedForHTML()
-												.replace("\n", "\n\t")
-									})
-								append(returnType)
-							}
-						}
-					}
-					val label = buildString {
-						// Increase indent of multi-line summaries.
-						append("<html><div style='white-space: pre'>")
-						append(shortModuleNames[moduleName]!!.escapedForHTML())
-						append(":")
-						append(line)
-						append("&nbsp;&nbsp;<font color='#8090FF'>")
-						append(
-							typeString
-								.replace("\n", "<br>")
-								.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
-						append("</font></div></html>")
-					}
-					val icon = CompoundIcon(
-						entries
-							.mapToSet(transform = ModuleManifestEntry::kind)
-							.map { kind -> SideEffectIcons.icon(16, kind) },
-						xGap = 3)
-					val action = object : AbstractWorkbenchAction(this, label)
-					{
-						override fun actionPerformed(e: ActionEvent?)
-						{
-							// Locate or open an editor for the target.
-							var opened = false
-							val editor = workbench.openEditors.computeIfAbsent(
-								moduleName
-							) {
-								opened = true
-								AvailEditor(workbench, moduleName)
-							}
-							if (!opened) editor.toFront()
-							invokeLater {
-								editor.sourcePane.goTo(max(line - 1, 0))
-							}
-						}
-
-						override fun updateIsEnabled(busy: Boolean) = Unit
-					}
-					action.putValue(Action.SMALL_ICON, icon)
-					val item = JMenuItem(action)
-					item.horizontalAlignment = SwingConstants.LEFT
-					menu.add(item)
-				}
-				menu.invoker = mouseEvent.component
-				menu.location = mouseEvent.locationOnScreen
-				menu.isVisible = true
 			}
 		}
+	}
+
+	/**
+	 * Create and open a menu containing navigable informration about where the
+	 * given name is defined.  They should already be collected in [allEntries].
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
+	 * @param allEntries
+	 *   The list of all &lt;[ResolvedModuleName], [ModuleManifestEntry]> pairs
+	 *   that define the name.
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
+	 */
+	private fun privateNavigateToDefinitions(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		allEntries: List<Pair<ResolvedModuleName, ModuleManifestEntry>>,
+		mouseEvent: MouseEvent)
+	{
+		assert(SwingUtilities.isEventDispatchThread())
+		// Disambiguate local names only when necessary.
+		val localNames = allEntries.groupBy { (module, _) ->
+			module.localName
+		}
+		val shortModuleNames = allEntries.associate { (module, _) ->
+			val localName = module.localName
+			val distinct = localNames[localName]!!
+				.map(Pair<ResolvedModuleName, *>::first)
+				.distinct()
+			module to
+				if (distinct.size == 1) localName
+				else module.qualifiedName
+		}
+		val title = htmlTitleString(
+			nameInModule.atomName, tokenIndexInName)
+		val titlePanel = JPanel()
+		titlePanel.add(JLabel(title))
+		val menu = JPopupMenu()
+		menu.add(titlePanel)
+		menu.addSeparator()
+		val groupedEntries = allEntries.groupBy(
+			keySelector = { (moduleName, manifestEntry) ->
+				Triple(
+					moduleName,
+					manifestEntry.nameInModule,
+					manifestEntry.definitionStartingLine.ifZero {
+						manifestEntry.topLevelStartingLine
+					})
+			},
+			valueTransform = Pair<*, ModuleManifestEntry>::second)
+		groupedEntries.forEach { (key, entries) ->
+			val (moduleName, _, line) = key
+			val entriesWithTypeSize = entries.map { entry ->
+				entry to entry.argumentTypes.sumOf { it.length } +
+					(entry.returnType?.length ?: 0)
+			}
+			val (bestEntry, typeSize) =
+				entriesWithTypeSize.maxBy(Pair<*, Int>::second)
+			// We now have an estimate of how many characters are in the print
+			// representation of the type.  It omits brackets and commas and
+			// such.
+			val typeString = buildString {
+				val (arguments, returnType) =
+					bestEntry.run { argumentTypes to returnType }
+				when
+				{
+					returnType == null ->
+					{
+						// Output nothing.
+					}
+
+					typeSize < 60
+						&& '\n' !in returnType
+						&& arguments.none { '\n' in it } ->
+					{
+						// The arguments are all short and have no embedded line
+						// breaks.
+						arguments.joinTo(
+							buffer = this,
+							prefix = "[",
+							separator = ", ",
+							postfix = "]→",
+							transform = { it.escapedForHTML() })
+						append(returnType)
+					}
+
+					else ->
+					{
+						// Print on multiple lines.
+						arguments.joinTo(
+							buffer = this,
+							prefix = "\n[",
+							separator = ",",
+							postfix =
+								if (arguments.isEmpty()) "]→"
+								else "\n]→",
+							transform = {
+								"\n\t" +
+									it.escapedForHTML().replace("\n", "\n\t")
+							})
+						append(returnType)
+					}
+				}
+			}
+			val label = buildString {
+				// Increase indent of multi-line summaries.
+				append("<html><div style='white-space: pre'>")
+				append(shortModuleNames[moduleName]!!.escapedForHTML())
+				append(":")
+				append(line)
+				append("&nbsp;&nbsp;<font color='#8090FF'>")
+				append(
+					typeString
+						.replace("\n", "<br>")
+						.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
+				append("</font></div></html>")
+			}
+			val icon = CompoundIcon(
+				entries
+					.mapToSet(transform = ModuleManifestEntry::kind)
+					.map { kind -> SideEffectIcons.icon(16, kind) },
+				xGap = 3)
+			val action = object : AbstractWorkbenchAction(this, label)
+			{
+				override fun actionPerformed(e: ActionEvent?)
+				{
+					// Locate or open an editor for the target.
+					var opened = false
+					val editor = workbench.openEditors.computeIfAbsent(
+						moduleName
+					) {
+						opened = true
+						AvailEditor(workbench, moduleName)
+					}
+					if (!opened) editor.toFront()
+					invokeLater {
+						editor.sourcePane.goTo(max(line - 1, 0))
+					}
+				}
+
+				override fun updateIsEnabled(busy: Boolean) = Unit
+			}
+			action.putValue(Action.SMALL_ICON, icon)
+			val item = JMenuItem(action)
+			item.horizontalAlignment = SwingConstants.LEFT
+			menu.add(item)
+		}
+		menu.invoker = mouseEvent.component
+		menu.location = mouseEvent.locationOnScreen
+		menu.isVisible = true
 	}
 
 	/**
@@ -3244,15 +3277,19 @@ class AvailWorkbench internal constructor(
 		val darkMode: Boolean =
 			System.getProperty(DARK_MODE_KEY)?.equals("true") ?: true
 
-		val supportsTouchBar: Boolean =
-			try {
-				JTouchBarJNI::class
-				true
-			}
-			catch (e: Throwable)
-			{
-				false
-			}
+		val supportsTouchBar: Boolean by lazy {
+			(System.getProperty("avail.usetouchbar") == "true") &&
+				try
+				{
+					@Suppress("UnusedExpression")
+					JTouchBarJNI::class
+					true
+				}
+				catch (_: Throwable)
+				{
+					false
+				}
+		}
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current
@@ -3410,7 +3447,6 @@ class AvailWorkbench internal constructor(
 			val rootsString = project.availProjectRoots.joinToString(";") {
 				it.modulePath
 			}
-			val inDarkMode = project.darkMode
 			val workbenchWindowTitle =
 				when
 				{
@@ -3422,10 +3458,8 @@ class AvailWorkbench internal constructor(
 				File(project.repositoryLocation.fullPathNoPrefix)
 			val fileManager = FileManager()
 			Repositories.setDirectoryLocation(repositoryDirectory)
-			// Do the slow Swing setup in parallel with other things...
-			val swingReady = Semaphore(0)
-			val runtimeReady = Semaphore(0)
-			if (SystemInfo.isMacOS)
+			// Mac-specific settings
+			if (System.getProperty("os.name").startsWith("Mac"))
 			{
 				// enable screen menu bar
 				// (moves menu bar from JFrame window to top of screen)
@@ -3438,21 +3472,7 @@ class AvailWorkbench internal constructor(
 				//   - "NSAppearanceNameDarkAqua": use dark appearance
 				System.setProperty("apple.awt.application.appearance", "system")
 			}
-			thread(name = "Set up LAF") {
-				if (inDarkMode)
-				{
-					try
-					{
-						FlatDarculaLaf.setup()
-					}
-					catch (ex: Exception)
-					{
-						System.err.println("Failed to initialize LaF")
-					}
-					UIManager.put("ScrollPane.smoothScrolling", false)
-				}
-				swingReady.release()
-			}
+			val runtimeReady = Semaphore(0)
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
 			val semaphore = Semaphore(0)
@@ -3489,7 +3509,6 @@ class AvailWorkbench internal constructor(
 			}
 
 			runtimeReady.acquire()
-			swingReady.acquire()
 
 			// Display the UI.
 			lateinit var bench: AvailWorkbench

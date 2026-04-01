@@ -116,9 +116,8 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		val (firstReg, secondReg) = arguments
 
 		val manifest = currentManifest
-		if (manifest.synonymsForRegister(firstReg.register())
-			.intersect(manifest.synonymsForRegister(secondReg.register()))
-			.isNotEmpty())
+		if (manifest.semanticValueToSynonym(firstReg.semanticValue())
+			== manifest.semanticValueToSynonym(secondReg.semanticValue()))
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.

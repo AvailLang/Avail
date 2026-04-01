@@ -39,13 +39,13 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.Companion.decrement
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
@@ -67,15 +67,13 @@ constructor(
 
 	override val isEntryPoint get() = isEntryPointFlag.value != 0
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
+	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
-		translator.loadInterpreter(method)
-		translator.intConstant(method, currentOptimizationLevel.value)
-		decrementMethod.generateCall(method)
+		loadInterpreter()
+		intConstant(currentOptimizationLevel.value)
+		generateCall(decrementMethod)
 		val didNotOptimize = Label()
 		method.visitJumpInsn(Opcodes.IFEQ, didNotOptimize)
 		method.visitInsn(Opcodes.ACONST_NULL)

@@ -53,7 +53,6 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
-import org.objectweb.asm.MethodVisitor
 
 /**
  * **Primitive:** Get the priority of a fiber.
@@ -104,13 +103,11 @@ object P_GetFiberPriority : Primitive(
 		var priority: L2WriteIntOperand
 	): L2Instruction()
 	{
-		override fun translateToJVM(
-			translator: JVMTranslator,
-			method: MethodVisitor)
+		override fun JVMTranslator.translateToJVM()
 		{
-			translator.load(method, fiber)
-			A_Fiber.getFiberPriorityMethod.generateCall(method)
-			translator.store(method, priority.register())
+			load(fiber)
+			generateCall(A_Fiber.getFiberPriorityMethod)
+			store(priority.register())
 		}
 	}
 
