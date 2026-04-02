@@ -2056,7 +2056,7 @@ sealed class AvailObjectRepresentation constructor(
 		 * it's occasionally valuable to enable for a short time, especially
 		 * right after introducing new descriptor subclasses.
 		 */
-		const val shouldCheckSlots = true //TODO false
+		const val shouldCheckSlots = false
 
 		/**
 		 * Create a new [AvailObject] with the specified

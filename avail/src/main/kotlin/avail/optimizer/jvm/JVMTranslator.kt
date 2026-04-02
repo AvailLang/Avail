@@ -1987,7 +1987,7 @@ class JVMTranslator constructor(
 		 * NOTE: This is a feature switch. If you want to enter the area of
 		 * code that is protected by this switch, set the to true.
 		 */
-		const val callTraceL2AfterEveryInstruction = true
+		const val callTraceL2AfterEveryInstruction = false
 
 		/** Helper for stripping "_TAG" from end of tag names. */
 		val tagEndPattern: Pattern = Pattern.compile("_TAG$")

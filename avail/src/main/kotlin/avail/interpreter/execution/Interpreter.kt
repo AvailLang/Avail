@@ -2568,10 +2568,6 @@ class Interpreter(
 		{
 			val currentChunk = chunk!!
 			currentChunk.beforeRunChunk(offset)
-			// TODO Remove debug.
-			//val debugOffset = offset
-			//val debugFunctionToCallOrResume = function
-			//val debugArgsToCallOrResume = argsBuffer.toTypedArray()
 			val reifier = currentChunk.executableChunk.runChunk(this, offset)
 			if (reifier !== null) return reifier
 		}
