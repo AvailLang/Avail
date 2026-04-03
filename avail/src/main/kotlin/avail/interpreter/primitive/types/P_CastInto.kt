@@ -84,8 +84,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			// "Jump" into the castFunction, to keep this frame from showing up.
 			interpreter.argsBuffer.clear()
 			interpreter.argsBuffer.add(value)
-			interpreter.function = castFunction
-			return Result.READY_TO_INVOKE
+			interpreter.invokeFunction(castFunction)?.let { reifier ->
+				interpreter.latestReifierFromInvokingPrimitive = reifier
+				return Result.INVOKED_AND_REIFYING
+			}
+			return Result.SUCCESS
 		}
 		// Fail the primitive.
 		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)

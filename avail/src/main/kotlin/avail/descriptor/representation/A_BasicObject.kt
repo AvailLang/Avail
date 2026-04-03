@@ -56,6 +56,9 @@ import avail.descriptor.tuples.LongTupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TwoByteStringDescriptor
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.declaredExceptions
+import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
@@ -73,16 +76,16 @@ import java.util.function.Supplier
 
 /**
  * `A_BasicObject` is an interface that specifies all generally applicable
- * operations that an [AvailObject] must implement.  Its purpose is to
- * declare that only the most basic protocol of some object will be used.  Its
+ * operations that an [AvailObject] must implement.  Its purpose is to declare
+ * that only the most basic protocol of some object will be used.  Its
  * sub-interfaces define behavior that's applicable to tuples, sets, etc., and
  * AvailObject simply implements all of those interfaces.
  *
- * The purpose for A_BasicObject and its sub-interfaces is to allow sincere
- * type annotations about the basic kinds of objects that support or may be
- * passed as arguments to various operations.  The VM implementor is free to
- * always declare variables as AvailObject, but in cases where it's clear that
- * a particular object should always be a tuple (say), a declaration of A_Tuple
+ * The purpose for A_BasicObject and its sub-interfaces is to allow sincere type
+ * annotations about the basic kinds of objects that support or may be passed as
+ * arguments to various operations.  The VM implementor is free to always
+ * declare variables as AvailObject, but in cases where it's clear that a
+ * particular object should always be a tuple (say), a declaration of A_Tuple
  * ensures that only the basic object capabilities plus tuple-like capabilities
  * are allowed to be used on it.
  *
@@ -104,8 +107,8 @@ interface A_BasicObject : JSONFriendly
 	abstract val descriptor: AbstractDescriptor
 
 	/**
-	 * Answer whether the [objects][AvailObject] occupy the same
-	 * memory addresses.
+	 * Answer whether the [objects][AvailObject] occupy the same memory
+	 * addresses.
 	 *
 	 * @param anotherObject Another object.
 	 * @return Whether the objects occupy the same storage.

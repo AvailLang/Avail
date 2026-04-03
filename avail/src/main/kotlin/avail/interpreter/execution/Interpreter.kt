@@ -146,7 +146,7 @@ import avail.interpreter.Primitive.Result
 import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.Primitive.Result.FAILURE
 import avail.interpreter.Primitive.Result.FIBER_SUSPENDED
-import avail.interpreter.Primitive.Result.READY_TO_INVOKE
+import avail.interpreter.Primitive.Result.INVOKED_AND_REIFYING
 import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.execution.Interpreter.Companion.maxUnreifiedCallDepth
 import avail.interpreter.execution.Interpreter.Companion.timeSliceTicks
@@ -522,8 +522,7 @@ class Interpreter(
 				DUMMY_DEBUGGER_SLOT,
 				-1,
 				null,
-				forcedName =
-					"returnNow = $returnNow, exitNow = $exitNow",
+				forcedName = "returnNow = $returnNow, exitNow = $exitNow",
 				forcedChildren = emptyArray<Any>()))
 	}.toTypedArray()
 
@@ -744,6 +743,13 @@ class Interpreter(
 	 * [A_Number] produced by a [failed][Result.FAILURE] primitive.
 	 */
 	private var latestResult: AvailObject? = null
+
+	/**
+	 * When an [Invokes] primitive calls a function that has to reify before it
+	 * can complete, the [StackReifier] gets stored here while the primitive
+	 * returns [INVOKED_AND_REIFYING].
+	 */
+	var latestReifierFromInvokingPrimitive: StackReifier? = null
 
 	@ReferencedInGeneratedCode
 	fun clearLatestResult()
@@ -1304,29 +1310,11 @@ class Interpreter(
 				assert(!returnNow)
 				null
 			}
-			READY_TO_INVOKE ->
+			INVOKED_AND_REIFYING ->
 			{
-				assert(primitive.hasFlag(Invokes))
-				val stepper = levelOneStepper
-				val savedChunk = chunk
-				val savedOffset = offset
-				val savedPointers = stepper.pointers
-
-				// It doesn't matter that we count both the invoker and the
-				// invoked function.
-				val reifier = invokeFunction(function!!)
-				function = primitiveFunction
-				chunk = savedChunk
-				setOffset(savedOffset)
-				stepper.pointers = savedPointers
-				if (reifier !== null)
-				{
-					return reifier
+				latestReifierFromInvokingPrimitive!!.also {
+					latestReifierFromInvokingPrimitive = null
 				}
-				assert(latestResultOrNull() !== null)
-				returnNow = true
-				returningFunction = function
-				null
 			}
 			CONTINUATION_CHANGED ->
 			{
@@ -1470,7 +1458,7 @@ class Interpreter(
 					setOffset(chunk!!.offsetAfterInitialTryPrimitive)
 					assert(!returnNow)
 				}
-				READY_TO_INVOKE ->
+				INVOKED_AND_REIFYING ->
 				{
 					throw AssertionError(
 						"Invoking primitives should be inlineable")

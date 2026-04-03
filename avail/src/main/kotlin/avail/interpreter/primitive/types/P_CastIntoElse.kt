@@ -77,14 +77,18 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		// "Jump" into the castFunction or elseFunction, to keep this frame from
 		// showing up.
-		interpreter.function = when {
+		val function = when {
 			value.isInstanceOf(expectedType) -> {
 				interpreter.argsBuffer.add(value)
 				castFunction
 			}
 			else -> elseFunction
 		}
-		return Result.READY_TO_INVOKE
+		interpreter.invokeFunction(function)?.let { reifier ->
+			interpreter.latestReifierFromInvokingPrimitive = reifier
+			return Result.INVOKED_AND_REIFYING
+		}
+		return Result.SUCCESS
 	}
 
 	override fun returnTypeGuaranteedByVM(

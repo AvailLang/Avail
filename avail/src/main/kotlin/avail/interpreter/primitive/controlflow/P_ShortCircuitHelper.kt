@@ -66,8 +66,11 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear()
-		interpreter.function = function
-		return Result.READY_TO_INVOKE
+		interpreter.invokeFunction(function)?.let { reifier ->
+			interpreter.latestReifierFromInvokingPrimitive = reifier
+			return Result.INVOKED_AND_REIFYING
+		}
+		return Result.SUCCESS
 	}
 
 	override fun returnTypeGuaranteedByVM(

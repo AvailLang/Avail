@@ -273,53 +273,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			{
 				if (!interpreter.debuggerRunCondition!!(interpreter))
 				{
-					// The debuggerRunCondition said we should pause now.
-					val mutableContinuation = createContinuationWithFrame(
-						function = function,
-						caller = nil,
-						registerDump = nil,
-						pc = pc(),
-						stackp = stackp,
-						levelTwoChunk = unoptimizedChunk,
-						levelTwoOffset =
-							ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
-						frameValues = listOf(*pointers),
-						zeroBasedStartIndex = 1)
-					interpreter.isReifying = true
-					return StackReifier(
-						true,
-						AvailDebuggerModel.reificationForDebuggerStat)
-					{
-						// Push the new continuation onto the reified stack.
-						interpreter.apply {
-							val f = fiber()
-							returnNow = false
-							f.continuation =
-								mutableContinuation.replacingCaller(
-									getReifiedContinuation()!!)
-							interpreter.setReifiedContinuation(null)
-							isReifying = false
-							returnNow = false
-							exitNow = true
-							offset = Int.MAX_VALUE
-							clearLatestResult()
-							levelOneStepper.wipeRegisters()
-							f.lock {
-								synchronized(f) {
-									assert(f.executionState === RUNNING)
-									f.executionState = PAUSED
-									val bound = f.getAndSetSynchronizationFlag(
-										BOUND, false)
-									f.fiberHelper.stopCountingCPU()
-									assert(bound)
-									fiber(null, "debug pause")
-								}
-							}
-							postExitContinuation {
-								debugger.justPaused(f)
-							}
-						}
-					}
+					return reifyForDebugger(function, debugger)
 				}
 			}
 
@@ -762,6 +716,60 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	}
 
 	/**
+	 * Answer a [StackReifier] for reifying the current instruction step for
+	 * debugging purposes.
+	 */
+	private fun reifyForDebugger(
+		function: A_Function,
+		debugger: AvailDebuggerModel
+	): StackReifier
+	{
+		// The debuggerRunCondition said we should pause now.
+		val mutableContinuation = createContinuationWithFrame(
+			function = function,
+			caller = nil,
+			registerDump = nil,
+			pc = pc(),
+			stackp = stackp,
+			levelTwoChunk = unoptimizedChunk,
+			levelTwoOffset = ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
+			frameValues = listOf(*pointers),
+			zeroBasedStartIndex = 1)
+		interpreter.isReifying = true
+		return StackReifier(true, AvailDebuggerModel.reificationForDebuggerStat)
+		{
+			// Push the new continuation onto the reified stack.
+			interpreter.run {
+				val f = fiber()
+				returnNow = false
+				f.continuation =
+					mutableContinuation.replacingCaller(
+						getReifiedContinuation()!!)
+				setReifiedContinuation(null)
+				isReifying = false
+				returnNow = false
+				exitNow = true
+				offset = Int.MAX_VALUE
+				clearLatestResult()
+				levelOneStepper.wipeRegisters()
+				f.lock {
+					synchronized(f) {
+						assert(f.executionState === RUNNING)
+						f.executionState = PAUSED
+						val bound = f.getAndSetSynchronizationFlag(BOUND, false)
+						f.fiberHelper.stopCountingCPU()
+						assert(bound)
+						fiber(null, "debug pause")
+					}
+				}
+				postExitContinuation {
+					debugger.justPaused(f)
+				}
+			}
+		}
+	}
+
+	/**
 	 * Reify the current frame into the specified [StackReifier].
 	 *
 	 * @param reifier
@@ -1056,7 +1064,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	internal fun checkReturnType(
 		result: AvailObject,
 		expectedReturnType: A_Type,
-		returnee: A_Function): StackReifier?
+		returnee: A_Function
+	): StackReifier?
 	{
 		val before = AvailRuntimeSupport.captureNanos()
 		val checkOk = result.isInstanceOf(expectedReturnType)

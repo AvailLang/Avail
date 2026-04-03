@@ -44,7 +44,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Invokes
-import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.CallSiteHelper
@@ -66,8 +65,11 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear()
-		interpreter.function = trueFunction
-		return READY_TO_INVOKE
+		interpreter.invokeFunction(trueFunction)?.let { reifier ->
+			interpreter.latestReifierFromInvokingPrimitive = reifier
+			return Result.INVOKED_AND_REIFYING
+		}
+		return Result.SUCCESS
 	}
 
 	override fun returnTypeGuaranteedByVM(

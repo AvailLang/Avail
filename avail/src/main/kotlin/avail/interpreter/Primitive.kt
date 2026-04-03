@@ -108,6 +108,7 @@ import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -340,12 +341,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		CONTINUATION_CHANGED,
 
 		/**
-		 * A primitive with [Flag.CanInline] and [Flag.Invokes] has set up the
-		 * [Interpreter.function] and [Interpreter.argsBuffer] for a call, but
-		 * has not called it because that's not permitted from within a
-		 * `Primitive`.
+		 * The primitive directly invoked a function now in the process of
+		 * reifying.  The [StackReifier] has been written to the
+		 * [Interpreter.latestReifierFromInvokingPrimitive].
 		 */
-		READY_TO_INVOKE,
+		INVOKED_AND_REIFYING,
 
 		/**
 		 * The current fiber has been suspended as a consequence of this

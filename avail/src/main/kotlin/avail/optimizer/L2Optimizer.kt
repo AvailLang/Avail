@@ -2111,7 +2111,7 @@ class L2Optimizer internal constructor(
 	companion object
 	{
 		/** Whether to sanity-check the graph between optimization steps. */
-		var shouldSanityCheck = true
+		var shouldSanityCheck = false
 
 		/**
 		 * Whether to dump `.l2` and `.dot` snapshots after each optimization

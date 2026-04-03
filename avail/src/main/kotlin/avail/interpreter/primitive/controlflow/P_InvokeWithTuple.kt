@@ -68,7 +68,6 @@ import avail.interpreter.Primitive.Fallibility.CallSiteMayInvoke
 import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.Invokes
-import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
@@ -113,8 +112,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// feel free to clobber the argsBuffer.
 		interpreter.argsBuffer.clear()
 		interpreter.argsBuffer.addAll(argTuple)
-		interpreter.function = function
-		return READY_TO_INVOKE
+		interpreter.invokeFunction(function)?.let { reifier ->
+			interpreter.latestReifierFromInvokingPrimitive = reifier
+			return Result.INVOKED_AND_REIFYING
+		}
+		return Result.SUCCESS
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
