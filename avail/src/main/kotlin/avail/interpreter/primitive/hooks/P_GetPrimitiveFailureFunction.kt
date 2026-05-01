@@ -67,13 +67,10 @@ object P_GetPrimitiveFailureFunction : Primitive0(
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
 		// Get the primitive failure handler function.
-		val runtime = interpreter.runtime
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return runtime[PRIMITIVE_FAILURE_HANDLER]
 	}
 

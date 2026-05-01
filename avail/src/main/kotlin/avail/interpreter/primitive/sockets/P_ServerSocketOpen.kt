@@ -64,15 +64,14 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused")
 object P_ServerSocketOpen : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val name = arg1
 		return try
 		{
-			val handle = createAtom(name, interpreter.module())
+			val handle = createAtom(name, module())
 			val channel = currentRuntime().ioSystem.openServerSocket()
 			handle.setAtomProperty(
 				SERVER_SOCKET_KEY.atom, identityPojo(channel))
@@ -80,7 +79,7 @@ object P_ServerSocketOpen : Primitive1(CanInline, HasSideEffect)
 		}
 		catch (e: IOException)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 	}
 

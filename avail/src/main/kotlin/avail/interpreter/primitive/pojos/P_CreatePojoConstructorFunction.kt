@@ -87,8 +87,7 @@ object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
 	 */
 	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -96,7 +95,7 @@ object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
 		val pojoType = arg1
 		val paramTypes = arg2
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the argument types and look up the appropriate
 		// constructor.
@@ -107,7 +106,7 @@ object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
 			val javaClass = marshalDefiningType(pojoType)
 			if (javaClass.modifiers and Modifier.ABSTRACT != 0)
 			{
-				return interpreter.fail(E_POJO_TYPE_IS_ABSTRACT)
+				return fail(E_POJO_TYPE_IS_ABSTRACT)
 			}
 			val marshaledTypes = marshalTypes(paramTypes)
 			constructor = javaClass.getConstructor(*marshaledTypes)
@@ -116,11 +115,11 @@ object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
 		}
 		catch (e: MarshalingException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.fail(E_JAVA_METHOD_NOT_AVAILABLE)
+			return fail(E_JAVA_METHOD_NOT_AVAILABLE)
 		}
 
 		val functionType = functionType(paramTypes, pojoType)

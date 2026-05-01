@@ -97,8 +97,7 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_SocketRead : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -107,15 +106,15 @@ object P_SocketRead : PrimitiveN(5, CanInline, HasSideEffect)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		val buffer = ByteBuffer.allocateDirect(size.extractInt)
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			interpreter.runtime,
+			runtime,
 			current.textInterface,
 			priority.extractInt)
 		{
@@ -160,7 +159,7 @@ object P_SocketRead : PrimitiveN(5, CanInline, HasSideEffect)
 		}
 		catch (e: Throwable)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 	}
 

@@ -55,8 +55,7 @@ import kotlin.math.ceil
 @Suppress("unused")
 object P_DoubleCeiling : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

@@ -87,8 +87,7 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_BitShiftRight : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -103,7 +102,7 @@ object P_BitShiftRight : Primitive2(CanFold, CanInline)
 		}
 		catch (e: ArithmeticException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 	}
 

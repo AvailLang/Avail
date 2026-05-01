@@ -60,18 +60,15 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_CurrentMacroName : Primitive0(CanInline)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		if (!interpreter.fiber().generalFlag(IS_EVALUATING_MACRO))
+		if (!fiber().generalFlag(IS_EVALUATING_MACRO))
 		{
-			return interpreter.fail(E_NOT_EVALUATING_MACRO)
+			return fail(E_NOT_EVALUATING_MACRO)
 		}
 		// Macro expansion shouldn't be possible after loading.
-		interpreter.fiber().availLoader
-			?: return interpreter.fail(E_NOT_EVALUATING_MACRO)
-		val fiberGlobals = interpreter.fiber().fiberGlobals
+		fiber().availLoader ?: return fail(E_NOT_EVALUATING_MACRO)
+		val fiberGlobals = fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val currentMacroBundle = clientData.mapAt(MACRO_BUNDLE_KEY.atom)
 		return currentMacroBundle.message

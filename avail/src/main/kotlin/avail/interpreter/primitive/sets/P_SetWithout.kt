@@ -54,8 +54,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetWithout : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?

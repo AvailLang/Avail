@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MethodNameContainsGroups : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -72,7 +71,7 @@ object P_MethodNameContainsGroups : Primitive1(CanFold, CanInline)
 			}
 			catch (e: MalformedMessageException)
 			{
-				return interpreter.fail(e.errorCode)
+				return fail(e.errorCode)
 			}
 
 		return objectFromBoolean(splitter.containsGroups)

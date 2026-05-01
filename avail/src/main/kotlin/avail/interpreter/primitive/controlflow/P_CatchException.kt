@@ -79,8 +79,7 @@ import avail.interpreter.primitive.Primitive3
 object P_CatchException : Primitive3(
 	CatchException, PreserveGuardVariable, PreserveArguments, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -95,10 +94,10 @@ object P_CatchException : Primitive3(
 			if (!block.kind().argsTupleType.typeAtIndex(1).isSubtypeOf(
 					exceptionType))
 			{
-				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+				return fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 		}
-		return interpreter.fail(E_REQUIRED_FAILURE)
+		return fail(E_REQUIRED_FAILURE)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -85,8 +85,7 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_BootstrapPrefixEndOfBlockBody : PrimitiveN(5, CanInline, Bootstrap)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -97,13 +96,13 @@ object P_BootstrapPrefixEndOfBlockBody : PrimitiveN(5, CanInline, Bootstrap)
 		//	val statements: A_Phrase= interpreter.argument(3);
 		//	val optionalReturnExpression: A_Phrase = interpreter.argument(4);
 
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		val fiberGlobals = fiber.fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		val currentScopeMap = clientData.mapAtOrNull(scopeMapKey) ?:
 		// It looks like somebody removed all the scope information.
-			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 
 		// Save the current scope map to a temp, pop the scope stack to replace
 		// the scope map, then push the saved scope map onto the stack.  This
@@ -111,7 +110,7 @@ object P_BootstrapPrefixEndOfBlockBody : PrimitiveN(5, CanInline, Bootstrap)
 		// macro body will do its local declaration lookups in the top of stack,
 		// then discard it when complete.
 		var stack: A_Tuple = clientData.mapAtOrNull(scopeStackKey) ?:
-			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		val poppedScopeMap = stack.tupleAt(stack.tupleSize)
 		stack = stack.tupleAtPuttingCanDestroy(
 			stack.tupleSize, currentScopeMap, true)

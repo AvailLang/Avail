@@ -61,8 +61,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreatePojoType : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -72,13 +71,12 @@ object P_CreatePojoType : Primitive2(CanFold, CanInline)
 
 		return try
 		{
-			val pojoType =
-				interpreter.runtime.lookupJavaType(className, classParameters)
+			val pojoType = runtime.lookupJavaType(className, classParameters)
 			canonicalPojoType(pojoType, true)
 		}
 		catch (e: AvailRuntimeException)
 		{
-			interpreter.fail(e.numericCode)
+			fail(e.numericCode)
 		}
 	}
 

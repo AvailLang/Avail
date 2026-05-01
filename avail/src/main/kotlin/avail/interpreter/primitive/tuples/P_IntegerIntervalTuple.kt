@@ -67,8 +67,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_IntegerIntervalTuple : Primitive3(CanFold, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -80,7 +79,7 @@ object P_IntegerIntervalTuple : Primitive3(CanFold, CanInline)
 
 		return if (delta.equalsInt(0))
 		{
-			interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+			fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		else createInterval(start, end, delta)
 	}

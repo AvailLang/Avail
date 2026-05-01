@@ -71,8 +71,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_AtomicFetchAndAdd : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -85,15 +84,15 @@ object P_AtomicFetchAndAdd : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: VariableGetException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: ArithmeticException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 	}
 

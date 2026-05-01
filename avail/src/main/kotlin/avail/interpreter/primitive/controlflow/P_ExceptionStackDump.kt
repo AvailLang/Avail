@@ -66,13 +66,12 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ExceptionStackDump : Primitive1(CanSuspend, Unknown)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val exception = arg1
-		val runtime = interpreter.runtime
+		val runtime = runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
 		val continuation: A_Continuation =
 			try
@@ -83,11 +82,11 @@ object P_ExceptionStackDump : Primitive1(CanSuspend, Unknown)
 			{
 				assert(e.numericCode.extractInt
 							== E_KEY_NOT_FOUND.nativeCode())
-				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+				return fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 
-		val textInterface = interpreter.fiber().textInterface
-		return interpreter.suspendThen {
+		val textInterface = fiber().textInterface
+		return suspendThen {
 			dumpStackThen(runtime, textInterface, continuation) { stack ->
 				succeed(tupleFromList(stack.indices.reversed().map {
 					stringFrom(stack[it])

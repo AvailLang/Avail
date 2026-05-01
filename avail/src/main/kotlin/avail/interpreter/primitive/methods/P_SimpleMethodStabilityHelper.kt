@@ -104,7 +104,7 @@ import kotlin.math.min
  * launched by the restriction primitive.  That allows a primitive failure to be
  * caught easily (and leading to this semantic restriction to give up and
  * produce ⊤) by the fiber success/failure mechanism itself, without the need
- * for exceptions to have been bootstrapped.  In the event that not all of the
+ * for exceptions to have been bootstrapped.  In the event that not all the
  * input types are non-meta enumerations, the restriction primitive immediately
  * answers ⊤, to indicate no restriction has taken place.
  *
@@ -119,18 +119,16 @@ import kotlin.math.min
 @Suppress("unused")
 object P_SimpleMethodStabilityHelper : PrimitiveN(-1, Private, CanSuspend)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
-		val originalFiber = interpreter.fiber()
+		val originalFiber = fiber()
 		val loader = originalFiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		}
-		val runtime = interpreter.runtime
 
 		// The arguments are the types at a call site for some foldable
 		// primitive.  Only strengthen the call site (by returning a type other
@@ -158,12 +156,12 @@ object P_SimpleMethodStabilityHelper : PrimitiveN(-1, Private, CanSuspend)
 
 		// The sole outer is the function to invoke with each combination of
 		// enumerated arguments.
-		val thisFunction = interpreter.function!!
+		val thisFunction = function!!
 		val functionToInvoke: A_Function = thisFunction.outerVarAt(1)
 		val allCombinations = mutableListOf<List<A_Type>>()
 		enumerations.cartesianProductForEach(allCombinations::add)
 
-		return interpreter.suspendThen {
+		return suspendThen {
 			allCombinations.parallelMapThen(
 				action = { combination, afterEach: (A_Type?)->Unit ->
 					val fiber = createFiber(

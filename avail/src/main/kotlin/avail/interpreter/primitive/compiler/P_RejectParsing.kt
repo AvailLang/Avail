@@ -60,19 +60,18 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RejectParsing : Primitive2(Unknown)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val oneBasedRejectionLevel = arg1
 		val rejectionString = arg2
-		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
+		if (!fiber().generalFlag(CAN_REJECT_PARSE))
 		{
-			return interpreter.fail(E_UNTIMELY_PARSE_REJECTION)
+			return fail(E_UNTIMELY_PARSE_REJECTION)
 		}
-		return interpreter.reifyForPrimitive(false) {
+		return reifyForPrimitive(false) {
 			throw AvailRejectedParseException(
 				ParseNotificationLevel.levelFromInt(
 					oneBasedRejectionLevel.extractInt - 1),

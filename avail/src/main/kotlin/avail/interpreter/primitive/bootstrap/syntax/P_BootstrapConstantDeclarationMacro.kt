@@ -70,8 +70,7 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 object P_BootstrapConstantDeclarationMacro
 	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?

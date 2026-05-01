@@ -63,8 +63,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_NewNames : Primitive1(CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

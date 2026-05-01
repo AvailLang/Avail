@@ -64,8 +64,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_TupleTypeSequenceOfTypes : Primitive3(CanFold, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -76,14 +75,14 @@ object P_TupleTypeSequenceOfTypes : Primitive3(CanFold, CanInline)
 		val endIndex = arg3
 		if (!startIndex.isInt || !endIndex.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = startIndex.extractInt
 		val endInt = endIndex.extractInt
 		val tupleSize = endInt - startInt + 1
 		if (tupleSize < 0)
 		{
-			return interpreter.fail(E_NEGATIVE_SIZE)
+			return fail(E_NEGATIVE_SIZE)
 		}
 		return generateObjectTupleFrom(tupleSize) {
 			tupleType.typeAtIndex(it + startInt - 1).makeImmutable()

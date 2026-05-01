@@ -112,8 +112,7 @@ import kotlin.math.min
 @Suppress("unused")
 object P_FileRead : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -128,20 +127,19 @@ object P_FileRead : PrimitiveN(6, CanInline, HasSideEffect)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
 		{
-			return interpreter.fail(E_NOT_OPEN_FOR_READ)
+			return fail(E_NOT_OPEN_FOR_READ)
 		}
 		val fileChannel = handle.channel
 		if (!positionObject.isLong)
 		{
-			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
+			return fail(E_EXCEEDS_VM_LIMIT)
 		}
-		val runtime = interpreter.runtime
 		val ioSystem = runtime.ioSystem
 		val oneBasedPositionLong = positionObject.extractLong
 		// Guaranteed positive by argument constraint.
@@ -231,7 +229,7 @@ object P_FileRead : PrimitiveN(6, CanInline, HasSideEffect)
 			}
 			buffers.add(buffer)
 		}
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			runtime,

@@ -69,8 +69,7 @@ import java.io.IOException
 object P_ExecuteDetachedExternalProcess : PrimitiveN(
 	6, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -116,11 +115,11 @@ object P_ExecuteDetachedExternalProcess : PrimitiveN(
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.fail(E_NO_EXTERNAL_PROCESS)
+			return fail(E_NO_EXTERNAL_PROCESS)
 		}
 		return nil
 	}

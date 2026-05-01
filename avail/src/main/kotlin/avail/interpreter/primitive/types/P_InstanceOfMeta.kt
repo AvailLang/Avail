@@ -61,8 +61,7 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

@@ -65,8 +65,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused")
 object P_ServerSocketClose : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -74,7 +73,7 @@ object P_ServerSocketClose : Primitive1(CanInline, HasSideEffect)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -86,7 +85,7 @@ object P_ServerSocketClose : Primitive1(CanInline, HasSideEffect)
 		}
 		catch (e: IOException)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 	}
 

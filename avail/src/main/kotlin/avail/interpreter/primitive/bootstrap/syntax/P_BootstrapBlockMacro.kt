@@ -135,8 +135,7 @@ import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
 @Suppress("unused")
 object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -149,27 +148,27 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 		val optionalReturnType = args[5]
 		val optionalExceptionTypes = args[6]
 
-		val fiberGlobals = interpreter.fiber().fiberGlobals
+		val fiberGlobals = fiber().fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
-			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
 		val tokens = clientData.mapAtOrNull(staticTokensKey) ?:
 		// It looks like somebody removed the used tokens information.
-		return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+		return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		// Primitive P_BootstrapPrefixEndOfBlockBody already popped the scope
 		// stack to the map, then pushed the map with the block's local
 		// declarations back onto the stack.  So we can simply look up the local
 		// declarations in the top map of the stack, then pop it to nowhere when
 		// we're done.
 		var scopeStack: A_Tuple = clientData.mapAtOrNull(scopeStackKey) ?:
-		return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+		return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		if (!scopeStack.isTuple || scopeStack.tupleSize == 0)
 		{
-			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
 		val scopeMap = scopeStack.tupleAt(scopeStack.tupleSize)
 
@@ -191,7 +190,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 			val declarationName = declarationPair.expressionAt(1).token.string()
 			val declaration = scopeMap.mapAtOrNull(declarationName) ?:
 			// The argument binding is missing.
-			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			argumentDeclarationsList.add(declaration)
 		}
 
@@ -216,7 +215,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 			primitive = primitiveByName(primName.asNativeString())
 			if (primitive === null)
 			{
-				return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+				return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			}
 			canHaveStatements = !primitive.hasFlag(CannotFail)
 			val optionalFailurePair = primPhrase.expressionAt(2)
@@ -238,7 +237,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 				val failureDeclaration =
 					scopeMap.mapAtOrNull(failureDeclarationName) ?:
 					// The primitive failure variable binding is missing.
-					return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+					return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 				allStatements.add(failureDeclaration)
 			}
 			primitiveReturnType = primitive.blockTypeRestriction().returnType
@@ -259,7 +258,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 			val labelDeclarationName = labelToken.literal().string()
 			val label = scopeMap.mapAtOrNull(labelDeclarationName) ?:
 			// The label binding is missing.
-			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			val optionalLabelReturnTypePhrase = presentLabel.expressionAt(2)
 			allStatements.add(label)
 			if (optionalLabelReturnTypePhrase.expressionsSize == 1)
@@ -271,7 +270,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 			{
 				// Primitive blocks can't also use a label, and the label prefix
 				// function should have prevented it.
-				return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
+				return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			}
 		}
 
@@ -397,7 +396,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 			lineNumber)
 		block.makeImmutable()
 		// Pop and discard the top entry from the scope stack.
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		scopeStack = scopeStack.copyTupleFromToCanDestroy(
 			1, scopeStack.tupleSize - 1, true)
 		clientData = clientData.mapAtPuttingCanDestroy(

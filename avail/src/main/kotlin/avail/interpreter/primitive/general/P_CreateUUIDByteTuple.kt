@@ -58,9 +58,7 @@ import java.util.UUID
 @Suppress("unused")
 object P_CreateUUIDByteTuple : Primitive0(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
 		val uuid = UUID.randomUUID()
 		val bytes = ByteBuffer.allocateDirect(16)

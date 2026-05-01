@@ -67,8 +67,7 @@ import java.lang.reflect.Modifier
 @Suppress("unused")
 object P_BindPojoInstanceField : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -76,7 +75,7 @@ object P_BindPojoInstanceField : Primitive2(CanFold, CanInline)
 		val pojo = arg1
 		val fieldName = arg2
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Use the actual Java runtime type of the pojo to perform the
 		// reflective field lookup.
@@ -89,13 +88,13 @@ object P_BindPojoInstanceField : Primitive2(CanFold, CanInline)
 		}
 		catch (e: NoSuchFieldException)
 		{
-			return interpreter.fail(E_JAVA_FIELD_NOT_AVAILABLE)
+			return fail(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 
 		// This is not the right primitive to bind static fields.
 		if (Modifier.isStatic(field.modifiers))
 		{
-			return interpreter.fail(E_JAVA_FIELD_NOT_AVAILABLE)
+			return fail(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 		val fieldType = resolvePojoType(
 			field.genericType, pojo.kind().typeVariables)

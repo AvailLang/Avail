@@ -76,8 +76,7 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -95,7 +94,7 @@ object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		// Unless the unlink should be recursive, then try unlinking the target
@@ -115,23 +114,23 @@ object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 			catch (e: AccessDeniedException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 			catch (e: NoSuchFileException)
 			{
-				return interpreter.fail(E_NO_FILE)
+				return fail(E_NO_FILE)
 			}
 			catch (e: DirectoryNotEmptyException)
 			{
-				return interpreter.fail(E_DIRECTORY_NOT_EMPTY)
+				return fail(E_DIRECTORY_NOT_EMPTY)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.fail(E_IO_ERROR)
+				return fail(E_IO_ERROR)
 			}
 		}
 		else
@@ -200,16 +199,16 @@ object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 					})
 				if (partialSuccess.value)
 				{
-					return interpreter.fail(E_PARTIAL_SUCCESS)
+					return fail(E_PARTIAL_SUCCESS)
 				}
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.fail(E_IO_ERROR)
+				return fail(E_IO_ERROR)
 			}
 		}
 		return nil

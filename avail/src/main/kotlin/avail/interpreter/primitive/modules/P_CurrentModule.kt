@@ -55,13 +55,10 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_CurrentModule : Primitive0(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		val module = interpreter.module()
-		if (module.isNil)
-			return interpreter.fail(E_LOADING_IS_OVER)
+		val module = module()
+		if (module.isNil) return fail(E_LOADING_IS_OVER)
 		return module
 	}
 

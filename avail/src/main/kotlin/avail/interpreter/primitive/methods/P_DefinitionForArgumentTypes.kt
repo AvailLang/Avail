@@ -71,8 +71,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_DefinitionForArgumentTypes : Primitive2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -88,7 +87,7 @@ object P_DefinitionForArgumentTypes : Primitive2(CanInline)
 			}
 			if (bundle.bundleMethod.numArgs != argTypes.tupleSize)
 			{
-				return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			val definition =
 				bundle.bundleMethod.lookupByTypesFromTuple(argTypes)
@@ -97,7 +96,7 @@ object P_DefinitionForArgumentTypes : Primitive2(CanInline)
 		}
 		catch (e: MethodDefinitionException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 	}
 

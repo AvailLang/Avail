@@ -59,8 +59,7 @@ import java.io.ByteArrayOutputStream
 @Suppress("unused")
 object P_Serialize : Primitive1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -73,7 +72,7 @@ object P_Serialize : Primitive1(CanInline)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.fail(E_SERIALIZATION_FAILED)
+			return fail(E_SERIALIZATION_FAILED)
 		}
 
 		return tupleForByteArray(out.toByteArray())

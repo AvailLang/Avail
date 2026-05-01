@@ -71,13 +71,12 @@ import avail.optimizer.L1Translator
 object P_PushConstant : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
-		val code = interpreter.function!!.code()
-		assert(code.codePrimitive() === this)
+		val code = function!!.code()
+		assert(code.codePrimitive() === P_PushConstant)
 		return code.literalAt(1)
 	}
 

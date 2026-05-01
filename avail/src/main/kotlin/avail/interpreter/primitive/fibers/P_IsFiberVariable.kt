@@ -64,17 +64,16 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_IsFiberVariable : Primitive1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val key = arg1
 		if (key.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		// Choose the correct map based on the heritability of the key.
 		val globals = when
 		{

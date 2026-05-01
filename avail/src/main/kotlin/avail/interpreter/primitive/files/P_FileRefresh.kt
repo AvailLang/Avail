@@ -66,8 +66,7 @@ import java.nio.channels.AsynchronousFileChannel
 @Suppress("unused")
 object P_FileRefresh : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -76,13 +75,13 @@ object P_FileRefresh : Primitive1(CanInline, HasSideEffect)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
 		{
-			return interpreter.fail(E_NOT_OPEN_FOR_READ)
+			return fail(E_NOT_OPEN_FOR_READ)
 		}
 		val runtime = currentRuntime()
 

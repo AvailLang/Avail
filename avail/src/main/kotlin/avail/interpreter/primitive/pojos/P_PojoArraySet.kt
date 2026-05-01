@@ -66,8 +66,7 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -77,22 +76,22 @@ object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
 		val subscript = arg2
 		val value = arg3
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()
 		if (!subscript.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = subscript.extractInt
 		if (index > Array.getLength(array))
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val contentType = pojo.kind().contentType
 		if (!value.isInstanceOf(contentType))
 		{
-			return interpreter.fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			return fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		return try
 		{
@@ -102,7 +101,7 @@ object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
 		}
 		catch (e: MarshalingException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

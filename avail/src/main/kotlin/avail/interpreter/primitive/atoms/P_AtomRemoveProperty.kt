@@ -66,8 +66,7 @@ import avail.interpreter.primitive.Primitive2
 object P_AtomRemoveProperty : Primitive2(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -76,7 +75,7 @@ object P_AtomRemoveProperty : Primitive2(
 		val propertyKey = arg2
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		if (propertyKey.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
@@ -85,14 +84,14 @@ object P_AtomRemoveProperty : Primitive2(
 		{
 			// The atom has that property, but the property is marked as
 			// disallowing change once it's set.
-			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		if (propertyValue.isNil)
 		{
-			return interpreter.fail(E_NO_SUCH_FIELD)
+			return fail(E_NO_SUCH_FIELD)
 		}
 		atom.setAtomProperty(propertyKey, nil)
-		interpreter.availLoaderOrNull()?.recordEffect(
+		availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ATOM_REMOVE_PROPERTY, atom, propertyKey))
 		return nil

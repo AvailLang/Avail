@@ -59,16 +59,13 @@ import avail.interpreter.primitive.Primitive0
 object P_TraceVariableWrites : Primitive0(
 	HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		if (interpreter.traceVariableReadsBeforeWrites()
-			|| interpreter.traceVariableWrites())
+		if (traceVariableReadsBeforeWrites() || traceVariableWrites())
 		{
-			return interpreter.fail(E_ILLEGAL_TRACE_MODE)
+			return fail(E_ILLEGAL_TRACE_MODE)
 		}
-		interpreter.setTraceVariableWrites(true)
+		setTraceVariableWrites(true)
 		return nil
 	}
 

@@ -86,17 +86,16 @@ object P_AttemptJoinFiber : Primitive1(
 	WritesToHiddenGlobalState,
 	ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val joinee = arg1
-		val current = interpreter.fiber()
+		val current = fiber()
 		// Forbid auto-joining.
 		if (current.equals(joinee))
 		{
-			return interpreter.fail(E_FIBER_CANNOT_JOIN_ITSELF)
+			return fail(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
 		val succeed = joinee.lock {
 			if (joinee.executionState.indicatesTermination)
@@ -131,7 +130,7 @@ object P_AttemptJoinFiber : Primitive1(
 		}
 		if (succeed)
 			return nil
-		return interpreter.reifyForPrimitive(true) {
+		return reifyForPrimitive(true) {
 			current.lock {
 				// If permit is not available, then park this fiber.
 				val wasAvailable = current.getAndSetSynchronizationFlag(

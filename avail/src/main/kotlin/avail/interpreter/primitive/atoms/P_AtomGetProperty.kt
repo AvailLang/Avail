@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive2
 object P_AtomGetProperty : Primitive2(
 	CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -69,12 +68,12 @@ object P_AtomGetProperty : Primitive2(
 		val propertyKey = arg2
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		return if (propertyValue.isNil)
 		{
-			interpreter.fail(E_NO_SUCH_FIELD)
+			fail(E_NO_SUCH_FIELD)
 		}
 		else propertyValue
 	}

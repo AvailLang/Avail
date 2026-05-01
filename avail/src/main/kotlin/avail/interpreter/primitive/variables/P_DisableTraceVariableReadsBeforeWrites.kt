@@ -71,20 +71,19 @@ import avail.interpreter.primitive.Primitive2
 object P_DisableTraceVariableReadsBeforeWrites : Primitive2(
 	 HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val key = arg1
 		val reactorFunction = arg2
-		if (!interpreter.traceVariableReadsBeforeWrites())
+		if (!traceVariableReadsBeforeWrites())
 		{
-			return interpreter.fail(E_ILLEGAL_TRACE_MODE)
+			return fail(E_ILLEGAL_TRACE_MODE)
 		}
-		interpreter.setTraceVariableReadsBeforeWrites(false)
-		val fiber = interpreter.fiber()
+		setTraceVariableReadsBeforeWrites(false)
+		val fiber = fiber()
 		val readBeforeWritten = fiber.variablesReadBeforeWritten
 		val reactor = VariableAccessReactor(reactorFunction.makeShared())
 		for (variable in readBeforeWritten)

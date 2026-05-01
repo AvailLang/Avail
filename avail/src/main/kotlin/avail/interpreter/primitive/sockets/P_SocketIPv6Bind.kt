@@ -80,8 +80,7 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_SocketIPv6Bind : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -93,7 +92,7 @@ object P_SocketIPv6Bind : Primitive3(CanInline, HasSideEffect)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -112,21 +111,21 @@ object P_SocketIPv6Bind : Primitive3(CanInline, HasSideEffect)
 		}
 		catch (e: IllegalStateException)
 		{
-			interpreter.fail(E_INVALID_HANDLE)
+			fail(E_INVALID_HANDLE)
 		}
 		catch (e: UnknownHostException)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 		catch (e: IOException)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 		catch (e: SecurityException)
 		{
-			interpreter.fail(E_PERMISSION_DENIED)
+			fail(E_PERMISSION_DENIED)
 		}
 	}
 

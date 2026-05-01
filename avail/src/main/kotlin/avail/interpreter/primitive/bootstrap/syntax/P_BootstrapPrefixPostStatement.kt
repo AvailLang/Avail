@@ -68,8 +68,7 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_BootstrapPrefixPostStatement : Primitive4(CanInline, Bootstrap)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -81,8 +80,7 @@ object P_BootstrapPrefixPostStatement : Primitive4(CanInline, Bootstrap)
 		// val optionalLabelPhrase: A_Phrase = arg3
 		val statementsPhrase = arg4
 
-		interpreter.availLoaderOrNull() ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+		availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 
 		// Here the statements so far are a list phrase, not a sequence.
 		// The section marker is inside the repetition, so this primitive could

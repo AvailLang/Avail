@@ -85,8 +85,7 @@ import java.nio.channels.AsynchronousFileChannel
 @Suppress("unused")
 object P_FileTruncate : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -100,13 +99,13 @@ object P_FileTruncate : PrimitiveN(5, CanInline, HasSideEffect)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
 		{
-			return interpreter.fail(E_NOT_OPEN_FOR_WRITE)
+			return fail(E_NOT_OPEN_FOR_WRITE)
 		}
 		val fileChannel = handle.channel
 		// Truncating to something beyond the file size has no effect, so use
@@ -119,7 +118,7 @@ object P_FileTruncate : PrimitiveN(5, CanInline, HasSideEffect)
 		assert(size >= 0L)
 
 		val priorityInt = priority.extractInt
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			runtime,

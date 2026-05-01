@@ -59,8 +59,7 @@ import avail.optimizer.OptimizationLevel
 @WritesHiddenVariable(GLOBAL_STATE::class)
 object P_PrivateForceOptimizationForTests : Primitive1(Private, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -70,13 +69,13 @@ object P_PrivateForceOptimizationForTests : Primitive1(Private, HasSideEffect)
 			L1Translator.`🌼translateToLevelTwo`(
 				code,
 				OptimizationLevel.FIRST_JVM_TRANSLATION,
-				interpreter)
+				this)
 		}
 		catch (e: Throwable)
 		{
 			// Reuse an easily identified error code that isn't likely to be
 			// encountered otherwise.
-			return interpreter.fail(E_ILLEGAL_TRACE_MODE)
+			return fail(E_ILLEGAL_TRACE_MODE)
 		}
 		return nil
 	}

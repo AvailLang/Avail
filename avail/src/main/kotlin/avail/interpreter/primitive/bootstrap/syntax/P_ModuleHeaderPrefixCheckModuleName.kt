@@ -61,13 +61,12 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ModuleHeaderPrefixCheckModuleName : Primitive1(Private, Bootstrap)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val moduleNameLiteral = arg1
-		val loader = interpreter.availLoader()
+		val loader = availLoader()
 		val module = loader.module
 		val qualifiedName = module.moduleName
 		val moduleNameInstance = ModuleName(qualifiedName.asNativeString())
@@ -77,7 +76,7 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive1(Private, Bootstrap)
 			moduleNameLiteral.token.literal().literal().asNativeString()
 		if (localName != declaredModuleName)
 		{
-			return interpreter.reifyForPrimitive(false) {
+			return reifyForPrimitive(false) {
 				throw AvailRejectedParseException(
 					STRONG,
 					"module name (%s) to agree with file's name (%s)",

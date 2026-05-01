@@ -57,15 +57,14 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_DoubleTruncatedAsInteger : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val a = arg1
 		val d = a.extractDouble
 		if (d.isNaN())
-			return interpreter.fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
+			return fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
 		return doubleTruncatedToExtendedInteger(d)
 	}
 

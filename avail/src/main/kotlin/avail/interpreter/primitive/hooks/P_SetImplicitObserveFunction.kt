@@ -79,8 +79,7 @@ object P_SetImplicitObserveFunction : Primitive1(
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -90,7 +89,7 @@ object P_SetImplicitObserveFunction : Primitive1(
 		// set up for a return).
 		val wrapper = createWithOuters1(rawFunction, function.cast())
 		// Now set the wrapper as the implicit observe function.
-		interpreter.runtime[IMPLICIT_OBSERVE] = wrapper
+		runtime[IMPLICIT_OBSERVE] = wrapper
 		return nil
 	}
 

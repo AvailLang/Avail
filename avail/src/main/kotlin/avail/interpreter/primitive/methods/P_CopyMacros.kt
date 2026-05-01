@@ -74,8 +74,7 @@ import avail.interpreter.primitive.Primitive2
  */
 object P_CopyMacros : Primitive2(CanSuspend, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -83,15 +82,15 @@ object P_CopyMacros : Primitive2(CanSuspend, HasSideEffect)
 		val oldAtom: A_Atom = arg1
 		val newAtom: A_Atom = arg2
 
-		val loader = interpreter.availLoaderOrNull()
-		loader ?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = availLoaderOrNull()
+		loader ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		if (oldAtom.isAtomSpecial || newAtom.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 
 		val oldBundle = oldAtom.bundleOrNil
@@ -99,7 +98,7 @@ object P_CopyMacros : Primitive2(CanSuspend, HasSideEffect)
 			return nil
 
 		val currentModule = loader.module
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			try
 			{
 				for (macro in oldBundle.macrosTuple)

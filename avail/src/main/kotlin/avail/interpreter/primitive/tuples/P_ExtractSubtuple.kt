@@ -99,8 +99,7 @@ import kotlin.math.min
 @Suppress("unused")
 object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -111,18 +110,18 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val end = arg3
 		if (!start.isInt || !end.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = start.extractInt
 		val endInt = end.extractInt
 		return when
 		{
 			startInt < 1 ->
-				interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			startInt > endInt + 1 ->
-				interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			endInt > tuple.tupleSize ->
-				interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			else -> tuple.copyTupleFromToCanDestroy(startInt, endInt, true)
 		}
 	}

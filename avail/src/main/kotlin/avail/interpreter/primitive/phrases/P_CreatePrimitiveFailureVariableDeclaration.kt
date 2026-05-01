@@ -58,8 +58,7 @@ import avail.interpreter.primitive.Primitive2
 object P_CreatePrimitiveFailureVariableDeclaration : Primitive2(
 	CanInline, CannotFail)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?

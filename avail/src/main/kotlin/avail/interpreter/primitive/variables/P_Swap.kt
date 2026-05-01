@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_Swap : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -69,7 +68,7 @@ object P_Swap : Primitive2(CanInline, HasSideEffect)
 		val var2 = arg2
 		if (!var1.kind().equals(var2.kind()))
 		{
-			return interpreter.fail(
+			return fail(
 				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES)
 		}
 		// This should work even on unassigned variables.
@@ -77,9 +76,9 @@ object P_Swap : Primitive2(CanInline, HasSideEffect)
 		val value2 = var2.value()
 		// Record access specially, since we are using the "fast" variable
 		// content accessor.
-		if (interpreter.traceVariableReadsBeforeWrites())
+		if (traceVariableReadsBeforeWrites())
 		{
-			val fiber = interpreter.fiber()
+			val fiber = fiber()
 			fiber.recordVariableAccess(var1, true)
 			fiber.recordVariableAccess(var2, true)
 		}
@@ -91,7 +90,7 @@ object P_Swap : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

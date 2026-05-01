@@ -64,8 +64,7 @@ import avail.interpreter.primitive.Primitive2
 object P_AtomSetFieldBound : Primitive2(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -74,7 +73,7 @@ object P_AtomSetFieldBound : Primitive2(
 		val typeBound = arg2
 		if (atom.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		if (atom
 			.getAtomProperty(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
@@ -82,11 +81,11 @@ object P_AtomSetFieldBound : Primitive2(
 		{
 			// Not quite right, but it should get the idea across that this
 			// field atom should not have a type bound set on it.
-			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		if (atom.fieldAtomConstraint.notNil)
 		{
-			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		atom.fieldAtomConstraint = typeBound
 
@@ -97,7 +96,7 @@ object P_AtomSetFieldBound : Primitive2(
 		// statement may use the affected field atom within an object type,
 		// which will fail to deserialize if the field bound has not yet been
 		// set.
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return nil
 	}
 

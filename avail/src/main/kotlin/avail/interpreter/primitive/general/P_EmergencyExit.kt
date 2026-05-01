@@ -79,27 +79,24 @@ object P_EmergencyExit : Primitive1(
 	CanSuspend,
 	CannotFail)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val errorMessageProducer = arg1
 
 		val killer = AvailEmergencyExitException(
-			"Fiber '${interpreter.fiber()}' will emergency-exit.")
+			"Fiber '${fiber()}' will emergency-exit.")
 		// Capture the JVM stack trace right here, before any unwind.
 		killer.fillInStackTrace()
-		interpreter.currentReifier = StackReifier(
+		currentReifier = StackReifier(
 			true,
 			reificationForNoninlineStat!!
 		) {
-			assert(interpreter.callerIsReified())
-			val fiber = interpreter.fiber()
-			val continuation = interpreter.getReifiedContinuation()!!
-			dumpStackThen(
-				interpreter.runtime, fiber.textInterface, continuation
-			) { stack ->
+			assert(callerIsReified())
+			val fiber = fiber()
+			val continuation = getReifiedContinuation()!!
+			dumpStackThen(runtime, fiber.textInterface, continuation) { stack ->
 				val builder = StringBuilder()
 				builder.append(format(
 					"A fiber (%s) has exited: %s",

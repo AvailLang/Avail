@@ -63,8 +63,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateSequenceOfStatements : Primitive1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -76,7 +75,7 @@ object P_CreateSequenceOfStatements : Primitive1(CanInline)
 		}
 		if (!containsOnlyStatements(flat, TOP()))
 		{
-			return interpreter.fail(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
+			return fail(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
 		}
 		return newSequence(statements)
 	}

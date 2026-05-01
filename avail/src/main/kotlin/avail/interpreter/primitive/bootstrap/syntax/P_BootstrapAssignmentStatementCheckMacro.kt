@@ -76,15 +76,14 @@ import avail.interpreter.primitive.Primitive1
 object P_BootstrapAssignmentStatementCheckMacro
 	: Primitive1(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val variableNameLiteral = arg1
 		val loader =
-			interpreter.fiber().availLoader
-				?: return interpreter.fail(E_LOADING_IS_OVER)
+			fiber().availLoader
+				?: return fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -100,7 +99,7 @@ object P_BootstrapAssignmentStatementCheckMacro
 				"variable name for assignment to be alphanumeric, " +
 					"not $variableNameString")
 		}
-		val fiberGlobals = interpreter.fiber().fiberGlobals
+		val fiberGlobals = fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module

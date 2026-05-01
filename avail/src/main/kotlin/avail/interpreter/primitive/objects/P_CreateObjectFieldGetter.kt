@@ -85,8 +85,7 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -98,7 +97,7 @@ object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
 		if (fieldType == null)
 		{
 			// The field is not guaranteed to be part of the object.
-			return interpreter.fail(E_NO_SUCH_FIELD)
+			return fail(E_NO_SUCH_FIELD)
 		}
 		if (fieldAtom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
@@ -108,7 +107,7 @@ object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
 			val newFunction = functionReturningConstant(objectType, fieldAtom)
 			return newFunction
 		}
-		val module = interpreter.availLoaderOrNull()?.module ?: nil
+		val module = availLoaderOrNull()?.module ?: nil
 		val returnType = objectType.fieldTypeAt(fieldAtom)
 		val rawFunction = newCompiledCode(
 			nybbles = emptyTuple,

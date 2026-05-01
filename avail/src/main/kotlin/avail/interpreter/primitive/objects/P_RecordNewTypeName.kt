@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RecordNewTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -71,7 +70,7 @@ object P_RecordNewTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 		userType.makeImmutable()
 		name.makeImmutable()
 		setNameForType(userType, name, false)
-		interpreter.availLoaderOrNull()?.recordEffect(
+		availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.RECORD_TYPE_NAME, userType, name))
 		return nil

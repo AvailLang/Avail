@@ -67,8 +67,7 @@ import java.nio.ByteBuffer
 @Suppress("unused")
 object P_Deserialize : Primitive2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -104,7 +103,7 @@ object P_Deserialize : Primitive2(CanInline)
 		}
 
 		val input = ByteArrayInputStream(byteArray)
-		val deserializer = Deserializer(input, interpreter.runtime)
+		val deserializer = Deserializer(input, runtime)
 		deserializer.currentModule = module
 		val values = mutableListOf<A_BasicObject>()
 		try
@@ -115,7 +114,7 @@ object P_Deserialize : Primitive2(CanInline)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.fail(E_DESERIALIZATION_FAILED)
+			return fail(E_DESERIALIZATION_FAILED)
 		}
 
 		return tupleFromList(values)

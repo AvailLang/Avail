@@ -61,11 +61,9 @@ import avail.interpreter.primitive.Primitive0
 object P_GetRaiseJavaExceptionInAvailFunction : Primitive0(
 	CannotFail, CanInline, HasSideEffect, ReadsFromHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		return interpreter.runtime[RAISE_JAVA_EXCEPTION_IN_AVAIL]
+		return runtime[RAISE_JAVA_EXCEPTION_IN_AVAIL]
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -72,8 +72,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_BundleHasDefinitionForArgumentTypes : Primitive2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -83,12 +82,12 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive2(CanInline)
 		val bundle = methodName.bundleOrNil
 		if (bundle.isNil)
 		{
-			return interpreter.fail(E_NO_METHOD)
+			return fail(E_NO_METHOD)
 		}
 		val method = bundle.bundleMethod
 		if (argTypes.tupleSize != method.numArgs)
 		{
-			return interpreter.fail(
+			return fail(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		try

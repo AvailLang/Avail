@@ -66,14 +66,13 @@ object P_SetUnassignedVariableAccessFunction : Primitive1(
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val function = arg1
-		interpreter.runtime[READ_UNASSIGNED_VARIABLE] = function
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		runtime[READ_UNASSIGNED_VARIABLE] = function
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return nil
 	}
 

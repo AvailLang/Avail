@@ -86,8 +86,7 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_TupleReplaceRange : Primitive4(CanInline, CanFold)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -100,18 +99,18 @@ object P_TupleReplaceRange : Primitive4(CanInline, CanFold)
 		val replacementSubtuple = arg4
 		if (!firstIndex.isInt || !lastIndex.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = firstIndex.extractInt
 		val endInt = lastIndex.extractInt
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
 		{
-			return interpreter.fail(E_NEGATIVE_SIZE)
+			return fail(E_NEGATIVE_SIZE)
 		}
 		val originalSize = originalTuple.tupleSize
 		if (endInt > originalSize)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 
 		var result: A_Tuple

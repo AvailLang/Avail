@@ -62,8 +62,7 @@ import avail.interpreter.primitive.PrimitiveN
 object P_PrivateCreateModuleVariable
 	: PrimitiveN(5, CanFold, CanInline, Private, CannotFail)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{

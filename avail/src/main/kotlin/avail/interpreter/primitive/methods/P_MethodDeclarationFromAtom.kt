@@ -86,8 +86,7 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_MethodDeclarationFromAtom : Primitive3(CanSuspend, Unknown)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -96,17 +95,17 @@ object P_MethodDeclarationFromAtom : Primitive3(CanSuspend, Unknown)
 		val atom: A_Atom = arg1
 		val function: A_Function = arg2
 		val optionalStylerFunction: A_Tuple = arg3
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		}
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			try
 			{
 				loader.addMethodBody(atom, function)

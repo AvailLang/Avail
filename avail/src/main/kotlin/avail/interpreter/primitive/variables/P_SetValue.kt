@@ -71,8 +71,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_SetValue : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -86,7 +85,7 @@ object P_SetValue : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

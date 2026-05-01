@@ -59,14 +59,13 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateAtom : Primitive1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val name = arg1
 
-		return when (val loader = interpreter.availLoaderOrNull())
+		return when (val loader = availLoaderOrNull())
 		{
 			null -> createAtom(name, nil)
 			else ->
@@ -76,7 +75,7 @@ object P_CreateAtom : Primitive1(CanInline)
 				}
 				catch (e: AmbiguousNameException)
 				{
-					interpreter.fail(E_AMBIGUOUS_NAME)
+					fail(E_AMBIGUOUS_NAME)
 				}
 		}
 	}

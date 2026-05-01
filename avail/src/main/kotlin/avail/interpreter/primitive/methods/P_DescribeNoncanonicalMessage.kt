@@ -57,8 +57,7 @@ import avail.interpreter.primitive.Primitive1
 object P_DescribeNoncanonicalMessage
 	: Primitive1(CanInline, CanFold, CannotFail)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

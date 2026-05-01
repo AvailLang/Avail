@@ -57,8 +57,7 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_CreateIntegerRange : Primitive4(CannotFail, CanFold, CanInline)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,

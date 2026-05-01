@@ -67,8 +67,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -78,7 +77,7 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 		val castFunction = arg2
 		val elseFunction = arg3
 
-		interpreter.argsBuffer.clear()
+		argsBuffer.clear()
 		val expectedType =
 			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		// "Jump" into the castFunction or elseFunction, to keep this frame from
@@ -87,10 +86,10 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 		{
 			value.isInstanceOf(expectedType) ->
 			{
-				interpreter.argsBuffer.add(value)
-				interpreter.invokeInPrimitive(castFunction)
+				argsBuffer.add(value)
+				invokeInPrimitive(castFunction)
 			}
-			else -> interpreter.invokeInPrimitive(elseFunction)
+			else -> invokeInPrimitive(elseFunction)
 		}
 	}
 

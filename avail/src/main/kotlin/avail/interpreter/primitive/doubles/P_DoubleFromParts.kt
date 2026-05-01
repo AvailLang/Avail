@@ -61,8 +61,7 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_DoubleFromParts : Primitive4(CannotFail, CanInline, CanFold)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,

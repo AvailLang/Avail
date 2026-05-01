@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive2
 object P_HasNewName : Primitive2(
 	CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?

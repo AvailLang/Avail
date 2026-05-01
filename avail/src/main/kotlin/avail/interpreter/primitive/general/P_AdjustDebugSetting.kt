@@ -52,8 +52,7 @@ import java.util.logging.Level
 @Suppress("unused")
 object P_AdjustDebugSetting : Primitive1(Unknown, CannotFail)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

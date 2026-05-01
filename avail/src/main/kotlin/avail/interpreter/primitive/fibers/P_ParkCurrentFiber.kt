@@ -65,11 +65,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_ParkCurrentFiber : Primitive0(CannotFail, CanSuspend, Unknown)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		// Mirror the approach used by P_AttemptJoinFiber: always go through
 		// the reification path so that the parking behavior is exercised in
 		// exactly the same way that join/park interactions do.  This is a
@@ -82,7 +80,7 @@ object P_ParkCurrentFiber : Primitive0(CannotFail, CanSuspend, Unknown)
 				SynchronizationFlag.PERMIT_AVAILABLE, false))
 			{
 				true -> nil
-				else -> interpreter.reifyForPrimitive(true) {
+				else -> reifyForPrimitive(true) {
 					// Re-test the permit, in case it was granted while we were
 					// busy reifying (and outside the lock).
 					fiber.lock {

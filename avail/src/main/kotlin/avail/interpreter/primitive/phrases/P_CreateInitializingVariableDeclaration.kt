@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_CreateInitializingVariableDeclaration : Primitive3(CanInline, CannotFail)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject

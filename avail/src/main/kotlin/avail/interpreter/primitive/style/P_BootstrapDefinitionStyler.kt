@@ -75,8 +75,7 @@ import avail.interpreter.primitive.Primitive2
 object P_BootstrapDefinitionStyler : Primitive2(
 	CanInline, Bootstrap, ReadsFromHiddenGlobalState, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -84,9 +83,9 @@ object P_BootstrapDefinitionStyler : Primitive2(
 		val optionalSendPhrase: A_Tuple = arg1
 		val transformedPhrase: A_Phrase = arg2
 
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		if (!fiber.canStyle)
-			return interpreter.fail(E_CANNOT_STYLE)
+			return fail(E_CANNOT_STYLE)
 		val loader = fiber.availLoader!!
 
 		val sendPhrase = when (optionalSendPhrase.tupleSize)

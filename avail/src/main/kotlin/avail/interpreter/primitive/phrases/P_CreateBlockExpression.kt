@@ -75,8 +75,7 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_CreateBlockExpression : PrimitiveN(5, CanInline)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -92,11 +91,11 @@ object P_CreateBlockExpression : PrimitiveN(5, CanInline)
 		{
 			0 -> null
 			else -> primitiveByName(primitiveName.asNativeString())
-				?: return interpreter.fail(E_INVALID_PRIMITIVE_NAME)
+				?: return fail(E_INVALID_PRIMITIVE_NAME)
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
-			return interpreter.fail(E_BLOCK_CONTAINS_INVALID_STATEMENTS)
+			return fail(E_BLOCK_CONTAINS_INVALID_STATEMENTS)
 		}
 		// Approximate where the block's "first line" is.
 		val allTokens = (argDecls + statements)

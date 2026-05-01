@@ -76,8 +76,7 @@ import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
 object P_ModuleHeaderPseudoMacro
 	: PrimitiveN(6, Private, Bootstrap, CannotFail, CanInline)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{

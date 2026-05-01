@@ -74,15 +74,14 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_Instances : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val type = arg1
 		return if (!type.isEnumeration)
 		{
-			interpreter.fail(E_NOT_AN_ENUMERATION)
+			fail(E_NOT_AN_ENUMERATION)
 		}
 		else type.instances
 	}

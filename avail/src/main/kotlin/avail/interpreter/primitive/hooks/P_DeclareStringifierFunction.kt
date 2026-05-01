@@ -66,19 +66,16 @@ object P_DeclareStringifierFunction : Primitive1(
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val newFunction = arg1
 
 		// Set the stringification function.
-		val runtime = interpreter.runtime
 		val oldFunction = runtime[STRINGIFICATION]
 		runtime[STRINGIFICATION] = newFunction.makeShared()
-
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return oldFunction
 	}
 

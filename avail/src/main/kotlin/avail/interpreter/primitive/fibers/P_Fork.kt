@@ -80,8 +80,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_Fork : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -96,22 +95,22 @@ object P_Fork : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = function.kind().argsTupleType
 		val callArgs = (1 .. numArgs).map {
 			val anArg = argTuple.tupleAt(it)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
 			{
-				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+				return fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 			anArg.makeShared()
 		}
 		function.makeShared()
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			function.kind().returnType,
-			interpreter.runtime,
+			runtime,
 			current.textInterface,
 			priority.extractInt)
 		{
@@ -131,8 +130,7 @@ object P_Fork : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared()
-		interpreter.runtime.runOutermostFunction(
-			newFiber, function, callArgs, false)
+		runtime.runOutermostFunction(newFiber, function, callArgs, false)
 		return newFiber
 	}
 

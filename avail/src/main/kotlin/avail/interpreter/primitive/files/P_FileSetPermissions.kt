@@ -78,8 +78,7 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileSetPermissions : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -95,29 +94,29 @@ object P_FileSetPermissions : Primitive3(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val permissions = permissionsFor(ordinals)
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-				?: return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
+				?: return fail(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			view.setPermissions(permissions)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: AccessDeniedException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.fail(E_IO_ERROR)
+			return fail(E_IO_ERROR)
 		}
 
 		return nil

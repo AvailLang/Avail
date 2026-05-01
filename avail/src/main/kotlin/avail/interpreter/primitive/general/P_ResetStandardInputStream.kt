@@ -59,18 +59,16 @@ import java.io.IOException
 @Suppress("unused")
 object P_ResetStandardInputStream : Primitive0(CanInline, HasSideEffect)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		val channel = interpreter.fiber().textInterface.inputChannel
+		val channel = fiber().textInterface.inputChannel
 		try
 		{
 			channel.reset()
 		}
 		catch (e: IOException)
 		{
-			return interpreter.fail(E_IO_ERROR)
+			return fail(E_IO_ERROR)
 		}
 		return nil
 	}

@@ -69,17 +69,15 @@ object P_InstallDebuggableBaseFrameFunction : Primitive1(
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val function = arg1
 
-		val runtime = interpreter.runtime
 		val oldHook = runtime[DEBUGGABLE_BASE_FRAME]
 		runtime[DEBUGGABLE_BASE_FRAME] = function
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return oldHook
 	}
 

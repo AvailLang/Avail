@@ -72,8 +72,7 @@ import java.util.TimerTask
 @Suppress("unused")
 object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -83,12 +82,11 @@ object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 		// make sleep and yield behave differently.
 		if (sleepMillis.equalsInt(0))
 			return nil
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
-		val runtime = interpreter.runtime
-		val primitiveFunction = interpreter.function!!
+		val primitiveFunction = function!!
 		if (sleepMillis.isLong)
 		{
 			// Otherwise, delay the resumption of this task.
@@ -113,7 +111,7 @@ object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 			}
 			// Once the fiber has been unbound, transition it to sleeping and
 			// start the timer task.
-			interpreter.postExitContinuation = {
+			postExitContinuation = {
 				fiber.lock {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
@@ -121,7 +119,7 @@ object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
 							assert(fiber.executionState === SUSPENDED)
 							runtime.resumeFromSuccessfulPrimitive(
-								fiber, this, nil)
+								fiber, this@P_Sleep, nil)
 						}
 						else -> {
 							fiber.wakeupTask = task
@@ -136,7 +134,7 @@ object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 		else
 		{
 			// Once the fiber has been unbound, transition it to sleeping.
-			interpreter.postExitContinuation = {
+			postExitContinuation = {
 				fiber.lock {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
@@ -144,7 +142,7 @@ object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
 							assert(fiber.executionState === SUSPENDED)
 							runtime.resumeFromSuccessfulPrimitive(
-								fiber, this, nil)
+								fiber, this@P_Sleep, nil)
 						}
 						else -> fiber.executionState = ASLEEP
 					}
@@ -154,7 +152,7 @@ object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 		// Don't actually transition the fiber to the sleeping state, which
 		// can only occur at task-scheduling time. This happens after the
 		// fiber is unbound from the interpreter. Instead, suspend the fiber.
-		return interpreter.primitiveSuspend(SUSPENDED, primitiveFunction)
+		return primitiveSuspend(SUSPENDED, primitiveFunction)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -68,23 +68,22 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_AbstractMethodDeclaration : Primitive2(CanSuspend, Unknown)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val string = arg1
 		val blockSignature = arg2
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		val loader = fiber.availLoader
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+			?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			try
 			{
 				val atom = loader.lookupName(string)

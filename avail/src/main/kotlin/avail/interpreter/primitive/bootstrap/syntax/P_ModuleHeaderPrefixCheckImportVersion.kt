@@ -71,8 +71,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_ModuleHeaderPrefixCheckImportVersion : Primitive3(Private, Bootstrap)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -102,7 +101,7 @@ object P_ModuleHeaderPrefixCheckImportVersion : Primitive3(Private, Bootstrap)
 			if (lastImportVersionString.equals(oldVersion))
 			{
 				val importModuleName = lastImportNameEntry.expressionAt(1)
-				return interpreter.reifyForPrimitive(false) {
+				return reifyForPrimitive(false) {
 					throw AvailRejectedParseException(
 						STRONG,
 						"imported module ($importModuleName) version " +

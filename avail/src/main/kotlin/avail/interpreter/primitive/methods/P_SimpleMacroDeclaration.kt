@@ -97,8 +97,7 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_SimpleMacroDeclaration : Primitive4(CanSuspend, HasSideEffect)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -110,12 +109,12 @@ object P_SimpleMacroDeclaration : Primitive4(CanSuspend, HasSideEffect)
 		val function = arg3
 		val optionalStylerFunction: A_Tuple = arg4
 
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		val loader = fiber.availLoader ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		prefixFunctions.forEach { prefixFunction ->
 			val numArgs = prefixFunction.code().numArgs()
@@ -125,13 +124,13 @@ object P_SimpleMacroDeclaration : Primitive4(CanSuspend, HasSideEffect)
 				if (!argsKind.typeAtIndex(argIndex)
 						.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 				{
-					return interpreter.fail(
+					return fail(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
 				}
 			}
 			if (!kind.returnType.isTop)
 			{
-				return interpreter.fail(
+				return fail(
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP)
 			}
 		}
@@ -141,13 +140,13 @@ object P_SimpleMacroDeclaration : Primitive4(CanSuspend, HasSideEffect)
 			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{
-				return interpreter.fail(
+				return fail(
 					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
 			}
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 
 		val numArgs = function.code().numArgs()
@@ -158,15 +157,15 @@ object P_SimpleMacroDeclaration : Primitive4(CanSuspend, HasSideEffect)
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
 					PARSE_PHRASE.mostGeneralType))
 			{
-				return interpreter.fail(E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
+				return fail(E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
 		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 		{
-			return interpreter.fail(E_MACRO_MUST_RETURN_A_PHRASE)
+			return fail(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			try
 			{
 				val atom = loader.lookupName(string)

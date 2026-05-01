@@ -64,15 +64,14 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_LookupAtomsForName : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val name = arg1
-		val currentFiber = interpreter.fiber()
+		val currentFiber = fiber()
 		val loader = currentFiber.availLoader
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+			?: return fail(E_LOADING_IS_OVER)
 		return loader.lookupAtomsForName(name)
 	}
 

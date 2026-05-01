@@ -68,8 +68,7 @@ import avail.optimizer.L1Translator
 object P_ExitContinuationWithResultIf : Primitive3(
 	CanInline, CanSwitchContinuations)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -86,9 +85,9 @@ object P_ExitContinuationWithResultIf : Primitive3(
 		var expectedType =
 			continuation.function().code().functionType().returnType
 		if (!result.isInstanceOf(expectedType))
-			return interpreter.fail(E_CONTINUATION_EXPECTED_STRONGER_TYPE)
-		return interpreter.returnIntoContinuation(
-			this, continuation.caller, result)
+			return fail(E_CONTINUATION_EXPECTED_STRONGER_TYPE)
+		return returnIntoContinuation(
+			this@P_ExitContinuationWithResultIf, continuation.caller, result)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

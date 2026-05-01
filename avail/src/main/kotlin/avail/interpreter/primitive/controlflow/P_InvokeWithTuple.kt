@@ -87,8 +87,7 @@ import java.util.Collections.nCopies
 @Suppress("unused")
 object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -101,7 +100,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = functionType.argsTupleType
 		for (i in 1 .. numArgs)
@@ -109,15 +108,15 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 			val arg = argTuple.tupleAt(i)
 			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+				return fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 		}
 
 		// The arguments and parameter types agree.  Can't fail after here, so
 		// feel free to clobber the argsBuffer.
-		interpreter.argsBuffer.clear()
-		interpreter.argsBuffer.addAll(argTuple)
-		return interpreter.invokeInPrimitive(function)
+		argsBuffer.clear()
+		argsBuffer.addAll(argTuple)
+		return invokeInPrimitive(function)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

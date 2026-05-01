@@ -66,13 +66,12 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateFiberHeritableAtom : Primitive1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val name = arg1
-		val TEMP: A_BasicObject? = when (val module = interpreter.module())
+		val TEMP: A_BasicObject? = when (val module = module())
 		{
 			nil -> createAtom(name, nil)
 				.run {
@@ -82,11 +81,11 @@ object P_CreateFiberHeritableAtom : Primitive1(CanInline)
 			else -> module.lock {
 				val trueNames = module.trueNamesForStringName(name)
 				when (trueNames.setSize) {
-					0 -> interpreter.availLoader().lookupName(name) {
+					0 -> availLoader().lookupName(name) {
 							setAtomProperty(HERITABLE_KEY.atom, trueObject)
 						}
-					1 -> interpreter.fail(E_ATOM_ALREADY_EXISTS)
-					else -> interpreter.fail(E_AMBIGUOUS_NAME)
+					1 -> fail(E_ATOM_ALREADY_EXISTS)
+					else -> fail(E_AMBIGUOUS_NAME)
 				}
 			}
 		}

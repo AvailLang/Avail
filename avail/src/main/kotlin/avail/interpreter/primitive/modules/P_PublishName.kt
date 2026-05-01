@@ -72,22 +72,20 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_PublishName : Primitive1(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val name = arg1
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		val module = loader.module
 		if (module.isNil)
 		{
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		}
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		return try
 		{
@@ -104,7 +102,7 @@ object P_PublishName : Primitive1(CanInline, HasSideEffect, WritesToHiddenGlobal
 		}
 		catch (e: AmbiguousNameException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

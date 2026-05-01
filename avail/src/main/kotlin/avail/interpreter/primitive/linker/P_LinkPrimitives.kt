@@ -77,53 +77,51 @@ import kotlin.concurrent.withLock
 @Suppress("unused")
 object P_LinkPrimitives : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val jarPath = arg1.asNativeString()
 		val oldModuleOut: A_Variable = arg2
-		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		loader.statementCanBeSummarized(false)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val module = interpreter.module()
+		val module = module()
 		val moduleName = module.moduleName.asNativeString()
-		val currentRoot = interpreter.runtime.moduleRoots().firstOrNull {
+		val currentRoot = runtime.moduleRoots().firstOrNull {
 			it.resolver.getResolverReference(moduleName) != null
 		}!!
 		val jarReference = currentRoot.resolver.getResolverReference(jarPath)
-			?: return interpreter.fail(E_NO_FILE)
+			?: return fail(E_NO_FILE)
 		val jarFile = Paths.get(jarReference.uri).toFile()
 		if (!jarFile.exists())
 		{
-			return interpreter.fail(E_NO_FILE)
+			return fail(E_NO_FILE)
 		}
 		mutex.withLock {
 			PrimitiveClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
 				oldModuleOut.setValue(origLinker)
-				return interpreter.fail(E_LIBRARY_ALREADY_LINKED)
+				return fail(E_LIBRARY_ALREADY_LINKED)
 			}
 			try
 			{
-				PrimitiveClassLoader(jarFile, interpreter.module().moduleName)
+				PrimitiveClassLoader(jarFile, module().moduleName)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.fail(E_IO_ERROR)
+				return fail(E_IO_ERROR)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 			catch (e: MalformedURLException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 			return nil
 		}

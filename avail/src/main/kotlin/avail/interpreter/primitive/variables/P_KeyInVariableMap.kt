@@ -64,8 +64,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_KeyInVariableMap : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -78,7 +77,7 @@ object P_KeyInVariableMap : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

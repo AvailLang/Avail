@@ -71,8 +71,7 @@ import avail.interpreter.primitive.style.P_BootstrapLexerStringBodyStyler
 object P_BootstrapLexerStringBody
 	: Primitive3(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -89,7 +88,7 @@ object P_BootstrapLexerStringBody
 			source,
 			startPosition,
 			startLineNumber,
-			interpreter.fiber().currentLexer)
+			fiber().currentLexer)
 		return set(tuple(token))
 	}
 

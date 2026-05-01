@@ -95,8 +95,7 @@ import avail.optimizer.L1Translator
 object P_RestartContinuationWithArgumentsIf : Primitive3(
 	CanInline, CanSwitchContinuations)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -127,15 +126,14 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 
 		val numArgs = code.numArgs()
 		if (numArgs != arguments.tupleSize)
-			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		// Check the argument types.
 		if (!code.functionType().acceptsTupleOfArguments(arguments))
-			return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+			return fail(E_INCORRECT_ARGUMENT_TYPE)
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.clearLatestResult()
-		interpreter.currentReifier =
-			interpreter.reifierToRestartWithArguments(originalCon, arguments)
+		clearLatestResult()
+		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
 		return null
 	}
 

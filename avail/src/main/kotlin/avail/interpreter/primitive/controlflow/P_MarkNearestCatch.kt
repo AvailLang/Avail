@@ -75,14 +75,13 @@ import java.util.logging.Level
 @Suppress("unused")
 object P_MarkNearestCatch : Primitive1(Unknown)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val code = arg1
-		return interpreter.reifyForPrimitive(true) {
-			when (val failureCode = interpreter.markNearestGuard(code))
+		return reifyForPrimitive(true) {
+			when (val failureCode = markNearestGuard(code))
 			{
 				null -> succeed(nil)
 				else ->
@@ -90,11 +89,11 @@ object P_MarkNearestCatch : Primitive1(Unknown)
 					if (debugPrimitives)
 					{
 						Interpreter.log(
-							interpreter.fiber(),
+							fiber(),
 							Interpreter.loggerDebugPrimitives,
 							Level.FINER,
 							"{0}Marking nearest catch for {1} FAILED: {2}",
-							interpreter.debugModeString,
+							debugModeString,
 							code,
 							failureCode)
 					}

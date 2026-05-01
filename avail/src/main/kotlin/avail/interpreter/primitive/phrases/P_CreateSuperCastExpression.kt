@@ -64,8 +64,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateSuperCastExpression : Primitive2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -76,14 +75,14 @@ object P_CreateSuperCastExpression : Primitive2(CanInline)
 		val expressionType = expression.phraseExpressionType
 		return when {
 			expressionType.isBottom || expressionType.isTop ->
-				interpreter.fail(
+				fail(
 					E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM)
 			expression.phraseKindIsUnder(SUPER_CAST_PHRASE) ->
-				interpreter.fail(
+				fail(
 					E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST)
 			!expressionType.isSubtypeOf(lookupType)
 					|| expressionType.equals(lookupType) ->
-				interpreter.fail(
+				fail(
 					E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE)
 			else -> newSuperCastNode(expression, lookupType)
 		}

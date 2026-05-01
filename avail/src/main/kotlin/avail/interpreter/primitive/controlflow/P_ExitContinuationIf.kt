@@ -70,8 +70,7 @@ object P_ExitContinuationIf : Primitive2(
 	CanSwitchContinuations,
 	CannotFail)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -79,8 +78,8 @@ object P_ExitContinuationIf : Primitive2(
 		val continuation = arg1
 		val condition = arg2
 		if (!condition.extractBoolean) return nil
-		return interpreter.returnIntoContinuation(
-			this, continuation.caller, nil)
+		return returnIntoContinuation(
+			this@P_ExitContinuationIf, continuation.caller, nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

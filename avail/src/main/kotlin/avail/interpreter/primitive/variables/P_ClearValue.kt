@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ClearValue : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -71,7 +70,7 @@ object P_ClearValue : Primitive1(CanInline, HasSideEffect)
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.fail(e.numericCode)
+			fail(e.numericCode)
 		}
 	}
 

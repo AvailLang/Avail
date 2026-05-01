@@ -71,8 +71,7 @@ import java.lang.reflect.Modifier
 @Suppress("unused")
 object P_BindPojoStaticField : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -80,15 +79,15 @@ object P_BindPojoStaticField : Primitive2(CanFold, CanInline)
 		val pojoType = arg1
 		val fieldName = arg2
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val errorOut = Mutable<AvailErrorCode?>(null)
 		val field = lookupField(pojoType, fieldName, errorOut)
-			?: return interpreter.fail(errorOut.value!!)
+			?: return fail(errorOut.value!!)
 		if (!Modifier.isStatic(field.modifiers))
 		{
 			// This is not the right primitive to bind instance fields.
-			return interpreter.fail(E_JAVA_FIELD_NOT_AVAILABLE)
+			return fail(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 		// A static field cannot have a type parametric on type variables
 		// of the declaring class, so pass an empty map where the type

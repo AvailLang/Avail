@@ -79,8 +79,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 object P_ServerSocketSetOption : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -90,7 +89,7 @@ object P_ServerSocketSetOption : Primitive2(CanInline, HasSideEffect)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -112,17 +111,17 @@ object P_ServerSocketSetOption : Primitive2(CanInline, HasSideEffect)
 					val intOption: SocketOption<Int> = option.cast()
 					socket.setOption(intOption, value.extractInt)
 				}
-				else return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+				else return fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 			nil
 		}
 		catch (e: IllegalArgumentException)
 		{
-			interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+			fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		catch (e: IOException)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 	}
 

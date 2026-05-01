@@ -69,8 +69,7 @@ import avail.interpreter.primitive.Primitive1
 object P_AtomFieldBound : Primitive1(
 	CanInline, CanFold, WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -84,7 +83,7 @@ object P_AtomFieldBound : Primitive1(
 		val typeBound = atom.fieldAtomConstraint
 		if (typeBound.isNil)
 		{
-			return interpreter.fail(E_KEY_NOT_FOUND)
+			return fail(E_KEY_NOT_FOUND)
 		}
 		assert(typeBound.isSubtypeOf(ANY()))
 		return typeBound

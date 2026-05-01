@@ -52,9 +52,7 @@ import java.lang.System.currentTimeMillis
 object P_CurrentTimeMilliseconds : Primitive0(
 	CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
 		return fromLong(currentTimeMillis())
 	}

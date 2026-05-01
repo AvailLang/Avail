@@ -73,8 +73,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_AddSemanticRestrictionForAtom : Primitive2(Unknown)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -83,34 +82,32 @@ object P_AddSemanticRestrictionForAtom : Primitive2(Unknown)
 		val function = arg2
 		val functionType = function.kind()
 		val tupleType = functionType.argsTupleType
-		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		for (i in function.code().numArgs() downTo 1)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceMeta)
 			{
-				return interpreter.fail(
+				return fail(
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES)
 			}
 		}
 		try
 		{
 			val method = atom.bundleOrCreate().bundleMethod
-			val restriction =
-				newSemanticRestriction(function, method, interpreter.module())
+			val restriction = newSemanticRestriction(function, method, module())
 			loader.addSemanticRestriction(restriction)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: SignatureException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 
 		function.code().methodName =

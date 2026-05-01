@@ -74,14 +74,12 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_BootstrapPrefixBlockArgument : Primitive1(CanInline, Bootstrap)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val optionalBlockArgumentsList = arg1
-		interpreter.availLoaderOrNull() ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+		availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		assert(optionalBlockArgumentsList.expressionsSize == 1)
 		val blockArgumentsList = optionalBlockArgumentsList.lastExpression
 		assert(blockArgumentsList.expressionsSize >= 1)

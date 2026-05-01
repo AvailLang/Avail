@@ -68,8 +68,7 @@ import java.lang.Integer.MAX_VALUE
 @Suppress("unused")
 object P_ReverseTuple : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

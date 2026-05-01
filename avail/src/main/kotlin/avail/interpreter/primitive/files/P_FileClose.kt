@@ -63,8 +63,7 @@ import java.nio.channels.AsynchronousFileChannel
 @Suppress("unused")
 object P_FileClose : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -72,7 +71,7 @@ object P_FileClose : Primitive1(CanInline, HasSideEffect)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(E_INVALID_HANDLE)
+			return fail(E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		try

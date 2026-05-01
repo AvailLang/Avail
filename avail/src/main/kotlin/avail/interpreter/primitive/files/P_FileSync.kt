@@ -86,8 +86,7 @@ import java.nio.channels.AsynchronousFileChannel
 @Suppress("unused")
 object P_FileSync : Primitive4(CanInline, HasSideEffect)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -102,13 +101,13 @@ object P_FileSync : Primitive4(CanInline, HasSideEffect)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
 		{
-			return interpreter.fail(E_NOT_OPEN_FOR_WRITE)
+			return fail(E_NOT_OPEN_FOR_WRITE)
 		}
 
 		// Don't block an execution thread - use the runtime's file executor
@@ -118,10 +117,10 @@ object P_FileSync : Primitive4(CanInline, HasSideEffect)
 		// specifies an unbounded queue, so the fiber execution threads will
 		// never be blocked waiting for I/O.
 		val priorityInt = priority.extractInt
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			interpreter.runtime,
+			runtime,
 			current.textInterface,
 			priorityInt)
 		{
@@ -135,7 +134,6 @@ object P_FileSync : Primitive4(CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		val runtime = interpreter.runtime
 		runtime.ioSystem.executeFileTask(
 			Runnable {
 				try

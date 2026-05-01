@@ -74,8 +74,7 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_ParamTypeAt : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -86,7 +85,7 @@ object P_ParamTypeAt : Primitive2(CanFold, CanInline)
 		val parametersType = functionType.argsTupleType
 		val sizeRange = parametersType.sizeRange
 		if (sizeRange.upperBound.lessThan(indexObject)) {
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		if (!indexObject.isInt) {
 			// The function type must accept a very large number of arguments.

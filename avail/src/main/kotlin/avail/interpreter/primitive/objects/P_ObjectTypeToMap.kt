@@ -63,8 +63,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ObjectTypeToMap : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -74,7 +73,7 @@ object P_ObjectTypeToMap : Primitive1(CanFold, CanInline)
 			// The correct answer would be a map with *every* atom as a key,
 			// and ⊥ as every corresponding value.  It's easier to just fail
 			// dynamically for this unrepresentable singularity.
-			interpreter.fail(E_NO_SUCH_FIELD)
+			fail(E_NO_SUCH_FIELD)
 		}
 		else
 		{

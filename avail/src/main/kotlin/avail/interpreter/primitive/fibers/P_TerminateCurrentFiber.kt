@@ -54,9 +54,7 @@ import avail.interpreter.primitive.Primitive0
 object P_TerminateCurrentFiber : Primitive0(
 	Unknown, CannotFail, WritesToHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
 		// Throw an exception to ensure that the fiber's (Java) failure
 		// continuation will be executed.

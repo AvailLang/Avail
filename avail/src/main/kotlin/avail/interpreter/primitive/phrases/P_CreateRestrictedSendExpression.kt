@@ -126,8 +126,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 @Suppress("unused")
 object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -139,7 +138,7 @@ object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		val argExpressions = argsListPhrase.expressionsTuple
 		val argsCount = argExpressions.tupleSize
 		val bundle: A_Bundle
@@ -149,16 +148,16 @@ object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
-				return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			if (!splitter.checkListStructure(argsListPhrase))
 			{
-				return interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				return fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 
 		val argsTupleType = argsListPhrase.phraseExpressionType.makeShared()
@@ -187,7 +186,7 @@ object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 		}
 		if (!anyDefinitionsApplicable)
 		{
-			return interpreter.fail(E_NO_METHOD_DEFINITION)
+			return fail(E_NO_METHOD_DEFINITION)
 		}
 		// Note, the semantic restriction takes the *types* as arguments.
 		val applicableRestrictions =
@@ -212,7 +211,7 @@ object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 
 		// Merge in the (non-empty list of) semantic restriction results.
 		val runtime = currentRuntime()
-		return interpreter.suspendThen {
+		return suspendThen {
 			val problems = synchronizedList(mutableListOf<A_String>())
 			// Now launch the fibers.
 			var fiberCount = 1

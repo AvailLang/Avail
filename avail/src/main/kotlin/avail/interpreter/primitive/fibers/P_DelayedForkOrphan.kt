@@ -92,8 +92,7 @@ import java.util.TimerTask
 object P_DelayedForkOrphan : Primitive4(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -110,14 +109,14 @@ object P_DelayedForkOrphan : Primitive4(
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = function.kind().argsTupleType
 		val callArgs = (1 .. numArgs).map {
 			val anArg = argTuple.tupleAt(it)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
 			{
-				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+				return fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 			anArg
 		}
@@ -131,10 +130,10 @@ object P_DelayedForkOrphan : Primitive4(
 		// and the arguments.
 		function.makeShared()
 		callArgs.forEach { it.makeShared() }
-		val current = interpreter.fiber()
+		val current = fiber()
 		val orphan = newFiber(
 			function.kind().returnType,
-			interpreter.runtime,
+			runtime,
 			current.textInterface,
 			priority.extractInt)
 		{
@@ -152,7 +151,6 @@ object P_DelayedForkOrphan : Primitive4(
 		orphan.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
-		val runtime = interpreter.runtime
 		if (sleepMillis.equalsInt(0))
 		{
 			runtime.runOutermostFunction(orphan, function, callArgs, false)

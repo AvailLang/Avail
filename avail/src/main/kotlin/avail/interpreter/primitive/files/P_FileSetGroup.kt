@@ -73,8 +73,7 @@ import java.nio.file.attribute.PosixFileAttributeView
 @Suppress("unused")
 object P_FileSetGroup : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -91,13 +90,13 @@ object P_FileSetGroup : Primitive3(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-				?: return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
+				?: return fail(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			val lookupService = fileSystem.userPrincipalLookupService
@@ -107,19 +106,19 @@ object P_FileSetGroup : Primitive3(CanInline, HasSideEffect)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: AccessDeniedException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.fail(E_IO_ERROR)
+			return fail(E_IO_ERROR)
 		}
 		catch (e: UnsupportedOperationException)
 		{
-			return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
+			return fail(E_OPERATION_NOT_SUPPORTED)
 		}
 
 		return nil

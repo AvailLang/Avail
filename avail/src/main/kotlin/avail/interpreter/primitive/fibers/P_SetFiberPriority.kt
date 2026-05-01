@@ -53,8 +53,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetFiberPriority : Primitive2(CannotFail, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?

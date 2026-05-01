@@ -57,13 +57,11 @@ import java.nio.CharBuffer
 @Suppress("unused")
 object P_ReadFromStandardInput : Primitive0(CanSuspend, Unknown)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		val fiber = interpreter.fiber()
-		return interpreter.suspendThen {
-			interpreter.runtime.ioSystem.executeFileTask {
+		val fiber = fiber()
+		return suspendThen {
+			runtime.ioSystem.executeFileTask {
 				val buffer = CharBuffer.allocate(1)
 				SimpleCompletionHandler<Int>(
 					{ succeed(fromCodePoint(buffer.get(0).code)) },

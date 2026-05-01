@@ -82,8 +82,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_Alias : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -91,15 +90,15 @@ object P_Alias : Primitive2(CanInline, HasSideEffect)
 		val newString: A_String = arg1
 		val oldAtom: A_Atom = arg2
 
-		val loader = interpreter.availLoaderOrNull()
-		loader ?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = availLoaderOrNull()
+		loader ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		if (oldAtom.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		val newAtom =
 			try
@@ -108,12 +107,12 @@ object P_Alias : Primitive2(CanInline, HasSideEffect)
 			}
 			catch (e: AmbiguousNameException)
 			{
-				return interpreter.fail(e.errorCode)
+				return fail(e.errorCode)
 			}
 
 		if (newAtom.bundleOrNil.notNil)
 		{
-			return interpreter.fail(E_ATOM_ALREADY_EXISTS)
+			return fail(E_ATOM_ALREADY_EXISTS)
 		}
 		val newBundle: A_Bundle = try
 		{
@@ -126,7 +125,7 @@ object P_Alias : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 
 		newAtom.setAtomBundle(newBundle)

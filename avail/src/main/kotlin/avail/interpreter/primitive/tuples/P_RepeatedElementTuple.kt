@@ -68,8 +68,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RepeatedElementTuple : Primitive2(CanInline, CanFold)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -79,7 +78,7 @@ object P_RepeatedElementTuple : Primitive2(CanInline, CanFold)
 
 		if (!size.isInt)
 		{
-			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
+			return fail(E_EXCEEDS_VM_LIMIT)
 		}
 		return createRepeatedElementTuple(size.extractInt, element)
 	}

@@ -57,8 +57,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_FloatTruncatedAsInteger : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -69,7 +68,7 @@ object P_FloatTruncatedAsInteger : Primitive1(CanFold, CanInline)
 		return when
 		{
 			f.isNaN() ->
-				interpreter.fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
+				fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
 			else -> doubleTruncatedToExtendedInteger(f.toDouble())
 		}
 	}

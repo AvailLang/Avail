@@ -70,24 +70,22 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_GetValue : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val variable = arg1
 		return try
 		{
-			if (interpreter.traceVariableReadsBeforeWrites())
+			if (traceVariableReadsBeforeWrites())
 			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(variable, true)
+				fiber().recordVariableAccess(variable, true)
 			}
 			variable.getValue()
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

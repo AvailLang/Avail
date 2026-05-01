@@ -61,8 +61,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateFunction : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -72,7 +71,7 @@ object P_CreateFunction : Primitive2(CanFold, CanInline)
 		val numOuters = rawFunction.numOuters
 		if (outers.tupleSize != numOuters)
 		{
-			return interpreter.fail(E_WRONG_OUTERS)
+			return fail(E_WRONG_OUTERS)
 		}
 		for (i in 1 .. numOuters)
 		{
@@ -80,7 +79,7 @@ object P_CreateFunction : Primitive2(CanFold, CanInline)
 			val requiredType = rawFunction.outerTypeAt(i)
 			if (!outer.isInstanceOf(requiredType))
 			{
-				return interpreter.fail(E_WRONG_OUTERS)
+				return fail(E_WRONG_OUTERS)
 			}
 		}
 		val function = createFunction(rawFunction, outers)

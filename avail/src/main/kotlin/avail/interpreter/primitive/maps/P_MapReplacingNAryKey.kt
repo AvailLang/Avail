@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_MapReplacingNAryKey : Primitive3(CanInline, CanFold)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -78,7 +77,7 @@ object P_MapReplacingNAryKey : Primitive3(CanInline, CanFold)
 		}
 		catch (e: AvailException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

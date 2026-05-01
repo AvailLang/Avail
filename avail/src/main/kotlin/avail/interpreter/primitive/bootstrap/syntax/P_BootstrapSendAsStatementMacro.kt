@@ -69,14 +69,12 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 @Suppress("unused")
 object P_BootstrapSendAsStatementMacro : Primitive1(CanInline, Bootstrap)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val sendPhraseInLiteral = arg1
-		interpreter.fiber().availLoader ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+		fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 
 		val sendPhrase = sendPhraseInLiteral.token.literal()
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))

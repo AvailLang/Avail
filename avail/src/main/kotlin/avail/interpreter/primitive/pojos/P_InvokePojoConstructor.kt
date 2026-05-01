@@ -72,23 +72,22 @@ import java.lang.reflect.InvocationTargetException
 @Suppress("unused")
 object P_InvokePojoConstructor : PrimitiveN(-1, Private, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
 		val constructorArgs = tupleFromArray(*args)
 
-		val primitiveFunction = interpreter.function!!
+		val primitiveFunction = function!!
 		val primitiveRawFunction = primitiveFunction.code()
-		assert(primitiveRawFunction.codePrimitive() === this)
+		assert(primitiveRawFunction.codePrimitive() === P_InvokePojoConstructor)
 
 		val constructorPojo = primitiveFunction.outerVarAt(1)
 		val marshaledTypes = primitiveFunction.outerVarAt(2)
 		// The exact return kind was captured in the function type.
 		val expectedType = primitiveRawFunction.functionType().returnType
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the arguments.
 		val constructor = constructorPojo.javaObjectNotNull<Constructor<*>>()
@@ -98,7 +97,7 @@ object P_InvokePojoConstructor : PrimitiveN(-1, Private, HasSideEffect)
 		if (errorOut.value !== null)
 		{
 			val e = errorOut.value!!
-			return interpreter.fail(
+			return fail(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
@@ -113,14 +112,14 @@ object P_InvokePojoConstructor : PrimitiveN(-1, Private, HasSideEffect)
 		catch (e: InvocationTargetException)
 		{
 			val cause = e.cause!!
-			return interpreter.fail(
+			return fail(
 				newPojo(identityPojo(cause), pojoTypeForClass(cause.javaClass)))
 		}
 		catch (e: Throwable)
 		{
 			// This is an unexpected failure in the invocation mechanism.  For
 			// now, report it like an expected InvocationTargetException.
-			return interpreter.fail(
+			return fail(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
@@ -130,8 +129,7 @@ object P_InvokePojoConstructor : PrimitiveN(-1, Private, HasSideEffect)
 		}
 		catch (e: MarshalingException)
 		{
-			interpreter.fail(
-				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
+			fail(newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 	}
 

@@ -68,8 +68,7 @@ import kotlin.math.min
 @Suppress("unused")
 object P_TupleSwapElements : Primitive3(CanFold, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -81,7 +80,7 @@ object P_TupleSwapElements : Primitive3(CanFold, CanInline)
 
 		if (!indexObject1.isInt || !indexObject2.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index1 = indexObject1.extractInt
 		val index2 = indexObject2.extractInt

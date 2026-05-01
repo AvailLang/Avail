@@ -62,14 +62,11 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_LookupModule : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val pathString: A_String = arg1
-
-		val runtime = interpreter.runtime
 		return try
 		{
 			val qualifiedName = ModuleName(pathString.asNativeString())
@@ -78,7 +75,7 @@ object P_LookupModule : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 		}
 		catch (e: Exception)
 		{
-			interpreter.fail(E_KEY_NOT_FOUND)
+			fail(E_KEY_NOT_FOUND)
 		}
 	}
 

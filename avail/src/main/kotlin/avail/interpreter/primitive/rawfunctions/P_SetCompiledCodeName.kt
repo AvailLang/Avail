@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive2
 object P_SetCompiledCodeName : Primitive2(
 	CannotFail, CanInline, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -71,7 +70,7 @@ object P_SetCompiledCodeName : Primitive2(
 		val code = arg1
 		val name = arg2
 		code.methodName = name
-		interpreter.availLoaderOrNull()?.recordEffect(
+		availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SET_COMPILED_CODE_NAME, code, name))
 		return nil

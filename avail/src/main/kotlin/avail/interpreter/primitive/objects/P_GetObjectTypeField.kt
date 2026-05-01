@@ -71,8 +71,7 @@ import avail.optimizer.values.L2SemanticPrimitiveInvocation
 @Suppress("unused")
 object P_GetObjectTypeField : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -82,7 +81,7 @@ object P_GetObjectTypeField : Primitive2(CanFold, CanInline)
 
 		return when (val fieldType = objectType.fieldTypeAtOrNull(field))
 		{
-			null -> interpreter.fail(E_NO_SUCH_FIELD)
+			null -> fail(E_NO_SUCH_FIELD)
 			else -> fieldType
 		}
 	}

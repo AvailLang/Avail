@@ -57,8 +57,8 @@ constructor(
 	 * [avail.optimizer.StackReifier].  If the primitive fails, its failure code
 	 * will be stored in the [Interpreter.latestResult].
 	 *
-	 * @param interpreter
-	 *   The interpreter performing the primitive attempt.
+	 * @receiver
+	 *   The [Interpreter] performing the primitive attempt.
 	 * @param arg1
 	 *   The first argument to the primitive.
 	 * @param arg2
@@ -66,8 +66,7 @@ constructor(
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
-	abstract fun attempt2(
-		interpreter: Interpreter,
+	abstract fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -76,6 +75,6 @@ constructor(
 	{
 		val args = interpreter.argsBuffer
 		assert(args.size == 2)
-		return attempt2(interpreter, args[0], args[1])
+		return interpreter.attempt2(args[0], args[1])
 	}
 }

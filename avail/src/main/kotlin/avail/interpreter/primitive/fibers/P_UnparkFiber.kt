@@ -70,8 +70,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_UnparkFiber : Primitive1(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -90,7 +89,7 @@ object P_UnparkFiber : Primitive1(CannotFail, CanInline, HasSideEffect)
 						assert(
 							suspendingPrimitive === P_ParkCurrentFiber
 								|| suspendingPrimitive === P_AttemptJoinFiber)
-						interpreter.runtime.resumeFromSuccessfulPrimitive(
+						runtime.resumeFromSuccessfulPrimitive(
 							fiber, suspendingPrimitive, nil)
 					}
 					else -> {

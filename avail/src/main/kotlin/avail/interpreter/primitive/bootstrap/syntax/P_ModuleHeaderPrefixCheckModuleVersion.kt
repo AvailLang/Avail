@@ -66,8 +66,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_ModuleHeaderPrefixCheckModuleVersion : Primitive2(Private, Bootstrap)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -87,7 +86,7 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive2(Private, Bootstrap)
 			val oldVersion = oldVersionPhrase.token.literal().literal()
 			if (latestVersionString.equals(oldVersion))
 			{
-				return interpreter.reifyForPrimitive(false) {
+				return reifyForPrimitive(false) {
 					throw AvailRejectedParseException(
 						STRONG,
 						"module version $latestVersionString to be unique, " +

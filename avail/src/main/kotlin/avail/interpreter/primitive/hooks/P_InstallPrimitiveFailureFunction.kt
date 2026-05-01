@@ -68,17 +68,15 @@ object P_InstallPrimitiveFailureFunction : Primitive1(
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val newFunction = arg1
 
 		// Set the primitive failure handler function.
-		val runtime = interpreter.runtime
 		runtime[PRIMITIVE_FAILURE_HANDLER] = newFunction.makeShared()
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return nil
 	}
 

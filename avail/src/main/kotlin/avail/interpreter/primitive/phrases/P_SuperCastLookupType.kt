@@ -54,8 +54,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SuperCastLookupType : Primitive1(CanFold, CanInline, CannotFail)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

@@ -94,8 +94,7 @@ import java.lang.Integer.MAX_VALUE
 @Suppress("unused")
 object P_TupleAt : Primitive2(CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -104,12 +103,12 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 		val indexObject = arg2
 		if (!indexObject.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = indexObject.extractInt
 		return if (index > tuple.tupleSize)
 		{
-			interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		else tuple.tupleAt(index)
 	}

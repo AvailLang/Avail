@@ -59,8 +59,7 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_CreateTupleFromPojoArray : Primitive1(CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

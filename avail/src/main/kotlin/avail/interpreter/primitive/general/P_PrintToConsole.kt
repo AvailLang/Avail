@@ -63,18 +63,17 @@ import avail.io.TextOutputChannel
 @Suppress("unused")
 object P_PrintToConsole : Primitive1(CanSuspend, Unknown)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val string = arg1
 
-		val loader = interpreter.availLoaderOrNull()
+		val loader = availLoaderOrNull()
 		loader?.statementCanBeSummarized(false)
 
-		val textInterface = interpreter.fiber().textInterface
-		return interpreter.suspendThen {
+		val textInterface = fiber().textInterface
+		return suspendThen {
 			SimpleCompletionHandler<Int>(
 				{ succeed(nil) },
 				{ fail(E_IO_ERROR) }

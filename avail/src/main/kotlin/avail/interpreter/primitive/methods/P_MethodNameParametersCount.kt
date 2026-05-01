@@ -61,8 +61,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MethodNameParametersCount : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -74,7 +73,7 @@ object P_MethodNameParametersCount : Primitive1(CanFold, CanInline)
 			}
 			catch (e: MalformedMessageException)
 			{
-				return interpreter.fail(e.errorCode)
+				return fail(e.errorCode)
 			}
 		return fromInt(splitter.numberOfArguments)
 	}

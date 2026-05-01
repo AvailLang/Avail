@@ -71,19 +71,18 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetStylerFunction : Primitive2(CanSuspend, Unknown)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val atom: A_Atom = arg1
 		val function: A_Function = arg2
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = fiber().availLoader
+			?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		val bundle = try
 		{
@@ -94,9 +93,9 @@ object P_SetStylerFunction : Primitive2(CanSuspend, Unknown)
 			// MalformedMessageException
 			// SignatureException
 			// AmbiguousNameException
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			try
 			{
 				loader.addStyler(bundle, function)

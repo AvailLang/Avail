@@ -63,14 +63,13 @@ import java.io.IOException
 @Suppress("unused")
 object P_MarkStandardInputStream : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val readAhead = arg1
 		val readAheadInt = readAhead.extractInt
-		val channel = interpreter.fiber().textInterface.inputChannel
+		val channel = fiber().textInterface.inputChannel
 		return try
 		{
 			channel.mark(readAheadInt)
@@ -78,7 +77,7 @@ object P_MarkStandardInputStream : Primitive1(CanInline, HasSideEffect)
 		}
 		catch (e: IOException)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 	}
 

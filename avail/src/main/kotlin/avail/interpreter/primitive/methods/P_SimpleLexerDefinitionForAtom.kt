@@ -93,8 +93,7 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_SimpleLexerDefinitionForAtom : Primitive4(CanSuspend, Unknown)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -106,12 +105,12 @@ object P_SimpleLexerDefinitionForAtom : Primitive4(CanSuspend, Unknown)
 		val bodyFunction = arg3
 		val optionalStylerFunction = arg4
 
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		val loader = fiber.availLoader ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		val bundle = try
 		{
@@ -119,13 +118,13 @@ object P_SimpleLexerDefinitionForAtom : Primitive4(CanSuspend, Unknown)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		val method = bundle.bundleMethod
 		val lexer = newLexer(
 			filterFunction, bodyFunction, method, loader.module)
 
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			filterFunction.code().methodName =
 				stringFrom("Filter for lexer ${atom.atomName}")
 			bodyFunction.code().methodName =

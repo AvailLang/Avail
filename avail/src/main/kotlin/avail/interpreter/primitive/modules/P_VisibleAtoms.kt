@@ -60,13 +60,10 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_VisibleAtoms : Primitive0(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		return if (interpreter.availLoaderOrNull() === null)
-			interpreter.fail(E_LOADING_IS_OVER)
-		else interpreter.module().visibleNames
+		if (availLoaderOrNull() === null) return fail(E_LOADING_IS_OVER)
+		return module().visibleNames
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

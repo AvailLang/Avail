@@ -63,8 +63,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RemoveWriteReactor : Primitive2(HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -74,7 +73,7 @@ object P_RemoveWriteReactor : Primitive2(HasSideEffect)
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		return try
 		{
@@ -83,7 +82,7 @@ object P_RemoveWriteReactor : Primitive2(HasSideEffect)
 		}
 		catch (e: AvailException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

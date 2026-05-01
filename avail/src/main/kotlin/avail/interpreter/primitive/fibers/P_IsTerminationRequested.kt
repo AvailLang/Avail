@@ -56,13 +56,10 @@ import avail.interpreter.primitive.Primitive0
 object P_IsTerminationRequested : Primitive0(
 	CannotFail, CanInline, HasSideEffect, ReadsFromHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
 		return objectFromBoolean(
-			interpreter.fiber().getAndClearInterruptRequestFlag(
-				TERMINATION_REQUESTED))
+			fiber().getAndClearInterruptRequestFlag(TERMINATION_REQUESTED))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -61,9 +61,7 @@ import java.lang.ref.SoftReference
 @Suppress("unused")
 object P_EnvironmentMap : Primitive0(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
 		return getEnvironmentMap()
 	}

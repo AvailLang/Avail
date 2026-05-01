@@ -79,8 +79,7 @@ import java.lang.Math.multiplyExact
 @Suppress("unused")
 object P_BitShiftWithTruncation : Primitive3(CanInline, CanFold)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -98,7 +97,7 @@ object P_BitShiftWithTruncation : Primitive3(CanInline, CanFold)
 		{
 			// Note: The primitive's type signature ensures both baseInteger and
 			// truncationBits are non-negative.
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

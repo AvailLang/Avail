@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_DeclarationInitializingExpression : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -72,7 +71,7 @@ object P_DeclarationInitializingExpression : Primitive1(CanFold, CanInline)
 		val initializer = decl.initializationExpression
 		if (initializer.isNil)
 		{
-			return interpreter.fail(E_DECLARATION_DOES_NOT_HAVE_INITIALIZER)
+			return fail(E_DECLARATION_DOES_NOT_HAVE_INITIALIZER)
 		}
 		return initializer
 	}

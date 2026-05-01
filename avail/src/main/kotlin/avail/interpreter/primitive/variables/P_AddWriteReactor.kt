@@ -65,8 +65,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_AddWriteReactor : Primitive3(HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -78,7 +77,7 @@ object P_AddWriteReactor : Primitive3(HasSideEffect)
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		val sharedFunction = reactorFunction.makeShared()
 		val writeReactor = VariableAccessReactor(sharedFunction)

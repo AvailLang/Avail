@@ -64,14 +64,12 @@ import avail.interpreter.primitive.Primitive1
 object P_AddPostLoadFunction : Primitive1(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val postLoadFunction = arg1
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		val module = loader.module
 		module.addPostLoadFunction(postLoadFunction)
 		loader.recordEffect(

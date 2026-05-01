@@ -69,8 +69,7 @@ object P_RestartContinuation : Primitive1(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -95,9 +94,8 @@ object P_RestartContinuation : Primitive1(
 		val arguments = (1..numArgs).map { originalCon.frameAt(it) }
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.clearLatestResult()
-		interpreter.currentReifier =
-			interpreter.reifierToRestartWithArguments(originalCon, arguments)
+		clearLatestResult()
+		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
 		return null
 	}
 

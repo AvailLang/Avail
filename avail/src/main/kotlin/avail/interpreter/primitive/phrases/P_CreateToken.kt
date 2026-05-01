@@ -77,8 +77,7 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_CreateToken : Primitive4(CanFold, CanInline)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -93,7 +92,7 @@ object P_CreateToken : Primitive4(CanFold, CanInline)
 		{
 			// The low end was already limited by the primitive's argument type
 			// restrictions.
-			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
+			return fail(E_EXCEEDS_VM_LIMIT)
 		}
 		return newToken(
 			lexeme,
@@ -101,7 +100,7 @@ object P_CreateToken : Primitive4(CanFold, CanInline)
 			line.extractInt,
 			TokenType.lookupTokenType(
 				type.getAtomProperty(tokenTypeOrdinalKey).extractInt),
-			interpreter.fiber().currentLexer)
+			fiber().currentLexer)
 	}
 
 	override fun returnTypeGuaranteedByVM(

@@ -63,15 +63,14 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_StyleMethodName : Primitive1(CanInline, WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val phrase: A_Phrase = arg1
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		if (!fiber.canStyle)
-			return interpreter.fail(E_CANNOT_STYLE)
+			return fail(E_CANNOT_STYLE)
 		fiber.availLoader!!.styleMethodName(phrase.token)
 		return nil
 	}

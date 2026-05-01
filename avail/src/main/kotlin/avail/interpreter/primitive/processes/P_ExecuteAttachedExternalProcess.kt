@@ -86,8 +86,7 @@ import java.lang.ProcessBuilder.Redirect
 object P_ExecuteAttachedExternalProcess : PrimitiveN(
 	6, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -123,7 +122,7 @@ object P_ExecuteAttachedExternalProcess : PrimitiveN(
 			environmentMap.putAll(newEnvironmentMap)
 		}
 		// Create the new fiber that will be connected to the external process.
-		val current = interpreter.fiber()
+		val current = fiber()
 
 		// Start the process, running the success function on the new fiber if
 		// the process launches successfully.
@@ -154,7 +153,6 @@ object P_ExecuteAttachedExternalProcess : PrimitiveN(
 				listOf(E_NO_EXTERNAL_PROCESS.numericCode()))
 		}
 		// Run either the success or failure function in a new fiber.
-		val runtime = interpreter.runtime
 		val newFiber = newFiber(
 			TOP(),
 			runtime,

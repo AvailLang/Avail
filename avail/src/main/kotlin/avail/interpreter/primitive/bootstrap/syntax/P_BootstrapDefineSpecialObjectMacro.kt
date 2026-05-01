@@ -81,19 +81,18 @@ import avail.interpreter.primitive.style.P_BootstrapDefineSpecialObjectMacroStyl
 object P_BootstrapDefineSpecialObjectMacro
 	: Primitive2(Bootstrap, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val nameLiteral = arg1
 		val specialObjectLiteral = arg2
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
-			return interpreter.fail(E_LOADING_IS_OVER)
+			return fail(E_LOADING_IS_OVER)
 		}
 		val bundle: A_Bundle =
 			try
@@ -102,11 +101,11 @@ object P_BootstrapDefineSpecialObjectMacro
 			}
 			catch (e: AmbiguousNameException)
 			{
-				return interpreter.fail(e.errorCode)
+				return fail(e.errorCode)
 			}
 			catch (e: MalformedMessageException)
 			{
-				return interpreter.fail(e.errorCode)
+				return fail(e.errorCode)
 			}
 
 		// Create a send of the bootstrap method definer that, when actually

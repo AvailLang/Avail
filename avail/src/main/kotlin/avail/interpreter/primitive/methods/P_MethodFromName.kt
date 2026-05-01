@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MethodFromName : Primitive1(CanInline, CanFold)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -74,7 +73,7 @@ object P_MethodFromName : Primitive1(CanInline, CanFold)
 		}
 		catch (e: MalformedMessageException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

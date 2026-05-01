@@ -60,8 +60,7 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_FileIsAbsolute : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -73,7 +72,7 @@ object P_FileIsAbsolute : Primitive1(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 		return objectFromBoolean(path.isAbsolute)
 	}

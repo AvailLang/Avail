@@ -70,8 +70,7 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 @Suppress("unused")
 object P_CreateContinuation : PrimitiveN(5, CanFold, CanInline)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -82,12 +81,12 @@ object P_CreateContinuation : PrimitiveN(5, CanFold, CanInline)
 		val primitive = rawFunction.codePrimitive()
 		if (primitive !== null && primitive.hasFlag(CannotFail))
 		{
-			return interpreter.fail(
+			return fail(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION)
 		}
 		if (stack.tupleSize != rawFunction.numSlots)
 		{
-			return interpreter.fail(
+			return fail(
 				E_INCORRECT_CONTINUATION_STACK_SIZE)
 		}
 		return createContinuationWithFrame(

@@ -63,8 +63,7 @@ import kotlin.math.min
 @Suppress("unused")
 object P_DoubleTimesTwoPower : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject

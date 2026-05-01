@@ -80,8 +80,7 @@ import java.util.EnumMap
 @Suppress("unused")
 object P_FileGetPermissions : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -95,7 +94,7 @@ object P_FileGetPermissions : Primitive2(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val permissions: Set<PosixFilePermission> =
@@ -105,19 +104,19 @@ object P_FileGetPermissions : Primitive2(CanInline, HasSideEffect)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 			catch (e: AccessDeniedException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.fail(E_IO_ERROR)
+				return fail(E_IO_ERROR)
 			}
 			catch (e: UnsupportedOperationException)
 			{
-				return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
+				return fail(E_OPERATION_NOT_SUPPORTED)
 			}
 		return ordinalsFromPosixPermissions(permissions)
 	}

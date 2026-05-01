@@ -86,8 +86,7 @@ import java.nio.file.StandardCopyOption
 @Suppress("unused")
 object P_FileRename : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -99,7 +98,6 @@ object P_FileRename : PrimitiveN(6, CanInline, HasSideEffect)
 		val fail = args[4]
 		val priority = args[5]
 
-		val runtime = interpreter.runtime
 		val (sourcePath, destinationPath) =
 			try
 			{
@@ -109,11 +107,11 @@ object P_FileRename : PrimitiveN(6, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val priorityInt = priority.extractInt
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			runtime,

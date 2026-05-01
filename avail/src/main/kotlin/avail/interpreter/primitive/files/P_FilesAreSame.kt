@@ -64,8 +64,7 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_FilesAreSame : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -82,7 +81,7 @@ object P_FilesAreSame : Primitive2(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val same: Boolean =
@@ -92,11 +91,11 @@ object P_FilesAreSame : Primitive2(CanInline, HasSideEffect)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.fail(E_IO_ERROR)
+				return fail(E_IO_ERROR)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.fail(E_PERMISSION_DENIED)
+				return fail(E_PERMISSION_DENIED)
 			}
 
 		return objectFromBoolean(same)

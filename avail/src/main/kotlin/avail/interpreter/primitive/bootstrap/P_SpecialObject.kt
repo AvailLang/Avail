@@ -60,8 +60,7 @@ import avail.interpreter.primitive.style.P_SpecialObjectStyler
 @Suppress("unused")
 object P_SpecialObject : Primitive1(CanInline, CanFold, Bootstrap)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -69,7 +68,7 @@ object P_SpecialObject : Primitive1(CanInline, CanFold, Bootstrap)
 		val ordinal = ordinalLiteral.token.literal()
 		if (!ordinal.isInt)
 		{
-			return interpreter.fail(E_NO_SPECIAL_OBJECT)
+			return fail(E_NO_SPECIAL_OBJECT)
 		}
 		val i = ordinal.extractInt
 		val result: AvailObject
@@ -79,12 +78,12 @@ object P_SpecialObject : Primitive1(CanInline, CanFold, Bootstrap)
 		}
 		catch (e: ArrayIndexOutOfBoundsException)
 		{
-			return interpreter.fail(E_NO_SPECIAL_OBJECT)
+			return fail(E_NO_SPECIAL_OBJECT)
 		}
 
 		if (result.isNil)
 		{
-			return interpreter.fail(E_NO_SPECIAL_OBJECT)
+			return fail(E_NO_SPECIAL_OBJECT)
 		}
 
 		return syntheticLiteralNodeFor(result)

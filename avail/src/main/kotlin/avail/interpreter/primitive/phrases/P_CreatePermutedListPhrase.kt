@@ -74,8 +74,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreatePermutedListPhrase : Primitive2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -87,19 +86,19 @@ object P_CreatePermutedListPhrase : Primitive2(CanInline)
 		{
 			// Permutation is empty, or different size than list.
 			size <= 1 || size != list.expressionsTuple.tupleSize ->
-				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not all int32.
 			permutation.any { !it.isInt } ->
-				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not unique.
 			size != permutation.asSet.setSize ->
-				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Entries are unique, but don't cover 1..N (pigeonhole principle).
 			permutation.maxByOrNull { it.extractInt }!!.extractInt != size ->
-				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
 			permutation.equals(createInterval(one, fromInt(size), one)) ->
-				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			else -> newPermutedListNode(list, permutation)
 		}
 	}

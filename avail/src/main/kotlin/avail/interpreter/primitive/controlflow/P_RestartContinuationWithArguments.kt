@@ -93,8 +93,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -118,24 +117,23 @@ object P_RestartContinuationWithArguments : Primitive2(
 		val numArgs = code.numArgs()
 		if (numArgs != arguments.tupleSize)
 		{
-			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		// Check the argument types.
 		if (!code.functionType().acceptsTupleOfArguments(arguments))
 		{
-			return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+			return fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		// Move the arguments into interpreter.argsBuffer.
-		interpreter.argsBuffer.clear()
+		argsBuffer.clear()
 		for (arg in arguments)
 		{
-			interpreter.argsBuffer.add(arg)
+			argsBuffer.add(arg)
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.clearLatestResult()
-		interpreter.currentReifier =
-			interpreter.reifierToRestartWithArguments(originalCon, arguments)
+		clearLatestResult()
+		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
 		return null
 	}
 

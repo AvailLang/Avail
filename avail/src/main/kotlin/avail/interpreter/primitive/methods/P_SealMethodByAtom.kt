@@ -70,19 +70,17 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SealMethodByAtom : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
 	{
 		val methodName = arg1
 		val sealSignature = arg2
-		val loader = interpreter.availLoaderOrNull() ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
+			return fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		try
 		{
@@ -90,11 +88,11 @@ object P_SealMethodByAtom : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: SignatureException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		return nil
 	}

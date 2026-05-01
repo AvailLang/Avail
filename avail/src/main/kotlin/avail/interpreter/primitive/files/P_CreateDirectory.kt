@@ -90,8 +90,7 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_CreateDirectory : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -102,7 +101,6 @@ object P_CreateDirectory : PrimitiveN(5, CanInline, HasSideEffect)
 		val fail = args[3]
 		val priority = args[4]
 
-		val runtime = interpreter.runtime
 		val fileSystem = IOSystem.fileSystem
 		val path: Path =
 			try
@@ -111,14 +109,14 @@ object P_CreateDirectory : PrimitiveN(5, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val priorityInt = priority.extractInt
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			interpreter.runtime,
+			runtime,
 			current.textInterface,
 			priorityInt)
 		{

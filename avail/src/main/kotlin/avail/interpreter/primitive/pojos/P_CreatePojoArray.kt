@@ -61,8 +61,7 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_CreatePojoArray : Primitive2(CannotFail, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -70,7 +69,7 @@ object P_CreatePojoArray : Primitive2(CannotFail, CanInline)
 		val elementType = arg1
 		val length = arg2
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val pojoType = pojoArrayType(elementType, singleInteger(length))
 		val array = Array.newInstance(

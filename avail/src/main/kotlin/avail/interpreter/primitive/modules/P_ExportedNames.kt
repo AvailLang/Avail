@@ -55,13 +55,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_ExportedNames : Primitive0(CanInline)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		return loader.module.exportedNames
 	}
 

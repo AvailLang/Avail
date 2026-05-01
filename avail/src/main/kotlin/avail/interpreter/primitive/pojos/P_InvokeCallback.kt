@@ -64,18 +64,17 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_InvokeCallback : PrimitiveN(-1, Private, CanSuspend, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		val primitiveFunction = interpreter.function!!
-		assert(primitiveFunction.code().codePrimitive() === this)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
+		val primitiveFunction = function!!
+		assert(primitiveFunction.code().codePrimitive() === P_InvokeCallback)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
 		val argumentsTuple = tupleFromArray(*args)
-		return interpreter.suspendThen {
-			interpreter.runtime.callbackSystem().executeCallbackTask(
+		return suspendThen {
+			runtime.callbackSystem().executeCallbackTask(
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
 				completion = ::succeed,

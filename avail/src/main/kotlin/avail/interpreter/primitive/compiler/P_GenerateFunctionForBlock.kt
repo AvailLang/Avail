@@ -67,8 +67,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_GenerateFunctionForBlock : Primitive1(CanFold, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -79,21 +78,21 @@ object P_GenerateFunctionForBlock : Primitive1(CanFold, CanInline)
 		}
 		catch (e: AvailRuntimeException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.fail(E_BLOCK_IS_INVALID)
+			return fail(E_BLOCK_IS_INVALID)
 		}
 
 		val compiledCode: A_RawFunction
 		try
 		{
-			compiledCode = block.generateInModule(interpreter.module())
+			compiledCode = block.generateInModule(module())
 		}
 		catch (e: Exception)
 		{
-			return interpreter.fail(E_BLOCK_COMPILATION_FAILED)
+			return fail(E_BLOCK_COMPILATION_FAILED)
 		}
 
 		val function = createFunction(compiledCode, emptyTuple)

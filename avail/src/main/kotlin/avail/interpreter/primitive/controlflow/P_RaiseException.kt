@@ -83,43 +83,42 @@ import java.util.logging.Level
 @Suppress("unused")
 object P_RaiseException : Primitive1(CanSuspend, CanSwitchContinuations)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val exception = arg1
 
-		val raiseFunction = interpreter.function!!
+		val raiseFunction = function!!
 		assert(raiseFunction.code().codePrimitive() == P_RaiseException)
 
-		interpreter.currentReifier = StackReifier(
+		currentReifier = StackReifier(
 			true,
 			reificationForNoninlineStat!!
 		) {
 			// The call stack must have been reified now.
-			assert(interpreter.callerIsReified())
+			assert(callerIsReified())
 
 			// Attach the current continuation to the exception, so that a stack
 			// dump can be obtained later.
 			val newException = exception.fieldAtPuttingCanDestroy(
 				stackDumpAtom,
-				interpreter.getReifiedContinuation()!!.makeImmutable(),
+				getReifiedContinuation()!!.makeImmutable(),
 				false)
 			// Search for an applicable exception handler, leaving the
 			// interpreter in a state from which it can continue after this
 			// post-reification is done.
-			if (!interpreter.searchForExceptionHandler(newException))
+			if (!searchForExceptionHandler(newException))
 			{
 				// Search failed, so fail the primitive.
-				val chunk = raiseFunction.code().startingChunk
-				interpreter.function = raiseFunction
-				interpreter.chunk = chunk
-				interpreter.offset = chunk.offsetAfterInitialTryPrimitive
+				val raiseChunk = raiseFunction.code().startingChunk
+				function = raiseFunction
+				chunk = raiseChunk
+				offset = raiseChunk.offsetAfterInitialTryPrimitive
 				// The exception itself is the failure value.
-				interpreter.setLatestResult(newException)
+				setLatestResult(newException)
 				// Set up the argument as well.
-				interpreter.argsBuffer.run {
+				argsBuffer.run {
 					assert(size == 1)
 					set(0, arg1)
 				}

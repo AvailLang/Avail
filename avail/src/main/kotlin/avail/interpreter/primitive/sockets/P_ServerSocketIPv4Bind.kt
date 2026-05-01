@@ -82,8 +82,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused")
 object P_ServerSocketIPv4Bind : Primitive4(CanInline, HasSideEffect)
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject,
@@ -97,7 +96,7 @@ object P_ServerSocketIPv4Bind : Primitive4(CanInline, HasSideEffect)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -117,21 +116,21 @@ object P_ServerSocketIPv4Bind : Primitive4(CanInline, HasSideEffect)
 		}
 		catch (e: IllegalStateException)
 		{
-			interpreter.fail(E_INVALID_HANDLE)
+			fail(E_INVALID_HANDLE)
 		}
 		catch (e: UnknownHostException)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 		catch (e: IOException)
 		{
-			interpreter.fail(E_IO_ERROR)
+			fail(E_IO_ERROR)
 		}
 		catch (e: SecurityException)
 		{
-			interpreter.fail(E_PERMISSION_DENIED)
+			fail(E_PERMISSION_DENIED)
 		}
 	}
 

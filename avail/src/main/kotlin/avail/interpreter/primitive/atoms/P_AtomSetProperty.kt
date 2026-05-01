@@ -66,8 +66,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_AtomSetProperty : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -78,7 +77,7 @@ object P_AtomSetProperty : Primitive3(CanInline, HasSideEffect, WritesToHiddenGl
 		val propertyValue = arg3
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return interpreter.fail(E_SPECIAL_ATOM)
+			return fail(E_SPECIAL_ATOM)
 		}
 		if (propertyKey.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
 			.equals(trueObject)
@@ -86,10 +85,10 @@ object P_AtomSetProperty : Primitive3(CanInline, HasSideEffect, WritesToHiddenGl
 		{
 			// The atom already has that property, and the property is marked as
 			// disallowing change once it's set.
-			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		atom.setAtomProperty(propertyKey, propertyValue)
-		interpreter.availLoaderOrNull()?.recordEffect(
+		availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ATOM_PROPERTY,
 				atom,

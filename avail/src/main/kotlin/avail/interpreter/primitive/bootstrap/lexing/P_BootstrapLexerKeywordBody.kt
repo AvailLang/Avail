@@ -62,8 +62,7 @@ import avail.interpreter.primitive.Primitive3
 object P_BootstrapLexerKeywordBody
 	: Primitive3(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -89,7 +88,7 @@ object P_BootstrapLexerKeywordBody
 			startPosition,
 			lineNumberInteger.extractInt,
 			KEYWORD,
-			interpreter.fiber().currentLexer)
+			fiber().currentLexer)
 		return set(tuple(token))
 	}
 

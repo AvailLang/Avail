@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateInitializedVariable : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -77,7 +76,7 @@ object P_CreateInitializedVariable : Primitive2(CanInline, HasSideEffect)
 		{
 			// The variable is new, so this is the only possible way to fail.
 			assert(e.errorCode == E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 	}
 

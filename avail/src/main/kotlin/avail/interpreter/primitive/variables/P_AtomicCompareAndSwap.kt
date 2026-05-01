@@ -82,8 +82,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -99,11 +98,11 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

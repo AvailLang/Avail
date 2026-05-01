@@ -88,8 +88,7 @@ import java.util.WeakHashMap
 @Suppress("unused")
 object P_CreatePojoStaticMethodFunction : Primitive3(CanInline, CanFold)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -99,7 +98,7 @@ object P_CreatePojoStaticMethodFunction : Primitive3(CanInline, CanFold)
 		val methodName = arg2
 		val paramTypes = arg3
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the argument types.
 		val method: Method?
@@ -112,7 +111,7 @@ object P_CreatePojoStaticMethodFunction : Primitive3(CanInline, CanFold)
 				pojoType, methodName, marshaledTypes, errorOut)
 			if (method === null)
 			{
-				return interpreter.fail(errorOut.value!!)
+				return fail(errorOut.value!!)
 			}
 			marshaledTypesTuple = generateObjectTupleFrom(marshaledTypes.size) {
 				equalityPojo(marshaledTypes[it - 1])
@@ -120,7 +119,7 @@ object P_CreatePojoStaticMethodFunction : Primitive3(CanInline, CanFold)
 		}
 		catch (e: MarshalingException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 
 		val returnType = resolvePojoType(

@@ -66,8 +66,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_RequestTermination : Primitive1(CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -93,7 +92,7 @@ object P_RequestTermination : Primitive1(CanInline, CannotFail, HasSideEffect, W
 						executionState = SUSPENDED
 						val fiberSuspendingPrimitive =
 							suspendingFunction.code().codePrimitive()!!
-						interpreter.runtime.resumeFromSuccessfulPrimitive(
+						runtime.resumeFromSuccessfulPrimitive(
 							fiber, fiberSuspendingPrimitive, nil)
 					}
 					PARKED ->
@@ -108,7 +107,7 @@ object P_RequestTermination : Primitive1(CanInline, CannotFail, HasSideEffect, W
 						assert(
 							suspendingPrimitive === P_ParkCurrentFiber
 								|| suspendingPrimitive === P_AttemptJoinFiber)
-						interpreter.runtime.resumeFromSuccessfulPrimitive(
+						runtime.resumeFromSuccessfulPrimitive(
 							fiber, suspendingPrimitive, nil)
 					}
 					else -> { }

@@ -58,8 +58,7 @@ import avail.interpreter.primitive.Primitive1
 object P_HasResult : Primitive1(
 	CannotFail, CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{

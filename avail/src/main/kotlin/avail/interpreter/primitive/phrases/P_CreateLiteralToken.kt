@@ -72,19 +72,17 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_CreateLiteralToken : PrimitiveN(5, CanInline)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
 		assert(args.size == 5)
-		val (value, lexeme, start, line, optionalGeneratingPhrase) =
-			interpreter.argsBuffer
+		val (value, lexeme, start, line, optionalGeneratingPhrase) = argsBuffer
 		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
 		{
 			// The low end was already limited by the primitive's argument type
 			// restrictions.
-			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
+			return fail(E_EXCEEDS_VM_LIMIT)
 		}
 		val generatingPhrase = when (optionalGeneratingPhrase.tupleSize)
 		{
@@ -96,7 +94,7 @@ object P_CreateLiteralToken : PrimitiveN(5, CanInline)
 			start.extractInt,
 			line.extractInt,
 			value,
-			interpreter.fiber().currentLexer,
+			fiber().currentLexer,
 			generatingPhrase)
 	}
 

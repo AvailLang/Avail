@@ -78,8 +78,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_CreateSendExpression : Primitive3(CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -97,18 +96,18 @@ object P_CreateSendExpression : Primitive3(CanInline)
 			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
-				return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			if (!splitter.checkListStructure(argsListPhrase))
 			{
-				return interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				return fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
 			return newSendNode(
 				emptyTuple, emptyTuple, bundle, argsListPhrase, returnType)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 	}
 

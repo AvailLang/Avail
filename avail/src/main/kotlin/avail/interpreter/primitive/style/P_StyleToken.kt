@@ -72,8 +72,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_StyleToken : Primitive3(CanInline, WritesToHiddenGlobalState)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -83,9 +82,9 @@ object P_StyleToken : Primitive3(CanInline, WritesToHiddenGlobalState)
 		val styleName: A_String = arg2
 		val overwrite = arg3.extractBoolean
 
-		val fiber = interpreter.fiber()
+		val fiber = fiber()
 		if (!fiber.canStyle)
-			return interpreter.fail(E_CANNOT_STYLE)
+			return fail(E_CANNOT_STYLE)
 		val loader = fiber.availLoader!!
 
 		val innerToken = when

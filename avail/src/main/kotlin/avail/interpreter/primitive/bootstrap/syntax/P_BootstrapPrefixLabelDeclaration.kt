@@ -80,8 +80,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_BootstrapPrefixLabelDeclaration : Primitive3(CanInline, Bootstrap)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -91,8 +90,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive3(CanInline, Bootstrap)
 		val optionalPrimFailurePhrase = arg2
 		val optionalLabelPhrase = arg3
 
-		interpreter.availLoaderOrNull() ?:
-			return interpreter.fail(E_LOADING_IS_OVER)
+		availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 
 		// Note that because the section marker occurs inside the optionality
 		// of the label declaration, this function will only be invoked when

@@ -62,8 +62,7 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_FilePathSplit : Primitive1(CanInline, CanFold)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -76,7 +75,7 @@ object P_FilePathSplit : Primitive1(CanInline, CanFold)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val components = mutableListOf<A_String>()

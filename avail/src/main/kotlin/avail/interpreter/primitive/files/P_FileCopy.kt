@@ -79,8 +79,7 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -101,7 +100,7 @@ object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.fail(E_INVALID_PATH)
+				return fail(E_INVALID_PATH)
 			}
 
 		val optionList = mutableListOf<CopyOption>()
@@ -188,20 +187,20 @@ object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
 				})
 			if (partialSuccess.value)
 			{
-				return interpreter.fail(E_PARTIAL_SUCCESS)
+				return fail(E_PARTIAL_SUCCESS)
 			}
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: AccessDeniedException)
 		{
-			return interpreter.fail(E_PERMISSION_DENIED)
+			return fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.fail(E_IO_ERROR)
+			return fail(E_IO_ERROR)
 		}
 		return nil
 	}

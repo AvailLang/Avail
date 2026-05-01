@@ -78,8 +78,7 @@ import avail.interpreter.primitive.Primitive3
  */
 @Suppress("unused")
 object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt3(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
@@ -94,14 +93,14 @@ object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
 		}
 		catch (e: VariableGetException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			return interpreter.fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 
-		interpreter.availLoaderOrNull()?.recordEffect(
+		availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_TO_MAP_VARIABLE, variable, key, value))
 		return nil

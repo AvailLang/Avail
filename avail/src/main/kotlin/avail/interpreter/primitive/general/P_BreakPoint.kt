@@ -48,18 +48,15 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_BreakPoint : Primitive0(CanSuspend, CannotFail)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		val fiber = interpreter.fiber()
-		val runtime = interpreter.runtime
+		val fiber = fiber()
 		// Enter a safe point, invoke the runtime's injected breakpoint handler,
 		// then succeed from the primitive with nil.  The debugger, if it is
 		// installed, is expected to put the fiber into a paused state, and the
 		// succeed(nil) advances the fiber to just after the call to this
 		// primitive (and then really pauses).
-		return interpreter.suspendInSafePointThen {
+		return suspendInSafePointThen {
 			runtime.breakpointHandler(fiber)
 			succeed(nil)
 		}

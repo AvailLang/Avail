@@ -59,8 +59,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_FiberResult : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -71,9 +70,9 @@ object P_FiberResult : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 				when
 				{
 					!executionState.indicatesTermination || result.isNil ->
-						interpreter.fail(E_FIBER_RESULT_UNAVAILABLE)
+						fail(E_FIBER_RESULT_UNAVAILABLE)
 					!result.isInstanceOf(kind().resultType()) ->
-						interpreter.fail(
+						fail(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
 					else -> result
 				}

@@ -84,15 +84,13 @@ import avail.interpreter.primitive.Primitive1
 object P_BootstrapVariableUseMacro
 	: Primitive1(CanInline, Bootstrap)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val variableNameLiteral = arg1
 
-		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -106,7 +104,7 @@ object P_BootstrapVariableUseMacro
 			throw AvailRejectedParseException(
 				SILENT, "variable $variableNameString to be alphanumeric")
 		}
-		val fiberGlobals = interpreter.fiber().fiberGlobals
+		val fiberGlobals = fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		scopeMap.mapAtOrNull(variableNameString)?.let { localDeclaration ->

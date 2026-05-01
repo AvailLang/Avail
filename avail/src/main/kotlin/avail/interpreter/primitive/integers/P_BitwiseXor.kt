@@ -80,8 +80,7 @@ import kotlin.math.min
 @Suppress("unused")
 object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?

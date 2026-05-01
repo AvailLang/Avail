@@ -70,8 +70,7 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline, CanFold)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -83,11 +82,11 @@ object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline, CanFold)
 		val newValues = args[4]
 
 		if (!sliceStartIndex.isInt || !sliceEndIndex.isInt)
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		val startInt = sliceStartIndex.extractInt
 		val endInt = sliceEndIndex.extractInt
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
-			return interpreter.fail(E_NEGATIVE_SIZE)
+			return fail(E_NEGATIVE_SIZE)
 		return try
 		{
 			targetTuple.recursivelyUpdate(pathTuple.iterator()) {
@@ -109,7 +108,7 @@ object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline, CanFold)
 		}
 		catch (e: AvailException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

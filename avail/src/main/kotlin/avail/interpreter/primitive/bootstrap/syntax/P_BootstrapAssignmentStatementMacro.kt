@@ -83,8 +83,7 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 object P_BootstrapAssignmentStatementMacro
 	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -92,9 +91,7 @@ object P_BootstrapAssignmentStatementMacro
 		val variableNameLiteral = arg1
 		val valueExpression = arg2
 
-		val loader =
-			interpreter.fiber().availLoader
-				?: return interpreter.fail(E_LOADING_IS_OVER)
+		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -109,7 +106,7 @@ object P_BootstrapAssignmentStatementMacro
 				STRONG,
 				"variable name for assignment to be alphanumeric, not $variableNameString")
 		}
-		val fiberGlobals = interpreter.fiber().fiberGlobals
+		val fiberGlobals = fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module

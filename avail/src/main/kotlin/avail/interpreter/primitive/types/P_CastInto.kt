@@ -73,8 +73,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_CastInto : Primitive2(Invokes, CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -87,12 +86,12 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 		if (!value.isInstanceOf(expectedType))
 		{
 			// Fail the primitive.
-			return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
+			return fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		// "Jump" into the castFunction, to keep this frame from showing up.
-		interpreter.argsBuffer.clear()
-		interpreter.argsBuffer.add(value)
-		return interpreter.invokeInPrimitive(castFunction)
+		argsBuffer.clear()
+		argsBuffer.add(value)
+		return invokeInPrimitive(castFunction)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

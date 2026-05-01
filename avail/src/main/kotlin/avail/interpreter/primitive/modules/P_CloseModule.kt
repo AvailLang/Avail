@@ -58,8 +58,7 @@ import avail.interpreter.primitive.Primitive1
  */
 object P_CloseModule : Primitive1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
@@ -68,7 +67,7 @@ object P_CloseModule : Primitive1(CanInline)
 		if (module.moduleState != Loading)
 		{
 			// TODO Should rename error code.
-			return interpreter.fail(E_MODULE_IS_CLOSED)
+			return fail(E_MODULE_IS_CLOSED)
 		}
 		module.moduleState = Loaded
 		return nil

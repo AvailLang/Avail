@@ -64,8 +64,7 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_PojoArrayGet : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -73,17 +72,17 @@ object P_PojoArrayGet : Primitive2(CanInline, HasSideEffect)
 		val pojo = arg1
 		val subscript = arg2
 
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()
 		if (!subscript.isInt)
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = subscript.extractInt
 		if (index > Array.getLength(array))
 		{
-			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val element = Array.get(array, index - 1)
 		return try {
@@ -91,7 +90,7 @@ object P_PojoArrayGet : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: MarshalingException)
 		{
-			interpreter.fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

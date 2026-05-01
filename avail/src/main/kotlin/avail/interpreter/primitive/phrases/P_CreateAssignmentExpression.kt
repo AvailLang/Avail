@@ -64,8 +64,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateAssignmentExpression : Primitive2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -77,13 +76,13 @@ object P_CreateAssignmentExpression : Primitive2(CanInline)
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
-			return interpreter.fail(
+			return fail(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
 		}
 		if (!expression.phraseExpressionType.isSubtypeOf(
 				variable.phraseExpressionType))
 		{
-			return interpreter.fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			return fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		return newAssignment(variable, expression, true)
 	}

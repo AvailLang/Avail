@@ -101,8 +101,7 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
@@ -117,7 +116,7 @@ object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -136,13 +135,13 @@ object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			return interpreter.fail(E_IO_ERROR)
+			return fail(E_IO_ERROR)
 		}
 
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			interpreter.runtime,
+			runtime,
 			current.textInterface,
 			priority.extractInt)
 		{
@@ -184,7 +183,7 @@ object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
 		}
 		catch (e: SecurityException)
 		{
-			interpreter.fail(E_PERMISSION_DENIED)
+			fail(E_PERMISSION_DENIED)
 		}
 	}
 

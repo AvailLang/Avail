@@ -81,8 +81,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_LookupMacro : Primitive2(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt2(
 		arg1: AvailObject,
 		arg2: AvailObject
 	): A_BasicObject?
@@ -92,19 +91,19 @@ object P_LookupMacro : Primitive2(CanInline, ReadsFromHiddenGlobalState)
 		val bundle = atom.bundleOrNil
 		if (bundle.isNil)
 		{
-			return interpreter.fail(E_NO_METHOD_DEFINITION)
+			return fail(E_NO_METHOD_DEFINITION)
 		}
 		val bundleArgCount = bundle.numArgs
 		if (argPhrasesTuple.tupleSize != bundleArgCount)
 		{
-			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val bestMacros = bundle.lookupMacroByPhraseTuple(argPhrasesTuple)
 		return when (bestMacros.tupleSize)
 		{
-			0 -> interpreter.fail(E_NO_METHOD_DEFINITION)
+			0 -> fail(E_NO_METHOD_DEFINITION)
 			1 -> bestMacros.tupleAt(1).bodyBlock()
-			else -> interpreter.fail(E_AMBIGUOUS_METHOD_DEFINITION)
+			else -> fail(E_AMBIGUOUS_METHOD_DEFINITION)
 		}
 	}
 

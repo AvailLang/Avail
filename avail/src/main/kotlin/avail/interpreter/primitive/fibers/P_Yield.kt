@@ -54,11 +54,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_Yield : Primitive0(CannotFail, CanSuspend, Unknown)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject?
+	override fun Interpreter.attempt0(): A_BasicObject?
 	{
-		return interpreter.suspendThen { succeed(nil) }
+		return suspendThen { succeed(nil) }
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

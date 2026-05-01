@@ -108,14 +108,13 @@ import kotlin.math.min
 @Suppress("unused")
 object P_FileWrite : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
 	{
 		assert(args.size == 6)
 
-		interpreter.checkArgumentCount(6)
+		checkArgumentCount(6)
 		val positionObject = args[0]
 		val bytes = args[1]
 		val atom = args[2]
@@ -126,19 +125,19 @@ object P_FileWrite : PrimitiveN(6, CanInline, HasSideEffect)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.fail(
+			return fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
 		{
-			return interpreter.fail(E_NOT_OPEN_FOR_WRITE)
+			return fail(E_NOT_OPEN_FOR_WRITE)
 		}
 		val fileChannel = handle.channel
 		if (!positionObject.isLong)
 		{
-			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
+			return fail(E_EXCEEDS_VM_LIMIT)
 		}
 		val alignment = handle.alignment
 		val runtime = currentRuntime()
@@ -148,7 +147,7 @@ object P_FileWrite : PrimitiveN(6, CanInline, HasSideEffect)
 		assert(oneBasedPositionLong > 0L)
 		// Write the tuple of bytes, possibly split up into manageable sections.
 		// Also update the buffer cache to reflect the modified file content.
-		val current = interpreter.fiber()
+		val current = fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			runtime,

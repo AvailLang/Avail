@@ -70,15 +70,15 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 @Suppress("unused")
 object P_PrivateGetSpecificObjectField : Primitive1(Private, CanInline, CannotFail)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
 	{
 		val obj = arg1
-		val primitiveFunction = interpreter.function!!
+		val primitiveFunction = function!!
 		//TODO Comment out these assertions.
-		assert(primitiveFunction.code().codePrimitive() === this)
+		assert(primitiveFunction.code().codePrimitive() ===
+			this@P_PrivateGetSpecificObjectField)
 		assert(primitiveFunction.numOuterVars == 1)
 		val field = primitiveFunction.outerVarAt(1)
 		assert(field.isAtom)
