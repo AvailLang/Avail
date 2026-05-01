@@ -44,6 +44,8 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.SemanticRestrictionDescriptor.Companion.newSemanticRestriction
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -70,14 +72,14 @@ import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 import avail.utility.notNullAnd
 
@@ -91,25 +93,28 @@ import avail.utility.notNullAnd
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
+object P_SimpleMethodDeclaration : Primitive3(Bootstrap, CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val string: A_String = interpreter.argument(0)
-		val function: A_Function = interpreter.argument(1)
-		val optionalStylerFunction: A_Tuple = interpreter.argument(2)
+		val string: A_String = arg1
+		val function: A_Function = arg2
+		val optionalStylerFunction: A_Tuple = arg3
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		}
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		return interpreter.suspendInSafePointThen {
 			try

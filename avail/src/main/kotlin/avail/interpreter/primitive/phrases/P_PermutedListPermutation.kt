@@ -34,6 +34,8 @@ package avail.interpreter.primitive.phrases
 
 import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
@@ -41,11 +43,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive**: Answer the [permutation&#32;tuple][TupleDescriptor] of the
@@ -54,13 +56,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_PermutedListPermutation : Primitive(1, CannotFail, CanFold, CanInline)
+object P_PermutedListPermutation : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val permuted = interpreter.argument(0)
-		return interpreter.primitiveSuccess(permuted.permutation)
+		val permuted = arg1
+		return permuted.permutation
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

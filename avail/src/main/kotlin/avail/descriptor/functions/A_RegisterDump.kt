@@ -43,12 +43,12 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -90,14 +90,14 @@ interface A_RegisterDump : A_BasicObject
 	fun extractDumpedLongAt(index: Int): Long
 
 	/**
-	 * Given a continuation register dump, extract the [ChunkEntryPoint] that
-	 * indicates where it will continue within the [unoptimizedChunk] if the
+	 * Given a continuation register dump, extract the [DefaultEntryPoint] that
+	 * indicates where it will continue within the [DefaultL1Chunk] if the
 	 * containing continuation becomes immutable or shared.
 	 *
 	 * @return
-	 *   The [ChunkEntryPoint] for continuing in the [unoptimizedChunk].
+	 *   The [DefaultEntryPoint] for continuing in the [DefaultL1Chunk].
 	 */
-	val fallbackEntryPoint: ChunkEntryPoint
+	val fallbackEntryPoint: Int
 
 	companion object {
 		/**

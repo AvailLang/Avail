@@ -64,7 +64,7 @@ constructor(val countdown: Long)
 	 * The [countdown] is very small to encourage early translation of any
 	 * function that is executed even a small number of times.
 	 */
-	UNOPTIMIZED(10L)
+	UNOPTIMIZED(1_000_000_000_000_000_000L) //TODO 10L) -- suppress L2.
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
@@ -163,14 +163,14 @@ constructor(val countdown: Long)
 		/**
 		 * Answer the `OptimizationLevel` for the given ordinal value.
 		 *
-		 * @param targetOptimizationLevel
+		 * @param currentOptimizationLevel
 		 *   The ordinal value, an `int`.
 		 * @return
 		 *   The corresponding `OptimizationLevel`, failing if the ordinal
 		 *   was out of range.
 		 */
-		fun optimizationLevel(targetOptimizationLevel: Int) =
-			entries[targetOptimizationLevel]
+		fun optimizationLevel(currentOptimizationLevel: Int) =
+			entries[currentOptimizationLevel]
 
 		/**
 		 * If a chunk performs this many slow lookups (that weren't excluded due

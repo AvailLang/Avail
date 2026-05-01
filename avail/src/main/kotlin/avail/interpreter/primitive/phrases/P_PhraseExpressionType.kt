@@ -34,6 +34,8 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.PhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
@@ -42,24 +44,26 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Extract the result [type][TypeDescriptor] of a
  * [phrase][PhraseDescriptor].
  */
 @Suppress("unused")
-object P_PhraseExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_PhraseExpressionType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val phrase = interpreter.argument(0)
-		return interpreter.primitiveSuccess(phrase.phraseExpressionType)
+		val phrase = arg1
+		return phrase.phraseExpressionType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

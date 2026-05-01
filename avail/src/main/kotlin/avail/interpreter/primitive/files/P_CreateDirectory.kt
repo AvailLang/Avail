@@ -40,6 +40,8 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -52,8 +54,8 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
@@ -61,10 +63,10 @@ import avail.exceptions.AvailErrorCode.E_FILE_EXISTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -86,16 +88,19 @@ import java.util.EnumSet
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
+object P_CreateDirectory : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
-		val directoryName = interpreter.argument(0)
-		val ordinals = interpreter.argument(1)
-		val succeed = interpreter.argument(2)
-		val fail = interpreter.argument(3)
-		val priority = interpreter.argument(4)
+		assert(args.size == 5)
+		val directoryName = args[0]
+		val ordinals = args[1]
+		val succeed = args[2]
+		val fail = args[3]
+		val priority = args[4]
 
 		val runtime = interpreter.runtime
 		val fileSystem = IOSystem.fileSystem
@@ -106,7 +111,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val priorityInt = priority.extractInt
@@ -179,7 +184,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 				runtime.runOutermostFunction(
 					newFiber, succeed, emptyList(), false)
 			})
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -39,6 +39,8 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.methods.SemanticRestrictionDescriptor.Companion.newSemanticRestriction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -59,9 +61,9 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Add a type restriction function.
@@ -69,27 +71,29 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
+object P_AddSemanticRestrictionForAtom : Primitive2(Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val atom = interpreter.argument(0)
-		val function = interpreter.argument(1)
+		val atom = arg1
+		val function = arg2
 		val functionType = function.kind()
 		val tupleType = functionType.argsTupleType
 		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		for (i in function.code().numArgs() downTo 1)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceMeta)
 			{
-				return interpreter.primitiveFailure(
+				return interpreter.fail(
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES)
 			}
 		}
@@ -102,16 +106,16 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 		catch (e: SignatureException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 
 		function.code().methodName =
 			stringFrom("Semantic restriction of ${atom.atomName}")
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

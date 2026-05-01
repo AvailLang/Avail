@@ -34,16 +34,18 @@ package avail.interpreter.primitive.hooks
 
 import avail.AvailRuntime.HookType.STRINGIFICATION
 import avail.descriptor.functions.A_Function
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Inform the VM of the [A_Function] to use to
@@ -57,18 +59,19 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclareStringifierFunction : Primitive(
-	1,
+object P_DeclareStringifierFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val newFunction = interpreter.argument(0)
+		val newFunction = arg1
 
 		// Set the stringification function.
 		val runtime = interpreter.runtime
@@ -76,7 +79,7 @@ object P_DeclareStringifierFunction : Primitive(
 		runtime[STRINGIFICATION] = newFunction.makeShared()
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(oldFunction)
+		return oldFunction
 	}
 
 	/**

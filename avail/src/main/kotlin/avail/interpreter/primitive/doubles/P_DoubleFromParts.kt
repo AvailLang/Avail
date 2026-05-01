@@ -36,6 +36,8 @@ import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.character.CharacterDescriptor.Companion.nonemptyStringOfDigitsType
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,11 +45,11 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive4
 
 /**
  * **Primitive:** Construct a non-negative [double][A_Number] from parts
@@ -57,13 +59,20 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
+object P_DoubleFromParts : Primitive4(CannotFail, CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val (wholePart, fractionPart, exponentSign, exponentPart) =
-			interpreter.argsBuffer
+		val wholePart = arg1
+		val fractionPart = arg2
+		val exponentSign = arg3
+		val exponentPart = arg4
 
 		// Since we expect that this primitive will only be used for building
 		// floating-point literals, it doesn't need to be particularly
@@ -81,10 +90,9 @@ object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
 					exponentSign.extractBoolean -> ""
 					else -> "-"} +
 				exponentPart.asNativeString()
-		val result: A_Number
 		try
 		{
-			result = fromDouble(java.lang.Double.valueOf(numeral))
+			return fromDouble(java.lang.Double.valueOf(numeral))
 		}
 		catch (e: NumberFormatException)
 		{
@@ -92,7 +100,6 @@ object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
 				"This shouldn't happen, since we control the numeral!",
 				e)
 		}
-		return interpreter.primitiveSuccess(result)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

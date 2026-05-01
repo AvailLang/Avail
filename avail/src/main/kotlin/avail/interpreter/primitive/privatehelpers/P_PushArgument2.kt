@@ -33,19 +33,21 @@ package avail.interpreter.primitive.privatehelpers
 
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
-import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_Move
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive.Flag.SpecialForm
+import avail.interpreter.primitive.PrimitiveN
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -53,13 +55,16 @@ import avail.optimizer.L1Translator
  * **Primitive:** The second argument is being returned.
  */
 @Suppress("unused")
-object P_PushArgument2 : Primitive(
+object P_PushArgument2 : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		val argument = interpreter.argument(1)
-		return interpreter.primitiveSuccess(argument)
+		val argument = args[1]
+		return argument
 	}
 
 	override fun returnTypeGuaranteedByVM(

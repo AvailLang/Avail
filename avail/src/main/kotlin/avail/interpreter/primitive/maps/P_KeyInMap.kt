@@ -34,30 +34,35 @@ package avail.interpreter.primitive.maps
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Check if the key is present in the [map][MapDescriptor].
  */
 @Suppress("unused")
-object P_KeyInMap : Primitive(2, CannotFail, CanFold, CanInline)
+object P_KeyInMap : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val key = interpreter.argument(0)
-		val map = interpreter.argument(1)
-		return interpreter.primitiveSuccess(objectFromBoolean(map.hasKey(key)))
+		val key = arg1
+		val map = arg2
+		return objectFromBoolean(map.hasKey(key))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

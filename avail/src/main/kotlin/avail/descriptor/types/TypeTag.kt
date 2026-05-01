@@ -146,6 +146,8 @@ constructor(
 	CHARACTER_TAG(NONTYPE_TAG, null, Sup { Types.CHARACTER() }),
 	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType }),
 	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION() }),
+	METHOD_DEFINITION_TAG(
+		DEFINITION_TAG, null, Sup { Types.METHOD_DEFINITION() }),
 	FIBER_TAG(NONTYPE_TAG, null, Sup { mostGeneralFiberType() }),
 	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType }),
 	LEXER_TAG(NONTYPE_TAG, null, Sup { Types.LEXER() }),

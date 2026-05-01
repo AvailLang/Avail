@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -46,10 +48,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 import avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -66,13 +68,16 @@ import java.nio.file.attribute.UserPrincipal
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileGetOwner : Primitive(2, CanInline, HasSideEffect)
+object P_FileGetOwner : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val filename = interpreter.argument(0)
-		val followSymlinks = interpreter.argument(1)
+		val filename = arg1
+		val followSymlinks = arg2
 		val path: Path =
 			try
 			{
@@ -80,13 +85,13 @@ object P_FileGetOwner : Primitive(2, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView::class.java, *options)
-		view ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+		view ?: return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
 		val user: UserPrincipal =
 			try
 			{
@@ -94,18 +99,18 @@ object P_FileGetOwner : Primitive(2, CanInline, HasSideEffect)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: AccessDeniedException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
+				return interpreter.fail(E_IO_ERROR)
 			}
 
-		return interpreter.primitiveSuccess(stringFrom(user.name))
+		return stringFrom(user.name)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

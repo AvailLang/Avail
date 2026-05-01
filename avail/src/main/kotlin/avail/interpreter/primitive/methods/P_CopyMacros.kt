@@ -40,6 +40,8 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.module.A_Module.Companion.allAncestors
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
@@ -57,10 +59,10 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.exceptions.AvailException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Copy all macros from the first [A_Atom]'s [A_Bundle] into the
@@ -70,28 +72,31 @@ import avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
+object P_CopyMacros : Primitive2(CanSuspend, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val oldAtom: A_Atom = interpreter.argument(0)
-		val newAtom: A_Atom = interpreter.argument(1)
+		val oldAtom: A_Atom = arg1
+		val newAtom: A_Atom = arg2
 
 		val loader = interpreter.availLoaderOrNull()
-		loader ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		loader ?: return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		if (oldAtom.isAtomSpecial || newAtom.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 
 		val oldBundle = oldAtom.bundleOrNil
-		if (oldBundle.isNil) return interpreter.primitiveSuccess(nil)
+		if (oldBundle.isNil)
+			return nil
 
 		val currentModule = loader.module
 		return interpreter.suspendInSafePointThen {

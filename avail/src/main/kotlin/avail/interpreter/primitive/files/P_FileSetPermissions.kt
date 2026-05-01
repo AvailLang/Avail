@@ -35,6 +35,8 @@ package avail.interpreter.primitive.files
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
@@ -46,17 +48,17 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive3
 import avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -74,14 +76,18 @@ import java.util.EnumSet
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
+object P_FileSetPermissions : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val filename = interpreter.argument(0)
-		val ordinals = interpreter.argument(1)
-		val followSymlinks = interpreter.argument(2)
+		val filename = arg1
+		val ordinals = arg2
+		val followSymlinks = arg3
 		val path: Path =
 			try
 			{
@@ -89,32 +95,32 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val permissions = permissionsFor(ordinals)
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-				?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				?: return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			view.setPermissions(permissions)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: AccessDeniedException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			return interpreter.fail(E_IO_ERROR)
 		}
 
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.general
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.byteArray
@@ -49,9 +50,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_DESERIALIZATION_FAILED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.serialization.Deserializer
 import avail.utility.iterableWith
 import java.io.ByteArrayInputStream
@@ -64,13 +65,16 @@ import java.nio.ByteBuffer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Deserialize : Primitive(2, CanInline)
+object P_Deserialize : Primitive2(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val bytes = interpreter.argument(0)
-		val module = interpreter.argument(1)
+		val bytes = arg1
+		val module = arg2
 
 		val byteArray: ByteArray
 		if (bytes.isByteArrayTuple)
@@ -111,10 +115,10 @@ object P_Deserialize : Primitive(2, CanInline)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.primitiveFailure(E_DESERIALIZATION_FAILED)
+			return interpreter.fail(E_DESERIALIZATION_FAILED)
 		}
 
-		return interpreter.primitiveSuccess(tupleFromList(values))
+		return tupleFromList(values)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

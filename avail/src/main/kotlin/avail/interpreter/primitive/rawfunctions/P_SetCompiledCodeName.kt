@@ -34,6 +34,8 @@ package avail.interpreter.primitive.rawfunctions
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -42,14 +44,14 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Set a [compiled&#32;code][CompiledCodeDescriptor]'s symbolic
@@ -57,19 +59,22 @@ import avail.interpreter.levelTwo.WritesHiddenVariable
  * way.
  */
 @WritesHiddenVariable(GLOBAL_STATE::class)
-object P_SetCompiledCodeName : Primitive(
-	2, CannotFail, CanInline, WritesToHiddenGlobalState)
+object P_SetCompiledCodeName : Primitive2(
+	CannotFail, CanInline, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val code = interpreter.argument(0)
-		val name = interpreter.argument(1)
+		val code = arg1
+		val name = arg2
 		code.methodName = name
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SET_COMPILED_CODE_NAME, code, name))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

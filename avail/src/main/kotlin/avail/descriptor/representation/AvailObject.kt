@@ -86,11 +86,14 @@ import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.declaredExceptions
+import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
+import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -291,15 +294,19 @@ class AvailObject private constructor(
 	 *
 	 * @param instructionDecoder
 	 *   The [L1InstructionDecoder] to populate.
+	 * @param pc
+	 *   The program counter at which the instruction decoder should be set.
 	 */
 	override fun setUpInstructionDecoder(
-		instructionDecoder: L1InstructionDecoder
+		instructionDecoder: L1InstructionDecoder,
+		pc: Int
 	) {
 		super.setUpInstructionDecoder(instructionDecoder)
 		val finalPc = numNybbles + 1
 		instructionDecoder.finalLongIndex =
 			L1InstructionDecoder.baseIndexInArray + (finalPc shr 4)
 		instructionDecoder.finalShift = finalPc and 0xF shl 2
+		instructionDecoder.pc = pc
 	}
 
 	/**
@@ -339,6 +346,19 @@ class AvailObject private constructor(
 	 *   An [Int] hash value.
 	 */
 	override fun hash() = descriptor.o_Hash(this)
+
+	override val typeTag: TypeTag
+		get()
+		{
+			// First, directly access the descriptor's typeTag, which will be
+			// something other than UNKNOWN_TAG in the vast majority of attempts.
+			return when(val tag = descriptor.typeTag)
+			{
+				// Fall back to computing the tag with a polymorphic method.
+				TypeTag.UNKNOWN_TAG -> descriptor.o_ComputeTypeTag(this)
+				else -> tag
+			}
+		}
 
 	/**
 	 * Add the [chunk][L2Chunk] with the given index to the receiver's list of
@@ -1044,7 +1064,7 @@ class AvailObject private constructor(
 	override fun extractDumpedLongAt(index: Int): Long =
 		descriptor.o_ExtractDumpedLongAt(this, index)
 
-	override val fallbackEntryPoint: ChunkEntryPoint
+	override val fallbackEntryPoint: Int
 		get() = descriptor.o_FallbackEntryPoint(this)
 
 	override fun synthesizeCurrentLexingState(): LexingState =

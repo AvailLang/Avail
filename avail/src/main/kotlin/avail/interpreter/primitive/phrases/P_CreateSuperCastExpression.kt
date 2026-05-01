@@ -35,6 +35,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -48,9 +50,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Transform a base expression and a type into a
@@ -60,28 +62,30 @@ import avail.interpreter.execution.Interpreter
  * supertype, or if it is top-valued or bottom-valued.
  */
 @Suppress("unused")
-object P_CreateSuperCastExpression : Primitive(2, CanInline)
+object P_CreateSuperCastExpression : Primitive2(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val expression = interpreter.argument(0)
-		val lookupType = interpreter.argument(1)
+		val expression = arg1
+		val lookupType = arg2
 
 		val expressionType = expression.phraseExpressionType
 		return when {
 			expressionType.isBottom || expressionType.isTop ->
-				interpreter.primitiveFailure(
+				interpreter.fail(
 					E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM)
 			expression.phraseKindIsUnder(SUPER_CAST_PHRASE) ->
-				interpreter.primitiveFailure(
+				interpreter.fail(
 					E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST)
 			!expressionType.isSubtypeOf(lookupType)
 					|| expressionType.equals(lookupType) ->
-				interpreter.primitiveFailure(
+				interpreter.fail(
 					E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE)
-			else -> interpreter.primitiveSuccess(
-				newSuperCastNode(expression, lookupType))
+			else -> newSuperCastNode(expression, lookupType)
 		}
 	}
 

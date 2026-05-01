@@ -34,16 +34,18 @@ package avail.interpreter.primitive.phrases
 
 import avail.descriptor.phrases.MarkerPhraseDescriptor
 import avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
 * **Primitive:** Create a [marker][MarkerPhraseDescriptor] phrase from the
@@ -52,15 +54,17 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateMarkerPhrase : Primitive(2, CannotFail, CanInline)
+object P_CreateMarkerPhrase : Primitive2(CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val value = interpreter.argument(0)
-		val expressionType = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			newMarkerNode(value, expressionType))
+		val value = arg1
+		val expressionType = arg2
+		return newMarkerNode(value, expressionType)
 	}
 
 	/**

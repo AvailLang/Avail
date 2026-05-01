@@ -33,10 +33,10 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.A_Type.Companion.returnType
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.utility.cast
 

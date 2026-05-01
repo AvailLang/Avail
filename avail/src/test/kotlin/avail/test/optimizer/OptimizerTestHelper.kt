@@ -87,12 +87,12 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1Operation.L1_doCall
 import avail.interpreter.levelOne.L1Operation.L1_doClose
 import avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Optimizer
 import java.io.StringReader
 import java.util.concurrent.SynchronousQueue

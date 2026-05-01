@@ -34,11 +34,10 @@ package avail.interpreter.primitive.controlflow
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_Continuation.Companion.caller
-import avail.descriptor.functions.A_Continuation.Companion.function
-import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
-import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -50,14 +49,13 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RETURN
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -67,40 +65,22 @@ import avail.optimizer.L1Translator
  * Otherwise do nothing.
  */
 @Suppress("unused")
-object P_ExitContinuationIf : Primitive(
-	2,
+object P_ExitContinuationIf : Primitive2(
 	CanInline,
 	CanSwitchContinuations,
 	CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (continuation, condition) = interpreter.argsBuffer
-
-		if (!condition.extractBoolean)
-		{
-			return interpreter.primitiveSuccess(nil)
-		}
-
-		val caller = continuation.caller
-		interpreter.setReifiedContinuation(caller)
-		if (caller.isNil)
-		{
-			interpreter.function = null
-			interpreter.chunk = null
-			interpreter.offset = Int.MAX_VALUE
-			interpreter.returnNow = true
-		}
-		else
-		{
-			interpreter.function = caller.function
-			interpreter.chunk = caller.levelTwoChunk
-			interpreter.offset = caller.levelTwoOffset
-			interpreter.returnNow = false
-		}
-		interpreter.setLatestResult(nil)
-		return CONTINUATION_CHANGED
+		val continuation = arg1
+		val condition = arg2
+		if (!condition.extractBoolean) return nil
+		return interpreter.returnIntoContinuation(
+			this, continuation.caller, nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

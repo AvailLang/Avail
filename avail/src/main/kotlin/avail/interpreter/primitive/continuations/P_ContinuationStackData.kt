@@ -35,6 +35,8 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor.Companion.nilSubstitute
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -45,11 +47,11 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.variables.A_Variable
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] containing the
@@ -58,12 +60,14 @@ import avail.interpreter.execution.Interpreter
  * (unconstructible from Avail) for any [nil] values.
  */
 @Suppress("unused")
-object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ContinuationStackData : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val con = interpreter.argument(0)
+		val con = arg1
 		val tuple = generateObjectTupleFrom(con.function().code().numSlots) {
 			con.frameAt(it).let { entry ->
 				if (entry.isNil) nilSubstitute
@@ -71,7 +75,7 @@ object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 			}
 		}
 		tuple.makeSubobjectsImmutable()
-		return interpreter.primitiveSuccess(tuple)
+		return tuple
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

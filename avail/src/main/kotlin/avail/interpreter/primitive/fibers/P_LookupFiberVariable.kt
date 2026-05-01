@@ -38,6 +38,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -46,21 +48,23 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Lookup the given [name][AtomDescriptor] (key) in the variables
  * of the current [fiber][FiberDescriptor].
  */
 @Suppress("unused")
-object P_LookupFiberVariable : Primitive(1, CanInline)
+object P_LookupFiberVariable : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val key = interpreter.argument(0)
+		val key = arg1
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
 		val globals = when
@@ -68,10 +72,11 @@ object P_LookupFiberVariable : Primitive(1, CanInline)
 			key.getAtomProperty(HERITABLE_KEY.atom).isNil -> fiber.fiberGlobals
 			else -> fiber.heritableFiberGlobals
 		}
-		globals.mapAtOrNull(key)?.let {
-			return interpreter.primitiveSuccess(it)
+		return when (val value = globals.mapAtOrNull(key))
+		{
+			null -> interpreter.fail(E_NO_SUCH_FIBER_VARIABLE)
+			else -> value
 		}
-		return interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

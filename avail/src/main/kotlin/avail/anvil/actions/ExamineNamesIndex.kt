@@ -34,7 +34,6 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
-import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.RepositoryDescriber
 import avail.persistence.cache.record.ModuleCompilation
 import java.awt.event.ActionEvent
@@ -63,44 +62,37 @@ class ExamineNamesIndex constructor (
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		workbench.runtime.execute(FiberDescriptor.commandPriority)
-		execute@{
-			val moduleName = workbench.selectedModule()!!
-			moduleName.repository.use { repository ->
-				repository.reopenIfNecessary()
-				val archive = repository.getArchive(moduleName.rootRelativeName)
-				val compilations = archive.allKnownVersions.flatMap {
-					it.value.allCompilations
+		val moduleName = workbench.selectedModule()!!
+		actionPromptAction(
+			firstAction = {
+				moduleName.useRepository { repository ->
+					val archive = repository.getArchive(moduleName.rootRelativeName)
+					val compilations = archive.allKnownVersions.flatMap {
+						it.value.allCompilations
+					}
+					compilations.toTypedArray()
 				}
-				val compilationsArray = compilations.toTypedArray()
-				val selectedCompilation = JOptionPane.showInputDialog(
+			},
+			prompt = { compilationsArray ->
+				JOptionPane.showInputDialog(
 					workbench,
 					"Select names index to examine",
 					"Examine names index",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
-					if (compilationsArray.isNotEmpty())
-					{
-						compilationsArray[0]
-					}
-					else
-					{
-						null
-					})
-				when (selectedCompilation)
-				{
-					is ModuleCompilation ->
-					{
-						val describer = RepositoryDescriber(repository)
-						val report = describer.describeNamesIndex(
-							selectedCompilation.recordNumberOfNamesIndex)
-						workbench.writeText(report, StreamStyle.REPORT)
-					}
-					is Any -> throw AssertionError("Unknown type selected")
+					compilationsArray.firstOrNull()
+				) as ModuleCompilation?
+			},
+			secondAction = { selectedCompilation ->
+				val report = moduleName.useRepository { repository ->
+					val describer = RepositoryDescriber(repository)
+					describer.describeNamesIndex(
+						selectedCompilation.recordNumberOfNamesIndex)
 				}
+				workbench.writeText(report, StreamStyle.REPORT)
 			}
-		}
+		)
 	}
 
 	init

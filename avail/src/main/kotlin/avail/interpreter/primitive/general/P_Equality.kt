@@ -36,6 +36,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceCount
@@ -46,13 +48,13 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -62,14 +64,17 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * [boolean][booleanType].
  */
 @Suppress("unused")
-object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
+object P_Equality : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
-		return interpreter.primitiveSuccess(objectFromBoolean(a.equals(b)))
+		val a = arg1
+		val b = arg2
+		return objectFromBoolean(a.equals(b))
 	}
 
 	override fun returnTypeGuaranteedByVM(

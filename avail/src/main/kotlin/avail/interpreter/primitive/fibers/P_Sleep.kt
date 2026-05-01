@@ -45,17 +45,19 @@ import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive1
 import java.util.TimerTask
 
 /**
@@ -68,19 +70,19 @@ import java.util.TimerTask
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
+object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val sleepMillis = interpreter.argument(0)
+		val sleepMillis = arg1
 		// If the requested sleep time is 0 milliseconds, then return
 		// immediately. We could have chosen to yield here, but it was better to
 		// make sleep and yield behave differently.
 		if (sleepMillis.equalsInt(0))
-		{
-			return interpreter.primitiveSuccess(nil)
-		}
+			return nil
 		val fiber = interpreter.fiber()
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
@@ -111,7 +113,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 			}
 			// Once the fiber has been unbound, transition it to sleeping and
 			// start the timer task.
-			interpreter.postExitContinuation {
+			interpreter.postExitContinuation = {
 				fiber.lock {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
@@ -134,7 +136,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 		else
 		{
 			// Once the fiber has been unbound, transition it to sleeping.
-			interpreter.postExitContinuation {
+			interpreter.postExitContinuation = {
 				fiber.lock {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
@@ -152,7 +154,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 		// Don't actually transition the fiber to the sleeping state, which
 		// can only occur at task-scheduling time. This happens after the
 		// fiber is unbound from the interpreter. Instead, suspend the fiber.
-		return interpreter.primitiveSuspend(primitiveFunction)
+		return interpreter.primitiveSuspend(SUSPENDED, primitiveFunction)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

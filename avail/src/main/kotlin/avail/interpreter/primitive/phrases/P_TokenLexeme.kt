@@ -31,31 +31,35 @@
  */
 package avail.interpreter.primitive.phrases
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Get the lexeme ([string][A_String]) associated with the
  * specified [token][TokenDescriptor].
  */
 @Suppress("unused")
-object P_TokenLexeme : Primitive(1, CannotFail, CanFold, CanInline)
+object P_TokenLexeme : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val token = interpreter.argument(0)
-		return interpreter.primitiveSuccess(token.string())
+		val token = arg1
+		return token.string()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

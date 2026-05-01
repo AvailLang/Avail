@@ -36,6 +36,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.module.A_Module.Companion.addUnloadFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -45,12 +47,12 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Add the specified [unload&#32;function][A_Function] to the
@@ -59,21 +61,22 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AddUnloadFunction : Primitive(
-	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_AddUnloadFunction : Primitive1(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val unloadFunction = interpreter.argument(0)
+		val unloadFunction = arg1
 		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		val module = loader.module
 		module.addUnloadFunction(unloadFunction)
 		loader.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_UNLOAD_FUNCTION, unloadFunction))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

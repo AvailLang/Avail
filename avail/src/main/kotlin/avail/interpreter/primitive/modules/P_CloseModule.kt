@@ -36,6 +36,9 @@ import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.ModuleDescriptor.State.Loaded
 import avail.descriptor.module.ModuleDescriptor.State.Loading
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -43,9 +46,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive**: Close the specified anonymous [module][A_Module],
@@ -53,20 +56,22 @@ import avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_CloseModule : Primitive(1, CanInline)
+object P_CloseModule : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val module: A_Module = interpreter.argument(0)
+		val module: A_Module = arg1
 
 		if (module.moduleState != Loading)
 		{
 			// TODO Should rename error code.
-			return interpreter.primitiveFailure(E_MODULE_IS_CLOSED)
+			return interpreter.fail(E_MODULE_IS_CLOSED)
 		}
 		module.moduleState = Loaded
-		return interpreter.primitiveSuccess(TOP())
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction() =

@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.types
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -41,11 +43,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import java.util.Enumeration
 
 /**
@@ -53,14 +55,15 @@ import java.util.Enumeration
  * [set][SetDescriptor] of instances.
  */
 @Suppress("unused")
-object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CreateEnumeration : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val instanceSet = interpreter.argument(0)
-		val enumeration = enumerationWith(instanceSet)
-		return interpreter.primitiveSuccess(enumeration)
+		val instanceSet = arg1
+		return enumerationWith(instanceSet)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -33,21 +33,20 @@
 package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
-import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
-import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Resume the specified [continuation][A_Continuation].
@@ -55,26 +54,20 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ResumeContinuation : Primitive(
-	1,
+object P_ResumeContinuation : Primitive1(
 	Private,
 	CannotFail,
 	CanInline,
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val con = interpreter.argument(0)
-
-		interpreter.setReifiedContinuation(con)
-		interpreter.function = con.function()
-		interpreter.chunk = con.levelTwoChunk
-		interpreter.offset = con.levelTwoOffset
-		interpreter.returnNow = false
-		interpreter.clearLatestResult()
-		return CONTINUATION_CHANGED
+		val con = arg1
+		return interpreter.resumeContinuation(this, con)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

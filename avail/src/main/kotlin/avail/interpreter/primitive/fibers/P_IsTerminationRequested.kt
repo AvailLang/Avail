@@ -35,16 +35,17 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.getAndClearInterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Has termination been requested for the current
@@ -52,16 +53,16 @@ import avail.interpreter.execution.Interpreter
  * interrupt flag and simultaneously clear it.
  */
 @Suppress("unused")
-object P_IsTerminationRequested : Primitive(
-	0, CannotFail, CanInline, HasSideEffect, ReadsFromHiddenGlobalState)
+object P_IsTerminationRequested : Primitive0(
+	CannotFail, CanInline, HasSideEffect, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(
-				interpreter.fiber().getAndClearInterruptRequestFlag(
-					TERMINATION_REQUESTED)))
+		return objectFromBoolean(
+			interpreter.fiber().getAndClearInterruptRequestFlag(
+				TERMINATION_REQUESTED))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

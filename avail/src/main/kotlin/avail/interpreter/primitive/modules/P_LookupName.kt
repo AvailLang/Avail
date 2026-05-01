@@ -34,22 +34,24 @@ package avail.interpreter.primitive.modules
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
@@ -58,21 +60,23 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
  * [loaded][AvailLoader], creating the true name if necessary.
  */
 @Suppress("unused")
-object P_LookupName : Primitive(1, CanInline, ReadsFromHiddenGlobalState)
+object P_LookupName : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
+		val name = arg1
 		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		return try
 		{
-			interpreter.primitiveSuccess(loader.lookupName(name))
+			loader.lookupName(name)
 		}
 		catch (e: AmbiguousNameException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 
 	}

@@ -36,6 +36,8 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.IntegerIntervalTupleDescriptor
 import avail.descriptor.tuples.IntegerIntervalTupleDescriptor.Companion.createInterval
@@ -48,13 +50,13 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Create an
@@ -63,20 +65,24 @@ import avail.interpreter.execution.Interpreter
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
+object P_IntegerIntervalTuple : Primitive3(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val start = interpreter.argument(0)
-		val end = interpreter.argument(1)
-		val delta = interpreter.argument(2)
+		val start = arg1
+		val end = arg2
+		val delta = arg3
 
 		return if (delta.equalsInt(0))
 		{
-			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
-		else interpreter.primitiveSuccess(createInterval(start, end, delta))
+		else createInterval(start, end, delta)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

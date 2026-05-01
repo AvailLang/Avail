@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,10 +45,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PH
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Create a new
@@ -56,15 +58,17 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
+object P_CreateModuleVariableDeclaration : Primitive2(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val variable = interpreter.argument(0)
-		val token = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			newModuleVariable(token, variable, nil, nil))
+		val variable = arg1
+		val token = arg2
+		return newModuleVariable(token, variable, nil, nil)
 	}
 
 	/**

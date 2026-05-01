@@ -127,12 +127,20 @@ import avail.exceptions.AvailErrorCode.Companion.allNumericCodes
 /**
  * The [special objects][AvailObject] of the [runtime][AvailRuntime].
  *
+ * @constructor
+ *   Create an Enum instance.
+ * @param weakValue
+ *   The [AvailObject] to capture, but typed for convenience as the weaker
+ *   [A_BasicObject].
+ *
  * **DO NOT** alter existing entries, as they are used to generate the
  * `SpecialObjectNames_en.properties` file.  If a new entry is appended, you
  * should run the `generateSpecialObjectNames` Gradle task, update the entries
  * in that file, then run the `generateBootstrap` task.
  */
-enum class SpecialObject(weakValue: A_BasicObject)
+enum class SpecialObject
+constructor(
+	weakValue: A_BasicObject)
 {
 	// Special entry, not used.
 	Nil(nil),

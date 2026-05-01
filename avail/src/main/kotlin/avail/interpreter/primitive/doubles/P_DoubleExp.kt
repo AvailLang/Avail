@@ -35,16 +35,18 @@ import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import kotlin.math.E
 import kotlin.math.exp
 
@@ -53,15 +55,17 @@ import kotlin.math.exp
  * [double][DoubleDescriptor] `a`.
  */
 @Suppress("unused")
-object P_DoubleExp : Primitive(2, CannotFail, CanFold, CanInline)
+object P_DoubleExp : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		//		final A_BasicObject euler = interpreter.argument(0);
-		val a = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			fromDoubleRecycling(exp(a.extractDouble), a, true))
+		// val euler = arg1
+		val a = arg2
+		return fromDoubleRecycling(exp(a.extractDouble), a, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -46,6 +46,8 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -63,14 +65,14 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shl
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shr
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.utility.notNullAnd
@@ -83,23 +85,25 @@ import avail.utility.notNullAnd
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BitShiftRight : Primitive(2, CanFold, CanInline)
+object P_BitShiftRight : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val baseInteger = interpreter.argument(0)
-		val shiftFactor = interpreter.argument(1)
-		return try
+		val baseInteger = arg1
+		val shiftFactor = arg2
+		try
 		{
-			interpreter.primitiveSuccess(
-				baseInteger.bitShift(
-					zero.minusCanDestroy(shiftFactor, true),
-					true))
+			return baseInteger.bitShift(
+				zero.minusCanDestroy(shiftFactor, true),
+				true)
 		}
 		catch (e: ArithmeticException)
 		{
-			interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 	}
 

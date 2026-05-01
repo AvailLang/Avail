@@ -51,8 +51,10 @@ import avail.descriptor.bundles.A_Bundle.Companion.removeMacro
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.priority
+import avail.descriptor.fiber.A_Fiber.Companion.resultContinuation
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.fiber.FiberDescriptor
@@ -169,15 +171,14 @@ import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.files.FileManager
 import avail.interpreter.LibraryClassLoader
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugCheckAfterUnload
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.general.P_ToString
@@ -1538,9 +1539,10 @@ class AvailRuntime constructor(
 				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState === RUNNING)
 				setup()
-				if (exitNow)
+				if (function === null)
 				{
-					assert(getReifiedContinuation()!!.isNil)
+					// The outermost call was a suspending primitive that has
+					// now completed.
 					terminateFiber(getLatestResult())
 					// Notify the fiber's debugger, if any, about it ending.
 					aFiber.fiberHelper.debugger.get()?.justPaused(aFiber)
@@ -1592,8 +1594,6 @@ class AvailRuntime constructor(
 			assert(aFiber.continuation.isNil)
 			// Invoke the base-frame (hook) function with the given function
 			// and its arguments collected as a tuple.
-			exitNow = false
-			returnNow = false
 			setReifiedContinuation(nil)
 			offset = 0
 			argsBuffer.clear()
@@ -1672,14 +1672,11 @@ class AvailRuntime constructor(
 				assert(aFiber.executionState === RUNNING)
 				val con = aFiber.continuation
 				assert(con.notNil)
-				exitNow = false
-				returnNow = false
 				setReifiedContinuation(con)
 				function = con.function
 				clearLatestResult()
 				chunk = con.levelTwoChunk
 				offset = con.levelTwoOffset
-				levelOneStepper.wipeRegisters()
 				aFiber.continuation = nil
 			}
 		}
@@ -1710,22 +1707,19 @@ class AvailRuntime constructor(
 			assert(aFiber.executionState === RUNNING)
 			val con = aFiber.continuation
 			assert(con.notNil)
-			exitNow = false
-			returnNow = false
 			setReifiedContinuation(con)
 			function = con.function
 			clearLatestResult()
 			chunk = con.levelTwoChunk
 			offset = con.levelTwoOffset
-			levelOneStepper.wipeRegisters()
 			aFiber.continuation = nil
 		}
 	}
 
 	/**
 	 * Schedule resumption of the specified [fiber][FiberDescriptor] following
-	 * [suspension][ExecutionState.SUSPENDED] by a [successful][Result.SUCCESS]
-	 * [primitive][Primitive]. This method is an entry point.
+	 * [suspension][ExecutionState.SUSPENDED] and eventual success of a
+	 * [Primitive].  This method is an entry point.
 	 *
 	 * @param aFiber
 	 *   The fiber to run.
@@ -1740,6 +1734,8 @@ class AvailRuntime constructor(
 		resumingPrimitive: Primitive,
 		result: A_BasicObject)
 	{
+		// Diagnostic logging: observe resume requests from successful
+		// primitives.
 		assert(aFiber.executionState === SUSPENDED)
 		assert(
 			aFiber.suspendingFunction.code().codePrimitive()
@@ -1753,19 +1749,16 @@ class AvailRuntime constructor(
 			setLatestResult(result)
 			returningFunction = aFiber.suspendingFunction
 			aFiber.suspendingFunction = nil
-			returnNow = false
 			if (continuation.isNil)
 			{
 				// Return from outer function, which was the
 				// (successful) suspendable primitive itself.
-				exitNow = true
 				function = null
 				chunk = null
 				offset = Int.MAX_VALUE
 			}
 			else
 			{
-				exitNow = false
 				function = continuation.function
 				chunk = continuation.levelTwoChunk
 				offset = continuation.levelTwoOffset
@@ -1777,8 +1770,8 @@ class AvailRuntime constructor(
 
 	/**
 	 * Schedule resumption of the specified [fiber][FiberDescriptor] following
-	 * [suspension][ExecutionState.SUSPENDED] by a [failed][Result.FAILURE]
-	 * [primitive][Primitive]. This method is an entry point.
+	 * [suspension][ExecutionState.SUSPENDED] by a failed [Primitive]. This
+	 * method is an entry point.
 	 *
 	 * @param aFiber
 	 *   The fiber to run.
@@ -1816,8 +1809,6 @@ class AvailRuntime constructor(
 			val startingChunk = code.startingChunk
 			chunk = startingChunk
 			offset = startingChunk.offsetAfterInitialTryPrimitive
-			exitNow = false
-			returnNow = false
 		}
 	}
 

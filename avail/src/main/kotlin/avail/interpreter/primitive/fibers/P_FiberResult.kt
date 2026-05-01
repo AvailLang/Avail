@@ -35,6 +35,8 @@ package avail.interpreter.primitive.fibers
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -44,10 +46,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT
 import avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the result of the specified [fiber][FiberDescriptor].
@@ -55,25 +57,25 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FiberResult : Primitive(
-	1, CanInline, ReadsFromHiddenGlobalState)
+object P_FiberResult : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val fiber = interpreter.argument(0)
+		val fiber = arg1
 		return with(fiber) {
 			lock {
 				val result = fiberResult
 				when
 				{
 					!executionState.indicatesTermination || result.isNil ->
-						interpreter.primitiveFailure(
-							E_FIBER_RESULT_UNAVAILABLE)
+						interpreter.fail(E_FIBER_RESULT_UNAVAILABLE)
 					!result.isInstanceOf(kind().resultType()) ->
-						interpreter.primitiveFailure(
+						interpreter.fail(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
-					else -> interpreter.primitiveSuccess(result)
+					else -> result
 				}
 			}
 		}

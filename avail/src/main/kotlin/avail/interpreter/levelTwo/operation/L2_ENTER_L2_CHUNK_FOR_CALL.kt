@@ -36,12 +36,12 @@ import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_PRIMITIVE_FAILURE
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
@@ -93,7 +93,7 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 
 		// :: if (!checkValidity()) {
 		loadInterpreter()
-		intConstant(L2JVMChunk.ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
+		intConstant(AFTER_PRIMITIVE_FAILURE.offset)
 		generateCall(Interpreter.checkValidityMethod)
 		val isValidLabel = Label()
 		method.visitJumpInsn(Opcodes.IFNE, isValidLabel)

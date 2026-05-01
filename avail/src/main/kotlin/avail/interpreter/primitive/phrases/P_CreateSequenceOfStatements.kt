@@ -37,6 +37,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
 import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
@@ -48,9 +50,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a [sequence][SequencePhraseDescriptor] from the
@@ -59,12 +61,14 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateSequenceOfStatements : Primitive(1, CanInline)
+object P_CreateSequenceOfStatements : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val statements = interpreter.argument(0)
+		val statements = arg1
 		val flat = mutableListOf<A_Phrase>()
 		for (statement in statements)
 		{
@@ -72,10 +76,9 @@ object P_CreateSequenceOfStatements : Primitive(1, CanInline)
 		}
 		if (!containsOnlyStatements(flat, TOP()))
 		{
-			return interpreter.primitiveFailure(
-				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
+			return interpreter.fail(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
 		}
-		return interpreter.primitiveSuccess(newSequence(statements))
+		return newSequence(statements)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

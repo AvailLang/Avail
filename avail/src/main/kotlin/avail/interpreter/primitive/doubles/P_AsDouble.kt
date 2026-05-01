@@ -35,35 +35,33 @@ import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.isDouble
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Convert the numeric argument to a [double][DoubleDescriptor].
  */
 @Suppress("unused")
-object P_AsDouble : Primitive(1, CannotFail, CanFold, CanInline)
+object P_AsDouble : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val number = interpreter.argument(0)
-		return if (number.isDouble)
-		{
-			interpreter.primitiveSuccess(number)
-		}
-		else
-		{
-			interpreter.primitiveSuccess(fromDouble(number.extractDouble))
-		}
+		val number = arg1
+		if (number.isDouble) return number
+		return fromDouble(number.extractDouble)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -51,7 +51,6 @@ import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
-import avail.descriptor.fiber.FiberDescriptor.FiberKind.entries
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.FIBER_GLOBALS
@@ -98,11 +97,11 @@ import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.io.TextInterface
 import avail.utility.isNullOr
 import org.availlang.json.JSONWriter
@@ -135,7 +134,8 @@ import javax.swing.ImageIcon
  * lightweight models that cannot support simultaneous execution, such as
  * Smalltalk (e.g., VisualWorks). Clearly, the latter does not scale to a modern
  * (2013) computing environment, and the former leaves one at the mercy of the
- * severe limitations and costs imposed by operating systems.
+ * severe limitations and costs imposed by operating systems.  NB: JVM26 (circa
+ * 2026) has introduced green threads, but we don't use them yet.
  *
  * @constructor
  *
@@ -172,10 +172,7 @@ class FiberDescriptor private constructor(
 	 * @param nameSupplier
 	 *   A zero-argument Kotlin [Function] that produces the name for this
 	 *   fiber.  It's computed lazily at most once, using the Kotlin `lazy`
-	 *   mechanism.  Note that after it's computed and cached in the [name]
-	 *   property, the nameSupplier function is no longer referenced by the lazy
-	 *   mechanism.  The function should avoid execution of Avail code as that
-	 *   could easily lead to deadlocks.
+	 *   mechanism.
 	 */
 	class FiberHelper constructor(
 		internal var loader: AvailLoader?,
@@ -195,7 +192,7 @@ class FiberDescriptor private constructor(
 		var priority: Int = initialPriority
 
 		/** The fiber's [Flag]s, encoded as an [AtomicInteger]. */
-		var flags = AtomicInteger(0)
+		var flags = AtomicInteger(SynchronizationFlag.PERMIT_AVAILABLE.mask)
 
 		/** Retrieve the given flag as a boolean. */
 		fun getFlag(flag: FlagGroup): Boolean = flags.get() and flag.mask != 0
@@ -402,7 +399,7 @@ class FiberDescriptor private constructor(
 	}
 
 	/** The interpretation of the [FiberHelper]'s [flags][FiberHelper.flags]. */
-	enum class Flag constructor (val shift: Int) : FlagGroup
+	enum class Flag constructor (val shift: Int)
 	{
 		/** See [InterruptRequestFlag.TERMINATION_REQUESTED]. */
 		TERMINATION_REQUESTED(0),
@@ -416,8 +413,8 @@ class FiberDescriptor private constructor(
 		/** See [SynchronizationFlag.SCHEDULED]. */
 		SCHEDULED(3),
 
-		/** See [SynchronizationFlag.PERMIT_UNAVAILABLE]. */
-		PERMIT_UNAVAILABLE(4),
+		/** See [SynchronizationFlag.PERMIT_AVAILABLE]. */
+		PERMIT_AVAILABLE(4),
 
 		/** See [TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]. */
 		TRACE_VARIABLE_READS_BEFORE_WRITES(5),
@@ -444,9 +441,7 @@ class FiberDescriptor private constructor(
 		IS_RUNNING_COMMAND(12);
 
 		/** The [Int] mask corresponding with the [shift]. */
-		override val mask = 1 shl shift
-
-		override val flag: Flag get() = this
+		val mask = 1 shl shift
 	}
 
 	/**
@@ -498,7 +493,7 @@ class FiberDescriptor private constructor(
 		/**
 		 * The parking permit is unavailable.
 		 */
-		PERMIT_UNAVAILABLE(Flag.PERMIT_UNAVAILABLE);
+		PERMIT_AVAILABLE(Flag.PERMIT_AVAILABLE);
 	}
 
 	/**
@@ -808,6 +803,13 @@ class FiberDescriptor private constructor(
 				-1,
 				helper,
 				slotName = "(HELPER)"))
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DUMMY_DEBUGGER_SLOT,
+				-1,
+				helper.debugLog.toString(),
+				slotName = "(LOG)"))
 		return fields.toTypedArray()
 	}
 
@@ -967,7 +969,7 @@ class FiberDescriptor private constructor(
 		synchronized(self) {
 			helper.run {
 				val result = failureContinuation
-				assert(result !== null) { "Fiber attempting to succeed twice!" }
+				assert(result !== null) { "Fiber attempting to fail twice!" }
 				resultContinuation = null
 				failureContinuation = null
 				result!!
@@ -1004,8 +1006,8 @@ class FiberDescriptor private constructor(
 		variable: A_Variable,
 		wasRead: Boolean)
 	{
-		assert(helper.getFlag(Flag.TRACE_VARIABLE_READS_BEFORE_WRITES)
-			xor helper.getFlag(Flag.TRACE_VARIABLE_WRITES))
+		assert(helper.getFlag(TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES)
+			xor helper.getFlag(TraceFlag.TRACE_VARIABLE_WRITES))
 		val map = helper.tracedVariables
 		synchronized(map) {
 			if (!map.containsKey(variable))
@@ -1017,7 +1019,7 @@ class FiberDescriptor private constructor(
 
 	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set
 	{
-		assert(!helper.getFlag(Flag.TRACE_VARIABLE_READS_BEFORE_WRITES))
+		assert(!helper.getFlag(TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES))
 		val map = helper.tracedVariables
 		var set = emptySet
 		synchronized(map) {
@@ -1033,7 +1035,7 @@ class FiberDescriptor private constructor(
 
 	override fun o_VariablesWritten(self: AvailObject): A_Set
 	{
-		assert(!helper.getFlag(Flag.TRACE_VARIABLE_WRITES))
+		assert(!helper.getFlag(TraceFlag.TRACE_VARIABLE_WRITES))
 		val map = helper.tracedVariables
 		return synchronized(map) {
 			// Collect the keys strongly, because setFromCollection() doesn't
@@ -1219,7 +1221,7 @@ class FiberDescriptor private constructor(
 		 * name in the current compiler scope.  This information is associated
 		 * with the current [Interpreter], and therefore the [fiber][A_Fiber]
 		 * that it is executing.  If no such binding exists, answer `null`.  The
-		 * module scope is not consulted by this mechanism.
+		 * lookup does not examinee the module scope.
 		 *
 		 * @param name
 		 *   The name of the binding to look up in the current scope.

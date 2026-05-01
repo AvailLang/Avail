@@ -34,15 +34,17 @@ package avail.interpreter.primitive.doubles
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import kotlin.math.ceil
 
 /**
@@ -51,15 +53,17 @@ import kotlin.math.ceil
  * answer the argument.
  */
 @Suppress("unused")
-object P_DoubleCeiling : Primitive(1, CannotFail, CanFold, CanInline)
+object P_DoubleCeiling : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val a = interpreter.argument(0)
+		val a = arg1
 		val d = a.extractDouble
 		val ceil = ceil(d)
-		return interpreter.primitiveSuccess(fromDoubleRecycling(ceil, a, true))
+		return fromDoubleRecycling(ceil, a, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

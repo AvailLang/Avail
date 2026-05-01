@@ -34,6 +34,8 @@ package avail.interpreter.primitive.tuples
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
@@ -52,10 +54,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 import kotlin.math.max
 import kotlin.math.min
 
@@ -64,38 +66,42 @@ import kotlin.math.min
  * the elements at the specified indices swapped.
  */
 @Suppress("unused")
-object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
+object P_TupleSwapElements : Primitive3(CanFold, CanInline)
 {
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
+	{
+		val tuple = arg1
+		val indexObject1 = arg2
+		val indexObject2 = arg3
+
+		if (!indexObject1.isInt || !indexObject2.isInt)
+		{
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
+		val index1 = indexObject1.extractInt
+		val index2 = indexObject2.extractInt
+		if (index1 == index2)
+		{
+			return tuple
+		}
+		val temp1 = tuple.tupleAt(index1)
+		val temp2 = tuple.tupleAt(index2)
+		var newTuple = tuple.tupleAtPuttingCanDestroy(index1, temp2, true)
+		newTuple = newTuple.tupleAtPuttingCanDestroy(index2, temp1, true)
+		return newTuple
+	}
+
 	/**
 	 * A measure of complexity beyond which we don't bother computing a precise
 	 * guarantee about the resulting type, since the cost of computing it might
 	 * be higher than the potential savings.
 	 */
 	private const val maximumComplexity = 100
-
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(3)
-		val tuple = interpreter.argument(0)
-		val indexObject1 = interpreter.argument(1)
-		val indexObject2 = interpreter.argument(2)
-
-		if (!indexObject1.isInt || !indexObject2.isInt)
-		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
-		}
-		val index1 = indexObject1.extractInt
-		val index2 = indexObject2.extractInt
-		if (index1 == index2)
-		{
-			return interpreter.primitiveSuccess(tuple)
-		}
-		val temp1 = tuple.tupleAt(index1)
-		val temp2 = tuple.tupleAt(index2)
-		var newTuple = tuple.tupleAtPuttingCanDestroy(index1, temp2, true)
-		newTuple = newTuple.tupleAtPuttingCanDestroy(index2, temp1, true)
-		return interpreter.primitiveSuccess(newTuple)
-	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

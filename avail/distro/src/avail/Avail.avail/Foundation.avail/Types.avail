@@ -616,7 +616,7 @@ Semantic restriction "{_`|_}" is
 	elementTypeType : any meta's type,
 	cardinalityTypeType : whole number meta's type
 |
-	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
+	cardinalityTypeTypeInstance ::= cardinalityTypeType's instance;
 	lower ::= ⌊cardinalityTypeTypeInstance⌋;
 	upper ::= ⌈cardinalityTypeTypeInstance⌉;
 	{elementTypeType's instance|[lower..upper + 1)}'s type
@@ -859,7 +859,7 @@ Semantic restriction "{_→_`|_}" is
 	valueTypeType : any meta's type,
 	cardinalityTypeType : whole number meta's type
 |
-	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
+	cardinalityTypeTypeInstance ::= cardinalityTypeType's instance;
 	lower ::= ⌊cardinalityTypeTypeInstance⌋;
 	upper ::= ⌈cardinalityTypeTypeInstance⌉;
 	{keyTypeType's instance→valueTypeType's instance|[lower..upper + 1)}'s type

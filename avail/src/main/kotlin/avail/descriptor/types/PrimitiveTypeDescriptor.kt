@@ -35,6 +35,7 @@ import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
+import avail.compiler.LexicalScanner
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.character.CharacterDescriptor
@@ -100,7 +101,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.entries
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.unsupported
-import avail.interpreter.execution.LexicalScanner
 import avail.serialization.SerializerOperation
 import avail.utility.iterableWith
 import org.availlang.json.JSONWriter

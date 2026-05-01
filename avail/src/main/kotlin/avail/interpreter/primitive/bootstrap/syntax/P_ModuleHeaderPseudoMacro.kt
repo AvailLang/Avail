@@ -37,6 +37,8 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -51,12 +53,12 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.PrimitiveN
 import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
 
 /**
@@ -72,35 +74,37 @@ import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_ModuleHeaderPseudoMacro
-	: Primitive(6, Private, Bootstrap, CannotFail, CanInline)
+	: PrimitiveN(6, Private, Bootstrap, CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(6)
-		val moduleNameLiteral = interpreter.argument(0)
-		val optionalVersions = interpreter.argument(1)
-		val allImports = interpreter.argument(2)
-		val optionalNames = interpreter.argument(3)
-		val optionalEntries = interpreter.argument(4)
-		val optionalPragmas = interpreter.argument(5)
+		assert(args.size == 6)
+		val moduleNameLiteral = args[0]
+		val optionalVersions = args[1]
+		val allImports = args[2]
+		val optionalNames = args[3]
+		val optionalEntries = args[4]
+		val optionalPragmas = args[5]
 
-		return interpreter.primitiveSuccess(
-			newExpressionAsStatement(
-				newSendNode(
-					// Don't bother collecting tokens in header, since the
-					// original phrase of this macro already has them.
-					emptyTuple,
-					emptyTuple,
-					MODULE_HEADER.bundle,
-					newListNode(
-						tupleFromArray(
-							moduleNameLiteral,
-							optionalVersions,
-							allImports,
-							optionalNames,
-							optionalEntries,
-							optionalPragmas)),
-					TOP())))
+		return newExpressionAsStatement(
+			newSendNode(
+				// Don't bother collecting tokens in header, since the
+				// original phrase of this macro already has them.
+				emptyTuple,
+				emptyTuple,
+				MODULE_HEADER.bundle,
+				newListNode(
+					tupleFromArray(
+						moduleNameLiteral,
+						optionalVersions,
+						allImports,
+						optionalNames,
+						optionalEntries,
+						optionalPragmas)),
+				TOP()))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

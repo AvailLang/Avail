@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.integers
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
@@ -40,11 +42,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive4
 
 /**
  * **Primitive:** Answer the [integer&#32;range][IntegerRangeTypeDescriptor]
@@ -53,21 +55,22 @@ import avail.interpreter.execution.Interpreter
  * inclusive (`true`) or exclusive (`false`).
  */
 @Suppress("unused")
-object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
+object P_CreateIntegerRange : Primitive4(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val min = interpreter.argument(0)
-		val minInc = interpreter.argument(1)
-		val max = interpreter.argument(2)
-		val maxInc = interpreter.argument(3)
-		return interpreter.primitiveSuccess(
-			integerRangeType(
-				min,
-				minInc.extractBoolean,
-				max,
-				maxInc.extractBoolean))
+		val min = arg1
+		val minInc = arg2
+		val max = arg3
+		val maxInc = arg4
+		return integerRangeType(
+			min, minInc.extractBoolean, max, maxInc.extractBoolean)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

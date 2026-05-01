@@ -631,7 +631,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 				return emptyTuple
 			}
 			val result = createUninitialized(size)
-			result.setSlotsFromArray(TUPLE_AT_, 1, arrayOf(*elements), 0, size)
+			result.setSlotsFromArray(TUPLE_AT_, 1, elements, 0, size)
 			return result
 		}
 

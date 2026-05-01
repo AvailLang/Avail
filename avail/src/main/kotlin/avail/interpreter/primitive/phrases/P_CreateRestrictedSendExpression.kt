@@ -61,6 +61,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
@@ -86,15 +88,15 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeDescriptor
-import avail.exceptions.AvailErrorCode
+import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive3
 import avail.utility.Strings.increaseIndentation
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
@@ -122,18 +124,22 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
+object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val messageName = interpreter.argument(0)
-		val argsListPhrase = interpreter.argument(1)
-		val returnType = interpreter.argument(2)
+		val messageName = arg1
+		val argsListPhrase = arg2
+		val returnType = arg3
 
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		val argExpressions = argsListPhrase.expressionsTuple
 		val argsCount = argExpressions.tupleSize
 		val bundle: A_Bundle
@@ -143,18 +149,16 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			if (!splitter.checkListStructure(argsListPhrase))
 			{
-				return interpreter.primitiveFailure(
-					AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING)
+				return interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 
 		val argsTupleType = argsListPhrase.phraseExpressionType.makeShared()
@@ -183,7 +187,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		}
 		if (!anyDefinitionsApplicable)
 		{
-			return interpreter.primitiveFailure(E_NO_METHOD_DEFINITION)
+			return interpreter.fail(E_NO_METHOD_DEFINITION)
 		}
 		// Note, the semantic restriction takes the *types* as arguments.
 		val applicableRestrictions =
@@ -195,16 +199,15 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		if (restrictionsSize == 0)
 		{
 			// No semantic restrictions.  Trivial success.
-			return interpreter.primitiveSuccess(
+			return tuple(
 				tuple(
-					tuple(
-						newSendNode(
-							emptyTuple,
-							emptyTuple,
-							bundle,
-							argsListPhrase,
-							intersection)),
-					emptyTuple))
+					newSendNode(
+						emptyTuple,
+						emptyTuple,
+						bundle,
+						argsListPhrase,
+						intersection)),
+				emptyTuple)
 		}
 
 		// Merge in the (non-empty list of) semantic restriction results.

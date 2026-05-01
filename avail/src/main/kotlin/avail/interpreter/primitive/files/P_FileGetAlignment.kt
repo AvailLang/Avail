@@ -34,6 +34,8 @@ package avail.interpreter.primitive.files
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -41,10 +43,10 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import avail.io.IOSystem.FileHandle
 
 /**
@@ -55,19 +57,21 @@ import avail.io.IOSystem.FileHandle
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileGetAlignment : Primitive(1, CanInline, HasSideEffect)
+object P_FileGetAlignment : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
+		val atom = arg1
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			return interpreter.fail(E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
-		return interpreter.primitiveSuccess(fromInt(handle.alignment))
+		return fromInt(handle.alignment)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

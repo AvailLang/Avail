@@ -35,6 +35,8 @@ package avail.interpreter.primitive.style
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.canStyle
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
@@ -51,10 +53,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Apply the given style name to the region of the file being
@@ -68,17 +70,22 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
+object P_StyleToken : Primitive3(CanInline, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val token: A_Token = interpreter.argument(0)
-		val styleName: A_String = interpreter.argument(1)
-		val overwrite = interpreter.argument(2).extractBoolean
+		val token: A_Token = arg1
+		val styleName: A_String = arg2
+		val overwrite = arg3.extractBoolean
 
 		val fiber = interpreter.fiber()
-		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		if (!fiber.canStyle)
+			return interpreter.fail(E_CANNOT_STYLE)
 		val loader = fiber.availLoader!!
 
 		val innerToken = when
@@ -90,7 +97,8 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 		}
 		val start = innerToken.start()
 		val pastEnd = innerToken.pastEnd()
-		if (start == pastEnd) return interpreter.primitiveSuccess(nil)
+		if (start == pastEnd)
+			return nil
 		val styleOrNull = when (styleName.tupleSize)
 		{
 			0 -> null
@@ -98,10 +106,10 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 		}
 		if (styleOrNull === null && !overwrite)
 		{
-			return interpreter.primitiveSuccess(nil)
+			return nil
 		}
 		loader.styleToken(innerToken, styleOrNull, overwrite)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateFailureVariableType(): A_Type =

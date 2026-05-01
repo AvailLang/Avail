@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -46,28 +48,30 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Clear the [variable][A_Variable].
  */
 @Suppress("unused")
-object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
+object P_ClearValue : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variable = interpreter.argument(0)
+		val variable = arg1
 		return try {
 			variable.clearValue()
-			interpreter.primitiveSuccess(nil)
+			nil
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.primitiveFailure(e.numericCode)
+			interpreter.fail(e.numericCode)
 		}
 	}
 

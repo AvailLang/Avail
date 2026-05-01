@@ -32,28 +32,27 @@
 package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
+import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -64,17 +63,18 @@ import avail.optimizer.L1Translator
  * it, something this primitive does not do.
  */
 @Suppress("unused")
-object P_RestartContinuation : Primitive(
-	1,
+object P_RestartContinuation : Primitive1(
 	CannotFail,
 	CanInline,
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val originalCon = interpreter.argument(0)
+		val originalCon = arg1
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
@@ -92,20 +92,13 @@ object P_RestartContinuation : Primitive(
 		// Move the (original) arguments from the continuation into
 		// interpreter.argsBuffer.
 		val numArgs = code.numArgs()
-		interpreter.argsBuffer.clear()
-		for (i in 1 .. numArgs)
-		{
-			interpreter.argsBuffer.add(originalCon.frameAt(i))
-		}
+		val arguments = (1..numArgs).map { originalCon.frameAt(it) }
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.setReifiedContinuation(originalCon.caller)
-		interpreter.function = originalCon.function()
-		interpreter.chunk = code.startingChunk
-		interpreter.offset = 0
-		interpreter.returnNow = false
 		interpreter.clearLatestResult()
-		return CONTINUATION_CHANGED
+		interpreter.currentReifier =
+			interpreter.reifierToRestartWithArguments(originalCon, arguments)
+		return null
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

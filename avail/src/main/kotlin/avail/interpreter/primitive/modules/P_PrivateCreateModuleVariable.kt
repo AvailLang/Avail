@@ -34,6 +34,8 @@ package avail.interpreter.primitive.modules
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.module.A_Module.Companion.addConstantBinding
 import avail.descriptor.module.A_Module.Companion.addVariableBinding
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
@@ -45,12 +47,12 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.PrimitiveN
 
 /**
  * **Primitive:** Create a
@@ -58,13 +60,16 @@ import avail.interpreter.execution.Interpreter
  * registering it with the given module.
  */
 object P_PrivateCreateModuleVariable
-	: Primitive(5, CanFold, CanInline, Private, CannotFail)
+	: PrimitiveN(5, CanFold, CanInline, Private, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
+		assert(args.size == 5)
 		val (module, name, varType, isConstantObject, stablyComputedObject) =
-			interpreter.argsBuffer
+			args
 
 		val isConstant = isConstantObject.extractBoolean
 		val stablyComputed = stablyComputedObject.extractBoolean
@@ -82,7 +87,7 @@ object P_PrivateCreateModuleVariable
 			isConstant -> module.addConstantBinding(name, variable)
 			else -> module.addVariableBinding(name, variable)
 		}
-		return interpreter.primitiveSuccess(variable)
+		return variable
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

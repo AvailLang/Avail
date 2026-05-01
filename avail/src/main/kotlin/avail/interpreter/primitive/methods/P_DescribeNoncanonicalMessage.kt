@@ -33,6 +33,8 @@ package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -40,11 +42,11 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a string describing why the given string is unsuitable
@@ -53,12 +55,14 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_DescribeNoncanonicalMessage
-	: Primitive(1, CanInline, CanFold, CannotFail)
+	: Primitive1(CanInline, CanFold, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val messageName = interpreter.argument(0)
+		val messageName = arg1
 		try
 		{
 			// Run for exceptions side-effect.
@@ -66,11 +70,9 @@ object P_DescribeNoncanonicalMessage
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveSuccess(
-				stringFrom(e.describeProblem()))
+			return stringFrom(e.describeProblem())
 		}
-
-		return interpreter.primitiveSuccess(emptyTuple)
+		return emptyTuple
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

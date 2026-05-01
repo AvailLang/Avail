@@ -39,8 +39,10 @@ import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrMoreList
@@ -48,10 +50,10 @@ import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrOneList
 import avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive2
 
 /**
  * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated with
@@ -62,11 +64,15 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
+object P_ModuleHeaderPrefixCheckModuleVersion : Primitive2(Private, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		val versionsOptionalList = interpreter.argument(1)
+		val versionsOptionalList = arg2
 		assert(versionsOptionalList.expressionsSize == 1)
 		val versions = versionsOptionalList.expressionAt(1)
 		val versionsCount = versions.expressionsSize
@@ -81,19 +87,21 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 			val oldVersion = oldVersionPhrase.token.literal().literal()
 			if (latestVersionString.equals(oldVersion))
 			{
-				throw AvailRejectedParseException(
-					STRONG,
-					"module version $latestVersionString to be unique, not a "
-						+  "duplicate of #$i in " + "the list (on line "
-						+ "${oldVersionPhrase.token.lineNumber()})")
+				return interpreter.reifyForPrimitive(false) {
+					throw AvailRejectedParseException(
+						STRONG,
+						"module version $latestVersionString to be unique, " +
+							"not a duplicate of #$i in " + "the list (on " +
+							"line ${oldVersionPhrase.token.lineNumber()})")
+				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tupleFromArray(
+			tuple(
 				/* Module name */
 				stringLiteralType,
 				/* Optional versions */

@@ -34,6 +34,8 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -51,11 +53,11 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Get the specified [token][TokenDescriptor]'s
@@ -64,14 +66,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
+object P_TokenClassifier : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val token = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			TokenType.lookupTokenType(token.tokenType().ordinal).atom)
+		val token = arg1
+		return TokenType.lookupTokenType(token.tokenType().ordinal).atom
 	}
 
 	override fun returnTypeGuaranteedByVM(

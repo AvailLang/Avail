@@ -34,6 +34,7 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -42,10 +43,10 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Enable
@@ -55,19 +56,20 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TraceVariableWrites : Primitive(
-	0, HasSideEffect, WritesToHiddenGlobalState)
+object P_TraceVariableWrites : Primitive0(
+	HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		if (interpreter.traceVariableReadsBeforeWrites()
 			|| interpreter.traceVariableWrites())
 		{
-			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
+			return interpreter.fail(E_ILLEGAL_TRACE_MODE)
 		}
 		interpreter.setTraceVariableWrites(true)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

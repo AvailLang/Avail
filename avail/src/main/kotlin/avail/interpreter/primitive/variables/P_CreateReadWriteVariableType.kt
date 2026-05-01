@@ -32,6 +32,8 @@
 
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -39,11 +41,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer a [variable&#32;type][VariableTypeDescriptor] with the
@@ -52,15 +54,17 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateReadWriteVariableType : Primitive(2, CannotFail, CanInline, CanFold)
+object P_CreateReadWriteVariableType : Primitive2(CannotFail, CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val readType = interpreter.argument(0)
-		val writeType = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			variableReadWriteType(readType, writeType))
+		val readType = arg1
+		val writeType = arg2
+		return variableReadWriteType(readType, writeType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

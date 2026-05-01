@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.types
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
@@ -42,15 +44,15 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2SplitCondition
@@ -61,15 +63,17 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
  * [types][TypeDescriptor].
  */
 @Suppress("unused")
-object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
+object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val type1 = interpreter.argument(0)
-		val type2 = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			type1.typeUnion(type2).makeImmutable())
+		val type1 = arg1
+		val type2 = arg2
+		return type1.typeUnion(type2).makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

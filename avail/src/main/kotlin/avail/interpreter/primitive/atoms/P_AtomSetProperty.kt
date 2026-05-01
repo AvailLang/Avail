@@ -38,6 +38,8 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SET_ONCE_PROPERTY_KEY
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,12 +51,12 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_PROPERTY_MAY_ONLY_BE_SET_ONCE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Within the first [atom][AtomDescriptor], associate the given
@@ -62,19 +64,21 @@ import avail.interpreter.execution.Interpreter
  * operation.
  */
 @Suppress("unused")
-object P_AtomSetProperty : Primitive(
-	3, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_AtomSetProperty : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val atom = interpreter.argument(0)
-		val propertyKey = interpreter.argument(1)
-		val propertyValue = interpreter.argument(2)
+		val atom = arg1
+		val propertyKey = arg2
+		val propertyValue = arg3
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		if (propertyKey.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
 			.equals(trueObject)
@@ -82,7 +86,7 @@ object P_AtomSetProperty : Primitive(
 		{
 			// The atom already has that property, and the property is marked as
 			// disallowing change once it's set.
-			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		atom.setAtomProperty(propertyKey, propertyValue)
 		interpreter.availLoaderOrNull()?.recordEffect(
@@ -91,7 +95,7 @@ object P_AtomSetProperty : Primitive(
 				atom,
 				propertyKey,
 				propertyValue))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/** The property value might contain a variable that becomes shared. */

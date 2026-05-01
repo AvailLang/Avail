@@ -32,34 +32,37 @@
 
 package avail.interpreter.primitive.pojos
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the cardinality restriction of the specified
- * [pojo&#32;array&#32;type][PojoTypeDescriptor.mostGeneralPojoArrayType].
+ * [pojo&#32;array&#32;type][mostGeneralPojoArrayType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_PojoArrayTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
+object P_PojoArrayTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val pojoArrayType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(pojoArrayType.sizeRange)
+		val pojoArrayType = arg1
+		return pojoArrayType.sizeRange
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

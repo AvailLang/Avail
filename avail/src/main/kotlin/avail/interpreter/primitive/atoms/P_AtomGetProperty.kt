@@ -34,6 +34,8 @@ package avail.interpreter.primitive.atoms
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -43,10 +45,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** If the first [atom][AtomDescriptor] has a property whose key
@@ -54,24 +56,27 @@ import avail.interpreter.execution.Interpreter
  * fail.
  */
 @Suppress("unused")
-object P_AtomGetProperty : Primitive(
-	2, CanInline, ReadsFromHiddenGlobalState)
+object P_AtomGetProperty : Primitive2(
+	CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val atom = interpreter.argument(0)
-		val propertyKey = interpreter.argument(1)
+		val atom = arg1
+		val propertyKey = arg2
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		return if (propertyValue.isNil)
 		{
-			interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+			interpreter.fail(E_NO_SUCH_FIELD)
 		}
-		else interpreter.primitiveSuccess(propertyValue)
+		else propertyValue
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

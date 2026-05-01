@@ -44,12 +44,12 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.dispatch.LookupTree
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckNoEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckTestEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckNoEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckTestEscapes
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
@@ -160,7 +160,8 @@ class CallSiteHelper internal constructor(
 			zoneName = "Continue reification leading to return check",
 			isCold = true,
 			generate = {
-				translator.reify(expectedType, ChunkEntryPoint.TO_RETURN_INTO)
+				translator.reify(
+					expectedType, DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL)
 				if (generator.currentlyReachable())
 				{
 					// Capture the value being returned into the on-ramp.
@@ -191,7 +192,8 @@ class CallSiteHelper internal constructor(
 			zoneName = "Continue reification without return check",
 			isCold = true,
 			generate = {
-				translator.reify(expectedType, ChunkEntryPoint.TO_RETURN_INTO)
+				translator.reify(
+					expectedType, DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL)
 				if (generator.currentlyReachable())
 				{
 					// Capture the value being returned into the on-ramp.
@@ -224,7 +226,8 @@ class CallSiteHelper internal constructor(
 			zoneName = "Continue reification for unreturnable",
 			isCold = true,
 			generate = {
-				translator.reify(expectedType, ChunkEntryPoint.TO_RETURN_INTO)
+				translator.reify(
+					expectedType, DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL)
 				if (generator.currentlyReachable())
 				{
 					generator.addUnreachableCode()

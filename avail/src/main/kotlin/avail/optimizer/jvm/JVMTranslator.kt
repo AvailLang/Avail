@@ -54,15 +54,12 @@ import avail.interpreter.JavaLibrary.getClassLoader
 import avail.interpreter.JavaLibrary.javaUnboxDoubleMethod
 import avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import avail.interpreter.JavaLibrary.longAdderIncrement
-import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -92,6 +89,10 @@ import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Primitive
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
+import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
@@ -208,7 +209,7 @@ import kotlin.io.path.writeText
  *
  * @param code
  *   The source [L1&#32;code][A_RawFunction], or `null` for the
- *   [unoptimized&#32;chunk][unoptimizedChunk].
+ *   [unoptimized&#32;chunk][DefaultL1Chunk].
  * @param chunkName
  *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName
@@ -306,8 +307,7 @@ class JVMTranslator constructor(
 		load(Interpreter.interpreterFunctionField)
 		// [reifier, fn]
 		onReification.run {
-			createAndPushRegisterDump(
-				L2JVMChunk.ChunkEntryPoint.TO_RESUME)
+			createAndPushRegisterDump(DefaultEntryPoint.RESUME)
 		}
 		// [reifier, fn, dump]
 		loadInterpreter()
@@ -1501,9 +1501,9 @@ class JVMTranslator constructor(
 	{
 		method = classNode.visitMethod(
 			ACC_PUBLIC,
-			"runChunk",
+			ExecutableChunk::runChunk.name,
 			Type.getMethodDescriptor(
-				Type.getType(StackReifier::class.java),
+				Type.getType(A_BasicObject::class.java),
 				Type.getType(Interpreter::class.java),
 				Type.INT_TYPE),
 			null,
@@ -1679,6 +1679,7 @@ class JVMTranslator constructor(
 			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver() // this, the executable chunk.
+				method.visitVarInsn(ILOAD, interpreterLocal()) // interpreter
 				intConstant(instruction.offset)
 				// First line of the instruction toString
 				method.visitLdcInsn(
@@ -1950,7 +1951,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = false
+		const val debugNicerJavaDecompilation = true //TODO false
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -2015,7 +2016,7 @@ class JVMTranslator constructor(
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
-		var debugJVM = false
+		var debugJVM = true // TODO false
 
 		/**
 		 * Counters for the class prefix names, to avoid name collisions.

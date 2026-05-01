@@ -39,6 +39,8 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumeric
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -54,16 +56,16 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -72,20 +74,23 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * **Primitive:** Subtract [number][AbstractNumberDescriptor] b from a.
  */
 @Suppress("unused")
-object P_Subtraction : Primitive(2, CanFold, CanInline)
+object P_Subtraction : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
+		val a = arg1
+		val b = arg2
 		return try
 		{
-			interpreter.primitiveSuccess(a.minusCanDestroy(b, true))
+			a.minusCanDestroy(b, true)
 		}
 		catch (e: ArithmeticException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

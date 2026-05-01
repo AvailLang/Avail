@@ -37,26 +37,15 @@ import avail.builder.UnresolvedDependencyException
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.createDefaultChunk
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
-import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
-import avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
-import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import avail.optimizer.L1Translator
-import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
-import avail.optimizer.L2ControlFlowGraph.ZoneType
-import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * A Level Two chunk represents an optimized implementation of a
@@ -124,105 +113,11 @@ constructor(
 	code: A_RawFunction?,
 	offsetAfterInitialTryPrimitive: Int,
 	override val instructions: List<L2Instruction>,
-	private val controlFlowGraph: L2ControlFlowGraph,
+	val controlFlowGraph: L2ControlFlowGraph,
 	contingentValues: A_Set,
 	override val executableChunk: JVMChunk
 ) : L2Chunk(code, offsetAfterInitialTryPrimitive, contingentValues)
 {
-	/**
-	 * An enumeration of different ways to enter or re-enter a continuation.
-	 * In the event that the continuation's chunk has been invalidated, these
-	 * enumeration values indicate the offset that should be used within the
-	 * default chunk.
-	 *
-	 * @property offsetInDefaultChunk
-	 *   The offset within the default chunk at which to continue if a chunk
-	 *   has been invalidated.
-	 * @constructor
-	 * Create the enumeration value.
-	 *
-	 * @param offsetInDefaultChunk
-	 *   An offset within the default chunk.
-	 */
-	enum class ChunkEntryPoint constructor(val offsetInDefaultChunk: Int)
-	{
-		/**
-		 * The [unoptimizedChunk] entry point to jump to if a primitive was
-		 * attempted but failed, and we need to run the (unoptimized, L1)
-		 * alternative code.
-		 */
-		@Suppress("unused")
-		AFTER_TRY_PRIMITIVE(1),
-
-		/**
-		 * The entry point to jump to when continuing execution of a non-reified
-		 * [unoptimized][unoptimizedChunk] frame after reifying its caller
-		 * chain.
-		 *
-		 * It's hard-coded, but checked against the default chunk in
-		 * [createDefaultChunk] when that chunk is created.
-		 */
-		AFTER_REIFICATION(3),
-
-		/**
-		 * The entry point to which to jump when returning into a continuation
-		 * that's running the [unoptimizedChunk].
-		 *
-		 * It's hard-coded, but checked against the default chunk in
-		 * [createDefaultChunk] when that chunk is created.
-		 */
-		TO_RETURN_INTO(4),
-
-		/**
-		 * The entry point to which to jump when returning from an interrupt
-		 * into a continuation that's running the [unoptimizedChunk].
-		 *
-		 * It's hard-coded, but checked against the default chunk in
-		 * [createDefaultChunk] when that chunk is created.
-		 */
-		TO_RESUME(6),
-
-		/**
-		 * An unreachable entry point.
-		 */
-		UNREACHABLE(8),
-
-		/**
-		 * The entry point to which to jump when restarting an unoptimized
-		 * [A_Continuation] via [P_RestartContinuation] or
-		 * [P_RestartContinuationWithArguments].  We skip the
-		 * [L2_TRY_OPTIONAL_PRIMITIVE], but still do the
-		 * [L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO] so that looped
-		 * functions tend to get optimized.
-		 *
-		 * Note that we could just as easily start at 0, the entry point for
-		 * *calling* an unoptimized function, but we can skip the
-		 * primitive safely because primitives and labels are mutually
-		 * exclusive.
-		 *
-		 * It's hard-coded, but checked against the default chunk in
-		 * [createDefaultChunk] when that chunk is created.
-		 */
-		TO_RESTART(1),
-
-		/**
-		 * The chunk containing this entry point *can't* be invalid when
-		 * it's entered.  Note that continuations that are created with this
-		 * entry point type don't have to have any slots filled in, and can just
-		 * contain a caller, function, chunk, offset, and register dump.
-		 */
-		TRANSIENT(-1);
-	}
-
-	/**
-	 * Answer this chunk's control flow graph.  Do not modify it.
-	 *
-	 * @return
-	 *   This chunk's [L2ControlFlowGraph].
-	 */
-	@Suppress("MemberVisibilityCanBePrivate")
-	fun controlFlowGraph(): L2ControlFlowGraph = controlFlowGraph
-
 	/**
 	 * Dump the chunk to disk for debugging. This is expected to be called
 	 * directly from the debugger, and should result in the production of three
@@ -335,75 +230,5 @@ constructor(
 			code?.let { Generation.addNewChunk(chunk) }
 			return chunk
 		}
-
-		/**
-		 * Create a default `L2Chunk` that decrements a counter in an invoked
-		 * [A_RawFunction], optimizing it into a new chunk when it hits zero,
-		 * otherwise interpreting the raw function's nybblecodes.
-		 *
-		 * @return
-		 *   An `L2Chunk` to use for code that has not yet been translated to
-		 *   level two.
-		 */
-		private fun createDefaultChunk(): L2JVMChunk
-		{
-			val returnFromCallZone =
-				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
-					"Return into L1 reified continuation from call")
-			val resumeAfterInterruptZone =
-				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
-					"Resume L1 reified continuation after interrupt")
-			val initialBlock = L2BasicBlock("Default entry")
-			val reenterFromRestartBlock = L2BasicBlock("Default restart")
-			val loopBlock =
-				L2BasicBlock("Default loop", null, isLoopHead = true)
-			val reenterFromCallBlock =
-				L2BasicBlock(
-					"Default return from call",
-					returnFromCallZone)
-			val reenterFromInterruptBlock =
-				L2BasicBlock(
-					"Default reentry from interrupt",
-					resumeAfterInterruptZone)
-			val unreachableBlock = L2BasicBlock("unreachable")
-			val controlFlowGraph =
-				L1Translator.generateDefaultChunkControlFlowGraph(
-					initialBlock,
-					reenterFromRestartBlock,
-					loopBlock,
-					reenterFromCallBlock,
-					reenterFromInterruptBlock,
-					unreachableBlock)
-			val instructions = mutableListOf<L2Instruction>()
-			controlFlowGraph.generateOn(instructions)
-			val defaultChunk = allocate(
-				null,
-				reenterFromRestartBlock.offset(),
-				instructions,
-				controlFlowGraph,
-				trackBranches = false,
-				emptySet)
-			assert(initialBlock.offset() == 0)
-			assert(reenterFromRestartBlock.offset()
-				== ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
-			assert(loopBlock.offset() == 3)
-			assert(reenterFromCallBlock.offset()
-				== ChunkEntryPoint.TO_RETURN_INTO.offsetInDefaultChunk)
-			assert(reenterFromInterruptBlock.offset()
-				== ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
-			assert(unreachableBlock.offset()
-				== ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk)
-			return defaultChunk
-		}
-
-		/**
-		 * The special [level&#32;two&#32;chunk][L2JVMChunk] that is used to
-		 * interpret level one nybblecodes until a piece of
-		 * [compiled&#32;code][CompiledCodeDescriptor] has been executed some
-		 * number of times (See [OptimizationLevel.countdown]).
-		 */
-		@ReferencedInGeneratedCode
-		@JvmStatic
-		val unoptimizedChunk = createDefaultChunk()
 	}
 }

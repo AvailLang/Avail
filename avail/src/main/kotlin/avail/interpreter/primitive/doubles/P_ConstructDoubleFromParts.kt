@@ -34,6 +34,8 @@ package avail.interpreter.primitive.doubles
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,11 +45,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Construct a non-negative [double][A_Number] from parts
@@ -56,15 +58,18 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
+object P_ConstructDoubleFromParts : Primitive3(CannotFail, CanInline, CanFold)
 {
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val integerPart = interpreter.argument(0)
-		val fractionalPart = interpreter.argument(1)
-		val exponentPart = interpreter.argument(2)
+		val integerPart = arg1
+		val fractionalPart = arg2
+		val exponentPart = arg3
 
 		// Since we expect that this primitive will only be used for building
 		// floating-point literals, it doesn't need to be particularly
@@ -89,7 +94,7 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 				e)
 		}
 
-		return interpreter.primitiveSuccess(result)
+		return result
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

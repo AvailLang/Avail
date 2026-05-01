@@ -224,7 +224,7 @@ noUnhandledExceptionHandler : [exception]→⊥ :=
  * {@method "current fiber"}'s chain of {@type "continuation"}s to identify an
  * invocation of {@method "Guard|guard_«intercept_»«ensure_»"} (primitive
  * CatchException). Extract the second argument from that continuation. This is
- * a {@type "tuple"} of arity-one exception handling {@type "function"}. If any
+ * a {@type "tuple"} of arity-one exception handling {@type "function"}s. If any
  * of these handlers, from left to right, accepts {@param "anException"}, then
  * discard all continuations after this one and then invoke the handler with
  * {@param "anException"}. If none of these handlers accept the argument, then

@@ -33,15 +33,16 @@
 package avail.interpreter.primitive.general
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive0
 import java.lang.System.nanoTime
 
 /**
@@ -53,13 +54,13 @@ import java.lang.System.nanoTime
  */
 @Suppress("unused")
 object P_CurrentTimeNanoseconds
-	: Primitive(0, CannotFail, CanInline, HasSideEffect)
+	: Primitive0(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-		return interpreter.primitiveSuccess(
-			fromLong(nanoTime()))
+		return fromLong(nanoTime())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

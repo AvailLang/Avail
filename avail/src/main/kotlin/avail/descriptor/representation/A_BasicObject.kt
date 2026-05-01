@@ -63,6 +63,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor
+import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -105,6 +106,15 @@ interface A_BasicObject : JSONFriendly
 	 * @return A descriptor.
 	 */
 	abstract val descriptor: AbstractDescriptor
+
+	/**
+	 * Answer the [TypeTag] that broadly classifies this object.  This should be
+	 * much faster than a polymorphic dispatch, as the tag is stored in a field
+	 * of the descriptor except for special cases.  E.g., [IndirectionDescriptor]
+	 * stores the [TypeTag.UNKNOWN_TAG] and has to run code to determine the
+	 * correct tag.
+	 */
+	abstract val typeTag: TypeTag
 
 	/**
 	 * Answer whether the [objects][AvailObject] occupy the same memory

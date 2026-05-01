@@ -31,31 +31,25 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.representation.AvailObject
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
-import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
+import avail.interpreter.execution.Interpreter.Companion.attemptPrimitiveMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 
 /**
- * Expect the [AvailObject] (pointers) array and int array to still reflect the
- * caller. Expect [Interpreter.argsBuffer] to have been loaded with the
- * arguments to this primitive function, and expect the code/function/chunk to
- * have been updated for this primitive function. Try to execute a primitive,
- * setting the [Interpreter.returnNow] flag and
- * [latestResult][Interpreter.setLatestResult] if successful. The caller always
- * has the responsibility of checking the return value, if applicable at that
- * call site.
+ * Attempt the given [primitive].  If it succeeds, return from the frame with
+ * the primitive's output.  If the primitive attempts to reify, return `null`.
+ * If the primitive failed, it will have recorded the failure code for
+ * subsequent use, so fall through to the remainder of the chunk.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -85,16 +79,27 @@ class L2_TRY_PRIMITIVE(
 		// interpreter, fn
 		loadLiteralObject(primitive.constant)
 		// interpreter, fn, prim
-		if (primitive.constant.hasFlag(CanInline))
-		{
-			// :: return interpreter.attemptInlinePrimitive(function, primitive)
-			generateCall(attemptTheInlinePrimitiveMethod)
-		}
-		else
-		{
-			// :: return attemptNonInlinePrimitive(function, primitive)
-			generateCall(attemptTheNonInlinePrimitiveMethod)
-		}
+		generateCall(attemptPrimitiveMethod)
+		// :: valueOrNull
+		method.visitInsn(Opcodes.DUP)
+		// :: valueOrNull, valueOrNull
+		val notSuccess = Label()
+		method.visitJumpInsn(Opcodes.IFNULL, notSuccess)
+		// :: valueOrNull(!null)
 		method.visitInsn(Opcodes.ARETURN)
+
+		method.visitLabel(notSuccess)
+		// :: valueOrNull(=null)
+		loadInterpreter()
+		// :: valueOrNull(=null), interpreter
+		load(Interpreter.currentReifierField)
+		// :: valueOrNull(=null), reifier
+		val notReifying = Label()
+		method.visitJumpInsn(Opcodes.IFNULL, notReifying)
+		// :: valueOrNull(=null)
+		method.visitInsn(Opcodes.ARETURN)
+		method.visitLabel(notReifying)
+		// ::
+		// Fall through for the case of a failed primitive.
 	}
 }

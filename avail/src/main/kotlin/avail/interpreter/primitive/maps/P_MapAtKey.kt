@@ -34,6 +34,8 @@ package avail.interpreter.primitive.maps
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -46,27 +48,30 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Look up the key in the [map][A_Map], answering the
  * corresponding value.
  */
 @Suppress("unused")
-object P_MapAtKey : Primitive(2, CanFold, CanInline)
+object P_MapAtKey : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val map = interpreter.argument(0)
-		val key = interpreter.argument(1)
+		val map = arg1
+		val key = arg2
 		map.mapAtOrNull(key)?.let {
-			return interpreter.primitiveSuccess(it)
+			return it
 		}
-		return interpreter.primitiveFailure(E_KEY_NOT_FOUND)
+		return interpreter.fail(E_KEY_NOT_FOUND)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

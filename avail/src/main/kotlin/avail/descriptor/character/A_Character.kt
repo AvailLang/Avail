@@ -34,6 +34,7 @@ package avail.descriptor.character
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.TypeTag
 
 /**
  * [A_Character] is an interface that specifies the
@@ -73,6 +74,6 @@ interface A_Character : A_BasicObject {
 		 * otherwise.
 		 */
 		val A_Character.isCharacter: Boolean get() =
-			dispatch { o_IsCharacter(it) }
+			typeTag == TypeTag.CHARACTER_TAG
 	}
 }

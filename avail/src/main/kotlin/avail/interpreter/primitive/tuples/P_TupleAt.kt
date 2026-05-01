@@ -38,6 +38,8 @@ import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -58,10 +60,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -77,6 +75,10 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_CODEPOINT_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_INT_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.characters.P_CharacterCodePoint
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -90,23 +92,26 @@ import java.lang.Integer.MAX_VALUE
  * **Primitive:** Look up an element in the [tuple][TupleDescriptor].
  */
 @Suppress("unused")
-object P_TupleAt : Primitive(2, CanFold, CanInline)
+object P_TupleAt : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val tuple = interpreter.argument(0)
-		val indexObject = interpreter.argument(1)
+		val tuple = arg1
+		val indexObject = arg2
 		if (!indexObject.isInt)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = indexObject.extractInt
 		return if (index > tuple.tupleSize)
 		{
-			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		else interpreter.primitiveSuccess(tuple.tupleAt(index))
+		else tuple.tupleAt(index)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

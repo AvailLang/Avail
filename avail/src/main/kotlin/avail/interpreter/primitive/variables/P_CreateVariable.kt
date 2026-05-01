@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -38,24 +40,25 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a [variable][A_Variable] with the given inner
  * [type][A_Type].
  */
 @Suppress("unused")
-object P_CreateVariable : Primitive(1, CanInline, CannotFail)
+object P_CreateVariable : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val innerType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			newVariableWithContentType(innerType))
+		val innerType = arg1
+		return newVariableWithContentType(innerType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.modules
 
 import avail.builder.ModuleName
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -41,14 +43,14 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Resolve the given fully qualified module name, and answer the
@@ -58,24 +60,25 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_LookupModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
+object P_LookupModule : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val pathString: A_String = interpreter.argument(0)
+		val pathString: A_String = arg1
 
 		val runtime = interpreter.runtime
 		return try
 		{
 			val qualifiedName = ModuleName(pathString.asNativeString())
 			val resolvedName = runtime.moduleNameResolver.resolve(qualifiedName)
-			interpreter.primitiveSuccess(
-				runtime.moduleAt(stringFrom(resolvedName.qualifiedName)))
+			runtime.moduleAt(stringFrom(resolvedName.qualifiedName))
 		}
 		catch (e: Exception)
 		{
-			interpreter.primitiveFailure(E_KEY_NOT_FOUND)
+			interpreter.fail(E_KEY_NOT_FOUND)
 		}
 	}
 

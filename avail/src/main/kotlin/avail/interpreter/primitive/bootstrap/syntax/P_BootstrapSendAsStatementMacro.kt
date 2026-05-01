@@ -41,6 +41,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
@@ -51,10 +53,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STAT
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
@@ -65,15 +67,16 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
+object P_BootstrapSendAsStatementMacro : Primitive1(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val sendPhraseInLiteral = interpreter.argument(0)
-
+		val sendPhraseInLiteral = arg1
 		interpreter.fiber().availLoader ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 
 		val sendPhrase = sendPhraseInLiteral.token.literal()
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
@@ -92,8 +95,7 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 					+ "but it yields ${sendPhrase.phraseExpressionType}.  "
 					+ "Expression is: $sendPhrase"))
 		}
-		val sendAsStatement = newExpressionAsStatement(sendPhrase)
-		return interpreter.primitiveSuccess(sendAsStatement)
+		return newExpressionAsStatement(sendPhrase)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

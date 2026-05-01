@@ -101,7 +101,7 @@ import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
-import avail.interpreter.Primitive
+import avail.interpreter.primitive.Primitive
 import avail.test.TypeConsistencyTest.Companion.checkCovariance
 import avail.test.TypeConsistencyTest.Node.Companion.BOTTOM
 import avail.test.TypeConsistencyTest.Node.Companion.SOME_ATOM_TYPE
@@ -476,12 +476,12 @@ class TypeConsistencyTest
 				COMPARABLE_OF_JAVA_STRING_POJO)
 
 			/**
-			 * The pojo type representing [Enum]&lt;*self type*&gt;.
-			 * Note that this type isn't actually supported by Java directly, since
-			 * it would look like
+			 * The pojo type representing [Enum]&lt;*self type*&gt;. Note that
+			 * this type isn't actually supported by Java directly, since it
+			 * would look like
 			 * Enum&lt;Enum&lt;Enum&lt;Enum&lt;...&gt;&gt;&gt;&gt;, which cannot
-			 * actually be written as a Java type expression.  This pojo type is the
-			 * most general Java enumeration type.
+			 * actually be written as a Java type expression.  This pojo type is
+			 * the most general Java enumeration type.
 			 */
 			private val JAVA_ENUM_POJO = Node(
 				"JAVA_ENUM_POJO",
@@ -493,9 +493,9 @@ class TypeConsistencyTest
 			/**
 			 * The pojo type representing the Java enumeration [Result].
 			 */
-			private val AVAIL_PRIMITIVE_RESULT_ENUM_POJO = Node(
-				"AVAIL_PRIMITIVE_RESULT_ENUM_POJO",
-				pojoTypeForClass(Primitive.Result::class.java),
+			private val AVAIL_PRIMITIVE_FLAG_ENUM_POJO = Node(
+				"AVAIL_PRIMITIVE_FLAG_ENUM_POJO",
+				pojoTypeForClass(Primitive.Flag::class.java),
 				JAVA_ENUM_POJO)
 
 			/**
@@ -534,7 +534,7 @@ class TypeConsistencyTest
 				pojoBottom(),
 				JAVA_INTEGER_POJO,
 				JAVA_STRING_POJO,
-				AVAIL_PRIMITIVE_RESULT_ENUM_POJO,
+				AVAIL_PRIMITIVE_FLAG_ENUM_POJO,
 				COMPARABLE_OF_AVAIL_INTEGER_POJO,
 				JAVA_STRING_ARRAY_POJO)
 
@@ -1647,8 +1647,8 @@ class TypeConsistencyTest
 		@JvmStatic
 		fun initializeAllWellKnownObjects()
 		{
-			// Force early initialization of the Avail runtime in order to
-			// prevent initialization errors.
+			// Force early initialization of the Avail runtime to prevent
+			// initialization errors.
 			@Suppress("UnusedExpression")
 			AvailRuntime
 

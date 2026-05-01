@@ -37,6 +37,8 @@ import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -50,11 +52,11 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Extract the type previously set for this field atom via
@@ -64,26 +66,28 @@ import avail.interpreter.execution.Interpreter
  * which actually makes it foldable ([CanFold]).
  */
 @Suppress("unused")
-object P_AtomFieldBound : Primitive(
-	1, CanInline, CanFold, WritesToHiddenGlobalState)
+object P_AtomFieldBound : Primitive1(
+	CanInline, CanFold, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
+		val atom = arg1
 		if (atom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
 			// It's an explicit subclassing atom, so its type bound is just the
 			// same atom's type.
-			return interpreter.primitiveSuccess(instanceType(atom))
+			return instanceType(atom)
 		}
 		val typeBound = atom.fieldAtomConstraint
 		if (typeBound.isNil)
 		{
-			return interpreter.primitiveFailure(E_KEY_NOT_FOUND)
+			return interpreter.fail(E_KEY_NOT_FOUND)
 		}
 		assert(typeBound.isSubtypeOf(ANY()))
-		return interpreter.primitiveSuccess(typeBound)
+		return typeBound
 	}
 
 	override fun returnTypeGuaranteedByVM(

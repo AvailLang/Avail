@@ -39,6 +39,8 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
@@ -59,10 +61,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive4
 import avail.io.IOSystem
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
@@ -87,19 +89,24 @@ import java.util.EnumSet
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
+object P_FileOpen : Primitive4(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val filename = interpreter.argument(0)
-		val alignment = interpreter.argument(1)
-		val options = interpreter.argument(2)
-		val permissions = interpreter.argument(3)
+		val filename = arg1
+		val alignment = arg2
+		val options = arg3
+		val permissions = arg4
 
 		if (!alignment.isInt)
 		{
-			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
 		}
 		var alignmentInt = alignment.extractInt
 		if (alignmentInt == 0)
@@ -115,7 +122,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 		val fileAttributes = permissionsFor(permissions)
 		if (!fileOptions.contains(READ) && !fileOptions.contains(WRITE))
 		{
-			return interpreter.primitiveFailure(E_ILLEGAL_OPTION)
+			return interpreter.fail(E_ILLEGAL_OPTION)
 		}
 		val path: Path =
 			try
@@ -124,7 +131,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val atom = createAtom(filename, nil)
@@ -135,23 +142,23 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 			}
 			catch (e: IllegalArgumentException)
 			{
-				return interpreter.primitiveFailure(E_ILLEGAL_OPTION)
+				return interpreter.fail(E_ILLEGAL_OPTION)
 			}
 			catch (e: UnsupportedOperationException)
 			{
-				return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: AccessDeniedException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
+				return interpreter.fail(E_IO_ERROR)
 			}
 
 		val fileHandle = FileHandle(
@@ -162,7 +169,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 			channel)
 		val pojo = identityPojo(fileHandle)
 		atom.setAtomProperty(FILE_KEY.atom, pojo)
-		return interpreter.primitiveSuccess(atom)
+		return atom
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

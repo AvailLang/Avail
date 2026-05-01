@@ -40,6 +40,8 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -50,15 +52,15 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive LookupMacro**: Given an [atom][A_Atom] and a tuple of
@@ -77,28 +79,32 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_LookupMacro : Primitive(2, CanInline, ReadsFromHiddenGlobalState)
+object P_LookupMacro : Primitive2(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (atom: A_Atom, argPhrasesTuple: A_Tuple) = interpreter.argsBuffer
+		val atom: A_Atom = arg1
+		val argPhrasesTuple: A_Tuple = arg2
 		val bundle = atom.bundleOrNil
 		if (bundle.isNil)
 		{
-			return interpreter.primitiveFailure(E_NO_METHOD_DEFINITION)
+			return interpreter.fail(E_NO_METHOD_DEFINITION)
 		}
 		val bundleArgCount = bundle.numArgs
 		if (argPhrasesTuple.tupleSize != bundleArgCount)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val bestMacros = bundle.lookupMacroByPhraseTuple(argPhrasesTuple)
 		return when (bestMacros.tupleSize)
 		{
-			0 -> interpreter.primitiveFailure(E_NO_METHOD_DEFINITION)
-			1 -> interpreter.primitiveSuccess(bestMacros.tupleAt(1).bodyBlock())
-			else -> interpreter.primitiveFailure(E_AMBIGUOUS_METHOD_DEFINITION)
+			0 -> interpreter.fail(E_NO_METHOD_DEFINITION)
+			1 -> bestMacros.tupleAt(1).bodyBlock()
+			else -> interpreter.fail(E_AMBIGUOUS_METHOD_DEFINITION)
 		}
 	}
 

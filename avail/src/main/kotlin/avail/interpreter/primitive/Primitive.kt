@@ -1,21 +1,21 @@
 /*
  * Primitive.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter
+package avail.interpreter.primitive
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.descriptor.functions.A_Function
@@ -41,6 +41,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
@@ -58,26 +59,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Invokes
-import avail.interpreter.Primitive.Flag.SpecialForm
-import avail.interpreter.Primitive.Flag.Unknown
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByClassName
-import avail.interpreter.Primitive.Result.FAILURE
-import avail.interpreter.Primitive.Result.SUCCESS
+import avail.interpreter.JavaLibrary
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.afterAttemptPrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.argsBufferField
 import avail.interpreter.execution.Interpreter.Companion.beforeAttemptPrimitiveMethod
-import avail.interpreter.execution.Interpreter.Companion.getLatestResultMethod
-import avail.interpreter.execution.Interpreter.Companion.optionalReifierIfCanSwitchContinuationsMethod
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
@@ -95,6 +81,8 @@ import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_RunInfalliblePrimitiveNoCheck
+import avail.interpreter.primitive.Primitive.Flag.SpecialForm
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
@@ -109,6 +97,8 @@ import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
+import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
+import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -122,15 +112,9 @@ import avail.performance.StatisticReport.PRIMITIVES
 import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.isNullOr
-import org.objectweb.asm.Label
-import org.objectweb.asm.Opcodes.ACONST_NULL
-import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ARETURN
-import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.DUP
-import org.objectweb.asm.Opcodes.IFNULL
 import org.objectweb.asm.Opcodes.POP
-import org.objectweb.asm.Opcodes.SWAP
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.String.format
@@ -152,9 +136,10 @@ import java.util.regex.Pattern
  * such as reifying the Java stack.
  *
  * Primitives may succeed or fail, or cause some other action like non-local
- * control flow.  This is handled via [Interpreter.primitiveSuccess] and
- * [Interpreter.primitiveFailure] and similar methods.  If a primitive fails,
- * the statements in the containing function will be invoked, as though the
+ * control flow.  This is handled via the return from the [attempt] method,
+ * where a non-null value means primitive success, and null means either a
+ * reification or a primitive failure has happened.  If a primitive fails, the
+ * statements in the containing function will be invoked, as though the
  * primitive had never been attempted.
  *
  * In addition, the `Primitive` subclasses collaborate with the [L1Translator]
@@ -205,7 +190,10 @@ import java.util.regex.Pattern
  *   The flags that describe how the [Interpreter] and [L2Generator] should deal
  *   with this primitive.
  */
-abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
+abstract class Primitive
+constructor(
+	val argCount: Int,
+	vararg flags: Flag)
 {
 	/**
 	 * To simplify styling during bootstrapping, a method defined by the
@@ -241,7 +229,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 	/**
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
-	 * answering [Result.CONTINUATION_CHANGED].
+	 * changing the continuaation.
 	 */
 	var reificationAbandonmentStat: Statistic? = null
 		private set
@@ -254,7 +242,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		private set
 
 	/** Capture the name of the primitive class once for performance. */
-	val name: String = holdersByClassName[javaClass.name]!!.name
+	val name: String = PrimitiveHolder.holdersByClassName[javaClass.name]!!.name
 
 	/** Capture the simpleName of the primitive class once for performance. */
 	val simpleName: String = javaClass.simpleName
@@ -288,71 +276,30 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			primitiveFlags.add(flag)
 		}
 		// Sanity check certain conditions.
-		assert(!primitiveFlags.contains(CanFold)
-				|| primitiveFlags.contains(CanInline))
+		assert(!primitiveFlags.contains(Flag.CanFold)
+				|| primitiveFlags.contains(Flag.CanInline))
 		{
 			"Primitive ${javaClass.simpleName} has CanFold without CanInline"
 		}
-		assert(!primitiveFlags.contains(Invokes)
-				|| primitiveFlags.contains(CanInline))
+		assert(!primitiveFlags.contains(Flag.Invokes)
+				|| primitiveFlags.contains(Flag.CanInline))
 		{
 			"Primitive ${javaClass.simpleName} has Invokes without CanInline"
 		}
 		runningNanos = Statistic(
 			PRIMITIVES,
-			(if (hasFlag(CanInline)) "" else "[NOT INLINE] ")
+			(if (hasFlag(Flag.CanInline)) "" else "[NOT INLINE] ")
 				+ "$simpleName (running)")
-		if (hasFlag(CanSwitchContinuations))
+		if (hasFlag(Flag.CanSwitchContinuations))
 		{
 			reificationAbandonmentStat = Statistic(
-				REIFICATIONS, "Abandoned for CONTINUATION_CHANGED from $name")
+				REIFICATIONS, "Abandoned for continuation change from $name")
 		}
-		if (!hasFlag(CanInline))
+		if (!hasFlag(Flag.CanInline))
 		{
 			reificationForNoninlineStat = Statistic(
 				REIFICATIONS, "Reification for non-inline $name")
 		}
-	}
-
-	/**
-	 * The success state of a primitive attempt.
-	 */
-	enum class Result
-	{
-		/**
-		 * The primitive succeeded, and the result, if any, has been stored for
-		 * subsequent use in the [Interpreter.latestResult].
-		 */
-		@ReferencedInGeneratedCode
-		SUCCESS,
-
-		/**
-		 * The primitive failed.  The backup Avail code should be executed
-		 * instead.
-		 */
-		FAILURE,
-
-		/**
-		 * The continuation was replaced as a consequence of the primitive.
-		 * This is a specific form of success, but no result can be produced due
-		 * to the fact that the new continuation does not have a place to write
-		 * it.
-		 */
-		CONTINUATION_CHANGED,
-
-		/**
-		 * The primitive directly invoked a function now in the process of
-		 * reifying.  The [StackReifier] has been written to the
-		 * [Interpreter.latestReifierFromInvokingPrimitive].
-		 */
-		INVOKED_AND_REIFYING,
-
-		/**
-		 * The current fiber has been suspended as a consequence of this
-		 * primitive executing, so the [interpreter][Interpreter]
-		 * should switch processes now.
-		 */
-		FIBER_SUSPENDED;
 	}
 
 	/**
@@ -527,21 +474,21 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * Attempt this primitive with the given [Interpreter].  The interpreter's
 	 * [argument&#32;list][Interpreter.argsBuffer] must be set up prior to this
 	 * call.  If the primitive fails, it should set the primitive failure code
-	 * by calling [Interpreter.primitiveFailure] and returning its result from
-	 * the primitive.  Otherwise it should set the interpreter's primitive
-	 * result by calling [Interpreter.primitiveSuccess] and then return its
-	 * result from the primitive.  For unusual primitives that replace the
-	 * current continuation, [Result.CONTINUATION_CHANGED] is more appropriate,
-	 * and the latestResult need not be set.  For primitives that need to cause
-	 * a context switch, [Result.FIBER_SUSPENDED] should be returned.
+	 * by calling [Interpreter.fail] and return null.  If the primitive
+	 * needs to reify and then perform some action that suspends or terminates
+	 * the fiber, or performs a context change with a fully reified stack, it
+	 * should set the [Interpreter.currentReifier], and have
+	 * that reifier's [StackReifier.postReificationAction] return either
+	 * [CONTINUE_FIBER] or [SWITCH_FROM_FIBER].
 	 *
 	 * @param interpreter
 	 *   The [Interpreter] that is executing.
-	 * @return The [Result] code indicating success or failure (or special
-	 *   circumstance).
+	 * @return
+	 *   The resulting [A_BasicObject] if successful, otherwise `null` to
+	 *   indicate either a primitive failure or reification.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun attempt(interpreter: Interpreter): Result
+	abstract fun attempt(interpreter: Interpreter): A_BasicObject?
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined
@@ -669,7 +616,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   variable declared in a block using this primitive.
 	 */
 	protected open fun privateFailureVariableType(): A_Type =
-		if (CannotFail in primitiveFlags) bottom
+		if (Flag.CannotFail in primitiveFlags) bottom
 		else naturalNumbers
 
 	/**
@@ -684,8 +631,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	open fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>
 	): Fallibility =
-		if (hasFlag(CannotFail)) CallSiteCannotFail
-		else CallSiteCanFail
+		if (hasFlag(Flag.CannotFail)) Fallibility.CallSiteCannotFail
+		else Fallibility.CallSiteCanFail
 
 	/**
 	 * Test whether the specified [Flag] is set for this primitive.
@@ -843,7 +790,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * @return Whether this primitive has failure/alternative code.
 	 */
 	fun canHaveNybblecodes(): Boolean =
-		!hasFlag(CannotFail) || hasFlag(SpecialForm)
+		!hasFlag(Flag.CannotFail) || hasFlag(Flag.SpecialForm)
 
 	/**
 	 * Determine whether this [Primitive], already identified as a [SpecialForm]
@@ -864,7 +811,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		literals: A_Tuple
 	): Boolean
 	{
-		assert(hasFlag(SpecialForm))
+		assert(hasFlag(Flag.SpecialForm))
 		return false
 	}
 
@@ -885,7 +832,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		writer: L1InstructionWriter,
 		numArgs: Int)
 	{
-		if (!hasFlag(CannotFail))
+		if (!hasFlag(Flag.CannotFail))
 		{
 			// Produce failure code.  First declare the local that holds
 			// primitive failure information.
@@ -973,12 +920,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// the primitive is infallible.  However, if the primitive can suspend
 		// the fiber (which can happen even if it's infallible), be careful not
 		// to inline it.
-		if (hasFlag(CanSuspend)
-			|| hasFlag(Invokes)
-			|| !hasFlag(CanInline)
-			|| hasFlag(CanSwitchContinuations)
-			|| hasFlag(Unknown)
-			|| fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
+		if (hasFlag(Flag.CanSuspend)
+			|| hasFlag(Flag.Invokes)
+			|| !hasFlag(Flag.CanInline)
+			|| hasFlag(Flag.CanSwitchContinuations)
+			|| hasFlag(Flag.Unknown)
+			|| fallibilityForArgumentTypes(argumentTypes) != Fallibility.CallSiteCannotFail
+		)
 		{
 			return false
 		}
@@ -990,7 +938,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val restriction = boxedRestrictionForType(
 			if (guaranteedType.isBottom) TOP() else guaranteedType)
 		val semanticValue: L2SemanticBoxedValue
-		if (hasFlag(CanFold) && !guaranteedType.isBottom)
+		if (hasFlag(Flag.CanFold) && !guaranteedType.isBottom)
 		{
 			semanticValue = primitiveInvocation(
 				this@Primitive,
@@ -1088,11 +1036,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			// Subclasses may be more lenient about the function being absent.
 			return null
 		}
-		if (!hasFlag(CanInline)
-			|| hasFlag(CanSwitchContinuations)
-			|| hasFlag(CanSuspend)
-			|| hasFlag(Invokes)
-			|| hasFlag(Unknown))
+		if (!hasFlag(Flag.CanInline)
+			|| hasFlag(Flag.CanSwitchContinuations)
+			|| hasFlag(Flag.CanSuspend)
+			|| hasFlag(Flag.Invokes)
+			|| hasFlag(Flag.Unknown))
 		{
 			// The primitive might suspend or invoke.  Fall back to a general
 			// invocation.
@@ -1106,7 +1054,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		when (fallibilityForArgumentTypes(argTypes))
 		{
-			CallSiteCanFail ->
+			Fallibility.CallSiteCanFail ->
 			{
 				// This primitive invocation might fail.  However, this might be
 				// a very rare situation.  If the primitive has no side-effect
@@ -1130,7 +1078,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				// Fall back to a general invocation.
 				return null
 			}
-			CallSiteCannotFail ->
+			Fallibility.CallSiteCannotFail ->
 			{
 				// The primitive cannot fail.
 				simpleTranslator.add(
@@ -1151,9 +1099,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	/**
 	 * This call site may fail.  The result type must have been verified strong
 	 * enough for this call site.  Answer a function that will attempt to run a
-	 * specialized version of the fallible primitive, answering the [Result].
-	 * This will be plugged into the L2Simple code in such a way that if the
-	 * primitive fails, a full invocation will take place instead.
+	 * specialized version of the fallible primitive, answering the result, or
+	 * `null` if there was a problem. This will be plugged into the L2Simple
+	 * code in such a way that if the primitive fails, a full invocation will
+	 * take place instead.
 	 *
 	 * Answer null if the fallible primitive invocation should not happen this
 	 * way, which will cause a regular function invocation to occur instead.
@@ -1164,17 +1113,17 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type
-	): ((Interpreter)->Result)?
+	): ((Interpreter)->A_BasicObject?)?
 	{
 		functionIfKnown ?: return null
 		return { interpreter ->
 			// At this point, the arguments have been pushed in the interpreter.
-			val result = interpreter.afterAttemptPrimitive(
+			val valueOrNull = interpreter.afterAttemptPrimitive(
 				this@Primitive,
 				interpreter.beforeAttemptPrimitive(this@Primitive),
 				attempt(interpreter))
-			assert(result == SUCCESS || result == FAILURE)
-			result
+			assert(valueOrNull != null || interpreter.currentReifier == null)
+			valueOrNull
 		}
 	}
 
@@ -1467,7 +1416,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val attemptMethod = instanceMethod(
 			Primitive::class.java,
 			Primitive::attempt.name,
-			Result::class.java,
+			A_BasicObject::class.java,
 			Interpreter::class.java)
 	}
 
@@ -1475,8 +1424,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * Write a JVM invocation of this primitive.  This sets up the interpreter,
 	 * calls [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt],
 	 * calls [Interpreter.afterAttemptPrimitive], and records statistics as
-	 * needed. It also deals with primitive failures, suspensions, and
-	 * reifications.
+	 * needed. It also deals with primitive failures, and reifications.
 	 *
 	 * Subclasses may do something more specific and efficient, and should be
 	 * free to neglect the statistics.  However, the [result] register must be
@@ -1537,62 +1485,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// [interpreter, prim, timeBeforeLong, prim, interpreter]
 		// :: Result success = primitive.attempt(interpreter)
 		generateCall(attemptMethod)
-		// [interpreter, prim, timeBeforeLong, success]
-		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
+		// [interpreter, prim, timeBeforeLong, valueOrNull]
+		// :: afterAttemptPrimitive(primitive, timeBeforeLong, valueOrNull)
 		generateCall(afterAttemptPrimitiveMethod)
-		// :: [success] (returned as a nicety by afterAttemptPrimitive)
-
-		// If the infallible primitive definitely switches continuations, then
-		// return null to force the context switch.
-		when
-		{
-			hasFlag(AlwaysSwitchesContinuation) ->
-			{
-				// :: return null;
-				method.visitInsn(POP)
-				method.visitInsn(ACONST_NULL)
-				method.visitInsn(ARETURN)
-			}
-			hasFlag(CanSwitchContinuations) ->
-			{
-				loadInterpreter()
-				// :: [success, interpreter]
-				method.visitInsn(SWAP)
-				// :: [interpreter, success]
-				loadLiteralObject(this@Primitive)
-				// :: [interpreter, success, primitive]
-				method.visitInsn(SWAP)
-				// :: [interpreter, primitive, success]
-
-				// :: reifier = interpreter.optionalReifierIfCanSwitchContinuations(
-				//     primitive, success);
-				generateCall(optionalReifierIfCanSwitchContinuationsMethod)
-				method.visitVarInsn(ASTORE, reifierLocal())
-				val noSwitchContinuationsLabel = Label()
-				// We switched continuations, so we have to return from the
-				// method with the reifier to ensure the JVM call stack is
-				// cleared before resuming the continuation.
-				// :: if (reifier != null) return reifier;
-				method.visitVarInsn(ALOAD, reifierLocal())
-				method.visitJumpInsn(IFNULL, noSwitchContinuationsLabel)
-				method.visitVarInsn(ALOAD, reifierLocal())
-				method.visitInsn(ARETURN)
-
-				// :: destReg = interpreter.getLatestResult()
-				method.visitLabel(noSwitchContinuationsLabel)
-				loadInterpreter()
-				generateCall(getLatestResultMethod)
-				store(result.register())
-			}
-			else ->
-			{
-				// :: result = interpreter.getLatestResult();
-				method.visitInsn(POP)
-				loadInterpreter()
-				generateCall(getLatestResultMethod)
-				store(result.register())
-			}
-		}
+		// :: [valueOrNull] (returned as a nicety by afterAttemptPrimitive)
+		// Return it now, either to report the value or to propagate the
+		// reification.
+		method.visitInsn(ARETURN)
 	}
 
 	/**

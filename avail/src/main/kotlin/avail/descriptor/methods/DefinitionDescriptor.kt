@@ -82,11 +82,12 @@ import avail.serialization.SerializerOperation
  */
 abstract class DefinitionDescriptor protected constructor(
 	mutability: Mutability,
+	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
 ) : Descriptor(
 	mutability,
-	TypeTag.DEFINITION_TAG,
+	typeTag,
 	objectSlotsEnumClass,
 	integerSlotsEnumClass)
 {
@@ -126,8 +127,6 @@ abstract class DefinitionDescriptor protected constructor(
 	override fun o_IsAbstractDefinition(self: AvailObject) = false
 
 	override fun o_IsForwardDefinition(self: AvailObject) = false
-
-	override fun o_IsMethodDefinition(self: AvailObject) = false
 
 	abstract override fun o_Kind(self: AvailObject): A_Type
 

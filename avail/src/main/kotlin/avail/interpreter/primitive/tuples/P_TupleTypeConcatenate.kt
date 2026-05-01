@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.tuples
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.Companion.concatenatingAnd
@@ -38,11 +40,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the type of all
@@ -51,15 +53,17 @@ import avail.interpreter.execution.Interpreter
  * restriction of the two-argument concatenation operation.
  */
 @Suppress("unused")
-object P_TupleTypeConcatenate : Primitive(2, CannotFail, CanFold, CanInline)
+object P_TupleTypeConcatenate : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val tupleType1 = interpreter.argument(0)
-		val tupleType2 = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			concatenatingAnd(tupleType1, tupleType2))
+		val tupleType1 = arg1
+		val tupleType2 = arg2
+		return concatenatingAnd(tupleType1, tupleType2)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

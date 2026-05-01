@@ -31,20 +31,22 @@
  */
 package avail.interpreter.primitive.controlflow
 
+import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
@@ -68,14 +70,13 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -91,25 +92,27 @@ import avail.optimizer.L1Translator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RestartContinuationWithArgumentsIf : Primitive(
-	3,
-	CanInline,
-	CanSwitchContinuations)
+object P_RestartContinuationWithArgumentsIf : Primitive3(
+	CanInline, CanSwitchContinuations)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val originalCon = interpreter.argument(0)
-		val arguments = interpreter.argument(1)
-		val condition = interpreter.argument(2)
+		val originalCon: A_Continuation = arg1
+		val arguments: A_Tuple = arg2
+		val condition: A_Atom = arg3
 
 		if (!condition.extractBoolean)
 		{
 			// The condition is false, so don't restart the continuation.
-			return interpreter.primitiveSuccess(nil)
+			return nil
 		}
 
-		val code = originalCon.function().code()
+		val code = originalCon.function.code()
 		//TODO MvG - This should be a primitive failure.
 		assert(originalCon.stackp == code.numSlots + 1)
 		{
@@ -124,30 +127,16 @@ object P_RestartContinuationWithArgumentsIf : Primitive(
 
 		val numArgs = code.numArgs()
 		if (numArgs != arguments.tupleSize)
-		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-		}
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		// Check the argument types.
 		if (!code.functionType().acceptsTupleOfArguments(arguments))
-		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
-		}
-		// Move the arguments into interpreter.argsBuffer.
-		interpreter.argsBuffer.clear()
-		for (arg in arguments)
-		{
-			interpreter.argsBuffer.add(arg)
-		}
+			return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.setReifiedContinuation(originalCon.caller)
-		interpreter.function = originalCon.function()
-		interpreter.chunk = code.startingChunk
-		interpreter.offset = 0
-		interpreter.returnNow = false
 		interpreter.clearLatestResult()
-		return CONTINUATION_CHANGED
+		interpreter.currentReifier =
+			interpreter.reifierToRestartWithArguments(originalCon, arguments)
+		return null
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

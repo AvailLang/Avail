@@ -49,6 +49,8 @@ import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -72,9 +74,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -82,6 +81,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -94,19 +96,21 @@ import avail.optimizer.L1Translator
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleToObject : Primitive(1, CanFold, CanInline)
+object P_TupleToObject : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val tuple = interpreter.argument(0)
+		val tuple = arg1
 		return try
 		{
-			interpreter.primitiveSuccess(objectFromTuple(tuple))
+			objectFromTuple(tuple)
 		}
 		catch (e: ObjectFieldTypeException)
 		{
-			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+			interpreter.fail(E_INVALID_FIELD_FOR_OBJECT)
 		}
 	}
 

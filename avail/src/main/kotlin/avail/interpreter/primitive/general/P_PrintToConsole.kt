@@ -33,6 +33,8 @@ package avail.interpreter.primitive.general
 
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -44,10 +46,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive1
 import avail.io.SimpleCompletionHandler
 import avail.io.TextOutputChannel
 
@@ -59,13 +61,14 @@ import avail.io.TextOutputChannel
  * be queued for writing.
  */
 @Suppress("unused")
-object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)
+object P_PrintToConsole : Primitive1(CanSuspend, Unknown)
 {
-	@Suppress("RedundantLambdaArrow")
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val string = interpreter.argument(0)
+		val string = arg1
 
 		val loader = interpreter.availLoaderOrNull()
 		loader?.statementCanBeSummarized(false)

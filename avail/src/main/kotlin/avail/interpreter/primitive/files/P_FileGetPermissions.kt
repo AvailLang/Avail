@@ -36,6 +36,8 @@ import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
@@ -54,10 +56,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 import avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -76,8 +78,50 @@ import java.util.EnumMap
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
+object P_FileGetPermissions : Primitive2(CanInline, HasSideEffect)
 {
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
+	{
+		val filename = arg1
+		val followSymlinks = arg2
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.fail(E_INVALID_PATH)
+			}
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
+		val permissions: Set<PosixFilePermission> =
+			try
+			{
+				Files.getPosixFilePermissions(path, *options)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.fail(E_PERMISSION_DENIED)
+			}
+			catch (e: AccessDeniedException)
+			{
+				return interpreter.fail(E_PERMISSION_DENIED)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.fail(E_IO_ERROR)
+			}
+			catch (e: UnsupportedOperationException)
+			{
+				return interpreter.fail(E_OPERATION_NOT_SUPPORTED)
+			}
+		return ordinalsFromPosixPermissions(permissions)
+	}
+
 	/**
 	 * A [map][Map] from [POSIX&#32;file][PosixFilePermission] to
 	 * [ordinals][IntegerDescriptor].
@@ -109,48 +153,6 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 	private fun ordinalsFromPosixPermissions(
 		permissions: Set<PosixFilePermission>
 	): A_Set = generateSetFrom(permissions) { permissionMap[it]!! }
-
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(2)
-		val filename = interpreter.argument(0)
-		val followSymlinks = interpreter.argument(1)
-		val path: Path =
-			try
-			{
-				IOSystem.fileSystem.getPath(filename.asNativeString())
-			}
-			catch (e: InvalidPathException)
-			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
-			}
-
-		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
-		val permissions: Set<PosixFilePermission> =
-			try
-			{
-				Files.getPosixFilePermissions(path, *options)
-			}
-			catch (e: SecurityException)
-			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-			}
-			catch (e: AccessDeniedException)
-			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-			}
-			catch (e: IOException)
-			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
-			}
-			catch (e: UnsupportedOperationException)
-			{
-				return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
-			}
-
-		val ordinals = ordinalsFromPosixPermissions(permissions)
-		return interpreter.primitiveSuccess(ordinals)
-	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

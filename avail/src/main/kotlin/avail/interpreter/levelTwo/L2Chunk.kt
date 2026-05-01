@@ -39,6 +39,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
+import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.MethodDescriptor
@@ -54,7 +55,7 @@ import avail.interpreter.levelTwo.L2Chunk.Companion.invalidationLock
 import avail.interpreter.levelTwo.L2Chunk.Generation.Companion.generations
 import avail.interpreter.levelTwo.L2Chunk.Generation.Companion.maximumNewestGenerationSize
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.EVICTION
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
@@ -326,7 +327,7 @@ abstract class L2Chunk protected constructor(
 
 	override fun toString(): String
 	{
-		if (this == unoptimizedChunk)
+		if (this === DefaultL1Chunk)
 		{
 			return "Default chunk"
 		}
@@ -414,7 +415,7 @@ abstract class L2Chunk protected constructor(
 	 * been because it was optimized in a way that relied on some aspect of the
 	 * available definitions (e.g., monomorphic inlining), so we need to
 	 * invalidate the chunk now, so that an attempt to invoke it or return into
-	 * it will be detected and converted into using the [unoptimizedChunk]. Also
+	 * it will be detected and converted into using the [DefaultL1Chunk]. Also
 	 * remove this chunk from the contingent set of each object on which it was
 	 * depending.
 	 *
@@ -438,7 +439,7 @@ abstract class L2Chunk protected constructor(
 		val before = AvailRuntimeSupport.captureNanos()
 		assert(invalidationLock.isHeldByCurrentThread)
 		AvailRuntime.currentRuntime().assertInSafePoint()
-		assert(this !== unoptimizedChunk)
+		assert(this !== DefaultL1Chunk)
 		isValid = false
 		val contingents: A_Set = contingentValues.makeImmutable()
 		contingentValues = emptySet
@@ -447,7 +448,7 @@ abstract class L2Chunk protected constructor(
 			value.removeDependentChunk(this)
 		}
 		code?.setStartingChunkAndReoptimizationCountdown(
-			unoptimizedChunk, reason.countdownToNextOptimization)
+			DefaultL1Chunk, reason.countdownToNextOptimization)
 		Generation.removeInvalidatedChunk(this)
 		val after = AvailRuntimeSupport.captureNanos()
 		// Use interpreter #0, since the invalidationLock prevents concurrent

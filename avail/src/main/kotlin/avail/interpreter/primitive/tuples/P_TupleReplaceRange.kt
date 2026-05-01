@@ -38,6 +38,8 @@ import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -62,13 +64,13 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive4
 
 /**
  * **Primitive:** Create a tuple from the original tuple, with the designated
@@ -82,29 +84,34 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
+object P_TupleReplaceRange : Primitive4(CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val originalTuple = interpreter.argument(0)
-		val firstIndex = interpreter.argument(1)
-		val lastIndex = interpreter.argument(2)
-		val replacementSubtuple = interpreter.argument(3)
+		val originalTuple = arg1
+		val firstIndex = arg2
+		val lastIndex = arg3
+		val replacementSubtuple = arg4
 		if (!firstIndex.isInt || !lastIndex.isInt)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = firstIndex.extractInt
 		val endInt = lastIndex.extractInt
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
 		{
-			return interpreter.primitiveFailure(E_NEGATIVE_SIZE)
+			return interpreter.fail(E_NEGATIVE_SIZE)
 		}
 		val originalSize = originalTuple.tupleSize
 		if (endInt > originalSize)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 
 		var result: A_Tuple
@@ -136,7 +143,7 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 			assert(result.tupleSize ==
 				originalSize - sizeToReplace + replacementSubtuple.tupleSize)
 		}
-		return interpreter.primitiveSuccess(result)
+		return result
 	}
 
 	override fun fallibilityForArgumentTypes(

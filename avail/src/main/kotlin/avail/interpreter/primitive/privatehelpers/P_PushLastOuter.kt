@@ -34,21 +34,23 @@ package avail.interpreter.primitive.privatehelpers
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
-import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive.Flag.SpecialForm
+import avail.interpreter.primitive.PrimitiveN
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -56,14 +58,17 @@ import avail.optimizer.L1Translator
  * **Primitive:** The sole outer value is being returned.
  */
 @Suppress("unused")
-object P_PushLastOuter : Primitive(
+object P_PushLastOuter : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
 		val function = interpreter.function!!
 		assert(function.code().codePrimitive() === this)
-		return interpreter.primitiveSuccess(function.outerVarAt(1))
+		return function.outerVarAt(1)
 	}
 
 	override fun returnTypeGuaranteedByVM(

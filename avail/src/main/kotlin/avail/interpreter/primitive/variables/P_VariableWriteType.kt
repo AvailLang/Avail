@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.writeType
@@ -38,24 +40,26 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Extract the write type of a
  * [variable&#32;type][VariableTypeDescriptor].
  */
 @Suppress("unused")
-object P_VariableWriteType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_VariableWriteType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val type = interpreter.argument(0)
-		return interpreter.primitiveSuccess(type.writeType)
+		val type = arg1
+		return type.writeType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

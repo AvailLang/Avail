@@ -37,7 +37,10 @@ import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
 import avail.descriptor.fiber.A_Fiber.Companion.joiningFibers
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
-import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
+import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_AVAILABLE
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -48,12 +51,12 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.Primitive.Flag.Unknown
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** If the [fiber][FiberDescriptor] has
@@ -76,23 +79,24 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AttemptJoinFiber : Primitive(
-	1,
+object P_AttemptJoinFiber : Primitive1(
 	CanSuspend,
 	Unknown,
 	// Don't re-order primitives around a join, in case it creates deadlocks.
 	WritesToHiddenGlobalState,
 	ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val joinee = interpreter.argument(0)
+		val joinee = arg1
 		val current = interpreter.fiber()
 		// Forbid auto-joining.
 		if (current.equals(joinee))
 		{
-			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
+			return interpreter.fail(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
 		val succeed = joinee.lock {
 			if (joinee.executionState.indicatesTermination)
@@ -125,15 +129,17 @@ object P_AttemptJoinFiber : Primitive(
 					current, false).makeShared()
 			false
 		}
-		return when {
-			succeed -> interpreter.primitiveSuccess(nil)
-			else -> current.lock {
+		if (succeed)
+			return nil
+		return interpreter.reifyForPrimitive(true) {
+			current.lock {
 				// If permit is not available, then park this fiber.
-				when {
-					current.getAndSetSynchronizationFlag(
-							PERMIT_UNAVAILABLE, true) ->
-						interpreter.primitivePark(interpreter.function!!)
-					else -> interpreter.primitiveSuccess(nil)
+				val wasAvailable = current.getAndSetSynchronizationFlag(
+					PERMIT_AVAILABLE, false)
+				when
+				{
+					wasAvailable -> succeed(nil)
+					else -> suspend(PARKED)
 				}
 			}
 		}

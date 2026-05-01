@@ -34,6 +34,8 @@ package avail.interpreter.primitive.objects
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -41,24 +43,26 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Convert an [object][ObjectDescriptor] into a
  * [map][MapDescriptor] from fields to values.
  */
 @Suppress("unused")
-object P_ObjectToMap : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ObjectToMap : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val obj = interpreter.argument(0)
-		return interpreter.primitiveSuccess(obj.fieldMap())
+		val obj = arg1
+		return obj.fieldMap()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

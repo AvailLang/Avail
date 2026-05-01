@@ -35,6 +35,8 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -45,13 +47,13 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Convert an [object&#32;type][ObjectTypeDescriptor] into a
@@ -59,22 +61,24 @@ import avail.interpreter.execution.Interpreter
  * [type][InstanceTypeDescriptor] to [types][TypeDescriptor].
  */
 @Suppress("unused")
-object P_ObjectTypeToMap : Primitive(1, CanFold, CanInline)
+object P_ObjectTypeToMap : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val objectType = interpreter.argument(0)
+		val objectType = arg1
 		return if (objectType.isBottom)
 		{
 			// The correct answer would be a map with *every* atom as a key,
 			// and ⊥ as every corresponding value.  It's easier to just fail
 			// dynamically for this unrepresentable singularity.
-			interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+			interpreter.fail(E_NO_SUCH_FIELD)
 		}
 		else
 		{
-			interpreter.primitiveSuccess(objectType.fieldTypeMap)
+			objectType.fieldTypeMap
 		}
 	}
 

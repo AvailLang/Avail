@@ -33,6 +33,8 @@ package avail.interpreter.primitive.continuations
 
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
@@ -40,11 +42,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a [variable][VariableDescriptor] containing the caller
@@ -52,16 +54,17 @@ import avail.interpreter.execution.Interpreter
  * unassigned if the continuation has no caller.
  */
 @Suppress("unused")
-object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ContinuationCaller : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val con = interpreter.argument(0)
-		val caller = con.caller
-		val callerHolder =
-			newVariableWithContentType(mostGeneralContinuationType, caller)
-		return interpreter.primitiveSuccess(callerHolder)
+		val con = arg1
+		return newVariableWithContentType(
+			mostGeneralContinuationType,
+			con.caller)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -37,6 +37,7 @@ import avail.AvailThread
 import avail.annotations.ThreadSafe
 import avail.anvil.Stylesheet
 import avail.anvil.SystemStyleClassifier.TOKEN_HIGHLIGHT
+import avail.compiler.LexicalScanner
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND
 import avail.compiler.SideEffectKind.ATOM_DEFINITION_KIND
@@ -225,18 +226,15 @@ import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
-import avail.interpreter.Primitive
 import avail.interpreter.effects.LoadingEffect
 import avail.interpreter.effects.LoadingEffectToAddDefinition
 import avail.interpreter.effects.LoadingEffectToAddMacro
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.AvailLoader.Companion.moduleHeaderBundleRoot
-import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_LOAD
 import avail.interpreter.execution.AvailLoader.Phase.INITIALIZING
-import avail.interpreter.execution.AvailLoader.Phase.LOADING
 import avail.interpreter.execution.AvailLoader.Phase.UNLOADING
+import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerOperatorBody
@@ -344,7 +342,7 @@ constructor(
 	var phase: Phase = INITIALIZING
 
 	/**
-	 * The [LexicalScanner] used for creating tokens from source code for this
+	 * The [avail.compiler.LexicalScanner] used for creating tokens from source code for this
 	 * [AvailLoader].
 	 *
 	 * Start by using the module header lexical scanner, and replace it after

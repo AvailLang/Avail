@@ -33,12 +33,13 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.FeatureCategory
 import avail.anvil.shortcuts.KeyboardShortcut
+import avail.descriptor.fiber.FiberDescriptor
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JRootPane
+import javax.swing.SwingUtilities
 
 /**
  * An abstraction for all the workbench's actions.
@@ -85,14 +86,45 @@ abstract class AbstractWorkbenchAction constructor(
 	 */
 	abstract fun updateIsEnabled (busy: Boolean)
 
-	/**
-	 * The [FeatureCategory] this [AbstractWorkbenchAction] belongs to.
-	 */
-	open val featureCategory: FeatureCategory? = null
-
 	fun name(): String = getValue(Action.NAME) as String
 
-	init
+	/**
+	 * Perform a chain of activities.  First, some action that must run outside
+	 * the UI thread, producing a value of type [T1].  Then, a user interaction
+	 * that produces a [T2], or null to indicate cancellation of this activity.
+	 * Then, another action that must run outside the UI thread.
+	 *
+	 * @param firstAction
+	 *   The action to perform first, producing a value of type [T1].
+	 * @param prompt
+	 *   The user interaction that produces a [T2], or `null` to cancel.
+	 * @param secondAction
+	 *   The action to perform after the user interaction, taking a [T2].
+	 */
+	fun <T1, T2> actionPromptAction(
+		firstAction: ()->T1,
+		prompt: (T1)->T2?,
+		secondAction: (T2)->Unit
+	): Unit
+	{
+		workbench.runtime.execute(FiberDescriptor.commandPriority)
+		{
+			val value1 = firstAction()
+			SwingUtilities.invokeLater {
+				val value2 = prompt(value1)
+				if (value2 !== null)
+				{
+					workbench.runtime.execute(FiberDescriptor.commandPriority)
+					{
+						secondAction(value2)
+					}
+				}
+			}
+		}
+	}
+
+
+		init
 	{
 		shortcut?.let {
 			val keyStroke = shortcut.keyStroke

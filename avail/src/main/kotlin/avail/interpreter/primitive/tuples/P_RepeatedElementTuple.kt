@@ -36,6 +36,8 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor
@@ -52,10 +54,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Create a
@@ -64,20 +66,22 @@ import avail.interpreter.execution.Interpreter
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
+object P_RepeatedElementTuple : Primitive2(CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val size = interpreter.argument(0)
-		val element = interpreter.argument(1)
+		val size = arg1
+		val element = arg2
 
 		if (!size.isInt)
 		{
-			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
 		}
-		return interpreter.primitiveSuccess(
-			createRepeatedElementTuple(size.extractInt, element))
+		return createRepeatedElementTuple(size.extractInt, element)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

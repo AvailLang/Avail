@@ -41,6 +41,8 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
@@ -49,13 +51,13 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -67,15 +69,17 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
  * [boolean][booleanType].
  */
 @Suppress("unused")
-object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
+object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(a.lessOrEqual(b)))
+		val a = arg1
+		val b = arg2
+		return objectFromBoolean(a.lessOrEqual(b))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

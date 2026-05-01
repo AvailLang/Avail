@@ -36,6 +36,8 @@ import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -45,13 +47,13 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
@@ -61,13 +63,15 @@ import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
  * [character][CharacterDescriptor].
  */
 @Suppress("unused")
-object P_CharacterCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CharacterCodePoint : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val character = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(character.codePoint))
+		val character = arg1
+		return fromInt(character.codePoint)
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

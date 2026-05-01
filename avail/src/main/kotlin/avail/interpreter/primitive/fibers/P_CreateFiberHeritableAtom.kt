@@ -39,6 +39,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -50,9 +52,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
@@ -62,31 +64,33 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
+object P_CreateFiberHeritableAtom : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
-		return when (val module = interpreter.module())
+		val name = arg1
+		val TEMP: A_BasicObject? = when (val module = interpreter.module())
 		{
-			nil -> interpreter.primitiveSuccess(
-				createAtom(name, nil).run {
+			nil -> createAtom(name, nil)
+				.run {
 					setAtomProperty(HERITABLE_KEY.atom, trueObject)
 					makeShared()
-				})
+				}
 			else -> module.lock {
 				val trueNames = module.trueNamesForStringName(name)
 				when (trueNames.setSize) {
-					0 -> interpreter.primitiveSuccess(
-						interpreter.availLoader().lookupName(name) {
+					0 -> interpreter.availLoader().lookupName(name) {
 							setAtomProperty(HERITABLE_KEY.atom, trueObject)
-						})
-					1 -> interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
-					else -> interpreter.primitiveFailure(E_AMBIGUOUS_NAME)
+						}
+					1 -> interpreter.fail(E_ATOM_ALREADY_EXISTS)
+					else -> interpreter.fail(E_AMBIGUOUS_NAME)
 				}
 			}
 		}
+		return TEMP
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

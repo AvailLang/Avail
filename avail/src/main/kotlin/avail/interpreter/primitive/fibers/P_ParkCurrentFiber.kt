@@ -35,22 +35,23 @@ package avail.interpreter.primitive.fibers
 import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
-import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Attempt to acquire the
- * [permit][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the
+ * [permit][SynchronizationFlag.PERMIT_AVAILABLE] associated with the
  * [current][FiberDescriptor.currentFiber] [fiber][FiberDescriptor]. If the
  * permit is available, then consume it and return immediately. If the permit is
  * not available, then [park][ExecutionState.PARKED] the current fiber. A fiber
@@ -62,18 +63,38 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
+object P_ParkCurrentFiber : Primitive0(CannotFail, CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
+		// Mirror the approach used by P_AttemptJoinFiber: always go through
+		// the reification path so that the parking behavior is exercised in
+		// exactly the same way that join/park interactions do.  This is a
+		// diagnostic experiment to rule out subtle differences between
+		// primitiveSuspend and reifyForPrimitive.
 		return fiber.lock {
-			// If permit is not available, then park this fiber.
-			when {
-				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, true) ->
-					interpreter.primitivePark(interpreter.function!!)
-				else -> interpreter.primitiveSuccess(nil)
+			// If permit is available, consume and return.  Otherwise, set up
+			// a reifier that will park the fiber.
+			when (fiber.getAndSetSynchronizationFlag(
+				SynchronizationFlag.PERMIT_AVAILABLE, false))
+			{
+				true -> nil
+				else -> interpreter.reifyForPrimitive(true) {
+					// Re-test the permit, in case it was granted while we were
+					// busy reifying (and outside the lock).
+					fiber.lock {
+						val wasAvailable = fiber.getAndSetSynchronizationFlag(
+							SynchronizationFlag.PERMIT_AVAILABLE, false)
+						when
+						{
+							wasAvailable -> succeed(nil)
+							else -> suspend(PARKED)
+						}
+					}
+				}
 			}
 		}
 	}

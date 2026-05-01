@@ -34,6 +34,8 @@ package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.module.A_Module
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,9 +51,9 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create an anonymous [module][A_Module] that privately
@@ -61,19 +63,16 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateAnonymousModule : Primitive(1, CanInline)
+object P_CreateAnonymousModule : Primitive1(CanInline)
 {
-	override fun attempt (interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
 		//
 		// TODO Not implemented yet, just fail generically for now.
-		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
-
-		//val allUses: A_Set = interpreter.argument(0)
-		//val newModule = newModule(emptyTuple)
-		//newModule.addPrivateNames(allUses)
-		//return interpreter.primitiveSuccess(newModule)
+		return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

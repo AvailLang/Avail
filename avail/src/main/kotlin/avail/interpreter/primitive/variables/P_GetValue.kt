@@ -33,6 +33,8 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -46,13 +48,13 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.VariableGetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -66,12 +68,14 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * mutable anyhow, only the second case requires any real work.
  */
 @Suppress("unused")
-object P_GetValue : Primitive(1, CanInline, HasSideEffect)
+object P_GetValue : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variable = interpreter.argument(0)
+		val variable = arg1
 		return try
 		{
 			if (interpreter.traceVariableReadsBeforeWrites())
@@ -79,11 +83,11 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 				val fiber = interpreter.fiber()
 				fiber.recordVariableAccess(variable, true)
 			}
-			interpreter.primitiveSuccess(variable.getValue())
+			variable.getValue()
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

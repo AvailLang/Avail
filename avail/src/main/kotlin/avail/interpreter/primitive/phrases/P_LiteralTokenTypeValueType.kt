@@ -32,6 +32,8 @@
 
 package avail.interpreter.primitive.phrases
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -41,11 +43,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * <strong>Primitive:</strong> Extract the type of value that can be inside a
@@ -55,14 +57,15 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_LiteralTokenTypeValueType : Primitive(
-	1, CannotFail, CanFold, CanInline)
+object P_LiteralTokenTypeValueType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val literalTokenType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(literalTokenType.literalType)
+		val literalTokenType = arg1
+		return literalTokenType.literalType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -35,7 +35,8 @@ package avail.interpreter.primitive.tuples
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -51,27 +52,29 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import java.lang.Integer.MAX_VALUE
 
 /**
- * **Primitive:** Produce a [reverse][A_Tuple.tupleReverse] of the given tuple;
- * same elements, opposite order.
+ * **Primitive:** Produce a [reverse][tupleReverse] of the given tuple; same
+ * elements, opposite order.
  *
  * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ReverseTuple : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val tuple = interpreter.argument(0)
-		return interpreter.primitiveSuccess(tuple.tupleReverse())
+		val tuple = arg1
+		return tuple.tupleReverse()
 	}
 
 	override fun returnTypeGuaranteedByVM(

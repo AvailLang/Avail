@@ -33,17 +33,19 @@ package avail.interpreter.primitive.bootstrap.syntax
 
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a literal phrase from a literal token (already wrapped
@@ -52,17 +54,15 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapLiteral :
-	Primitive(1, CanInline, CannotFail, Bootstrap)
+	Primitive1(CanInline, CannotFail, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val tokenLiteral = interpreter.argument(0)
-
-		val outerToken = tokenLiteral.token
-		val innerToken = outerToken.literal()
-		val literal = literalNodeFromToken(innerToken)
-		return interpreter.primitiveSuccess(literal)
+		val tokenLiteral = arg1
+		return literalNodeFromToken(tokenLiteral.token.literal())
 	}
 
 	override fun mightMakeEscapedVariableShared(

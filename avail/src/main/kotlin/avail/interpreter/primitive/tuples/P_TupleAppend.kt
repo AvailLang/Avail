@@ -35,6 +35,7 @@ package avail.interpreter.primitive.tuples
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -52,14 +53,14 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.utility.PrefixSharingList.Companion.append
@@ -69,16 +70,18 @@ import avail.utility.PrefixSharingList.Companion.append
  * with the [element][AvailObject] appended to its right.
  */
 @Suppress("unused")
-object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
+object P_TupleAppend : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val tuple = interpreter.argument(0)
-		val newElement = interpreter.argument(1)
+		val tuple = arg1
+		val newElement = arg2
 
-		return interpreter.primitiveSuccess(
-			tuple.appendCanDestroy(newElement, true, true))
+		return tuple.appendCanDestroy(newElement, true, true)
 	}
 
 	override fun returnTypeGuaranteedByVM(

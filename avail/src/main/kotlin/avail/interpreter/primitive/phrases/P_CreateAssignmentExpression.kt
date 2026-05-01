@@ -36,6 +36,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -50,9 +52,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRAS
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Transform a variable reference and an expression into an inner
@@ -60,29 +62,30 @@ import avail.interpreter.execution.Interpreter
  * assigned value as its result, so it can be embedded as a subexpression.
  */
 @Suppress("unused")
-object P_CreateAssignmentExpression : Primitive(2, CanInline)
+object P_CreateAssignmentExpression : Primitive2(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val variable = interpreter.argument(0)
-		val expression = interpreter.argument(1)
+		val variable = arg1
+		val expression = arg2
 
 		val declaration = variable.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
 		}
 		if (!expression.phraseExpressionType.isSubtypeOf(
 				variable.phraseExpressionType))
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			return interpreter.fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(variable, expression, true)
-		return interpreter.primitiveSuccess(assignment)
+		return newAssignment(variable, expression, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

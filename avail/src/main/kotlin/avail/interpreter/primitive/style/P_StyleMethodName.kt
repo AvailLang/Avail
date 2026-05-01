@@ -36,6 +36,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -47,10 +49,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Apply the bootstrap method name styler to the specified string
@@ -59,19 +61,19 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_StyleMethodName : Primitive(1, CanInline, WritesToHiddenGlobalState)
+object P_StyleMethodName : Primitive1(CanInline, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val phrase: A_Phrase = interpreter.argument(0)
-
+		val phrase: A_Phrase = arg1
 		val fiber = interpreter.fiber()
-		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
-		val loader = fiber.availLoader!!
-
-		loader.styleMethodName(phrase.token)
-		return interpreter.primitiveSuccess(nil)
+		if (!fiber.canStyle)
+			return interpreter.fail(E_CANNOT_STYLE)
+		fiber.availLoader!!.styleMethodName(phrase.token)
+		return nil
 	}
 
 	override fun privateFailureVariableType(): A_Type =

@@ -63,18 +63,16 @@ class ExamineRepositoryAction constructor(
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
+		val root = workbench.selectedModuleRoot()!!
 		workbench.runtime.execute(FiberDescriptor.commandPriority)
 		{
-			val root = workbench.selectedModuleRoot()!!
-			root.repository.use { repository ->
-				repository.reopenIfNecessary()
-				val describer = RepositoryDescriber(repository)
-				val description = describer.dumpAll()
-				val report = buildUnicodeBox("Repository Report") {
-					append(description)
-				}
-				workbench.writeText(report, StreamStyle.REPORT)
+			val description = root.useRepository { repository ->
+				RepositoryDescriber(repository).dumpAll()
 			}
+			val report = buildUnicodeBox("Repository Report") {
+				append(description)
+			}
+			workbench.writeText(report, StreamStyle.REPORT)
 		}
 	}
 

@@ -34,7 +34,6 @@ package avail.interpreter.levelTwo.operation.variables
 
 import avail.descriptor.variables.A_Variable.Companion.checkForSharedOrReactorsMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -50,6 +49,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer
@@ -58,7 +58,7 @@ import org.objectweb.asm.Opcodes
 
 /**
  * Check each of the locals, which must contain a variable.  If any has become
- * shared or has had a reactor added to it, fall back to L1 [unoptimizedChunk].
+ * shared or has had a reactor added to it, fall back to L1 [DefaultL1Chunk].
  * This instruction is emitted by the [L1Translator] immediately after an invoke
  * that might cause one of those effects to a variable, whether passed directly
  * or not.

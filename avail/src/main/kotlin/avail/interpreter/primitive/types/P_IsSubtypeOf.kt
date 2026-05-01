@@ -35,6 +35,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
@@ -42,15 +44,15 @@ import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -59,15 +61,17 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
  */
 @Suppress("unused")
-object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
+object P_IsSubtypeOf : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val type1 = interpreter.argument(0)
-		val type2 = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(type1.isSubtypeOf(type2)))
+		val type1 = arg1
+		val type2 = arg2
+		return objectFromBoolean(type1.isSubtypeOf(type2))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

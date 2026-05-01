@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -41,16 +43,16 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PARTIAL_SUCCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem
 import avail.utility.Mutable
 import java.io.IOException
@@ -75,16 +77,20 @@ import java.util.EnumSet
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
+object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
-		val source = interpreter.argument(0)
-		val destination = interpreter.argument(1)
-		val followSymlinks = interpreter.argument(2)
-		val replace = interpreter.argument(3)
-		val copyAttributes = interpreter.argument(4)
+		assert(args.size == 5)
+		val source = args[0]
+		val destination = args[1]
+		val followSymlinks = args[2]
+		val replace = args[3]
+		val copyAttributes = args[4]
+
 		val sourcePath: Path
 		val destinationPath: Path =
 			try
@@ -95,7 +101,7 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val optionList = mutableListOf<CopyOption>()
@@ -182,23 +188,22 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 				})
 			if (partialSuccess.value)
 			{
-				return interpreter.primitiveFailure(E_PARTIAL_SUCCESS)
+				return interpreter.fail(E_PARTIAL_SUCCESS)
 			}
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: AccessDeniedException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			return interpreter.fail(E_IO_ERROR)
 		}
-
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

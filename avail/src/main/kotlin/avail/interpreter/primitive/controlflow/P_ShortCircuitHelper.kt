@@ -33,6 +33,8 @@ package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -41,12 +43,12 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Invokes
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -56,21 +58,20 @@ import avail.optimizer.L1Translator
  * evaluation.
  */
 @Suppress("unused")
-object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
+object P_ShortCircuitHelper : Primitive2(Invokes, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		//		val ignoredBool: A_Atom = interpreter.argument(0);
-		val function = interpreter.argument(1)
+		// val ignoreBool = arg1
+		val function = arg2
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear()
-		interpreter.invokeFunction(function)?.let { reifier ->
-			interpreter.latestReifierFromInvokingPrimitive = reifier
-			return Result.INVOKED_AND_REIFYING
-		}
-		return Result.SUCCESS
+		return interpreter.invokeInPrimitive(function)
 	}
 
 	override fun returnTypeGuaranteedByVM(

@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,10 +45,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
 * **Primitive:** Create a [label&#32;declaration][PhraseKind.LABEL_PHRASE] from
@@ -56,14 +58,17 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
+object P_CreateLabelDeclaration : Primitive2(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val token = interpreter.argument(0)
-		val type = interpreter.argument(1)
-		return interpreter.primitiveSuccess(newLabel(token, nil, type))
+		val token = arg1
+		val type = arg2
+		return newLabel(token, nil, type)
 	}
 
 	/**

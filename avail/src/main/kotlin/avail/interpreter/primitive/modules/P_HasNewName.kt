@@ -37,6 +37,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.A_Type
@@ -44,11 +46,11 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer whether the given [module][ModuleDescriptor] introduced
@@ -57,15 +59,18 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_HasNewName : Primitive(
-	2, CanInline, CannotFail, ReadsFromHiddenGlobalState)
+object P_HasNewName : Primitive2(
+	CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (module, nameString) = interpreter.argsBuffer
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(module.newNames.hasKey(nameString)))
+		val module = arg1
+		val nameString = arg2
+		return objectFromBoolean(module.newNames.hasKey(nameString))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

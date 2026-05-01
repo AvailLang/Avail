@@ -42,6 +42,8 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumeric
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -59,11 +61,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -74,6 +71,11 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
@@ -91,20 +93,23 @@ import avail.utility.notNullAnd
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
  */
 @Suppress("unused")
-object P_Addition : Primitive(2, CanFold, CanInline)
+object P_Addition : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
+		val a = arg1
+		val b = arg2
 		return try
 		{
-			interpreter.primitiveSuccess(a.plusCanDestroy(b, true))
+			a.plusCanDestroy(b, true)
 		}
 		catch (e: ArithmeticException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

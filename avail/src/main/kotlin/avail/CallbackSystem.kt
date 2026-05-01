@@ -32,6 +32,7 @@
 package avail
 
 import avail.AvailRuntimeConfiguration.availableProcessors
+import avail.CallbackSystem.Companion.rawFunctionCache
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
@@ -46,8 +47,8 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
-import avail.interpreter.primitive.pojos.P_InvokeCallback
 import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
+import avail.interpreter.primitive.pojos.P_InvokeCallback
 import avail.utility.SimpleThreadFactory
 import avail.utility.safeWrite
 import java.util.WeakHashMap
@@ -83,8 +84,7 @@ import kotlin.concurrent.read
 class CallbackSystem
 {
 	/** A mechanism for invoking Java lambdas from Avail. */
-	@FunctionalInterface
-	interface Callback
+	fun interface Callback
 	{
 		/**
 		 * Invoke this Java callback, whose actual behavior is specified by
@@ -125,8 +125,7 @@ class CallbackSystem
 	 * Invoking both the completion and failure, or either of them more than
 	 * once, currently causes all but the first invocation to be ignored.
 	 */
-	@FunctionalInterface
-	interface CallbackCompletion
+	fun interface CallbackCompletion
 	{
 		/**
 		 * Invoke this callback success handler.
@@ -155,8 +154,7 @@ class CallbackSystem
 	 * Invoking both the completion and failure, or either of them more than
 	 * once, currently causes all but the first invocation to be ignored.
 	 */
-	@FunctionalInterface
-	interface CallbackFailure
+	fun interface CallbackFailure
 	{
 		/**
 		 * Invoke this callback failure handler.
@@ -279,12 +277,11 @@ class CallbackSystem
 			) -> Unit
 		): A_Function
 		{
-			val callback = object : Callback {
-				override fun call(
+			val callback = Callback {
 					argumentsTuple: A_Tuple,
 					completion: CallbackCompletion,
-					failure: CallbackFailure
-				) = callbackFunction(argumentsTuple, completion, failure)
+					failure: CallbackFailure ->
+				callbackFunction(argumentsTuple, completion, failure)
 			}
 			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
 			val rawFunction = rawFunctionCacheLock.safeWrite {

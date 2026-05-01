@@ -34,16 +34,18 @@ package avail.interpreter.primitive.methods
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the [true&#32;name][AtomDescriptor] associated with the
@@ -52,13 +54,15 @@ import avail.interpreter.execution.Interpreter
  * loader.
  */
 @Suppress("unused")
-object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)
+object P_MessageBundleName : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val bundle = interpreter.argument(0)
-		return interpreter.primitiveSuccess(bundle.message)
+		val bundle = arg1
+		return bundle.message
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -52,11 +52,11 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.dispatch.LookupStatistics
-import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.interpreter.primitive.Primitive
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -80,8 +80,12 @@ interface A_RawFunction : A_BasicObject {
 	 *
 	 * @param
 	 *   instructionDecoder The [L1InstructionDecoder] to populate.
+	 * @param pc
+	 *   The program counter at which the instruction decoder should be set.
 	 */
-	fun setUpInstructionDecoder(instructionDecoder: L1InstructionDecoder)
+	fun setUpInstructionDecoder(
+		instructionDecoder: L1InstructionDecoder,
+		pc: Int)
 
 	/**
 	 * Answer the [function&#32;type][FunctionTypeDescriptor] associated with
@@ -441,7 +445,7 @@ interface A_RawFunction : A_BasicObject {
 		 *
 		 * @return
 		 *   The backing chunk for this function implementation. This will be
-		 *   the special [unoptimizedChunk] prior to conversion by the
+		 *   the special [DefaultL1Chunk] prior to conversion by the
 		 *   [L2Generator].
 		 */
 		val A_RawFunction.startingChunk: L2Chunk

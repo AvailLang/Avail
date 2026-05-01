@@ -34,16 +34,18 @@ package avail.interpreter.primitive.doubles
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Given a 64-bit signed integer, treat the bit pattern as a
@@ -53,15 +55,17 @@ import avail.interpreter.execution.Interpreter
  * @see P_DoubleToLongBits
  */
 @Suppress("unused")
-object P_DoubleFromLongBits : Primitive(1, CannotFail, CanFold, CanInline)
+object P_DoubleFromLongBits : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val longObject = interpreter.argument(0)
+		val longObject = arg1
 		val longValue = longObject.extractLong
 		val doubleValue = Double.fromBits(longValue)
-		return interpreter.primitiveSuccess(fromDouble(doubleValue))
+		return fromDouble(doubleValue)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

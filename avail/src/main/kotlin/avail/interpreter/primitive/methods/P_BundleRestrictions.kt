@@ -33,32 +33,35 @@ package avail.interpreter.primitive.methods
 
 import avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the current precedence restrictions for this
  * [bundle][MessageBundleDescriptor].
  */
 @Suppress("unused")
-object P_BundleRestrictions : Primitive(1, CanInline, CannotFail)
+object P_BundleRestrictions : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val bundle = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			bundle.grammaticalRestrictions.makeImmutable())
+		val bundle = arg1
+		return bundle.grammaticalRestrictions.makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -41,14 +41,15 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.OptimizationLevel
@@ -112,48 +113,29 @@ constructor(
 
 	override fun name(): String = "simple chunk for ${code.methodName}"
 
-	override fun runChunk(interpreter: Interpreter, offset: Int): StackReifier?
+	override fun runChunk(interpreter: Interpreter, offset: Int): A_BasicObject?
 	{
 		// An offset of 0 is used when invoking the underlying function.  An
 		// offset of -1 is used as a sentinel to indicate *not* to attempt the
 		// function's corresponding primitive (which must be present), as it has
 		// already failed, and we just wish to run the backup Avail nybblecodes.
-		var savedArguments: List<AvailObject>? = null
 		if (offset == 0 && primitive !== null)
 		{
 			if (primitive.hasFlag(Flag.CannotFail))
 			{
 				// Infallible primitive.  No need to save the arguments.
-				val reifier = interpreter.attemptThePrimitive(
+				val value = interpreter.attemptPrimitive(
 					interpreter.function!!, primitive)
-				// Reified during the primitive invocation, or while setting up
-				// a non-inline primitive to be in the right setup to run.
-				// Either way, what should happen next is already captured
-				// inside the reifier's action.
-				return reifier
+				// It's infallible, so it must be non-null.
+				return value!!
 			}
 			else
 			{
-				// Fallible primitive needs to save the arguments so that it can
-				// run the fall-back code.
 				// Happiest path first, attempt a primitive.
-				savedArguments = interpreter.argsBuffer.toList()
-				val reifier = interpreter.attemptThePrimitive(
+				val value = interpreter.attemptPrimitive(
 					interpreter.function!!, primitive)
-				// Reified during the primitive invocation, or while setting up
-				// a non-inline primitive to be in the right setup to run.
-				// Either way, what should happen next is already captured
-				// inside the reifier's action.
-				reifier?.let { return it }
-				// Exit right away if the primitive was successful.
-				if (interpreter.returnNow) return null
-				// The primitive failed.
-				assert(!primitive.hasFlag(Flag.CannotFail))
-				// Put the arguments back, for the fallback nybblecodes to use.
-				interpreter.argsBuffer.run {
-					clear()
-					addAll(savedArguments)
-				}
+				assert(value != null || !primitive.hasFlag(Flag.CannotFail))
+				return value
 			}
 		}
 
@@ -162,9 +144,7 @@ constructor(
 			// Decrement the countdown to reoptimization, possibly reoptimizing.
 			if (code.decrementCountdownToReoptimize())
 			{
-				savedArguments ?: run {
-					savedArguments = interpreter.argsBuffer.toList()
-				}
+				var savedArguments = interpreter.argsBuffer.toTypedArray()
 				OptimizationLevel.optimizationLevel(
 					optimizationLevel.ordinal
 				).optimize(code, interpreter)
@@ -172,12 +152,15 @@ constructor(
 				// arguments have been handed back to the interpreter.
 				val chunk = code.startingChunk
 				interpreter.chunk = chunk
-				interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
+				//interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
 				interpreter.argsBuffer.run {
 					clear()
-					addAll(savedArguments!!)
+					addAll(savedArguments)
 				}
-				return null
+				// Directly invoke the new chunk in its place.
+				return chunk.executableChunk.runChunk(
+					interpreter,
+					chunk.offsetAfterInitialTryPrimitive)
 			}
 		}
 
@@ -249,7 +232,11 @@ constructor(
 			// The reenter() is allowed to reify, for example if it fetches the
 			// returned value from the interpreter and it doesn't satisfy its
 			// return type check.
-			if (reifier !== null) return reifier
+			if (reifier !== null)
+			{
+				interpreter.currentReifier = reifier
+				return null
+			}
 			// Also check if the reentry point noticed that the chunk was
 			// invalid, and switched the interpreter's current chunk.  This can
 			// also happen when an L2Simple continuation is bypassed by the
@@ -273,7 +260,8 @@ constructor(
 			{
 				val instruction = instructions[off++]
 				val instructionText = increaseIndentation(
-					instruction.toString(), depth + 2)
+					instruction.toString(),
+					interpreter.unreifiedCallDepth() + 2)
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
@@ -283,7 +271,8 @@ constructor(
 				val reifier = instruction.step(registers, interpreter)
 				if (reifier !== null)
 				{
-					return reifier
+					interpreter.currentReifier = reifier
+					return null
 				}
 			}
 		}
@@ -293,10 +282,13 @@ constructor(
 			while (off < size)
 			{
 				val reifier = instructions[off++].step(registers, interpreter)
-				if (reifier !== null) return reifier
+				if (reifier !== null)
+				{
+					interpreter.currentReifier = reifier
+					return null
+				}
 			}
 		}
-		interpreter.returnNow = true
 		interpreter.setLatestResult(registers[registers.size - 1])
 		return null
 	}

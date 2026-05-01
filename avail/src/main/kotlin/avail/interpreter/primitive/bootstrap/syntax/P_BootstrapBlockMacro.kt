@@ -57,6 +57,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
@@ -92,12 +94,13 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
+import avail.interpreter.primitive.PrimitiveN
 import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
 
 /**
@@ -130,52 +133,43 @@ import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
+object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 {
-	/** The key to the client parsing data in the fiber's environment. */
-	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
-
-	/** The key to the variable scope map in the client parsing data. */
-	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
-
-	/** The key to the tuple of scopes to pop as blocks complete parsing. */
-	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
-
-	/** The key to the all tokens tuple in the fiber's environment. */
-	private val staticTokensKey = STATIC_TOKENS_KEY.atom
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(7)
-		val optionalArgumentDeclarations = interpreter.argument(0)
-		val optionalPrimitive = interpreter.argument(1)
-		val optionalLabel = interpreter.argument(2)
-		val statements = interpreter.argument(3)
-		val optionalReturnExpression = interpreter.argument(4)
-		val optionalReturnType = interpreter.argument(5)
-		val optionalExceptionTypes = interpreter.argument(6)
+		assert(args.size == 7)
+		val optionalArgumentDeclarations = args[0]
+		val optionalPrimitive = args[1]
+		val optionalLabel = args[2]
+		val statements = args[3]
+		val optionalReturnExpression = args[4]
+		val optionalReturnType = args[5]
+		val optionalExceptionTypes = args[6]
 
 		val fiberGlobals = interpreter.fiber().fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
-			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
+			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
 		val tokens = clientData.mapAtOrNull(staticTokensKey) ?:
-			// It looks like somebody removed the used tokens information.
-			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
+		// It looks like somebody removed the used tokens information.
+		return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		// Primitive P_BootstrapPrefixEndOfBlockBody already popped the scope
 		// stack to the map, then pushed the map with the block's local
 		// declarations back onto the stack.  So we can simply look up the local
 		// declarations in the top map of the stack, then pop it to nowhere when
 		// we're done.
 		var scopeStack: A_Tuple = clientData.mapAtOrNull(scopeStackKey) ?:
-			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
+		return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		if (!scopeStack.isTuple || scopeStack.tupleSize == 0)
 		{
-			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
+			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
 		val scopeMap = scopeStack.tupleAt(scopeStack.tupleSize)
 
@@ -196,9 +190,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		{
 			val declarationName = declarationPair.expressionAt(1).token.string()
 			val declaration = scopeMap.mapAtOrNull(declarationName) ?:
-				// The argument binding is missing.
-				return interpreter.primitiveFailure(
-					E_INCONSISTENT_PREFIX_FUNCTION)
+			// The argument binding is missing.
+			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			argumentDeclarationsList.add(declaration)
 		}
 
@@ -223,8 +216,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			primitive = primitiveByName(primName.asNativeString())
 			if (primitive === null)
 			{
-				return interpreter.primitiveFailure(
-					E_INCONSISTENT_PREFIX_FUNCTION)
+				return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			}
 			canHaveStatements = !primitive.hasFlag(CannotFail)
 			val optionalFailurePair = primPhrase.expressionAt(2)
@@ -244,10 +236,9 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				val failureToken = failurePair.expressionAt(1).token
 				val failureDeclarationName = failureToken.literal().string()
 				val failureDeclaration =
-						scopeMap.mapAtOrNull(failureDeclarationName) ?:
+					scopeMap.mapAtOrNull(failureDeclarationName) ?:
 					// The primitive failure variable binding is missing.
-					return interpreter.primitiveFailure(
-						E_INCONSISTENT_PREFIX_FUNCTION)
+					return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 				allStatements.add(failureDeclaration)
 			}
 			primitiveReturnType = primitive.blockTypeRestriction().returnType
@@ -267,9 +258,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			val labelToken = presentLabel.expressionAt(1).token
 			val labelDeclarationName = labelToken.literal().string()
 			val label = scopeMap.mapAtOrNull(labelDeclarationName) ?:
-				// The label binding is missing.
-				return interpreter.primitiveFailure(
-					E_INCONSISTENT_PREFIX_FUNCTION)
+			// The label binding is missing.
+			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			val optionalLabelReturnTypePhrase = presentLabel.expressionAt(2)
 			allStatements.add(label)
 			if (optionalLabelReturnTypePhrase.expressionsSize == 1)
@@ -281,8 +271,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			{
 				// Primitive blocks can't also use a label, and the label prefix
 				// function should have prevented it.
-				return interpreter.primitiveFailure(
-					E_INCONSISTENT_PREFIX_FUNCTION)
+				return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 			}
 		}
 
@@ -368,8 +357,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				throw AvailRejectedParseException(
 					STRONG,
 					"label's declared return type ($labelReturnType) to agree "
-					+ "with the function's declared return type "
-					+ "($declaredReturnType)")
+						+ "with the function's declared return type "
+						+ "($declaredReturnType)")
 			}
 		}
 		else if (primitiveReturnType !== null)
@@ -415,8 +404,20 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			scopeStackKey, scopeStack, true)
 		fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		return interpreter.primitiveSuccess(block)
+		return block
 	}
+
+	/** The key to the client parsing data in the fiber's environment. */
+	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
+
+	/** The key to the variable scope map in the client parsing data. */
+	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
+
+	/** The key to the tuple of scopes to pop as blocks complete parsing. */
+	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
+
+	/** The key to the all tokens tuple in the fiber's environment. */
+	private val staticTokensKey = STATIC_TOKENS_KEY.atom
 
 	override fun bootstrapStyler() = P_BootstrapBlockMacroStyler
 

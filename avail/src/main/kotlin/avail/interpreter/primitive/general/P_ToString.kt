@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.general
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -38,27 +40,27 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Produce a [textual][A_String] description of the sole
  * argument.
  */
 @Suppress("unused")
-object P_ToString : Primitive(1, CanInline, CannotFail)
+object P_ToString : Primitive1(CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val objectToPrint = interpreter.argument(0)
+		val objectToPrint = arg1
 		val string = objectToPrint.toString()
 		val availString = stringFrom(string)
-		return interpreter.primitiveSuccess(availString)
+		return availString
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type

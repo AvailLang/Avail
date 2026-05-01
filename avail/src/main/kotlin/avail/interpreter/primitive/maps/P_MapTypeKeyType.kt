@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.maps
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.keyType
@@ -39,24 +41,26 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the key [type][TypeDescriptor] of a
  * [map&#32;type][MapTypeDescriptor].
  */
 @Suppress("unused")
-object P_MapTypeKeyType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_MapTypeKeyType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val mapType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(mapType.keyType)
+		val mapType = arg1
+		return mapType.keyType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

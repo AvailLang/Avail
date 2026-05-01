@@ -37,6 +37,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.SPECIAL_OBJECT
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
@@ -45,12 +47,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive**: Apply bootstrap styling to a phrase responsible for special
@@ -58,33 +60,28 @@ import avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_SpecialObjectStyler :
-	Primitive(
-		2,
-		CanInline,
-		Bootstrap,
-		ReadsFromHiddenGlobalState,
-		WritesToHiddenGlobalState
-	)
+object P_SpecialObjectStyler : Primitive2(
+	CanInline, Bootstrap, ReadsFromHiddenGlobalState, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
-//		val transformedPhrase: A_Phrase = interpreter.argument(1)
+		val optionalSendPhrase: A_Tuple = arg1
+		//val transformedPhrase: A_Phrase = arg2
 
 		val fiber = interpreter.fiber()
-		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		if (!fiber.canStyle)
+			return interpreter.fail(E_CANNOT_STYLE)
 		val loader = fiber.availLoader!!
-
-		if (optionalSendPhrase.tupleSize == 0)
+		if (optionalSendPhrase.tupleSize != 0)
 		{
-			return interpreter.primitiveSuccess(nil)
+			val sendPhrase = optionalSendPhrase.tupleAt(1)
+			loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
 		}
-		val sendPhrase = optionalSendPhrase.tupleAt(1)
-
-		loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateFailureVariableType(): A_Type =
@@ -94,4 +91,3 @@ object P_SpecialObjectStyler :
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }
-

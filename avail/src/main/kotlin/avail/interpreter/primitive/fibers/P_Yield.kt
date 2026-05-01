@@ -33,16 +33,17 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Yield the current [fiber][FiberDescriptor] so that higher
@@ -51,11 +52,12 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Yield : Primitive(0, CannotFail, CanSuspend, Unknown)
+object P_Yield : Primitive0(CannotFail, CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		return interpreter.suspendThen { succeed(nil) }
 	}
 

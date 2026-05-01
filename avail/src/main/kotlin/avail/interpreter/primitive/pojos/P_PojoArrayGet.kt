@@ -34,6 +34,7 @@ package avail.interpreter.primitive.pojos
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,10 +50,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.MarshalingException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 import java.lang.reflect.Array
 
 /**
@@ -61,34 +62,36 @@ import java.lang.reflect.Array
  * [pojo&#32;array&#32;type][PojoTypeDescriptor].
  */
 @Suppress("unused")
-object P_PojoArrayGet : Primitive(2, CanInline, HasSideEffect)
+object P_PojoArrayGet : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val pojo = interpreter.argument(0)
-		val subscript = interpreter.argument(1)
+		val pojo = arg1
+		val subscript = arg2
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()
 		if (!subscript.isInt)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = subscript.extractInt
 		if (index > Array.getLength(array))
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val element = Array.get(array, index - 1)
 		return try {
-			interpreter.primitiveSuccess(
-				unmarshal(element, pojo.kind().contentType))
+			unmarshal(element, pojo.kind().contentType)
 		}
 		catch (e: MarshalingException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

@@ -47,6 +47,7 @@ import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
@@ -66,9 +67,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
@@ -77,10 +78,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem.BufferKey
 import avail.io.IOSystem.FileHandle
 import avail.io.SimpleCompletionHandler
@@ -109,48 +110,36 @@ import kotlin.math.min
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileRead : Primitive(6, CanInline, HasSideEffect)
+object P_FileRead : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	/**
-	 * The maximum transfer size when reading from a file.  Attempts to read
-	 * more than this will simply be limited to this value.
-	 */
-	private const val MAX_READ_SIZE = 4194304
-
-	/**
-	 * The maximum transfer size for which a buffer is always allocated with the
-	 * specified size, without first checking the file size.  Read requests with
-	 * requested sizes greater than this will use the start position and the
-	 * actual file size to determine how big a buffer to actually use to avoid
-	 * over-allocating buffer space.
-	 */
-	private const val THRESHOLD_READ_SIZE = 32768
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(6)
-		val positionObject = interpreter.argument(0)
-		val sizeObject = interpreter.argument(1)
-		val atom = interpreter.argument(2)
-		val succeed = interpreter.argument(3)
-		val fail = interpreter.argument(4)
-		val priority = interpreter.argument(5)
+		assert(args.size == 6)
+		val positionObject = args[0]
+		val sizeObject = args[1]
+		val atom = args[2]
+		val succeed = args[3]
+		val fail = args[4]
+		val priority = args[5]
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
 		{
-			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ)
+			return interpreter.fail(E_NOT_OPEN_FOR_READ)
 		}
 		val fileChannel = handle.channel
 		if (!positionObject.isLong)
 		{
-			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
 		}
 		val runtime = interpreter.runtime
 		val ioSystem = runtime.ioSystem
@@ -270,7 +259,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
 			runtime.runOutermostFunction(
 				newFiber, succeed, listOf(concatenated), false)
-			return interpreter.primitiveSuccess(newFiber)
+			return newFiber
 		}
 		// We began with buffer misses, and we can figure out how many...
 		assert(firstMissingBufferStart == augmentedStart)
@@ -302,8 +291,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						lastPosition / alignment * alignment - alignment + 1
 					var offsetInBuffer = 1
 					for (bufferStart in
-						oneBasedPositionLong..lastFullBufferStart step
-							alignment.toLong())
+					oneBasedPositionLong..lastFullBufferStart step
+						alignment.toLong())
 					{
 						val subtuple =
 							bytesTuple.copyTupleFromToCanDestroy(
@@ -334,8 +323,23 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		).guardedDo {
 			fileChannel.read(buffer, oneBasedPositionLong - 1, Unit, handler)
 		}
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
+
+	/**
+	 * The maximum transfer size when reading from a file.  Attempts to read
+	 * more than this will simply be limited to this value.
+	 */
+	private const val MAX_READ_SIZE = 4194304
+
+	/**
+	 * The maximum transfer size for which a buffer is always allocated with the
+	 * specified size, without first checking the file size.  Read requests with
+	 * requested sizes greater than this will use the start position and the
+	 * actual file size to determine how big a buffer to actually use to avoid
+	 * over-allocating buffer space.
+	 */
+	private const val THRESHOLD_READ_SIZE = 32768
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

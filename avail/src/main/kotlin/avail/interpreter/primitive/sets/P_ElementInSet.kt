@@ -35,6 +35,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setSize
@@ -45,14 +46,14 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -61,16 +62,18 @@ import avail.optimizer.L1Translator
  * [set][SetDescriptor].
  */
 @Suppress("unused")
-object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
+object P_ElementInSet : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val element = interpreter.argument(0)
-		val set = interpreter.argument(1)
+		val element = arg1
+		val set = arg2
 
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(set.hasElement(element)))
+		return objectFromBoolean(set.hasElement(element))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

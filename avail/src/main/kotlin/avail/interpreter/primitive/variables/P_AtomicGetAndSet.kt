@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.variables
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -51,10 +53,10 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Atomically read and overwrite the specified
@@ -63,23 +65,26 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
+object P_AtomicGetAndSet : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val variable = interpreter.argument(0)
-		val newValue = interpreter.argument(1)
+		val variable = arg1
+		val newValue = arg2
 		return try {
-			interpreter.primitiveSuccess(variable.getAndSetValue(newValue))
+			variable.getAndSetValue(newValue)
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

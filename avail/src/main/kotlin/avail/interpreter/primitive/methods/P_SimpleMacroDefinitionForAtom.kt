@@ -43,6 +43,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.phrases.PhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -78,11 +80,11 @@ import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive4
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
@@ -96,23 +98,27 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
+object P_SimpleMacroDefinitionForAtom : Primitive4(CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val atom = interpreter.argument(0)
-		val prefixFunctions = interpreter.argument(1)
-		val function = interpreter.argument(2)
-		val optionalStylerFunction: A_Tuple = interpreter.argument(3)
+		val atom = arg1
+		val prefixFunctions = arg2
+		val function = arg3
+		val optionalStylerFunction: A_Tuple = arg4
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		prefixFunctions.forEach { prefixFunction ->
 			val numArgs = prefixFunction.code().numArgs()
@@ -122,13 +128,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 				if (!argsKind.typeAtIndex(argIndex)
 						.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 				{
-					return interpreter.primitiveFailure(
+					return interpreter.fail(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
 				}
 			}
 			if (!kind.returnType.isTop)
 			{
-				return interpreter.primitiveFailure(
+				return interpreter.fail(
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP)
 			}
 		}
@@ -138,13 +144,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{
-				return interpreter.primitiveFailure(
+				return interpreter.fail(
 					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
 			}
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e.errorCode)
+			return interpreter.fail(e.errorCode)
 		}
 
 		val numArgs = function.code().numArgs()
@@ -155,13 +161,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
 					PARSE_PHRASE.mostGeneralType))
 			{
-				return interpreter.primitiveFailure(
+				return interpreter.fail(
 					E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
 		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 		{
-			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
+			return interpreter.fail(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 
 		return interpreter.suspendInSafePointThen {

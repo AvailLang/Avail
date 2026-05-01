@@ -36,6 +36,8 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -57,10 +59,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 import kotlin.math.max
 import kotlin.math.min
 
@@ -69,33 +71,36 @@ import kotlin.math.min
  * an element changed as indicated.
  */
 @Suppress("unused")
-object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
+object P_TupleReplaceAt : Primitive3(CanFold, CanInline)
 {
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
+	{
+		val tuple = arg1
+		val indexObject = arg2
+		val value = arg3
+		if (!indexObject.isInt)
+		{
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
+		val index = indexObject.extractInt
+		return if (index > tuple.tupleSize)
+		{
+			interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
+		else tuple.tupleAtPuttingCanDestroy(index, value, true)
+	}
+
 	/**
 	 * A measure of complexity beyond which we don't bother computing a precise
 	 * guarantee about the resulting type, since the cost of computing it might
 	 * be higher than the potential savings.
 	 */
 	private val maximumComplexity = fromInt(1000)
-
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(3)
-		val tuple = interpreter.argument(0)
-		val indexObject = interpreter.argument(1)
-		val value = interpreter.argument(2)
-		if (!indexObject.isInt)
-		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
-		}
-		val index = indexObject.extractInt
-		return if (index > tuple.tupleSize)
-		{
-			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
-		}
-		else interpreter.primitiveSuccess(
-			tuple.tupleAtPuttingCanDestroy(index, value, true))
-	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

@@ -41,6 +41,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newArgument
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -51,16 +53,16 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * The `P_BootstrapPrefixBlockArgument` primitive is used as a prefix function
@@ -70,16 +72,16 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
+object P_BootstrapPrefixBlockArgument : Primitive1(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val optionalBlockArgumentsList = interpreter.argument(0)
-
+		val optionalBlockArgumentsList = arg1
 		interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-
+			return interpreter.fail(E_LOADING_IS_OVER)
 		assert(optionalBlockArgumentsList.expressionsSize == 1)
 		val blockArgumentsList = optionalBlockArgumentsList.lastExpression
 		assert(blockArgumentsList.expressionsSize >= 1)
@@ -123,7 +125,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 				"block argument declaration $argName to have a name that " +
 					"doesn't shadow an existing $kind (from line $lineNumber)")
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

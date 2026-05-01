@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.variables
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.readType
@@ -41,11 +43,11 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable.Companion.value
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** There are two possibilities.  The
@@ -58,15 +60,19 @@ import avail.interpreter.execution.Interpreter
  * If the variable is unassigned, answer the default value instead.
  */
 @Suppress("unused")
-object P_GetValueElse : Primitive(2, CannotFail, CanInline, HasSideEffect)
+object P_GetValueElse : Primitive2(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (variable, defaultValue) = interpreter.argsBuffer
+		val variable = arg1
+		val defaultValue = arg2
 		var value = variable.value()
 		if (value.isNil) value = defaultValue
-		return interpreter.primitiveSuccess(value)
+		return value
 	}
 
 	/**

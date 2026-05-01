@@ -181,8 +181,6 @@ class MacroDescriptor private constructor(
 
 	override fun o_IsForwardDefinition(self: AvailObject): Boolean = false
 
-	override fun o_IsMethodDefinition(self: AvailObject): Boolean = false
-
 	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION()
 
 	override fun o_ParsingSignature(self: AvailObject): A_Type

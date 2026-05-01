@@ -37,6 +37,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -58,10 +60,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -82,17 +84,20 @@ import java.nio.file.StandardCopyOption
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileRename : Primitive(6, CanInline, HasSideEffect)
+object P_FileRename : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(6)
-		val source = interpreter.argument(0)
-		val destination = interpreter.argument(1)
-		val replaceExisting = interpreter.argument(2)
-		val succeed = interpreter.argument(3)
-		val fail = interpreter.argument(4)
-		val priority = interpreter.argument(5)
+		assert(args.size == 6)
+		val source = args[0]
+		val destination = args[1]
+		val replaceExisting = args[2]
+		val succeed = args[3]
+		val fail = args[4]
+		val priority = args[5]
 
 		val runtime = interpreter.runtime
 		val (sourcePath, destinationPath) =
@@ -104,7 +109,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val priorityInt = priority.extractInt
@@ -154,10 +159,9 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 					newFiber, fail, listOf(errorCode.numericCode()), false)
 				return@executeFileTask
 			}
-
 			runtime.runOutermostFunction(newFiber, succeed, emptyList(), false)
 		}
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

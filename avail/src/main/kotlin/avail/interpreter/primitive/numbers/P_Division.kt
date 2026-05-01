@@ -42,6 +42,8 @@ import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -66,12 +68,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
@@ -81,6 +77,12 @@ import avail.interpreter.levelTwo.operation.NumericComparator.LessOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.levelTwo.operation.numbers.L2_DIVIDE_INT_BY_INT
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -92,24 +94,27 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
  * **Primitive:** Divide a number by another number.
  */
 @Suppress("unused")
-object P_Division : Primitive(2, CanFold, CanInline)
+object P_Division : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
+		val a = arg1
+		val b = arg2
 		if (b.equalsInt(0) && a.isInstanceOf(integers))
 		{
-			return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO)
+			return interpreter.fail(E_CANNOT_DIVIDE_BY_ZERO)
 		}
 		return try
 		{
-			interpreter.primitiveSuccess(a.divideCanDestroy(b, true))
+			a.divideCanDestroy(b, true)
 		}
 		catch (e: ArithmeticException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

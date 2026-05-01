@@ -35,16 +35,18 @@ import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Given a [double][DoubleDescriptor]-precision IEEE-754
@@ -54,15 +56,17 @@ import avail.interpreter.execution.Interpreter
  * @see P_DoubleFromLongBits
  */
 @Suppress("unused")
-object P_DoubleToLongBits : Primitive(1, CannotFail, CanFold, CanInline)
+object P_DoubleToLongBits : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val doubleObject = interpreter.argument(0)
+		val doubleObject = arg1
 		val doubleValue = doubleObject.extractDouble
 		val doubleBits = doubleValue.toRawBits()
-		return interpreter.primitiveSuccess(fromLong(doubleBits))
+		return fromLong(doubleBits)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

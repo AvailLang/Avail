@@ -35,6 +35,8 @@ package avail.interpreter.primitive.atoms
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.module.A_Module
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -46,11 +48,11 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Look up every [true&#32;name][A_Atom] bound to the specified
@@ -60,17 +62,18 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_LookupAtomsForName : Primitive(
-	1, CanInline, ReadsFromHiddenGlobalState)
+object P_LookupAtomsForName : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
+		val name = arg1
 		val currentFiber = interpreter.fiber()
 		val loader = currentFiber.availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		return interpreter.primitiveSuccess(loader.lookupAtomsForName(name))
+			?: return interpreter.fail(E_LOADING_IS_OVER)
+		return loader.lookupAtomsForName(name)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

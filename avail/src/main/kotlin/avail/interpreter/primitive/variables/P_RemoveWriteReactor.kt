@@ -34,6 +34,8 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -48,9 +50,9 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.exceptions.AvailException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Remove the [write&#32;reactor][VariableAccessReactor]
@@ -59,26 +61,29 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
+object P_RemoveWriteReactor : Primitive2(HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val variable = interpreter.argument(0)
-		val key = interpreter.argument(1)
+		val variable = arg1
+		val key = arg2
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		return try
 		{
 			variable.removeWriteReactor(key)
-			interpreter.primitiveSuccess(nil)
+			nil
 		}
 		catch (e: AvailException)
 		{
-			interpreter.primitiveFailure(e.numericCode())
+			interpreter.fail(e.errorCode)
 		}
 	}
 

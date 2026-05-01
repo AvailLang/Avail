@@ -47,7 +47,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.JavaLibrary.intMaxMethod
 import avail.interpreter.JavaLibrary.intMinMethod
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -72,6 +71,7 @@ import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.X
 import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.Y
 import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.Z
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.integers.P_BitShiftLeft
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd

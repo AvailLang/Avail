@@ -36,6 +36,8 @@ import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -44,10 +46,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the [module][ModuleDescriptor] that issued the
@@ -56,19 +58,21 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
+object P_AtomIssuingModule : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
+		val atom = arg1
 		if (atom.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		val issuer = atom.issuingModule
 		assert(issuer.notNil)
-		return interpreter.primitiveSuccess(issuer)
+		return issuer
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

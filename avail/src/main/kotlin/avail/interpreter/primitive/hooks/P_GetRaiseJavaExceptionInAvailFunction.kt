@@ -35,18 +35,19 @@ package avail.interpreter.primitive.hooks
 import avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import avail.CallbackSystem.Callback
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Get the [function][FunctionDescriptor] to invoke to raise a
@@ -57,19 +58,14 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GetRaiseJavaExceptionInAvailFunction : Primitive(
-	0,
-	CannotFail,
-	CanInline,
-	HasSideEffect,
-	ReadsFromHiddenGlobalState)
+object P_GetRaiseJavaExceptionInAvailFunction : Primitive0(
+	CannotFail, CanInline, HasSideEffect, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-
-		val raiseFunction = interpreter.runtime[RAISE_JAVA_EXCEPTION_IN_AVAIL]
-		return interpreter.primitiveSuccess(raiseFunction)
+		return interpreter.runtime[RAISE_JAVA_EXCEPTION_IN_AVAIL]
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

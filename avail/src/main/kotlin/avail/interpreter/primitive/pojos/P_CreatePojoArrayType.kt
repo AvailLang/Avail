@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.pojos
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -42,11 +44,11 @@ import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
 * **Primitive:** Create a [pojo&#32;array&#32;type][PojoTypeDescriptor] for the
@@ -54,14 +56,17 @@ import avail.interpreter.execution.Interpreter
  * sizes.
  */
 @Suppress("unused")
-object P_CreatePojoArrayType : Primitive(2, CannotFail, CanFold, CanInline)
+object P_CreatePojoArrayType : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val type = interpreter.argument(0)
-		val sizes = interpreter.argument(1)
-		return interpreter.primitiveSuccess(pojoArrayType(type, sizes))
+		val type = arg1
+		val sizes = arg2
+		return pojoArrayType(type, sizes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -35,6 +35,8 @@ import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedToExtendedInteger
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -43,30 +45,28 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Convert a [double][DoubleDescriptor] to an
  * [integer][IntegerDescriptor], rounding towards zero.
  */
 @Suppress("unused")
-object P_DoubleTruncatedAsInteger : Primitive(1, CanFold, CanInline)
+object P_DoubleTruncatedAsInteger : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val a = interpreter.argument(0)
+		val a = arg1
 		val d = a.extractDouble
-		return if (d.isNaN())
-		{
-			interpreter.primitiveFailure(
-				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
-		}
-		else interpreter.primitiveSuccess(
-			doubleTruncatedToExtendedInteger(d))
+		if (d.isNaN())
+			return interpreter.fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
+		return doubleTruncatedToExtendedInteger(d)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

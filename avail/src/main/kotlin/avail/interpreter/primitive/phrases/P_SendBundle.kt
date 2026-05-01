@@ -35,16 +35,18 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.SendPhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Answer the [send][SendPhraseDescriptor] expression's target
@@ -53,13 +55,15 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SendBundle : Primitive(1, CannotFail, CanFold, CanInline)
+object P_SendBundle : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val send = interpreter.argument(0)
-		return interpreter.primitiveSuccess(send.bundle)
+		val send = arg1
+		return send.bundle
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

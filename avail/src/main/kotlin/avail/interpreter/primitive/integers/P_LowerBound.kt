@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.integers
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.lowerBound
@@ -38,11 +40,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the lower bound. The client can ask the
@@ -50,13 +52,15 @@ import avail.interpreter.execution.Interpreter
  * determine whether it is inclusive or exclusive.
  */
 @Suppress("unused")
-object P_LowerBound : Primitive(1, CannotFail, CanFold, CanInline)
+object P_LowerBound : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val range = interpreter.argument(0)
-		return interpreter.primitiveSuccess(range.lowerBound)
+		val range = arg1
+		return range.lowerBound
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

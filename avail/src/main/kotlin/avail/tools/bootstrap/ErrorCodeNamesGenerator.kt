@@ -45,8 +45,8 @@ import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByName
 import avail.tools.bootstrap.Resources.errorCodeCommentKey
 import avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import avail.tools.bootstrap.Resources.errorCodeKey
@@ -165,6 +165,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 		private fun allErrorCodesAreReachableFromPrimitives(): Boolean
 		{
 			// This forces initialization of Avail.
+			@Suppress("UnusedExpression")
 			AvailRuntime
 			var allErrorCodes = emptySet
 			AvailErrorCode.entries.forEach { code ->

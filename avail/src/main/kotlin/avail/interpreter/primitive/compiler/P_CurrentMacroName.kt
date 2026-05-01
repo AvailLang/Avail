@@ -40,6 +40,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -47,9 +48,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Answer the [atom][A_Atom] for which a send phrase is being
@@ -57,22 +58,23 @@ import avail.interpreter.execution.Interpreter
  * happening in this fiber.
  */
 @Suppress("unused")
-object P_CurrentMacroName : Primitive(0, CanInline)
+object P_CurrentMacroName : Primitive0(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		if (!interpreter.fiber().generalFlag(IS_EVALUATING_MACRO))
 		{
-			return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO)
+			return interpreter.fail(E_NOT_EVALUATING_MACRO)
 		}
 		// Macro expansion shouldn't be possible after loading.
 		interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO)
+			?: return interpreter.fail(E_NOT_EVALUATING_MACRO)
 		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val currentMacroBundle = clientData.mapAt(MACRO_BUNDLE_KEY.atom)
-		return interpreter.primitiveSuccess(currentMacroBundle.message)
+		return currentMacroBundle.message
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

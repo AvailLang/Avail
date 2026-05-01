@@ -36,6 +36,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -46,9 +48,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PH
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Transform a [variable&#32;use][VariableUsePhraseDescriptor]
@@ -57,22 +59,23 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateReferenceExpression : Primitive(1, CanInline)
+object P_CreateReferenceExpression : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variableUse = interpreter.argument(0)
+		val variableUse = arg1
 
 		val declaration = variableUse.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE)
 		}
-		val reference = referenceNodeFromUse(variableUse)
-		return interpreter.primitiveSuccess(reference)
+		return referenceNodeFromUse(variableUse)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

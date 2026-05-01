@@ -36,7 +36,6 @@ import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.variables.VariablePlaceholderDescriptor
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -53,6 +52,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestricti
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
@@ -304,7 +304,7 @@ constructor(
 	override fun JVMTranslator.translateToJVM()
 	{
 		reference.run {
-			createAndPushRegisterDump(ChunkEntryPoint.TO_RETURN_INTO)
+			createAndPushRegisterDump(REENTRY_FROM_REIFIED_CALL)
 		}
 		// :: [registerDump]
 		store(registerDump.register())

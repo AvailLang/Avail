@@ -44,6 +44,8 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isLong
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.byteArray
@@ -64,8 +66,8 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
@@ -74,10 +76,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem.BufferKey
 import avail.io.IOSystem.FileHandle
 import avail.io.SimpleCompletionHandler
@@ -104,47 +106,39 @@ import kotlin.math.min
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
+object P_FileWrite : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	/**
-	 * The maximum transfer size when writing to a file.  Attempts to write
-	 * more bytes than this may be broken down internally into transfers that
-	 * are this small, possibly recycling the same buffer.
-	 */
-	const val MAX_WRITE_BUFFER_SIZE = 4194304
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
+		assert(args.size == 6)
+
 		interpreter.checkArgumentCount(6)
-		val positionObject = interpreter.argument(0)
-		val bytes = interpreter.argument(1)
-		val atom = interpreter.argument(2)
-		val succeed = interpreter.argument(3)
-		val fail = interpreter.argument(4)
-		val priority = interpreter.argument(5)
+		val positionObject = args[0]
+		val bytes = args[1]
+		val atom = args[2]
+		val succeed = args[3]
+		val fail = args[4]
+		val priority = args[5]
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial)
-				{
-					E_SPECIAL_ATOM
-				}
-				else
-				{
-					E_INVALID_HANDLE
-				})
+			return interpreter.fail(
+				if (atom.isAtomSpecial) E_SPECIAL_ATOM
+				else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
 		{
-			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE)
+			return interpreter.fail(E_NOT_OPEN_FOR_WRITE)
 		}
 		val fileChannel = handle.channel
 		if (!positionObject.isLong)
 		{
-			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
 		}
 		val alignment = handle.alignment
 		val runtime = currentRuntime()
@@ -367,8 +361,15 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					newFiber, succeed, emptyList(), false)
 			}
 		}
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
+
+	/**
+	 * The maximum transfer size when writing to a file.  Attempts to write
+	 * more bytes than this may be broken down internally into transfers that
+	 * are this small, possibly recycling the same buffer.
+	 */
+	const val MAX_WRITE_BUFFER_SIZE = 4194304
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

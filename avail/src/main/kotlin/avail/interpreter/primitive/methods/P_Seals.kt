@@ -34,16 +34,18 @@ package avail.interpreter.primitive.methods
 
 import avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer all seals placed upon the specified
@@ -52,13 +54,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Seals : Primitive(1, CanInline, CannotFail)
+object P_Seals : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val method = interpreter.argument(0)
-		return interpreter.primitiveSuccess(method.sealedArgumentsTypesTuple)
+		val method = arg1
+		return method.sealedArgumentsTypesTuple
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -47,6 +47,8 @@ import avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -65,12 +67,12 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Alias a [name][A_String] to another [name][A_Atom].
@@ -78,24 +80,26 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Alias : Primitive(2, CanInline, HasSideEffect)
+object P_Alias : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val newString: A_String = interpreter.argument(0)
-		val oldAtom: A_Atom = interpreter.argument(1)
+		val newString: A_String = arg1
+		val oldAtom: A_Atom = arg2
 
 		val loader = interpreter.availLoaderOrNull()
-		loader ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		loader ?: return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		if (oldAtom.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		val newAtom =
 			try
@@ -104,12 +108,12 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 			}
 			catch (e: AmbiguousNameException)
 			{
-				return interpreter.primitiveFailure(e)
+				return interpreter.fail(e.errorCode)
 			}
 
 		if (newAtom.bundleOrNil.notNil)
 		{
-			return interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
+			return interpreter.fail(E_ATOM_ALREADY_EXISTS)
 		}
 		val newBundle: A_Bundle = try
 		{
@@ -122,7 +126,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e.errorCode)
+			return interpreter.fail(e.errorCode)
 		}
 
 		newAtom.setAtomBundle(newBundle)
@@ -135,7 +139,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

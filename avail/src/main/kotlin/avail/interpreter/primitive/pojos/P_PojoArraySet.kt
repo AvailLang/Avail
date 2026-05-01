@@ -34,6 +34,7 @@ package avail.interpreter.primitive.pojos
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -51,10 +52,10 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.MarshalingException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive3
 import java.lang.reflect.Array
 
 /**
@@ -63,41 +64,45 @@ import java.lang.reflect.Array
  * [pojo&#32;array][PojoTypeDescriptor].
  */
 @Suppress("unused")
-object P_PojoArraySet : Primitive(3, CanInline, HasSideEffect)
+object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val pojo = interpreter.argument(0)
-		val subscript = interpreter.argument(1)
-		val value = interpreter.argument(2)
+		val pojo = arg1
+		val subscript = arg2
+		val value = arg3
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()
 		if (!subscript.isInt)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = subscript.extractInt
 		if (index > Array.getLength(array))
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val contentType = pojo.kind().contentType
 		if (!value.isInstanceOf(contentType))
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			return interpreter.fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		return try {
+		return try
+		{
 			val marshaledType = contentType.marshalToJava(null) as Class<*>?
 			Array.set(array, index - 1, value.marshalToJava(marshaledType))
-			interpreter.primitiveSuccess(nil)
+			nil
 		}
 		catch (e: MarshalingException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

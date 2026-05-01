@@ -38,6 +38,8 @@ import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.keyType
@@ -53,26 +55,28 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer a new [map][MapDescriptor], but without the given key.
  * Answer the original map if the key does not occur in it.
  */
 @Suppress("unused")
-object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
+object P_MapWithoutKey : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val map = interpreter.argument(0)
-		val key = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			map.mapWithoutKeyCanDestroy(key, true))
+		val map = arg1
+		val key = arg2
+		return map.mapWithoutKeyCanDestroy(key, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

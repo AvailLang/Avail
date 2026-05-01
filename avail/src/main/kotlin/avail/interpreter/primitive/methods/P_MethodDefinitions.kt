@@ -35,16 +35,18 @@ package avail.interpreter.primitive.methods
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive**: Answer the [definitions][A_Definition] of the specified
@@ -53,13 +55,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MethodDefinitions : Primitive(1, CannotFail, CanInline)
+object P_MethodDefinitions : Primitive1(CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val method = interpreter.argument(0)
-		return interpreter.primitiveSuccess(method.definitionsTuple)
+		val method = arg1
+		return method.definitionsTuple
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

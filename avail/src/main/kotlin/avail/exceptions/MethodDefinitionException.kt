@@ -60,8 +60,10 @@ import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
  * @param code
  *    An [error&#32;code][AvailErrorCode].
  */
-class MethodDefinitionException private constructor(code: AvailErrorCode)
-	: AvailException(code)
+class MethodDefinitionException private
+constructor(
+	code: AvailErrorCode
+): AvailException(code)
 {
 	companion object
 	{

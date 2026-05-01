@@ -43,6 +43,7 @@ import avail.descriptor.tuples.A_String
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor
+import avail.descriptor.types.TypeTag
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -133,7 +134,7 @@ interface A_Sendable : A_BasicObject
 		 *   `true` if the receiver is a method definition.
 		 */
 		fun A_Sendable.isMethodDefinition(): Boolean =
-			dispatch { o_IsMethodDefinition(it) }
+			typeTag == TypeTag.METHOD_DEFINITION_TAG
 
 		/**
 		 * Answer the [list&#32;phrase&#32;type][ListPhraseTypeDescriptor] for

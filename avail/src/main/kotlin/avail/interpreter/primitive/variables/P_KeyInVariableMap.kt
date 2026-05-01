@@ -34,6 +34,8 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -48,10 +50,10 @@ import avail.descriptor.variables.A_Variable.Companion.variableMapHasKey
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.VariableGetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Test whether the [map][MapDescriptor] in the specified
@@ -60,21 +62,23 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
+object P_KeyInVariableMap : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val key = interpreter.argument(0)
-		val variable = interpreter.argument(1)
+		val key = arg1
+		val variable = arg2
 		return try
 		{
-			interpreter.primitiveSuccess(
-				objectFromBoolean(variable.variableMapHasKey(key)))
+			objectFromBoolean(variable.variableMapHasKey(key))
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

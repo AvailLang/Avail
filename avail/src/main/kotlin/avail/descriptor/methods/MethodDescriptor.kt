@@ -134,11 +134,11 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.extractUniqueMethod
 import avail.exceptions.SignatureException
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
+import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.atoms.P_AtomRemoveProperty
 import avail.interpreter.primitive.atoms.P_AtomSetProperty
 import avail.interpreter.primitive.atoms.P_CreateAtom

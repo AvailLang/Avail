@@ -50,9 +50,10 @@ import org.objectweb.asm.Opcodes
 
 /**
  * Explicitly decrement the current compiled code's countdown via
- * [A_RawFunction.countdownToReoptimize].  If it reaches zero then re-optimize
- * the code and jump to its [L2Chunk.offsetAfterInitialTryPrimitive], which
- * expects the arguments to still be set up in the [Interpreter].
+ * [A_RawFunction]'s [A_RawFunction.countdownToReoptimize].  If it reaches zero
+ * then re-optimize the code and jump to its
+ * [L2Chunk.offsetAfterInitialTryPrimitive], which expects the arguments to
+ * still be set up in the [Interpreter].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -72,13 +73,21 @@ constructor(
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		loadInterpreter()
+		// :: interpreter
 		intConstant(currentOptimizationLevel.value)
+		// :: interpreter, level
 		generateCall(decrementMethod)
+		// :: bool
 		val didNotOptimize = Label()
 		method.visitJumpInsn(Opcodes.IFEQ, didNotOptimize)
-		method.visitInsn(Opcodes.ACONST_NULL)
+		// Directly invoke the newly generated chunk.
+		loadInterpreter()
+		// :: interpreter
+		generateCall(Interpreter.interpreterRunChunkMethod)
+		// :: valueOrNull
 		method.visitInsn(Opcodes.ARETURN)
 		method.visitLabel(didNotOptimize)
+		// ::
 	}
 
 	companion object
@@ -90,7 +99,7 @@ constructor(
 		 *
 		 * @param interpreter
 		 *   The interpreter for the current thread.
-		 * @param targetOptimizationLevel
+		 * @param currentOptimizationLevel
 		 *   What level of optimization to apply if reoptimization occurs.
 		 * @return
 		 *   Whether a new chunk was activated, whether or not the optimization
@@ -100,14 +109,14 @@ constructor(
 		@JvmStatic
 		fun decrement(
 			interpreter: Interpreter,
-			targetOptimizationLevel: Int
+			currentOptimizationLevel: Int
 		): Boolean
 		{
 			val code = interpreter.function!!.code()
 			val hitZero = code.decrementCountdownToReoptimize()
 			if (hitZero)
 			{
-				OptimizationLevel.optimizationLevel(targetOptimizationLevel)
+				OptimizationLevel.optimizationLevel(currentOptimizationLevel)
 					.optimize(code, interpreter)
 				val chunk = code.startingChunk
 				interpreter.chunk = chunk

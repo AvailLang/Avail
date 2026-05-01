@@ -33,7 +33,7 @@ package avail.tools.bootstrap
 
 import avail.SpecialObject
 import avail.exceptions.AvailErrorCode
-import avail.interpreter.Primitive
+import avail.interpreter.primitive.Primitive
 import java.text.MessageFormat
 import java.util.ResourceBundle
 import java.util.regex.Matcher

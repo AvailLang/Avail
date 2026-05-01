@@ -95,6 +95,15 @@ internal constructor(
 	val moduleSize = resolverReference.size
 
 	/**
+	 * Open the [repository][Repository] if necessary, and execute the given
+	 * [body] with it, ensuring the reposity is closed afterward.
+	 */
+	fun <T> useRepository(body: (Repository)->T) = repository.use {
+		it.reopenIfNecessary()
+		body(it)
+	}
+
+	/**
 	 * Answer the local module name as a sibling of the
 	 * [receiver][ResolvedModuleName].
 	 *

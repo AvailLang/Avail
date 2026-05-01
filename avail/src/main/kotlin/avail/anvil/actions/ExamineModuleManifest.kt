@@ -34,9 +34,8 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
-import avail.descriptor.fiber.FiberDescriptor
-import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.RepositoryDescriber
+import avail.persistence.cache.record.ModuleCompilation
 import avail.utility.Strings.buildUnicodeBox
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -64,49 +63,41 @@ class ExamineModuleManifest constructor (
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		workbench.runtime.execute(FiberDescriptor.commandPriority)
-		execute@{
-			val moduleName = workbench.selectedModule()!!
-			moduleName.repository.use { repository ->
-				repository.reopenIfNecessary()
-				val archive = repository.getArchive(moduleName.rootRelativeName)
-				val compilations = archive.allKnownVersions.flatMap {
-					it.value.allCompilations
+		val moduleName = workbench.selectedModule()!!
+		actionPromptAction(
+			firstAction = {
+				moduleName.useRepository { repository ->
+					val archive = repository.getArchive(moduleName.rootRelativeName)
+					val compilations = archive.allKnownVersions.flatMap {
+						it.value.allCompilations
+					}
+					compilations.toTypedArray()
 				}
-				val compilationsArray = compilations.toTypedArray()
-				val selectedCompilation = JOptionPane.showInputDialog(
+			},
+			prompt = { compilationsArray ->
+				JOptionPane.showInputDialog(
 					workbench,
 					"Select module manifest to examine",
 					"Examine module manifest",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
-					if (compilationsArray.isNotEmpty())
-					{
-						compilationsArray[0]
-					}
-					else
-					{
-						null
-					})
-				when (selectedCompilation)
-				{
-					is ModuleCompilation ->
-					{
-						val describer = RepositoryDescriber(repository)
-						val description = describer.describeManifest(
-							selectedCompilation.recordNumberOfManifest)
-						val report = buildUnicodeBox(
-							"Module Manifest Report"
-						) {
-							append(description)
-						}
-						workbench.writeText(report, StreamStyle.REPORT)
-					}
-					is Any -> throw AssertionError("Unknown type selected")
+					compilationsArray.firstOrNull()
+				) as ModuleCompilation?
+			},
+			secondAction = { selectedCompilation ->
+				val description = moduleName.useRepository { repository ->
+					RepositoryDescriber(repository).describeManifest(
+						selectedCompilation.recordNumberOfManifest)
 				}
+				val report = buildUnicodeBox(
+					"Module Manifest Report"
+				) {
+					append(description)
+				}
+				workbench.writeText(report, StreamStyle.REPORT)
 			}
-		}
+		)
 	}
 
 	init

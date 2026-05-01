@@ -35,6 +35,8 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -42,10 +44,10 @@ import avail.descriptor.types.A_Type.Companion.literalType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Create a [literal&#32;expression][LiteralPhraseDescriptor]
@@ -54,13 +56,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLiteralExpression : Primitive(1, CannotFail, CanInline)
+object P_CreateLiteralExpression : Primitive1(CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val token = interpreter.argument(0)
-		return interpreter.primitiveSuccess(literalNodeFromToken(token))
+		val token = arg1
+		return literalNodeFromToken(token)
 	}
 
 	/**

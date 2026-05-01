@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.functions
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
@@ -38,24 +40,26 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a tuple type describing the parameters accepted by the
  * function type.
  */
 @Suppress("unused")
-object P_ParamsType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ParamsType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val functionType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(functionType.argsTupleType)
+		val functionType = arg1
+		return functionType.argsTupleType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

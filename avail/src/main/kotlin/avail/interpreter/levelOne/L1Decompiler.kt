@@ -125,7 +125,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRAS
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
-import avail.interpreter.Primitive
+import avail.interpreter.primitive.Primitive
 import java.util.function.Function
 
 /**
@@ -225,8 +225,7 @@ class L1Decompiler constructor(
 
 	init
 	{
-		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc = 1
+		code.setUpInstructionDecoder(instructionDecoder, 1)
 		val tupleType = code.functionType().argsTupleType
 		args = Array(code.numArgs()) {
 			val token = createToken("arg")

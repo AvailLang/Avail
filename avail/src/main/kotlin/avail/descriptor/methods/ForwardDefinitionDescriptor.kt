@@ -49,6 +49,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FORWARD_DEFINITION
+import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -75,7 +76,10 @@ import java.util.IdentityHashMap
 class ForwardDefinitionDescriptor private constructor(
 	mutability: Mutability
 ) : DefinitionDescriptor(
-	mutability, ObjectSlots::class.java, null)
+	mutability,
+	TypeTag.DEFINITION_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.

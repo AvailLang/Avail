@@ -34,6 +34,8 @@ package avail.interpreter.primitive.types
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -50,15 +52,15 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.Invokes
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -69,29 +71,28 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * primitive.
  */
 @Suppress("unused")
-object P_CastInto : Primitive(2, Invokes, CanInline)
+object P_CastInto : Primitive2(Invokes, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val value = interpreter.argument(0)
-		val castFunction = interpreter.argument(1)
+		val value = arg1
+		val castFunction = arg2
 
 		val expectedType =
 			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
-		if (value.isInstanceOf(expectedType))
+		if (!value.isInstanceOf(expectedType))
 		{
-			// "Jump" into the castFunction, to keep this frame from showing up.
-			interpreter.argsBuffer.clear()
-			interpreter.argsBuffer.add(value)
-			interpreter.invokeFunction(castFunction)?.let { reifier ->
-				interpreter.latestReifierFromInvokingPrimitive = reifier
-				return Result.INVOKED_AND_REIFYING
-			}
-			return Result.SUCCESS
+			// Fail the primitive.
+			return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
-		// Fail the primitive.
-		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+		// "Jump" into the castFunction, to keep this frame from showing up.
+		interpreter.argsBuffer.clear()
+		interpreter.argsBuffer.add(value)
+		return interpreter.invokeInPrimitive(castFunction)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

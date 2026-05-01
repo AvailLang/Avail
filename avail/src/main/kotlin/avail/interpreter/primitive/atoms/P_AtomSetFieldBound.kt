@@ -36,6 +36,8 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -47,11 +49,11 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_PROPERTY_MAY_ONLY_BE_SET_ONCE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Within the first [atom][AtomDescriptor], associate the given
@@ -59,16 +61,20 @@ import avail.interpreter.execution.Interpreter
  * operation.
  */
 @Suppress("unused")
-object P_AtomSetFieldBound : Primitive(
-	2, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_AtomSetFieldBound : Primitive2(
+	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (atom, typeBound) = interpreter.argsBuffer
+		val atom = arg1
+		val typeBound = arg2
 		if (atom.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		if (atom
 			.getAtomProperty(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
@@ -76,11 +82,11 @@ object P_AtomSetFieldBound : Primitive(
 		{
 			// Not quite right, but it should get the idea across that this
 			// field atom should not have a type bound set on it.
-			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		if (atom.fieldAtomConstraint.notNil)
 		{
-			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		atom.fieldAtomConstraint = typeBound
 
@@ -92,7 +98,7 @@ object P_AtomSetFieldBound : Primitive(
 		// which will fail to deserialize if the field bound has not yet been
 		// set.
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -47,6 +47,8 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ByteBufferTupleDescriptor
 import avail.descriptor.tuples.ByteBufferTupleDescriptor.Companion.tupleForByteBuffer
@@ -69,10 +71,10 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.SimpleCompletionHandler
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
@@ -93,20 +95,19 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
+object P_SocketRead : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
-		val size = interpreter.argument(0)
-		val handle = interpreter.argument(1)
-		val succeed = interpreter.argument(2)
-		val fail = interpreter.argument(3)
-		val priority = interpreter.argument(4)
+		assert(args.size == 5)
+		val (size, handle, succeed, fail, priority) = args
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
@@ -155,11 +156,11 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 							listOf(E_IO_ERROR.numericCode()),
 							false)
 					}))
-			interpreter.primitiveSuccess(newFiber)
+			newFiber
 		}
 		catch (e: Throwable)
 		{
-			interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.fail(E_IO_ERROR)
 		}
 	}
 

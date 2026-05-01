@@ -34,6 +34,8 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.AbstractDefinitionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -51,10 +53,10 @@ import avail.exceptions.AvailErrorCode.E_METHOD_IS_SEALED
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
 import avail.exceptions.AvailException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
@@ -64,20 +66,22 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
+object P_AbstractMethodDeclaration : Primitive2(CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val string = interpreter.argument(0)
-		val blockSignature = interpreter.argument(1)
+		val string = arg1
+		val blockSignature = arg2
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
 		return interpreter.suspendInSafePointThen {
@@ -103,13 +107,13 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_AMBIGUOUS_NAME,
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-					E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(possibleErrors, true))
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_AMBIGUOUS_NAME,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+				E_METHOD_IS_SEALED
+			).setUnionCanDestroy(possibleErrors, true))
 
 	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

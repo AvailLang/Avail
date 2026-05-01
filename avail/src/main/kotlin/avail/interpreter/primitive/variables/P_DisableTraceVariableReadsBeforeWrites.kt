@@ -37,6 +37,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.variablesReadBeforeWritten
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -50,10 +52,10 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Disable variable
@@ -66,17 +68,20 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DisableTraceVariableReadsBeforeWrites : Primitive(
-	2, HasSideEffect, WritesToHiddenGlobalState)
+object P_DisableTraceVariableReadsBeforeWrites : Primitive2(
+	 HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val key = interpreter.argument(0)
-		val reactorFunction = interpreter.argument(1)
+		val key = arg1
+		val reactorFunction = arg2
 		if (!interpreter.traceVariableReadsBeforeWrites())
 		{
-			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
+			return interpreter.fail(E_ILLEGAL_TRACE_MODE)
 		}
 		interpreter.setTraceVariableReadsBeforeWrites(false)
 		val fiber = interpreter.fiber()
@@ -86,7 +91,7 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 		{
 			variable.addWriteReactor(key, reactor)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

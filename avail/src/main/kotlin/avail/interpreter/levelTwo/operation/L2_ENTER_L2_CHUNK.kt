@@ -39,7 +39,6 @@ import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
@@ -48,6 +47,7 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
@@ -89,7 +89,7 @@ constructor(
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
 		if (entryPointOffsetInDefaultChunk.value !=
-			ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk)
+			DefaultEntryPoint.TRANSIENT.offset)
 		{
 			// :: if (!checkValidity()) {
 			loadInterpreter()
@@ -120,7 +120,7 @@ constructor(
 			{
 				// Extract the register dump from the current continuation.
 				loadInterpreter()
-				generateCall(Interpreter.getReifiedContinuationMethod)
+				generateCall(Interpreter.popContinuationMethod)
 				generateCall(AvailObject.registerDumpMethod)
 				// Stack now has the registerDump.
 				for (i in 0 until boxedCount)
@@ -165,10 +165,6 @@ constructor(
 				assert(countdown == 0)
 				// The last copy of registerDumps was popped.
 			}
-
-			// :: interpreter.popContinuation();
-			loadInterpreter()
-			generateCall(Interpreter.popContinuationMethod)
 		}
 	}
 }

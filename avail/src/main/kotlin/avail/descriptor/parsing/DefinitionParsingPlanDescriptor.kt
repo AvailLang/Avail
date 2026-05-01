@@ -32,7 +32,10 @@
 package avail.descriptor.parsing
 
 import avail.compiler.AvailCompilerFragmentCache
+import avail.compiler.BranchForward
 import avail.compiler.Convert
+import avail.compiler.JumpBackward
+import avail.compiler.JumpForward
 import avail.compiler.ParsePart
 import avail.compiler.ParsePartCaseInsensitively
 import avail.compiler.ParsingOperation
@@ -181,6 +184,9 @@ class DefinitionParsingPlanDescriptor private constructor(
 						is Convert ->
 							" (${operation.operand}) Conversion = " +
 								operation.operand
+						is JumpForward -> " (${operation.operand})"
+						is JumpBackward -> " (${operation.operand})"
+						is BranchForward -> " (${operation.operand})"
 						else -> ""
 					})
 				}
@@ -190,8 +196,9 @@ class DefinitionParsingPlanDescriptor private constructor(
 					self,
 					DUMMY_DEBUGGER_SLOT,
 					-1,
-					descriptionsList.toTypedArray(),
-					slotName = "Symbolic instructions"))
+					value = null,
+					forcedName = "Symbolic instructions",
+					forcedChildren = descriptionsList.toTypedArray()))
 			fields.add(
 				0,
 				AvailObjectFieldHelper(

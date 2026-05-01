@@ -47,6 +47,8 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -62,10 +64,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.dispatch.TestForConstantsDecisionStep
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -73,6 +71,10 @@ import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.general.P_Hash
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -90,14 +92,17 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
+object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
-		return interpreter.primitiveSuccess(a.bitwiseAnd(b, true))
+		val a = arg1
+		val b = arg2
+		return a.bitwiseAnd(b, true)
 	}
 
 	override fun returnTypeGuaranteedByVM(

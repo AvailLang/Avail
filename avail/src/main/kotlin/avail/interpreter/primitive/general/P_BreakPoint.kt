@@ -31,25 +31,27 @@
  */
 package avail.interpreter.primitive.general
 
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Pause the VM.
  */
 @Suppress("unused")
-object P_BreakPoint : Primitive(0, CanSuspend, CannotFail)
+object P_BreakPoint : Primitive0(CanSuspend, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
 		val runtime = interpreter.runtime
 		// Enter a safe point, invoke the runtime's injected breakpoint handler,

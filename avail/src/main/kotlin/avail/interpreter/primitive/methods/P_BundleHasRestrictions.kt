@@ -34,29 +34,32 @@ package avail.interpreter.primitive.methods
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.bundles.A_Bundle.Companion.hasGrammaticalRestrictions
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer whether precedence restrictions have been defined (yet)
  * for this [bundle][MessageBundleDescriptor].
  */
 @Suppress("unused")
-object P_BundleHasRestrictions : Primitive(1, CanInline, CannotFail)
+object P_BundleHasRestrictions : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val bundle = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(bundle.hasGrammaticalRestrictions))
+		val bundle = arg1
+		return objectFromBoolean(bundle.hasGrammaticalRestrictions)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

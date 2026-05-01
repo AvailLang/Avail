@@ -34,15 +34,17 @@ package avail.interpreter.primitive.floats
 import avail.descriptor.numbers.A_Number.Companion.extractFloat
 import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.numbers.FloatDescriptor.Companion.objectFromFloatRecycling
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import kotlin.math.floor
 
 /**
@@ -50,20 +52,22 @@ import kotlin.math.floor
  * the remainder.
  */
 @Suppress("unused")
-object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold)
+object P_FloatModulus : Primitive2(CannotFail, CanInline, CanFold)
 {
 
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val a = interpreter.argument(0)
-		val b = interpreter.argument(1)
+		val a = arg1
+		val b = arg2
 		val fa = a.extractFloat
 		val fb = b.extractFloat
 		val div = fa / fb
 		val mod = fa - floor(div.toDouble()).toFloat() * fb
-		return interpreter.primitiveSuccess(
-			objectFromFloatRecycling(mod, a, b, true))
+		return objectFromFloatRecycling(mod, a, b, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

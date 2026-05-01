@@ -37,6 +37,8 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -45,17 +47,17 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive4
 
 /**
  * The `P_BootstrapPrefixPostStatement` primitive is used for ensuring that
@@ -64,18 +66,23 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
+object P_BootstrapPrefixPostStatement : Primitive4(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		// val blockArgumentsPhrase: A_Phrase = interpreter.argument(0)
-		// val optionalPrimFailurePhrase: A_Phrase = interpreter.argument(1)
-		// val optionalLabelPhrase: A_Phrase = interpreter.argument(2)
-		val statementsPhrase = interpreter.argument(3)
+		// val blockArgumentsPhrase: A_Phrase = arg1
+		// val optionalPrimFailurePhrase: A_Phrase = arg2
+		// val optionalLabelPhrase: A_Phrase = arg3
+		val statementsPhrase = arg4
 
 		interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 
 		// Here the statements so far are a list phrase, not a sequence.
 		// The section marker is inside the repetition, so this primitive could
@@ -86,7 +93,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		{
 			throw AvailRejectedParseException(WEAK, "statement to have type ⊤")
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

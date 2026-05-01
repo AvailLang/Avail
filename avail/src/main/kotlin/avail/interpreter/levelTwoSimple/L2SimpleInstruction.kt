@@ -67,6 +67,7 @@ import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
@@ -99,24 +100,24 @@ import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
 import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
-import avail.interpreter.Primitive.Result.FAILURE
-import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2AbstractInstruction
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2SimpleChunk
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.StackReifier
+import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
 import avail.optimizer.jvm.JVMChunk
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
+import avail.utility.cast
 import kotlin.reflect.full.memberProperties
 
 /**
@@ -169,6 +170,15 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 	 * the "returned" value against the expected type.
 	 *
 	 * Most instructions are not suitable places for reentry.
+	 *
+	 * @param registers
+	 *   The current set of registers representing the stack fraame's state,
+	 *   which may be modified.
+	 * @param interpreter
+	 *   The [Interpreter] that is executing this instruction.
+	 * @return
+	 *   An optional [StackReifier], in the event the reentry of the instruction
+	 *   reifies.
 	 */
 	open fun reenter(
 		registers: Array<AvailObject>,
@@ -203,6 +213,15 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 		null -> "null"
 		is Array<*> ->
 			value.joinToString(",", "[", "]") { fieldValueToString(it) }
+		is IntArray -> value.joinToString(",", "[", "]") {
+			fieldValueToString(it.toString())
+		}
+		is LongArray -> value.joinToString(",", "[", "]") {
+			fieldValueToString(it.toString())
+		}
+		is ByteArray -> value.joinToString(",", "[", "]") {
+			fieldValueToString(it.toString())
+		}
 		is AvailObject -> when
 		{
 			value.isInstanceOf(mostGeneralCompiledCodeType()) ->
@@ -290,12 +309,13 @@ class L2Simple_GetVariable(
 		try
 		{
 			registers[stackp] = registers[fromVariable].getValue()
+			return null
 		}
 		catch (e: VariableGetException)
 		{
-			return handleVariableGetException(e, interpreter, registers)
+			handleVariableGetException(e, interpreter, registers)
+			return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -328,12 +348,13 @@ class L2Simple_GetVariableClearing(
 				else -> variable.getValue()
 			}
 			registers[stackp] = value
+			return null
 		}
 		catch (e: VariableGetException)
 		{
-			return handleVariableGetException(e, interpreter, registers)
+			handleVariableGetException(e, interpreter, registers)
+			return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -356,15 +377,16 @@ class L2Simple_GetOuter(
 	): StackReifier?
 	{
 		val variable = registers[0].outerVarAt(outerNumber)
-		registers[stackp] = try
+		try
 		{
-			variable.getValue()
+			registers[stackp] = variable.getValue()
+			return null
 		}
 		catch (e: VariableGetException)
 		{
-			return handleVariableGetException(e, interpreter, registers)
+			handleVariableGetException(e, interpreter, registers)
+			return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -389,9 +411,9 @@ class L2Simple_GetLastOuter(
 	{
 		val function = registers[0]
 		val variable = function.outerVarAt(outerNumber)
-		registers[stackp] = try
+		try
 		{
-			if (variable.traversed().descriptor.isMutable)
+			registers[stackp] = if (variable.traversed().descriptor.isMutable)
 			{
 				variable.getValueClearing().makeImmutable()
 			}
@@ -400,12 +422,13 @@ class L2Simple_GetLastOuter(
 				// Automatically makes the value immutable.
 				variable.getValue()
 			}
+			return null
 		}
 		catch (e: VariableGetException)
 		{
-			return handleVariableGetException(e, interpreter, registers)
+			handleVariableGetException(e, interpreter, registers)
+			return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -430,12 +453,13 @@ class L2Simple_GetConstant(
 		try
 		{
 			registers[stackp] = variable.getValue()
+			return null
 		}
 		catch (e: VariableGetException)
 		{
-			return handleVariableGetException(e, interpreter, registers)
+			handleVariableGetException(e, interpreter, registers)
+			return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -463,12 +487,14 @@ class L2Simple_SetVariable(
 		}
 		catch (e: VariableSetException)
 		{
-			return handleVariableSetException(
+			val valueOrNull = handleVariableSetException(
 				e,
 				registers[toVariable],
 				registers[stackp],
 				interpreter,
 				registers)
+			// The variable-set handler is top-valued, so ignored.
+			if (valueOrNull === null) return interpreter.currentReifier!!
 		}
 		return null
 	}
@@ -499,13 +525,16 @@ class L2Simple_SetOuter(
 		}
 		catch (e: VariableSetException)
 		{
-			return handleVariableSetException(
+			val valueOrNull =  handleVariableSetException(
 				e,
 				registers[0].outerVarAt(outerNumber),
 				registers[stackp],
 				interpreter,
 				registers)
+			// The variable-set handler is top-valued, so ignored.
+			if (valueOrNull === null) return interpreter.currentReifier!!
 		}
+		// The variable-set handler is top-valued, so ignored.
 		return null
 	}
 }
@@ -534,12 +563,14 @@ class L2Simple_SetConstant(
 		}
 		catch (e: VariableSetException)
 		{
-			return handleVariableSetException(
+			val valueOrNull = handleVariableSetException(
 				e,
 				variable,
 				registers[stackp],
 				interpreter,
 				registers)
+			// The variable-set handler is top-valued, so ignored.
+			if (valueOrNull === null) return interpreter.currentReifier!!
 		}
 		return null
 	}
@@ -953,7 +984,6 @@ class L2Simple_PushLabel(
 		// label creation will see the caller has already been reified, and be
 		// able to use the fast path.
 		return StackReifier(true, reificationBeforeLabelCreationStat) {
-			assert(!interpreter.returnNow)
 			val caller = interpreter.getReifiedContinuation()!!.makeImmutable()
 			val label = createLabelContinuation(
 				function,
@@ -986,8 +1016,7 @@ class L2Simple_PushLabel(
 			interpreter.function = function
 			interpreter.chunk = thisChunk
 			interpreter.offset = nextOffset
-			interpreter.exitNow = false
-			interpreter.returnNow = false
+			CONTINUE_FIBER
 		}
 	}
 
@@ -1002,12 +1031,11 @@ class L2Simple_PushLabel(
 	): StackReifier?
 	{
 		// Restore the registers from the continuation and pop it.
-		val con = interpreter.getReifiedContinuation()!!
+		val con = interpreter.popContinuation()
 		for (i in 1 until registers.size)
 		{
 			registers[i] = con.frameAt(i)
 		}
-		interpreter.popContinuation()
 		return null
 	}
 
@@ -1072,19 +1100,16 @@ constructor(
 	{
 		// The invoke cases are handled in subclasses, so this is a "resume"
 		// situation, as for trapped reads or writes of variables.
-		if (!interpreter.checkValidity(
-				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk))
+		if (!interpreter.checkValidity(DefaultEntryPoint.RESUME.offset))
 		{
 			return null
 		}
-		assert(!interpreter.returnNow && !interpreter.exitNow)
 		// Pop the continuation, repopulating the registers.
-		val con = interpreter.getReifiedContinuation()!!
+		val con = interpreter.popContinuation()
 		for (i in 1 until registers.size)
 		{
 			registers[i] = con.frameAt(i)
 		}
-		interpreter.popContinuation()
 		return null
 	}
 
@@ -1128,7 +1153,7 @@ constructor(
 		e: VariableGetException,
 		interpreter: Interpreter,
 		registers: Array<AvailObject>
-	): StackReifier
+	): A_BasicObject?
 	{
 		// The variable had no value.
 		assert(e.numericCode.equals(
@@ -1138,26 +1163,24 @@ constructor(
 			interpreter.runtime[READ_UNASSIGNED_VARIABLE]
 		val args = interpreter.argsBuffer
 		args.clear()
-		val reifier = interpreter.invokeFunction(unassignedVariableFunction)
-		// It's bottom-valued, so it must eventually reify, not return.
-		if (reifier!!.actuallyReify())
+		val valueMustBeNull =
+			interpreter.invokeFunction(unassignedVariableFunction)
+		assert(valueMustBeNull == null)
+		// It's ⊥-valued, so it must eventually reify, not return.
+		val reifier = interpreter.currentReifier!!
+		if (reifier.actuallyReify)
 		{
 			reifier.pushAction {
 				registers[stackp] = bottom as AvailObject
-				val continuation = createContinuation(
-					it.getReifiedContinuation()!!,
-					registers,
-					thisChunk)
-				it.setReifiedContinuation(continuation)
+				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return reifier
+		return null
 	}
 
 	/**
 	 * A [VariableSetException] has occurred.  Run the implicit-observe handler,
-	 * and answer null if it completes, or a suitable [StackReifier] if it
-	 * eventually reifies.
+	 * and answer nil if it completes, or `null` if it eventually reifies.
 	 */
 	fun handleVariableSetException(
 		e: VariableSetException,
@@ -1165,7 +1188,7 @@ constructor(
 		value: AvailObject,
 		interpreter: Interpreter,
 		registers: Array<AvailObject>
-	): StackReifier?
+	): A_BasicObject?
 	{
 		// The variable had an observer attached.
 		assert(e.numericCode.equals(
@@ -1177,24 +1200,19 @@ constructor(
 			Interpreter.assignmentFunction() as AvailObject)
 		interpreter.argsBuffer.add(
 			tuple(variable, value) as AvailObject)
-		val reifier =
+		val valueOrNull =
 			interpreter.invokeFunction(interpreter.runtime[IMPLICIT_OBSERVE])
 		// It's top-valued, so it *might* reify, or might not.
-		if (reifier !== null)
+		if (valueOrNull !== null) return nil
+		val reifier = interpreter.currentReifier!!
+		if (reifier.actuallyReify)
 		{
-			if (reifier.actuallyReify())
-			{
-				reifier.pushAction {
-					registers[stackp] = TOP()
-					val continuation = createContinuation(
-						it.getReifiedContinuation()!!,
-						registers,
-						thisChunk)
-					it.setReifiedContinuation(continuation)
-				}
+			reifier.pushAction {
+				registers[stackp] = TOP()
+				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return reifier
+		return null
 	}
 }
 
@@ -1229,46 +1247,45 @@ constructor(
 		val thisChunk = interpreter.chunk!!
 		//assert(function.code().functionType().acceptsListOfArgValues(
 		//	interpreter.argsBuffer))
-
-		var reifier = interpreter.invokeFunction(function)
+		var valueOrNull = interpreter.invokeFunction(function)
 		interpreter.chunk = thisChunk
 		interpreter.function = registers[0]
-		if (reifier === null)
+		if (valueOrNull === null)
 		{
-			// We returned normally from the call, which is the fast path.
-			interpreter.returnNow = false
-			val result = interpreter.latestResultOrNull()!!
-			if (!mustCheck || result.isInstanceOf(expectedType))
+			// It reified inside the call.
+			val reifier = interpreter.currentReifier!!
+			// Ensure the current frame is added to the reified call stack.
+			if (reifier.actuallyReify)
 			{
-				// Passed the return check, or didn't need to check.  This is
-				// the fastest path.
-				registers[stackp] = result
-				return null
+				reifier.pushAction {
+					registers[stackp] = expectedType as AvailObject
+					createContinuation(it, registers, thisChunk)
+				}
 			}
-			// Rare - the result did not conform to the expected type.
-			val args = interpreter.argsBuffer
-			args.clear()
-			args.add(function as AvailObject)
-			args.add(expectedType as AvailObject)
-			val wrappedReturnValue = newVariableWithContentType(ANY(), result)
-			args.add(wrappedReturnValue)
-			reifier = interpreter.invokeFunction(
-				interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
+			return reifier
 		}
-		assert(reifier != null)
-		// We're reifying either the original call or the return check failure.
-		if (reifier!!.actuallyReify())
+		// We returned normally from the call, which is the fast path.
+		if (!mustCheck || valueOrNull.isInstanceOf(expectedType))
 		{
-			reifier.pushAction {
-				registers[stackp] = expectedType as AvailObject
-				val continuation = createContinuation(
-					it.getReifiedContinuation()!!,
-					registers,
-					thisChunk)
-				it.setReifiedContinuation(continuation)
-			}
+			// Passed the return check, or didn't need to check.  This is
+			// the fastest path.
+			registers[stackp] = valueOrNull as AvailObject
+			return null
 		}
-		return reifier
+		// Rare - the result did not conform to the expected type.
+		val wrappedReturnValue =
+			newVariableWithContentType(ANY(), valueOrNull)
+		interpreter.argsBuffer.run {
+			clear()
+			add(function as AvailObject)
+			add(expectedType as AvailObject)
+			add(wrappedReturnValue)
+		}
+		val handlerValueOrNull = interpreter.invokeFunction(
+			interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
+		// Note that the handler is ⊥-valued, so it can't return normally.
+		assert(handlerValueOrNull === null)
+		return interpreter.currentReifier!!
 	}
 
 	/**
@@ -1283,7 +1300,7 @@ constructor(
 	 * and pop that continuation off the call stack.
 	 *
 	 * Also, if the current chunk has become invalid, we will alter the
-	 * interpreter's current chunk to the [unoptimizedChunk] to indicate this,
+	 * interpreter's current chunk to the [DefaultL1Chunk] to indicate this,
 	 * allowing the (Kotlin) caller to immediately return to the interpreter
 	 * loop for L1 interpretation.
 	 */
@@ -1293,7 +1310,7 @@ constructor(
 	): StackReifier?
 	{
 		if (!interpreter.checkValidity(
-				ChunkEntryPoint.TO_RETURN_INTO.offsetInDefaultChunk))
+				DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL.offset))
 		{
 			return null
 		}
@@ -1316,34 +1333,30 @@ constructor(
 			interpreter.popContinuation()
 			return null
 		}
-		else
-		{
-			// Rare - the return check failed, so we need to invoke the return
-			// check failure function.  It's ⊥-valued, so it won't return, but
-			// it will eventually reify.
-			val args = interpreter.argsBuffer
-			args.clear()
-			args.add(registers[0])
-			args.add(expectedType as AvailObject)
-			val wrappedReturnValue = newVariableWithContentType(ANY(), result)
-			args.add(wrappedReturnValue)
-			val reifier = interpreter.invokeFunction(
-				interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
-			assert(reifier != null)
-			// We're reifying either the original call or the return check failure.
-			if (reifier!!.actuallyReify())
-			{
-				reifier.pushAction {
-					registers[stackp] = expectedType
-					val continuation = createContinuation(
-						it.getReifiedContinuation()!!,
-						registers,
-						thisChunk)
-					it.setReifiedContinuation(continuation)
-				}
-			}
-			return reifier
+		// Rare - the return check failed, so we need to invoke the return
+		// check failure function.  It's ⊥-valued, so it won't return, but
+		// it will eventually reify.
+		val wrappedReturnValue = newVariableWithContentType(ANY(), result)
+		interpreter.argsBuffer.run {
+			clear()
+			add(registers[0])
+			add(expectedType as AvailObject)
+			add(wrappedReturnValue)
 		}
+		val valueOrNull = interpreter.invokeFunction(
+			interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
+		// The handler is ⊥-valued, so it can't return normally.
+		assert(valueOrNull === null)
+		// We're reifying either the original call or the return check failure.
+		val reifier = interpreter.currentReifier!!
+		if (reifier.actuallyReify)
+		{
+			reifier.pushAction { currentContinuation ->
+				registers[stackp] = expectedType as AvailObject
+				createContinuation(currentContinuation, registers, thisChunk)
+			}
+		}
+		return reifier
 	}
 
 	/**
@@ -1364,18 +1377,16 @@ constructor(
 		args.add(e.errorCode.numericCode() as AvailObject)
 		args.add(bundle.bundleMethod as AvailObject)
 		args.add(argumentsTuple as AvailObject)
-		val reifier = interpreter.invokeFunction(
-			interpreter.runtime.invalidMessageSendFunction())!!
-		// The function cannot return, so we got a StackReifier back.
-		if (reifier.actuallyReify())
+		val valueOrNull = interpreter.invokeFunction(
+			interpreter.runtime.invalidMessageSendFunction())
+		assert(valueOrNull === null)
+		// The function cannot return, so it's reifying.
+		val reifier = interpreter.currentReifier!!
+		if (reifier.actuallyReify)
 		{
 			reifier.pushAction {
 				registers[stackp] = expectedType as AvailObject
-				val continuation = createContinuation(
-					it.getReifiedContinuation()!!,
-					registers,
-					thisChunk)
-				it.setReifiedContinuation(continuation)
+				createContinuation(it, registers, thisChunk)
 			}
 		}
 		return reifier
@@ -1413,11 +1424,12 @@ constructor(
 		interpreter: Interpreter
 	): StackReifier?
 	{
-		val args = interpreter.argsBuffer
-		args.clear()
-		for (i in stackp downTo lastArgumentPosition)
-		{
-			args.add(registers[i])
+		interpreter.argsBuffer.run {
+			clear()
+			for (i in stackp downTo lastArgumentPosition)
+			{
+				add(registers[i])
+			}
 		}
 		return invocationHelper(interpreter, registers, function)
 	}
@@ -1448,7 +1460,7 @@ constructor(
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	function: A_Function,
-	val nilpotentAttempt: (Interpreter)->Primitive.Result
+	val nilpotentAttempt: (Interpreter)->A_BasicObject?
 ) : L2Simple_Invoke(
 	stackp,
 	pc,
@@ -1471,18 +1483,17 @@ constructor(
 		}
 		interpreter.function = function
 		// First try the nilpotent function supplied by the primitive.
-		val result = nilpotentAttempt(interpreter)
+		val value = nilpotentAttempt(interpreter)
 		interpreter.function = registers[0]
-		if (result === SUCCESS)
+		if (value != null)
 		{
 			// By far the most common case: Fast path succeeded.  Record the
 			// returned value.
-			registers[stackp] = interpreter.getLatestResult()
+			registers[stackp] = value.cast()
 			return null
 		}
 		// Slower path: The primitive failed.  Fall back to L2Simple_Invoke's
 		// behavior, including retrying the primitive.
-		assert(result === FAILURE)
 		return super.step(registers, interpreter)
 	}
 }
@@ -1637,13 +1648,12 @@ constructor(
 			args.add(registers[i])
 		}
 		interpreter.function = function
-		val result = interpreter.afterAttemptPrimitive(
+		val valueOrNull = interpreter.afterAttemptPrimitive(
 			primitive,
 			interpreter.beforeAttemptPrimitive(primitive),
 			primitive.attempt(interpreter))
-		assert(result === SUCCESS)
+		registers[stackp] = valueOrNull!! as AvailObject
 		interpreter.function = registers[0]
-		registers[stackp] = interpreter.getLatestResult()
 		return null
 	}
 }
@@ -1663,23 +1673,21 @@ class L2Simple_CheckForInterrupt(
 {
 	override fun reenter(
 		registers: Array<AvailObject>,
-		interpreter: Interpreter): StackReifier?
+		interpreter: Interpreter
+	): StackReifier?
 	{
 		// The invoke cases are handled in subclasses, so this is a "resume"
 		// situation, as for trapped reads or writes of variables.
-		if (!interpreter.checkValidity(
-				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk))
+		if (!interpreter.checkValidity(DefaultEntryPoint.RESUME.offset))
 		{
 			return null
 		}
-		assert(!interpreter.returnNow && !interpreter.exitNow)
 		// Pop the continuation, repopulating the registers.
-		val con = interpreter.getReifiedContinuation()!!
+		val con = interpreter.popContinuation()
 		for (i in 1 until registers.size)
 		{
 			registers[i] = con.frameAt(i)
 		}
-		interpreter.popContinuation()
 		return null
 	}
 
@@ -1693,7 +1701,6 @@ class L2Simple_CheckForInterrupt(
 		val function = registers[0]
 		val thisChunk = interpreter.chunk!!
 		return StackReifier(true, interruptStatistic) {
-			assert(!interpreter.returnNow)
 			val caller = interpreter.getReifiedContinuation()!!
 			val continuation = createContinuationExceptFrame(
 				function,
@@ -1713,6 +1720,7 @@ class L2Simple_CheckForInterrupt(
 			interpreter.chunk = thisChunk
 			interpreter.offset = nextOffset
 			interpreter.processInterrupt(continuation)
+			CONTINUE_FIBER
 		}
 	}
 

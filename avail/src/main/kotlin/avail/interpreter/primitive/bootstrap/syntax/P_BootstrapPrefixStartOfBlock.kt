@@ -41,6 +41,7 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
@@ -49,10 +50,10 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive0
 
 /**
  * The `P_BootstrapPrefixStartOfBlock` primitive is triggered at the start of
@@ -63,14 +64,14 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
+object P_BootstrapPrefixStartOfBlock : Primitive0(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-
 		interpreter.fiber().availLoader ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		val clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom
 		val compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 		val compilerScopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
@@ -85,7 +86,7 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 			compilerScopeStackKey, stack, true)
 		fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey, clientData, true)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

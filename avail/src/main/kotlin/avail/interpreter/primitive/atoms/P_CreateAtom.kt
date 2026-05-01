@@ -33,6 +33,8 @@ package avail.interpreter.primitive.atoms
 
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,9 +45,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Lookup or create a new [atom][AtomDescriptor] with the given
@@ -55,14 +57,16 @@ import avail.interpreter.execution.Interpreter
  * new atom will always be created.
  */
 @Suppress("unused")
-object P_CreateAtom : Primitive(1, CanInline)
+object P_CreateAtom : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
-		val loader = interpreter.availLoaderOrNull()
-		val atom = when (loader)
+		val name = arg1
+
+		return when (val loader = interpreter.availLoaderOrNull())
 		{
 			null -> createAtom(name, nil)
 			else ->
@@ -72,10 +76,9 @@ object P_CreateAtom : Primitive(1, CanInline)
 				}
 				catch (e: AmbiguousNameException)
 				{
-					return interpreter.primitiveFailure(E_AMBIGUOUS_NAME)
+					interpreter.fail(E_AMBIGUOUS_NAME)
 				}
 		}
-		return interpreter.primitiveSuccess(atom)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

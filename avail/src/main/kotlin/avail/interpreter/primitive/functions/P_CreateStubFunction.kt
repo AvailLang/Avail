@@ -33,16 +33,18 @@ package avail.interpreter.primitive.functions
 
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createStubWithSignature
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Construct a [function][FunctionDescriptor] that conforms to
@@ -50,15 +52,17 @@ import avail.interpreter.execution.Interpreter
  * specified function and answers that function's result.
  */
 @Suppress("unused")
-object P_CreateStubFunction : Primitive(2, CannotFail, CanFold, CanInline)
+object P_CreateStubFunction : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val newFunctionType = interpreter.argument(0)
-		val function = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			createStubWithSignature(newFunctionType, function))
+		val newFunctionType = arg1
+		val function = arg2
+		return createStubWithSignature(newFunctionType, function)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

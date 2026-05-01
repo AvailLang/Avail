@@ -38,6 +38,8 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -50,10 +52,10 @@ import avail.exceptions.AvailErrorCode.E_BLOCK_COMPILATION_FAILED
 import avail.exceptions.AvailErrorCode.E_BLOCK_IS_INVALID
 import avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
 import avail.exceptions.AvailRuntimeException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Compile the specified [block][BlockPhraseDescriptor] into a
@@ -63,23 +65,25 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
+object P_GenerateFunctionForBlock : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val block = interpreter.argument(0)
+		val block = arg1
 		try
 		{
 			recursivelyValidate(block)
 		}
 		catch (e: AvailRuntimeException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.primitiveFailure(E_BLOCK_IS_INVALID)
+			return interpreter.fail(E_BLOCK_IS_INVALID)
 		}
 
 		val compiledCode: A_RawFunction
@@ -89,11 +93,11 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.primitiveFailure(E_BLOCK_COMPILATION_FAILED)
+			return interpreter.fail(E_BLOCK_COMPILATION_FAILED)
 		}
 
 		val function = createFunction(compiledCode, emptyTuple)
-		return interpreter.primitiveSuccess(function.makeImmutable())
+		return function.makeImmutable()
 	}
 
 	override fun mightMakeEscapedVariableShared(

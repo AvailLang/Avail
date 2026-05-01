@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.phrases
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.phraseKind
@@ -41,11 +43,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Create a variation of a
@@ -53,21 +55,21 @@ import avail.interpreter.execution.Interpreter
  * of the same [kind][PhraseKind] but with the specified expression type.
  */
 @Suppress("unused")
-object P_CreatePhraseType : Primitive(2, CanFold, CanInline, CannotFail)
+object P_CreatePhraseType : Primitive2(CanFold, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val baseType = interpreter.argument(0)
-		val expressionType = interpreter.argument(1)
-		if (baseType.isBottom)
-		{
-			return interpreter.primitiveSuccess(baseType)
-		}
+		val baseType = arg1
+		val expressionType = arg2
+		if (baseType.isBottom) return baseType
 		val kind = baseType.phraseKind
 		val intersected =
 			expressionType.typeIntersection(kind.mostGeneralYieldType)
-		return interpreter.primitiveSuccess(kind.create(intersected))
+		return kind.create(intersected)
 	}
 
 	/**

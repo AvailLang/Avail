@@ -35,17 +35,19 @@ package avail.interpreter.primitive.modules
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the entry point names declared by the specified
@@ -54,13 +56,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Entries : Primitive(1, CanInline, CannotFail)
+object P_Entries : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val module = interpreter.argument(0)
-		return interpreter.primitiveSuccess(module.entryPoints.keysAsSet)
+		val module = arg1
+		return module.entryPoints.keysAsSet
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

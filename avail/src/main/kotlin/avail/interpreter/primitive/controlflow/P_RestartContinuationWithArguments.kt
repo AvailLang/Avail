@@ -31,18 +31,18 @@
  */
 package avail.interpreter.primitive.controlflow
 
-import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -64,15 +64,14 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
+import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -89,17 +88,19 @@ import avail.optimizer.L1Translator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RestartContinuationWithArguments : Primitive(
-	2,
+object P_RestartContinuationWithArguments : Primitive2(
 	CanInline,
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val originalCon = interpreter.argument(0)
-		val arguments = interpreter.argument(1)
+		val originalCon = arg1
+		val arguments = arg2
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
@@ -117,13 +118,12 @@ object P_RestartContinuationWithArguments : Primitive(
 		val numArgs = code.numArgs()
 		if (numArgs != arguments.tupleSize)
 		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		// Check the argument types.
 		if (!code.functionType().acceptsTupleOfArguments(arguments))
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		// Move the arguments into interpreter.argsBuffer.
 		interpreter.argsBuffer.clear()
@@ -133,13 +133,10 @@ object P_RestartContinuationWithArguments : Primitive(
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.setReifiedContinuation(originalCon.caller)
-		interpreter.function = originalCon.function()
-		interpreter.chunk = code.startingChunk
-		interpreter.offset = 0
-		interpreter.returnNow = false
 		interpreter.clearLatestResult()
-		return CONTINUATION_CHANGED
+		interpreter.currentReifier =
+			interpreter.reifierToRestartWithArguments(originalCon, arguments)
+		return null
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

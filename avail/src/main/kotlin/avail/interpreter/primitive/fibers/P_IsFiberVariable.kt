@@ -41,6 +41,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -49,9 +51,9 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Does the [name][AtomDescriptor] refer to a
@@ -60,15 +62,17 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IsFiberVariable : Primitive(1, CanInline)
+object P_IsFiberVariable : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val key = interpreter.argument(0)
+		val key = arg1
 		if (key.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
@@ -77,8 +81,7 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 			key.getAtomProperty(HERITABLE_KEY.atom).isNil -> fiber.fiberGlobals
 			else -> fiber.heritableFiberGlobals
 		}
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(globals.hasKey(key)))
+		return objectFromBoolean(globals.hasKey(key))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

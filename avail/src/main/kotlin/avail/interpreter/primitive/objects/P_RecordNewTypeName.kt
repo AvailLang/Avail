@@ -35,19 +35,21 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.setNameForType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Assign a name to a
@@ -55,13 +57,16 @@ import avail.interpreter.execution.Interpreter
  * for debugging.
  */
 @Suppress("unused")
-object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
+object P_RecordNewTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val userType = interpreter.argument(0)
-		val name = interpreter.argument(1)
+		val userType = arg1
+		val name = arg2
 
 		userType.makeImmutable()
 		name.makeImmutable()
@@ -69,7 +74,7 @@ object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.RECORD_TYPE_NAME, userType, name))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

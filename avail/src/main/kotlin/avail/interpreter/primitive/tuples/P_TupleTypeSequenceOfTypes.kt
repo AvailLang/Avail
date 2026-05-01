@@ -33,6 +33,8 @@ package avail.interpreter.primitive.tuples
 
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -49,10 +51,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] of [types][A_Type] representing the
@@ -60,29 +62,32 @@ import avail.interpreter.execution.Interpreter
  * [bottom][BottomTypeDescriptor] for indices out of range.
  */
 @Suppress("unused")
-object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
+object P_TupleTypeSequenceOfTypes : Primitive3(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val tupleType = interpreter.argument(0)
-		val startIndex = interpreter.argument(1)
-		val endIndex = interpreter.argument(2)
+		val tupleType = arg1
+		val startIndex = arg2
+		val endIndex = arg3
 		if (!startIndex.isInt || !endIndex.isInt)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = startIndex.extractInt
 		val endInt = endIndex.extractInt
 		val tupleSize = endInt - startInt + 1
 		if (tupleSize < 0)
 		{
-			return interpreter.primitiveFailure(E_NEGATIVE_SIZE)
+			return interpreter.fail(E_NEGATIVE_SIZE)
 		}
-		val tupleObject = generateObjectTupleFrom(tupleSize) {
+		return generateObjectTupleFrom(tupleSize) {
 			tupleType.typeAtIndex(it + startInt - 1).makeImmutable()
 		}
-		return interpreter.primitiveSuccess(tupleObject)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

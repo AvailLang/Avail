@@ -39,17 +39,19 @@ import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 import java.lang.Math.scalb
 import kotlin.math.max
 import kotlin.math.min
@@ -59,15 +61,18 @@ import kotlin.math.min
  * intermediate overflow or any precision loss.
  */
 @Suppress("unused")
-object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
+object P_FloatTimesTwoPower : Primitive3(CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val a = interpreter.argument(0)
-		//		final A_Token literalTwo = interpreter.argument(1);
-		val b = interpreter.argument(2)
+		val a = arg1
+		// val literalTwo = arg2
+		val b = arg3
 
 		val scale = when {
 			b.isInt -> min(max(b.extractInt, -10000), 10000)
@@ -75,7 +80,7 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 			else -> -10000
 		}
 		val f = scalb(a.extractFloat, scale)
-		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
+		return fromFloatRecycling(f, a, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

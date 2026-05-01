@@ -33,6 +33,8 @@ package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -40,12 +42,12 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Invokes
+import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -53,22 +55,22 @@ import avail.optimizer.L1Translator
  * **Primitive:** Invoke the [falseBlock][FunctionDescriptor].
  */
 @Suppress("unused")
-object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
+object P_IfFalseThenElse : Primitive3(Invokes, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		//		final A_Atom ignoredBoolean = interpreter.argument(0);
-		//		final A_Function ignoredTrueFunction = interpreter.argument(1);
-		val falseFunction = interpreter.argument(2)
+		// val booleanValue = arg1
+		// val trueFunction = arg2
+		val falseFunction = arg3
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear()
-		interpreter.invokeFunction(falseFunction)?.let { reifier ->
-			interpreter.latestReifierFromInvokingPrimitive = reifier
-			return Result.INVOKED_AND_REIFYING
-		}
-		return Result.SUCCESS
+		return interpreter.invokeInPrimitive(falseFunction)
 	}
 
 	override fun returnTypeGuaranteedByVM(

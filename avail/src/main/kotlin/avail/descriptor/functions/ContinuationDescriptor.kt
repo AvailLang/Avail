@@ -113,8 +113,6 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
@@ -122,6 +120,9 @@ import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.io.TextInterface
+import avail.optimizer.DefaultL1ExecutableChunk
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -237,7 +238,7 @@ class ContinuationDescriptor private constructor(
 		 * An instance of [RegisterDumpDescriptor], which holds a collection of
 		 * [AvailObject] and [Long] values. These values are stored in the
 		 * continuation for an [L2Chunk] to use as it wishes, but it's simply
-		 * ignored when a chunk becomes invalid, since the [unoptimizedChunk]
+		 * ignored when a chunk becomes invalid, since the [DefaultL1Chunk]
 		 * and its [L1InstructionStepper] always rely solely on the pure L1
 		 * state.
 		 *
@@ -295,10 +296,9 @@ class ContinuationDescriptor private constructor(
 	{
 		val code = self.function().code()
 		val encodedDeltas = code.lineNumberEncodedDeltas
-		val instructionDecoder = L1InstructionDecoder()
-		code.setUpInstructionDecoder(instructionDecoder)
 		val thisPc = self.highlightPc(topFrame)
-		instructionDecoder.pc = 1
+		val instructionDecoder = L1InstructionDecoder()
+		code.setUpInstructionDecoder(instructionDecoder, 1)
 		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		while (!instructionDecoder.atEnd()
@@ -319,11 +319,10 @@ class ContinuationDescriptor private constructor(
 	@Deprecated("unused")
 	override fun o_DeoptimizeForDebugger(self: AvailObject)
 	{
-		if (self.levelTwoChunk != unoptimizedChunk)
+		if (self.levelTwoChunk != DefaultL1Chunk)
 		{
-			self[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
-			self[LEVEL_TWO_OFFSET] =
-				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk
+			self[LEVEL_TWO_CHUNK] = DefaultL1Chunk.chunkPojo
+			self[LEVEL_TWO_OFFSET] = DefaultEntryPoint.RESUME.offset
 		}
 	}
 
@@ -366,8 +365,7 @@ class ContinuationDescriptor private constructor(
 		val currentPc = self.pc
 		var pcBefore = -1
 		val decoder = L1InstructionDecoder()
-		code.setUpInstructionDecoder(decoder)
-		decoder.pc = 1
+		code.setUpInstructionDecoder(decoder, 1)
 		while (decoder.pc < currentPc)
 		{
 			pcBefore = decoder.pc
@@ -490,8 +488,7 @@ class ContinuationDescriptor private constructor(
 		// Find the previous pc.
 		val code = self.function().code()
 		val instructionDecoder = L1InstructionDecoder()
-		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc = 1
+		code.setUpInstructionDecoder(instructionDecoder, 1)
 		var previousPc = 1
 		while (!instructionDecoder.atEnd() && instructionDecoder.pc < pc)
 		{
@@ -510,7 +507,7 @@ class ContinuationDescriptor private constructor(
 	{
 		val chunk: L2Chunk =
 			self.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull()
-		if (chunk != unoptimizedChunk && chunk.isValid) {
+		if (chunk != DefaultL1ExecutableChunk && chunk.isValid) {
 			L2Chunk.Generation.usedChunk(chunk)
 		}
 		return chunk
@@ -904,7 +901,7 @@ class ContinuationDescriptor private constructor(
 			// would have set levelTwoChunk to the unoptimizedChunk already when
 			// it created the elided variables.
 			val chunk = levelTwoChunk
-			if (chunk === unoptimizedChunk) return
+			if (chunk === DefaultL1Chunk) return
 			// L2Simple chunks don't postpone variable creation either.
 			if (chunk is L2SimpleChunk) return
 
@@ -990,9 +987,8 @@ class ContinuationDescriptor private constructor(
 			// The L2 code cannot continue to run with those variables created,
 			// so we must fall back to L1.
 			dump.ifNotNil<A_RegisterDump> {
-				this[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
-				this[LEVEL_TWO_OFFSET] =
-					dump.fallbackEntryPoint.offsetInDefaultChunk
+				this[LEVEL_TWO_CHUNK] = DefaultL1Chunk.chunkPojo
+				this[LEVEL_TWO_OFFSET] = dump.fallbackEntryPoint
 			}
 		}
 

@@ -33,37 +33,36 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.exportedNames
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive0
 
 /**
- * **Primitive:** Answer the [exported][A_Module.exportedNames] names of the
+ * **Primitive:** Answer the [exportedNames] of the
  * [current][Interpreter.module] module.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ExportedNames : Primitive(0, CanInline)
+object P_ExportedNames : Primitive0(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val module = loader.module
-		val exportedNames = module.exportedNames
-		return interpreter.primitiveSuccess(exportedNames)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
+		return loader.module.exportedNames
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

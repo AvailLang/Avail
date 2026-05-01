@@ -42,6 +42,8 @@ import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
@@ -60,10 +62,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 import java.lang.Math.multiplyExact
 
 /**
@@ -75,25 +77,28 @@ import java.lang.Math.multiplyExact
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
+object P_BitShiftWithTruncation : Primitive3(CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val baseInteger = interpreter.argument(0)
-		val shiftFactor = interpreter.argument(1)
-		val truncationBits = interpreter.argument(2)
-		try
+		val baseInteger = arg1
+		val shiftFactor = arg2
+		val truncationBits = arg3
+		return try
 		{
-			return interpreter.primitiveSuccess(
-				baseInteger.bitShiftLeftTruncatingToBits(
-					shiftFactor, truncationBits, true))
+			baseInteger.bitShiftLeftTruncatingToBits(
+				shiftFactor, truncationBits, true)
 		}
 		catch (e: ArithmeticException)
 		{
 			// Note: The primitive's type signature ensures both baseInteger and
 			// truncationBits are non-negative.
-			return interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

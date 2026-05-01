@@ -34,6 +34,8 @@ package avail.interpreter.primitive.general
 
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,10 +45,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import avail.io.TextInputChannel
 import java.io.IOException
 
@@ -59,24 +61,25 @@ import java.io.IOException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MarkStandardInputStream : Primitive(1, CanInline, HasSideEffect)
+object P_MarkStandardInputStream : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val readAhead = interpreter.argument(0)
+		val readAhead = arg1
 		val readAheadInt = readAhead.extractInt
 		val channel = interpreter.fiber().textInterface.inputChannel
-		try
+		return try
 		{
 			channel.mark(readAheadInt)
+			nil
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.fail(E_IO_ERROR)
 		}
-
-		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

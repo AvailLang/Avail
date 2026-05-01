@@ -34,16 +34,18 @@ package avail.interpreter.primitive.floats
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Given a 32-bit signed integer, treat the bit pattern as a
@@ -53,15 +55,17 @@ import avail.interpreter.execution.Interpreter
  * @see P_FloatToIntBits
  */
 @Suppress("unused")
-object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline)
+object P_FloatFromIntBits : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val intObject = interpreter.argument(0)
+		val intObject = arg1
 		val intValue = intObject.extractInt
 		val floatValue = Float.fromBits(intValue)
-		return interpreter.primitiveSuccess(fromFloat(floatValue))
+		return fromFloat(floatValue)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

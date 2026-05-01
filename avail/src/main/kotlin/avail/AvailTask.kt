@@ -161,10 +161,6 @@ class AvailTask constructor(
 					// give the function any more weight toward optimization.
 					interpreter.function = null
 
-					// Clear the interpreter's isReifying flag to improve debug
-					// output for the *next* fiber to run in it.
-					interpreter.isReifying = false
-
 					if (!fiber.executionState.indicatesTermination)
 					{
 						assert(interpreter.fiberOrNull() === fiber)
@@ -192,7 +188,7 @@ class AvailTask constructor(
 					val postExit = interpreter.postExitContinuation
 					if (postExit !== null)
 					{
-						interpreter.postExitContinuation(null)
+						interpreter.postExitContinuation = null
 						postExit()
 					}
 				}

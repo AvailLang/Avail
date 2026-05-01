@@ -34,17 +34,19 @@ package avail.interpreter.primitive.functions
 
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Decompiler.Companion.decompile
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a [phrase][BlockPhraseDescriptor] that represents the
@@ -53,14 +55,15 @@ import avail.interpreter.levelOne.L1Decompiler.Companion.decompile
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DecompileFunction : Primitive(1, CanInline, CanFold, CannotFail)
+object P_DecompileFunction : Primitive1(CanInline, CanFold, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
-		val decompiled = decompile(function.code())
-		return interpreter.primitiveSuccess(decompiled)
+		val function = arg1
+		return decompile(function.code())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

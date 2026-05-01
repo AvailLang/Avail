@@ -35,6 +35,7 @@ import avail.compiler.AvailAcceptedParseException
 import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.methods.A_Macro
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -42,9 +43,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_ACCEPTANCE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Either an expression is having an applicable
@@ -69,16 +70,19 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AcceptParsing : Primitive(0, Unknown)
+object P_AcceptParsing : Primitive0(Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
-			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_ACCEPTANCE)
+			return interpreter.fail(E_UNTIMELY_PARSE_ACCEPTANCE)
 		}
-		throw AvailAcceptedParseException()
+		return interpreter.reifyForPrimitive(false) {
+			throw AvailAcceptedParseException()
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

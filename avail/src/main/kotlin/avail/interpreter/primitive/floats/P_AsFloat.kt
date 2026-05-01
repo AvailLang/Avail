@@ -35,34 +35,35 @@ import avail.descriptor.numbers.A_Number.Companion.extractFloat
 import avail.descriptor.numbers.A_Number.Companion.isFloat
 import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Convert the numeric argument to a [float][FloatDescriptor].
  */
 @Suppress("unused")
-object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline)
+object P_AsFloat : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val number = interpreter.argument(0)
-		return if (number.isFloat)
+		val number = arg1
+		return when
 		{
-			interpreter.primitiveSuccess(number)
-		}
-		else
-		{
-			interpreter.primitiveSuccess(fromFloat(number.extractFloat))
+			number.isFloat -> number
+			else -> fromFloat(number.extractFloat)
 		}
 	}
 

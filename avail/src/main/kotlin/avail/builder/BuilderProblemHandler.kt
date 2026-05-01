@@ -71,7 +71,6 @@ internal open class BuilderProblemHandler constructor(
 	private val availBuilder: AvailBuilder,
 	val pattern: String) : ProblemHandler
 {
-	@Suppress("RedundantLambdaArrow")
 	override fun handleGeneric(problem: Problem, decider: (Boolean)->Unit)
 	{
 		availBuilder.stopBuildReason = "Build failed"

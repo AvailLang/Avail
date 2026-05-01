@@ -35,6 +35,8 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
@@ -46,11 +48,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the union of the
@@ -59,12 +61,18 @@ import avail.interpreter.execution.Interpreter
  * if all the indices are out of range.
  */
 @Suppress("unused")
-object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
+object P_TupleTypeAtThrough : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val (tupleType, startIndex, endIndex) = interpreter.argsBuffer
+		val tupleType = arg1
+		val startIndex = arg2
+		val endIndex = arg3
 		val startInt = when {
 			startIndex.isInt -> startIndex.extractInt
 			else -> Integer.MAX_VALUE
@@ -73,8 +81,7 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 			endIndex.isInt -> endIndex.extractInt
 			else -> Integer.MAX_VALUE
 		}
-		return interpreter.primitiveSuccess(
-			tupleType.unionOfTypesAtThrough(startInt, endInt))
+		return tupleType.unionOfTypesAtThrough(startInt, endInt)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

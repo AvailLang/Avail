@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.variables
 
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -50,11 +52,11 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Atomically read and update the map in the specified
@@ -64,28 +66,30 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicRemoveFromMap : Primitive(2, CanInline, HasSideEffect) {
-	override fun attempt(interpreter: Interpreter): Result {
-		interpreter.checkArgumentCount(2)
-		val variable = interpreter.argument(0)
-		val key = interpreter.argument(1)
+object P_AtomicRemoveFromMap : Primitive2(CanInline, HasSideEffect) {
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject? {
+		val variable = arg1
+		val key = arg2
 		try
 		{
 			variable.atomicRemoveFromMap(key)
 		}
 		catch (e: VariableGetException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
-
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.REMOVE_FROM_MAP_VARIABLE, variable, key))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

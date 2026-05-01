@@ -43,6 +43,8 @@ import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.module.A_Module.Companion.addSeal
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -58,10 +60,10 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContent
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Seal the [named][A_Atom] [A_Method] at each existing
@@ -70,19 +72,19 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SealMethodsAtExistingDefinitions : Primitive(
-	1, CanInline, HasSideEffect)
+object P_SealMethodsAtExistingDefinitions : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val methodNames = interpreter.argument(0)
+		val methodNames = arg1
 		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		val runtime = interpreter.runtime
 		val module = interpreter.module()
@@ -121,7 +123,7 @@ object P_SealMethodsAtExistingDefinitions : Primitive(
 				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -42,6 +42,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -60,9 +62,9 @@ import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 
 /**
 * **Primitive:** Create a [send&#32;expression][SendPhraseDescriptor] from the
@@ -74,14 +76,18 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateSendExpression : Primitive(3, CanInline)
+object P_CreateSendExpression : Primitive3(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val messageName = interpreter.argument(0)
-		val argsListPhrase = interpreter.argument(1)
-		val returnType = interpreter.argument(2)
+		val messageName = arg1
+		val argsListPhrase = arg2
+		val returnType = arg3
 
 		val argExpressions = argsListPhrase.expressionsTuple
 		val argsCount = argExpressions.tupleSize
@@ -91,21 +97,18 @@ object P_CreateSendExpression : Primitive(3, CanInline)
 			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			if (!splitter.checkListStructure(argsListPhrase))
 			{
-				return interpreter.primitiveFailure(
-					E_INCONSISTENT_ARGUMENT_REORDERING)
+				return interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
-			return interpreter.primitiveSuccess(
-				newSendNode(
-					emptyTuple, emptyTuple, bundle, argsListPhrase, returnType))
+			return newSendNode(
+				emptyTuple, emptyTuple, bundle, argsListPhrase, returnType)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e.errorCode)
+			return interpreter.fail(e.errorCode)
 		}
 	}
 

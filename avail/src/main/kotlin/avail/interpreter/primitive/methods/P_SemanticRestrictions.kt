@@ -35,6 +35,8 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -47,12 +49,12 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] of restriction
@@ -60,18 +62,20 @@ import avail.interpreter.execution.Interpreter
  * [method][A_Method] and tuple of argument types.
  */
 @Suppress("unused")
-object P_SemanticRestrictions : Primitive(2, CanInline)
+object P_SemanticRestrictions : Primitive2(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val method = interpreter.argument(0)
-		val argTypes = interpreter.argument(1)
+		val method = arg1
+		val argTypes = arg2
 
 		if (method.numArgs != argTypes.tupleSize)
 		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val restrictions = method.semanticRestrictions
 		val applicable = mutableListOf<A_Function>()
@@ -83,7 +87,7 @@ object P_SemanticRestrictions : Primitive(2, CanInline)
 				applicable.add(function)
 			}
 		}
-		return interpreter.primitiveSuccess(tupleFromList(applicable))
+		return tupleFromList(applicable)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

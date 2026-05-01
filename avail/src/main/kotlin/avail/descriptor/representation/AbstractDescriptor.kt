@@ -37,6 +37,7 @@ import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
+import avail.compiler.LexicalScanner
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.ParsingOperation
@@ -47,7 +48,6 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
 import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.character.A_Character
 import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
@@ -111,6 +111,7 @@ import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import avail.descriptor.sets.A_Set
+import avail.descriptor.sets.A_Set.Companion.isSet
 import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.SetIterator
@@ -119,6 +120,7 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
@@ -145,6 +147,9 @@ import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
 import avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
 import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
 import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
+import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.declaredExceptions
+import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -161,12 +166,10 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.primitive.Primitive
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -229,7 +232,7 @@ import kotlin.reflect.jvm.javaField
  * invoke the non "o_" method in [AvailObject].  This will show up as an error,
  * and one more quick fix can generate the corresponding method in `AvailObject`
  * whose implementation, like methods near it, extracts the
- * [AvailObject.descriptor] and invokes upon it the original message (that
+ * [A_BasicObject.descriptor] and invokes upon it the original message (that
  * started with "o_"), passing `this` as the first argument.  Code generation
  * will eventually make this relatively onerous task more tractable and less
  * error prone.
@@ -442,7 +445,7 @@ abstract class AbstractDescriptor protected constructor (
 		var enumClass: Class<Enum<*>>? =
 			try
 			{
-				loader.loadClass("${cls.canonicalName}\$IntegerSlots").cast()
+				loader.loadClass($$"$${cls.canonicalName}$IntegerSlots").cast()
 			}
 			catch (e: ClassNotFoundException)
 			{
@@ -484,7 +487,7 @@ abstract class AbstractDescriptor protected constructor (
 		}
 		enumClass = try
 		{
-			loader.loadClass("${cls.canonicalName}\$ObjectSlots").cast()
+			loader.loadClass($$"$${cls.canonicalName}$ObjectSlots").cast()
 		}
 		catch (e: ClassNotFoundException)
 		{
@@ -694,7 +697,7 @@ abstract class AbstractDescriptor protected constructor (
 			try
 			{
 				val intEnumClass: Class<out IntegerSlotsEnum> = loader
-					.loadClass("${definitionCls.canonicalName}\$IntegerSlots")
+					.loadClass($$"$${definitionCls.canonicalName}$IntegerSlots")
 					.cast()
 				intSlots = intEnumClass.enumConstants
 				break
@@ -758,7 +761,7 @@ abstract class AbstractDescriptor protected constructor (
 			try
 			{
 				val objectEnumClass: Class<out ObjectSlotsEnum> = loader
-					.loadClass("${definitionCls.canonicalName}\$ObjectSlots")
+					.loadClass($$"$${definitionCls.canonicalName}$ObjectSlots")
 					.cast()
 				objectSlots = objectEnumClass.enumConstants
 				break
@@ -2265,8 +2268,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsInstanceMeta (self: AvailObject): Boolean
 
-	abstract fun o_IsMethodDefinition (self: AvailObject): Boolean
-
 	abstract fun o_IsPositive (self: AvailObject): Boolean
 
 	abstract fun o_KeysAsSet (self: AvailObject): A_Set
@@ -2455,7 +2456,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the receiver is a character with a code point equal to the
 	 *   argument, `false` otherwise.
-	 * @see A_Character.equalsCharacterWithCodePoint
+	 * @see [equalsCharacterWithCodePoint]
 	 */
 	abstract fun o_EqualsCharacterWithCodePoint (
 		self: AvailObject,
@@ -2781,17 +2782,6 @@ abstract class AbstractDescriptor protected constructor (
 	 * @see AvailObject.isByteTuple
 	 */
 	abstract fun o_IsByteTuple (self: AvailObject): Boolean
-
-	/**
-	 * Is the specified [AvailObject] an Avail character?
-	 *
-	 * @param self
-	 *   An [AvailObject].
-	 * @return
-	 *   `true` if the argument is a character, `false` otherwise.
-	 * @see A_Character.isCharacter
-	 */
-	abstract fun o_IsCharacter (self: AvailObject): Boolean
 
 	/**
 	 * Is the specified [AvailObject] an Avail string?
@@ -4036,7 +4026,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ExtractDumpedLongAt (self: AvailObject, index: Int): Long
 
-	abstract fun o_FallbackEntryPoint(self: AvailObject): ChunkEntryPoint
+	abstract fun o_FallbackEntryPoint(self: AvailObject): Int
 
 	abstract fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
 

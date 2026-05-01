@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.rawfunctions
 
 import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -39,11 +41,11 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the name of the primitive for this
@@ -51,19 +53,20 @@ import avail.interpreter.execution.Interpreter
  * code is not a primitive.
  */
 @Suppress("unused")
-object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CompiledCodePrimitiveName : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val code = interpreter.argument(0)
+		val code = arg1
 		val prim = code.codePrimitive()
-		val string = when
+		return when
 		{
 			prim === null -> emptyTuple
 			else -> stringFrom(prim.name)
 		}
-		return interpreter.primitiveSuccess(string)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

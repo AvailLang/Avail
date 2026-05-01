@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newConstant
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -42,10 +44,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer a
@@ -56,14 +58,17 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
+object P_CreateLocalConstantDeclaration : Primitive2(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val token = interpreter.argument(0)
-		val initializer = interpreter.argument(1)
-		return interpreter.primitiveSuccess(newConstant(token, initializer))
+		val token = arg1
+		val initializer = arg2
+		return newConstant(token, initializer)
 	}
 
 	/**

@@ -35,20 +35,22 @@ package avail.interpreter.primitive.hooks
 import avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
@@ -58,20 +60,21 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetUnassignedVariableAccessFunction : Primitive(
-	1,
+object P_SetUnassignedVariableAccessFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
+		val function = arg1
 		interpreter.runtime[READ_UNASSIGNED_VARIABLE] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

@@ -39,7 +39,6 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -52,6 +51,7 @@ import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator
@@ -180,8 +180,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(onReification)
 			+L2_ENTER_L2_CHUNK(
-				L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+				L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
 				L2CommentOperand("Transient, cannot be invalid."))
 			val tempOffset = intWriteTemp(
 				"offset to continue dummy", intRestrictionForType(i32))
@@ -231,8 +230,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(afterReification)
 			+L2_ENTER_L2_CHUNK(
-				L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+				L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
 				L2CommentOperand("Transient, cannot be invalid."))
 			jumpTo(callerIsReified)
 

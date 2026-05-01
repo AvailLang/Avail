@@ -34,11 +34,11 @@ package avail.optimizer.values
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.optimizer.L2ValueManifest

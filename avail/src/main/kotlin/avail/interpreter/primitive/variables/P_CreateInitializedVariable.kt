@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -44,10 +46,10 @@ import avail.descriptor.variables.A_Variable.Companion.setValue
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Create a [variable][A_Variable] with the given inner
@@ -55,24 +57,27 @@ import avail.interpreter.execution.Interpreter
  * variable.
  */
 @Suppress("unused")
-object P_CreateInitializedVariable : Primitive(2, CanInline, HasSideEffect)
+object P_CreateInitializedVariable : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val innerType = interpreter.argument(0)
-		val initialValue = interpreter.argument(1)
+		val innerType = arg1
+		val initialValue = arg2
 
 		val variable = newVariableWithContentType(innerType)
 		try {
 			variable.setValue(initialValue)
-			return interpreter.primitiveSuccess(variable)
+			return variable
 		}
 		catch (e: VariableSetException)
 		{
 			// The variable is new, so this is the only possible way to fail.
 			assert(e.errorCode == E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 	}
 

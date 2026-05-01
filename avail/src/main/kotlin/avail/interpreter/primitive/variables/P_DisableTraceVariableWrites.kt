@@ -37,6 +37,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.variablesWritten
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Function
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -52,10 +53,10 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.A_Variable.Companion.validWriteReactorFunctions
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Disable
@@ -69,16 +70,17 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DisableTraceVariableWrites : Primitive(
-	0, HasSideEffect, WritesToHiddenGlobalState)
+object P_DisableTraceVariableWrites : Primitive0(
+	HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
 		if (!fiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES))
 		{
-			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
+			return interpreter.fail(E_ILLEGAL_TRACE_MODE)
 		}
 		interpreter.setTraceVariableWrites(false)
 		val written = fiber.variablesWritten
@@ -88,7 +90,7 @@ object P_DisableTraceVariableWrites : Primitive(
 			functions = functions.setUnionCanDestroy(
 				variable.validWriteReactorFunctions, true)
 		}
-		return interpreter.primitiveSuccess(functions)
+		return functions
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

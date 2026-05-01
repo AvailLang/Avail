@@ -117,19 +117,18 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.TypeTag
 import avail.dispatch.LookupStatistics
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1OperandType
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1Operation.Companion.lookup
-import avail.interpreter.levelOne.L1_doGetLocalClearing_ord
-import avail.interpreter.levelOne.L1_doPushLastLocal_ord
-import avail.interpreter.levelOne.L1_doPushLastOuter_ord
-import avail.interpreter.levelOne.L1_doPushLiteral_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doGetLocalClearing_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLastLocal_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLastOuter_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLiteral_ord
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
+import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
 import avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
@@ -137,6 +136,8 @@ import avail.interpreter.primitive.privatehelpers.P_PushArgument2
 import avail.interpreter.primitive.privatehelpers.P_PushArgument3
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.interpreter.primitive.privatehelpers.P_PushLastOuter
+import avail.optimizer.DefaultL1ExecutableChunk
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.OptimizationLevel.Companion.countdownResetAfterEnoughFallbackLookups
 import avail.optimizer.OptimizationLevel.Companion.maxSlowLookupsBeforeReoptimization
@@ -239,11 +240,10 @@ open class CompiledCodeDescriptor protected constructor(
 	/**
 	 * The [L2Chunk] that should be invoked whenever this code is started. The
 	 * chunk may no longer be [valid][L2Chunk.isValid], in which case the
-	 * [unoptimizedChunk] will be used instead until the next
-	 * reoptimization.
+	 * [DefaultL1Chunk] will be used instead until the next reoptimization.
 	 */
 	@Volatile
-	private var startingChunk: L2Chunk = unoptimizedChunk
+	private var startingChunk: L2Chunk = DefaultL1Chunk
 
 	/**
 	 * An [InvocationStatistic] for tracking invocations of this
@@ -913,8 +913,7 @@ open class CompiledCodeDescriptor protected constructor(
 			return emptyTuple
 		}
 		val decoder = L1InstructionDecoder()
-		self.setUpInstructionDecoder(decoder)
-		decoder.pc = 1
+		self.setUpInstructionDecoder(decoder, 1)
 		return generateNybbleTupleFrom(o_NumNybbles(self)) {
 			decoder.getNybble()
 		}
@@ -1103,7 +1102,7 @@ open class CompiledCodeDescriptor protected constructor(
 	{
 		val chunk = startingChunk
 		assert(chunk.isValid)
-		if (chunk != unoptimizedChunk)
+		if (chunk != DefaultL1ExecutableChunk)
 		{
 			L2Chunk.Generation.usedChunk(chunk)
 		}
@@ -1233,7 +1232,7 @@ open class CompiledCodeDescriptor protected constructor(
 						if (descriptor.module.notNil)
 						{
 							val chunk = descriptor.startingChunk
-							if (chunk != unoptimizedChunk)
+							if (chunk != DefaultL1ExecutableChunk)
 							{
 								chunk.invalidate(CODE_COVERAGE)
 							}
@@ -1269,7 +1268,7 @@ open class CompiledCodeDescriptor protected constructor(
 				{
 					val report = CodeCoverageReport(
 						descriptor.invocationStatistic.hasRun,
-						descriptor.startingChunk != unoptimizedChunk,
+						descriptor.startingChunk != DefaultL1ExecutableChunk,
 						descriptor.lineNumber,
 						module.moduleNameNative,
 						descriptor.methodName.asNativeString())

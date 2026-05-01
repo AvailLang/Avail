@@ -34,6 +34,7 @@ package avail.interpreter.primitive.general
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -41,10 +42,10 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive0
 import avail.io.SimpleCompletionHandler
 import java.nio.CharBuffer
 
@@ -54,12 +55,12 @@ import java.nio.CharBuffer
  * data becomes available.
  */
 @Suppress("unused")
-object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
+object P_ReadFromStandardInput : Primitive0(CanSuspend, Unknown)
 {
-	@Suppress("RedundantLambdaArrow")
-	override fun attempt (interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
 		return interpreter.suspendThen {
 			interpreter.runtime.ioSystem.executeFileTask {

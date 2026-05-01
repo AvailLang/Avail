@@ -34,6 +34,7 @@ import avail.AvailDebuggerModel
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
+import avail.compiler.LexicalScanner
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.ParsingOperation
@@ -84,7 +85,6 @@ import avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
-import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
 import avail.descriptor.fiber.A_Fiber.Companion.clearGeneralFlag
@@ -244,7 +244,6 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
-import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.A_Styler.Companion.stylerMethod
@@ -661,12 +660,10 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.primitive.Primitive
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.persistence.cache.record.NamesIndex
@@ -2217,9 +2214,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_IsByteTuple(self: AvailObject): Boolean =
 		self { isByteTuple }
 
-	override fun o_IsCharacter(self: AvailObject): Boolean =
-		self { isCharacter }
-
 	override fun o_IsFunction(self: AvailObject): Boolean =
 		self { isFunction }
 
@@ -2237,9 +2231,6 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_IsInstanceMeta(self: AvailObject): Boolean =
 		self { isInstanceMeta }
-
-	override fun o_IsMethodDefinition(self: AvailObject): Boolean =
-		self { isMethodDefinition() }
 
 	override fun o_IsIntegerRangeType(self: AvailObject): Boolean =
 		self { isIntegerRangeType }
@@ -3929,7 +3920,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_FallbackEntryPoint(
 		self: AvailObject
-	): ChunkEntryPoint = self { fallbackEntryPoint }
+	): Int = self { fallbackEntryPoint }
 
 	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler) =
 		self { moduleAddStyler(styler) }

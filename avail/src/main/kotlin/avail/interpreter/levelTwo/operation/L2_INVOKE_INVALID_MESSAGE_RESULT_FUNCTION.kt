@@ -102,7 +102,7 @@ class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 		objectArray(frameValues.elements, AvailObject::class.java)
 		// :: interpreter, value, expected, pc, stackp, frameArray
 		generateCall(reportWrongReturnTypeMethod)
-		// :: stackReifier
+		// :: valueMustBeNull
 		// Note that the above call took responsibility for creating the
 		// reified continuation as needed.
 		method.visitInsn(Opcodes.ARETURN)

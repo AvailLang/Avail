@@ -75,7 +75,6 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -96,8 +95,8 @@ import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import org.availlang.json.JSONWriter
@@ -579,8 +578,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 *   block.  *This is not yet normalized.*
 		 * @param lineNumber
 		 *   The line number in the current module at which this block begins.
-		 * @param tokens
-		 *   The [A_Tuple] of [A_Token]s contributing to this block phrase.
 		 * @return
 		 *   A block phrase.
 		 */

@@ -115,10 +115,6 @@ import avail.dispatch.InternalLookupTree
 import avail.dispatch.LeafLookupTree
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.assignmentFunction
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -127,8 +123,6 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -155,11 +149,9 @@ import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES
@@ -167,16 +159,12 @@ import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_NOP
-import avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1
-import avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_CALL
-import avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_REIFY
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
-import avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
@@ -193,6 +181,10 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VAR
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushArgument2
@@ -205,6 +197,7 @@ import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.CallSiteHelper.JunctionType.ReificationNoCheck
 import avail.optimizer.CallSiteHelper.JunctionType.ReificationUnreturnable
 import avail.optimizer.CallSiteHelper.JunctionType.ReificationWithCheck
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -213,7 +206,6 @@ import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIV
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.START
 import avail.optimizer.L2Optimizer.GenerationMode
-import avail.optimizer.OptimizationLevel.UNOPTIMIZED
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticConstant
@@ -326,8 +318,7 @@ class L1Translator private constructor(
 	 * level two.
 	 */
 	val instructionDecoder = L1InstructionDecoder().also { decoder ->
-		code.setUpInstructionDecoder(decoder)
-		decoder.pc = 1
+		code.setUpInstructionDecoder(decoder, 1)
 	}
 
 	/**
@@ -721,10 +712,12 @@ class L1Translator private constructor(
 	 * @param expectedValueOrNull
 	 *   A constant type to replace the top-of-stack in the reified
 	 *   continuation.  If `null`, don't replace the top-of-stack.
-	 * @param typeOfEntryPoint
-	 *   The kind of [ChunkEntryPoint] to re-enter at.
+	 * @param defaultEntryPoint
+	 *   The [DefaultEntryPoint] to re-enter at.
 	 */
-	fun reify(expectedValueOrNull: A_Type?, typeOfEntryPoint: ChunkEntryPoint)
+	fun reify(
+		expectedValueOrNull: A_Type?,
+		defaultEntryPoint: DefaultEntryPoint)
 	{
 		// Use the current block's zone for subsequent nodes that are inside
 		// this reification handler.
@@ -771,7 +764,7 @@ class L1Translator private constructor(
 		val newContinuationWrite = boxedWriteTemp(
 			"new continuation",
 			boxedRestrictionForType(mostGeneralContinuationType))
-		if (typeOfEntryPoint === ChunkEntryPoint.TRANSIENT)
+		if (defaultEntryPoint === DefaultEntryPoint.TRANSIENT)
 		{
 			// L1 can never see this continuation, so it can be minimal.
 			+L2_CREATE_CONTINUATION(
@@ -814,10 +807,9 @@ class L1Translator private constructor(
 		// Here it's returning into the reified continuation.
 		startBlock(onReturnIntoReified)
 		+L2_ENTER_L2_CHUNK(
-			L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
+			L2IntImmediateOperand(defaultEntryPoint.offset()),
 			L2CommentOperand(
-				"If invalid, reenter «default» " +
-					"at ${typeOfEntryPoint.name}."))
+				"If invalid, reenter «default» at $defaultEntryPoint."))
 		if (expectedValueOrNull !== null && expectedValueOrNull.isVacuousType)
 		{
 			addUnreachableCode()
@@ -1393,8 +1385,7 @@ class L1Translator private constructor(
 
 		startBlock(reificationTarget)
 		+L2_ENTER_L2_CHUNK(
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
 			L2CommentOperand("Transient - cannot be invalid."))
 		jumpTo(targetBlock)
 
@@ -1568,7 +1559,7 @@ class L1Translator private constructor(
 						interpreter.debugModeString,
 						primitive.name)
 				}
-				val success: Primitive.Result = try
+				val valueOrNull: A_BasicObject? = try
 				{
 					interpreter.argsBuffer.clear()
 					interpreter.argsBuffer.addAll(constants)
@@ -1579,15 +1570,14 @@ class L1Translator private constructor(
 					interpreter.debugModeString = savedDebugModeString
 					interpreter.function = savedFunction
 				}
-				if (success === Primitive.Result.SUCCESS)
+				if (valueOrNull !== null)
 				{
 					callSiteHelper.useAnswer(
-						boxedConstant(
-							interpreter.getLatestResult().makeImmutable()),
+						boxedConstant(valueOrNull.makeImmutable()),
 						false)
 					return true
 				}
-				assert(success === Primitive.Result.FAILURE)
+				assert(interpreter.currentReifier === null)
 				assert(!primitive.hasFlag(Flag.CannotFail))
 			}
 		}
@@ -1873,14 +1863,13 @@ class L1Translator private constructor(
 			edgeTo(onReification))
 		startBlock(onReification)
 		+L2_ENTER_L2_CHUNK(
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
 			L2CommentOperand(
 				"Transient, for interrupt - cannot be invalid."))
 
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
-		reify(null, ChunkEntryPoint.TO_RESUME)
+		reify(null, DefaultEntryPoint.RESUME)
 		jumpTo(merge)
 		// Merge the flow (reified and continued, versus not reified).
 		startBlock(merge)
@@ -2069,11 +2058,10 @@ class L1Translator private constructor(
 			edgeTo(onReificationDuringFailure))
 		startBlock(onReificationDuringFailure)
 		+L2_ENTER_L2_CHUNK(
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(Types.TOP(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(Types.TOP(), DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL)
 		jumpTo(success)
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
@@ -2657,86 +2645,6 @@ class L1Translator private constructor(
 			return createFunction(theCode, tupleFromList(outerConstants))
 		}
 
-		/**
-		 * Generate the [L2ControlFlowGraph] of [L2Instruction]s for the
-		 * [unoptimizedChunk].
-		 *
-		 * @param initialBlock
-		 *   The block to initially entry the default chunk for a call.
-		 * @param reenterFromRestartBlock
-		 *   The block to reenter to [P_RestartContinuation] an [A_Continuation].
-		 * @param loopBlock
-		 *   The main loop of the interpreter.
-		 * @param reenterFromCallBlock
-		 *   The entry point for returning into a reified continuation.
-		 * @param reenterFromInterruptBlock
-		 *   The entry point for resuming from an interrupt.
-		 * @param unreachableBlock
-		 *   A basic block that should be dynamically unreachable.
-		 * @return
-		 *   The [L2ControlFlowGraph] for the default chunk.
-		 */
-		fun generateDefaultChunkControlFlowGraph(
-			initialBlock: L2BasicBlock,
-			reenterFromRestartBlock: L2BasicBlock,
-			loopBlock: L2BasicBlock,
-			reenterFromCallBlock: L2BasicBlock,
-			reenterFromInterruptBlock: L2BasicBlock,
-			unreachableBlock: L2BasicBlock
-		): L2ControlFlowGraph
-		{
-			initialBlock.makeIrremovable()
-			loopBlock.makeIrremovable()
-			reenterFromRestartBlock.makeIrremovable()
-			reenterFromCallBlock.makeIrremovable()
-			reenterFromInterruptBlock.makeIrremovable()
-			unreachableBlock.makeIrremovable()
-			val generator = L2Generator(
-				"Default",
-				UNOPTIMIZED,
-				Frame(null, nil, -1, "default", "top frame"),
-				GenerationMode.ByRegister)
-			generator.run {
-				// 0. First try to run it as a primitive.
-				startBlock(initialBlock)
-				+L2_TRY_OPTIONAL_PRIMITIVE()
-				jumpTo(reenterFromRestartBlock)
-				// Only if the primitive fails should we even consider
-				// optimizing the fallback code.
-
-				// 1. Update counter and maybe optimize *before* extracting
-				// arguments.
-				startBlock(reenterFromRestartBlock)
-				+L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
-					L2IntImmediateOperand(UNOPTIMIZED.ordinal),
-					L2IntImmediateOperand(1))
-				// 2. Build registers, get arguments, create locals, capture
-				// primitive failure value, if any.
-				+L2_PREPARE_NEW_FRAME_FOR_L1()
-				jumpTo(loopBlock)
-
-				// 3. The main L1 interpreter loop.
-				startBlock(loopBlock)
-				+L2_INTERPRET_LEVEL_ONE(
-					edgeTo(reenterFromCallBlock),
-					edgeTo(reenterFromInterruptBlock))
-
-				// 4,5. If reified, calls return here.
-				startBlock(reenterFromCallBlock)
-				+L2_REENTER_L1_CHUNK_FROM_CALL()
-				+L2_JUMP(backEdgeTo(loopBlock, mutableSetOf()))
-
-				// 6,7. If reified, interrupts return here.
-				startBlock(reenterFromInterruptBlock)
-				+L2_REENTER_L1_CHUNK_FROM_INTERRUPT()
-				+L2_JUMP(backEdgeTo(loopBlock, mutableSetOf()))
-
-				// 8. Unreachable.
-				startBlock(unreachableBlock)
-				+L2_UNREACHABLE_CODE()
-			}
-			return generator.controlFlowGraph
-		}
 
 		/** Statistics about the naive L1 to L2 translation. */
 		private val translateL1Stat = Statistic(

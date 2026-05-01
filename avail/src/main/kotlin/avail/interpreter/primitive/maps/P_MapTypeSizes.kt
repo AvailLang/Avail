@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.maps
 
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.sizeRange
@@ -41,11 +43,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the [size&#32;range][IntegerRangeTypeDescriptor] of a
@@ -55,13 +57,15 @@ import avail.interpreter.execution.Interpreter
  * specified in the map type.
  */
 @Suppress("unused")
-object P_MapTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
+object P_MapTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val mapType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(mapType.sizeRange)
+		val mapType = arg1
+		return mapType.sizeRange
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

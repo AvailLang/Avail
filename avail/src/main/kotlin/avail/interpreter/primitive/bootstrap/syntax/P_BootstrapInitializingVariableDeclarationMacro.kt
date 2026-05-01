@@ -39,6 +39,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -50,11 +52,11 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
@@ -67,14 +69,18 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
  */
 @Suppress("unused")
 object P_BootstrapInitializingVariableDeclarationMacro
-	: Primitive(3, CanInline, CannotFail, Bootstrap)
+	: Primitive3(CanInline, CannotFail, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val variableNameLiteral = interpreter.argument(0)
-		val typeLiteral = interpreter.argument(1)
-		val initializationExpression = interpreter.argument(2)
+		val variableNameLiteral = arg1
+		val typeLiteral = arg2
+		val initializationExpression = arg3
 
 		val nameToken = variableNameLiteral.token.literal()
 		val nameString = nameToken.string()
@@ -120,7 +126,7 @@ object P_BootstrapInitializingVariableDeclarationMacro
 					+ " (from line " +
 					"${conflictingDeclaration.token.lineNumber()})")
 		}
-		return interpreter.primitiveSuccess(variableDeclaration)
+		return variableDeclaration
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

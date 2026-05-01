@@ -63,7 +63,6 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 import avail.exceptions.MarshalingException
-import avail.interpreter.Primitive
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation.L1_doCall
 import avail.interpreter.levelOne.L1Operation.L1_doMakeTuple

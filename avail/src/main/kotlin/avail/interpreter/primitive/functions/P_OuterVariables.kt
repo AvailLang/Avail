@@ -34,6 +34,8 @@ package avail.interpreter.primitive.functions
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
@@ -41,30 +43,31 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the [tuple][TupleDescriptor] of outer variables
  * captured by this [function][FunctionDescriptor].
  */
 @Suppress("unused")
-object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
+object P_OuterVariables : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val aFunction = interpreter.argument(0)
-		val newTupleObject = generateObjectTupleFrom(
+		val aFunction = arg1
+		return generateObjectTupleFrom(
 			aFunction.numOuterVars
 		) { index ->
 			val outer = aFunction.outerVarAt(index)
 			if (outer.isNil) zero else outer
 		}
-		return interpreter.primitiveSuccess(newTupleObject)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

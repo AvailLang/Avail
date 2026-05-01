@@ -35,17 +35,19 @@ package avail.interpreter.primitive.bootstrap.lexing
 import avail.compiler.splitter.MessageSplitter.Companion.isOperator
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.character.A_Character.Companion.codePoint
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * The `P_BootstrapLexerOperatorFilter` primitive is used for deciding whether a
@@ -61,19 +63,21 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapLexerOperatorFilter
-	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
+	: Primitive1(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val character = interpreter.argument(0)
+		val character = arg1
 
 		// Note that the slash character is a potential operator, as far as
 		// initial filtering is concerned.  The body will immediately reject it
 		// if it's followed by an asterisk (*), since that sequence is reserved
 		// for comments.
 		val c = character.codePoint
-		return interpreter.primitiveSuccess(objectFromBoolean(isOperator(c)))
+		return objectFromBoolean(isOperator(c))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

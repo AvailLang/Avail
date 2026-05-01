@@ -163,8 +163,6 @@ class CharacterDescriptor private constructor(
 
 	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
-	override fun o_IsCharacter(self: AvailObject): Boolean = true
-
 	override fun o_Kind(self: AvailObject): A_Type = CHARACTER()
 
 	override fun o_MarshalToJava(

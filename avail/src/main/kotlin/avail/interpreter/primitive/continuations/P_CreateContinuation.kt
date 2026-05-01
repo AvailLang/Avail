@@ -35,6 +35,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -52,50 +54,52 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable.Companion.value
 import avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RETURN_INTO
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.PrimitiveN
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 
 /**
  * **Primitive:** Create a [continuation][ContinuationDescriptor]. It will
- * execute as unoptimized code via the [unoptimizedChunk].  Fail if the
- * provided function is an infallible primitive.
+ * execute as unoptimized code via the [DefaultL1Chunk].  Fail if the provided
+ * function is an infallible primitive.
  */
 @Suppress("unused")
-object P_CreateContinuation : Primitive(5, CanFold, CanInline)
+object P_CreateContinuation : PrimitiveN(5, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
-		val (function, pc, stack, stackp, callerHolder) = interpreter.argsBuffer
+		assert(args.size == 5)
+		val (function, pc, stack, stackp, callerHolder) = args
 
 		val rawFunction = function.code()
 		val primitive = rawFunction.codePrimitive()
 		if (primitive !== null && primitive.hasFlag(CannotFail))
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION)
 		}
 		if (stack.tupleSize != rawFunction.numSlots)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				E_INCORRECT_CONTINUATION_STACK_SIZE)
 		}
-		val cont = createContinuationWithFrame(
+		return createContinuationWithFrame(
 			function,
 			callerHolder.value(),
 			nil,
 			pc.extractInt,
 			stackp.extractInt,
-			unoptimizedChunk,
-			TO_RETURN_INTO.offsetInDefaultChunk,
+			DefaultL1Chunk,
+			DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL.offset,
 			toList(stack),
 			0)
-		return interpreter.primitiveSuccess(cont)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

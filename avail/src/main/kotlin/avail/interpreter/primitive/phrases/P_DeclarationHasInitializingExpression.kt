@@ -35,17 +35,19 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** If the specified [declaration][DeclarationPhraseDescriptor]
@@ -55,16 +57,16 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclarationHasInitializingExpression : Primitive(
-	1, CannotFail, CanFold, CanInline)
+object P_DeclarationHasInitializingExpression : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val decl = interpreter.argument(0)
+		val decl = arg1
 
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(decl.initializationExpression.notNil))
+		return objectFromBoolean(decl.initializationExpression.notNil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

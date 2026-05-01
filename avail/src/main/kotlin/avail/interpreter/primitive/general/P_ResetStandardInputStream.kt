@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.general
 
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -41,10 +42,10 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive0
 import avail.io.TextInputChannel
 import java.io.IOException
 
@@ -56,11 +57,12 @@ import java.io.IOException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
+object P_ResetStandardInputStream : Primitive0(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		val channel = interpreter.fiber().textInterface.inputChannel
 		try
 		{
@@ -68,10 +70,9 @@ object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			return interpreter.fail(E_IO_ERROR)
 		}
-
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

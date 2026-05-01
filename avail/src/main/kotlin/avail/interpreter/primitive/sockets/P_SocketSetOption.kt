@@ -40,6 +40,8 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -55,10 +57,10 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.sockets.P_SocketSetOption.privateBlockTypeRestriction
 import avail.utility.cast
 import java.io.IOException
@@ -78,17 +80,20 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
+object P_SocketSetOption : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val handle = interpreter.argument(0)
-		val options = interpreter.argument(1)
+		val handle = arg1
+		val options = arg2
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
@@ -113,20 +118,19 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 					}
 					else
 					{
-						return interpreter.primitiveFailure(
-							E_INCORRECT_ARGUMENT_TYPE)
+						return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 					}
 				}
 			}
-			interpreter.primitiveSuccess(nil)
+			nil
 		}
 		catch (e: IllegalArgumentException)
 		{
-			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		catch (e: IOException)
 		{
-			interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.fail(E_IO_ERROR)
 		}
 	}
 

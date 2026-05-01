@@ -38,6 +38,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -47,11 +49,11 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * The `P_BootstrapSuperCastMacro` primitive is used to create a
@@ -63,13 +65,16 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapSuperCastMacro
-	: Primitive(2, CannotFail, CanInline, Bootstrap)
+	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val expressionNode = interpreter.argument(0)
-		val typeLiteral = interpreter.argument(1)
+		val expressionNode = arg1
+		val typeLiteral = arg2
 
 		val type = typeLiteral.token.literal()
 		if (type.isTop || type.isBottom)
@@ -86,8 +91,7 @@ object P_BootstrapSuperCastMacro
 				"supercast type ($type) to be a supertype of the "
 					+ "expression's type ($expressionType)")
 		}
-		val superCast = newSuperCastNode(expressionNode, type)
-		return interpreter.primitiveSuccess(superCast.makeImmutable())
+		return newSuperCastNode(expressionNode, type).makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

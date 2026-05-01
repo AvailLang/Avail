@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.pojos
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -44,10 +46,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE
 import avail.exceptions.AvailRuntimeException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer the [type][A_Type] that represents the Java [Class]
@@ -57,23 +59,26 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePojoType : Primitive(2, CanFold, CanInline)
+object P_CreatePojoType : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val className = interpreter.argument(0)
-		val classParameters = interpreter.argument(1)
+		val className = arg1
+		val classParameters = arg2
 
 		return try
 		{
 			val pojoType =
 				interpreter.runtime.lookupJavaType(className, classParameters)
-			interpreter.primitiveSuccess(canonicalPojoType(pojoType, true))
+			canonicalPojoType(pojoType, true)
 		}
 		catch (e: AvailRuntimeException)
 		{
-			interpreter.primitiveFailure(e.numericCode)
+			interpreter.fail(e.numericCode)
 		}
 	}
 

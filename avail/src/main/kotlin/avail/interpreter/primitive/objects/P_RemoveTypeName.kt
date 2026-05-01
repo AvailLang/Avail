@@ -34,18 +34,20 @@ package avail.interpreter.primitive.objects
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.removeNameFromType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Unbind a name from a
@@ -55,18 +57,21 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
+object P_RemoveTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val name = interpreter.argument(0)
-		val userType = interpreter.argument(1)
+		val name = arg1
+		val userType = arg2
 
 		name.makeImmutable()
 		userType.makeImmutable()
 		removeNameFromType(name, userType)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

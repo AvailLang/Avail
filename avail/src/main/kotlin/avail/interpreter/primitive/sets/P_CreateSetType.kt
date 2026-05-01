@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.sets
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -40,25 +42,27 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.SetTypeDescriptor
 import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
 * **Primitive:** Create a [set&#32;type][SetTypeDescriptor].
  */
 @Suppress("unused")
-object P_CreateSetType : Primitive(2, CannotFail, CanFold, CanInline)
+object P_CreateSetType : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val contentType = interpreter.argument(0)
-		val sizeRange = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			setTypeForSizesContentType(sizeRange, contentType))
+		val contentType = arg1
+		val sizeRange = arg2
+		return setTypeForSizesContentType(sizeRange, contentType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

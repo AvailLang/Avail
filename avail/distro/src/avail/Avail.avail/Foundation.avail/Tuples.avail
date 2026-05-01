@@ -2449,8 +2449,8 @@ Semantic restriction "_to_" is
 	sizes ::= [0 max (⌊end⌋ - ⌈start⌉ + 1) .. max - min + 2);
 	if uncertainty is finite ∧ sizes ≠ ⊥ ∧ ⌈sizes⌉ is finite then
 	[
-		finiteMin ::= cast min into [t : integer | t];
-		finiteMax ::= cast max into [t : integer | t];
+		finiteMin ::= min ?→ integer;
+		finiteMax ::= max ?→ integer;
 
 		/* Don't obsess — just compute the first 100 prefix types. */
 		limitedMax ::= finiteMax min (finiteMin + 100);

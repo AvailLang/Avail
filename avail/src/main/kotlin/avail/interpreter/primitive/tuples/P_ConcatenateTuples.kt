@@ -40,6 +40,8 @@ import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -62,10 +64,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -73,6 +71,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.levelTwo.operation.tuples.L2_CONCATENATE_TUPLES
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.utility.notNullAnd
@@ -82,14 +84,15 @@ import avail.utility.notNullAnd
  * a single tuple.
  */
 @Suppress("unused")
-object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val tuples = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			tuples.concatenateTuplesCanDestroy(true))
+		val tuples = arg1
+		return tuples.concatenateTuplesCanDestroy(true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -44,7 +44,6 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.shoul
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.types.TypeTag
 import avail.utility.stackToString
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.VarHandle
@@ -2012,20 +2011,6 @@ sealed class AvailObjectRepresentation constructor(
 
 	/** Redirect Kotlin's [hashCode] to [AbstractDescriptor.o_Hash]. */
 	override fun hashCode(): Int = descriptor.o_Hash(this as AvailObject)
-
-	val typeTag: TypeTag
-		get()
-		{
-			// First, directly access the descriptor's typeTag, which will be
-			// something other than UNKNOWN_TAG in the vast majority of attempts.
-			return when(val tag = descriptor.typeTag)
-			{
-				TypeTag.UNKNOWN_TAG ->
-					// Fall back to computing the tag with a polymorphic method.
-					descriptor.o_ComputeTypeTag(this as AvailObject)
-				else -> tag
-			}
-		}
 
 	/**
 	 * Visit all of the object's object slots, passing the parent and child

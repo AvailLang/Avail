@@ -59,6 +59,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
+import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -76,7 +77,11 @@ import java.util.IdentityHashMap
  */
 class MethodDefinitionDescriptor private constructor(
 	mutability: Mutability
-) : DefinitionDescriptor(mutability, ObjectSlots::class.java, null) {
+) : DefinitionDescriptor(
+	mutability,
+	TypeTag.METHOD_DEFINITION_TAG,
+	ObjectSlots::class.java,
+	null) {
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -157,8 +162,6 @@ class MethodDefinitionDescriptor private constructor(
 	override fun o_Kind(self: AvailObject): A_Type {
 		return METHOD_DEFINITION()
 	}
-
-	override fun o_IsMethodDefinition(self: AvailObject) = true
 
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.METHOD_DEFINITION

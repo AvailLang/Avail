@@ -34,6 +34,8 @@ package avail.interpreter.primitive.privatehelpers
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -45,11 +47,6 @@ import avail.descriptor.variables.A_Variable.Companion.globalName
 import avail.descriptor.variables.A_Variable.Companion.hasValue
 import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.exceptions.VariableGetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
-import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -57,6 +54,11 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.NeverClear
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive.Flag.SpecialForm
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -64,16 +66,19 @@ import avail.optimizer.L1Translator
  * **Primitive:** A global variable's value is being returned.
  */
 @Suppress("unused")
-object P_GetGlobalVariableValue : Primitive(
-	1, SpecialForm, CanInline, Private, CannotFail)
+object P_GetGlobalVariableValue : Primitive1(
+	SpecialForm, CanInline, Private, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
 		val code = interpreter.function!!.code()
 		val literalVariable = code.literalAt(1)
 		try
 		{
-			return interpreter.primitiveSuccess(literalVariable.getValue())
+			return literalVariable.getValue()
 		}
 		catch (e: VariableGetException)
 		{

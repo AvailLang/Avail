@@ -41,6 +41,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
@@ -57,9 +59,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive**: Create a
@@ -70,33 +72,35 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePermutedListPhrase : Primitive(2, CanInline)
+object P_CreatePermutedListPhrase : Primitive2(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val list: A_Phrase = interpreter.argument(0)
-		val permutation: A_Tuple = interpreter.argument(1)
+		val list: A_Phrase = arg1
+		val permutation: A_Tuple = arg2
 		val size = permutation.tupleSize
 		return when
 		{
 			// Permutation is empty, or different size than list.
 			size <= 1 || size != list.expressionsTuple.tupleSize ->
-				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not all int32.
 			permutation.any { !it.isInt } ->
-				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not unique.
 			size != permutation.asSet.setSize ->
-				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Entries are unique, but don't cover 1..N (pigeonhole principle).
 			permutation.maxByOrNull { it.extractInt }!!.extractInt != size ->
-				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
 			permutation.equals(createInterval(one, fromInt(size), one)) ->
-				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
-			else -> interpreter.primitiveSuccess(
-				newPermutedListNode(list, permutation))
+				interpreter.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+			else -> newPermutedListNode(list, permutation)
 		}
 	}
 

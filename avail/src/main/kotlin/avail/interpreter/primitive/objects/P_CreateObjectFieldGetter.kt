@@ -44,6 +44,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -56,14 +57,14 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.exceptions.AvailErrorCode
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
+import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -82,18 +83,22 @@ import avail.optimizer.L1Translator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
+object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (objectType, fieldAtom) = interpreter.argsBuffer
+		val objectType = arg1
+		val fieldAtom = arg2
 
 		val fieldType = objectType.fieldTypeAtOrNull(fieldAtom)
 		if (fieldType == null)
 		{
 			// The field is not guaranteed to be part of the object.
-			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD)
+			return interpreter.fail(E_NO_SUCH_FIELD)
 		}
 		if (fieldAtom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
@@ -101,7 +106,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			// is considered to have the fieldAtom itself as its value.  Answer
 			// a function that returns the fieldAtom itself.
 			val newFunction = functionReturningConstant(objectType, fieldAtom)
-			return interpreter.primitiveSuccess(newFunction)
+			return newFunction
 		}
 		val module = interpreter.availLoaderOrNull()?.module ?: nil
 		val returnType = objectType.fieldTypeAt(fieldAtom)
@@ -122,7 +127,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			originatingPhrase = nil,
 			packedDeclarationNames = packedDeclarationNamesForGeneratedFunction)
 		val newFunction = createWithOuters1(rawFunction, fieldAtom)
-		return interpreter.primitiveSuccess(newFunction)
+		return newFunction
 	}
 
 	/**
@@ -167,7 +172,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 	): Boolean = true
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))
+		enumerationWith(set(E_NO_SUCH_FIELD))
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

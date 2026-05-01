@@ -36,6 +36,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
@@ -55,9 +57,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.PrimitiveN
 
 /**
 * **Primitive:** Create a [literal&#32;token][LiteralTokenDescriptor] with the
@@ -68,32 +70,34 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLiteralToken : Primitive(5, CanInline)
+object P_CreateLiteralToken : PrimitiveN(5, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
+		assert(args.size == 5)
 		val (value, lexeme, start, line, optionalGeneratingPhrase) =
 			interpreter.argsBuffer
 		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
 		{
 			// The low end was already limited by the primitive's argument type
 			// restrictions.
-			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+			return interpreter.fail(E_EXCEEDS_VM_LIMIT)
 		}
 		val generatingPhrase = when (optionalGeneratingPhrase.tupleSize)
 		{
 			0 -> nil
 			else -> optionalGeneratingPhrase.tupleAt(1)
 		}
-		return interpreter.primitiveSuccess(
-			literalToken(
-				lexeme,
-				start.extractInt,
-				line.extractInt,
-				value,
-				interpreter.fiber().currentLexer,
-				generatingPhrase))
+		return literalToken(
+			lexeme,
+			start.extractInt,
+			line.extractInt,
+			value,
+			interpreter.fiber().currentLexer,
+			generatingPhrase)
 	}
 
 	/**

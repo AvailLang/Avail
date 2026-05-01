@@ -36,6 +36,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -45,10 +46,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 import avail.interpreter.primitive.style.P_SpecialObjectStyler
 
 /**
@@ -56,16 +58,18 @@ import avail.interpreter.primitive.style.P_SpecialObjectStyler
  * specified ordinal.
  */
 @Suppress("unused")
-object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
+object P_SpecialObject : Primitive1(CanInline, CanFold, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val ordinalLiteral = interpreter.argument(0)
+		val ordinalLiteral = arg1
 		val ordinal = ordinalLiteral.token.literal()
 		if (!ordinal.isInt)
 		{
-			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
+			return interpreter.fail(E_NO_SPECIAL_OBJECT)
 		}
 		val i = ordinal.extractInt
 		val result: AvailObject
@@ -75,15 +79,15 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 		}
 		catch (e: ArrayIndexOutOfBoundsException)
 		{
-			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
+			return interpreter.fail(E_NO_SPECIAL_OBJECT)
 		}
 
 		if (result.isNil)
 		{
-			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
+			return interpreter.fail(E_NO_SPECIAL_OBJECT)
 		}
 
-		return interpreter.primitiveSuccess(syntheticLiteralNodeFor(result))
+		return syntheticLiteralNodeFor(result)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

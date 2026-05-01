@@ -44,6 +44,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureConstant
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -60,12 +62,12 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
+import avail.interpreter.primitive.Primitive2
 
 /**
  * The `P_BootstrapPrefixVariableDeclaration` primitive is used for
@@ -77,16 +79,19 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapPrefixPrimitiveDeclaration
-	: Primitive(2, CanInline, Bootstrap)
+	: Primitive2(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val optionalBlockArgumentsList = interpreter.argument(0)
-		val optionalPrimPhrase = interpreter.argument(1)
+		val optionalBlockArgumentsList = arg1
+		val optionalPrimPhrase = arg2
 
 		interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 
 		assert(optionalPrimPhrase.expressionsSize == 1)
 		val primPhrase = optionalPrimPhrase.lastExpression
@@ -176,7 +181,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 							+  " (from line "
 							+ "${conflictingDeclaration.token.lineNumber()})")
 			}
-			return interpreter.primitiveSuccess(nil)
+			return nil
 		}
 		if (!prim.hasFlag(CannotFail))
 		{
@@ -186,7 +191,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 					+ "fallible primitive.  Its type should be:\n\t"
 					+ prim.failureVariableType)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

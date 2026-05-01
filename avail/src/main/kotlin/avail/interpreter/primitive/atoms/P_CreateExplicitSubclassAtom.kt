@@ -38,6 +38,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -48,9 +50,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name.  Add
@@ -61,12 +63,14 @@ import avail.interpreter.execution.Interpreter
  * new atom will always be created.
  */
 @Suppress("unused")
-object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
+object P_CreateExplicitSubclassAtom : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
+		val name = arg1
 		val loader = interpreter.availLoaderOrNull()
 		val atom: A_Atom
 		if (loader === null)
@@ -84,12 +88,10 @@ object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 			}
 			catch (e: AmbiguousNameException)
 			{
-				return interpreter.primitiveFailure(
-					E_AMBIGUOUS_NAME)
+				return interpreter.fail(E_AMBIGUOUS_NAME)
 			}
-
 		}
-		return interpreter.primitiveSuccess(atom)
+		return atom
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

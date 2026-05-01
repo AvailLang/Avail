@@ -33,6 +33,8 @@ package avail.interpreter.primitive.fibers
 
 import avail.descriptor.fiber.A_Fiber.Companion.priority
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -40,26 +42,28 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Set the priority of a fiber.
  */
 @Suppress("unused")
-object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
+object P_SetFiberPriority : Primitive2(CannotFail, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val fiber = interpreter.argument(0)
-		val priority = interpreter.argument(0)
+		val fiber = arg1
+		val priority = arg2
 		val priorityInt = priority.extractInt
-		assert(priorityInt in 0 .. 255)
 		fiber.priority = priorityInt
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

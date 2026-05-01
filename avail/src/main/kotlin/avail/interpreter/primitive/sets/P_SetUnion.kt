@@ -35,6 +35,8 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.numericCompare
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -48,25 +50,28 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer the union of two [sets][SetDescriptor].
  */
 @Suppress("unused")
-object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
+object P_SetUnion : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val set1 = interpreter.argument(0)
-		val set2 = interpreter.argument(1)
+		val set1 = arg1
+		val set2 = arg2
 
-		return interpreter.primitiveSuccess(set1.setUnionCanDestroy(set2, true))
+		return set1.setUnionCanDestroy(set2, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

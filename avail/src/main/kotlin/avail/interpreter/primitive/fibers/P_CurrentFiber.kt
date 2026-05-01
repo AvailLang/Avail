@@ -33,16 +33,17 @@ package avail.interpreter.primitive.fibers
 
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Answer the currently running [fiber][FiberDescriptor].
@@ -53,13 +54,13 @@ import avail.interpreter.levelTwo.L2Chunk
  * is restarted or resumed in a different fiber.
  */
 @Suppress("unused")
-object P_CurrentFiber : Primitive(0, CanInline, CannotFail, HasSideEffect)
+object P_CurrentFiber : Primitive0(CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-		return interpreter.primitiveSuccess(
-			interpreter.fiber().makeImmutable())
+		return interpreter.fiber().makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

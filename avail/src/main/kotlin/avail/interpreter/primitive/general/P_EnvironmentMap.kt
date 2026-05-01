@@ -36,6 +36,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -43,11 +44,12 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive0
+import avail.interpreter.primitive.general.P_EnvironmentMap.environmentMap
 import java.lang.ref.SoftReference
 
 /**
@@ -57,8 +59,15 @@ import java.lang.ref.SoftReference
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
+object P_EnvironmentMap : Primitive0(CannotFail, CanInline, HasSideEffect)
 {
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
+	{
+		return getEnvironmentMap()
+	}
+
 	/**
 	 * The cached [environment][System.getenv] [map][A_Map]. The content may be
 	 * `null` if memory pressure is high (or if the
@@ -93,12 +102,6 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 			environmentMap = SoftReference(result.makeShared())
 		}
 		return result
-	}
-
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(0)
-		return interpreter.primitiveSuccess(getEnvironmentMap())
 	}
 
 	override fun returnTypeGuaranteedByVM(

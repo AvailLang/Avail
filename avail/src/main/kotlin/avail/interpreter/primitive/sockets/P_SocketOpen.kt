@@ -38,18 +38,20 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import java.io.IOException
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -60,22 +62,24 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketOpen : Primitive(1, CanInline, HasSideEffect)
+object P_SocketOpen : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
+		val name = arg1
 		return try
 		{
 			val handle = createAtom(name, interpreter.module())
 			val channel = currentRuntime().ioSystem.openSocket()
 			handle.setAtomProperty(SOCKET_KEY.atom, identityPojo(channel))
-			interpreter.primitiveSuccess(handle)
+			handle
 		}
 		catch (e: IOException)
 		{
-			interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.fail(E_IO_ERROR)
 		}
 	}
 

@@ -53,6 +53,8 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCA
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
@@ -67,10 +69,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * The `P_BootstrapVariableUseMacro` primitive is used to create
@@ -80,15 +82,17 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapVariableUseMacro
-	: Primitive(1, CanInline, Bootstrap)
+	: Primitive1(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variableNameLiteral = interpreter.argument(0)
+		val variableNameLiteral = arg1
 
 		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -128,10 +132,10 @@ object P_BootstrapVariableUseMacro
 					definitionToken.literal(),
 					nil)
 				val newLiteral = literalNodeFromToken(newLiteralToken)
-				return interpreter.primitiveSuccess(newLiteral.makeImmutable())
+				return newLiteral.makeImmutable()
 			}
 			val variableUse = newUse(actualToken, localDeclaration)
-			return interpreter.primitiveSuccess(variableUse.makeImmutable())
+			return variableUse.makeImmutable()
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
@@ -141,14 +145,14 @@ object P_BootstrapVariableUseMacro
 			val moduleVarDecl =
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)
-			return interpreter.primitiveSuccess(variableUse.makeImmutable())
+			return variableUse.makeImmutable()
 		}
 		module.constantBindings.mapAtOrNull(variableNameString)?.let {
 				variableObject ->
 			val moduleConstDecl =
 				newModuleConstant(actualToken, variableObject, nil)
 			val variableUse = newUse(actualToken, moduleConstDecl)
-			return interpreter.primitiveSuccess(variableUse.makeImmutable())
+			return variableUse.makeImmutable()
 		}
 		throw AvailRejectedParseException(
 			// Almost any theory is better than guessing that we want the

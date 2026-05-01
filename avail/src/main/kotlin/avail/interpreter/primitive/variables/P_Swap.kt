@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.variables
 
 import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -46,25 +48,28 @@ import avail.descriptor.variables.A_Variable.Companion.value
 import avail.exceptions.AvailErrorCode.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Swap the contents of two [variables][A_Variable].
  */
 @Suppress("unused")
-object P_Swap : Primitive(2, CanInline, HasSideEffect)
+object P_Swap : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val var1 = interpreter.argument(0)
-		val var2 = interpreter.argument(1)
+		val var1 = arg1
+		val var2 = arg2
 		if (!var1.kind().equals(var2.kind()))
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES)
 		}
 		// This should work even on unassigned variables.
@@ -82,11 +87,11 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 		{
 			var1.setValue(value2)
 			var2.setValue(value1)
-			interpreter.primitiveSuccess(nil)
+			nil
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

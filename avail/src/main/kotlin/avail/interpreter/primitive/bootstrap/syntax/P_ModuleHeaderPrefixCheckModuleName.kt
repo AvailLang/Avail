@@ -37,6 +37,8 @@ import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
@@ -44,10 +46,10 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive1
 
 /**
  * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated with
@@ -57,13 +59,14 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
+object P_ModuleHeaderPrefixCheckModuleName : Primitive1(Private, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val moduleNameLiteral = interpreter.argument(0)
-
+		val moduleNameLiteral = arg1
 		val loader = interpreter.availLoader()
 		val module = loader.module
 		val qualifiedName = module.moduleName
@@ -74,13 +77,15 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 			moduleNameLiteral.token.literal().literal().asNativeString()
 		if (localName != declaredModuleName)
 		{
-			throw AvailRejectedParseException(
-				STRONG,
-				"module name (%s) to agree with file's name (%s)",
-				declaredModuleName,
-				localName)
+			return interpreter.reifyForPrimitive(false) {
+				throw AvailRejectedParseException(
+					STRONG,
+					"module name (%s) to agree with file's name (%s)",
+					declaredModuleName,
+					localName)
+			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

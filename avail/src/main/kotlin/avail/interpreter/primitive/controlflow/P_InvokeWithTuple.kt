@@ -38,6 +38,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveF
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -61,16 +63,16 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMayInvoke
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMayInvoke
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.Invokes
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -83,20 +85,23 @@ import java.util.Collections.nCopies
  * are not of the required types.
  */
 @Suppress("unused")
-object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
+object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val function = interpreter.argument(0)
-		val argTuple = interpreter.argument(1)
+		val function = arg1
+		val argTuple = arg2
 		val functionType = function.kind()
 
 		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = functionType.argsTupleType
 		for (i in 1 .. numArgs)
@@ -104,7 +109,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			val arg = argTuple.tupleAt(i)
 			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 		}
 
@@ -112,11 +117,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// feel free to clobber the argsBuffer.
 		interpreter.argsBuffer.clear()
 		interpreter.argsBuffer.addAll(argTuple)
-		interpreter.invokeFunction(function)?.let { reifier ->
-			interpreter.latestReifierFromInvokingPrimitive = reifier
-			return Result.INVOKED_AND_REIFYING
-		}
-		return Result.SUCCESS
+		return interpreter.invokeInPrimitive(function)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwo
 
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
 
 /**
  * A brief hierarchy of classes for sensibly parameterizing the

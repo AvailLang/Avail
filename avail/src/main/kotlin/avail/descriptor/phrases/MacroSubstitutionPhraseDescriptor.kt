@@ -102,7 +102,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.TypeTag
-import avail.interpreter.Primitive
+import avail.interpreter.primitive.Primitive
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap

@@ -38,6 +38,8 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -46,21 +48,21 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
-import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive4
 import avail.utility.cast
 import java.io.IOException
 import java.net.Inet4Address
@@ -78,19 +80,24 @@ import java.nio.channels.AsynchronousServerSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
+object P_ServerSocketIPv4Bind : Primitive4(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val handle = interpreter.argument(0)
-		val addressTuple = interpreter.argument(1)
-		val port = interpreter.argument(2)
-		val backlog = interpreter.argument(3)
+		val handle = arg1
+		val addressTuple = arg2
+		val port = arg3
+		val backlog = arg4
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -106,25 +113,25 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 			val address =
 				InetSocketAddress(inetAddress, port.extractUnsignedShort)
 			socket.bind(address, backlogInt)
-			interpreter.primitiveSuccess(nil)
+			nil
 		}
 		catch (e: IllegalStateException)
 		{
-			interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.fail(E_INVALID_HANDLE)
 		}
 		catch (e: UnknownHostException)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.fail(E_IO_ERROR)
 		}
 		catch (e: IOException)
 		{
-			interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.fail(E_IO_ERROR)
 		}
 		catch (e: SecurityException)
 		{
-			interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			interpreter.fail(E_PERMISSION_DENIED)
 		}
 	}
 

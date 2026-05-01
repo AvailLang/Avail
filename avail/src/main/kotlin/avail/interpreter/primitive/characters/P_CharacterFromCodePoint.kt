@@ -36,6 +36,8 @@ import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -47,24 +49,26 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Convert a [code&#32;point][IntegerDescriptor] into a
  * [character][CharacterDescriptor].
  */
 @Suppress("unused")
-object P_CharacterFromCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CharacterFromCodePoint : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val codePoint = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromCodePoint(codePoint.extractInt))
+		val codePoint = arg1
+		return fromCodePoint(codePoint.extractInt)
 	}
 
 	override fun returnTypeGuaranteedByVM(

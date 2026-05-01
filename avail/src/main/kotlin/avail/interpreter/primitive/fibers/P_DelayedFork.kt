@@ -49,6 +49,8 @@ import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -63,17 +65,17 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive4
 import java.util.TimerTask
 
 /**
@@ -85,27 +87,35 @@ import java.util.TimerTask
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DelayedFork : Primitive(
-	4, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_DelayedFork : Primitive4(
+	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val (sleepMillis, function, argTuple, priority) = interpreter.argsBuffer
+		val sleepMillis = arg1
+		val function = arg2
+		val argTuple = arg3
+		val priority = arg4
 
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = function.kind().argsTupleType
 		val callArgs = (1 .. numArgs).map {
 			val anArg = argTuple.tupleAt(it)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
 			{
-				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 			anArg
 		}
@@ -157,7 +167,7 @@ object P_DelayedFork : Primitive(
 		}
 		// Otherwise, if the delay time isn't colossal, then schedule the fiber
 		// to start later.
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
 
 	/** The function or its arguments could become shared. */

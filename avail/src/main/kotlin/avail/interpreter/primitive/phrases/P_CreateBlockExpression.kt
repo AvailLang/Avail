@@ -39,6 +39,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -58,10 +60,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
+import avail.interpreter.primitive.PrimitiveN
 
 /**
 * **Primitive:** Create a [block&#32;expression][BlockPhraseDescriptor] from
@@ -71,16 +73,16 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateBlockExpression : Primitive(5, CanInline)
+object P_CreateBlockExpression : PrimitiveN(5, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
-		val argDecls = interpreter.argument(0)
-		val primitiveName = interpreter.argument(1)
-		val statements = interpreter.argument(2)
-		val resultType = interpreter.argument(3)
-		val exceptions = interpreter.argument(4)
+		assert(args.size == 5)
+		val (argDecls, primitiveName, statements, resultType, exceptions) =
+			args
 		// Verify that each element of "statements" is actually a statement,
 		// and that the last statement's expression type agrees with
 		// "resultType".
@@ -90,13 +92,11 @@ object P_CreateBlockExpression : Primitive(5, CanInline)
 		{
 			0 -> null
 			else -> primitiveByName(primitiveName.asNativeString())
-				?: return interpreter.primitiveFailure(
-					E_INVALID_PRIMITIVE_NAME)
+				?: return interpreter.fail(E_INVALID_PRIMITIVE_NAME)
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
-			return interpreter.primitiveFailure(
-				E_BLOCK_CONTAINS_INVALID_STATEMENTS)
+			return interpreter.fail(E_BLOCK_CONTAINS_INVALID_STATEMENTS)
 		}
 		// Approximate where the block's "first line" is.
 		val allTokens = (argDecls + statements)
@@ -105,14 +105,13 @@ object P_CreateBlockExpression : Primitive(5, CanInline)
 			.map(A_Token::lineNumber)
 			.filter { it != 0 }
 			.minOrNull() ?: 0
-		val block = newBlockNode(
+		return newBlockNode(
 			argDecls,
 			primitive,
 			statements,
 			resultType,
 			exceptions,
 			earliestLine)
-		return interpreter.primitiveSuccess(block)
 	}
 
 	/**

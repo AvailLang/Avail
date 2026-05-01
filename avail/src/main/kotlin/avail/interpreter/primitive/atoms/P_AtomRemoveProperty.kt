@@ -38,6 +38,8 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SET_ONCE_PROPERTY_KEY
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,30 +51,32 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import avail.exceptions.AvailErrorCode.E_PROPERTY_MAY_ONLY_BE_SET_ONCE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Within the first [atom][AtomDescriptor], remove the property
  * with the given property key (another atom).
  */
 @Suppress("unused")
-object P_AtomRemoveProperty : Primitive(
-	2, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_AtomRemoveProperty : Primitive2(
+	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val atom = interpreter.argument(0)
-		val propertyKey = interpreter.argument(1)
+		val atom = arg1
+		val propertyKey = arg2
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		if (propertyKey.getAtomProperty(SET_ONCE_PROPERTY_KEY.atom)
@@ -81,17 +85,17 @@ object P_AtomRemoveProperty : Primitive(
 		{
 			// The atom has that property, but the property is marked as
 			// disallowing change once it's set.
-			return interpreter.primitiveFailure(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
+			return interpreter.fail(E_PROPERTY_MAY_ONLY_BE_SET_ONCE)
 		}
 		if (propertyValue.isNil)
 		{
-			return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+			return interpreter.fail(E_NO_SUCH_FIELD)
 		}
 		atom.setAtomProperty(propertyKey, nil)
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ATOM_REMOVE_PROPERTY, atom, propertyKey))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

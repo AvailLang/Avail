@@ -31,6 +31,7 @@
  */
 package avail.descriptor.module
 
+import avail.compiler.LexicalScanner
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.atoms.A_Atom
@@ -59,7 +60,6 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.primitive.modules.P_PublishName
 import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord

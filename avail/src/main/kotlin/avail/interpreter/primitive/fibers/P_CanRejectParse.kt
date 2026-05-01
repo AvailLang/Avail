@@ -34,32 +34,32 @@ package avail.interpreter.primitive.fibers
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive0
 
 /**
- * **Primitive:** Is the [current][FiberDescriptor.currentFiber] able to reject
- * an ongoing parse?
+ * **Primitive:** Is the [currentFiber] able to reject an ongoing parse?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CanRejectParse : Primitive(0, CannotFail, CanInline)
+object P_CanRejectParse : Primitive0(CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(
-				interpreter.fiber().generalFlag(CAN_REJECT_PARSE)))
+		return objectFromBoolean(
+			interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

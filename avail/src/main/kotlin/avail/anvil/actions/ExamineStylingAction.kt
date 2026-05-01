@@ -34,7 +34,6 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
-import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.record.StylingRecord
 import avail.utility.Strings.buildUnicodeBox
@@ -64,59 +63,53 @@ class ExamineStylingAction constructor (
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		workbench.runtime.execute(FiberDescriptor.commandPriority)
-		execute@{
-			val moduleName = workbench.selectedModule()!!
-			moduleName.repository.use { repository ->
-				repository.reopenIfNecessary()
-				val archive = repository.getArchive(moduleName.rootRelativeName)
-				val compilations = archive.allKnownVersions.flatMap {
-					it.value.allCompilations
+		val moduleName = workbench.selectedModule()!!
+		actionPromptAction(
+			firstAction = {
+				moduleName.useRepository { repository ->
+					val archive =
+						repository.getArchive(moduleName.rootRelativeName)
+					val compilations = archive.allKnownVersions.flatMap {
+						it.value.allCompilations
+					}
+					compilations.toTypedArray()
 				}
-				val compilationsArray = compilations.toTypedArray()
-				val selectedCompilation = JOptionPane.showInputDialog(
+			},
+			prompt = { compilationsArray ->
+				JOptionPane.showInputDialog(
 					workbench,
 					"Select module compilation to examine",
 					"Examine styling for compilation",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
-					if (compilationsArray.isNotEmpty())
-					{
-						compilationsArray[0]
+					compilationsArray.firstOrNull()
+				) as ModuleCompilation?
+			},
+			secondAction = { selectedCompilation ->
+				val report = moduleName.useRepository { repository ->
+					val stylingBytes = repository[
+						selectedCompilation.recordNumberOfStyling]
+					val stylingRecord = StylingRecord(stylingBytes)
+					val description =
+						stylingRecord.styleRuns.joinToString("\n")
+					val usesDescription =
+						stylingRecord.variableUses.joinToString("\n")
+					val declarationsDescription =
+						stylingRecord.declarations.joinToString("\n")
+					buildUnicodeBox(
+						"Style Classification Report"
+					) {
+						append(description)
+						append("\n\n --- uses ---\n\n")
+						append(usesDescription)
+						append("\n\n --- declarations ---\n\n")
+						append(declarationsDescription)
 					}
-					else
-					{
-						null
-					})
-				when (selectedCompilation)
-				{
-					is ModuleCompilation ->
-					{
-						val stylingBytes = repository[
-							selectedCompilation.recordNumberOfStyling]
-						val stylingRecord = StylingRecord(stylingBytes)
-						val description =
-							stylingRecord.styleRuns.joinToString("\n")
-						val usesDescription =
-							stylingRecord.variableUses.joinToString("\n")
-						val declarationsDescription =
-							stylingRecord.declarations.joinToString("\n")
-						val report = buildUnicodeBox(
-							"Style Classification Report"
-						) {
-							append(description)
-							append("\n\n --- uses ---\n\n")
-							append(usesDescription)
-							append("\n\n --- declarations ---\n\n")
-							append(declarationsDescription)
-						}
-						workbench.writeText(report, StreamStyle.REPORT)
-					}
-					is Any -> throw AssertionError("Unknown type selected")
 				}
+				workbench.writeText(report, StreamStyle.REPORT)
 			}
-		}
+		)
 	}
 
 	init

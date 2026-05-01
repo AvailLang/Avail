@@ -35,20 +35,21 @@ package avail.interpreter.primitive.modules
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.visibleNames
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive**: Answer every [true&#32;name][A_Atom] visible in the
@@ -57,17 +58,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_VisibleAtoms : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
+object P_VisibleAtoms : Primitive0(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
 		return if (interpreter.availLoaderOrNull() === null)
-		{
-			interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		}
-		else interpreter.primitiveSuccess(
-			interpreter.module().visibleNames)
+			interpreter.fail(E_LOADING_IS_OVER)
+		else interpreter.module().visibleNames
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -40,6 +40,8 @@ import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -53,11 +55,6 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -65,6 +62,11 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
@@ -75,17 +77,21 @@ import avail.optimizer.values.L2SemanticValue
  * [object][ObjectDescriptor].
  */
 @Suppress("unused")
-object P_GetObjectField : Primitive(2, CanFold, CanInline)
+object P_GetObjectField : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (obj, field) = interpreter.argsBuffer
+		val obj = arg1
+		val field = arg2
 
 		return when (val fieldValue = obj.fieldAtOrNull(field))
 		{
-			null -> interpreter.primitiveFailure(E_NO_SUCH_FIELD)
-			else -> interpreter.primitiveSuccess(fieldValue)
+			null -> interpreter.fail(E_NO_SUCH_FIELD)
+			else -> fieldValue
 		}
 	}
 

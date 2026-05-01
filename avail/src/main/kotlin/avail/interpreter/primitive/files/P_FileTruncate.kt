@@ -44,6 +44,8 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isLong
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
@@ -63,10 +65,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
@@ -81,27 +83,30 @@ import java.nio.channels.AsynchronousFileChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
+object P_FileTruncate : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
-		val atom = interpreter.argument(0)
-		val sizeObject = interpreter.argument(1)
-		val succeed = interpreter.argument(2)
-		val fail = interpreter.argument(3)
-		val priority = interpreter.argument(4)
+		assert(args.size == 5)
+		val atom = args[0]
+		val sizeObject = args[1]
+		val succeed = args[2]
+		val fail = args[3]
+		val priority = args[4]
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
 		{
-			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE)
+			return interpreter.fail(E_NOT_OPEN_FOR_WRITE)
 		}
 		val fileChannel = handle.channel
 		// Truncating to something beyond the file size has no effect, so use
@@ -152,7 +157,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 					newFiber, succeed, emptyList(), false)
 			})
 
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

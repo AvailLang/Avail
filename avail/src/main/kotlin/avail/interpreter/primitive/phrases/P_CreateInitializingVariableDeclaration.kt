@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -44,10 +46,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Create an initializing
@@ -58,17 +60,19 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateInitializingVariableDeclaration : Primitive(
-	3, CanInline, CannotFail)
+object P_CreateInitializingVariableDeclaration : Primitive3(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val token = interpreter.argument(0)
-		val type = interpreter.argument(1)
-		val initializer = interpreter.argument(2)
-		return interpreter.primitiveSuccess(
-			newVariable(token, type, nil, initializer))
+		val token = arg1
+		val type = arg2
+		val initializer = arg3
+		return newVariable(token, type, nil, initializer)
 	}
 
 	/**

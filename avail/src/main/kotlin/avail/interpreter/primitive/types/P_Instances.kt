@@ -33,6 +33,8 @@ package avail.interpreter.primitive.types
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,11 +51,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -61,6 +58,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
@@ -70,17 +72,19 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
  * **Primitive:** Obtain the instances of the specified [type][topMeta].
  */
 @Suppress("unused")
-object P_Instances : Primitive(1, CanFold, CanInline)
+object P_Instances : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val type = interpreter.argument(0)
+		val type = arg1
 		return if (!type.isEnumeration)
 		{
-			interpreter.primitiveFailure(E_NOT_AN_ENUMERATION)
+			interpreter.fail(E_NOT_AN_ENUMERATION)
 		}
-		else interpreter.primitiveSuccess(type.instances)
+		else type.instances
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

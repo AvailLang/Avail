@@ -32,8 +32,9 @@
 package avail.optimizer
 
 import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 
 /**
  * An [ExecutableChunk] represents an optimized implementation of a
@@ -61,7 +62,7 @@ interface ExecutableChunk
 	 * the offset will point to code that also rebuilds the register set from
 	 * the top reified continuation, but it won't expect a return value. These
 	 * re-entry points should perform validity checks on the chunk, allowing an
-	 * orderly off-ramp into the [unoptimizedChunk] (which simply interprets the
+	 * orderly off-ramp into the [DefaultL1Chunk] (which simply interprets the
 	 * L1 nybblecodes).
 	 *
 	 * @param interpreter
@@ -69,8 +70,8 @@ interface ExecutableChunk
 	 * @param offset
 	 *   The offset at which to begin execution.
 	 * @return
-	 *   `null` if returning normally, otherwise a [StackReifier] to effect
-	 *   reification.
+	 *   The returned value if returning normally, otherwise `null` to indicate
+	 *   the [Interpreter.currentReifier] has been set for reification.
 	 */
-	fun runChunk(interpreter: Interpreter, offset: Int): StackReifier?
+	fun runChunk(interpreter: Interpreter, offset: Int): A_BasicObject?
 }

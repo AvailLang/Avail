@@ -33,6 +33,8 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
@@ -40,24 +42,25 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable.Companion.hasValue
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer [true][trueObject] if the
  * [variable][VariableDescriptor] is unassigned (has no value).
  */
 @Suppress("unused")
-object P_HasNoValue : Primitive(1, CanInline, CannotFail)
+object P_HasNoValue : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variable = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(!variable.hasValue()))
+		val variable = arg1
+		return objectFromBoolean(!variable.hasValue())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -41,6 +41,8 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.phrases.BlockPhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
@@ -65,10 +67,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.PrimitiveN
 
 /**
  * The `P_BootstrapPrefixEndOfBlockBody` primitive is used for bootstrapping the
@@ -81,20 +83,14 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
+object P_BootstrapPrefixEndOfBlockBody : PrimitiveN(5, CanInline, Bootstrap)
 {
-	/** The key to the client parsing data in the fiber's environment. */
-	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
-
-	/** The key to the variable scope map in the client parsing data. */
-	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
-
-	/** The key to the tuple of scopes to pop as blocks complete parsing. */
-	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(5)
+		assert(args.size == 5)
 		//	val optionalArgumentDeclarations: A_Phrase = interpreter.argument(0);
 		//	val optionalPrimitive: A_Phrase = interpreter.argument(1);
 		//	val A_Phrase optionalLabel: A_Phrase = interpreter.argument(2);
@@ -104,10 +100,10 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 		val fiber = interpreter.fiber()
 		val fiberGlobals = fiber.fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		val currentScopeMap = clientData.mapAtOrNull(scopeMapKey) ?:
-			// It looks like somebody removed all the scope information.
-			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
+		// It looks like somebody removed all the scope information.
+			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 
 		// Save the current scope map to a temp, pop the scope stack to replace
 		// the scope map, then push the saved scope map onto the stack.  This
@@ -115,7 +111,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 		// macro body will do its local declaration lookups in the top of stack,
 		// then discard it when complete.
 		var stack: A_Tuple = clientData.mapAtOrNull(scopeStackKey) ?:
-			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
+			return interpreter.fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		val poppedScopeMap = stack.tupleAt(stack.tupleSize)
 		stack = stack.tupleAtPuttingCanDestroy(
 			stack.tupleSize, currentScopeMap, true)
@@ -125,8 +121,17 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 			scopeStackKey, stack, true)
 		fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
+
+	/** The key to the client parsing data in the fiber's environment. */
+	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
+
+	/** The key to the variable scope map in the client parsing data. */
+	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
+
+	/** The key to the tuple of scopes to pop as blocks complete parsing. */
+	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

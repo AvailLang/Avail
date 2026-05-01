@@ -37,6 +37,8 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
@@ -52,19 +54,19 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
 import avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 import avail.exceptions.MarshalingException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.PrimitiveHelper.lookupMethod
 import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import avail.utility.Mutable
@@ -88,19 +90,18 @@ import java.util.WeakHashMap
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
+object P_CreatePojoInstanceMethodFunction : Primitive3(CanInline, CanFold)
 {
-	/**
-	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
-	 */
-	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val pojoType = interpreter.argument(0)
-		val methodName = interpreter.argument(1)
-		val paramTypes = interpreter.argument(2)
+		val pojoType = arg1
+		val methodName = arg2
+		val paramTypes = arg3
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
@@ -115,7 +116,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 				pojoType, methodName, marshaledTypes, errorOut)
 			if (method === null)
 			{
-				return interpreter.primitiveFailure(errorOut.value!!)
+				return interpreter.fail(errorOut.value!!)
 			}
 			// The indices are fiddly because we need to make room for the
 			// receiver type at the front.
@@ -129,7 +130,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 		}
 		catch (e: MarshalingException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 
 		val returnType = resolvePojoType(
@@ -156,8 +157,14 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			equalityPojo(method),
 			// Outer#2 = Marshaled type parameters.
 			marshaledTypesTuple.cast())
-		return interpreter.primitiveSuccess(function)
+		return function
 	}
+
+	/**
+	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
+	 */
+	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
+
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

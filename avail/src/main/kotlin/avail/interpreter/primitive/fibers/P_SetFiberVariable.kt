@@ -38,6 +38,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -45,12 +47,12 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Associate the given value with the given
@@ -58,14 +60,17 @@ import avail.interpreter.execution.Interpreter
  * [fiber][FiberDescriptor].
  */
 @Suppress("unused")
-object P_SetFiberVariable : Primitive(
-	2, CannotFail, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_SetFiberVariable : Primitive2(
+	CannotFail, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val key = interpreter.argument(0)
-		val value = interpreter.argument(1)
+		val key = arg1
+		val value = arg2
 		val fiber = interpreter.fiber()
 		if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
 		{
@@ -78,7 +83,7 @@ object P_SetFiberVariable : Primitive(
 				fiber.heritableFiberGlobals.mapAtPuttingCanDestroy(
 					key, value, true)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/** The value could contain an escaped variable that becomes shared. */

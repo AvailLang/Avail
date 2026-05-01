@@ -34,16 +34,18 @@ package avail.interpreter.primitive.characters
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Extract an integer representing the Java enumeration value
@@ -52,16 +54,16 @@ import avail.interpreter.execution.Interpreter
  * @see Character.getType
  */
 @Suppress("unused")
-object P_CharacterType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CharacterType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val character = interpreter.argument(0)
-
+		val character = arg1
 		val characterType = Character.getType(character.codePoint)
-		return interpreter.primitiveSuccess(fromInt(characterType))
+		return fromInt(characterType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

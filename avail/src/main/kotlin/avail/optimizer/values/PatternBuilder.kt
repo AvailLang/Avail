@@ -32,8 +32,8 @@
 package avail.optimizer.values
 
 import avail.descriptor.numbers.A_Number.Companion.equalsLong
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.PatternBuilder.Companion.pattern
 import avail.optimizer.values.PatternBuilder.L2PatternDsl
@@ -141,8 +141,6 @@ internal class PatternBuilder
 		 * [L2SemanticBoxedValue]s organized by each [L2CapturePattern]'s
 		 * [index][L2CapturePattern.index].
 		 *
-		 * @param pattern
-		 *   The [L2SemanticPattern] to match.
 		 * @param value
 		 *   The top-most [L2SemanticValue] to match.
 		 * @param manifest

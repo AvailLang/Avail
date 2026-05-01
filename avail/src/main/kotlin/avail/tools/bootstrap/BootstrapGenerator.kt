@@ -56,8 +56,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByName
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.hooks.P_GetPrimitiveFailureFunction

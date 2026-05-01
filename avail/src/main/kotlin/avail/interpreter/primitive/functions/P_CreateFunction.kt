@@ -36,6 +36,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -47,27 +49,30 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_WRONG_OUTERS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer a [function][FunctionDescriptor] built from the
  * [function][CompiledCodeDescriptor] and the outer variables.
  */
 @Suppress("unused")
-object P_CreateFunction : Primitive(2, CanFold, CanInline)
+object P_CreateFunction : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val rawFunction = interpreter.argument(0)
-		val outers = interpreter.argument(1)
+		val rawFunction = arg1
+		val outers = arg2
 		val numOuters = rawFunction.numOuters
 		if (outers.tupleSize != numOuters)
 		{
-			return interpreter.primitiveFailure(E_WRONG_OUTERS)
+			return interpreter.fail(E_WRONG_OUTERS)
 		}
 		for (i in 1 .. numOuters)
 		{
@@ -75,11 +80,11 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 			val requiredType = rawFunction.outerTypeAt(i)
 			if (!outer.isInstanceOf(requiredType))
 			{
-				return interpreter.primitiveFailure(E_WRONG_OUTERS)
+				return interpreter.fail(E_WRONG_OUTERS)
 			}
 		}
 		val function = createFunction(rawFunction, outers)
-		return interpreter.primitiveSuccess(function)
+		return function
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

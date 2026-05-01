@@ -239,25 +239,21 @@ class CallbackTest
 		 */
 		fun divisionCallback(): A_Function
 		{
-			val callback = object: Callback
-			{
-				override fun call(
+			val callback = Callback {
 					argumentsTuple: A_Tuple,
 					completion: CallbackCompletion,
-					failure: CallbackFailure)
+					failure: CallbackFailure ->
+				assert(argumentsTuple.tupleSize == 2)
+				val a = argumentsTuple.tupleAt(1)
+				val b = argumentsTuple.tupleAt(2)
+				try
 				{
-					assert(argumentsTuple.tupleSize == 2)
-					val a = argumentsTuple.tupleAt(1)
-					val b = argumentsTuple.tupleAt(2)
-					try
-					{
-						val c = a.divideCanDestroy(b, true)
-						completion.complete(c)
-					}
-					catch (e: Throwable)
-					{
-						failure.failed(e)
-					}
+					val c = a.divideCanDestroy(b, true)
+					completion.complete(c)
+				}
+				catch (e: Throwable)
+				{
+					failure.failed(e)
 				}
 			}
 			return createCallbackFunctionInJava(

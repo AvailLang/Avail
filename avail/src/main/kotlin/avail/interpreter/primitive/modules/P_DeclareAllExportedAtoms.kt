@@ -38,6 +38,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.addPrivateNames
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -47,12 +49,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.Private
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
@@ -65,14 +67,17 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclareAllExportedAtoms : Primitive(
-	2, CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
+object P_DeclareAllExportedAtoms : Primitive2(
+	CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val names = interpreter.argument(0)
-		val isPublic = interpreter.argument(1)
+		val names = arg1
+		val isPublic = arg2
 		val module = interpreter.module()
 		assert(module.notNil)
 		if (isPublic.extractBoolean)
@@ -83,7 +88,7 @@ object P_DeclareAllExportedAtoms : Primitive(
 		{
 			module.addPrivateNames(names)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

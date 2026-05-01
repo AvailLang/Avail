@@ -300,14 +300,14 @@ import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.LibraryClassLoader
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
-import avail.interpreter.PrimitiveClassLoader
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RESTART
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RETURN_INTO
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
+import avail.interpreter.primitive.PrimitiveClassLoader
 import avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_PRIMITIVE_FAILURE
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.performance.Statistic
 import avail.performance.StatisticReport.DESERIALIZE
 import avail.performance.StatisticReport.SERIALIZE_TRACE
@@ -1761,9 +1761,9 @@ enum class SerializerOperation constructor(
 				nil,
 				pcInteger.extractInt,
 				stackpInteger.extractInt,
-				unoptimizedChunk,
-				if (pcInteger.equalsInt(0)) TO_RESTART.offsetInDefaultChunk
-				else TO_RETURN_INTO.offsetInDefaultChunk,
+				DefaultL1Chunk,
+				if (pcInteger.equalsInt(0)) AFTER_PRIMITIVE_FAILURE.offset
+				else REENTRY_FROM_REIFIED_CALL.offset,
 				toList(frameSlots),
 				0)
 			return continuation.makeImmutable()

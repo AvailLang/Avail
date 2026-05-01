@@ -39,6 +39,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -60,10 +62,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.ProcessInputChannel
 import avail.io.ProcessOutputChannel
 import avail.io.TextInterface
@@ -81,17 +83,21 @@ import java.lang.ProcessBuilder.Redirect
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
+object P_ExecuteAttachedExternalProcess : PrimitiveN(
+	6, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(6)
-		val processArgsTuple = interpreter.argument(0)
-		val optDir = interpreter.argument(1)
-		val optEnvironment = interpreter.argument(2)
-		val succeed = interpreter.argument(3)
-		val fail = interpreter.argument(4)
-		val priority = interpreter.argument(5)
+		assert(args.size == 6)
+		val processArgsTuple = args[0]
+		val optDir = args[1]
+		val optEnvironment = args[2]
+		val succeed = args[3]
+		val fail = args[4]
+		val priority = args[5]
 
 		// Transform the process arguments into native strings.
 		val processArgs = processArgsTuple.map { it.asNativeString() }
@@ -163,7 +169,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		newFiber.makeShared()
 		toRun.makeShared()
 		runtime.runOutermostFunction(newFiber, toRun, args, false)
-		return interpreter.primitiveSuccess(newFiber)
+		return newFiber
 	}
 
 	/**

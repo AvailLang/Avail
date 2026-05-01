@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.processes
 
 import avail.descriptor.maps.A_Map.Companion.mapIterable
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -50,10 +52,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import java.io.File
 import java.io.IOException
 
@@ -64,17 +66,22 @@ import java.io.IOException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
+object P_ExecuteDetachedExternalProcess : PrimitiveN(
+	6, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(6)
-		val processArgsTuple = interpreter.argument(0)
-		val optDir = interpreter.argument(1)
-		val optIn = interpreter.argument(2)
-		val optOut = interpreter.argument(3)
-		val optError = interpreter.argument(4)
-		val optEnvironment = interpreter.argument(5)
+		assert(args.size == 6)
+		val processArgsTuple = args[0]
+		val optDir = args[1]
+		val optIn = args[2]
+		val optOut = args[3]
+		val optError = args[4]
+		val optEnvironment = args[5]
+
 		val processArgs = processArgsTuple.map { it.asNativeString() }
 		val builder = ProcessBuilder(processArgs)
 		if (optDir.tupleSize == 1)
@@ -109,13 +116,13 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_NO_EXTERNAL_PROCESS)
+			return interpreter.fail(E_NO_EXTERNAL_PROCESS)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

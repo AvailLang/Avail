@@ -111,7 +111,7 @@ object Strings
 	}
 
 	/** Strings containing a reasonably small number of tabs. */
-	private val tabs = Array(10) {
+	private val tabs = Array(30) {
 		i -> buildString {
 			repeat(i) {
 				append('\t')

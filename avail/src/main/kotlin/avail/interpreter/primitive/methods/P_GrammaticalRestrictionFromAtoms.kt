@@ -34,6 +34,8 @@ package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor
@@ -54,9 +56,9 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
 
 /**
@@ -70,19 +72,21 @@ import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
+object P_GrammaticalRestrictionFromAtoms : Primitive2(Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val atomSet = interpreter.argument(0)
-		val exclusionsTuple = interpreter.argument(1)
+		val atomSet = arg1
+		val exclusionsTuple = arg2
 		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		try
 		{
@@ -90,14 +94,14 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 		catch (e: SignatureException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

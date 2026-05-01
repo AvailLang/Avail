@@ -32,6 +32,8 @@
 
 package avail.interpreter.primitive.general
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
@@ -45,11 +47,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -61,13 +63,16 @@ import java.security.NoSuchAlgorithmException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
+object P_ComputeDigest : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val algorithm = interpreter.argument(0)
-		val bytes = interpreter.argument(1)
+		val algorithm = arg1
+		val bytes = arg2
 		val digest: MessageDigest
 		try
 		{
@@ -88,7 +93,7 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 		digest.update(buffer)
 		val digestBytes = digest.digest()
 		val digestTuple = tupleForByteArray(digestBytes)
-		return interpreter.primitiveSuccess(digestTuple)
+		return digestTuple
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

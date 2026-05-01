@@ -37,6 +37,8 @@ import avail.descriptor.objects.ObjectFieldTypeException
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -49,10 +51,10 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Convert a [map][MapDescriptor] from fields
@@ -60,19 +62,21 @@ import avail.interpreter.execution.Interpreter
  * [types][TypeDescriptor] into an [object&#32;type][ObjectTypeDescriptor].
  */
 @Suppress("unused")
-object P_MapToObjectType : Primitive(1, CanFold, CanInline)
+object P_MapToObjectType : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val map = interpreter.argument(0)
+		val map = arg1
 		return try
 		{
-			interpreter.primitiveSuccess(objectTypeFromMap(map))
+			objectTypeFromMap(map)
 		}
 		catch (e: ObjectFieldTypeException)
 		{
-			interpreter.primitiveFailure(E_INVALID_FIELD_FOR_OBJECT)
+			interpreter.fail(E_INVALID_FIELD_FOR_OBJECT)
 		}
 	}
 

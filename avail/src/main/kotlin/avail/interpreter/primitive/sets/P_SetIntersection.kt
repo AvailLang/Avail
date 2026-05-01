@@ -31,32 +31,36 @@
  */
 package avail.interpreter.primitive.sets
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer the intersection of two [sets][SetDescriptor].
  */
 @Suppress("unused")
-object P_SetIntersection : Primitive(2, CannotFail, CanFold, CanInline)
+object P_SetIntersection : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val set1 = interpreter.argument(0)
-		val set2 = interpreter.argument(1)
+		val set1 = arg1
+		val set2 = arg2
 
-		return interpreter.primitiveSuccess(
-			set1.setIntersectionCanDestroy(set2, true))
+		return set1.setIntersectionCanDestroy(set2, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

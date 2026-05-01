@@ -34,6 +34,8 @@ package avail.interpreter.primitive.tuples
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -49,11 +51,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Answer the [type][A_Type] for the given element of
@@ -61,16 +63,21 @@ import avail.interpreter.execution.Interpreter
  * [bottom][BottomTypeDescriptor] if out of range.
  */
 @Suppress("unused")
-object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
+object P_TupleTypeAt : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val tupleType = interpreter.argument(0)
-		val index = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			if (index.isInt) tupleType.typeAtIndex(index.extractInt)
-			else bottom)
+		val tupleType = arg1
+		val index = arg2
+		return when
+		{
+			index.isInt -> tupleType.typeAtIndex(index.extractInt)
+			else -> bottom
+		}
 	}
 
 	override fun returnTypeGuaranteedByVM(

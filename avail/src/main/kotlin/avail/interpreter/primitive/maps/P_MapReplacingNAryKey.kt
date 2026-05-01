@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.maps
 
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
@@ -46,10 +48,10 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.AvailException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Replace the value at the location indicated by the path
@@ -58,23 +60,26 @@ import avail.interpreter.execution.Interpreter
  * @author Rich &lt;rich@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
+object P_MapReplacingNAryKey : Primitive3(CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val map = interpreter.argument(0)
-		val pathTuple = interpreter.argument(1)
-		val newValue = interpreter.argument(2)
-		val result = try
+		val map = arg1
+		val pathTuple = arg2
+		val newValue = arg3
+		return try
 		{
 			map.recursivelyUpdate(pathTuple.iterator()) { newValue }
 		}
 		catch (e: AvailException)
 		{
-			return interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
-		return interpreter.primitiveSuccess(result)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

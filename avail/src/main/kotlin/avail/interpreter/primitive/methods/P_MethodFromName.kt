@@ -38,6 +38,8 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -45,10 +47,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the [method][MethodDescriptor] associated with the
@@ -58,20 +60,21 @@ import avail.interpreter.execution.Interpreter
  * simply fail.
  */
 @Suppress("unused")
-object P_MethodFromName : Primitive(1, CanInline, CanFold)
+object P_MethodFromName : Primitive1(CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
-
+		val atom = arg1
 		return try
 		{
-			interpreter.primitiveSuccess(atom.bundleOrCreate().bundleMethod)
+			atom.bundleOrCreate().bundleMethod
 		}
 		catch (e: MalformedMessageException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 

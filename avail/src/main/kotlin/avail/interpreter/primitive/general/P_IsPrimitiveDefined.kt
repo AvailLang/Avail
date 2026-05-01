@@ -32,34 +32,39 @@
 package avail.interpreter.primitive.general
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Is there a [primitive][Primitive] with the specified name?
  */
 @Suppress("unused")
-object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)
+object P_IsPrimitiveDefined : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val primitiveName = interpreter.argument(0)
+		val primitiveName = arg1
 
 		val primitive = primitiveByName(primitiveName.asNativeString())
 		val defined = primitive !== null && !primitive.hasFlag(Private)
-		return interpreter.primitiveSuccess(objectFromBoolean(defined))
+		return objectFromBoolean(defined)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

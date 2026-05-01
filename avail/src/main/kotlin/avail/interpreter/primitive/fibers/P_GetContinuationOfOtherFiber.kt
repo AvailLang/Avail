@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.fiber.A_Fiber.Companion.whenContinuationIsAvailableDo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -41,13 +43,15 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.Primitive.Flag.Unknown
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
+import avail.optimizer.StackReifier
+import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
 
 /**
  * **Primitive:** Ask another fiber what it's doing.  Fail if the fiber's
@@ -59,8 +63,7 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GetContinuationOfOtherFiber : Primitive(
-	1,
+object P_GetContinuationOfOtherFiber : Primitive1(
 	CanSuspend,
 	HasSideEffect,
 	Unknown,
@@ -69,19 +72,28 @@ object P_GetContinuationOfOtherFiber : Primitive(
 	WritesToHiddenGlobalState,
 	ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val otherFiber = interpreter.argument(0)
+		val otherFiber = arg1
 
-		return interpreter.suspendThen {
-			otherFiber.whenContinuationIsAvailableDo { theContinuation ->
-				when {
-					theContinuation.notNil -> succeed(theContinuation)
-					else -> fail(E_FIBER_IS_TERMINATED)
+		interpreter.currentReifier = StackReifier(
+			true,
+			reificationForNoninlineStat!!
+		) {
+			interpreter.suspendThen {
+				otherFiber.whenContinuationIsAvailableDo { otherContinuation ->
+					when {
+						otherContinuation.notNil -> succeed(otherContinuation)
+						else -> fail(E_FIBER_IS_TERMINATED)
+					}
 				}
 			}
+			SWITCH_FROM_FIBER
 		}
+		return null
 	}
 
 	override fun privateFailureVariableType(): A_Type =

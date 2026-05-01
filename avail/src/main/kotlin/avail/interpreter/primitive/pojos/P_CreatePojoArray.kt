@@ -35,6 +35,8 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -45,10 +47,10 @@ import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import java.lang.reflect.Array
 
 /**
@@ -57,21 +59,23 @@ import java.lang.reflect.Array
  * specified [length][IntegerDescriptor].
  */
 @Suppress("unused")
-object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
+object P_CreatePojoArray : Primitive2(CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val elementType = interpreter.argument(0)
-		val length = interpreter.argument(1)
+		val elementType = arg1
+		val length = arg2
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val pojoType = pojoArrayType(elementType, singleInteger(length))
 		val array = Array.newInstance(
 			elementType.marshalToJava(null) as Class<*>, length.extractInt)
-		val pojo = newPojo(identityPojo(array), pojoType)
-		return interpreter.primitiveSuccess(pojo)
+		return newPojo(identityPojo(array), pojoType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

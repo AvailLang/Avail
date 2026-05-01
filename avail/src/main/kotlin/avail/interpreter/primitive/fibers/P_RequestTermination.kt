@@ -42,19 +42,21 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
-import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_AVAILABLE
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Request termination of the given [fiber][FiberDescriptor]. If
@@ -62,20 +64,21 @@ import avail.interpreter.execution.Interpreter
  * [asleep][ExecutionState.ASLEEP], then unpark it.
  */
 @Suppress("unused")
-object P_RequestTermination : Primitive(
-	1, CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
+object P_RequestTermination : Primitive1(CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val fiber = interpreter.argument(0)
+		val fiber = arg1
 		with (fiber) {
 			lock {
 				// Set the interrupt request flag.
 				setInterruptRequestFlag(TERMINATION_REQUESTED)
 				val oldState = executionState
 				val hadPermit =
-					!getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
+					getAndSetSynchronizationFlag(PERMIT_AVAILABLE, true)
 				when (oldState) {
 					ASLEEP ->
 					{
@@ -112,7 +115,7 @@ object P_RequestTermination : Primitive(
 				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

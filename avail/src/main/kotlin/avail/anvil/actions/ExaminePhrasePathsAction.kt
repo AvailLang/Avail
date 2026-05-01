@@ -34,7 +34,6 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
-import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.utility.Strings.buildUnicodeBox
@@ -65,53 +64,47 @@ class ExaminePhrasePathsAction constructor (
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		workbench.runtime.execute(FiberDescriptor.commandPriority)
-		execute@{
-			val moduleName = workbench.selectedModule()!!
-			moduleName.repository.use { repository ->
-				repository.reopenIfNecessary()
-				val archive = repository.getArchive(moduleName.rootRelativeName)
-				val compilations = archive.allKnownVersions.flatMap {
-					it.value.allCompilations
+		val moduleName = workbench.selectedModule()!!
+		actionPromptAction(
+			firstAction = {
+				moduleName.useRepository { repository ->
+					val archive = repository.getArchive(moduleName.rootRelativeName)
+					val compilations = archive.allKnownVersions.flatMap {
+						it.value.allCompilations
+					}
+					compilations.toTypedArray()
 				}
-				val compilationsArray = compilations.toTypedArray()
-				val selectedCompilation = JOptionPane.showInputDialog(
+			},
+			prompt = { compilationsArray ->
+				JOptionPane.showInputDialog(
 					workbench,
 					"Select module compilation to examine phrase paths",
 					"Examine phrase paths for compilation",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
-					if (compilationsArray.isNotEmpty())
-					{
-						compilationsArray[0]
-					}
-					else
-					{
-						null
-					})
-				when (selectedCompilation)
-				{
-					is ModuleCompilation ->
-					{
-						val bytes = repository[
-							selectedCompilation.recordNumberOfPhrasePaths]
-						val phrasePathsRecord = PhrasePathRecord(bytes)
-						val description = buildString {
-							phrasePathsRecord.phraseNodesDo { node ->
-								newlineTab(node.depth())
-								append(node)
-							}
+					compilationsArray.firstOrNull()
+				) as ModuleCompilation?
+			},
+			secondAction = { selectedCompilation ->
+				val description = moduleName.useRepository { repository ->
+					var recordNumber =
+						selectedCompilation.recordNumberOfPhrasePaths
+					val phrasePathsRecord =
+						PhrasePathRecord(repository[recordNumber])
+					buildString {
+						phrasePathsRecord.phraseNodesDo { node ->
+							newlineTab(node.depth())
+							append(node)
 						}
-						val report = buildUnicodeBox("Phrase Paths Report") {
-							append(description)
-						}
-						workbench.writeText(report, StreamStyle.REPORT)
 					}
-					is Any -> throw AssertionError("Unknown type selected")
 				}
+				val report = buildUnicodeBox("Phrase Paths Report") {
+					append(description)
+				}
+				workbench.writeText(report, StreamStyle.REPORT)
 			}
-		}
+		)
 	}
 
 	init

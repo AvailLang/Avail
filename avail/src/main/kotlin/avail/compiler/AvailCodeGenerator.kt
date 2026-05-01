@@ -106,8 +106,8 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.io.NybbleOutputStream
 import java.util.ArrayDeque

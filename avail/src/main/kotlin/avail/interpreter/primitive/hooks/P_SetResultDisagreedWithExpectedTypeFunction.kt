@@ -35,6 +35,8 @@ package avail.interpreter.primitive.hooks
 import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -45,12 +47,12 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
@@ -60,20 +62,21 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
-	1,
+object P_SetResultDisagreedWithExpectedTypeFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
+		val function = arg1
 		interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

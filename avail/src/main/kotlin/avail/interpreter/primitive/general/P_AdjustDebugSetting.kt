@@ -32,28 +32,32 @@
 package avail.interpreter.primitive.general
 
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive1
 import java.util.logging.Level
 
 /**
  * **Primitive:** Adjust the debugging level of the VM.
  */
 @Suppress("unused")
-object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
+object P_AdjustDebugSetting : Primitive1(Unknown, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val levelObject = interpreter.argument(0)
+		val levelObject = arg1
 
 		val level = levelObject.extractInt
 		Interpreter.debugL1 = level and 1 != 0
@@ -61,7 +65,7 @@ object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 		Interpreter.debugPrimitives = level and 4 != 0
 		Interpreter.debugCustom = level and 128 != 0
 		Interpreter.setLoggerLevel(if (level != 0) Level.ALL else Level.OFF)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

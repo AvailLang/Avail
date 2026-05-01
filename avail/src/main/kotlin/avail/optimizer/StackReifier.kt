@@ -33,6 +33,7 @@ package avail.optimizer
 
 import avail.AvailRuntimeSupport
 import avail.AvailThread
+import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
@@ -82,10 +83,34 @@ import java.util.Deque
  *   The action to perform after the Java stack has been fully reified.
  */
 class StackReifier constructor(
-	private val actuallyReify: Boolean,
+	val actuallyReify: Boolean,
 	private val reificationStatistic: Statistic,
-	val postReificationAction: ()->Unit)
+	val postReificationAction: ()->AfterReification)
 {
+	/**
+	 * An enumeration of the possible actions that can be taken after a
+	 * reification completes.  This is handled in the [Interpreter.run] loop,
+	 * which is where the execution ends up when there are no Avail function
+	 * invocations on the JVM call stack.
+	 */
+	enum class AfterReification
+	{
+		/**
+		 * This reifier's [postReificationAction] has completed, and the fate of
+		 * the current fiber has already been accounted for, whether parked,
+		 * terminated, or re-queued as ready-to-run as a result of a timeslice
+		 * context switch.
+		 */
+		SWITCH_FROM_FIBER,
+
+		/**
+		 * The reifier's [postReificationAction] has completed, and the current
+		 * fiber's fully reified [A_Continuation] should be continued by the
+		 * [Interpreter.run] loop.
+		 */
+		CONTINUE_FIBER
+	}
+
 	/**
 	 * The stack of lambdas that's accumulated as the call stack is popped.
 	 * After the call stack is empty, the outer [Interpreter] loop will execute
@@ -93,20 +118,12 @@ class StackReifier constructor(
 	 * an entry point, and the L2 code will cause one or more stack frames to be
 	 * generated and pushed onto the [Interpreter.setReifiedContinuation].
 	 */
-	private val actionStack: Deque<(Interpreter) -> Unit> =
+	private val actionStack:
+			Deque<Interpreter.(A_Continuation) -> A_Continuation> =
 		ArrayDeque()
 
 	/** The [System.nanoTime] when this stack reifier was created. */
 	val startNanos: Long = AvailRuntimeSupport.captureNanos()
-
-	/**
-	 * Answer whether this `StackReifier` should cause reification (rather
-	 * than just clearing the Java stack).
-	 *
-	 * @return
-	 *   An indicator whether to reify versus discard the Java stack.
-	 */
-	fun actuallyReify(): Boolean = actuallyReify
 
 	/**
 	 * Run the actions in *reverse* order to populate the
@@ -119,7 +136,10 @@ class StackReifier constructor(
 	{
 		while (!actionStack.isEmpty())
 		{
-			actionStack.removeLast()(interpreter)
+			interpreter.run {
+				setReifiedContinuation(
+					actionStack.removeLast()(getReifiedContinuation()!!))
+			}
 		}
 	}
 
@@ -130,7 +150,7 @@ class StackReifier constructor(
 	 * @param action
 	 *   The lambda to push.
 	 */
-	fun pushAction(action: (Interpreter) -> Unit)
+	fun pushAction(action: Interpreter.(A_Continuation) -> A_Continuation)
 	{
 		actionStack.addLast(action)
 	}
@@ -158,30 +178,26 @@ class StackReifier constructor(
 	fun pushContinuationAction(dummyContinuation: AvailObject): StackReifier
 	{
 		assert(dummyContinuation.caller.isNil)
-		actionStack.addLast { interpreter: Interpreter ->
+		actionStack.addLast {
 			if (Interpreter.debugL2)
 			{
 				traceL2(
 					dummyContinuation.levelTwoChunk.executableChunk,
+					this,
 					dummyContinuation.levelTwoOffset,
 					"Starting a reifier action",
 					emptyArray())
 			}
 			// The call stack reflects what the dummyContinuation expects to
 			// see reified so far.  Push the dummyContinuation.
-			val newDummy = dummyContinuation.replacingCaller(
-				interpreter.getReifiedContinuation()!!)
-			interpreter.setReifiedContinuation(newDummy)
+			val newDummy = dummyContinuation.replacingCaller(it)
 			// Now run it, which will pop itself and push anything that it
 			// is supposed to.
-			interpreter.function = newDummy.function
-			interpreter.chunk = newDummy.levelTwoChunk
-			interpreter.setOffset(newDummy.levelTwoOffset)
-			interpreter.chunk!!.beforeRunChunk(interpreter.offset)
-			val result =
-				interpreter.chunk!!.executableChunk.runChunk(
-					interpreter,
-					interpreter.offset)
+			function = newDummy.function
+			chunk = newDummy.levelTwoChunk
+			setOffset(newDummy.levelTwoOffset)
+			chunk!!.beforeRunChunk(offset)
+			val result = chunk!!.executableChunk.runChunk(this, offset)
 			assert(result === null) { "Must not reify in dummy continuation!" }
 			// The dummy's code will have cleaned up the stack.  Let the
 			// next action run, or if exhausted, run the reifier's
@@ -190,11 +206,13 @@ class StackReifier constructor(
 			{
 				traceL2(
 					dummyContinuation.levelTwoChunk.executableChunk,
+					this,
 					dummyContinuation.levelTwoOffset,
 					"Finished a reifier action (offset is for "
 						+ "instruction that queued it)",
 					emptyArray())
 			}
+			newDummy
 		}
 		return this
 	}

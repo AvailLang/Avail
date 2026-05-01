@@ -37,6 +37,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
 import avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -50,9 +52,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a [first-of-sequence][FirstOfSequencePhraseDescriptor]
@@ -61,12 +63,14 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanInline)
+object P_CreateFirstOfSequenceOfStatements : Primitive1(CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val statements = interpreter.argument(0)
+		val statements = arg1
 		val statementsSize = statements.tupleSize
 		val flat = mutableListOf<A_Phrase>()
 		for (i in 2 .. statementsSize)
@@ -75,11 +79,10 @@ object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanInline)
 		}
 		if (!containsOnlyStatements(flat, TOP()))
 		{
-			return interpreter.primitiveFailure(
-				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
+			return interpreter.fail(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
 		}
 		flat.add(0, statements.tupleAt(1))
-		return interpreter.primitiveSuccess(newFirstOfSequenceNode(statements))
+		return newFirstOfSequenceNode(statements)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

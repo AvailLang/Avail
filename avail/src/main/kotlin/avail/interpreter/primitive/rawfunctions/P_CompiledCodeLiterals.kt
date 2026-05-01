@@ -35,6 +35,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
@@ -43,29 +45,30 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a [tuple][TupleDescriptor] with the literals from this
  * [compiled&#32;code][CompiledCodeDescriptor].
  */
 @Suppress("unused")
-object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CompiledCodeLiterals : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val code = interpreter.argument(0)
+		val code = arg1
 
-		val tupleObject = generateObjectTupleFrom(code.numLiterals) {
+		return generateObjectTupleFrom(code.numLiterals) {
 			val literal = code.literalAt(it)
 			if (literal.isNil) zero else literal
 		}
-		return interpreter.primitiveSuccess(tupleObject)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -48,6 +48,8 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -67,13 +69,13 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive4
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
@@ -89,23 +91,27 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleLexerDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
+object P_SimpleLexerDefinitionForAtom : Primitive4(CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val atom = interpreter.argument(0)
-		val filterFunction = interpreter.argument(1)
-		val bodyFunction = interpreter.argument(2)
-		val optionalStylerFunction = interpreter.argument(3)
+		val atom = arg1
+		val filterFunction = arg2
+		val bodyFunction = arg3
+		val optionalStylerFunction = arg4
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		val bundle = try
 		{
@@ -113,7 +119,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return interpreter.primitiveFailure(e.errorCode)
+			return interpreter.fail(e.errorCode)
 		}
 		val method = bundle.bundleMethod
 		val lexer = newLexer(

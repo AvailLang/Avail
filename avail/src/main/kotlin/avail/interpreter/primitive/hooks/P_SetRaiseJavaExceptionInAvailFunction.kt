@@ -35,17 +35,19 @@ package avail.interpreter.primitive.hooks
 import avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import avail.CallbackSystem.Callback
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke to raise a
@@ -56,20 +58,21 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetRaiseJavaExceptionInAvailFunction : Primitive(
-	1,
+object P_SetRaiseJavaExceptionInAvailFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
+		val function = arg1
 		interpreter.runtime[RAISE_JAVA_EXCEPTION_IN_AVAIL] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**

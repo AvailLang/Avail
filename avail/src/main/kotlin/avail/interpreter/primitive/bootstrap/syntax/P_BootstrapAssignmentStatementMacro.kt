@@ -50,6 +50,8 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleC
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -63,11 +65,11 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
@@ -79,17 +81,20 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
  */
 @Suppress("unused")
 object P_BootstrapAssignmentStatementMacro
-	: Primitive(2, CannotFail, CanInline, Bootstrap)
+	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val variableNameLiteral = interpreter.argument(0)
-		val valueExpression = interpreter.argument(1)
+		val variableNameLiteral = arg1
+		val valueExpression = arg2
 
 		val loader =
 			interpreter.fiber().availLoader
-				?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+				?: return interpreter.fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -143,8 +148,7 @@ object P_BootstrapAssignmentStatementMacro
 		val assignment = newAssignment(
 			newUse(actualToken, declaration), valueExpression, false)
 		assignment.makeImmutable()
-		val assignmentAsStatement = newExpressionAsStatement(assignment)
-		return interpreter.primitiveSuccess(assignmentAsStatement)
+		return newExpressionAsStatement(assignment)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

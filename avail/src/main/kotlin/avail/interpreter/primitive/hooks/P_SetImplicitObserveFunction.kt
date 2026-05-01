@@ -39,6 +39,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -52,14 +54,14 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 import avail.utility.cast
 
 /**
@@ -71,28 +73,29 @@ import avail.utility.cast
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetImplicitObserveFunction : Primitive(
-	1,
+object P_SetImplicitObserveFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	/** The [A_RawFunction] that wraps the supplied observe function. */
-	private val rawFunction = createRawFunction()
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
+		val function = arg1
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
 		val wrapper = createWithOuters1(rawFunction, function.cast())
 		// Now set the wrapper as the implicit observe function.
 		interpreter.runtime[IMPLICIT_OBSERVE] = wrapper
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
+
+	/** The [A_RawFunction] that wraps the supplied observe function. */
+	private val rawFunction = createRawFunction()
 
 	/**
 	 * Create an [A_RawFunction] which has an outer that'll be supplied during
@@ -105,38 +108,39 @@ object P_SetImplicitObserveFunction : Primitive(
 	 */
 	private fun createRawFunction(): A_RawFunction
 	{
-		val writer = L1InstructionWriter(nil, 0, nil)
-		val outerIndex = writer.createOuter(IMPLICIT_OBSERVE.functionType)
-		writer.argumentTypes(mostGeneralFunctionType, mostGeneralTupleType)
-		writer.returnType = bottom
-		writer.returnTypeIfPrimitiveFails = bottom
-		writer.write(0, L1Operation.L1_doPushOuter, outerIndex)
-		writer.write(0, L1Operation.L1_doPushLocal, 1)
-		writer.write(0, L1Operation.L1_doPushLocal, 2)
-		writer.write(0, L1Operation.L1_doMakeTuple, 2)
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
-			writer.addLiteral(TOP()))
-		writer.write(0, L1Operation.L1_doPop)
-		writer.write(0, L1Operation.L1Ext_doPushLabel)
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
-			writer.addLiteral(variableTypeFor(mostGeneralContinuationType)))
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
-			writer.addLiteral(mostGeneralContinuationType))
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
-			writer.addLiteral(bottom))
-		val code = writer.compiledCode()
+		val code = with(L1InstructionWriter(nil, 0, nil)) {
+			val outerIndex = createOuter(IMPLICIT_OBSERVE.functionType)
+			argumentTypes(mostGeneralFunctionType, mostGeneralTupleType)
+			returnType = bottom
+			returnTypeIfPrimitiveFails = bottom
+			write(0, L1Operation.L1_doPushOuter, outerIndex)
+			write(0, L1Operation.L1_doPushLocal, 1)
+			write(0, L1Operation.L1_doPushLocal, 2)
+			write(0, L1Operation.L1_doMakeTuple, 2)
+			write(
+				0,
+				L1Operation.L1_doCall,
+				addLiteral(SpecialMethodAtom.APPLY.bundle),
+				addLiteral(TOP()))
+			write(0, L1Operation.L1_doPop)
+			write(0, L1Operation.L1Ext_doPushLabel)
+			write(
+				0,
+				L1Operation.L1_doCall,
+				addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
+				addLiteral(variableTypeFor(mostGeneralContinuationType)))
+			write(
+				0,
+				L1Operation.L1_doCall,
+				addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
+				addLiteral(mostGeneralContinuationType))
+			write(
+				0,
+				L1Operation.L1_doCall,
+				addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
+				addLiteral(bottom))
+			compiledCode()
+		}
 		code.methodName = stringFrom("«implicit observe function wrapper»")
 		return code
 	}

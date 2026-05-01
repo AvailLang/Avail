@@ -36,6 +36,8 @@ import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -43,10 +45,10 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Treating the argument as a [method][MethodDescriptor] name,
@@ -55,12 +57,14 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MethodNameContainsGroups : Primitive(1, CanFold, CanInline)
+object P_MethodNameContainsGroups : Primitive1(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
+		val name = arg1
 		val splitter: MessageSplitter =
 			try
 			{
@@ -68,11 +72,10 @@ object P_MethodNameContainsGroups : Primitive(1, CanFold, CanInline)
 			}
 			catch (e: MalformedMessageException)
 			{
-				return interpreter.primitiveFailure(e)
+				return interpreter.fail(e.errorCode)
 			}
 
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(splitter.containsGroups))
+		return objectFromBoolean(splitter.containsGroups)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

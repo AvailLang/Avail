@@ -31,17 +31,17 @@
  */
 package avail.interpreter.primitive.general
 
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
+import avail.compiler.FiberTerminationException
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -49,17 +49,18 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailErrorCode
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.utility.cast
+import avail.optimizer.StackReifier
+import avail.utility.stackToString
 import java.lang.String.format
 
 /**
@@ -71,56 +72,63 @@ import java.lang.String.format
  * for debugging convenience.
  */
 @Suppress("unused")
-object P_EmergencyExit : Primitive(
-	1,
+object P_EmergencyExit : Primitive1(
 	Unknown,
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation,
 	CanSuspend,
 	CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val errorMessageProducer = interpreter.argument(0)
+		val errorMessageProducer = arg1
 
-		assert(interpreter.unreifiedCallDepth() == 0)
-		val fiber = interpreter.fiber()
-		val continuation = interpreter.getReifiedContinuation()!!
-		interpreter.primitiveSuspend(interpreter.function!!)
-		dumpStackThen(
-			interpreter.runtime, fiber.textInterface, continuation
-		) { stack ->
-			val builder = StringBuilder()
-			builder.append(format(
-				"A fiber (%s) has exited: %s",
-				fiber.fiberName,
-				errorMessageProducer))
-			if (errorMessageProducer.isInt)
-			{
-				val errorNumber: A_Number = errorMessageProducer.cast()
-				val intValue = errorNumber.extractInt
-				val code = AvailErrorCode.byNumericCode(intValue)
-				if (code !== null)
+		val killer = AvailEmergencyExitException(
+			"Fiber '${interpreter.fiber()}' will emergency-exit.")
+		// Capture the JVM stack trace right here, before any unwind.
+		killer.fillInStackTrace()
+		interpreter.currentReifier = StackReifier(
+			true,
+			reificationForNoninlineStat!!
+		) {
+			assert(interpreter.callerIsReified())
+			val fiber = interpreter.fiber()
+			val continuation = interpreter.getReifiedContinuation()!!
+			dumpStackThen(
+				interpreter.runtime, fiber.textInterface, continuation
+			) { stack ->
+				val builder = StringBuilder()
+				builder.append(format(
+					"A fiber (%s) has exited: %s",
+					fiber.fiberName,
+					errorMessageProducer))
+				if (errorMessageProducer.isInt)
 				{
-					builder.append(format(" (= %s)", code.name))
+					val errorNumber: A_Number = errorMessageProducer
+					val intValue = errorNumber.extractInt
+					val code = AvailErrorCode.byNumericCode(intValue)
+					if (code !== null)
+					{
+						builder.append(format(" (= %s)", code.name))
+					}
 				}
+				for (frame in stack)
+				{
+					builder.append(format("%n\t-- %s", frame))
+				}
+				builder.append("\n\nJVM stack:\n")
+				builder.append(killer.stackToString)
+				// The Avail stack trace was transformed in parallel, so we're
+				// probably in a different thread than the one that hit the
+				// error.  Just log it to stderr.
+				System.err.print(builder)
 			}
-			for (frame in stack)
-			{
-				builder.append(format("%n\t-- %s", frame))
-			}
-			builder.append("\n\n")
-			val killer = AvailEmergencyExitException(builder.toString())
-			killer.fillInStackTrace()
-			fiber.executionState = ABORTED
-			(fiber.failureContinuation)(killer)
-			// If we're still here, the handler didn't do anything with the
-			// exception.  Output it and throw it as a runtime exception.
-			System.err.print(builder)
-			throw RuntimeException(killer)
+			throw FiberTerminationException()
 		}
-		return Result.FIBER_SUSPENDED
+		return null
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

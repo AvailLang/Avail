@@ -32,6 +32,9 @@
 package avail.descriptor.functions
 
 import avail.AvailRuntime
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -39,7 +42,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 
 /**
  * [A_Continuation] is an interface that specifies the operations specific to
@@ -168,7 +171,7 @@ interface A_Continuation : A_BasicObject
 		/**
 		 * Answer the current [L2Chunk] to run when resuming this continuation.
 		 * Always check that the chunk is still [valid][L2Chunk.isValid],
-		 * otherwise the [unoptimizedChunk] should be resumed instead.
+		 * otherwise the [DefaultL1Chunk] should be resumed instead.
 		 *
 		 * @return
 		 *   The L2Chunk to resume if the chunk is still valid.

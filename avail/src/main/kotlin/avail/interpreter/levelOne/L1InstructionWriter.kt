@@ -60,8 +60,9 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doExtension_ord
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
 import avail.io.NybbleOutputStream
 import java.util.Collections.addAll
 

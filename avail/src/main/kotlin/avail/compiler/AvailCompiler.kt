@@ -148,6 +148,7 @@ import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
@@ -291,14 +292,14 @@ import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.AvailLoader.Phase.STYLING_HEADER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.primitive.compiler.P_RejectParsing
 import avail.io.TextInterface
 import avail.performance.Statistic

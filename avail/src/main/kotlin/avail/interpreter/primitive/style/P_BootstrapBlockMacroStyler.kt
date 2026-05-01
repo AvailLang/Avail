@@ -47,6 +47,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
@@ -65,12 +67,12 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
 
 /**
@@ -85,29 +87,28 @@ import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
  */
 @Suppress("unused")
 object P_BootstrapBlockMacroStyler :
-	Primitive(
-		2,
+	Primitive2(
 		CanInline,
 		Bootstrap,
 		ReadsFromHiddenGlobalState,
 		WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
-//		val transformedPhrase: A_Phrase = interpreter.argument(1)
+		val optionalSendPhrase: A_Tuple = arg1
+		//val transformedPhrase: A_Phrase = arg2
 
 		val fiber = interpreter.fiber()
-		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		if (!fiber.canStyle)
+			return interpreter.fail(E_CANNOT_STYLE)
 		val loader = fiber.availLoader!!
-
 		if (optionalSendPhrase.tupleSize == 0)
-		{
-			return interpreter.primitiveSuccess(nil)
-		}
+			return nil
 		val sendPhrase = optionalSendPhrase.tupleAt(1)
-
 		val (
 			_, //optArgs,
 			optPrim,
@@ -154,8 +155,7 @@ object P_BootstrapBlockMacroStyler :
 				}
 			}
 		}
-
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateFailureVariableType(): A_Type =

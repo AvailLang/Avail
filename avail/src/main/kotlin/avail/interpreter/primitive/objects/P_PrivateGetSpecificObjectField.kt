@@ -36,20 +36,22 @@ import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.objects.ObjectDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.values.L2SemanticValue.Companion.constant
@@ -66,21 +68,21 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_PrivateGetSpecificObjectField : Primitive(
-	1, Private, CanInline, CannotFail)
+object P_PrivateGetSpecificObjectField : Primitive1(Private, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val obj = interpreter.argument(0)
+		val obj = arg1
 		val primitiveFunction = interpreter.function!!
 		//TODO Comment out these assertions.
 		assert(primitiveFunction.code().codePrimitive() === this)
 		assert(primitiveFunction.numOuterVars == 1)
 		val field = primitiveFunction.outerVarAt(1)
 		assert(field.isAtom)
-
-		return interpreter.primitiveSuccess(obj.fieldAt(field))
+		return obj.fieldAt(field)
 	}
 
 	/** Specific [A_RawFunction]s will have suitable signatures. */

@@ -35,17 +35,17 @@ import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.fallBackToL1Method
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
 
 /**
- * Fall back to the L1 [unoptimizedChunk], continuing with the data provided for
+ * Fall back to the L1 [DefaultL1Chunk], continuing with the data provided for
  * reconstituting this frame for resumption.
  *
  * Since the lifetime of that dummy continuation is limited, and can't be
@@ -53,7 +53,7 @@ import org.objectweb.asm.Opcodes
  * we create has as its caller [Interpreter.theReifiedContinuation], even if
  * there are unreified frames on the JVM call stack that would reify themselves
  * if asked. Those frames will remain on the JVM call stack, ready to return or
- * reify when the [unoptimizedChunk] says to, so all should continue to work as
+ * reify when the [DefaultL1Chunk] says to, so all should continue to work as
  * expected.
  *
  * Note that it implicitly uses the [Interpreter.function] and

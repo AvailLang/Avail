@@ -34,16 +34,17 @@ package avail.interpreter.primitive.hooks
 
 import avail.AvailRuntime.HookType.PRIMITIVE_FAILURE_HANDLER
 import avail.descriptor.functions.A_Function
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Answer the current hook [A_Function] to use to handle failed
@@ -59,22 +60,21 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GetPrimitiveFailureFunction : Primitive(
-	0,
+object P_GetPrimitiveFailureFunction : Primitive0(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(0)
-
 		// Get the primitive failure handler function.
 		val runtime = interpreter.runtime
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(runtime[PRIMITIVE_FAILURE_HANDLER])
+		return runtime[PRIMITIVE_FAILURE_HANDLER]
 	}
 
 	/**

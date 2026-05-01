@@ -33,6 +33,8 @@ package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,10 +45,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 import avail.io.IOSystem
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
@@ -57,13 +59,16 @@ import java.nio.file.Path
  * argument is `false`, then no symbolic links will be traversed.
  */
 @Suppress("unused")
-object P_FileExists : Primitive(2, CanInline, HasSideEffect)
+object P_FileExists : Primitive2(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val filename = interpreter.argument(0)
-		val followSymlinks = interpreter.argument(1)
+		val filename = arg1
+		val followSymlinks = arg2
 		val path: Path =
 			try
 			{
@@ -71,7 +76,7 @@ object P_FileExists : Primitive(2, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
@@ -82,10 +87,10 @@ object P_FileExists : Primitive(2, CanInline, HasSideEffect)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 
-		return interpreter.primitiveSuccess(objectFromBoolean(exists))
+		return objectFromBoolean(exists)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

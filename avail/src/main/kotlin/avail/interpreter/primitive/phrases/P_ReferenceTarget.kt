@@ -35,16 +35,18 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.phrases.A_Phrase.Companion.variable
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
 * **Primitive:** Answer the [target&#32;variable][VariableUsePhraseDescriptor]
@@ -53,13 +55,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ReferenceTarget : Primitive(1, CannotFail, CanFold, CanInline)
+object P_ReferenceTarget : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val ref = interpreter.argument(0)
-		return interpreter.primitiveSuccess(ref.variable)
+		val ref = arg1
+		return ref.variable
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -39,6 +39,8 @@ import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -62,12 +64,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -78,6 +74,12 @@ import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -95,31 +97,33 @@ import kotlin.math.min
  * elements.
  */
 @Suppress("unused")
-object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
+object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val tuple = interpreter.argument(0)
-		val start = interpreter.argument(1)
-		val end = interpreter.argument(2)
+		val tuple = arg1
+		val start = arg2
+		val end = arg3
 		if (!start.isInt || !end.isInt)
 		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = start.extractInt
 		val endInt = end.extractInt
 		return when
 		{
 			startInt < 1 ->
-				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			startInt > endInt + 1 ->
-				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			endInt > tuple.tupleSize ->
-				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
-			else ->
-				interpreter.primitiveSuccess(
-					tuple.copyTupleFromToCanDestroy(startInt, endInt, true))
+				interpreter.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			else -> tuple.copyTupleFromToCanDestroy(startInt, endInt, true)
 		}
 	}
 
@@ -134,9 +138,8 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 
 	/**
 	 * Check whether the given tuple size range can have a slice extracted with
-	 * start and end indices with the given range.  Answer a
-	 * [Primitive.Fallibility] that indicates whether the extraction would
-	 * always, sometimes, or never fail.
+	 * start and end indices with the given range.  Answer a [Fallibility] that
+	 * indicates whether the extraction would always, sometimes, or never fail.
 	 *
 	 * @param sizeRange
 	 *   The integer range type describing the possible tuple sizes.

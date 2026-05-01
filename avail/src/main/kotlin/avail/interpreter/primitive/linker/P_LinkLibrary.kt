@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.linker
 
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -54,10 +56,10 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.LibraryClassLoader
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive2
 import java.io.IOException
 import java.net.MalformedURLException
 import java.nio.file.Paths
@@ -72,27 +74,22 @@ import kotlin.concurrent.withLock
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkLibrary : Primitive(2, CanInline, HasSideEffect)
+object P_LinkLibrary : Primitive2(CanInline, HasSideEffect)
 {
-	/**
-	 * The lock that must be held when examining linking the JAR to guard
-	 * against link race conditions.
-	 */
-	private val mutex = ReentrantLock()
-
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val jarPath = interpreter.argument(0).asNativeString()
-		val oldModuleOut: A_Variable =
-			interpreter.argument(1)
+		val jarPath = arg1.asNativeString()
+		val oldModuleOut: A_Variable = arg2
 		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.fail(E_LOADING_IS_OVER)
 		loader.statementCanBeSummarized(false)
 		if (!loader.phase.isExecuting)
 		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
+			return interpreter.fail(E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		val module = interpreter.module()
 		val moduleName = module.moduleName.asNativeString()
@@ -100,16 +97,16 @@ object P_LinkLibrary : Primitive(2, CanInline, HasSideEffect)
 			it.resolver.getResolverReference(moduleName) != null
 		}!!
 		val jarReference = currentRoot.resolver.getResolverReference(jarPath)
-			?: return interpreter.primitiveFailure(E_NO_FILE)
+			?: return interpreter.fail(E_NO_FILE)
 		val jarFile = Paths.get(jarReference.uri).toFile()
 		if (!jarFile.exists())
 		{
-			return interpreter.primitiveFailure(E_NO_FILE)
+			return interpreter.fail(E_NO_FILE)
 		}
 		mutex.withLock {
 			LibraryClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
 				oldModuleOut.setValue(origLinker)
-				return interpreter.primitiveFailure(E_LIBRARY_ALREADY_LINKED)
+				return interpreter.fail(E_LIBRARY_ALREADY_LINKED)
 			}
 			try
 			{
@@ -117,19 +114,25 @@ object P_LinkLibrary : Primitive(2, CanInline, HasSideEffect)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.primitiveFailure(AvailErrorCode.E_IO_ERROR)
+				return interpreter.fail(AvailErrorCode.E_IO_ERROR)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: MalformedURLException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
-			return interpreter.primitiveSuccess(nil)
+			return nil
 		}
 	}
+
+	/**
+	 * The lock that must be held when examining linking the JAR to guard
+	 * against link race conditions.
+	 */
+	private val mutex = ReentrantLock()
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

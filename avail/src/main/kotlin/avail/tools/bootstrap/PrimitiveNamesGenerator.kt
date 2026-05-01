@@ -32,8 +32,8 @@
 package avail.tools.bootstrap
 
 import avail.descriptor.types.A_Type.Companion.instances
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByName
 import avail.tools.bootstrap.Resources.Key.methodCommentParameterTemplate
 import avail.tools.bootstrap.Resources.Key.methodCommentRaisesTemplate
 import avail.tools.bootstrap.Resources.Key.methodCommentReturnsTemplate

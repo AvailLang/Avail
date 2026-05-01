@@ -56,6 +56,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -84,19 +85,18 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1OperationDispatcher
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.OptimizationLevel
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
@@ -165,8 +165,7 @@ constructor(
 			restrictions[numArgs + code.numLocals + 1] =
 				boxedRestrictionForType(code.constantTypeAt(1))
 		}
-		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc = 1
+		code.setUpInstructionDecoder(instructionDecoder, 1)
 		add(
 			L2Simple_CheckForInterrupt(
 				stackp,
@@ -206,7 +205,7 @@ constructor(
 	 * When the invocation of the hook function invariably returns, requesting
 	 * reification (because the hook function is ⊥-valued), synthesize a
 	 * continuation with the arguments popped and the expected value pushed,
-	 * using the [unoptimizedChunk] (although it won't be resumable).
+	 * using the [DefaultL1Chunk] (although it won't be resumable).
 	 */
 	private fun generateGeneralCall(
 		bundle: A_Bundle,
@@ -270,7 +269,7 @@ constructor(
 	 *
 	 * After the completed invocation, if the call's result meets the expected
 	 * type, the result should be on the stack.  If during the invocation a
-	 * reification happens, a continuation using the [unoptimizedChunk] should
+	 * reification happens, a continuation using the [DefaultL1Chunk] should
 	 * be created, with the arguments popped and the expected *type* pushed on
 	 * the stack. If after an unreified call, the returned value does not
 	 * conform to the [expectedType], the [RESULT_DISAGREED_WITH_EXPECTED_TYPE]
@@ -284,7 +283,7 @@ constructor(
 	 * value *after* it has been checked successfully against the expectedType.
 	 */
 	fun generateGeneralInvocation(
-		nilpotentAttempt: ((Interpreter)->Result)?,
+		nilpotentAttempt: ((Interpreter)->A_BasicObject?)?,
 		calledFunction: A_Function,
 		expectedType: A_Type
 	): TypeRestriction
@@ -664,11 +663,11 @@ constructor(
 
 	override fun L1Ext_doPushLabel()
 	{
-		// Update the restriction (to include the pushed label) prior to
-		// emitting the instruction, so that if reification of the stack has to
-		// happen in order to construct the label, the continuation that
-		// continues running (right after the push) will see that the pushed
-		// label has indeed been preserved across the reification and reentry.
+		// Update the restriction (to include the pushed label) before emitting
+		// the instruction, so that if reification of the stack has to happen to
+		// construct the label, the continuation that continues running (right
+		// after the push) will see that the pushed label has indeed been
+		// preserved across the reification and reentry.
 		--stackp
 		restrictions[stackp] = boxedRestrictionForType(
 			continuationTypeForFunctionType(code.functionType()))

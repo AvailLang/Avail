@@ -35,8 +35,10 @@ import avail.AvailRuntime.HookType
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -44,11 +46,11 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.MarshalingException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveHelper.marshalValues
+import avail.interpreter.primitive.PrimitiveN
 import avail.utility.Mutable
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
@@ -68,11 +70,14 @@ import java.lang.reflect.InvocationTargetException
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_InvokePojoConstructor : Primitive(-1, Private, HasSideEffect)
+object P_InvokePojoConstructor : PrimitiveN(-1, Private, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		val constructorArgs = tupleFromList(interpreter.argsBuffer)
+		val constructorArgs = tupleFromArray(*args)
 
 		val primitiveFunction = interpreter.function!!
 		val primitiveRawFunction = primitiveFunction.code()
@@ -93,7 +98,7 @@ object P_InvokePojoConstructor : Primitive(-1, Private, HasSideEffect)
 		if (errorOut.value !== null)
 		{
 			val e = errorOut.value!!
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
@@ -108,24 +113,24 @@ object P_InvokePojoConstructor : Primitive(-1, Private, HasSideEffect)
 		catch (e: InvocationTargetException)
 		{
 			val cause = e.cause!!
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				newPojo(identityPojo(cause), pojoTypeForClass(cause.javaClass)))
 		}
 		catch (e: Throwable)
 		{
 			// This is an unexpected failure in the invocation mechanism.  For
 			// now, report it like an expected InvocationTargetException.
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
 		return try
 		{
-			interpreter.primitiveSuccess(unmarshal(result, expectedType))
+			unmarshal(result, expectedType)
 		}
 		catch (e: MarshalingException)
 		{
-			interpreter.primitiveFailure(
+			interpreter.fail(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 	}

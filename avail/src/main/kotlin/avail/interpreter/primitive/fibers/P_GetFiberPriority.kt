@@ -35,20 +35,22 @@ import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.priority
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.jvm.JVMTranslator
@@ -58,16 +60,17 @@ import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
  * **Primitive:** Get the priority of a fiber.
  */
 @Suppress("unused")
-object P_GetFiberPriority : Primitive(
-	1, CannotFail, CanInline, ReadsFromHiddenGlobalState)
+object P_GetFiberPriority : Primitive1(CannotFail, CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val fiber = interpreter.argument(0)
+		val fiber = arg1
 		val priority = fiber.priority
 		assert(priority in 0 .. 255)
-		return interpreter.primitiveSuccess(fromUnsignedByte(priority.toShort()))
+		return fromUnsignedByte(priority.toShort())
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

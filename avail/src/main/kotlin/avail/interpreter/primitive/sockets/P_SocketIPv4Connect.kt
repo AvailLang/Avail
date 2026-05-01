@@ -46,6 +46,8 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -71,10 +73,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.PrimitiveN
 import avail.io.SimpleCompletionHandler
 import java.net.Inet4Address
 import java.net.InetAddress.getByAddress
@@ -97,21 +99,25 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
+object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(6)
-		val handle = interpreter.argument(0)
-		val addressTuple = interpreter.argument(1)
-		val port = interpreter.argument(2)
-		val succeed = interpreter.argument(3)
-		val fail = interpreter.argument(4)
-		val priority = interpreter.argument(5)
+		assert(args.size == 6)
+		val handle = args[0]
+		val addressTuple = args[1]
+		val port = args[2]
+		val succeed = args[3]
+		val fail = args[4]
+		val priority = args[5]
+
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -130,7 +136,7 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			return interpreter.fail(E_IO_ERROR)
 		}
 
 		val current = interpreter.fiber()
@@ -174,11 +180,11 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 							listOf(E_IO_ERROR.numericCode()),
 							false)
 					}))
-			interpreter.primitiveSuccess(newFiber)
+			newFiber
 		}
 		catch (e: SecurityException)
 		{
-			interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			interpreter.fail(E_PERMISSION_DENIED)
 		}
 	}
 

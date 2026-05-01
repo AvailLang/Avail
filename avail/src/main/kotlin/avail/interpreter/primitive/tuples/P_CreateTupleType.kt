@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.tuples
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -41,28 +43,31 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Construct a [tuple&#32;type][TupleTypeDescriptor] with the
  * given parameters. Canonize the data if necessary.
  */
 @Suppress("unused")
-object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
+object P_CreateTupleType : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val typeTuple = interpreter.argument(0)
-		val defaultType = interpreter.argument(1)
-		val sizeRange = interpreter.argument(2)
-		return interpreter.primitiveSuccess(
-			tupleTypeForSizesTypesDefaultType(
-				sizeRange, typeTuple, defaultType))
+		val typeTuple = arg1
+		val defaultType = arg2
+		val sizeRange = arg3
+		return tupleTypeForSizesTypesDefaultType(
+			sizeRange, typeTuple, defaultType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

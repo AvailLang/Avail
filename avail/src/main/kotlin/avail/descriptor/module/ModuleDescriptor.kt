@@ -35,6 +35,7 @@ import avail.AvailRuntime
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
+import avail.compiler.LexicalScanner
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.splitter.MessageSplitter
@@ -117,7 +118,6 @@ import avail.descriptor.module.ModuleDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.UNLOAD_FUNCTIONS
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.VARIABLE_BINDINGS
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.VISIBLE_NAMES
-import avail.descriptor.module.ModuleDescriptor.State.Loaded
 import avail.descriptor.module.ModuleDescriptor.State.Loading
 import avail.descriptor.module.ModuleDescriptor.State.Unloaded
 import avail.descriptor.module.ModuleDescriptor.State.Unloading
@@ -175,9 +175,8 @@ import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.unsupported
 import avail.interpreter.LibraryClassLoader
-import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.LexicalScanner
+import avail.interpreter.primitive.PrimitiveClassLoader
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.NameInModule

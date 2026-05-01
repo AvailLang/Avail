@@ -33,6 +33,8 @@ package avail.interpreter.primitive.types
 
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -46,13 +48,13 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Invokes
+import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -63,32 +65,33 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * third argument, a zero-argument function.
  */
 @Suppress("unused")
-object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
+object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val value = interpreter.argument(0)
-		val castFunction = interpreter.argument(1)
-		val elseFunction = interpreter.argument(2)
+		val value = arg1
+		val castFunction = arg2
+		val elseFunction = arg3
 
 		interpreter.argsBuffer.clear()
 		val expectedType =
 			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		// "Jump" into the castFunction or elseFunction, to keep this frame from
 		// showing up.
-		val function = when {
-			value.isInstanceOf(expectedType) -> {
+		return when
+		{
+			value.isInstanceOf(expectedType) ->
+			{
 				interpreter.argsBuffer.add(value)
-				castFunction
+				interpreter.invokeInPrimitive(castFunction)
 			}
-			else -> elseFunction
+			else -> interpreter.invokeInPrimitive(elseFunction)
 		}
-		interpreter.invokeFunction(function)?.let { reifier ->
-			interpreter.latestReifierFromInvokingPrimitive = reifier
-			return Result.INVOKED_AND_REIFYING
-		}
-		return Result.SUCCESS
 	}
 
 	override fun returnTypeGuaranteedByVM(

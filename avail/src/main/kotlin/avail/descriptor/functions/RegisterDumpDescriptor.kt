@@ -31,6 +31,7 @@
  */
 package avail.descriptor.functions
 
+import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
@@ -53,8 +54,9 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPointCatalog
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
@@ -67,21 +69,21 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
  *
  * @constructor
  * @property fallbackEntryPoint
- *   The [ChunkEntryPoint] at which to eventually re-enter the
- *   [unoptimizedChunk], should the containing [A_Continuation] become immutable
+ *   The [DefaultEntryPoint] at which to eventually re-enter the
+ *   [DefaultL1Chunk], should the containing [A_Continuation] become immutable
  *   or shared – at which time any elided local fields will also be created and
  *   populated via information recorded in [ENCODED_ELIDED_LOCALS].
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  * @param fallbackEntryPoint
- *   The [ChunkEntryPoint] for re-entry into the [unoptimizedChunk].
+ *   The [DefaultEntryPoint] for re-entry into the [DefaultL1Chunk].
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 class RegisterDumpDescriptor private constructor(
 	mutability: Mutability,
-	val fallbackEntryPoint: ChunkEntryPoint
+	val fallbackEntryPoint: Int
 ) : Descriptor(
 	mutability,
 	TypeTag.OTHER_NONTYPE_TAG,
@@ -161,65 +163,65 @@ class RegisterDumpDescriptor private constructor(
 	override fun o_FallbackEntryPoint(self: AvailObject) = fallbackEntryPoint
 
 	override fun mutable() =
-		mutables[fallbackEntryPoint.offsetInDefaultChunk + 1]!!
+		mutables[fallbackEntryPoint + 1]!!
 
 	override fun immutable() =
-		immutables[fallbackEntryPoint.offsetInDefaultChunk + 1]!!
+		immutables[fallbackEntryPoint + 1]!!
 
 	override fun shared() =
-		shareds[fallbackEntryPoint.offsetInDefaultChunk + 1]!!
+		shareds[fallbackEntryPoint + 1]!!
 
 	companion object
 	{
 		/**
-		 * Mutable instances, keyed by 1 + the offset of the [ChunkEntryPoint]
+		 * Mutable instances, keyed by 1 + the offset of the [DefaultEntryPoint]
 		 * at which a continuation having this register dump would resume in the
-		 * [unoptimizedChunk] if the continuation becomes immutable or shared.
+		 * [DefaultL1Chunk] if the continuation becomes immutable or shared.
 		 *
-		 * It's offset by 1 so that [ChunkEntryPoint.TRANSIENT] can have -1 as
+		 * It's offset by 1 so that [DefaultEntryPoint.TRANSIENT] can have -1 as
 		 * its offset (indicating invalid), while still being included in this
 		 * array.
 		 */
 		private val mutables: Array<RegisterDumpDescriptor?>
 
 		/**
-		 * Immutable instances, keyed by 1 + the offset of the [ChunkEntryPoint]
-		 * at which a continuation having this register dump would resume in the
-		 * [unoptimizedChunk] if the continuation becomes immutable or shared.
+		 * Immutable instances, keyed by 1 + the offset of the
+		 * [DefaultEntryPoint] at which a continuation having this register dump
+		 * would resume in the [DefaultL1Chunk] if the continuation becomes
+		 * immutable or shared.
 		 */
 		private val immutables: Array<RegisterDumpDescriptor?>
 
 		/**
-		 * Shared instances, keyed by 1 + the offset of the [ChunkEntryPoint] at
-		 * which a continuation having this register dump would resume in the
-		 * [unoptimizedChunk] if the continuation becomes immutable or shared.
+		 * Shared instances, keyed by 1 + the offset of the [DefaultEntryPoint]
+		 * at which a continuation having this register dump would resume in the
+		 * [DefaultL1Chunk] if the continuation becomes immutable or shared.
 		 */
 		private val shareds: Array<RegisterDumpDescriptor?>
 
 		/**
 		 * An array of empty register dump, keyed by 1 + the offset of the
-		 * [ChunkEntryPoint] used as the fallback offset into the
-		 * [unoptimizedChunk].
+		 * [DefaultEntryPoint] used as the fallback offset into the
+		 * [DefaultL1Chunk].
 		 */
 		private val emptyRegisterDumps: Array<AvailObject?>
 
 		init
 		{
-			val size =
-				ChunkEntryPoint.entries.maxOf { it.offsetInDefaultChunk } + 2
+			val size = DefaultEntryPointCatalog.maxEntryPointOffset + 2
 			mutables = arrayOfNulls(size)
 			immutables = arrayOfNulls(size)
 			shareds = arrayOfNulls(size)
 			emptyRegisterDumps = arrayOfNulls(size)
-			ChunkEntryPoint.entries.forEach { entry ->
-				mutables[entry.offsetInDefaultChunk + 1] =
+			(0..DefaultEntryPointCatalog.maxEntryPointOffset).forEach { entry ->
+				mutables[entry + 1] =
 					RegisterDumpDescriptor(MUTABLE, entry)
-				immutables[entry.offsetInDefaultChunk + 1] =
+				immutables[entry + 1] =
 					RegisterDumpDescriptor(IMMUTABLE, entry)
-				shareds[entry.offsetInDefaultChunk + 1] =
+				shareds[entry + 1] =
 					RegisterDumpDescriptor(SHARED, entry)
-				emptyRegisterDumps[entry.offsetInDefaultChunk + 1] =
-					mutables[entry.offsetInDefaultChunk + 1]!!.createShared(0) {
+				emptyRegisterDumps[entry + 1] =
+					mutables[entry + 1]!!.createShared(0) {
 						this[ENCODED_ELIDED_LOCALS] = emptyTuple
 					}.makeShared()
 			}
@@ -238,12 +240,12 @@ class RegisterDumpDescriptor private constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun createRegisterDump(
-			fallbackEntryPoint: ChunkEntryPoint,
+			fallbackEntryPoint: Int,
 			encodedElidedLocals: A_Tuple,
 			objects: Array<AvailObject>,
 			longs: LongArray
 		): AvailObject =
-			mutables[fallbackEntryPoint.offsetInDefaultChunk + 1]!!.create(
+			mutables[fallbackEntryPoint + 1]!!.create(
 				objects.size,
 				longs.size
 			) {
@@ -263,16 +265,16 @@ class RegisterDumpDescriptor private constructor(
 			RegisterDumpDescriptor::class.java,
 			::createRegisterDump.name,
 			AvailObject::class.java,
-			ChunkEntryPoint::class.java,
+			Int::class.javaPrimitiveType!!,
 			A_Tuple::class.java,
 			Array<AvailObject>::class.java,
 			LongArray::class.java)
 
 		/**
 		 * Answer an empty register dump that uses the given fallback entry
-		 * point into the [unoptimizedChunk].
+		 * point into the [DefaultL1Chunk].
 		 */
-		fun emptyRegisterDump(fallbackEntryPoint: ChunkEntryPoint) =
-			emptyRegisterDumps[fallbackEntryPoint.offsetInDefaultChunk + 1]!!
+		fun emptyRegisterDump(fallbackEntryPoint: Int) =
+			emptyRegisterDumps[fallbackEntryPoint + 1]!!
 	}
 }

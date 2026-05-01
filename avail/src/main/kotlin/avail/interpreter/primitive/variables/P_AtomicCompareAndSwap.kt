@@ -37,6 +37,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -58,14 +60,14 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.variables.L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -78,26 +80,30 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
+object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val variable = interpreter.argument(0)
-		val reference = interpreter.argument(1)
-		val newValue = interpreter.argument(2)
-		return try {
-			interpreter.primitiveSuccess(
-				objectFromBoolean(
-					variable.compareAndSwapValues(reference, newValue)))
+		val variable = arg1
+		val reference = arg2
+		val newValue = arg3
+		return try
+		{
+			objectFromBoolean(
+				variable.compareAndSwapValues(reference, newValue))
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.primitiveFailure(e)
+			interpreter.fail(e.errorCode)
 		}
 	}
 
@@ -156,7 +162,7 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type
-	): ((Interpreter)->Result)?
+	): ((Interpreter)->A_BasicObject?)?
 	{
 		val variableType = argRestrictions[0].type
 		//val referenceType = argRestrictions[1].type
@@ -172,18 +178,16 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		return { interpreter ->
 			val (variable, reference, newValue) = interpreter.argsBuffer
 			try {
-				interpreter.primitiveSuccess(
-					objectFromBoolean(
-						variable.compareAndSwapValuesNoCheck(
-							reference, newValue)))
+				objectFromBoolean(
+					variable.compareAndSwapValuesNoCheck(reference, newValue))
 			}
 			catch (e: VariableGetException)
 			{
-				interpreter.primitiveFailure(e)
+				interpreter.fail(e.errorCode)
 			}
 			catch (e: VariableSetException)
 			{
-				interpreter.primitiveFailure(e)
+				interpreter.fail(e.errorCode)
 			}
 		}
 	}

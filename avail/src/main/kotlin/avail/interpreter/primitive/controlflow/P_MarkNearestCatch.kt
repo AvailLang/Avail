@@ -32,20 +32,39 @@
 
 package avail.interpreter.primitive.controlflow
 
+import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
+import avail.descriptor.variables.A_Variable.Companion.value
+import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
 import avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.debugL2
+import avail.interpreter.execution.Interpreter.Companion.debugPrimitives
+import avail.interpreter.execution.Interpreter.Companion.log
+import avail.interpreter.execution.Interpreter.Companion.loggerDebugL2
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive1
 import avail.interpreter.primitive.controlflow.P_CatchException.handlerSentinel
 import avail.interpreter.primitive.controlflow.P_CatchException.unwindSentinel
+import java.util.logging.Level
 
 /**
  * **Primitive:** Mark the nearest frame corresponding to an invocation of
@@ -54,13 +73,107 @@ import avail.interpreter.primitive.controlflow.P_CatchException.unwindSentinel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
+object P_MarkNearestCatch : Primitive1(Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val code = interpreter.argument(0)
-		return interpreter.markNearestGuard(code)
+		val code = arg1
+		return interpreter.reifyForPrimitive(true) {
+			when (val failureCode = interpreter.markNearestGuard(code))
+			{
+				null -> succeed(nil)
+				else ->
+				{
+					if (debugPrimitives)
+					{
+						Interpreter.log(
+							interpreter.fiber(),
+							Interpreter.loggerDebugPrimitives,
+							Level.FINER,
+							"{0}Marking nearest catch for {1} FAILED: {2}",
+							interpreter.debugModeString,
+							code,
+							failureCode)
+					}
+					fail(failureCode)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Assume the entire stack has been reified.  Scan the stack of
+	 * continuations until one is found for a function whose code specifies
+	 * [P_CatchException]. Write the specified marker into its primitive failure
+	 * variable to indicate the current exception handling state.
+	 *
+	 * @param marker
+	 *   An exception handling state marker.
+	 * @return
+	 *   The failure code for the [P_MarkNearestCatch] primitive if it is to
+	 *   fail, otherwise `null` to indicate success.
+	 */
+	fun Interpreter.markNearestGuard(
+		marker: A_Number
+	): AvailErrorCode?
+	{
+		assert(callerIsReified())
+		var continuation: A_Continuation = getReifiedContinuation()!!
+		var depth = 0
+		while (continuation.notNil)
+		{
+			val code = continuation.function.code()
+			if (code.codePrimitive() == P_CatchException)
+			{
+				assert(code.numArgs() == 3)
+				assert(code.numLocals > 0)
+				// The frame layout is:
+				//   1. arg: body
+				//   2. arg: handlers
+				//   3. arg: unwind
+				//   4. first local variable: guardVariable
+				//   [...potentially other variables...]
+				//   ≥5. first local slot: primitive failure slot
+				// Note that even though variable elision postpones the creation
+				// of the variable in slot (≥)5, by the time we're searching the
+				// stack, the frames have become immutable, which forces the
+				// variables to be created (and affected frames to jump to L1
+				// interpretation).
+				val guardVariable: A_Variable = continuation.frameAt(
+					P_CatchException.slotIndexOfGuardVariable)
+				val oldState = guardVariable.value()
+				// Only allow certain state transitions.
+				when
+				{
+					marker.equals(handlerSentinel)
+						&& oldState != zero ->
+						return E_CANNOT_MARK_HANDLER_FRAME
+					marker.equals(unwindSentinel)
+						&& oldState != handlerSentinel ->
+						return E_CANNOT_MARK_HANDLER_FRAME
+				}
+				// Mark this frame: we don't want it to handle exceptions
+				// anymore.
+				guardVariable.setValueNoCheck(marker)
+				if (debugL2)
+				{
+					log(
+						loggerDebugL2,
+						Level.FINER,
+						"{0}Marked {1} at depth {2}",
+						debugModeString,
+						marker,
+						depth)
+				}
+				return null // success
+			}
+			continuation = continuation.caller
+			depth++
+		}
+		return E_NO_HANDLER_FRAME
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

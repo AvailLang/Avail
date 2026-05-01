@@ -39,6 +39,8 @@ import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -54,32 +56,34 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
+import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
-import kotlin.collections.component1
-import kotlin.collections.component2
 
 /**
  * **Primitive:** Extract the specified [field's][AtomDescriptor] type from the
  * [object&#32;type][ObjectTypeDescriptor].
  */
 @Suppress("unused")
-object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
+object P_GetObjectTypeField : Primitive2(CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val (objectType, field) = interpreter.argsBuffer
+		val objectType = arg1
+		val field = arg2
 
 		return when (val fieldType = objectType.fieldTypeAtOrNull(field))
 		{
-			null -> interpreter.primitiveFailure(E_NO_SUCH_FIELD)
-			else -> interpreter.primitiveSuccess(fieldType)
+			null -> interpreter.fail(E_NO_SUCH_FIELD)
+			else -> fieldType
 		}
 	}
 

@@ -33,6 +33,8 @@
 package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -48,10 +50,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive3
 import avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -71,14 +73,18 @@ import java.nio.file.StandardCopyOption
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileMove : Primitive(3, CanInline, HasSideEffect)
+object P_FileMove : Primitive3(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val source = interpreter.argument(0)
-		val destination = interpreter.argument(1)
-		val overwrite = interpreter.argument(2)
+		val source = arg1
+		val destination = arg2
+		val overwrite = arg3
 		val sourcePath: Path
 		val destinationPath: Path =
 			try
@@ -89,7 +95,7 @@ object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		val options =
@@ -110,26 +116,26 @@ object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: AccessDeniedException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			return interpreter.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: NoSuchFileException)
 		{
-			return interpreter.primitiveFailure(E_NO_FILE)
+			return interpreter.fail(E_NO_FILE)
 		}
 		catch (e: FileAlreadyExistsException)
 		{
-			return interpreter.primitiveFailure(E_FILE_EXISTS)
+			return interpreter.fail(E_FILE_EXISTS)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			return interpreter.fail(E_IO_ERROR)
 		}
 
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

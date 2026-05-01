@@ -36,6 +36,8 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -47,10 +49,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import avail.io.IOSystem.FileHandle
 import java.nio.channels.AsynchronousFileChannel
 
@@ -62,23 +64,25 @@ import java.nio.channels.AsynchronousFileChannel
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
+object P_FileRefresh : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
+		val atom = arg1
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(
+			return interpreter.fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
 		{
-			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ)
+			return interpreter.fail(E_NOT_OPEN_FOR_READ)
 		}
 		val runtime = currentRuntime()
 
@@ -88,7 +92,7 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 				runtime.ioSystem.discardBuffer(key)
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

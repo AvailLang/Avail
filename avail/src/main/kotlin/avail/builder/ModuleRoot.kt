@@ -78,6 +78,15 @@ class ModuleRoot
 		?: throw RuntimeException("Missing repository: $name")
 
 	/**
+	 * Open the [repository][Repository] if necessary, and execute the given
+	 * [body] with it, ensuring the reposity is closed afterward.
+	 */
+	fun <T> useRepository(body: (Repository)->T) = repository.use {
+		it.reopenIfNecessary()
+		body(it)
+	}
+
+	/**
 	 * Clear the content of the repository for this root.
 	 */
 	fun clearRepository() = repository.clear()

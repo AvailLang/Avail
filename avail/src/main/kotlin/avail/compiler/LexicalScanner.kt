@@ -1,21 +1,21 @@
 /*
  * LexicalScanner.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,22 +29,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.execution
+
+package avail.compiler
 
 import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
-import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
-import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_LEXER
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addLexer
 import avail.descriptor.module.A_Module.Companion.moduleState
-import avail.descriptor.module.ModuleDescriptor.State.Loading
+import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.definitionModule
 import avail.descriptor.parsing.A_Lexer.Companion.lexerApplicability
@@ -54,20 +54,20 @@ import avail.descriptor.parsing.A_Lexer.Companion.setLexerApplicability
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.asTuple
-import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.StringDescriptor.Companion.formatString
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import avail.descriptor.tuples.StringDescriptor
+import avail.descriptor.types.EnumerationTypeDescriptor
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReferenceArray
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * A [LexicalScanner] tracks all visible [A_Lexer]s while compiling a module. It
- * maintains an [AtomicReferenceArray] from Latin-1 codepoints (U+0000..U+00FF)
- * to the [A_Tuple] of lexers whose filters passed for that codepoint.  A
- * separate [ConcurrentHashMap] tracks all remaining codepoints.
+ * A [LexicalScanner] tracks all visible [avail.descriptor.parsing.A_Lexer]s while compiling a module. It
+ * maintains an [java.util.concurrent.atomic.AtomicReferenceArray] from Latin-1 codepoints (U+0000..U+00FF)
+ * to the [avail.descriptor.tuples.A_Tuple] of lexers whose filters passed for that codepoint.  A
+ * separate [java.util.concurrent.ConcurrentHashMap] tracks all remaining codepoints.
  *
  * There is also a special instance that is reused for scanning module headers.
  *
@@ -82,7 +82,7 @@ constructor(
 	val moduleNameProducer : ()->String)
 {
 	/**
-	 * The [List] of all [lexers][A_Lexer] which are visible within the module
+	 * The [List] of all [lexers][avail.descriptor.parsing.A_Lexer] which are visible within the module
 	 * being compiled.
 	 */
 	val allVisibleLexers = mutableListOf<A_Lexer>()
@@ -106,7 +106,7 @@ constructor(
 
 	/**
 	 * A 256-way dispatch table that takes a Latin-1 character's Unicode
-	 * codepoint (which is in [0..255]) to a [tuple][A_Tuple] of
+	 * codepoint (which is in [0..255]) to a [tuple][avail.descriptor.tuples.A_Tuple] of
 	 * [lexers][A_Lexer].  Non-Latin1 characters (i.e., with codepoints ≥ 256)
 	 * are tracked separately in [nonLatin1Lexers].
 	 *
@@ -124,7 +124,7 @@ constructor(
 	private val latin1ApplicableLexers = AtomicReferenceArray<A_Tuple>(256)
 
 	/**
-	 * A [ConcurrentHashMap] from non-Latin-1 codepoint (i.e., ≥ 256) to the
+	 * A [java.util.concurrent.ConcurrentHashMap] from non-Latin-1 codepoint (i.e., ≥ 256) to the
 	 * tuple of lexers that should run when that character is encountered at a
 	 * lexing point.
 	 */
@@ -156,7 +156,7 @@ constructor(
 		val module: A_Module = lexer.definitionModule
 		if (module.notNil)
 		{
-			if (module.moduleState == Loading)
+			if (module.moduleState == ModuleDescriptor.State.Loading)
 			{
 				module.addLexer(lexer)
 			}
@@ -189,7 +189,7 @@ constructor(
 	 * *may* invoke the continuation synchronously for performance.
 	 *
 	 * @param lexingState
-	 *   The [LexingState] at which the lexical scanning is happening.
+	 *   The [avail.compiler.scanning.LexingState] at which the lexical scanning is happening.
 	 * @param codePoint
 	 *   The full Unicode code point in the range 0..1,114,111.
 	 * @param continuation
@@ -316,27 +316,29 @@ constructor(
 		var countdown = undecidedLexers.size
 		if (countdown == 0)
 		{
-			continuation(setFromCollection(applicableLexers), emptyMap())
+			continuation(SetDescriptor.setFromCollection(applicableLexers), emptyMap())
 			return
 		}
 		// Initially use the immutable emptyMap for the failureMap, but
 		// replace it if/when the first error happens.
-		val argsList = listOf(fromCodePoint(codePoint))
+		val argsList = listOf(CharacterDescriptor.fromCodePoint(codePoint))
 		val compilationContext = lexingState.compilationContext
 		val loader = compilationContext.loader
 		val joinLock = ReentrantLock()
 		val failureMap = mutableMapOf<A_Lexer, Throwable>()
 		val fibers = undecidedLexers.map { lexer ->
-			val fiber = newLoaderFiber(booleanType, loader)
-			{
-				formatString(
-					"Lexer filter %s for U+%04x in %s",
-					lexer.lexerMethod.chooseBundle(loader.module)
-						.message.atomName,
-					codePoint,
-					moduleNameProducer())
-			}.apply {
-				setGeneralFlag(IS_LEXER)
+			val fiber = FiberDescriptor
+				.newLoaderFiber(EnumerationTypeDescriptor.booleanType, loader)
+				{
+					StringDescriptor.formatString(
+						"Lexer filter %s for U+%04x in %s",
+						lexer.lexerMethod.chooseBundle(loader.module)
+							.message.atomName,
+						codePoint,
+						moduleNameProducer())
+				}
+				.apply {
+				setGeneralFlag(FiberDescriptor.GeneralFlag.IS_LEXER)
 			}
 			lexingState.setFiberContinuationsTrackingWork(
 				fiber,
@@ -361,7 +363,7 @@ constructor(
 					{
 						// This was the fiber reporting the last result.
 						continuation(
-							setFromCollection(applicableLexers), failureMap)
+							SetDescriptor.setFromCollection(applicableLexers), failureMap)
 					}
 				},
 				{ throwable: Throwable ->
@@ -376,7 +378,7 @@ constructor(
 						// This was the fiber reporting the last result (a fiber
 						// failure).
 						continuation(
-							setFromCollection(applicableLexers), failureMap)
+							SetDescriptor.setFromCollection(applicableLexers), failureMap)
 					}
 				})
 			fiber

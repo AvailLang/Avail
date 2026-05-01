@@ -36,17 +36,19 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Is the specified [atom][A_Atom] a canonical method name?
@@ -54,23 +56,25 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
+object P_IsCanonicalMessage : Primitive1(CannotFail, CanInline, CanFold)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
+		val name = arg1
 		return try
 		{
 			// Ignore the return value. We just want to see if the name is
 			// canonical; attempting to create the bundle and its associated
 			// MessageSplitter should suffice.
 			name.bundleOrCreate()
-			interpreter.primitiveSuccess(trueObject)
+			trueObject
 		}
 		catch (e: MalformedMessageException)
 		{
-			interpreter.primitiveSuccess(falseObject)
+			falseObject
 		}
 
 	}

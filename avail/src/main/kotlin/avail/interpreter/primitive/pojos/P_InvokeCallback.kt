@@ -33,22 +33,21 @@ package avail.interpreter.primitive.pojos
 
 import avail.CallbackSystem
 import avail.CallbackSystem.Callback
-import avail.CallbackSystem.CallbackCompletion
-import avail.CallbackSystem.CallbackFailure
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.PrimitiveN
 
 /**
  * **Primitive:** Given zero or more arguments, invoke the [Callback] that's in
@@ -63,35 +62,29 @@ import avail.interpreter.levelOne.L1InstructionWriter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_InvokeCallback : Primitive(-1, Private, CanSuspend, HasSideEffect)
+object P_InvokeCallback : PrimitiveN(-1, Private, CanSuspend, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		val primitiveFunction = interpreter.function!!
 		assert(primitiveFunction.code().codePrimitive() === this)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
-		val argumentsTuple = tupleFromList(interpreter.argsBuffer)
+		val argumentsTuple = tupleFromArray(*args)
 		return interpreter.suspendThen {
 			interpreter.runtime.callbackSystem().executeCallbackTask(
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
-				object: CallbackCompletion {
-					override fun complete(result: A_BasicObject)
-					{
-						succeed(result.makeShared())
-					}
-				},
-				object: CallbackFailure
-				{
-					override fun failed(throwable: Throwable)
-					{
-						fail(
-							newPojo(
-								identityPojo(throwable),
-								pojoTypeForClass(throwable.javaClass)
-							).makeShared())
-					}
+				completion = ::succeed,
+				failure = { throwable: Throwable ->
+					fail(
+						newPojo(
+							identityPojo(throwable),
+							pojoTypeForClass(throwable.javaClass)
+						).makeShared())
 				})
 		}
 	}

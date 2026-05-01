@@ -31,19 +31,42 @@
  */
 package avail.interpreter.primitive.controlflow
 
+import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.stackDumpAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
+import avail.descriptor.variables.A_Variable.Companion.value
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.debugL2
+import avail.interpreter.execution.Interpreter.Companion.log
+import avail.interpreter.execution.Interpreter.Companion.loggerDebugPrimitives
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.controlflow.P_CatchException.handlerSentinel
+import avail.optimizer.StackReifier
+import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
+import java.util.logging.Level
 
 /**
  * **Primitive:** Raise an exception. Scan the stack of
@@ -58,25 +81,171 @@ import avail.interpreter.execution.Interpreter
  * exception).
  */
 @Suppress("unused")
-object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
+object P_RaiseException : Primitive1(CanSuspend, CanSwitchContinuations)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val exception = interpreter.argument(0)
+		val exception = arg1
 
-		// The call stack should have been reified before invoking this
-		// primitive.
-		assert(interpreter.unreifiedCallDepth() == 0)
+		val raiseFunction = interpreter.function!!
+		assert(raiseFunction.code().codePrimitive() == P_RaiseException)
 
-		// Attach the current continuation to the exception, so that a stack
-		// dump can be obtained later.
-		val newException = exception.fieldAtPuttingCanDestroy(
-			stackDumpAtom,
-			interpreter.getReifiedContinuation()!!.makeImmutable(),
-			false)
-		// Search for an applicable exception handler, and invoke it if found.
-		return interpreter.searchForExceptionHandler(newException)
+		interpreter.currentReifier = StackReifier(
+			true,
+			reificationForNoninlineStat!!
+		) {
+			// The call stack must have been reified now.
+			assert(interpreter.callerIsReified())
+
+			// Attach the current continuation to the exception, so that a stack
+			// dump can be obtained later.
+			val newException = exception.fieldAtPuttingCanDestroy(
+				stackDumpAtom,
+				interpreter.getReifiedContinuation()!!.makeImmutable(),
+				false)
+			// Search for an applicable exception handler, leaving the
+			// interpreter in a state from which it can continue after this
+			// post-reification is done.
+			if (!interpreter.searchForExceptionHandler(newException))
+			{
+				// Search failed, so fail the primitive.
+				val chunk = raiseFunction.code().startingChunk
+				interpreter.function = raiseFunction
+				interpreter.chunk = chunk
+				interpreter.offset = chunk.offsetAfterInitialTryPrimitive
+				// The exception itself is the failure value.
+				interpreter.setLatestResult(newException)
+				// Set up the argument as well.
+				interpreter.argsBuffer.run {
+					assert(size == 1)
+					set(0, arg1)
+				}
+			}
+			CONTINUE_FIBER
+		}
+		return null
+	}
+
+
+	/**
+	 * Raise an exception. Scan the stack of continuations (which must have been
+	 * reified already) until one is found for a function whose code specifies
+	 * [P_CatchException]. Get that continuation's second argument (a handler
+	 * block of one argument), and check if that handler block will accept the
+	 * exceptionValue. If not, keep looking. If it accepts it, unwind the
+	 * continuation stack so that the primitive catch method is the top entry,
+	 * and invoke the handler block with exceptionValue. If there is no suitable
+	 * handler block, fail the primitive.
+	 *
+	 * Note: Don't do either invocation directly here – set it up so that the
+	 * [run] loop will be able to invoke either the handler block or the failure
+	 * code, once reification has complete.
+	 *
+	 * @param exceptionValue
+	 *   The exception object being raised.
+	 */
+	private fun Interpreter.searchForExceptionHandler(
+		exceptionValue: AvailObject
+	): Boolean
+	{
+		assert(callerIsReified())
+		var continuation: A_Continuation = getReifiedContinuation()!!
+		var depth = 0
+		while (continuation.notNil)
+		{
+			val code = continuation.function.code()
+			if (code.codePrimitive() == P_CatchException)
+			{
+				assert(code.numArgs() == 3)
+				assert(code.numLocals > 0)
+				// The frame layout is:
+				//   1. arg: body
+				//   2. arg: handlers
+				//   3. arg: unwind
+				//   4. first local variable: guardVariable
+				//   [...potentially other variables...]
+				//   ≥5. first local slot: primitive failure slot
+				// Note that even though variable elision postpones the creation
+				// of the variable in slot (≥)5, by the time we're searching the
+				// stack, the frames have become immutable, which forces the
+				// variables to be created (and affected frames to jump to L1
+				// interpretation).
+				val stateVariable: A_Variable = continuation.frameAt(
+					P_CatchException.slotIndexOfGuardVariable)
+				val state = stateVariable.value()
+				if (!state.equalsInt(0))
+				{
+					if (debugL2)
+					{
+						log(
+							loggerDebugPrimitives,
+							Level.FINER,
+							"{0}Skip catch at depth {1} with state {2}",
+							debugModeString,
+							depth,
+							state)
+					}
+				}
+				else
+				{
+					// Scan a currently unmarked frame.
+					val handlerTuple: A_Tuple = continuation.frameAt(
+						P_CatchException.slotIndexOfHandlersTuple)
+					assert(handlerTuple.isTuple)
+					for (handler in handlerTuple)
+					{
+						if (exceptionValue.isInstanceOf(
+								handler.kind().argsTupleType.typeAtIndex(1)))
+						{
+							if (debugL2)
+							{
+								log(
+									loggerDebugPrimitives,
+									Level.FINER,
+									"{0}Raised (->handler) at depth {1}",
+									debugModeString,
+									depth)
+							}
+							// Mark this frame: we don't want it to handle an
+							// exception raised from within one of its handlers.
+							stateVariable.setValueNoCheck(handlerSentinel)
+							// Run the handler.  Since the JVM stack has been
+							// fully reified, simply jump into the chunk.  Note
+							// that the argsBuffer was already set up with just
+							// the exceptionValue.
+							setReifiedContinuation(continuation)
+							clearLatestResult()
+							function = handler
+							chunk = handler.code().startingChunk
+							assert(chunk!!.isValid)
+							offset = 0
+							// Replace the contents of the argument buffer with
+							// "exceptionValue", an exception augmented with
+							// stack information.
+							assert(argsBuffer.size == 1)
+							argsBuffer[0] = exceptionValue
+							return true
+						}
+					}
+				}
+			}
+			continuation = continuation.caller
+			depth++
+		}
+		if (debugL2)
+		{
+			log(
+				loggerDebugPrimitives,
+				Level.FINER,
+				"{0}Handler not found (max depth {1})",
+				debugModeString,
+				depth)
+		}
+		// Ro handler was found, so fail the primitive.
+		return false
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

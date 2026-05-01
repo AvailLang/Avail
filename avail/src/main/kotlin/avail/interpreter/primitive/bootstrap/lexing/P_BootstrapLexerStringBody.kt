@@ -40,6 +40,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
@@ -51,12 +53,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.style.P_BootstrapLexerStringBodyStyler
 
 /**
@@ -67,16 +69,18 @@ import avail.interpreter.primitive.style.P_BootstrapLexerStringBodyStyler
  */
 @Suppress("unused")
 object P_BootstrapLexerStringBody
-	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+	: Primitive3(CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val source = interpreter.argument(0)
-		val sourcePositionInteger = interpreter.argument(1)
-		val lineNumberInteger = interpreter.argument(2)
+		val source = arg1
+		val sourcePositionInteger = arg2
+		val lineNumberInteger = arg3
 
 		val startPosition = sourcePositionInteger.extractInt
 		val startLineNumber = lineNumberInteger.extractInt
@@ -86,12 +90,12 @@ object P_BootstrapLexerStringBody
 			startPosition,
 			startLineNumber,
 			interpreter.fiber().currentLexer)
-		return interpreter.primitiveSuccess(set(tuple(token)))
+		return set(tuple(token))
 	}
 
 	/**
-	 * Attempt to parse string from the given string, starting at the given
-	 * position, and treating it as starting at the given line number.
+	 * Attempt to parse a quoted string from the given source code, starting at
+	 * the given position, and treating it as starting at the given line number.
 	 *
 	 * @param source
 	 *   The source to parse a string literal from.

@@ -36,19 +36,21 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.DefinitionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer a [set][SetDescriptor] of all currently defined
@@ -58,16 +60,17 @@ import avail.interpreter.execution.Interpreter
  * forward signatures.
  */
 @Suppress("unused")
-object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
+object P_BundleSignatures : Primitive1(CannotFail, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val bundle = interpreter.argument(0)
+		val bundle = arg1
 		val method = bundle.bundleMethod
 		val definitions = method.definitionsTuple.asSet
-		definitions.makeImmutable()
-		return interpreter.primitiveSuccess(definitions)
+		return definitions.makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

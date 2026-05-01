@@ -35,6 +35,8 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -44,10 +46,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -59,29 +61,28 @@ import java.io.RandomAccessFile
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileSize : Primitive(1, CanInline, HasSideEffect)
+object P_FileSize : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
+		val atom = arg1
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			return interpreter.fail(E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
-		val fileSize: Long =
-			try
-			{
-				handle.channel.size()
-			}
-			catch (e: IOException)
-			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
-			}
-
-		return interpreter.primitiveSuccess(fromLong(fileSize))
+		return try
+		{
+			fromLong(handle.channel.size())
+		}
+		catch (e: IOException)
+		{
+			interpreter.fail(E_IO_ERROR)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -36,6 +36,8 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -45,9 +47,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_REJECTION
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.interpreter.primitive.Primitive2
 
 /**
  * **Primitive:** Reject current macro substitution with the specified one-based
@@ -56,21 +58,26 @@ import avail.interpreter.execution.Interpreter
  * zero-based to use [ParseNotificationLevel.levelFromInt].
  */
 @Suppress("unused")
-object P_RejectParsing : Primitive(2, Unknown)
+object P_RejectParsing : Primitive2(Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
+		val oneBasedRejectionLevel = arg1
+		val rejectionString = arg2
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
-			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION)
+			return interpreter.fail(E_UNTIMELY_PARSE_REJECTION)
 		}
-		val oneBasedRejectionLevel = interpreter.argument(0)
-		val rejectionString = interpreter.argument(1)
-		throw AvailRejectedParseException(
-			ParseNotificationLevel.levelFromInt(
-				oneBasedRejectionLevel.extractInt - 1),
-			rejectionString)
+		return interpreter.reifyForPrimitive(false) {
+			throw AvailRejectedParseException(
+				ParseNotificationLevel.levelFromInt(
+					oneBasedRejectionLevel.extractInt - 1),
+				rejectionString)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

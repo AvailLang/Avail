@@ -32,40 +32,41 @@
 
 package avail.interpreter.primitive.pojos
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.contentType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import java.lang.reflect.Array
 
 /**
  * **Primitive:** Convert the specified
- * [pojo&#32;array][PojoTypeDescriptor.mostGeneralPojoArrayType] to a
- * [tuple][A_Tuple].
+ * [pojo&#32;array][mostGeneralPojoArrayType] to a [tuple][A_Tuple].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateTupleFromPojoArray : Primitive(
-	1, CanInline, CannotFail, HasSideEffect)
+object P_CreateTupleFromPojoArray : Primitive1(CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val array = interpreter.argument(0)
+		val array = arg1
 		// Hold a lock on the array while accessing it.
-		val tuple = array.lock {
+		return array.lock {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()
 			generateObjectTupleFrom(Array.getLength(rawArray)) {
 				unmarshal(
@@ -73,7 +74,6 @@ object P_CreateTupleFromPojoArray : Primitive(
 					array.kind().contentType)
 			}
 		}
-		return interpreter.primitiveSuccess(tuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

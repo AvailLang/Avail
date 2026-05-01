@@ -46,6 +46,8 @@ import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -56,11 +58,11 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * The [P_BootstrapAssignmentStatementCheckMacro] primitive is used for checking
@@ -72,16 +74,17 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapAssignmentStatementCheckMacro
-	: Primitive(1, CannotFail, CanInline, Bootstrap)
+	: Primitive1(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variableNameLiteral = interpreter.argument(0)
-
+		val variableNameLiteral = arg1
 		val loader =
 			interpreter.fiber().availLoader
-				?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+				?: return interpreter.fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -121,7 +124,7 @@ object P_BootstrapAssignmentStatementCheckMacro
 					declaration.declarationKind().nativeKindName())
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

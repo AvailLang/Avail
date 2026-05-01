@@ -34,31 +34,34 @@ package avail.interpreter.primitive.methods
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.DefinitionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer this [definition's][DefinitionDescriptor]
  * [body][FunctionDescriptor]'s [type][FunctionTypeDescriptor].
  */
 @Suppress("unused")
-object P_DefinitionBodySignature : Primitive(1, CannotFail, CanFold, CanInline)
+object P_DefinitionBodySignature : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val definition = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			definition.bodySignature().makeImmutable())
+		val definition = arg1
+		return definition.bodySignature().makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -38,6 +38,8 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.keyType
@@ -53,11 +55,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Answer a new [map][MapDescriptor] like the given map, but also
@@ -65,14 +67,19 @@ import avail.interpreter.execution.Interpreter
  * if the key is already present.
  */
 @Suppress("unused")
-object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
+object P_MapReplacingKey : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val (map, key, value) = interpreter.argsBuffer
-		return interpreter.primitiveSuccess(
-			map.mapAtPuttingCanDestroy(key, value, true))
+		val map = arg1
+		val key = arg2
+		val value= arg3
+		return map.mapAtPuttingCanDestroy(key, value, true)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

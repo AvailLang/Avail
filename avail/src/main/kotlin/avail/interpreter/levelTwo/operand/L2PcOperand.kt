@@ -42,8 +42,6 @@ import avail.exceptions.unsupported
 import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
@@ -57,6 +55,8 @@ import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Entity
 import avail.optimizer.L2GeneratorInterface
@@ -339,12 +339,12 @@ constructor (
 	 *
 	 * @receiver
 	 *   The [JVMTranslator] in which to record the saved register dump.
-	 * @param fallbackChunkEntry
-	 *   The [ChunkEntryPoint] to jump to in the [unoptimizedChunk] if the
+	 * @param fallbackDefaultEntryPoint
+	 *   The [DefaultEntryPoint] to jump to in the [DefaultL1Chunk] if the
 	 *   continuation becomes immutable or shared and later resumed.
 	 */
 	fun JVMTranslator.createAndPushRegisterDump(
-		fallbackChunkEntry: ChunkEntryPoint)
+		fallbackDefaultEntryPoint: DefaultEntryPoint)
 	{
 		// Capture both the constant L2 offset of the target, and a register
 		// dump containing the state of all live registers.  A subsequent
@@ -395,14 +395,15 @@ constructor (
 			// also the case that there are no saved values that would be used
 			// to initialize new variables if the continuation becomes immutable
 			// or shared.
-			loadLiteralObject(emptyRegisterDump(fallbackChunkEntry))
+			loadLiteralObject(
+				emptyRegisterDump(fallbackDefaultEntryPoint.offset()))
 			return
 		}
 		// The stack is now AvailObject[], long[].  At least one of the arrays
 		// is non-empty.  Create the encoded tuple of local/source info for
 		// initializing variables.  See ENCODED_ELIDED_LOCALS in
 		// RegisterDumpDescriptor.
-		loadLiteralObject(fallbackChunkEntry)
+		loadLiteralObject(fallbackDefaultEntryPoint.offset())
 		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
 		{
 			// This is a real continuation that can become immutable or shared,

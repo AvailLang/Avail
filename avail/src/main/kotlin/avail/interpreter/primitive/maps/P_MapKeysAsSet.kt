@@ -34,6 +34,8 @@ package avail.interpreter.primitive.maps
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -43,24 +45,26 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the keys of this [map][MapDescriptor] as a
  * [set][SetDescriptor].
  */
 @Suppress("unused")
-object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
+object P_MapKeysAsSet : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val map = interpreter.argument(0)
-		return interpreter.primitiveSuccess(map.keysAsSet)
+		val map = arg1
+		return map.keysAsSet
 	}
 
 	override fun returnTypeGuaranteedByVM(

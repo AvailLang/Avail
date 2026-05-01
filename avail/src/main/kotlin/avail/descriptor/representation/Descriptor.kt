@@ -34,6 +34,7 @@ package avail.descriptor.representation
 import avail.AvailDebuggerModel
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
+import avail.compiler.LexicalScanner
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.ParsingOperation
@@ -104,12 +105,10 @@ import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.exceptions.unsupported
-import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.primitive.Primitive
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.persistence.cache.record.NamesIndex
@@ -1086,8 +1085,6 @@ protected constructor (
 
 	override fun o_IsInstanceMeta (self: AvailObject): Boolean = false
 
-	override fun o_IsMethodDefinition (self: AvailObject): Boolean = unsupported
-
 	override fun o_IsPlaceholderVariable(self: AvailObject): Boolean = false
 
 	override fun o_IsPositive (self: AvailObject): Boolean = unsupported
@@ -1410,8 +1407,6 @@ protected constructor (
 	override fun o_IsBoolean (self: AvailObject) = false
 
 	override fun o_IsByteTuple (self: AvailObject) = false
-
-	override fun o_IsCharacter (self: AvailObject) = false
 
 	override fun o_IsIntTuple (self: AvailObject) = false
 
@@ -2690,7 +2685,7 @@ protected constructor (
 
 	override fun o_FallbackEntryPoint(
 		self: AvailObject
-	): ChunkEntryPoint = unsupported
+	): Int = unsupported
 
 	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler): Unit =
 		unsupported

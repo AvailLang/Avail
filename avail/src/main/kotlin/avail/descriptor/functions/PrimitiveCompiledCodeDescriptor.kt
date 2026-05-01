@@ -54,11 +54,10 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
-import avail.interpreter.Primitive
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.primitive.Primitive
 
 /**
  * This is a special case of a [CompiledCodeDescriptor] that specifies a
@@ -74,8 +73,8 @@ import avail.interpreter.levelTwo.L2Chunk
  *   for normal instances.
  * @param primitive
  *   The [Primitive] that should run when this code is invoked. If the primitive
- *   [fails][Interpreter.primitiveFailure], this [A_RawFunction]'s nybblecodes
- *   will be executed instead, as determined by the current [L2Chunk].
+ *   fails, this [A_RawFunction]'s nybblecodes will be executed instead, as
+ *   determined by the current [L2Chunk].
  * @param returnTypeIfPrimitiveFails
  *   The type that will be returned by the nybblecodes, if they run.
  * @param module

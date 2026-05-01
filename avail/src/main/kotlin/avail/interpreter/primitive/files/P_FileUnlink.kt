@@ -32,6 +32,8 @@
 package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -48,10 +50,10 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PARTIAL_SUCCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive4
 import avail.io.IOSystem
 import avail.utility.Mutable
 import java.io.IOException
@@ -72,15 +74,20 @@ import java.util.EnumSet
  * **Primitive:** Unlink the specified [path][Path] from the file system.
  */
 @Suppress("unused")
-object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
+object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt4(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(4)
-		val recursive = interpreter.argument(0)
-		val filename = interpreter.argument(1)
-		val requireExistence = interpreter.argument(2)
-		val followSymlinks = interpreter.argument(3)
+		val recursive = arg1
+		val filename = arg2
+		val requireExistence = arg3
+		val followSymlinks = arg4
 		val path: Path =
 			try
 			{
@@ -88,7 +95,7 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return interpreter.primitiveFailure(E_INVALID_PATH)
+				return interpreter.fail(E_INVALID_PATH)
 			}
 
 		// Unless the unlink should be recursive, then try unlinking the target
@@ -108,28 +115,28 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: AccessDeniedException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: NoSuchFileException)
 			{
-				return interpreter.primitiveFailure(E_NO_FILE)
+				return interpreter.fail(E_NO_FILE)
 			}
 			catch (e: DirectoryNotEmptyException)
 			{
-				return interpreter.primitiveFailure(E_DIRECTORY_NOT_EMPTY)
+				return interpreter.fail(E_DIRECTORY_NOT_EMPTY)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
+				return interpreter.fail(E_IO_ERROR)
 			}
-
 		}
 		else
 		{
+			// Otherwise, perform a recursive unlink.
 			val visitOptions =
 				if (followSymlinks.extractBoolean)
 				{
@@ -193,20 +200,19 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 					})
 				if (partialSuccess.value)
 				{
-					return interpreter.primitiveFailure(E_PARTIAL_SUCCESS)
+					return interpreter.fail(E_PARTIAL_SUCCESS)
 				}
 			}
 			catch (e: SecurityException)
 			{
-				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+				return interpreter.fail(E_PERMISSION_DENIED)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
+				return interpreter.fail(E_IO_ERROR)
 			}
-
-		}// Otherwise, perform a recursive unlink.
-		return interpreter.primitiveSuccess(nil)
+		}
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

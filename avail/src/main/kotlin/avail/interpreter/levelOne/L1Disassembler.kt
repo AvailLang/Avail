@@ -136,8 +136,7 @@ class L1Disassembler constructor(
 		val encodedDeltas = code.lineNumberEncodedDeltas
 		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
-		code.setUpInstructionDecoder(this@with)
-		pc = 1
+		code.setUpInstructionDecoder(this, 1)
 		while (!atEnd())
 		{
 			// Track the line number change from this operation.

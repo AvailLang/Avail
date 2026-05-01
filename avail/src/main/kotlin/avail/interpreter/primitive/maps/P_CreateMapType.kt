@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.maps
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -40,27 +42,30 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Answer a [map][MapTypeDescriptor] with the given type
  * constraints.
  */
 @Suppress("unused")
-object P_CreateMapType : Primitive(3, CannotFail, CanFold, CanInline)
+object P_CreateMapType : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val keyType = interpreter.argument(0)
-		val valueType = interpreter.argument(1)
-		val sizes = interpreter.argument(2)
-		return interpreter.primitiveSuccess(
-			mapTypeForSizesKeyTypeValueType(sizes, keyType, valueType))
+		val keyType = arg1
+		val valueType = arg2
+		val sizes = arg3
+		return mapTypeForSizesKeyTypeValueType(sizes, keyType, valueType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

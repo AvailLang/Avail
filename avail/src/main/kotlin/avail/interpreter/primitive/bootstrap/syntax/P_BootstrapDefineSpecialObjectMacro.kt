@@ -49,6 +49,8 @@ import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -63,10 +65,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapDefineSpecialObjectMacroStyler
 
 /**
@@ -77,18 +79,21 @@ import avail.interpreter.primitive.style.P_BootstrapDefineSpecialObjectMacroStyl
  */
 @Suppress("unused")
 object P_BootstrapDefineSpecialObjectMacro
-	: Primitive(2, Bootstrap, CanInline)
+	: Primitive2(Bootstrap, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val nameLiteral = interpreter.argument(0)
-		val specialObjectLiteral = interpreter.argument(1)
+		val nameLiteral = arg1
+		val specialObjectLiteral = arg2
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		}
 		val bundle: A_Bundle =
 			try
@@ -97,11 +102,11 @@ object P_BootstrapDefineSpecialObjectMacro
 			}
 			catch (e: AmbiguousNameException)
 			{
-				return interpreter.primitiveFailure(e)
+				return interpreter.fail(e.errorCode)
 			}
 			catch (e: MalformedMessageException)
 			{
-				return interpreter.primitiveFailure(e)
+				return interpreter.fail(e.errorCode)
 			}
 
 		// Create a send of the bootstrap method definer that, when actually
@@ -172,11 +177,10 @@ object P_BootstrapDefineSpecialObjectMacro
 							specialObjectLiteral.token.lineNumber()),
 						emptyListNode())),
 				TOP())
-		return interpreter.primitiveSuccess(
-			newSequence(
-				tuple(
-					newExpressionAsStatement(defineMethod),
-					newExpressionAsStatement(defineMacro))))
+		return newSequence(
+			tuple(
+				newExpressionAsStatement(defineMethod),
+				newExpressionAsStatement(defineMacro)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

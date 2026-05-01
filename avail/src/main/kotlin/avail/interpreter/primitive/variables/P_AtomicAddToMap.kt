@@ -35,6 +35,8 @@ package avail.interpreter.primitive.variables
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -60,13 +62,13 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Atomically read and update the map in the specified
@@ -75,29 +77,34 @@ import avail.interpreter.levelTwoSimple.L2SimpleTranslator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
-	override fun attempt(interpreter: Interpreter): Result {
-		interpreter.checkArgumentCount(3)
-		val variable = interpreter.argument(0)
-		val key = interpreter.argument(1)
-		val value = interpreter.argument(2)
+object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
+	{
+		val variable = arg1
+		val key = arg2
+		val value = arg3
 		try
 		{
 			variable.atomicAddToMap(key, value)
 		}
 		catch (e: VariableGetException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_TO_MAP_VARIABLE, variable, key, value))
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/**
@@ -110,7 +117,7 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type
-	): ((Interpreter)->Result)?
+	): ((Interpreter)->A_BasicObject?)?
 	{
 		val variableType = argRestrictions[0].type
 		val keyType = argRestrictions[1].type
@@ -127,15 +134,15 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 			val (variable, newKey, newValue) = interpreter.argsBuffer
 			try {
 				variable.atomicAddToMapNoCheck(newKey, newValue)
-				interpreter.primitiveSuccess(nil)
+				nil
 			}
 			catch (e: VariableGetException)
 			{
-				interpreter.primitiveFailure(e)
+				interpreter.fail(e.errorCode)
 			}
 			catch (e: VariableSetException)
 			{
-				interpreter.primitiveFailure(e)
+				interpreter.fail(e.errorCode)
 			}
 		}
 	}

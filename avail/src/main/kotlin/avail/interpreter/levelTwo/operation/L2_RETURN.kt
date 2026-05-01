@@ -75,21 +75,8 @@ class L2_RETURN(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: interpreter.setLatestResult(value);
-		loadInterpreter()
-		method.visitInsn(Opcodes.DUP)
+		// :: return returnValue
 		load(returnValue)
-		generateCall(Interpreter.setLatestResultMethod)
-		// :: interpreter.returnNow = true;
-		method.visitInsn(Opcodes.DUP)
-		intConstant(1)
-		store(Interpreter.returnNowField)
-		// interpreter.returningFunction = interpreter.function;
-		method.visitInsn(Opcodes.DUP)
-		load(Interpreter.interpreterFunctionField)
-		store(Interpreter.interpreterReturningFunctionField)
-		// :: return null;
-		method.visitInsn(Opcodes.ACONST_NULL)
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }

@@ -33,10 +33,19 @@ package avail.optimizer.jvm
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import avail.optimizer.jvm.JVMChunk.Companion.badOffset
+import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray1
+import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray2
+import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray3
+import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray4
+import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray5
+import avail.optimizer.jvm.JVMChunk.Companion.noLongs
+import avail.optimizer.jvm.JVMChunk.Companion.noObjects
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -71,7 +80,9 @@ constructor() : ExecutableChunk
 		get () = try
 		{
 			val cl: Class<out JVMChunk?> = javaClass
-			val m = cl.getMethod("runChunk", Interpreter::class.java)
+			val m = cl.getMethod(
+				ExecutableChunk::runChunk.name,
+				Interpreter::class.java)
 			val an = m.getAnnotation(JVMChunkL1Source::class.java)
 			val bytes = Files.readAllBytes(Paths.get(an.sourcePath))
 			val buffer =
@@ -92,7 +103,9 @@ constructor() : ExecutableChunk
 		get () = try
 		{
 			val cl: Class<out JVMChunk?> = javaClass
-			val m = cl.getMethod("runChunk", Interpreter::class.java)
+			val m = cl.getMethod(
+				ExecutableChunk::runChunk.name,
+				Interpreter::class.java)
 			val an = m.getAnnotation(JVMChunkL2Source::class.java)
 			val bytes = Files.readAllBytes(Paths.get(an.sourcePath))
 			val buffer =
@@ -241,7 +254,7 @@ constructor() : ExecutableChunk
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun badOffset(offset: Int): RuntimeException
+		fun badOffset(offset: Int): Nothing
 		{
 			throw RuntimeException("bad offset $offset")
 		}

@@ -32,6 +32,8 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor
@@ -39,11 +41,11 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Create a [fiber&#32;type][FiberTypeDescriptor] whose result
@@ -52,13 +54,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateFiberType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CreateFiberType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val resultType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fiberType(resultType))
+		val resultType = arg1
+		return fiberType(resultType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

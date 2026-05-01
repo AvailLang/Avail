@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.general
 
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -39,10 +40,10 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 import org.availlang.json.JSONWriter
 
 /**
@@ -51,16 +52,17 @@ import org.availlang.json.JSONWriter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ToJSON : Primitive(1, CanInline, CannotFail)
+object P_ToJSON : Primitive1(CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val value = interpreter.argument(0)
+		val value = arg1
 		val writer = JSONWriter()
 		value.writeTo(writer)
-		val json = stringFrom(writer.toString())
-		return interpreter.primitiveSuccess(json)
+		return stringFrom(writer.toString())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

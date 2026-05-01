@@ -41,6 +41,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -51,11 +53,11 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Disassociate the given [name][AtomDescriptor] (key) from the
@@ -64,16 +66,17 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveFiberVariable : Primitive(
-	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_RemoveFiberVariable : Primitive1(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val key = interpreter.argument(0)
+		val key = arg1
 		if (key.isAtomSpecial)
 		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
+			return interpreter.fail(E_SPECIAL_ATOM)
 		}
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
@@ -85,7 +88,7 @@ object P_RemoveFiberVariable : Primitive(
 		}
 		if (!globals.hasKey(key))
 		{
-			return interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
+			return interpreter.fail(E_NO_SUCH_FIBER_VARIABLE)
 		}
 		if (heritable)
 		{
@@ -96,7 +99,7 @@ object P_RemoveFiberVariable : Primitive(
 		{
 			fiber.fiberGlobals = globals.mapWithoutKeyCanDestroy(key, true)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

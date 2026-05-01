@@ -34,39 +34,41 @@ package avail.interpreter.primitive.maps
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Answer the bindings of this [map][MapDescriptor] as a
  * [tuple][TupleDescriptor] of 2-tuples of key and value.
  */
 @Suppress("unused")
-object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
+object P_MapBindings : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val map = interpreter.argument(0)
-
+		val map = arg1
 		val iterator = map.mapIterable.iterator()
-		val bindings = generateObjectTupleFrom(map.mapSize) {
+		return generateObjectTupleFrom(map.mapSize) {
 			val (k, v) = iterator.next()
 			tuple(k, v)
 		}
-		return interpreter.primitiveSuccess(bindings)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

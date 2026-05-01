@@ -41,6 +41,8 @@ import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.cachedSquareOfQuintillion
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.A_String
@@ -49,12 +51,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 
 /**
  * The `P_BootstrapLexerWholeNumberBody` primitive is used for parsing
@@ -64,14 +66,18 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapLexerWholeNumberBody
-	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+	: Primitive3(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val source = interpreter.argument(0)
-		val sourcePositionInteger = interpreter.argument(1)
-		val lineNumberInteger = interpreter.argument(2)
+		val source = arg1
+		val sourcePositionInteger = arg2
+		val lineNumberInteger = arg3
 
 		val startPosition = sourcePositionInteger.extractInt
 		val digitCount = countDigits(source, startPosition)
@@ -85,7 +91,7 @@ object P_BootstrapLexerWholeNumberBody
 			lineNumberInteger.extractInt,
 			number,
 			interpreter.fiber().currentLexer)
-		return interpreter.primitiveSuccess(set(tuple(token)))
+		return set(tuple(token))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type = lexerBodyFunctionType()

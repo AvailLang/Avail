@@ -31,9 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
@@ -48,6 +45,9 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Primitive.Flag
+import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions

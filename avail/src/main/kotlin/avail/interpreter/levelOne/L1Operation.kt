@@ -34,53 +34,51 @@ package avail.interpreter.levelOne
 
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.representation.AbstractDescriptor
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelOne.L1OperandType.IMMEDIATE
 import avail.interpreter.levelOne.L1OperandType.LITERAL
 import avail.interpreter.levelOne.L1OperandType.LOCAL
 import avail.interpreter.levelOne.L1OperandType.OUTER
-import avail.interpreter.levelOne.L1Operation.L1Ext_doDuplicate
-import avail.interpreter.levelOne.L1Operation.L1Ext_doGetLiteral
-import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
-import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
-import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
-import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
-import avail.interpreter.levelOne.L1Operation.L1Ext_doSuperCall
-import avail.interpreter.levelOne.L1Operation.L1_doCall
-import avail.interpreter.levelOne.L1Operation.L1_doClose
-import avail.interpreter.levelOne.L1Operation.L1_doExtension
-import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
-import avail.interpreter.levelOne.L1Operation.L1_doGetLocal
-import avail.interpreter.levelOne.L1Operation.L1_doGetLocalClearing
-import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
-import avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
-import avail.interpreter.levelOne.L1Operation.L1_doPop
-import avail.interpreter.levelOne.L1Operation.L1_doPushLastLocal
-import avail.interpreter.levelOne.L1Operation.L1_doPushLastOuter
-import avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
-import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
-import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
-import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
-import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doDuplicate_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doGetLiteral_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doPermute_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doPushLabel_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doSetLiteral_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doSetLocalSlot_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1Ext_doSuperCall_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doCall_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doClose_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doExtension_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doGetLastOuter_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doGetLocalClearing_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doGetLocal_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doGetOuter_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doMakeTuple_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPop_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLastLocal_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLastOuter_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLiteral_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushLocal_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doPushOuter_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doSetLocal_ord
+import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doSetOuter_ord
 import avail.io.NybbleOutputStream
 
 /**
- * An [L1Operation] is encoded within a [ nybblecode
- * stream][A_RawFunction.nybbles] as an opcode followed by operands.  Opcodes less
- * than 16 are encoded as a single nybble, and the others are represented as the
- * [extension][L1_doExtension] nybble (15), followed by the opcode minus 16.
- * This supports up to 31 distinct nybblecodes, the statically most frequently
- * occurring of which should be assigned to the first 15 values (0-14) for
- * compactness.
+ * An [L1Operation] is encoded within a [nybblecode stream][nybbles] as an
+ * opcode followed by operands.  Opcodes less than 16 are encoded as a single
+ * nybble, and the others are represented as the [extension][L1_doExtension_ord]
+ * nybble (15), followed by the opcode minus 16. This supports up to 31 distinct
+ * nybblecodes, the statically most frequently occurring of which should be
+ * assigned to the first 15 values (0-14) for compactness.
  *
  * The operands are encoded in such a way that very small values occupy a single
  * nybble, but values up to [Integer.MAX_VALUE] are supported efficiently.
@@ -109,8 +107,8 @@ enum class L1Operation constructor(
 	 * Invoke a method.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][A_RawFunction.literalAt], which specifies an [A_Bundle] which
-	 * names a [method][MethodDescriptor] that contains a collection of
+	 * [literals][literalAt], which specifies an [A_Bundle] which names a
+	 * [method][MethodDescriptor] that contains a collection of
 	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
 	 * invoked.  The arguments are expected to already have been pushed. They
 	 * are popped from the stack and the literal specified by the second operand
@@ -167,9 +165,9 @@ enum class L1Operation constructor(
 	},
 
 	/**
-	 * Push an outer variable, i.e. a variable lexically captured by the current
-	 * function.  This should be the last use of the variable, so clear it from
-	 * the function if the function is still mutable.
+	 * Push an outer variable, i.e., a variable lexically captured by the
+	 * current function.  This should be the last use of the variable, so clear
+	 * it from the function if the function is still mutable.
 	 */
 	L1_doPushLastOuter(L1_doPushLastOuter_ord, OUTER)
 	{
@@ -356,13 +354,13 @@ enum class L1Operation constructor(
 	 * Invoke a method with a supercall.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][A_RawFunction.literalAt], which specifies a
+	 * [literals][literalAt], which specifies a
 	 * [message&#32;bundle][MessageBundleDescriptor] that is a particular naming
 	 * of a [method][MethodDescriptor] which itself contains a collection of
 	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
 	 * invoked.  The stack is expected to contain the top-level arguments, from
 	 * which their types will be extracted and assembled into a tuple type,
-	 * which itself will undergo a [A_Type.typeUnion] with this instruction's
+	 * which itself will undergo a [typeUnion] with this instruction's
 	 * third operand, a literal tuple type.  The resulting tuple type (the
 	 * union) will be used to select the method definition to invoke.
 	 *
@@ -434,6 +432,81 @@ enum class L1Operation constructor(
 		}
 	}
 
+	/**
+	 * The collection of ordinals, suffixed with "_ord", for each L1Operation.
+	 */
+	object Ordinals
+	{
+		/** The ordinal for [L1_doCall]. */
+		const val L1_doCall_ord = 0
+
+		/** The ordinal for [L1_doPushLiteral]. */
+		const val L1_doPushLiteral_ord = 1
+
+		/** The ordinal for [L1_doPushLastLocal]. */
+		const val L1_doPushLastLocal_ord = 2
+
+		/** The ordinal for [L1_doPushLocal]. */
+		const val L1_doPushLocal_ord = 3
+
+		/** The ordinal for [L1_doPushLastOuter]. */
+		const val L1_doPushLastOuter_ord = 4
+
+		/** The ordinal for [L1_doClose]. */
+		const val L1_doClose_ord = 5
+
+		/** The ordinal for [L1_doSetLocal]. */
+		const val L1_doSetLocal_ord = 6
+
+		/** The ordinal for [L1_doGetLocalClearing]. */
+		const val L1_doGetLocalClearing_ord = 7
+
+		/** The ordinal for [L1_doPushOuter]. */
+		const val L1_doPushOuter_ord = 8
+
+		/** The ordinal for [L1_doPop]. */
+		const val L1_doPop_ord = 9
+
+		/** The ordinal for [L1_doGetLastOuter]. */
+		const val L1_doGetLastOuter_ord = 10
+
+		/** The ordinal for [L1_doSetOuter]. */
+		const val L1_doSetOuter_ord = 11
+
+		/** The ordinal for [L1_doGetLocal]. */
+		const val L1_doGetLocal_ord = 12
+
+		/** The ordinal for [L1_doMakeTuple]. */
+		const val L1_doMakeTuple_ord = 13
+
+		/** The ordinal for [L1_doGetOuter]. */
+		const val L1_doGetOuter_ord = 14
+
+		/** The ordinal for [L1_doExtension]. */
+		const val L1_doExtension_ord = 15
+
+		/** The ordinal for [L1Ext_doPushLabel]. */
+		const val L1Ext_doPushLabel_ord = 16
+
+		/** The ordinal for [L1Ext_doGetLiteral]. */
+		const val L1Ext_doGetLiteral_ord = 17
+
+		/** The ordinal for [L1Ext_doSetLiteral]. */
+		const val L1Ext_doSetLiteral_ord = 18
+
+		/** The ordinal for [L1Ext_doDuplicate]. */
+		const val L1Ext_doDuplicate_ord = 19
+
+		/** The ordinal for [L1Ext_doPermute]. */
+		const val L1Ext_doPermute_ord = 20
+
+		/** The ordinal for [L1Ext_doSuperCall]. */
+		const val L1Ext_doSuperCall_ord = 21
+
+		/** The ordinal for [L1Ext_doSetLocalSlot]. */
+		const val L1Ext_doSetLocalSlot_ord = 22
+	}
+
 	companion object
 	{
 		/** An array of all [L1Operation] enumeration values. */
@@ -449,75 +522,5 @@ enum class L1Operation constructor(
 		 *  The looked up `L1Operation`.
 		 */
 		fun lookup(ordinal: Int): L1Operation = all[ordinal]
-
 	}
 }
-
-/** The ordinal for [L1_doCall]. */
-const val L1_doCall_ord = 0
-
-/** The ordinal for [L1_doPushLiteral]. */
-const val L1_doPushLiteral_ord = 1
-
-/** The ordinal for [L1_doPushLastLocal]. */
-const val L1_doPushLastLocal_ord = 2
-
-/** The ordinal for [L1_doPushLocal]. */
-const val L1_doPushLocal_ord = 3
-
-/** The ordinal for [L1_doPushLastOuter]. */
-const val L1_doPushLastOuter_ord = 4
-
-/** The ordinal for [L1_doClose]. */
-const val L1_doClose_ord = 5
-
-/** The ordinal for [L1_doSetLocal]. */
-const val L1_doSetLocal_ord = 6
-
-/** The ordinal for [L1_doGetLocalClearing]. */
-const val L1_doGetLocalClearing_ord = 7
-
-/** The ordinal for [L1_doPushOuter]. */
-const val L1_doPushOuter_ord = 8
-
-/** The ordinal for [L1_doPop]. */
-const val L1_doPop_ord = 9
-
-/** The ordinal for [L1_doGetLastOuter]. */
-const val L1_doGetLastOuter_ord = 10
-
-/** The ordinal for [L1_doSetOuter]. */
-const val L1_doSetOuter_ord = 11
-
-/** The ordinal for [L1_doGetLocal]. */
-const val L1_doGetLocal_ord = 12
-
-/** The ordinal for [L1_doMakeTuple]. */
-const val L1_doMakeTuple_ord = 13
-
-/** The ordinal for [L1_doGetOuter]. */
-const val L1_doGetOuter_ord = 14
-
-/** The ordinal for [L1_doExtension]. */
-const val L1_doExtension_ord = 15
-
-/** The ordinal for [L1Ext_doPushLabel]. */
-const val L1Ext_doPushLabel_ord = 16
-
-/** The ordinal for [L1Ext_doGetLiteral]. */
-const val L1Ext_doGetLiteral_ord = 17
-
-/** The ordinal for [L1Ext_doSetLiteral]. */
-const val L1Ext_doSetLiteral_ord = 18
-
-/** The ordinal for [L1Ext_doDuplicate]. */
-const val L1Ext_doDuplicate_ord = 19
-
-/** The ordinal for [L1Ext_doPermute]. */
-const val L1Ext_doPermute_ord = 20
-
-/** The ordinal for [L1Ext_doSuperCall]. */
-const val L1Ext_doSuperCall_ord = 21
-
-/** The ordinal for [L1Ext_doSetLocalSlot]. */
-const val L1Ext_doSetLocalSlot_ord = 22

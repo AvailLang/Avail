@@ -44,6 +44,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -62,11 +64,11 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Fork a new [fiber][FiberDescriptor] to execute the specified
@@ -76,27 +78,32 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ForkOrphan : Primitive(
-	3, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_ForkOrphan : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val (function, argTuple, priority) = interpreter.argsBuffer
+		val function = arg1
+		val argTuple = arg2
+		val priority = arg3
 
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = function.kind().argsTupleType
 		val callArgs = (1 .. numArgs).map {
 			val anArg = argTuple.tupleAt(it)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
 			{
-				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 			anArg.makeShared()
 		}
@@ -124,7 +131,7 @@ object P_ForkOrphan : Primitive(
 		// Schedule the fiber to run the specified function.
 		interpreter.runtime.runOutermostFunction(
 			orphan, function, callArgs, false)
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	/** The function or its arguments could become shared. */

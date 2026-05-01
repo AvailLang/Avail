@@ -45,6 +45,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -67,13 +69,13 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.PrimitiveN
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.utility.cartesianProductForEach
 import avail.utility.parallelMapThen
@@ -115,29 +117,30 @@ import kotlin.math.min
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleMethodStabilityHelper : Primitive(
-	-1, Private, CanSuspend)
+object P_SimpleMethodStabilityHelper : PrimitiveN(-1, Private, CanSuspend)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attemptN(
+		interpreter: Interpreter,
+		args: Array<AvailObject>
+	): A_BasicObject?
 	{
 		val originalFiber = interpreter.fiber()
 		val loader = originalFiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 		}
 		val runtime = interpreter.runtime
 
 		// The arguments are the types at a call site for some foldable
 		// primitive.  Only strengthen the call site (by returning a type other
 		// than ⊤) if each argument is a non-meta enumeration.
-		val arguments = interpreter.argsBuffer.toList()
-		if (arguments.any { !it.isEnumeration || it.isInstanceMeta })
+		if (args.any { !it.isEnumeration || it.isInstanceMeta })
 		{
-			return interpreter.primitiveSuccess(TOP())
+			return TOP()
 		}
 
-		val enumerations = arguments.map { it.instances.makeShared().toList() }
+		val enumerations = args.map { it.instances.makeShared().toList() }
 		val combinationCount = enumerations.fold(1L) { product, list ->
 			min(product * list.size.toLong(), Int.MAX_VALUE.toLong())
 		}.toInt()
@@ -145,13 +148,13 @@ object P_SimpleMethodStabilityHelper : Primitive(
 		{
 			// At least one of the arguments to this semantic restriction body
 			// was ⊥.  It's unclear what leads to this, but simply answer ⊥.
-			return interpreter.primitiveSuccess(bottom)
+			return bottom
 		}
 		assert(combinationCount > 0)
 		// The resulting combination of input types seems too expensive to
 		// compute here.
 		if (combinationCount > MAXIMUM_ENUMERATION_COMBINATIONS)
-			return interpreter.primitiveSuccess(TOP())
+			return TOP()
 
 		// The sole outer is the function to invoke with each combination of
 		// enumerated arguments.

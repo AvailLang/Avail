@@ -39,6 +39,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -52,10 +54,10 @@ import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrOneList
 import avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.Private
+import avail.interpreter.primitive.Primitive3
 
 /**
  * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated with
@@ -67,11 +69,19 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
+object P_ModuleHeaderPrefixCheckImportVersion : Primitive3(Private, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		val allImportsList = interpreter.argument(2)
+		// val moduleName = arg1
+		// val moduleVersion = arg2
+		val allImportsList = arg3
+
 		val lastImport = allImportsList.lastExpression
 		assert(lastImport.expressionsSize == 2)  // extends/uses, then content
 		val lastImportNames = lastImport.expressionAt(2)
@@ -88,20 +98,21 @@ object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
 		for (i in 1 until importVersionsSize)
 		{
 			val oldVersionPhrase = importVersions.expressionAt(i)
-			val oldVersion =
-				oldVersionPhrase.token.literal().literal()
+			val oldVersion = oldVersionPhrase.token.literal().literal()
 			if (lastImportVersionString.equals(oldVersion))
 			{
 				val importModuleName = lastImportNameEntry.expressionAt(1)
-				throw AvailRejectedParseException(
-					STRONG,
-					"imported module ($importModuleName) version specification "
-						+ "$lastImportVersionString to be unique, not a "
-						+ "duplicate (of line "
-						+ "${oldVersionPhrase.token.lineNumber()})")
+				return interpreter.reifyForPrimitive(false) {
+					throw AvailRejectedParseException(
+						STRONG,
+						"imported module ($importModuleName) version " +
+							"specification $lastImportVersionString to be " +
+							"unique, not a duplicate (of line "
+							+ "${oldVersionPhrase.token.lineNumber()})")
+				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

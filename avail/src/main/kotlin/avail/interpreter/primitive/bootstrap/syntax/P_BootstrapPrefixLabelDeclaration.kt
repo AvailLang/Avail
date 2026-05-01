@@ -44,6 +44,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -62,10 +64,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive3
 
 /**
  * The `P_BootstrapPrefixLabelDeclaration` primitive is used for bootstrapping
@@ -76,17 +78,21 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
+object P_BootstrapPrefixLabelDeclaration : Primitive3(CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val optionalBlockArgumentsList = interpreter.argument(0)
-		val optionalPrimFailurePhrase = interpreter.argument(1)
-		val optionalLabelPhrase = interpreter.argument(2)
+		val optionalBlockArgumentsList = arg1
+		val optionalPrimFailurePhrase = arg2
+		val optionalLabelPhrase = arg3
 
 		interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.fail(E_LOADING_IS_OVER)
 
 		// Note that because the section marker occurs inside the optionality
 		// of the label declaration, this function will only be invoked when
@@ -165,7 +171,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				"label declaration ${labelName.string()} to have a name that" +
 					" doesn't shadow an existing $kind (from line $lineNumber)")
 		}
-		return interpreter.primitiveSuccess(nil)
+		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

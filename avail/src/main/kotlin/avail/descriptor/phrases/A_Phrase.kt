@@ -40,6 +40,8 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.module.A_Module
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -58,7 +60,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.variables.A_Variable
-import avail.interpreter.Primitive
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 

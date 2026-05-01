@@ -35,6 +35,8 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -46,17 +48,17 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeRetur
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT
 import avail.exceptions.MarshalingException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import avail.utility.cast
 import java.lang.reflect.Constructor
@@ -78,18 +80,21 @@ import java.util.WeakHashMap
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
+object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
 {
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
 	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt2(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(2)
-		val pojoType = interpreter.argument(0)
-		val paramTypes = interpreter.argument(1)
+		val pojoType = arg1
+		val paramTypes = arg2
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
@@ -102,7 +107,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			val javaClass = marshalDefiningType(pojoType)
 			if (javaClass.modifiers and Modifier.ABSTRACT != 0)
 			{
-				return interpreter.primitiveFailure(E_POJO_TYPE_IS_ABSTRACT)
+				return interpreter.fail(E_POJO_TYPE_IS_ABSTRACT)
 			}
 			val marshaledTypes = marshalTypes(paramTypes)
 			constructor = javaClass.getConstructor(*marshaledTypes)
@@ -111,11 +116,11 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 		}
 		catch (e: MarshalingException)
 		{
-			return interpreter.primitiveFailure(e)
+			return interpreter.fail(e.errorCode)
 		}
 		catch (e: Exception)
 		{
-			return interpreter.primitiveFailure(E_JAVA_METHOD_NOT_AVAILABLE)
+			return interpreter.fail(E_JAVA_METHOD_NOT_AVAILABLE)
 		}
 
 		val functionType = functionType(paramTypes, pojoType)
@@ -130,13 +135,12 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 					zeroOrMoreOf(RAW_POJO()))
 			}
 		}
-		val function = createWithOuters2(
+		return createWithOuters2(
 			rawFunction,
 			// Outer#1 = Constructor to invoke.
 			equalityPojo(constructor),
 			// Outer#2 = Marshaled type parameters.
 			marshaledTypesTuple.cast())
-		return interpreter.primitiveSuccess(function)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

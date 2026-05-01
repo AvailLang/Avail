@@ -35,6 +35,8 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -50,12 +52,12 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CatchException
-import avail.interpreter.Primitive.Flag.PreserveArguments
-import avail.interpreter.Primitive.Flag.PreserveGuardVariable
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CatchException
+import avail.interpreter.primitive.Primitive.Flag.PreserveArguments
+import avail.interpreter.primitive.Primitive.Flag.PreserveGuardVariable
+import avail.interpreter.primitive.Primitive3
 
 /**
  * **Primitive:** Always fail. The Avail failure code invokes the bodyBlock, and
@@ -74,30 +76,29 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CatchException : Primitive(
-	3,
-	CatchException,
-	PreserveGuardVariable,
-	PreserveArguments,
-	CanInline)
+object P_CatchException : Primitive3(
+	CatchException, PreserveGuardVariable, PreserveArguments, CanInline)
 {
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		//val bodyBlock: A_Function = interpreter.argument(0)
-		val handlerBlocks: A_Tuple = interpreter.argument(1)
-		//val ensureBlock: A_Function = interpreter.argument(2)
+		//val bodyBlock: A_Function = arg1
+		val handlerBlocks: A_Tuple = arg2
+		//val ensureBlock: A_Function = arg3
 
 		for (block in handlerBlocks)
 		{
 			if (!block.kind().argsTupleType.typeAtIndex(1).isSubtypeOf(
 					exceptionType))
 			{
-				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+				return interpreter.fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 		}
-		return interpreter.primitiveFailure(E_REQUIRED_FAILURE)
+		return interpreter.fail(E_REQUIRED_FAILURE)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -113,6 +114,20 @@ object P_CatchException : Primitive(
 			set(
 				E_REQUIRED_FAILURE,
 				E_INCORRECT_ARGUMENT_TYPE))
+
+	/**
+	 * The slot in which the guard variable is placed.  The frame layout is:
+	 *
+	 * ```
+	 *   1. arg: body
+	 *   2. arg: handlers
+	 *   3. arg: unwind
+	 *   4. first local variable: guardVariable
+	 *   [...potentially other variables...]
+	 *   ≥5. first local slot: primitive failure slot
+	 * ```
+	 */
+	const val slotIndexOfHandlersTuple = 2
 
 	/**
 	 * The slot in which the guard variable is placed.  The frame layout is:

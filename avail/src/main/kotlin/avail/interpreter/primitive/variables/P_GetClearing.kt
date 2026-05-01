@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.variables
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,13 +50,13 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableGetException
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -67,20 +68,21 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * One code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 @Suppress("unused")
-object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
+object P_GetClearing : Primitive1(CanInline, HasSideEffect)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt1(
+		interpreter: Interpreter,
+		arg1: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(1)
-		val variable = interpreter.argument(0)
+		val variable = arg1
 		return try
 		{
-			val value = variable.getValueClearing()
-			interpreter.primitiveSuccess(value)
+			variable.getValueClearing()
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.primitiveFailure(e.numericCode)
+			interpreter.fail(e.numericCode)
 		}
 	}
 

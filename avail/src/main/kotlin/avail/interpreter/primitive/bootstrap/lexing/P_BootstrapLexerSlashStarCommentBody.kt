@@ -39,6 +39,8 @@ import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
@@ -48,12 +50,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CanFold
-import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Primitive.Flag.Bootstrap
+import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.style.P_BootstrapLexerSlashStarCommentBodyStyler
 
 /**
@@ -64,14 +66,18 @@ import avail.interpreter.primitive.style.P_BootstrapLexerSlashStarCommentBodySty
  */
 @Suppress("unused")
 object P_BootstrapLexerSlashStarCommentBody
-	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+	: Primitive3(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt3(
+		interpreter: Interpreter,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject
+	): A_BasicObject?
 	{
-		interpreter.checkArgumentCount(3)
-		val source = interpreter.argument(0)
-		val sourcePositionInteger = interpreter.argument(1)
-		val startingLineNumber = interpreter.argument(2)
+		val source = arg1
+		val sourcePositionInteger = arg2
+		val startingLineNumber = arg3
 
 		val sourceSize = source.tupleSize
 		val startPosition = sourcePositionInteger.extractInt
@@ -81,7 +87,7 @@ object P_BootstrapLexerSlashStarCommentBody
 			|| source.tupleCodePointAt(position) != '*'.code)
 		{
 			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(emptySet)
+			return emptySet
 		}
 		position++
 
@@ -137,7 +143,7 @@ object P_BootstrapLexerSlashStarCommentBody
 			startPosition,
 			startingLineNumber.extractInt,
 			interpreter.fiber().currentLexer)
-		return interpreter.primitiveSuccess(set(tuple(token)))
+		return set(tuple(token))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
