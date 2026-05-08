@@ -104,8 +104,7 @@ object P_PushArgument1 : PrimitiveN(
 		callSiteHelper.useAnswer(arguments[0], false)
 		return true
 	}
-	override fun attemptToGenerateSimpleInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,

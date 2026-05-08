@@ -249,7 +249,6 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				val popped = frame[stackp]
 				frame[stackp] = nil
 				++stackp
-				interpreter.setLatestResult(popped)
 				assert(stackp == frame.size)
 				interpreter.returningFunction = function
 				if (Interpreter.debugL1)
@@ -257,8 +256,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					log(
 						Interpreter.loggerDebugL1,
 						Level.FINER,
-						"{0}L1 return",
-						interpreter.debugModeString)
+						"{0}L1 return ({1})",
+						interpreter.debugModeString,
+						popped.typeTag.name)
 				}
 				return popped
 			}
@@ -369,7 +369,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				L1_doPushLocal_ord ->
 				{
 					val local = frame[getOperand()]
-											assert(local.notNil)
+					assert(local.notNil)
 					frame[--stackp] = local.makeImmutable()
 				}
 				L1_doPushLastOuter_ord ->

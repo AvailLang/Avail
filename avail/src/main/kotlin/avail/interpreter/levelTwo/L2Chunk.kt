@@ -225,7 +225,11 @@ abstract class L2Chunk protected constructor(
 						if (chunksToInvalidate.isNotEmpty())
 						{
 							// Queue a task to safely invalidate the evicted
-							// chunks.
+							// chunks.  This *MUST* happen within a safe point,
+							// because the validity check is performed only mhen
+							// reentering a reified continuation, and entering
+							// a safe point causes all fibers' continuations to
+							// become fully reified.
 							AvailRuntime.currentRuntime().whenSafePointDo(
 								FiberDescriptor.bulkL2InvalidationPriority)
 							{

@@ -46,11 +46,13 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.StackReifier
@@ -121,22 +123,16 @@ constructor(
 		// already failed, and we just wish to run the backup Avail nybblecodes.
 		if (offset == 0 && primitive !== null)
 		{
-			if (primitive.hasFlag(Flag.CannotFail))
-			{
-				// Infallible primitive.  No need to save the arguments.
-				val value = interpreter.attemptPrimitive(
-					interpreter.function!!, primitive)
-				// It's infallible, so it must be non-null.
-				return value!!
-			}
-			else
-			{
-				// Happiest path first, attempt a primitive.
-				val value = interpreter.attemptPrimitive(
-					interpreter.function!!, primitive)
-				assert(value != null || !primitive.hasFlag(Flag.CannotFail))
-				return value
-			}
+			// Happiest path first, attempt a primitive.
+			val value = interpreter.attemptPrimitive(
+				interpreter.function!!, primitive)
+			// Handle success.
+			if (value !== null) return value
+			// Handle reification.
+			if (interpreter.currentReifier !== null) return value
+			// Handle failure.
+			assert(!primitive.hasFlag(Flag.CannotFail))
+			// Fall through to handle primitive failure.
 		}
 
 		if (offset <= 0)
@@ -214,35 +210,41 @@ constructor(
 					depth++
 					pointer = pointer.caller
 				}
+				val instruction = instructions[offset - 1]
+				val instructionText = increaseIndentation(
+					instruction.toString(),
+					interpreter.unreifiedCallDepth() + 2)
 				Interpreter.log(
 					Interpreter.loggerDebugL2,
 					Level.FINER,
-					"{0}L2Simple REENTER: {1}:{2}, unreified={3}, reified={4}",
+					"{0}L2Simple REENTER: {1}:{2}",
 					interpreter.debugModeString,
 					offset - 1,
-					instructions[offset - 1],
-					interpreter.unreifiedCallDepth(),
-					depth)
+					instructionText)
 			}
 			// Calls to reenter() will set up the registers from the current
 			// frame and pop it, but only if the return type is valid.
 			// Otherwise they invoke the wrong-return-type hook function.
-			val reifier = instructions[offset - 1].reenter(
-				registers, interpreter)
+			val reentryInstruction = instructions[offset - 1]
+			if (!interpreter.checkValidity(
+					reentryInstruction.defaultL1EntryPointIfInvalid().offset()))
+			{
+				// The chunk has become invalid, which can only happen while the
+				// fiber is fully reified.  The validity check has switched the
+				// chunk and offset already as a convenience.
+				assert(interpreter.chunk!! === DefaultL1Chunk)
+				return interpreter.runChunk()
+			}
+			val keepRunning = instructions[offset - 1]
+				.reenter(registers, interpreter)
 			// The reenter() is allowed to reify, for example if it fetches the
 			// returned value from the interpreter and it doesn't satisfy its
 			// return type check.
-			if (reifier !== null)
+			if (!keepRunning)
 			{
-				interpreter.currentReifier = reifier
+				assert(interpreter.currentReifier !== null)
 				return null
 			}
-			// Also check if the reentry point noticed that the chunk was
-			// invalid, and switched the interpreter's current chunk.  This can
-			// also happen when an L2Simple continuation is bypassed by the
-			// debugger.
-			if (interpreter.chunk?.executableChunk !== this)
-				return null
 		}
 		var off = max(offset, 0)
 		val size = instructions.size
@@ -262,34 +264,62 @@ constructor(
 				val instructionText = increaseIndentation(
 					instruction.toString(),
 					interpreter.unreifiedCallDepth() + 2)
+				// Extra logging shows what the step affects.
+				val registersCopy = registers.copyOf()
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
-					"{0}L2Simple step: {1}",
+					"{0}L2Simple step: {1}:{2}",
 					interpreter.debugModeString,
+					off - 1,
 					instructionText)
-				val reifier = instruction.step(registers, interpreter)
-				if (reifier !== null)
-				{
-					interpreter.currentReifier = reifier
-					return null
+				val keepGoing = instruction.step(registers, interpreter)
+				var any = false
+				val changes = buildString {
+					registers.forEachIndexed { index, newValue ->
+						val oldValue = registersCopy[index]
+						if (newValue !== oldValue)
+						{
+							if (any) append("\n")
+							any = true
+							append(interpreter.debugModeString)
+							append("    slot $index changed: " +
+								"$oldValue -> $newValue")
+						}
+					}
 				}
+				if (any)
+				{
+					Interpreter.log(
+						Interpreter.loggerDebugL1,
+						Level.FINER,
+						"{0}",
+						changes)
+				}
+				if (!keepGoing) return null
 			}
+			// Return the only element from the stack, which L1 guarantees holds
+			// the return value.
+			val result = registers[registers.size - 1]
+			log(
+				Interpreter.loggerDebugL1,
+				Level.FINER,
+				"{0}L2Simple return ({1})",
+				interpreter.debugModeString,
+				result.typeTag.name)
+			return result
 		}
 		else
 		{
 			// A hard-coded interpreter loop that cannot log.
 			while (off < size)
 			{
-				val reifier = instructions[off++].step(registers, interpreter)
-				if (reifier !== null)
-				{
-					interpreter.currentReifier = reifier
-					return null
-				}
+				val keepGoing = instructions[off++].step(registers, interpreter)
+				if (!keepGoing) return null
 			}
+			// Return the only element from the stack, which L1 guarantees holds
+			// the return value.
+			return registers[registers.size - 1]
 		}
-		interpreter.setLatestResult(registers[registers.size - 1])
-		return null
 	}
 }

@@ -40,6 +40,7 @@ import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.extractNybble
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
 import avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAt
@@ -56,14 +57,17 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import avail.descriptor.tuples.NybbleTupleDescriptor
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.generateTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import avail.exceptions.unsupported
 import avail.utility.Strings.increaseIndentation
 import java.io.OutputStream
+import kotlin.math.max
 
 /**
  * A `SerializerOperandEncoding` is an encoding algorithm for part of a
@@ -388,7 +392,7 @@ internal enum class SerializerOperandEncoding
 			val shiftedTupleSize = tupleSize.toULong() shl 2
 			when
 			{
-				obj.isByteString ->
+				obj.tupleSize == 0 || obj.isByteString ->
 				{
 					writeCompressedULong(shiftedTupleSize, serializer)
 					// Write uncompressed bytes.
@@ -410,9 +414,17 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val shiftedTupleSize = readCompressedULong(deserializer)
-			val tupleSize = (shiftedTupleSize shr 2).toInt()
+			return readAfterEncodedSize(shiftedTupleSize, deserializer)
+		}
+
+		private fun readAfterEncodedSize(
+			encodedSize: ULong,
+			deserializer: AbstractDeserializer
+		): AvailObject
+		{
+			val tupleSize = (encodedSize shr 2).toInt()
 			if (tupleSize == 0) return emptyTuple
-			return when ((shiftedTupleSize and 3_UL).toInt())
+			return when ((encodedSize and 3_UL).toInt())
 			{
 				0 -> generateByteString(tupleSize) {
 					deserializer.readByte()
@@ -426,32 +438,95 @@ internal enum class SerializerOperandEncoding
 				else -> throw RuntimeException("Invalid serialized string tag")
 			}
 		}
+
+		override fun describe(describer: DeserializerDescriber)
+		{
+			val shiftedTupleSize = readCompressedULong(describer)
+			describer.append(
+				when ((shiftedTupleSize and 3_UL).toInt())
+				{
+					0 -> "(Bytes)"
+					1 -> "(Shorts)"
+					2 -> "(FullUnicode)"
+					else -> "(INVALID TAG)"
+				})
+			val string = readAfterEncodedSize(shiftedTupleSize, describer)
+			describer.append(string.toString())
+		}
 	},
 
 	/**
 	 * This is a [tuple][TupleDescriptor] of integers in the range [0..2^31-1],
-	 * written as a compressed size and a sequence of compressed ints.
+	 * written as a compressed size and a sequence of compressed ints.  The
+	 * initial compressed integer is the tuple size times 4, plus a two-bit
+	 * indicator of the size to reconstruct it as:
+	 *   * 0 - Reconstruct it as a nybble tuple.
+	 *   * 1 - Reconstruct it as a byte tuple.
+	 *   * 2 - Reconstruct it as an int tuple.
+	 * 3 is reserved for future use, perhaps when transitioning to a 64-bit VM.
 	 */
 	COMPRESSED_INT_TUPLE
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
 			val tupleSize = obj.tupleSize
-			writeCompressedPositiveInt(tupleSize, serializer)
-			for (element in obj)
+			val mode = chooseMode(obj, tupleSize)
+			// Write the tuple size shifted left by 2, plus the mode tag.
+			writeCompressedULong(
+				(tupleSize.toULong() shl 2) + mode.ordinal.toULong(),
+				serializer)
+			mode.writeBody(obj, serializer)
+		}
+
+		private fun chooseMode(
+			obj: AvailObject,
+			tupleSize: Int
+		): CompressedIntTupleMode
+		{
+			// Nybble tuple for sure.
+			if (obj.traversed().descriptor is NybbleTupleDescriptor)
+				return CompressedIntTupleMode.NYBBLES
+			if (obj.isByteTuple)
 			{
-				writeCompressedPositiveInt(element.extractInt, serializer)
+				// Nybble tuple after examining elements.
+				for (i in 1..tupleSize)
+				{
+					if (obj.tupleIntAt(i) > 15)
+						return CompressedIntTupleMode.BYTES
+				}
+				return CompressedIntTupleMode.NYBBLES
 			}
+			var max = 0
+			for (i in 1..tupleSize)
+			{
+				val value = obj.tupleIntAt(i)
+				if (value > 255) return CompressedIntTupleMode.INTS
+				max = max(max, value)
+			}
+			// Nybble tuple after examining elements.
+			return if (max > 15) CompressedIntTupleMode.BYTES
+				else CompressedIntTupleMode.NYBBLES
 		}
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
-			// Reconstruct into whatever tuple representation is most compact.
-			val tupleSize = readCompressedPositiveInt(deserializer)
-			if (tupleSize == 0) return emptyTuple
-			return generateIntTupleFrom(tupleSize) {
-				readCompressedPositiveInt(deserializer)
-			}.makeImmutable()
+			// Reconstruct using the encoded low two bits.
+			val tupleSizeShifted = readCompressedULong(deserializer)
+			val modeOrdinal = tupleSizeShifted.toInt() and 3
+			val mode = CompressedIntTupleMode.entries[modeOrdinal]
+			val tupleSize = (tupleSizeShifted shr 2).toInt()
+			return mode.readBody(tupleSize, deserializer).makeImmutable()
+		}
+
+		override fun describe(describer: DeserializerDescriber)
+		{
+			// Reconstruct using the encoded low two bits.
+			val tupleSizeShifted = readCompressedULong(describer)
+			val modeOrdinal = tupleSizeShifted.toInt() and 3
+			val mode = CompressedIntTupleMode.entries[modeOrdinal]
+			val tupleSize = (tupleSizeShifted shr 2).toInt()
+			val string = mode.readBody(tupleSize, describer).makeImmutable()
+			mode.describe(string, describer)
 		}
 	},
 
@@ -608,6 +683,168 @@ internal enum class SerializerOperandEncoding
 			describer.append("}")
 		}
 	};
+
+	/**
+	 * An enumeration listing how the bottom bits of the size prefix of a
+	 * [COMPRESSED_INT_TUPLE] determine the representation to use for the
+	 * serialized tuple.
+	 */
+	enum class CompressedIntTupleMode(tag: Int)
+	{
+		/**
+		 * The values are all 0..15, so this representation writes them
+		 * two-to-a-byte, with an extra zero nybble at the end if it has odd
+		 * length.
+		 */
+		NYBBLES(0)
+		{
+			override fun writeBody(obj: AvailObject, serializer: Serializer)
+			{
+				val tupleSize = obj.tupleSize
+				var i = 1
+				while (i < tupleSize)
+				{
+					val first = obj.tupleIntAt(i)
+					val second = obj.tupleIntAt(i + 1)
+					val pair = (first shl 4) + second
+					serializer.writeByte(pair)
+					i += 2
+				}
+				if (tupleSize and 1 == 1)
+				{
+					serializer.writeByte(obj.tupleIntAt(tupleSize) shl 4)
+				}
+			}
+
+			override fun readBody(
+				tupleSize: Int,
+				deserializer: AbstractDeserializer
+			): AvailObject
+			{
+				if (tupleSize == 0)
+				{
+					// Reasonably common case.
+					return emptyTuple
+				}
+				var twoNybbles = 0
+				return generateNybbleTupleFrom(tupleSize) { index ->
+					if (index and 1 != 0)
+					{
+						twoNybbles = deserializer.readByte()
+						return@generateNybbleTupleFrom twoNybbles shr 4 and 0xF
+					}
+					twoNybbles and 0xF
+				}
+			}
+
+			override fun describe(
+				obj: AvailObject,
+				describer: DeserializerDescriber)
+			{
+				describer.append("[$name:")
+				obj.forEachIndexed { index, nybble ->
+					if (index and 7 == 0) describer.append(" ")
+					else if (index and 3 == 0) describer.append("_")
+					describer.append(
+						"0123456789ABCDEF"[nybble.extractNybble.toInt()])
+				}
+				describer.append("]")
+			}
+		},
+
+		/**
+		 * The values are all 0..255, so this representation writes each raw
+		 * byte.
+		 */
+		BYTES(1)
+		{
+			override fun writeBody(obj: AvailObject, serializer: Serializer)
+			{
+				for (i in 1..obj.tupleSize)
+				{
+					serializer.writeByte(obj.tupleIntAt(i))
+				}
+			}
+
+			override fun readBody(
+				tupleSize: Int,
+				deserializer: AbstractDeserializer
+			): AvailObject
+			{
+				if (tupleSize == 0) return emptyTuple
+				return generateByteTupleFrom(tupleSize) {
+					deserializer.readByte()
+				}
+			}
+		},
+
+		/**
+		 * At least one of the values is outside the range 0..255, so write each
+		 * entry as a compressed integer.
+		 */
+		INTS(2)
+		{
+			override fun writeBody(obj: AvailObject, serializer: Serializer)
+			{
+				for (i in 1..obj.tupleSize)
+				{
+					writeCompressedPositiveInt(obj.tupleIntAt(i), serializer)
+				}
+			}
+
+			override fun readBody(
+				tupleSize: Int,
+				deserializer: AbstractDeserializer): AvailObject
+			{
+				if (tupleSize == 0) return emptyTuple
+				return generateIntTupleFrom(tupleSize) {
+					readCompressedPositiveInt(deserializer)
+				}
+			}
+		},
+		RESERVED(3)
+		{
+			override fun writeBody(obj: AvailObject, serializer: Serializer) =
+				unsupported
+
+			override fun readBody(
+				tupleSize: Int,
+				deserializer: AbstractDeserializer
+			): AvailObject = unsupported
+		};
+
+		init
+		{
+			assert(tag == ordinal)
+		}
+
+		/**
+		 * Write the body of the int tuple in [obj], knowing that it will be
+		 * deserialized by the same mode enum value.
+		 */
+		abstract fun writeBody(obj: AvailObject, serializer: Serializer)
+
+		/**
+		 * Recreate the int tuple using the receiver to decode what it
+		 * previously encoded.
+		 */
+		abstract fun readBody(
+			tupleSize: Int,
+			deserializer: AbstractDeserializer
+		): AvailObject
+
+		/**
+		 * Describe the int tuple that was already reconstructed by the receiver
+		 * in [obj].
+		 */
+		open fun describe(
+			obj: AvailObject,
+			describer: DeserializerDescriber)
+		{
+			describer.append("[$name] ")
+			describer.append(obj.toString())
+		}
+	}
 
 	/**
 	 * Visit an operand of some object prior to beginning to write a graph of
@@ -777,7 +1014,7 @@ internal enum class SerializerOperandEncoding
 			}
 			if (firstByte <= 0xBF)
 			{
-				// Two bytes, 128..16383
+				// Two bytes, 128..0x3FFF
 				return (firstByte - 0x80 shl 8).toULong() +
 					deserializer.readByte().toULong()
 			}

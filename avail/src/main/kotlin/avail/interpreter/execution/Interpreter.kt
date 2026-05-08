@@ -423,7 +423,8 @@ final class Interpreter(
 
 		chunk?.let { activeChunk ->
 			// Extract the current L2 chunk info...
-			add("L2 chunk = ${activeChunk.name}" to activeChunk)
+			val prefix = if (activeChunk.isValid) "" else "[invalid] "
+			add("L2 chunk = $prefix${activeChunk.name}" to activeChunk)
 			val entryPointAddendum = when (activeChunk)
 			{
 				DefaultL1ExecutableChunk ->
@@ -2302,9 +2303,11 @@ final class Interpreter(
 				return
 			}
 			// Resume the top reified frame.  It should be at an on-ramp that
-			// expects nothing of the current registers, but is able to create
-			// them and explode the current reified continuation into them
-			// (popping the continuation as it does so).
+			// can explode the continuation into whatever form the chunk needs
+			// (e.g., JVM registers, or perhaps an Array), checking the returned
+			// value in [latestResult] if it's expecting a result (e.g., from a
+			// previously reified call).
+			latestResult = valueOrNull as AvailObject
 			function = frame.function
 			chunk = frame.levelTwoChunk
 			offset = frame.levelTwoOffset
@@ -2763,7 +2766,7 @@ final class Interpreter(
 						append(" ")
 						append(description)
 						readValues.joinTo(
-							this@buildString, ", ", " ← [", "]"
+							this@buildString, ", ", "[", "]"
 						) {
 							shortDebugString(it)
 						}
@@ -2811,7 +2814,7 @@ final class Interpreter(
 							append(value.code().shortMethodName)
 						}
 						is CompiledCodeDescriptor -> {
-							append("a Function ")
+							append("a RawFunction ")
 							append(value.shortMethodName)
 						}
 						is TupleDescriptor -> {

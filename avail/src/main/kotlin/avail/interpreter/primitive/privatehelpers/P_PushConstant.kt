@@ -109,16 +109,14 @@ object P_PushConstant : PrimitiveN(
 		return true
 	}
 
-	override fun attemptToGenerateSimpleInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type): TypeRestriction
 	{
 		val constant = rawFunction.literalAt(1)
-		simpleTranslator.add(
-			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
+		+L2Simple_MoveConstant(constant, stackp)
 		return boxedRestrictionForConstant(constant)
 	}
 }

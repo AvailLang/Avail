@@ -106,16 +106,14 @@ object P_PushArgument2 : PrimitiveN(
 		return true
 	}
 
-	override fun attemptToGenerateSimpleInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type
 	): TypeRestriction
 	{
-		simpleTranslator.add(
-			L2Simple_Move(simpleTranslator.stackp - 1, simpleTranslator.stackp))
+		+L2Simple_Move(stackp - 1, stackp)
 		return argRestrictions[1]
 	}
 }

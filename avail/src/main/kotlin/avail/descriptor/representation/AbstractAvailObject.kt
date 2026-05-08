@@ -31,9 +31,6 @@
  */
 package avail.descriptor.representation
 
-import avail.exceptions.AvailUnsupportedOperationException
-import avail.utility.stackToString
-
 /**
  * `AbstractAvailObject` specifies the essential layout and storage requirements
  * of an Avail object, but does not specify a particular representation. As
@@ -61,21 +58,31 @@ abstract class AbstractAvailObject protected constructor(
 	 * representation to change, often without changing the observable
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
+	 *
+	 * TODO – This probably doesn't need to be volatile:
+	 * The only cases where another fiber (thread) can change it is when it's
+	 * not yet shared (i.e., it's mutable or immutable).
+	 *   - becoming immutable;
+	 *   - becoming shared;
+	 *   - becoming an indirection;
+	 *   - updating a padded representation of a tuple for appending;
+	 *   - transforming on an atom to add a field for a properties map;
+	 *   - during creation of a descriptor-per-instance kind, like Pojos,
+	 *     raw functions, and modules;
+	 * All of these uses are fine without volatile access, because the object is
+	 * not yet shared, so other fibers should not be able to observe the change.
+	 * Removing the volatile modifier would allow some CPUs to access the data
+	 * without bus snooping.  Also, HotSpot would be able to optimize away
+	 * redundant reads of a descriptor field if enough called code is inlined,
+	 * which opens up the opportunity for inlining subsequent method invocations
+	 * without conditional guards after the first access.  The infrequent
+	 * non-initializing writes to the field would also be faster, as they can
+	 * get moved to memory asynchronously and even out of order (for different
+	 * writes), only fenced by whatever operation eventually makes a shared
+	 * object visibile to other threads.
 	 */
 	@field:Volatile
 	var descriptor = initialDescriptor
-
-	/**
-	 * Check if the object's address is valid. Throw an [Error] if it lies
-	 * outside of all the currently allocated memory regions.
-	 *
-	 * Note: This is not meaningful in the Java/Kotlin implementation.
-	 *
-	 * @throws Error
-	 *   If the address is invalid.
-	 */
-	@Throws(Error::class)
-	protected fun checkValidAddress() { }
 
 	/**
 	 * Answer whether the [objects][AvailObject] occupy the same memory
@@ -87,18 +94,6 @@ abstract class AbstractAvailObject protected constructor(
 	 *   Whether the receiver and the other object occupy the same storage.
 	 */
 	fun sameAddressAs(anotherObject: A_BasicObject) = this === anotherObject
-
-	/**
-	 * Has this [object][AvailObject] been [destroyed][destroy]?
-	 *
-	 * @return
-	 *   `true` if the object has been destroyed, `false` otherwise.
-	 */
-	protected val isDestroyed: Boolean
-		get() {
-			checkValidAddress()
-			return descriptor === FillerDescriptor.mutable
-		}
 
 	/**
 	 * Answer the number of integer slots. All variable integer slots occur

@@ -1021,16 +1021,44 @@ constructor(
 	 * If this code generation attempt is successful, return a
 	 * [TypeRestriction], indicating the guaranteed result type for the call.
 	 * An invocation will be emitted to the [L2SimpleTranslator] in this case.
+	 *
+	 * If a subclass needs to access [Primitive]'s implementation, it can't just
+	 * do a super call, because of the secondary receiver.  Therefore, a base
+	 * implementation is provided in [defaultAttemptToGenerateSimpleInvocation].
 	 */
-	open fun attemptToGenerateSimpleInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	open fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): TypeRestriction? =
+		defaultAttemptToGenerateSimpleInvocation(
+			functionIfKnown, rawFunction, argRestrictions, expectedType)
+
+	/**
+	 * Attempt to generate a simplified, faster invocation of the given constant
+	 * function, with the given argument restrictions.  The arguments will be on
+	 * the stack, the last-pushed one at stackp.  Return null to fall back
+	 * statically to a regular invocation if the primitive can't guarantee to
+	 * meet the strengthened type at this call site.  Likewise fall back if the
+	 * primitive might fail or suspend.
+	 *
+	 * If this code generation attempt is successful, return a
+	 * [TypeRestriction], indicating the guaranteed result type for the call.
+	 * An invocation will be emitted to the [L2SimpleTranslator] in this case.
+	 *
+	 * This is the (final) default implementation.  Subclasses can perform more
+	 * specific operations by overriding [attemptToGenerateSimpleInvocation],
+	 * but can still fall back to this method (they can't just do a Kotlin super
+	 * call because the method has a secondary receiver).
+	 */
+	fun L2SimpleTranslator.defaultAttemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type
 	): TypeRestriction?
 	{
-		val argTypes = argRestrictions.map { it.type }
 		if (functionIfKnown === null)
 		{
 			// Subclasses may be more lenient about the function being absent.
@@ -1046,6 +1074,7 @@ constructor(
 			// invocation.
 			return null
 		}
+		val argTypes = argRestrictions.map { it.type }
 		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argTypes)
 		if (!guaranteedType.isSubtypeOf(expectedType))
 		{
@@ -1062,14 +1091,13 @@ constructor(
 				// to a general invocation dynamically – which re-attempts the
 				// primitive.
 				val nilpotentAttempt = simplePrimitiveNilpotentInvocation(
-					simpleTranslator,
 					functionIfKnown,
 					rawFunction,
 					argRestrictions,
 					expectedType)
 				if (nilpotentAttempt !== null)
 				{
-					return simpleTranslator.generateGeneralInvocation(
+					return generateGeneralInvocation(
 						nilpotentAttempt,
 						functionIfKnown,
 						expectedType)
@@ -1081,11 +1109,10 @@ constructor(
 			Fallibility.CallSiteCannotFail ->
 			{
 				// The primitive cannot fail.
-				simpleTranslator.add(
-					L2Simple_RunInfalliblePrimitiveNoCheck(
-						simpleTranslator.stackp,
-						functionIfKnown,
-						rawFunction))
+				+L2Simple_RunInfalliblePrimitiveNoCheck(
+					stackp,
+					functionIfKnown,
+					rawFunction)
 				return boxedRestrictionForType(guaranteedType)
 			}
 			else ->
@@ -1107,8 +1134,7 @@ constructor(
 	 * Answer null if the fallible primitive invocation should not happen this
 	 * way, which will cause a regular function invocation to occur instead.
 	 */
-	open fun simplePrimitiveNilpotentInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	open fun L2SimpleTranslator.simplePrimitiveNilpotentInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,

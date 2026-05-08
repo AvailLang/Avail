@@ -805,12 +805,12 @@ class AvailDebugger internal constructor (
 			}
 			else ->
 			{
-				var frame = fiber.continuation.makeShared()
+				var frame: A_Continuation = fiber.continuation.makeShared()
 				val frames = mutableListOf<A_Continuation>()
 				while (frame.notNil)
 				{
 					frames.add(frame)
-					frame = frame.caller as AvailObject
+					frame = frame.caller
 				}
 				stackListPane.valueIsAdjusting = true
 				try

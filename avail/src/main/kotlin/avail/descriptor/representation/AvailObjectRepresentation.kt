@@ -1897,6 +1897,15 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Has this [object][AvailObject] been [destroyed][destroy]?
+	 *
+	 * @return
+	 *   `true` if the object has been destroyed, `false` otherwise.
+	 */
+	protected val isDestroyed: Boolean
+		get() = descriptor === FillerDescriptor.mutable
+
+	/**
 	 * Search for the key in the 32-bit [Int]s encoded within the [longSlots]
 	 * that occur within those slots identified with the specified
 	 * [IntegerSlotsEnum].  The int slots must be in ascending sorted order, and
@@ -2013,8 +2022,8 @@ sealed class AvailObjectRepresentation constructor(
 	override fun hashCode(): Int = descriptor.o_Hash(this as AvailObject)
 
 	/**
-	 * Visit all of the object's object slots, passing the parent and child
-	 * objects to the provided visitor.
+	 * Visit all the object's object slots, passing the parent and child objects
+	 * to the provided visitor.
 	 *
 	 * @param visitor
 	 *   The visitor to invoke.

@@ -110,8 +110,7 @@ object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
 	 * Override to produce special code for this primitive, if it can be shown
 	 * statically that the value being written is of the correct type.
 	 */
-	override fun simplePrimitiveNilpotentInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	override fun L2SimpleTranslator.simplePrimitiveNilpotentInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,

@@ -55,10 +55,13 @@ import java.io.InputStream
  */
 class DeserializerDescriber constructor(
 	input: InputStream,
-	runtime: AvailRuntime) : AbstractDeserializer(
-		input,
-		runtime,
-		{ throw Exception("DeserializerDescriber cannot be pumped") })
+	runtime: AvailRuntime
+) : AbstractDeserializer(
+	input,
+	runtime,
+	lookupPumpedObject = {
+		throw Exception("DeserializerDescriber cannot be pumped")
+	})
 {
 	/** The [StringBuilder] on which the description is being written. */
 	private val builder = StringBuilder(1000)
@@ -79,7 +82,10 @@ class DeserializerDescriber constructor(
 	fun printCompressedIndex(compressedIndex: Int)
 	{
 		val decompressed = compressor.decompress(compressedIndex)
-		builder.append("[$compressedIndex:$decompressed]")
+		builder.append("#$decompressed")
+		// Alternative form showing both the compressed integer and the
+		// decompressed index:
+		//   builder.append("[$compressedIndex:$decompressed]")
 	}
 
 	/**

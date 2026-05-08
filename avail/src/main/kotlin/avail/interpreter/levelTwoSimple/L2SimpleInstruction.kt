@@ -100,6 +100,7 @@ import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
 import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2AbstractInstruction
@@ -110,10 +111,12 @@ import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
+import avail.optimizer.DefaultL1ExecutableChunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.StackReifier
 import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
+import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
 import avail.optimizer.jvm.JVMChunk
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
@@ -155,11 +158,30 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 	 * mutable [Array] of [AvailObject]s acts as a simple set of registers.
 	 * Element 0 is the current function, and the remaining elements correspond
 	 * with the continuation slots, should one need to be constructed.
+	 *
+	 * @param registers
+	 *   The current set of registers representing the stack fraame's state,
+	 *   which may be modified.
+	 * @param interpreter
+	 *   The [Interpreter] that is executing this instruction.
+	 * @return
+	 *   `true` if execution should continue to the next instruction, or `false`
+	 *   if reification or an Avail return is needed.
 	 */
 	abstract fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
+
+	/**
+	 * For instructions that can reenter, and only for those instructions, it's
+	 * possible that the containing chunk has become invalid due to
+	 * deoptimization (because of method definition changes, etc).  In that
+	 * case, this method will provide the fallback [DefaultEntryPoint] within
+	 * the [DefaultL1ExecutableChunk] for that kind of instruction.
+	 */
+	open fun defaultL1EntryPointIfInvalid(): DefaultEntryPoint =
+		unsupported
 
 	/**
 	 * A previously constructed continuation is being resumed in some way, and
@@ -177,13 +199,13 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 	 * @param interpreter
 	 *   The [Interpreter] that is executing this instruction.
 	 * @return
-	 *   An optional [StackReifier], in the event the reentry of the instruction
-	 *   reifies.
+	 *   Answer `true` if execution should continue to the next instruction, or
+	 * ` false` if reification or an Avail return is needed.
 	 */
 	open fun reenter(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier? = throw RuntimeException("Should not reenter here")
+	): Boolean = throw RuntimeException("Should not reenter here")
 
 	override fun toString() = buildString {
 		val cls = this@L2SimpleInstruction::class
@@ -245,10 +267,10 @@ class L2Simple_MoveConstant(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = value
-		return null
+		return true
 	}
 }
 
@@ -262,10 +284,10 @@ class L2Simple_Move(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = registers[from]
-		return null
+		return true
 	}
 }
 
@@ -281,10 +303,10 @@ class L2Simple_MoveAndMakeImmutable(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = registers[from].makeImmutable()
-		return null
+		return true
 	}
 }
 
@@ -304,17 +326,18 @@ class L2Simple_GetVariable(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		try
 		{
 			registers[stackp] = registers[fromVariable].getValue()
-			return null
+			return true
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
-			return interpreter.currentReifier!!
+			assert(interpreter.currentReifier !== null)
+			return false
 		}
 	}
 }
@@ -336,7 +359,7 @@ class L2Simple_GetVariableClearing(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		try
 		{
@@ -348,12 +371,13 @@ class L2Simple_GetVariableClearing(
 				else -> variable.getValue()
 			}
 			registers[stackp] = value
-			return null
+			return true
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
-			return interpreter.currentReifier!!
+			assert(interpreter.currentReifier !== null)
+			return false
 		}
 	}
 }
@@ -374,18 +398,19 @@ class L2Simple_GetOuter(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val variable = registers[0].outerVarAt(outerNumber)
 		try
 		{
 			registers[stackp] = variable.getValue()
-			return null
+			return true
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
-			return interpreter.currentReifier!!
+			assert(interpreter.currentReifier !== null)
+			return false
 		}
 	}
 }
@@ -407,7 +432,7 @@ class L2Simple_GetLastOuter(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val function = registers[0]
 		val variable = function.outerVarAt(outerNumber)
@@ -422,12 +447,13 @@ class L2Simple_GetLastOuter(
 				// Automatically makes the value immutable.
 				variable.getValue()
 			}
-			return null
+			return true
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
-			return interpreter.currentReifier!!
+			assert(interpreter.currentReifier !== null)
+			return false
 		}
 	}
 }
@@ -448,17 +474,18 @@ class L2Simple_GetConstant(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		try
 		{
 			registers[stackp] = variable.getValue()
-			return null
+			return true
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
-			return interpreter.currentReifier!!
+			assert(interpreter.currentReifier !== null)
+			return false
 		}
 	}
 }
@@ -479,24 +506,22 @@ class L2Simple_SetVariable(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		try
 		{
 			registers[toVariable].setValueNoCheck(registers[stackp])
+			return true
 		}
 		catch (e: VariableSetException)
 		{
-			val valueOrNull = handleVariableSetException(
+			return handleVariableSetException(
 				e,
 				registers[toVariable],
 				registers[stackp],
 				interpreter,
 				registers)
-			// The variable-set handler is top-valued, so ignored.
-			if (valueOrNull === null) return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -516,26 +541,23 @@ class L2Simple_SetOuter(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		try
 		{
 			registers[0].outerVarAt(outerNumber)
 				.setValueNoCheck(registers[stackp])
+			return true
 		}
 		catch (e: VariableSetException)
 		{
-			val valueOrNull =  handleVariableSetException(
+			return handleVariableSetException(
 				e,
 				registers[0].outerVarAt(outerNumber),
 				registers[stackp],
 				interpreter,
 				registers)
-			// The variable-set handler is top-valued, so ignored.
-			if (valueOrNull === null) return interpreter.currentReifier!!
 		}
-		// The variable-set handler is top-valued, so ignored.
-		return null
 	}
 }
 
@@ -555,24 +577,22 @@ class L2Simple_SetConstant(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		try
 		{
 			variable.setValueNoCheck(registers[stackp])
+			return true
 		}
 		catch (e: VariableSetException)
 		{
-			val valueOrNull = handleVariableSetException(
+			return handleVariableSetException(
 				e,
 				variable,
 				registers[stackp],
 				interpreter,
 				registers)
-			// The variable-set handler is top-valued, so ignored.
-			if (valueOrNull === null) return interpreter.currentReifier!!
 		}
-		return null
 	}
 }
 
@@ -589,10 +609,10 @@ class L2Simple_CloseFunction1(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = createWithOuters1(code, registers[to])
-		return null
+		return true
 	}
 }
 
@@ -609,11 +629,11 @@ class L2Simple_CloseFunction2(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = createWithOuters2(
 			code, registers[to], registers[to - 1])
-		return null
+		return true
 	}
 }
 
@@ -630,14 +650,14 @@ class L2Simple_CloseFunction3(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = createWithOuters3(
 			code,
 			registers[to],
 			registers[to - 1],
 			registers[to - 2])
-		return null
+		return true
 	}
 }
 
@@ -655,7 +675,7 @@ class L2Simple_CloseFunction4(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = createWithOuters4(
 			code,
@@ -663,7 +683,7 @@ class L2Simple_CloseFunction4(
 			registers[to - 1],
 			registers[to - 2],
 			registers[to - 3])
-		return null
+		return true
 	}
 }
 
@@ -683,7 +703,7 @@ class L2Simple_CloseFunctionN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val function = createExceptOuters(code, outerCount)
 		var outer = to
@@ -692,7 +712,7 @@ class L2Simple_CloseFunctionN(
 			function.outerVarAtPut(i, registers[outer--])
 		}
 		registers[to] = function
-		return null
+		return true
 	}
 }
 
@@ -707,10 +727,10 @@ class L2Simple_MakeTuple1(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = tuple(registers[to]) as AvailObject
-		return null
+		return true
 	}
 }
 
@@ -725,13 +745,13 @@ class L2Simple_MakeTuple2(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = tuple(
 			registers[to],
 			registers[to - 1]
 		) as AvailObject
-		return null
+		return true
 	}
 }
 
@@ -746,14 +766,14 @@ class L2Simple_MakeTuple3(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = tuple(
 			registers[to],
 			registers[to - 1],
 			registers[to - 2]
 		) as AvailObject
-		return null
+		return true
 	}
 }
 
@@ -769,12 +789,12 @@ class L2Simple_MakeTupleN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = generateObjectTupleFrom(tupleSize) { i ->
 			registers[to - i + 1]
 		}
-		return null
+		return true
 	}
 }
 
@@ -791,12 +811,12 @@ class L2Simple_MakeNybbleTupleN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = generateNybbleTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractInt
 		}
-		return null
+		return true
 	}
 }
 
@@ -813,12 +833,12 @@ class L2Simple_MakeByteTupleN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = generateByteTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractInt
 		}
-		return null
+		return true
 	}
 }
 
@@ -835,12 +855,12 @@ class L2Simple_MakeIntTupleN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = generateIntTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractInt
 		}
-		return null
+		return true
 	}
 }
 
@@ -857,12 +877,12 @@ class L2Simple_MakeLongTupleN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = generateLongTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractLong
 		}
-		return null
+		return true
 	}
 }
 
@@ -879,12 +899,12 @@ class L2Simple_MakeCharacterTupleN(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = generateStringFromCodePoints(tupleSize) { i ->
 			registers[to - i + 1].codePoint
 		} as AvailObject
-		return null
+		return true
 	}
 }
 
@@ -901,10 +921,10 @@ class L2Simple_PushOuter(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		registers[to] = registers[0].outerVarAt(outerNumber).makeImmutable()
-		return null
+		return true
 	}
 }
 
@@ -922,7 +942,7 @@ class L2Simple_PushLastOuter(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val function = registers[0]
 		val value = function.outerVarAt(outerNumber)
@@ -932,7 +952,7 @@ class L2Simple_PushLastOuter(
 			true -> value
 			else -> value.makeImmutable()
 		}
-		return null
+		return true
 	}
 }
 
@@ -959,7 +979,7 @@ class L2Simple_PushLabel(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val thisChunk = interpreter.chunk as L2SimpleChunk
 		val function = registers[0]
@@ -978,65 +998,77 @@ class L2Simple_PushLabel(
 				arguments)
 			label.makeSubobjectsImmutable()
 			registers[stackp] = label as AvailObject
-			return null
+			return true
 		}
 		// Slower path.  Reify the caller.  If this is a loop, the next pass's
 		// label creation will see the caller has already been reified, and be
 		// able to use the fast path.
-		return StackReifier(true, reificationBeforeLabelCreationStat) {
-			val caller = interpreter.getReifiedContinuation()!!.makeImmutable()
-			val label = createLabelContinuation(
-				function,
-				caller,
-				thisChunk,
-				0, // A block can't have both a primitive and a label.
-				arguments)
-			// Freeze all fields of the new object, including
-			// its caller, function, and args.
-			label.makeSubobjectsImmutable()
+		interpreter.currentReifier =
+			StackReifier(true, reificationBeforeLabelCreationStat) {
+				val caller = interpreter.getReifiedContinuation()!!.makeImmutable()
+				val label = createLabelContinuation(
+					function,
+					caller,
+					thisChunk,
+					0, // A block can't have both a primitive and a label.
+					arguments)
+				// Freeze all fields of the new object, including
+				// its caller, function, and args.
+				label.makeSubobjectsImmutable()
 
-			// Push that label.
-			registers[stackp] = label as AvailObject
-			val continuation = createContinuationExceptFrame(
-				function,
-				caller,
-				nil,
-				pc,
-				stackp,
-				thisChunk,
-				nextOffset)
-			for (i in 1 .. liveIndices.size)
-			{
-				val index = liveIndices[i - 1]
-				continuation.frameAtPut(
-					i, if (index == 0) nil else registers[index])
+				// Push that label.
+				registers[stackp] = label as AvailObject
+				val continuation = createContinuationExceptFrame(
+					function,
+					caller,
+					nil,
+					pc,
+					stackp,
+					thisChunk,
+					nextOffset)
+				for (i in 1 .. liveIndices.size)
+				{
+					val index = liveIndices[i - 1]
+					continuation.frameAtPut(
+						i, if (index == 0) nil else registers[index])
+				}
+				interpreter.setReifiedContinuation(continuation)
+				// And now we tell the interpreter to resume the continuation.
+				interpreter.function = function
+				interpreter.chunk = thisChunk
+				interpreter.offset = nextOffset
+				CONTINUE_FIBER
 			}
-			interpreter.setReifiedContinuation(continuation)
-			// And now we tell the interpreter to resume the continuation.
-			interpreter.function = function
-			interpreter.chunk = thisChunk
-			interpreter.offset = nextOffset
-			CONTINUE_FIBER
-		}
+		return false
 	}
+
+	/**
+	 * The chunk can't actually become invalid during a push-label instruction,
+	 * but we still need a dummy value.
+	 */
+	override fun defaultL1EntryPointIfInvalid() =
+		DefaultEntryPoint.TRANSIENT
 
 	/**
 	 * The original continuation has resumed after a pushLabel.  The label has
 	 * already been pushed by the reifier's [StackReifier.postReificationAction]
-	 * (inside [step], above) at this point.
+	 * (inside [step], above) at this point.  Note that we don't have to check
+	 * this chunk for validity, because the reentry was guaranteed to happen
+	 * before there was any chance for safe-point code to alter the runtime.
 	 */
 	override fun reenter(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
+		assert(interpreter.chunk!!.isValid)
 		// Restore the registers from the continuation and pop it.
 		val con = interpreter.popContinuation()
 		for (i in 1 until registers.size)
 		{
 			registers[i] = con.frameAt(i)
 		}
-		return null
+		return true
 	}
 
 	companion object
@@ -1065,7 +1097,7 @@ class L2Simple_Permute(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		// Permute the stack using a temporary array.
 		val temp = Array(reads.size) {
@@ -1075,7 +1107,7 @@ class L2Simple_Permute(
 		{
 			registers[writes[i]] = temp[i]
 		}
-		return null
+		return true
 	}
 }
 
@@ -1093,24 +1125,21 @@ constructor(
 	val liveIndices: IntArray
 ): L2SimpleInstruction()
 {
+	override fun defaultL1EntryPointIfInvalid(): DefaultEntryPoint =
+		DefaultEntryPoint.RESUME
+
 	override fun reenter(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
-		// The invoke cases are handled in subclasses, so this is a "resume"
-		// situation, as for trapped reads or writes of variables.
-		if (!interpreter.checkValidity(DefaultEntryPoint.RESUME.offset))
-		{
-			return null
-		}
 		// Pop the continuation, repopulating the registers.
 		val con = interpreter.popContinuation()
 		for (i in 1 until registers.size)
 		{
 			registers[i] = con.frameAt(i)
 		}
-		return null
+		return true
 	}
 
 	/**
@@ -1152,8 +1181,7 @@ constructor(
 	fun handleVariableGetException(
 		e: VariableGetException,
 		interpreter: Interpreter,
-		registers: Array<AvailObject>
-	): A_BasicObject?
+		registers: Array<AvailObject>)
 	{
 		// The variable had no value.
 		assert(e.numericCode.equals(
@@ -1175,12 +1203,10 @@ constructor(
 				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return null
 	}
 
 	/**
-	 * A [VariableSetException] has occurred.  Run the implicit-observe handler,
-	 * and answer nil if it completes, or `null` if it eventually reifies.
+	 * A [VariableSetException] has occurred.  Run the implicit-observe handler.
 	 */
 	fun handleVariableSetException(
 		e: VariableSetException,
@@ -1188,7 +1214,7 @@ constructor(
 		value: AvailObject,
 		interpreter: Interpreter,
 		registers: Array<AvailObject>
-	): A_BasicObject?
+	): Boolean
 	{
 		// The variable had an observer attached.
 		assert(e.numericCode.equals(
@@ -1203,7 +1229,11 @@ constructor(
 		val valueOrNull =
 			interpreter.invokeFunction(interpreter.runtime[IMPLICIT_OBSERVE])
 		// It's top-valued, so it *might* reify, or might not.
-		if (valueOrNull !== null) return nil
+		if (valueOrNull !== null)
+		{
+			interpreter.setLatestResult(valueOrNull)
+			return true
+		}
 		val reifier = interpreter.currentReifier!!
 		if (reifier.actuallyReify)
 		{
@@ -1212,7 +1242,7 @@ constructor(
 				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return null
+		return false
 	}
 }
 
@@ -1242,7 +1272,7 @@ constructor(
 		interpreter: Interpreter,
 		registers: Array<AvailObject>,
 		function: A_Function
-	): StackReifier?
+	): Boolean
 	{
 		val thisChunk = interpreter.chunk!!
 		//assert(function.code().functionType().acceptsListOfArgValues(
@@ -1262,7 +1292,8 @@ constructor(
 					createContinuation(it, registers, thisChunk)
 				}
 			}
-			return reifier
+			interpreter.currentReifier = reifier
+			return false
 		}
 		// We returned normally from the call, which is the fast path.
 		if (!mustCheck || valueOrNull.isInstanceOf(expectedType))
@@ -1270,7 +1301,7 @@ constructor(
 			// Passed the return check, or didn't need to check.  This is
 			// the fastest path.
 			registers[stackp] = valueOrNull as AvailObject
-			return null
+			return true
 		}
 		// Rare - the result did not conform to the expected type.
 		val wrappedReturnValue =
@@ -1285,8 +1316,12 @@ constructor(
 			interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
 		// Note that the handler is ⊥-valued, so it can't return normally.
 		assert(handlerValueOrNull === null)
-		return interpreter.currentReifier!!
+		assert(interpreter.currentReifier != null)
+		return false
 	}
+
+	override fun defaultL1EntryPointIfInvalid() =
+		DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
 
 	/**
 	 * This is called when the invocation for this step had to reify, and now
@@ -1307,13 +1342,8 @@ constructor(
 	override fun reenter(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
-		if (!interpreter.checkValidity(
-				DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL.offset))
-		{
-			return null
-		}
 		val result = interpreter.getLatestResult()
 		val con = interpreter.getReifiedContinuation()!!
 		val thisChunk = con.levelTwoChunk
@@ -1331,7 +1361,7 @@ constructor(
 			// returned result.
 			registers[stackp] = result
 			interpreter.popContinuation()
-			return null
+			return true
 		}
 		// Rare - the return check failed, so we need to invoke the return
 		// check failure function.  It's ⊥-valued, so it won't return, but
@@ -1356,7 +1386,7 @@ constructor(
 				createContinuation(currentContinuation, registers, thisChunk)
 			}
 		}
-		return reifier
+		return false
 	}
 
 	/**
@@ -1369,7 +1399,7 @@ constructor(
 		e: MethodDefinitionException,
 		registers: Array<AvailObject>,
 		bundle: A_Bundle
-	): StackReifier
+	): Boolean
 	{
 		val thisChunk = interpreter.chunk!!
 		val argumentsTuple = tupleFromList(args)
@@ -1389,7 +1419,7 @@ constructor(
 				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return reifier
+		return false
 	}
 }
 
@@ -1422,7 +1452,7 @@ constructor(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		interpreter.argsBuffer.run {
 			clear()
@@ -1473,7 +1503,7 @@ constructor(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1490,7 +1520,7 @@ constructor(
 			// By far the most common case: Fast path succeeded.  Record the
 			// returned value.
 			registers[stackp] = value.cast()
-			return null
+			return true
 		}
 		// Slower path: The primitive failed.  Fall back to L2Simple_Invoke's
 		// behavior, including retrying the primitive.
@@ -1524,7 +1554,7 @@ class L2Simple_GeneralCall(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1581,7 +1611,7 @@ class L2Simple_SuperCall(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1639,7 +1669,7 @@ constructor(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1654,7 +1684,7 @@ constructor(
 			primitive.attempt(interpreter))
 		registers[stackp] = valueOrNull!! as AvailObject
 		interpreter.function = registers[0]
-		return null
+		return true
 	}
 }
 
@@ -1671,36 +1701,33 @@ class L2Simple_CheckForInterrupt(
 ) : L2Simple_AbstractReifiableInstruction(
 	stackp, pc, nextOffset, liveIndices)
 {
+	override fun defaultL1EntryPointIfInvalid() = DefaultEntryPoint.RESUME
+
 	override fun reenter(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
-		// The invoke cases are handled in subclasses, so this is a "resume"
-		// situation, as for trapped reads or writes of variables.
-		if (!interpreter.checkValidity(DefaultEntryPoint.RESUME.offset))
-		{
-			return null
-		}
 		// Pop the continuation, repopulating the registers.
 		val con = interpreter.popContinuation()
 		for (i in 1 until registers.size)
 		{
 			registers[i] = con.frameAt(i)
 		}
-		return null
+		return true
 	}
 
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): StackReifier?
+	): Boolean
 	{
-		if (!interpreter.isInterruptRequested) return null
+		if (!interpreter.isInterruptRequested)
+			return true
 		// An interrupt has been requested.  Reify and process it.
 		val function = registers[0]
 		val thisChunk = interpreter.chunk!!
-		return StackReifier(true, interruptStatistic) {
+		interpreter.currentReifier = StackReifier(true, interruptStatistic) {
 			val caller = interpreter.getReifiedContinuation()!!
 			val continuation = createContinuationExceptFrame(
 				function,
@@ -1720,8 +1747,9 @@ class L2Simple_CheckForInterrupt(
 			interpreter.chunk = thisChunk
 			interpreter.offset = nextOffset
 			interpreter.processInterrupt(continuation)
-			CONTINUE_FIBER
+			SWITCH_FROM_FIBER
 		}
+		return false
 	}
 
 	companion object

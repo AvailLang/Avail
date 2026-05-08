@@ -119,8 +119,7 @@ object P_PushLastOuter : PrimitiveN(
 		return true
 	}
 
-	override fun attemptToGenerateSimpleInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
@@ -128,17 +127,9 @@ object P_PushLastOuter : PrimitiveN(
 	): TypeRestriction?
 	{
 		if (functionIfKnown === null)
-		{
-			return super.attemptToGenerateSimpleInvocation(
-				simpleTranslator,
-				null,
-				rawFunction,
-				argRestrictions,
-				expectedType)
-		}
+			return null
 		val constant = functionIfKnown.outerVarAt(1)
-		simpleTranslator.add(
-			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
+		+L2Simple_MoveConstant(constant, stackp)
 		return boxedRestrictionForConstant(constant)
 	}
 }

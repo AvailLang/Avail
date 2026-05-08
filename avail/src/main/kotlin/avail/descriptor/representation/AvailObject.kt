@@ -315,7 +315,6 @@ class AvailObject private constructor(
 	 */
 	fun assertObjectUnreachableIfMutable()
 	{
-		checkValidAddress()
 		if (!descriptor.isMutable) return
 		// Recursively invoke the iterator on the subobjects of self...
 		lateinit var marker: (AvailObject) -> AvailObject

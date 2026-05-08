@@ -136,8 +136,7 @@ object P_GetGlobalVariableValue : Primitive1(
 		return true
 	}
 
-	override fun attemptToGenerateSimpleInvocation(
-		simpleTranslator: L2SimpleTranslator,
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
@@ -150,8 +149,7 @@ object P_GetGlobalVariableValue : Primitive1(
 			!variable.hasValue())
 		{
 			// The variable is not an initialized stable global.
-			return super.attemptToGenerateSimpleInvocation(
-				simpleTranslator,
+			return defaultAttemptToGenerateSimpleInvocation(
 				functionIfKnown,
 				rawFunction,
 				argRestrictions,
@@ -167,8 +165,7 @@ object P_GetGlobalVariableValue : Primitive1(
 			throw RuntimeException(
 				"Assigned write-once variable should not fail in getValue()")
 		}
-		simpleTranslator.add(
-			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
+		+L2Simple_MoveConstant(constant, stackp)
 		return boxedRestrictionForConstant(constant)
 	}
 }

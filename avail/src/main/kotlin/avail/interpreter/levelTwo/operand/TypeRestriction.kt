@@ -50,7 +50,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine6
-import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
@@ -142,8 +141,8 @@ import java.util.Objects.hashCode
  * @property canBeBottom
  *   Whether this restriction allows the corresponding value to be the [bottom]
  *   type.  This has to be a special case, as otherwise the conservative
- *   subtraction can't represent, say, types - tuple types + bottom, which is
- *   necessary for type tag restriction propagation around types.
+ *   subtraction can't represent, say, types minus tuple types plus bottom,
+ *   which is necessary for type tag restriction propagation around types.
  * @property flags
  *   An [Int] that encodes [RestrictionFlagEncoding]s.
  */
@@ -249,10 +248,10 @@ class TypeRestriction private constructor(
 	 * @property tags
 	 *
 	 *   When used in the positive group, this set, if present, must contain the
-	 *   [typeTag][AvailObjectRepresentation.typeTag] of the value under test.
+	 *   [typeTag][A_BasicObject.typeTag] of the value under test.
 	 *
 	 *   When used in the negative group, the value under test must *not* have a
-	 *   [typeTag][AvailObjectRepresentation.typeTag] in this set.
+	 *   [typeTag][A_BasicObject.typeTag] in this set.
 	 */
 	data class RestrictionGroup(
 		val constants: Set<A_BasicObject>?,
@@ -379,7 +378,7 @@ class TypeRestriction private constructor(
 	 * @param negativeGroup
 	 *   The negative aspects of this restriction, generally consisting of sets
 	 *   of constraints that must not hold for the value under test.
-	 * @property canBeBottom
+	 * @param canBeBottom
 	 *   Whether this restriction allows the corresponding value to be the
 	 *   [bottom] type.  This is an awkward special case.
 	 * @param isImmutable
@@ -571,7 +570,7 @@ class TypeRestriction private constructor(
 				for (t2 in otherExcluded)
 				{
 					// We can ignore bottom intersections later, and separately
-					// handle bottomMeta in a different way.
+					// handle bottomMeta differently.
 					newExclusions.add(t1.typeIntersection(t2))
 				}
 			}
@@ -1169,8 +1168,8 @@ class TypeRestriction private constructor(
 		if (intersectedType.isVacuousType) return false
 		if (excludedTypes.any { intersectedType.isSubtypeOf(it) })
 		{
-			// Even though the bare types intersect, the intersection was
-			// explicitly excluded by the restriction.
+			// Even though the bare types intersect, the restriction explicitly
+			// excluded the intersection.
 			return false
 		}
 		return !(excludedValues.isNotEmpty()
@@ -1778,7 +1777,7 @@ class TypeRestriction private constructor(
 		 * @param excludedTags
 		 *   An optional [Set] of [TypeTag]s that the value definitely does not
 		 *   have.  It must not be present if [givenTag] is present.
-		 * @property canBeBottom
+		 * @param canBeBottom
 		 *   Whether this restriction allows the corresponding value to be the
 		 *   [bottom] type.  This is an awkward special case.
 		 * @param flags
@@ -2003,7 +2002,7 @@ class TypeRestriction private constructor(
 		 * @param excludedTags
 		 *   An optional [Set] of [TypeTag]s that the value definitely does not
 		 *   have.  It must not be present if [givenTag] is present.
-		 * @property canBeBottom
+		 * @param canBeBottom
 		 *   Whether this restriction allows the corresponding value to be the
 		 *   [bottom] type.  This is an awkward special case.
 		 * @param isImmutable
@@ -2092,7 +2091,7 @@ class TypeRestriction private constructor(
 		 * @param excludedTags
 		 *   An optional [Set] of [TypeTag]s that the value definitely does not
 		 *   have.  It must not be present if [givenTag] is present.
-		 * @property canBeBottom
+		 * @param canBeBottom
 		 *   Whether this restriction allows the corresponding value to be the
 		 *   [bottom] type.  This is an awkward special case.
 		 * @param flags

@@ -45,6 +45,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
@@ -65,7 +66,11 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.L2Simple_Invoke
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMayInvoke
@@ -330,5 +335,48 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 				arguments)
 		}
 		return true
+	}
+
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): TypeRestriction?
+	{
+		assert(argRestrictions.size == 2)
+		val argumentsRestriction = argRestrictions[1]
+		functionIfKnown ?: return null
+		// The exact function to invoke is known.  This might get extended some
+		// day to support functions created in the same chunk via a close
+		// instruction, but for now we only handle constant functions.
+		// Check the arguments.
+		val argumentsType = argumentsRestriction.type
+		assert(argumentsType.isTupleType)
+		val argCount = argumentsType.sizeRange.lowerBound
+		if (!argCount.isInt)
+			return null
+		val argCountInt = argCount.extractInt
+		if (!argumentsType.sizeRange.upperBound.equalsInt(argCountInt))
+			return null
+		val functionType = functionIfKnown.kind()
+		if (!functionType.acceptsTupleOfArgTypes(
+				argumentsType.tupleOfTypesFromTo(1, argCountInt)))
+			return null
+		// The arguments are compatible.  Invoke the function directly,
+		// without involving the invoke primitive.
+		val indices = liveIndices(stackp - 2 + 1 .. stackp - 1)
+		// The call of the invoke primitive is being reduced to a call of the
+		// statically known function instead, so that's the stronger guarantee.
+		val guaranteedReturnType = functionType.returnType
+		+L2Simple_Invoke(
+			stackp = stackp,
+			pc = pc,
+			nextOffset = instructions.size + 1,
+			liveIndices = indices,
+			expectedType = expectedType,
+			mustCheck = !guaranteedReturnType.isSubtypeOf(expectedType),
+			function = functionIfKnown)
+		return boxedRestrictionForType(guaranteedReturnType)
 	}
 }
