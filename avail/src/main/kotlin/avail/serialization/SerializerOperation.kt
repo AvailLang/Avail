@@ -82,7 +82,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCo
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -3038,7 +3038,7 @@ enum class SerializerOperation constructor(
 			assert(obj.isPojoType)
 			assert(obj.isPojoFusedType)
 			var symbolicMap = emptyMap
-			obj.javaAncestors().forEach { key, value ->
+			obj.javaAncestors().forEachInMap { key, value ->
 				val baseClass = key.javaObjectNotNull<Class<*>>()
 				val className = stringFrom(baseClass.name)
 				val processedParameters = mutableListOf<A_BasicObject>()
@@ -3069,7 +3069,7 @@ enum class SerializerOperation constructor(
 			var ancestorMap = emptyMap
 			try
 			{
-				subobjects[0].forEach { key, value ->
+				subobjects[0].forEachInMap { key, value ->
 					val baseClass = Class.forName(
 						key.asNativeString(), true, classLoader)
 					val rawPojo = equalityPojo(baseClass)

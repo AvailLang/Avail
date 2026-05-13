@@ -57,7 +57,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.MapDescriptor.Companion.mapWithBindings
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
@@ -573,7 +573,7 @@ class OptimizerTestHelper(
 		init
 		{
 			supertype?.run {
-				fieldTypeMap.forEach { k, v -> fields[k] = v }
+				fieldTypeMap.forEachInMap { k, v -> fields[k] = v }
 			}
 		}
 

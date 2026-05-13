@@ -44,7 +44,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -250,7 +250,7 @@ class ObjectTypeDescriptor internal constructor(
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap.forEach { atom, type ->
+			baseType.fieldTypeMap.forEachInMap { atom, type ->
 				if (atom.getAtomProperty(explicitSubclassingKey).notNil
 					|| myFieldTypeMap.mapAt(atom).equals(type)
 				)
@@ -261,7 +261,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 		}
 		var importantKeys = emptyMap
-		myFieldTypeMap.forEach { key, type ->
+		myFieldTypeMap.forEachInMap { key, type ->
 			if (!ignoreKeys.hasElement(key))
 			{
 				importantKeys =
@@ -277,7 +277,7 @@ class ObjectTypeDescriptor internal constructor(
 			append("{# ")
 			append(printedName)
 			var first = true
-			importantKeys.forEach { key, type ->
+			importantKeys.forEachInMap { key, type ->
 				append(if (first) " |" else ",")
 				first = false
 				newlineTab(indent)
@@ -750,7 +750,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("object type") }
-			self.fieldTypeMap.forEach { key, value ->
+			self.fieldTypeMap.forEachInMap { key, value ->
 				key.atomName.writeTo(writer)
 				value.writeTo(writer)
 			}
@@ -759,7 +759,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("object type") }
-			self.fieldTypeMap.forEach { key, value ->
+			self.fieldTypeMap.forEachInMap { key, value ->
 				key.atomName.writeTo(writer)
 				value.writeSummaryTo(writer)
 			}
@@ -871,7 +871,7 @@ class ObjectTypeDescriptor internal constructor(
 			val variant = variantForFields(map.keysAsSet)
 			val slotMap = variant.fieldToSlotIndex
 			var problems: MutableList<A_Atom>? = null
-			map.forEach { key, value ->
+			map.forEachInMap { key, value ->
 				val slotIndex = slotMap[key]!!
 				if (slotIndex > 0)
 				{
@@ -887,7 +887,7 @@ class ObjectTypeDescriptor internal constructor(
 				throw ObjectFieldTypeException(it)
 			}
 			return createUninitializedObjectType(variant) {
-				map.forEach { key, value ->
+				map.forEachInMap { key, value ->
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
 						setSlot(FIELD_TYPES_, slotIndex, value)
@@ -1017,7 +1017,7 @@ class ObjectTypeDescriptor internal constructor(
 		) {
 			assert(aString.isString)
 			objectNamesLock.safeWrite {
-				anObjectType.fieldTypeMap.forEach { atom, _ ->
+				anObjectType.fieldTypeMap.forEachInMap { atom, _ ->
 					if (!atom.isAtomSpecial)
 					{
 						val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
@@ -1070,10 +1070,10 @@ class ObjectTypeDescriptor internal constructor(
 			var applicable = emptyMap
 			objectNamesLock.read {
 				val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
-				anObjectType.fieldTypeMap.forEach { key, _ ->
+				anObjectType.fieldTypeMap.forEachInMap { key, _ ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
 					if (map.notNil) {
-						map.forEach { namedType, innerValue ->
+						map.forEachInMap { namedType, innerValue ->
 							if (anObjectType.isSubtypeOf(namedType)) {
 								var nameSet: A_Set = innerValue
 								applicable.mapAtOrNull(namedType)?.let { more ->
@@ -1089,8 +1089,8 @@ class ObjectTypeDescriptor internal constructor(
 				applicable.makeImmutable()
 			}
 			var filtered = applicable
-			applicable.forEach { childType, _ ->
-				applicable.forEach { parentType, _ ->
+			applicable.forEachInMap { childType, _ ->
+				applicable.forEachInMap { parentType, _ ->
 					if (!childType.equals(parentType)
 						&& childType.isSubtypeOf(parentType)) {
 						filtered = filtered.mapWithoutKeyCanDestroy(
@@ -1100,7 +1100,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 			var names = emptySet
 			var baseTypes = emptySet
-			filtered.forEach { name, type ->
+			filtered.forEachInMap { name, type ->
 				names = names.setUnionCanDestroy(type, true)
 				baseTypes = baseTypes.setWithElementCanDestroy(name, true)
 			}

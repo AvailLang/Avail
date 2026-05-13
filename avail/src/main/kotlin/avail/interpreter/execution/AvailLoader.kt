@@ -105,7 +105,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -197,6 +197,7 @@ import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.forEachInTuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -1181,7 +1182,9 @@ constructor(
 		val bodySignature = newDefinition.bodySignature()
 		val argsTupleType = bodySignature.argsTupleType
 		var forward: A_Definition? = null
-		method.definitionsTuple.forEach { existingDefinition ->
+		val definitions = method.definitionsTuple
+		definitions.forEachInTuple(1, definitions.tupleSize) {
+				existingDefinition ->
 			val existingType = existingDefinition.bodySignature()
 			val same = existingType.argsTupleType.equals(argsTupleType)
 			if (same)
@@ -1543,7 +1546,7 @@ constructor(
 				// grammatical restriction.
 				val treesToVisit =
 					ArrayDeque<Pair<A_BundleTree, A_ParsingPlanInProgress>>()
-				bundle.definitionParsingPlans.forEach { _, plan ->
+				bundle.definitionParsingPlans.forEachInMap { _, plan ->
 					treesToVisit.addLast(root to newPlanInProgress(plan, 1))
 					while (treesToVisit.isNotEmpty())
 					{

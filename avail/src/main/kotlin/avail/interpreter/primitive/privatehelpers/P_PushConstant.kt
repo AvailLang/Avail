@@ -116,7 +116,7 @@ object P_PushConstant : PrimitiveN(
 		expectedType: A_Type): TypeRestriction
 	{
 		val constant = rawFunction.literalAt(1)
-		+L2Simple_MoveConstant(constant, stackp)
+		+L2Simple_MoveConstant(this, constant, stackp)
 		return boxedRestrictionForConstant(constant)
 	}
 }

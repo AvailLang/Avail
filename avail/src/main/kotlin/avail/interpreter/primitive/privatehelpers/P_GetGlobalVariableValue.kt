@@ -165,7 +165,7 @@ object P_GetGlobalVariableValue : Primitive1(
 			throw RuntimeException(
 				"Assigned write-once variable should not fail in getValue()")
 		}
-		+L2Simple_MoveConstant(constant, stackp)
+		+L2Simple_MoveConstant(this, constant, stackp)
 		return boxedRestrictionForConstant(constant)
 	}
 }

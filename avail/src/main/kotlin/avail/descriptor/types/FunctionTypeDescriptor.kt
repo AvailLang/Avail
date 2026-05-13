@@ -235,10 +235,7 @@ private constructor(
 		{
 			builder.append("^")
 			list.clear()
-			for (elem in self.declaredExceptions)
-			{
-				list.add(elem)
-			}
+			list.addAll(self.declaredExceptions)
 			printListOnAvoidingIndent(list, builder, recursionMap, indent)
 		}
 	}

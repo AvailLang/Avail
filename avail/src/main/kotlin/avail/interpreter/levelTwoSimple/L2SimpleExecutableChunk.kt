@@ -49,6 +49,9 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.HIGHEST_LEGAL_OFFSET
+import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.REIFY_NOW
+import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.RETURN_NOW
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
@@ -247,7 +250,6 @@ constructor(
 			}
 		}
 		var off = max(offset, 0)
-		val size = instructions.size
 		if (Interpreter.debugL2)
 		{
 			// A hard-coded interpreter loop that can log.
@@ -258,14 +260,13 @@ constructor(
 				depth++
 				pointer = pointer.caller
 			}
-			while (off < size)
+			while (off < HIGHEST_LEGAL_OFFSET)
 			{
-				val instruction = instructions[off++]
+				val instruction = instructions[off]
 				val instructionText = increaseIndentation(
 					instruction.toString(),
 					interpreter.unreifiedCallDepth() + 2)
 				// Extra logging shows what the step affects.
-				val registersCopy = registers.copyOf()
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
@@ -273,53 +274,47 @@ constructor(
 					interpreter.debugModeString,
 					off - 1,
 					instructionText)
-				val keepGoing = instruction.step(registers, interpreter)
-				var any = false
-				val changes = buildString {
-					registers.forEachIndexed { index, newValue ->
-						val oldValue = registersCopy[index]
-						if (newValue !== oldValue)
-						{
-							if (any) append("\n")
-							any = true
-							append(interpreter.debugModeString)
-							append("    slot $index changed: " +
-								"$oldValue -> $newValue")
-						}
-					}
-				}
-				if (any)
-				{
-					Interpreter.log(
-						Interpreter.loggerDebugL1,
-						Level.FINER,
-						"{0}",
-						changes)
-				}
-				if (!keepGoing) return null
+				off = instruction.step(registers, interpreter)
 			}
-			// Return the only element from the stack, which L1 guarantees holds
-			// the return value.
-			val result = registers[registers.size - 1]
+			val resultOrNull = when (off)
+			{
+				REIFY_NOW -> null
+				else ->
+				{
+					// The return value is *always* written into the last
+					// register, even for non-local exits from a primitive like
+					// [P_ExitContinuationIf].
+					assert(off == RETURN_NOW)
+					registers[registers.size - 1]
+				}
+			}
 			log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}L2Simple return ({1})",
 				interpreter.debugModeString,
-				result.typeTag.name)
-			return result
+				resultOrNull?.typeTag?.name)
+			return resultOrNull
 		}
 		else
 		{
 			// A hard-coded interpreter loop that cannot log.
-			while (off < size)
+			while (off <= HIGHEST_LEGAL_OFFSET)
 			{
-				val keepGoing = instructions[off++].step(registers, interpreter)
-				if (!keepGoing) return null
+				off = instructions[off].step(registers, interpreter)
 			}
-			// Return the only element from the stack, which L1 guarantees holds
-			// the return value.
-			return registers[registers.size - 1]
+			when (off)
+			{
+				REIFY_NOW -> return null
+				else ->
+				{
+					// The return value is *always* written into the last
+					// register, even for non-local exits from a primitive like
+					// [P_ExitContinuationIf].
+					assert(off == RETURN_NOW)
+					return registers[registers.size - 1]
+				}
+			}
 		}
 	}
 }

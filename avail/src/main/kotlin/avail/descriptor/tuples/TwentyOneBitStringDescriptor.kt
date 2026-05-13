@@ -200,6 +200,17 @@ class TwentyOneBitStringDescriptor private constructor(
 		return result
 	}
 
+	override fun o_AsNativeString(self: AvailObject): String
+	{
+		val size = self.tupleSize
+		return buildString(size) {
+			for (i in 1 .. size)
+			{
+				appendCodePoint(get21BitSlot(self, i))
+			}
+		}
+	}
+
 	override fun o_CompareFromToWithStartingAt(
 		self: AvailObject,
 		startIndex1: Int,
@@ -552,6 +563,21 @@ class TwentyOneBitStringDescriptor private constructor(
 	companion object
 	{
 		/**
+		 * The value 2^33 / 3, rounded up, as a [ULong].  This is used for fast
+		 * division by 3.
+		 */
+		private const val thirdMultiplier = 0x0000_0000_AAAA_AAABuL
+
+		/** Divide the given non-negative [Int] by 3. */
+		private val Int.div3: Int get() =
+			(toULong() * thirdMultiplier shr 33).toInt()
+
+		/** Calculate the receiver mod 3.  The receiver must be non-negative. */
+		private val Int.mod3: Int get() = minus(div3 * 3)
+
+		/** A [Long] with the lower 21 bits set, and the rest zero. */
+		private const val twentyOneBitMask: Long = (1L shl 21) - 1L
+		/**
 		 * Defined threshold for making copies versus using
 		 * [TreeTupleDescriptor] or other forms of reference instead of creating
 		 * a new tuple.
@@ -723,18 +749,3 @@ class TwentyOneBitStringDescriptor private constructor(
 		descriptors[(3 - unusedEntriesOfLastLong).mod3 * 3
 			+ Mutability.SHARED.ordinal]!!
 }
-
-/**
- * The value 2^33 / 3, rounded up, as a [ULong].  This is used for fast division
- * by 3.
- */
-private const val thirdMultiplier = 0x0000_0000_AAAA_AAABuL
-
-/** Divide the given non-negative [Int] by 3. */
-private val Int.div3: Int get() = (toULong() * thirdMultiplier shr 33).toInt()
-
-/** Calculate the receiver mod 3.  The receiver must be non-negative. */
-private val Int.mod3: Int get() = minus(div3 * 3)
-
-/** A [Long] with the lower 21 bits set, and the rest zero. */
-private const val twentyOneBitMask: Long = (1L shl 21) - 1L

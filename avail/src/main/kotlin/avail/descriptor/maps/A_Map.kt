@@ -71,8 +71,8 @@ interface A_Map : A_BasicObject
 		 * @param action
 		 *   The action to perform for each key and value pair.
 		 */
-		fun A_Map.forEach(action: (AvailObject, AvailObject)->Unit) =
-			dispatch { o_ForEach(it, action) }
+		fun A_Map.forEachInMap(action: (AvailObject, AvailObject)->Unit) =
+			dispatch { o_ForEachInMap(it, action) }
 
 		/**
 		 * Answer whether the argument is one of the keys of this map.

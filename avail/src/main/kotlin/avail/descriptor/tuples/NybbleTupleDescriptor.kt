@@ -84,6 +84,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import java.nio.ByteBuffer
+import java.util.function.IntConsumer
 import kotlin.math.min
 
 /**
@@ -464,6 +465,46 @@ private constructor(
 	override fun o_ExtractNybbleFromTupleAt(self: AvailObject, index: Int): Byte
 	{
 		return getNybble(self, index)
+	}
+
+	override fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer)
+	{
+		// The one-based index of the first full long to process.
+		val firstLongIndex = (firstIndex + 30) ushr 4
+		// The one-based index of the last full long to process.
+		val lastLongIndex = (lastIndex + 1) ushr 4
+		if (firstLongIndex >= lastLongIndex)
+		{
+			for (i in firstIndex .. lastIndex)
+			{
+				action.accept(getNybble(self, i).toInt())
+			}
+			return
+		}
+		// Process the leading elements.
+		for (i in firstIndex .. (firstLongIndex shl 4))
+		{
+			action.accept(getNybble(self, i).toInt())
+		}
+		// Process the full longs.
+		for (longIndex in firstLongIndex .. lastLongIndex)
+		{
+			var long = self[RAW_LONG_AT_, longIndex]
+			repeat(16)
+			{
+				action.accept(long.toInt() and 0x0F)
+				long = long ushr 4
+			}
+		}
+		// Process the trailing elements.
+		for (i in (lastLongIndex shl 4) + 1 .. lastIndex)
+		{
+			action.accept(getNybble(self, i).toInt())
+		}
 	}
 
 	// Given two objects that are known to be equal, is the first one in a

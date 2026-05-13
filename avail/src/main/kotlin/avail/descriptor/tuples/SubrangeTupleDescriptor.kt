@@ -44,6 +44,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.tuples.A_Tuple.Companion.forEachInTuple
+import avail.descriptor.tuples.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -63,6 +65,8 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastO
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
 import java.nio.ByteBuffer
+import java.util.function.Consumer
+import java.util.function.IntConsumer
 
 /**
  * A subrange tuple holds a reference to a "basis" tuple, the subrange's
@@ -429,6 +433,45 @@ private constructor(
 		val adjustment = self[START_INDEX] - 1
 		return self[BASIS_TUPLE].firstIndexOf(
 			value, startIndex + adjustment, endIndex + adjustment)
+	}
+
+	override fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>)
+	{
+		val basis: A_Tuple = self[BASIS_TUPLE]
+		val size = self[SIZE]
+		assert(firstIndex in 1..size)
+		assert(lastIndex in firstIndex - 1..size)
+		val adjustment = self[START_INDEX] - 1
+		basis.forEachInTuple(
+			firstIndex + adjustment,
+			lastIndex + adjustment,
+			action)
+	}
+
+	override fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer)
+	{
+		val basis: A_Tuple = self[BASIS_TUPLE]
+		val size = self[SIZE]
+		assert(firstIndex in 1..size)
+		assert(lastIndex in firstIndex - 1..size)
+		val adjustment = self[START_INDEX] - 1
+		basis.forEachIntInTuple(
+			firstIndex + adjustment,
+			lastIndex + adjustment,
+			action)
+	}
+
+	override fun o_IsString(self: AvailObject): Boolean
+	{
+		return self[BASIS_TUPLE].isString || super.o_IsString(self)
 	}
 
 	override fun o_LastIndexOf(

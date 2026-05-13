@@ -44,7 +44,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
 import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.representation.A_BasicObject
@@ -133,7 +133,7 @@ object P_Alias : Primitive2(CanInline, HasSideEffect)
 		{
 			val root = loader.rootBundleTree
 			loader.module.lock {
-				newBundle.definitionParsingPlans.forEach { _, value ->
+				newBundle.definitionParsingPlans.forEachInMap { _, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
 			}

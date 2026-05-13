@@ -71,8 +71,7 @@ class FillerDescriptor private constructor() : Descriptor(
 
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>
+		queueToProcess: MutableList<AvailObject>
 	) = unsupported
 
 	override fun o_MakeSharedInternal(

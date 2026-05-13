@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.variables
 
+import avail.AvailRuntimeSupport
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -71,6 +72,8 @@ import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.performance.Statistic
+import avail.performance.StatisticReport.PRIMITIVES
 
 /**
  * **Primitive:** Atomically read and conditionally overwrite the specified
@@ -91,19 +94,25 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 		val variable = arg1
 		val reference = arg2
 		val newValue = arg3
-		return try
+		val before = AvailRuntimeSupport.captureNanos()
+		val replaced: Boolean = try
 		{
-			objectFromBoolean(
-				variable.compareAndSwapValues(reference, newValue))
+			variable.compareAndSwapValues(reference, newValue)
 		}
 		catch (e: VariableGetException)
 		{
-			fail(e.errorCode)
+			return fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			fail(e.errorCode)
+			return fail(e.errorCode)
 		}
+		if (!replaced)
+		{
+			val after = AvailRuntimeSupport.captureNanos()
+			conflictStatistic.record(after - before, interpreterIndex)
+		}
+		return objectFromBoolean(replaced)
 	}
 
 	/**
@@ -207,4 +216,12 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
+
+	/**
+	 * A statistic that tracks the number of times (and CPU time) for attempts
+	 * that didn't succeed in replacing the value because the reference value
+	 * was no longer present in the variable.
+	 */
+	val conflictStatistic =
+		Statistic(PRIMITIVES, "$simpleName (conflict on write)")
 }

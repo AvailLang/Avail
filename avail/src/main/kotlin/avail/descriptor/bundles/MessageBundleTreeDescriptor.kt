@@ -56,7 +56,7 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Compani
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.IS_SOURCE_OF_CYCLE
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -419,8 +419,8 @@ class MessageBundleTreeDescriptor private constructor(
 		val bundleCount = plansInProgress.mapSize
 		if (bundleCount <= 15) {
 			val strings = mutableMapOf<String, Int>()
-			plansInProgress.forEach { _, value: A_Map ->
-				value.forEach { _, plansInProgress: A_Set ->
+			plansInProgress.forEachInMap { _, value: A_Map ->
+				value.forEachInMap { _, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
 						val string = planInProgress.nameHighlightingPc
 						strings[string] = strings.getOrDefault(string, 0) + 1
@@ -646,8 +646,10 @@ class MessageBundleTreeDescriptor private constructor(
 			}
 
 			// Update my components.
-			theUnclassified.forEach { bundle, defToPlansInProgress: A_Map ->
-				defToPlansInProgress.forEach { def, plansInProgress: A_Set ->
+			theUnclassified.forEachInMap {
+					bundle, defToPlansInProgress: A_Map ->
+				defToPlansInProgress.forEachInMap {
+						def, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
 						val pc = planInProgress.parsingPc
 						val plan = planInProgress.parsingPlan
@@ -1052,7 +1054,7 @@ class MessageBundleTreeDescriptor private constructor(
 				}
 				val planInProgress = newPlanInProgress(plan, pc + 1)
 				// Add it to every existing branch where it's permitted.
-				lazyPrefilterMap.forEach { bundle, prefilterSuccessor ->
+				lazyPrefilterMap.forEachInMap { bundle, prefilterSuccessor ->
 					if (!forbiddenBundles.hasElement(bundle))
 					{
 						prefilterSuccessor.addPlanInProgress(planInProgress)
@@ -1069,9 +1071,9 @@ class MessageBundleTreeDescriptor private constructor(
 						// Instead, use ALL_BUNDLES of the successor found under
 						// this instruction, since it *has* been kept up to date
 						// as the bundles have gotten classified.
-						successor.allParsingPlansInProgress.forEach {
+						successor.allParsingPlansInProgress.forEachInMap {
 								_, defMap ->
-							defMap.forEach { _, plans ->
+							defMap.forEachInMap { _, plans ->
 								plans.forEach { inProgress ->
 									newTarget.addPlanInProgress(inProgress)
 								}

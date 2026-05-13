@@ -129,7 +129,7 @@ object P_PushLastOuter : PrimitiveN(
 		if (functionIfKnown === null)
 			return null
 		val constant = functionIfKnown.outerVarAt(1)
-		+L2Simple_MoveConstant(constant, stackp)
+		+L2Simple_MoveConstant(this, constant, stackp)
 		return boxedRestrictionForConstant(constant)
 	}
 }

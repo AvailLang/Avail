@@ -103,7 +103,7 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
@@ -1228,13 +1228,13 @@ class AvailCompiler constructor(
 				}
 				val sorted = mutableListOf<String>()
 				val detail = incomplete.mapSize < 10
-				incomplete.forEach { availTokenString, submap ->
+				incomplete.forEachInMap { availTokenString, submap ->
 					if (!detail)
 					{
 						sorted.add(availTokenString.asNativeString())
-						return@forEach
+						return@forEachInMap
 					}
-					submap.forEach { _, nextTree ->
+					submap.forEachInMap { _, nextTree ->
 						if (!excludedStrings.contains(availTokenString))
 						{
 							// Collect the plans-in-progress and deduplicate
@@ -1244,9 +1244,9 @@ class AvailCompiler constructor(
 							// current bundle tree might be eligible for
 							// continued parsing at multiple positions.
 							val strings = mutableSetOf<String>()
-							nextTree.allParsingPlansInProgress.forEach {
+							nextTree.allParsingPlansInProgress.forEachInMap {
 									bundle, definitions ->
-								definitions.forEach { _, plans ->
+								definitions.forEachInMap { _, plans ->
 									plans.forEach { inProgress ->
 										val previousPlan = newPlanInProgress(
 											inProgress.parsingPlan,
@@ -1494,7 +1494,8 @@ class AvailCompiler constructor(
 					assert(stepState.marksSoFar.isEmpty())
 					assert(stepState.argsSoFar.size == 1)
 					val args = stepState.argsSoFar[0]
-					complete.forEach { bundle: A_Bundle, definitions: A_Set ->
+					complete.forEachInMap {
+							bundle: A_Bundle, definitions: A_Set ->
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							println(
@@ -1689,7 +1690,7 @@ class AvailCompiler constructor(
 								"Matched $insensitive: $string " +
 									"@${token.lineNumber()} for $submap")
 						}
-						submap.forEach { keywordIndex, successor ->
+						submap.forEachInMap { keywordIndex, successor ->
 							eventuallyParseRestOfSendNode(
 								successor,
 								stepState.copy {
@@ -1785,8 +1786,8 @@ class AvailCompiler constructor(
 	{
 		val typeSet = mutableSetOf<A_Type>()
 		val typesByPlanString = mutableMapOf<String, MutableSet<A_Type>>()
-		bundleTree.allParsingPlansInProgress.forEach { _, submap ->
-			submap.forEach { _, plans ->
+		bundleTree.allParsingPlansInProgress.forEachInMap { _, submap ->
+			submap.forEachInMap { _, plans ->
 				plans.forEach { planInProgress ->
 					val plan = planInProgress.parsingPlan
 					val instructions = plan.parsingInstructions
@@ -4224,7 +4225,7 @@ class AvailCompiler constructor(
 				compilationContext.module.privateNames
 		// A map from module to set of atoms imported from that module.
 		var namesByModule = emptyMap
-		sourceNames.forEach { _, atoms ->
+		sourceNames.forEachInMap { _, atoms ->
 			namesByModule = namesByModule.mapAtEachReplacingCanDestroy(
 				atoms.iterator(), {it.issuingModule}, emptySet, true
 			) { atom, _, set ->
@@ -4233,7 +4234,7 @@ class AvailCompiler constructor(
 		}
 		var completeModuleNames = emptySet
 		var leftovers = emptySet
-		namesByModule.forEach { module, names ->
+		namesByModule.forEachInMap { module, names ->
 			if (!module.equals(compilationContext.module)
 				&& module.exportedNames.equals(names))
 			{

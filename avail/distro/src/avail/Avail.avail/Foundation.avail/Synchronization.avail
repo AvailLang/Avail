@@ -48,6 +48,7 @@ Uses
 	"Logic",
 	"Math",
 	"Objects",
+	"Phrases",
 	"Tuples",
 	"Types",
 	"Strings",
@@ -153,6 +154,8 @@ Semantic restriction "atomically compare_↑to_and,⁇if equal,⁇store_" is
 	⊤
 ];
 
+Alias "Atomically update_using_" to "Atomically update_↑using_";
+
 /**
  * Atomically update the specified variable to a value derived from its current
  * value and the given function.
@@ -163,20 +166,43 @@ Semantic restriction "atomically compare_↑to_and,⁇if equal,⁇store_" is
  * @returns "⊤"
  * @category "Synchronization" "Variables" "Mutators" "Queries"
  */
-Public method "Atomically update_↑using_" is
+Public macro "Atomically update_using_" is
 [
-	var : variable,
-	f : [⊥]→any
+	var : expression phrase ⇒ variable,
+	f : expression phrase ⇒ [⊥]→any
 |
-	Until
-	[
-		basis ::= ↓var;
-		value ::= f(basis);
-		unsafely atomically compare var to basis and, if equal, store value
-	];
-] : ⊤;
-
-Alias "Atomically update_using_" to "Atomically update_↑using_";
+	innerType ::= var's semantic type's read type ∩ any;
+	varLocal ::= «this token: varLocal ::= var»;
+	useVarLocal ::= «↓varLocal»(this token: useVarLocal);
+	basis ::= «
+		this token: basis ::=
+			send $"↓_"
+			with «<useVarLocal>»
+			: innerType
+		»;
+	useBasis ::= «↓basis»(this token: useBasis);
+	value ::= «this token: value ::= ⟦Invoke ⦊f⦉ with <⦊useBasis⦉>⟧»;
+	useValue ::= «↓value»(this token: useValue);
+	send $"Until_"
+	with «<
+		«[
+			<>
+		|
+			<
+				varLocal,
+				basis,
+				value,
+				send $"atomically compare_to_and,⁇if equal,⁇store_"
+				with «<
+					useVarLocal,
+					useBasis,
+					useValue
+				>» : boolean
+			>
+		] : boolean
+		»
+	>» : ⊤
+];
 
 Semantic restriction "Atomically update_↑using_" is
 [

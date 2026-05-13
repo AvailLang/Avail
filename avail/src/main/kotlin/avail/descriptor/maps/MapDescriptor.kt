@@ -32,7 +32,7 @@
 package avail.descriptor.maps
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
@@ -177,7 +177,7 @@ class MapDescriptor private constructor(
 		}
 		if (multiline) {
 			first = true
-			self.forEach { key, value ->
+			self.forEachInMap { key, value ->
 				if (!first) {
 					append(',')
 				}
@@ -296,7 +296,7 @@ class MapDescriptor private constructor(
 		}
 	}
 
-	override fun o_ForEach(
+	override fun o_ForEachInMap(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
 	) = self[ROOT_BIN].forEachInMapBin(action)
@@ -578,7 +578,7 @@ class MapDescriptor private constructor(
 			{
 				at("map") {
 					writeObject {
-						self.forEach { key, value ->
+						self.forEachInMap { key, value ->
 							key.writeTo(writer)
 							value.writeTo(writer)
 						}
@@ -589,7 +589,7 @@ class MapDescriptor private constructor(
 			{
 				at("bindings") {
 					writeArray {
-						self.forEach { key, value ->
+						self.forEachInMap { key, value ->
 							writeArray {
 								key.writeTo(writer)
 								value.writeTo(writer)
@@ -607,7 +607,7 @@ class MapDescriptor private constructor(
 			{
 				at("map") {
 					writeObject {
-						self.forEach { key, value ->
+						self.forEachInMap { key, value ->
 							key.writeTo(writer)
 							value.writeSummaryTo(writer)
 						}
@@ -618,7 +618,7 @@ class MapDescriptor private constructor(
 			{
 				at("bindings") {
 					writeArray {
-						self.forEach { key, value ->
+						self.forEachInMap { key, value ->
 							writeArray {
 								key.writeSummaryTo(writer)
 								value.writeSummaryTo(writer)

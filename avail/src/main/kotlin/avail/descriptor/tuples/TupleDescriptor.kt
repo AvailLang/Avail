@@ -59,7 +59,10 @@ import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.dummyElement
+import avail.descriptor.tuples.A_Tuple.Companion.forEachInTuple
+import avail.descriptor.tuples.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
+import avail.descriptor.tuples.A_Tuple.Companion.spliteratorOfInt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -80,6 +83,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.staticAppendToTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticConcatenateTuples
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleAt
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCodepointAt
+import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCopyFromTo
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleIntAt
 import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleSize
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -109,6 +113,8 @@ import java.nio.ByteBuffer
 import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.function.Consumer
+import java.util.function.IntConsumer
+import java.util.stream.IntStream
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
 
@@ -362,9 +368,34 @@ protected constructor(
 		aTwentyOneBitString: A_String
 	): Boolean = o_EqualsAnyTuple(self, aTwentyOneBitString)
 
-	// Given two objects that are known to be equal, is the first one in a
-	// better form (more compact, more efficient, older generation) than
-	// the second one?
+	// Default to a loop with tupleAt().
+	override fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>
+	): Unit
+	{
+		for (i in firstIndex..lastIndex)
+		{
+			action.accept(self.tupleAt(i))
+		}
+	}
+
+	// Default to a loop with tupleIntAt().
+	override fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer
+	): Unit
+	{
+		for (i in firstIndex..lastIndex)
+		{
+			action.accept(self.tupleIntAt(i))
+		}
+	}
+
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
 		anotherObject: A_BasicObject): Boolean =
@@ -974,9 +1005,8 @@ protected constructor(
 	{
 		val size = self.tupleSize
 		return buildString(size) {
-			for (i in 1 .. size)
-			{
-				appendCodePoint(self.tupleCodePointAt(i))
+			self.forEachInTuple(1, size) { element ->
+				appendCodePoint(element.codePoint)
 			}
 		}
 	}
@@ -1113,7 +1143,8 @@ protected constructor(
 	private class TupleSpliterator(
 		private val tuple: A_Tuple,
 		private var index: Int,
-		private val fence: Int) : Spliterator<AvailObject>
+		private val fence: Int
+	) : Spliterator<AvailObject>
 	{
 
 		override fun trySplit(): TupleSpliterator?
@@ -1140,11 +1171,73 @@ protected constructor(
 
 		override fun forEachRemaining(action: Consumer<in AvailObject>)
 		{
-			for (i in index until fence)
+			tuple.forEachInTuple(index, fence - 1, action)
+		}
+
+		override fun estimateSize(): Long = (fence - index).toLong()
+
+		override fun characteristics(): Int =
+			(Spliterator.ORDERED
+				or Spliterator.SIZED
+				or Spliterator.SUBSIZED
+				or Spliterator.NONNULL
+				or Spliterator.IMMUTABLE)
+	}
+
+	/**
+	 * Index-based split-by-two, lazily initialized Spliterator over elements
+	 * that must all be [Int].
+	 *
+	 * @property tuple
+	 *   The tuple ([A_Tuple.isIntTuple]) being spliterated.
+	 * @property index
+	 *   The current one-based index into the tuple.
+	 * @property fence
+	 *   One past the last one-based index to visit.
+	 *
+	 * @constructor
+	 * Create an instance for spliterating over the [Int] values in the tuple,
+	 * tarting at the given [index] and stopping just before the [fence].  Both
+	 * indices are one-based.
+	 *
+	 * @param tuple
+	 *   The tuple to spliterate.
+	 * @param index
+	 *   The starting one-based index.
+	 * @param fence
+	 *   One past the last one-based index to visit.
+	 */
+	private class TupleSpliteratorOfInt(
+		private val tuple: A_Tuple,
+		private var index: Int,
+		private val fence: Int
+	) : Spliterator.OfInt
+	{
+		override fun trySplit(): TupleSpliteratorOfInt?
+		{
+			val remaining = fence - index
+			if (remaining < 2)
 			{
-				action.accept(tuple.tupleAt(i))
+				return null
 			}
-			index = fence
+			val oldIndex = index
+			index += remaining ushr 1
+			return TupleSpliteratorOfInt(tuple, oldIndex, index)
+		}
+
+		override fun tryAdvance(action: IntConsumer): Boolean
+		{
+			if (index < fence)
+			{
+				action.accept(tuple.tupleIntAt(index++))
+				return true
+			}
+			return false
+		}
+
+		override fun forEachRemaining(action: IntConsumer)
+		{
+			tuple.forEachIntInTuple(index, fence - 1, action)
 		}
 
 		override fun estimateSize(): Long = (fence - index).toLong()
@@ -1173,6 +1266,17 @@ protected constructor(
 	{
 		self.makeImmutable()
 		return StreamSupport.stream(self.spliterator(), false)
+	}
+
+	override fun o_StreamOfInt(self: AvailObject): IntStream
+	{
+		self.makeImmutable()
+		return StreamSupport.intStream(self.spliteratorOfInt(), false)
+	}
+
+	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt
+	{
+		return TupleSpliteratorOfInt(self, 1, self.tupleSize + 1)
 	}
 
 	override fun o_ParallelStream(self: AvailObject): Stream<AvailObject>

@@ -35,7 +35,10 @@ Versions
 	"Avail-1.6.1"
 Uses
 	"Framework State",
-	"Foundation",
+	"Foundation" = (
+		-"Atomically update_↑using_",
+		…
+	),
 	"Types"
 Names
 	"After running each test in_,⁇do_",
@@ -65,13 +68,12 @@ Private method "Remember the current module" is
 	currentModule ::= current module;
 	If ¬currentModule ∈ modules then
 	[
-		modules := modules + currentModule;
+		Atomically update ↑modules
+		using [s : {module|} | s + currentModule];
 		After the current module is unloaded, do
 		[
-			Lock suite lock for
-			[
-				modules := modules - currentModule;
-			];
+			Atomically update (↑modules)
+			using [s : {module|} | s - currentModule];
 		];
 	];
 ];
@@ -89,30 +91,36 @@ Private method "Forget_" is
 	suite : unit test suite
 |
 	suiteID ::= suite's suite ID;
+	/* Remove the suite atom from the global collection of suites. */
+	↑suites by atom -= suiteID;
 	parentID ::= suite's parent suite ID;
 	isRootTestSuite ::= parentID = root test suite ID;
-	Lock suite lock for
+	/* Ascertain the parentage of the test suite. */
+	parent ::= if isRootTestSuite
+		then [root suite]
+		else [suites by atom[parentID]];
+	/* Remove the suite atom from the parent's collection of child
+	 * suites.
+	 */
+	If isRootTestSuite then
 	[
-		/* Ascertain the parentage of the test suite. */
-		parent ::= if isRootTestSuite
-			then [root suite]
-			else [suites by atom[parentID]];
-		/* Remove the suite atom from the global collection of suites. */
-		↑suites by atom -= suiteID;
-		/* Remove the suite atom from the parent's collection of child
-		 * suites.
-		 */
-		childSuites : atom* :=
-			select each id from parent's child suite IDs where [id ≠ suiteID];
-		If isRootTestSuite then
-		[
-			root suite := root suite's child suite IDs ::= childSuites;
-		]
-		else
-		[
-			updatedParent ::= cast parent's child suite IDs ::= childSuites
-				into [t : unit test suite | t];
-			suites by atom := suites by atom + parentID→updatedParent;
+		Atomically update ↑root suite
+		using [r : root unit test suite |
+			childSuites : atom* :=
+				select each id from parent's child suite IDs
+				where [id ≠ suiteID];
+			r's child suite IDs ::= childSuites
+		];
+	]
+	else
+	[
+		Atomically update ↑suites by atom
+		using [m : {atom → unit test suite|} |
+			childSuites : atom* :=
+				select each id from parent's child suite IDs
+				where [id ≠ suiteID];
+			updatedParent ::= parent's child suite IDs ::= childSuites;
+			m + parentID → (updatedParent ?→ unit test suite)
 		];
 	];
 ] : ⊤;
@@ -146,52 +154,50 @@ Public method "New test suite,⁇_,⁇extends_" is
 	[
 		Raise a bad-argument exception
 	];
-	Lock suite lock for
+	Remember the current module;
+	/* Build the test suite. */
+	suite ::= a unit test suite with
+		suite ID ::= id,
+		parent suite ID ::= parentID,
+		child suite IDs ::= <>,
+		suite fixture setup ::= <>,
+		suite fixture tear down ::= <>,
+		test fixture setup ::= <>,
+		test fixture tear down ::= <>,
+		unit tests ::= <>;
+	If id ∈ suites by atom then
 	[
-		If id ∈ suites by atom then
-		[
-			Raise a test-suite-already-exists exception with suite ID ::= id
+		Raise a test-suite-already-exists exception with suite ID ::= id
+	];
+	/* Arrange to forget the test suite when its defining module is
+	 * unloaded.
+	 */
+	After the current module is unloaded, do [Forget suite;];
+	/* Ascertain the parentage of the test suite. */
+	isRootTestSuite ::= parentID = root test suite ID;
+	/* Record the suite atom in the global collection of suites. */
+	↑suites by atom[id] := suite;
+	If isRootTestSuite then
+	[
+		Atomically update ↑root suite
+		using [r : root unit test suite |
+			childSuites : atom* := r's child suite IDs ++ <id>;
+			r's child suite IDs ::= childSuites
 		];
-		Remember the current module;
-		/* Build the test suite. */
-		suite ::= a unit test suite with
-			suite ID ::= id,
-			parent suite ID ::= parentID,
-			child suite IDs ::= <>,
-			suite fixture setup ::= <>,
-			suite fixture tear down ::= <>,
-			test fixture setup ::= <>,
-			test fixture tear down ::= <>,
-			unit tests ::= <>;
-		/* Ascertain the parentage of the test suite. */
-		isRootTestSuite ::= parentID = root test suite ID;
-		parent ::= if isRootTestSuite
-			then [root suite]
-			else
-			[
-				suites by atom[parentID] else
+	]
+	else
+	[
+		Atomically update ↑suites by atom
+		using [m : {atom → unit test suite|} |
+			parent ::= m[parentID] else
 				[
 					Raise a no-such-test-suite exception with
 						suite ID ::= parentID
-				]
-			];
-		/* Record the suite atom in the global collection of suites. */
-		suites by atom := suites by atom + id→suite;
-		childSuites : atom* := parent's child suite IDs ++ <id>;
-		If isRootTestSuite then
-		[
-			root suite := root suite's child suite IDs ::= childSuites;
-		]
-		else
-		[
-			updatedParent ::= cast parent's child suite IDs ::= childSuites
-				into [t : unit test suite | t];
-			suites by atom := suites by atom + parentID→updatedParent;
+				];
+			childSuites : atom* := parent's child suite IDs ++ <id>;
+			updatedParent ::= parent's child suite IDs ::= childSuites;
+			m + parentID → updatedParent
 		];
-		/* Arrange to forget the test suite when its defining module is
-		 * unloaded.
-		 */
-		After the current module is unloaded, do [Forget suite;];
 	];
 ] : ⊤
 styled by definition styler;
@@ -237,22 +243,21 @@ Public method "Before running_,⁇do_" is
 	id : atom,
 	setup : []→⊤
 |
-	Lock suite lock for
-	[
-		suite ::= suites by atom[id]
-			else [Raise a no-such-test-suite exception with suite ID ::= id];
+	Atomically update ↑suites by atom
+	using [m : {atom → unit test suite|} |
+		suite ::= m[id] else [
+			Raise a no-such-test-suite exception with suite ID ::= id
+		];
 		before ::= suite's suite fixture setup ++ <setup>;
-		suites by atom :=
-			suites by atom + id → suite's suite fixture setup ::= before;
+		m + id → suite's suite fixture setup ::= before
 	];
 	After the current module is unloaded, do
 	[
-		Lock suite lock for
-		[
-			suite ::= suites by atom[id];
-			without ::= suite's suite fixture setup - setup;
-			suites by atom := suites by atom +
-				id → suite's suite fixture setup ::= without;
+		Atomically update ↑suites by atom
+		using [m : {atom → unit test suite|} |
+			suite ::= m[id];
+			before ::= suite's suite fixture setup - setup;
+			m + id → suite's suite fixture setup ::= before
 		];
 	];
 ] : ⊤
@@ -299,20 +304,21 @@ Public method "Before running each test in_,⁇do_" is
 	id : atom,
 	setup : []→⊤
 |
-	Lock suite lock for
-	[
-		suite ::= suites by atom[id]
-			else [Raise a no-such-test-suite exception with suite ID ::= id];
+	Atomically update ↑suites by atom
+	using [m : {atom → unit test suite|} |
+		suite ::= m[id] else [
+			Raise a no-such-test-suite exception with suite ID ::= id
+		];
 		before ::= suite's test fixture setup ++ <setup>;
-		suites by atom :=
-			suites by atom + id→suite's test fixture setup ::= before;
-		After the current module is unloaded, do
-		[
-			Lock suite lock for
-			[
-				suites by atom := suites by atom + id
-					→suite's test fixture setup ::= (before - setup);
-			];
+		m + id→suite's test fixture setup ::= before
+	];
+	After the current module is unloaded, do
+	[
+		Atomically update ↑suites by atom
+		using [m : {atom → unit test suite|} |
+			suite ::= m[id];
+			before ::= suite's test fixture setup - setup;
+			m + id → suite's test fixture setup ::= before
 		];
 	];
 ] : ⊤
@@ -360,22 +366,21 @@ Public method "After running_,⁇do_" is
 	id : atom,
 	tearDown : []→⊤
 |
-	Lock suite lock for
-	[
-		suite ::= suites by atom[id]
-			else [Raise a no-such-test-suite exception with suite ID ::= id];
+	Atomically update ↑suites by atom
+	using [m : {atom → unit test suite|} |
+		suite ::= m[id] else [
+			Raise a no-such-test-suite exception with suite ID ::= id
+		];
 		after ::= suite's suite fixture tear down ++ <tearDown>;
-		suites by atom :=
-			suites by atom + id → suite's suite fixture tear down ::= after;
+		m + id → suite's suite fixture tear down ::= after
 	];
 	After the current module is unloaded, do
 	[
-		Lock suite lock for
-		[
-			suite ::= suites by atom[id];
+		Atomically update ↑suites by atom
+		using [m : {atom → unit test suite|} |
+			suite ::= m[id];
 			without ::= suite's suite fixture tear down - tearDown;
-			suites by atom := suites by atom +
-				id → suite's suite fixture tear down ::= without;
+			m + id → suite's suite fixture tear down ::= without
 		];
 	];
 ] : ⊤
@@ -405,20 +410,21 @@ Public method "After running each test in_,⁇do_" is
 	id : atom,
 	tearDown : []→⊤
 |
-	Lock suite lock for
-	[
-		suite ::= suites by atom[id]
-			else [Raise a no-such-test-suite exception with suite ID ::= id];
+	Atomically update ↑suites by atom
+	using [m : {atom → unit test suite|} |
+		suite ::= m[id] else [
+			Raise a no-such-test-suite exception with suite ID ::= id
+		];
 		after ::= suite's test fixture tear down ++ <tearDown>;
-		suites by atom :=
-			suites by atom + id→suite's test fixture tear down ::= after;
-		After the current module is unloaded, do
-		[
-			Lock suite lock for
-			[
-				suites by atom := suites by atom + id
-					→suite's test fixture tear down ::= (after - tearDown);
-			];
+		m + id→suite's test fixture tear down ::= after
+	];
+	After the current module is unloaded, do
+	[
+		Atomically update ↑suites by atom
+		using [m : {atom → unit test suite|} |
+			suite ::= m[id];
+			after ::= suite's test fixture tear down - tearDown;
+			m + id → suite's test fixture tear down ::= after
 		];
 	];
 ] : ⊤;
@@ -439,16 +445,16 @@ Private method "Forget_" is
 	test : unit test
 |
 	testID ::= test's test ID;
-	Lock suite lock for
-	[
-		/* Remove the test from the global collection. */
-		↑tests by atom -= testID;
-		/* Remove the test from its enclosing test suite. */
-		suiteID ::= test's suite ID;
-		suite ::= suites by atom[suiteID];
-		suiteTests ::= select each t from suite's unit tests where [t ≠ test];
+	/* Remove the test from the global collection. */
+	↑tests by atom -= testID;
+	/* Remove the test from its enclosing test suite. */
+	suiteID ::= test's suite ID;
+	Atomically update ↑suites by atom
+	using [m : {atom → unit test suite|} |
+		suite ::= m[suiteID];
+		suiteTests ::= suite's unit tests - test;
 		newSuite ::= suite's unit tests ::= suiteTests;
-		↑suites by atom[suiteID] := newSuite;
+		m + suiteID → newSuite
 	];
 ] : ⊤;
 
@@ -485,7 +491,8 @@ is
 	test : []→⊤,
 	optionalException : exception's type?
 |
-	Set name of function implementation test's implementation to "TEST: " ++ name;
+	Set name of function implementation test's implementation
+		to "TEST: " ++ name;
 	trueName ::= atom for name;
 	unitTest ::= a unit test with
 		test ID ::= trueName,
@@ -493,23 +500,22 @@ is
 		body ::= test,
 		platform optionality ::= platformOptionality,
 		expected exception type ::= optionalException;
-	Lock suite lock for
-	[
-		If trueName ∈ tests by atom then
+	Remember the current module;
+	Atomically update ↑tests by atom
+	using [m : {atom → unit test|} |
+		If trueName ∈ m then
 		[
 			Raise a test-already-exists exception with test ID ::= trueName
 		];
-		Remember the current module;
-		↑tests by atom[trueName] := unitTest;
-		suite ::= suites by atom[suiteID] else
-			[
-				Raise a no-such-test-suite exception with suite ID ::= suiteID
-			];
+		m + trueName → unitTest
+	];
+	Atomically update ↑suites by atom
+	using [m : {atom → unit test suite|} |
+		suite ::= m[suiteID] else [
+			Raise a no-such-test-suite exception with suite ID ::= suiteID
+		];
 		suiteTests ::= suite's unit tests ++ <unitTest>;
-		↑suites by atom [suiteID] := (suite's unit tests ::= suiteTests);
-		/* Arrange to forget the test suite when its defining module is
-		 * unloaded.
-		 */
+		m + suiteID → suite's unit tests ::= suiteTests
 	];
 	After the current module is unloaded, do [Forget unitTest;];
 ] : ⊤

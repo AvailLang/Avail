@@ -37,9 +37,8 @@ import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.setupEnvironment
 import avail.anvil.invokeAndWaitIfNecessary
 import avail.anvil.manager.AvailProjectManager
-import org.pushingpixels.radiance.theming.api.RadianceThemingCortex.GlobalScope.setSkin
-import org.pushingpixels.radiance.theming.api.skin.NightShadeSkin
-import org.pushingpixels.radiance.theming.api.skin.SaharaSkin
+import com.formdev.flatlaf.FlatDarkLaf
+import com.formdev.flatlaf.FlatLightLaf
 import javax.swing.UIManager
 
 /**
@@ -72,16 +71,11 @@ object AvailProjectManagerRunner
 			System.setProperty("apple.awt.application.appearance", "system")
 		}
 
-		// Set up Radiance skin synchronously on EDT before any Swing components
 		invokeAndWaitIfNecessary {
 			try
 			{
-				val skin = when
-				{
-					AvailWorkbench.darkMode -> NightShadeSkin()
-					else -> SaharaSkin()
-				}
-				setSkin(skin)
+				if (AvailWorkbench.darkMode) FlatDarkLaf.setup()
+				else FlatLightLaf.setup()
 				UIManager.put("ScrollPane.smoothScrolling", false)
 			}
 			catch (ex: Exception)

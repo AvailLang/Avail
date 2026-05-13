@@ -32,11 +32,9 @@
 package avail.test
 
 import avail.AvailRuntime
-import avail.builder.AvailBuilder.CompiledCommand
 import avail.builder.RenamesFileParserException
 import avail.builder.UnresolvedDependencyException
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.representation.AvailObject
 import avail.test.AvailRuntimeTestHelper.Companion.rootDirectory
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -189,17 +187,17 @@ class AvailTest
 		val semaphore = Semaphore(0)
 		val ok = AtomicBoolean(false)
 		helper.builder.attemptCommand(
-			"Run all tests",
-			{ commands: List<CompiledCommand>, proceed: (CompiledCommand) -> Unit ->
+			command = "Run all tests",
+			onAmbiguity = { commands, proceed ->
 				proceed(commands[0])
 			},
-			{ result: AvailObject, cleanup: (() -> Unit) -> Unit ->
-				cleanup.invoke {
+			onSuccess = { result, cleanup: (() -> Unit) -> Unit ->
+				cleanup {
 					ok.set(result.extractBoolean)
 					semaphore.release()
 				}
-			}) { semaphore.release()
-		}
+			},
+			onFailure = semaphore::release)
 		semaphore.acquireUninterruptibly()
 		assertTrue(ok.get(), "Some Avail tests failed")
 		assertFalse(helper.errorDetected())

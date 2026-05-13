@@ -184,7 +184,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
 import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAtEachReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -503,13 +503,17 @@ import avail.descriptor.tuples.A_Tuple.Companion.dummyElement
 import avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOfOr
+import avail.descriptor.tuples.A_Tuple.Companion.forEachInTuple
+import avail.descriptor.tuples.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.parallelStream
 import avail.descriptor.tuples.A_Tuple.Companion.rawByteForCharacterAt
 import avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
+import avail.descriptor.tuples.A_Tuple.Companion.spliteratorOfInt
 import avail.descriptor.tuples.A_Tuple.Companion.stream
+import avail.descriptor.tuples.A_Tuple.Companion.streamOfInt
 import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -677,6 +681,9 @@ import java.util.Deque
 import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
+import java.util.function.Consumer
+import java.util.function.IntConsumer
+import java.util.stream.IntStream
 import java.util.stream.Stream
 
 /**
@@ -3857,15 +3864,29 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject): LookupTree<A_Definition, A_Tuple> =
 		self { testingTree }
 
-	override fun o_ForEach(
+	override fun o_ForEachInMap(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
-	) = self { forEach(action) }
+	) = self { forEachInMap(action) }
 
 	override fun o_ForEachInMapBin(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
 	) = self { forEachInMapBin(action) }
+
+	override fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>
+	) = self { forEachInTuple(firstIndex, lastIndex, action) }
+
+	override fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer
+	) = self { forEachIntInTuple(firstIndex, lastIndex, action) }
 
 	override fun o_SetSuccessAndFailure(
 		self: AvailObject,
@@ -4173,4 +4194,10 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_PlaceholderVariableLocalIndex(self: AvailObject): Int =
 		self { placeholderVariableLocalIndex() }
+
+	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt =
+		self { spliteratorOfInt() }
+
+	override fun o_StreamOfInt(self: AvailObject): IntStream =
+		self { streamOfInt() }
 }

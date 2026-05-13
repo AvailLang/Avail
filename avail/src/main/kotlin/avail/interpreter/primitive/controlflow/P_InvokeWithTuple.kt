@@ -370,9 +370,9 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		// statically known function instead, so that's the stronger guarantee.
 		val guaranteedReturnType = functionType.returnType
 		+L2Simple_Invoke(
+			translator = this,
 			stackp = stackp,
 			pc = pc,
-			nextOffset = instructions.size + 1,
 			liveIndices = indices,
 			expectedType = expectedType,
 			mustCheck = !guaranteedReturnType.isSubtypeOf(expectedType),

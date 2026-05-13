@@ -106,8 +106,10 @@ import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2AbstractInstruction
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2SimpleChunk
+import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.REIFY_NOW
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
+import avail.interpreter.primitive.controlflow.P_ExitContinuationIf
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
@@ -130,7 +132,7 @@ import kotlin.reflect.full.memberProperties
  * subscribes to method dependencies the same way as for full chunks that are
  * translated to [JVMChunk]s.
  *
- * Very little optimization is performed, at this level.  Type deduction helps
+ * Very little optimization is performed at this level.  Type deduction helps
  * eliminate spurious checks that would be necessary if method definitions could
  * be added or removed, but the invalidation mechanism handles that.  Calls can
  * often be statically transformed to simple monomorphic invocation, avoiding
@@ -151,8 +153,19 @@ import kotlin.reflect.full.memberProperties
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-sealed class L2SimpleInstruction : L2AbstractInstruction
+sealed class L2SimpleInstruction
+constructor(
+	val nextOffset: Int
+): L2AbstractInstruction
 {
+	/**
+	 * Construct an instruction using the [translator] to supply the next
+	 * offset.
+	 */
+	constructor(
+		translator: L2SimpleTranslator
+	): this(translator.instructions.size + 1)
+
 	/**
 	 * Perform this instruction, a single step of an [L2SimpleChunk].  The
 	 * mutable [Array] of [AvailObject]s acts as a simple set of registers.
@@ -171,7 +184,7 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 	abstract fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 
 	/**
 	 * For instructions that can reenter, and only for those instructions, it's
@@ -212,10 +225,12 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 		//val cls = ::class.memberProperties.toList()[0].get()
 		append(cls.simpleName!!.removePrefix("L2Simple_"))
 
-		val pairs = cls.memberProperties.map {
-			it.name to fieldValueToString(
-				it.getter.call(this@L2SimpleInstruction))
-		}
+		val pairs = cls.memberProperties
+			.minus(L2SimpleInstruction::nextOffset)
+			.map {
+				it.name to fieldValueToString(
+					it.getter.call(this@L2SimpleInstruction))
+			}
 		if (pairs.any { (_, value) -> '\n' in value }
 			|| pairs.sumOf { (_, value) -> value.length } > 50)
 		{
@@ -258,36 +273,38 @@ sealed class L2SimpleInstruction : L2AbstractInstruction
 
 /** Move a constant value into `registers[to]`. */
 class L2Simple_MoveConstant(
+	translator: L2SimpleTranslator,
 	val value: AvailObject,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	init { assert(value.descriptor.isShared) }
 
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = value
-		return true
+		return nextOffset
 	}
 }
 
 /** Move a value from `registers[from]` into `registers[to]`. */
 class L2Simple_Move(
+	translator: L2SimpleTranslator,
 	val from: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	init { assert(from != to) }
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = registers[from]
-		return true
+		return nextOffset
 	}
 }
 
@@ -296,17 +313,18 @@ class L2Simple_Move(
  * immutable.
  */
 class L2Simple_MoveAndMakeImmutable(
+	translator: L2SimpleTranslator,
 	val from: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = registers[from].makeImmutable()
-		return true
+		return nextOffset
 	}
 }
 
@@ -315,29 +333,29 @@ class L2Simple_MoveAndMakeImmutable(
  * `registers[stackp]`.
  */
 class L2Simple_GetVariable(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val fromVariable: Int
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		try
 		{
 			registers[stackp] = registers[fromVariable].getValue()
-			return true
+			return nextOffset
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
 			assert(interpreter.currentReifier !== null)
-			return false
+			return REIFY_NOW
 		}
 	}
 }
@@ -348,18 +366,18 @@ class L2Simple_GetVariable(
  * the value as immutable.
  */
 class L2Simple_GetVariableClearing(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val fromVariable: Int,
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		try
 		{
@@ -371,13 +389,13 @@ class L2Simple_GetVariableClearing(
 				else -> variable.getValue()
 			}
 			registers[stackp] = value
-			return true
+			return nextOffset
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
 			assert(interpreter.currentReifier !== null)
-			return false
+			return REIFY_NOW
 		}
 	}
 }
@@ -387,30 +405,30 @@ class L2Simple_GetVariableClearing(
  * `registers[0]`, and write it to `registers[stackp]`.
  */
 class L2Simple_GetOuter(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val outerNumber: Int,
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val variable = registers[0].outerVarAt(outerNumber)
 		try
 		{
 			registers[stackp] = variable.getValue()
-			return true
+			return nextOffset
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
 			assert(interpreter.currentReifier !== null)
-			return false
+			return REIFY_NOW
 		}
 	}
 }
@@ -421,18 +439,18 @@ class L2Simple_GetOuter(
  * mutable, clear that variable, otherwise make the value immutable.
  */
 class L2Simple_GetLastOuter(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val outerNumber: Int,
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val function = registers[0]
 		val variable = function.outerVarAt(outerNumber)
@@ -447,13 +465,13 @@ class L2Simple_GetLastOuter(
 				// Automatically makes the value immutable.
 				variable.getValue()
 			}
-			return true
+			return nextOffset
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
 			assert(interpreter.currentReifier !== null)
-			return false
+			return REIFY_NOW
 		}
 	}
 }
@@ -463,29 +481,29 @@ class L2Simple_GetLastOuter(
  * `registers[stackp]`.
  */
 class L2Simple_GetConstant(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val variable: AvailObject
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		try
 		{
 			registers[stackp] = variable.getValue()
-			return true
+			return nextOffset
 		}
 		catch (e: VariableGetException)
 		{
 			handleVariableGetException(e, interpreter, registers)
 			assert(interpreter.currentReifier !== null)
-			return false
+			return REIFY_NOW
 		}
 	}
 }
@@ -495,23 +513,23 @@ class L2Simple_GetConstant(
  * found at `registers[toVariable]`.
  */
 class L2Simple_SetVariable(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val toVariable: Int
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		try
 		{
 			registers[toVariable].setValueNoCheck(registers[stackp])
-			return true
+			return nextOffset
 		}
 		catch (e: VariableSetException)
 		{
@@ -530,24 +548,24 @@ class L2Simple_SetVariable(
  * function's outer at index [outerNumber].
  */
 class L2Simple_SetOuter(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val outerNumber: Int
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		try
 		{
 			registers[0].outerVarAt(outerNumber)
 				.setValueNoCheck(registers[stackp])
-			return true
+			return nextOffset
 		}
 		catch (e: VariableSetException)
 		{
@@ -566,23 +584,23 @@ class L2Simple_SetOuter(
  * (module global) [A_Variable].
  */
 class L2Simple_SetConstant(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val variable: AvailObject
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		try
 		{
 			variable.setValueNoCheck(registers[stackp])
-			return true
+			return nextOffset
 		}
 		catch (e: VariableSetException)
 		{
@@ -602,17 +620,18 @@ class L2Simple_SetConstant(
  * `registers[to]`.
  */
 class L2Simple_CloseFunction1(
+	translator: L2SimpleTranslator,
 	val code: A_RawFunction,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = createWithOuters1(code, registers[to])
-		return true
+		return nextOffset
 	}
 }
 
@@ -622,18 +641,19 @@ class L2Simple_CloseFunction1(
  * function back to `registers[to]`.
  */
 class L2Simple_CloseFunction2(
+	translator: L2SimpleTranslator,
 	val code: A_RawFunction,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = createWithOuters2(
 			code, registers[to], registers[to - 1])
-		return true
+		return nextOffset
 	}
 }
 
@@ -643,21 +663,22 @@ class L2Simple_CloseFunction2(
  * `registers[to-2]`.  Write the function back to `registers[to]`.
  */
 class L2Simple_CloseFunction3(
+	translator: L2SimpleTranslator,
 	val code: A_RawFunction,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = createWithOuters3(
 			code,
 			registers[to],
 			registers[to - 1],
 			registers[to - 2])
-		return true
+		return nextOffset
 	}
 }
 
@@ -668,14 +689,15 @@ class L2Simple_CloseFunction3(
  * `registers[to]`.
  */
 class L2Simple_CloseFunction4(
+	translator: L2SimpleTranslator,
 	val code: A_RawFunction,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = createWithOuters4(
 			code,
@@ -683,7 +705,7 @@ class L2Simple_CloseFunction4(
 			registers[to - 1],
 			registers[to - 2],
 			registers[to - 3])
-		return true
+		return nextOffset
 	}
 }
 
@@ -694,16 +716,17 @@ class L2Simple_CloseFunction4(
  * Write the function back to `registers[to]`.
  */
 class L2Simple_CloseFunctionN(
+	translator: L2SimpleTranslator,
 	val code: A_RawFunction,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	val outerCount = code.numOuters
 
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val function = createExceptOuters(code, outerCount)
 		var outer = to
@@ -712,7 +735,7 @@ class L2Simple_CloseFunctionN(
 			function.outerVarAtPut(i, registers[outer--])
 		}
 		registers[to] = function
-		return true
+		return nextOffset
 	}
 }
 
@@ -721,16 +744,17 @@ class L2Simple_CloseFunctionN(
  * `registers[to]`.
  */
 class L2Simple_MakeTuple1(
+	translator: L2SimpleTranslator,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = tuple(registers[to]) as AvailObject
-		return true
+		return nextOffset
 	}
 }
 
@@ -739,19 +763,20 @@ class L2Simple_MakeTuple1(
  * back to `registers[to]`.
  */
 class L2Simple_MakeTuple2(
+	translator: L2SimpleTranslator,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = tuple(
 			registers[to],
 			registers[to - 1]
 		) as AvailObject
-		return true
+		return nextOffset
 	}
 }
 
@@ -760,20 +785,45 @@ class L2Simple_MakeTuple2(
  * `registers[to-2]`>, and write it back to `registers[to]`.
  */
 class L2Simple_MakeTuple3(
+	translator: L2SimpleTranslator,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = tuple(
 			registers[to],
 			registers[to - 1],
 			registers[to - 2]
 		) as AvailObject
-		return true
+		return nextOffset
+	}
+}
+
+/**
+ * Create a four-element tuple <`registers[to]`, `registers[to-1]`,
+ * `registers[to-2]`, `registers[to-3]`>, and write it back to `registers[to]`.
+ */
+class L2Simple_MakeTuple4(
+	translator: L2SimpleTranslator,
+	val to: Int
+) : L2SimpleInstruction(translator)
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): Int
+	{
+		registers[to] = tuple(
+			registers[to],
+			registers[to - 1],
+			registers[to - 2],
+			registers[to - 3]
+		) as AvailObject
+		return nextOffset
 	}
 }
 
@@ -782,19 +832,20 @@ class L2Simple_MakeTuple3(
  * `registers[to-N+1]`, and write it back to `registers[to]`.
  */
 class L2Simple_MakeTupleN(
+	translator: L2SimpleTranslator,
 	val tupleSize: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = generateObjectTupleFrom(tupleSize) { i ->
 			registers[to - i + 1]
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -804,19 +855,20 @@ class L2Simple_MakeTupleN(
  * known to contain only nybbles.
  */
 class L2Simple_MakeNybbleTupleN(
+	translator: L2SimpleTranslator,
 	val tupleSize: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = generateNybbleTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractInt
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -826,19 +878,20 @@ class L2Simple_MakeNybbleTupleN(
  * known to contain only bytes.
  */
 class L2Simple_MakeByteTupleN(
+	translator: L2SimpleTranslator,
 	val tupleSize: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = generateByteTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractInt
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -848,19 +901,20 @@ class L2Simple_MakeByteTupleN(
  * known to contain only [Int]s.
  */
 class L2Simple_MakeIntTupleN(
+	translator: L2SimpleTranslator,
 	val tupleSize: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = generateIntTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractInt
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -870,19 +924,20 @@ class L2Simple_MakeIntTupleN(
  * known to contain only longs.
  */
 class L2Simple_MakeLongTupleN(
+	translator: L2SimpleTranslator,
 	val tupleSize: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = generateLongTupleFrom(tupleSize) { i ->
 			registers[to - i + 1].extractLong
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -892,19 +947,20 @@ class L2Simple_MakeLongTupleN(
  * known to contain only characters.
  */
 class L2Simple_MakeCharacterTupleN(
+	translator: L2SimpleTranslator,
 	val tupleSize: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = generateStringFromCodePoints(tupleSize) { i ->
 			registers[to - i + 1].codePoint
 		} as AvailObject
-		return true
+		return nextOffset
 	}
 }
 
@@ -914,17 +970,18 @@ class L2Simple_MakeCharacterTupleN(
  * immutable.
  */
 class L2Simple_PushOuter(
+	translator: L2SimpleTranslator,
 	val outerNumber: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		registers[to] = registers[0].outerVarAt(outerNumber).makeImmutable()
-		return true
+		return nextOffset
 	}
 }
 
@@ -935,14 +992,15 @@ class L2Simple_PushOuter(
  * immutable.
  */
 class L2Simple_PushLastOuter(
+	translator: L2SimpleTranslator,
 	val outerNumber: Int,
 	val to: Int
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val function = registers[0]
 		val value = function.outerVarAt(outerNumber)
@@ -952,7 +1010,7 @@ class L2Simple_PushLastOuter(
 			true -> value
 			else -> value.makeImmutable()
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -969,17 +1027,16 @@ class L2Simple_PushLastOuter(
  * if using [P_RestartContinuationWithArguments].
  */
 class L2Simple_PushLabel(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray
-) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+) : L2Simple_AbstractReifiableInstruction(translator, stackp, pc, liveIndices)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val thisChunk = interpreter.chunk as L2SimpleChunk
 		val function = registers[0]
@@ -998,7 +1055,7 @@ class L2Simple_PushLabel(
 				arguments)
 			label.makeSubobjectsImmutable()
 			registers[stackp] = label as AvailObject
-			return true
+			return nextOffset
 		}
 		// Slower path.  Reify the caller.  If this is a loop, the next pass's
 		// label creation will see the caller has already been reified, and be
@@ -1039,7 +1096,7 @@ class L2Simple_PushLabel(
 				interpreter.offset = nextOffset
 				CONTINUE_FIBER
 			}
-		return false
+		return REIFY_NOW
 	}
 
 	/**
@@ -1088,16 +1145,17 @@ class L2Simple_PushLabel(
  * before all writes, using temporary storage as needed.
  */
 class L2Simple_Permute(
+	translator: L2SimpleTranslator,
 	val reads: IntArray,
 	val writes: IntArray,
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	init { assert(reads.size == writes.size) }
 
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		// Permute the stack using a temporary array.
 		val temp = Array(reads.size) {
@@ -1107,7 +1165,7 @@ class L2Simple_Permute(
 		{
 			registers[writes[i]] = temp[i]
 		}
-		return true
+		return nextOffset
 	}
 }
 
@@ -1119,11 +1177,11 @@ class L2Simple_Permute(
  */
 abstract class L2Simple_AbstractReifiableInstruction
 constructor(
+	translator: L2SimpleTranslator,
 	val stackp: Int,
 	val pc: Int,
-	val nextOffset: Int,
 	val liveIndices: IntArray
-): L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun defaultL1EntryPointIfInvalid(): DefaultEntryPoint =
 		DefaultEntryPoint.RESUME
@@ -1214,7 +1272,7 @@ constructor(
 		value: AvailObject,
 		interpreter: Interpreter,
 		registers: Array<AvailObject>
-	): Boolean
+	): Int
 	{
 		// The variable had an observer attached.
 		assert(e.numericCode.equals(
@@ -1232,7 +1290,7 @@ constructor(
 		if (valueOrNull !== null)
 		{
 			interpreter.setLatestResult(valueOrNull)
-			return true
+			return nextOffset
 		}
 		val reifier = interpreter.currentReifier!!
 		if (reifier.actuallyReify)
@@ -1242,7 +1300,7 @@ constructor(
 				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return false
+		return REIFY_NOW
 	}
 }
 
@@ -1255,14 +1313,14 @@ constructor(
  */
 abstract class L2Simple_AbstractInvokerInstruction
 constructor(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	val expectedType: A_Type,
 	val mustCheck: Boolean
 ): L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	/**
 	 * A utility for invoking a given function, handling reification and return
@@ -1272,7 +1330,7 @@ constructor(
 		interpreter: Interpreter,
 		registers: Array<AvailObject>,
 		function: A_Function
-	): Boolean
+	): Int
 	{
 		val thisChunk = interpreter.chunk!!
 		//assert(function.code().functionType().acceptsListOfArgValues(
@@ -1293,7 +1351,7 @@ constructor(
 				}
 			}
 			interpreter.currentReifier = reifier
-			return false
+			return REIFY_NOW
 		}
 		// We returned normally from the call, which is the fast path.
 		if (!mustCheck || valueOrNull.isInstanceOf(expectedType))
@@ -1301,7 +1359,7 @@ constructor(
 			// Passed the return check, or didn't need to check.  This is
 			// the fastest path.
 			registers[stackp] = valueOrNull as AvailObject
-			return true
+			return nextOffset
 		}
 		// Rare - the result did not conform to the expected type.
 		val wrappedReturnValue =
@@ -1317,7 +1375,7 @@ constructor(
 		// Note that the handler is ⊥-valued, so it can't return normally.
 		assert(handlerValueOrNull === null)
 		assert(interpreter.currentReifier != null)
-		return false
+		return REIFY_NOW
 	}
 
 	override fun defaultL1EntryPointIfInvalid() =
@@ -1399,7 +1457,7 @@ constructor(
 		e: MethodDefinitionException,
 		registers: Array<AvailObject>,
 		bundle: A_Bundle
-	): Boolean
+	): Int
 	{
 		val thisChunk = interpreter.chunk!!
 		val argumentsTuple = tupleFromList(args)
@@ -1419,7 +1477,7 @@ constructor(
 				createContinuation(it, registers, thisChunk)
 			}
 		}
-		return false
+		return REIFY_NOW
 	}
 }
 
@@ -1429,17 +1487,17 @@ constructor(
  */
 open class L2Simple_Invoke
 constructor(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	val function: A_Function
 ) : L2Simple_AbstractInvokerInstruction(
+	translator,
 	stackp,
 	pc,
-	nextOffset,
 	liveIndices,
 	expectedType,
 	mustCheck)
@@ -1452,7 +1510,7 @@ constructor(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		interpreter.argsBuffer.run {
 			clear()
@@ -1483,18 +1541,18 @@ constructor(
  */
 class L2Simple_InvokeIfNilpotentAttemptFails
 constructor(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	function: A_Function,
 	val nilpotentAttempt: (Interpreter)->A_BasicObject?
 ) : L2Simple_Invoke(
+	translator,
 	stackp,
 	pc,
-	nextOffset,
 	liveIndices,
 	expectedType,
 	mustCheck,
@@ -1503,7 +1561,7 @@ constructor(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1520,7 +1578,7 @@ constructor(
 			// By far the most common case: Fast path succeeded.  Record the
 			// returned value.
 			registers[stackp] = value.cast()
-			return true
+			return nextOffset
 		}
 		// Slower path: The primitive failed.  Fall back to L2Simple_Invoke's
 		// behavior, including retrying the primitive.
@@ -1536,17 +1594,17 @@ constructor(
  * packaged arguments and the lookup failure code.
  */
 class L2Simple_GeneralCall(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	val bundle: A_Bundle
 ) : L2Simple_AbstractInvokerInstruction(
+	translator,
 	stackp,
 	pc,
-	nextOffset,
 	liveIndices,
 	expectedType,
 	mustCheck)
@@ -1554,7 +1612,7 @@ class L2Simple_GeneralCall(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1592,18 +1650,18 @@ class L2Simple_GeneralCall(
  * the constraining tuple type.
  */
 class L2Simple_SuperCall(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray,
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	val bundle: A_Bundle,
 	val superUnionType: A_Type
 ) : L2Simple_AbstractInvokerInstruction(
+	translator,
 	stackp,
 	pc,
-	nextOffset,
 	liveIndices,
 	expectedType,
 	mustCheck)
@@ -1611,7 +1669,7 @@ class L2Simple_SuperCall(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1660,16 +1718,17 @@ class L2Simple_SuperCall(
  */
 class L2Simple_RunInfalliblePrimitiveNoCheck
 constructor(
+	translator: L2SimpleTranslator,
 	val stackp: Int,
 	val function: A_Function,
 	val rawFunction: A_RawFunction,
 	val primitive: Primitive = rawFunction.codePrimitive()!!
-) : L2SimpleInstruction()
+) : L2SimpleInstruction(translator)
 {
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
@@ -1684,7 +1743,7 @@ constructor(
 			primitive.attempt(interpreter))
 		registers[stackp] = valueOrNull!! as AvailObject
 		interpreter.function = registers[0]
-		return true
+		return nextOffset
 	}
 }
 
@@ -1694,12 +1753,12 @@ constructor(
  * here.
  */
 class L2Simple_CheckForInterrupt(
+	translator: L2SimpleTranslator,
 	stackp: Int,
 	pc: Int,
-	nextOffset: Int,
 	liveIndices: IntArray
 ) : L2Simple_AbstractReifiableInstruction(
-	stackp, pc, nextOffset, liveIndices)
+	translator, stackp, pc, liveIndices)
 {
 	override fun defaultL1EntryPointIfInvalid() = DefaultEntryPoint.RESUME
 
@@ -1720,10 +1779,10 @@ class L2Simple_CheckForInterrupt(
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
-	): Boolean
+	): Int
 	{
 		if (!interpreter.isInterruptRequested)
-			return true
+			return nextOffset
 		// An interrupt has been requested.  Reify and process it.
 		val function = registers[0]
 		val thisChunk = interpreter.chunk!!
@@ -1749,12 +1808,56 @@ class L2Simple_CheckForInterrupt(
 			interpreter.processInterrupt(continuation)
 			SWITCH_FROM_FIBER
 		}
-		return false
+		return REIFY_NOW
 	}
+
+	/**
+	 * Jump to the instruction with the indicated offset.  Note that the offset
+	 * can be a special value > [HIGHEST_LEGAL_OFFSET] to indicate an exit of
+	 * the [A_Function] is requested, in particular [RETURN_NOW] to return the
+	 * last value in the register array, or [REIFY_NOW] to return `null`,
+	 * indicating a reification is in progress.
+	 */
+	class L2Simple_Jump(
+		offset: Int
+	) : L2SimpleInstruction(offset)
+	{
+		override fun step(
+			registers: Array<AvailObject>,
+			interpreter: Interpreter
+		): Int
+		{
+			return nextOffset
+		}
+	}
+
 
 	companion object
 	{
+
 		/** Interrupts that happen in []L2SimpleExecutableChunk]s. */
 		val interruptStatistic = Statistic(REIFICATIONS, "L2Simple interrupt")
+
+		/**
+		 * The largest offset that an [L2SimpleInstruction] can have.  Larger
+		 * values are used as sentinels.
+		 */
+		const val HIGHEST_LEGAL_OFFSET = Int.MAX_VALUE - 2
+
+		/**
+		 * A sentinel value returned by an instruction's [step] to indicate
+		 * a null should be returned from the current [A_Function], indicating
+		 * a request for reification.
+		 */
+		const val REIFY_NOW = Int.MAX_VALUE - 1
+
+		/**
+		 * A sentinel value returned by an instruction's [step] to indicate
+		 * the current [A_Function] should return immediately, answering the value
+		 * in the highest numbered register.  Note that instructions that run
+		 * a [P_ExitContinuationIf] or such must clobber that register slot,
+		 * even if they wouldn't normally push their result there.
+		 */
+		const val RETURN_NOW = Int.MAX_VALUE
 	}
 }

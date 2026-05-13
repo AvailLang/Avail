@@ -191,6 +191,9 @@ import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Consumer
+import java.util.function.IntConsumer
+import java.util.stream.IntStream
 import java.util.stream.Stream
 import kotlin.math.max
 import kotlin.math.min
@@ -2695,14 +2698,10 @@ abstract class AbstractDescriptor protected constructor (
 	 * @param queueToProcess
 	 *   The queue on which to write subobjects that still need to be scanned,
 	 *   after marking them here as immutable.
-	 * @param fixups
-	 *   The list of actions to perform after the *entire* graph has been made
-	 *   immutable.
 	 */
 	open fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>)
+		queueToProcess: MutableList<AvailObject>)
 	{
 		assert(mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
@@ -3972,7 +3971,7 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_TestingTree (
 		self: AvailObject): LookupTree<A_Definition, A_Tuple>
 
-	abstract fun o_ForEach (
+	abstract fun o_ForEachInMap (
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit)
 
@@ -4180,6 +4179,22 @@ abstract class AbstractDescriptor protected constructor (
 		indices: Iterator<AvailObject>,
 		update: (AvailObject)->A_BasicObject
 	): A_BasicObject
+
+	abstract fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>)
+
+	abstract fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer)
+
+	abstract fun o_StreamOfInt(self: AvailObject): IntStream
+
+	abstract fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt
 
 	companion object
 	{

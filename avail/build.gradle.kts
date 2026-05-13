@@ -186,7 +186,7 @@ dependencies {
 	implementation("org.ow2.asm:asm-tree:$asmVersion")
 	implementation("org.ow2.asm:asm-util:$asmVersion")
 	implementation("io.methvin:directory-watcher:$directoryWatcherVersion")
-	implementation("org.pushing-pixels:radiance-theming:8.5.0")
+	implementation("com.formdev:flatlaf:3.7.1")
 	implementation("com.thizzer.jtouchbar:jtouchbar:1.0.0")
 	compileOnly("org.jetbrains:annotations:$kotlinAnnotations")
 	testImplementation(platform("org.junit:junit-bom:$junitVersion"))

@@ -36,7 +36,7 @@ import avail.AvailRuntime.HookType
 import avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -125,7 +125,7 @@ object PrimitiveHelper
 			// It's a fused type, so iterate through its ancestry in an attempt
 			// to uniquely resolve the method.
 			val methods = mutableSetOf<Method>()
-			pojoType.javaAncestors().forEach { _, ancestor ->
+			pojoType.javaAncestors().forEachInMap { _, ancestor ->
 				val javaClass = marshalDefiningType(ancestor)
 				try
 				{
@@ -189,7 +189,7 @@ object PrimitiveHelper
 			// The pojoType is a fused type, so iterate through its ancestry in
 			// an attempt to uniquely resolve the field.
 			val fields = mutableSetOf<Field>()
-			pojoType.javaAncestors().forEach { _, ancestor ->
+			pojoType.javaAncestors().forEachInMap { _, ancestor ->
 				val javaClass = marshalDefiningType(ancestor)
 				try
 				{

@@ -1127,18 +1127,14 @@ interface A_BasicObject : JSONFriendly
 	/**
 	 * The receiver is marked with an [IMMUTABLE] descriptor, but its subobjects
 	 * have not yet been made immutable.  Scan them now, and do any additional
-	 * fix-ups necessary for the kind of object.
+	 * queueing necessary for the kind of object.
 	 *
 	 * @param queueToProcess
-	 *   The queue on which to add newly discovered mutable objects, after
+	 *   The queue on which to add newly discovered mutable objects, *after*
 	 *   marking them as immutable (but not scanning them yet).
-	 * @param fixups
-	 *   The mutable list of actions to perform after the *entire* graph has
-	 *   been made immutable.
 	 */
 	fun makeImmutableInternal(
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>)
+		queueToProcess: MutableList<AvailObject>)
 
 	/**
 	 * The receiver is marked with a [SHARED] descriptor, but its subobjects

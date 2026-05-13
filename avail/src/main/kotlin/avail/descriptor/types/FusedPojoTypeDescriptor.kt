@@ -34,7 +34,7 @@ package avail.descriptor.types
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -403,7 +403,7 @@ constructor (
 		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
-			self[JAVA_ANCESTORS].forEach { key, value ->
+			self[JAVA_ANCESTORS].forEachInMap { key, value ->
 				val ancestor = key.javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
 				val typeArgs: A_Tuple = value

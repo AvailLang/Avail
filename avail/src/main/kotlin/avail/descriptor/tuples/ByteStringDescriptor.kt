@@ -70,6 +70,7 @@ import avail.serialization.SerializerOperation
 import avail.utility.hasZeroByte
 import avail.utility.lowBitsOfBytes
 import avail.utility.structures.EnumMap.Companion.enumMap
+import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -216,6 +217,17 @@ class ByteStringDescriptor private constructor(
 		result.setByteSlot(RAW_LONGS_, newSize, intValue.toShort())
 		result[HASH_OR_ZERO] = 0
 		return result
+	}
+
+	override fun o_AsNativeString(self: AvailObject): String
+	{
+		val size = self.tupleSize
+		return buildString(size) {
+			for (i in 1 .. size)
+			{
+				appendCodePoint(self.byteSlot(RAW_LONGS_, i).toInt())
+			}
+		}
 	}
 
 	override fun o_BitsPerEntry(self: AvailObject): Int = 8
@@ -504,6 +516,19 @@ class ByteStringDescriptor private constructor(
 			}
 		}
 		return 0
+	}
+
+	override fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>)
+	{
+		for (i in firstIndex .. lastIndex)
+		{
+			action.accept(
+				fromByteCodePoint(self.byteSlot(RAW_LONGS_, i)) as AvailObject)
+		}
 	}
 
 	override fun o_IsByteString(self: AvailObject): Boolean = true

@@ -616,12 +616,9 @@ private constructor(
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type
 	{
-		var unionType = bottom
-		for (instance in getInstances(self))
-		{
-			unionType = unionType.typeUnion(instance.phraseExpressionType)
+		return getInstances(self).fold(bottom) { union, instance ->
+			union.typeUnion(instance.phraseExpressionType)
 		}
-		return unionType
 	}
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =

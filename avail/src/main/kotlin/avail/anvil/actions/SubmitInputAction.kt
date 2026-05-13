@@ -90,18 +90,20 @@ class SubmitInputAction constructor(
 			workbench.availBuilder.attemptCommand(
 				command = string,
 				onAmbiguity = { commands, proceed ->
-					val selection = JOptionPane.showInputDialog(
-						workbench,
-						"Choose the desired entry point:",
-						"Disambiguate",
-						JOptionPane.QUESTION_MESSAGE,
-						null,
-						commands.sortedBy { it.toString() }.toTypedArray(),
-						null) as CompiledCommand?
-					// There may not be a selection, in which case the
-					// command will not be run – but any necessary cleanup
-					// will be run.
-					proceed(selection)
+					invokeLater {
+						val selection = JOptionPane.showInputDialog(
+							workbench,
+							"Choose the desired entry point:",
+							"Disambiguate",
+							JOptionPane.QUESTION_MESSAGE,
+							null,
+							commands.sortedBy { it.toString() }.toTypedArray(),
+							null) as CompiledCommand?
+						// There may not be a selection, in which case the
+						// command will not be run – but any necessary cleanup
+						// will be run.
+						proceed(selection)
+					}
 				},
 				onSuccess = { result, cleanup ->
 					val afterward = {

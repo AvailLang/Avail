@@ -39,7 +39,7 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
@@ -582,7 +582,7 @@ class ObjectDescriptor internal constructor(
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap.forEach { k, _ ->
+			baseType.fieldTypeMap.forEachInMap { k, _ ->
 				if (k.getAtomProperty(explicitSubclassingKey).notNil)
 				{
 					ignoreKeys =
@@ -591,7 +591,7 @@ class ObjectDescriptor internal constructor(
 			}
 		}
 		var first = true
-		self.fieldMap().forEach { key, value ->
+		self.fieldMap().forEachInMap { key, value ->
 			if (!ignoreKeys.hasElement(key))
 			{
 				append(if (first) " |" else ",")
@@ -687,7 +687,7 @@ class ObjectDescriptor internal constructor(
 			val mutableDescriptor = variant.mutableObjectDescriptor
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
-				map.forEach { key, value ->
+				map.forEachInMap { key, value ->
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {

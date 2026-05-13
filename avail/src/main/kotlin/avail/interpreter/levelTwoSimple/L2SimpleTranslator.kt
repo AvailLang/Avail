@@ -93,6 +93,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.RETURN_NOW
+import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.L2Simple_Jump
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -167,9 +169,9 @@ constructor(
 		}
 		code.setUpInstructionDecoder(instructionDecoder, 1)
 		+L2Simple_CheckForInterrupt(
+			this,
 			stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices())
 		while (!instructionDecoder.atEnd())
 		{
@@ -178,6 +180,7 @@ constructor(
 		assert(stackp == code.numSlots) {
 			"One value should have been left on stack"
 		}
+		+L2Simple_Jump(RETURN_NOW)
 		val chunk = L2SimpleChunk.allocate(
 			code = code,
 			// See L2SimpleExecutableChunk.runChunk()
@@ -235,9 +238,9 @@ constructor(
 		if (superUnionType.isBottom)
 		{
 			+L2Simple_GeneralCall(
+				this,
 				stackp,
 				pc,
-				instructions.size + 1,
 				registerIndices,
 				expectedType,
 				!possibleType.isSubtypeOf(expectedType),
@@ -246,9 +249,9 @@ constructor(
 		else
 		{
 			+L2Simple_SuperCall(
+				this,
 				stackp,
 				pc,
-				instructions.size + 1,
 				registerIndices,
 				expectedType,
 				!possibleType.isSubtypeOf(expectedType),
@@ -318,6 +321,7 @@ constructor(
 					// input types, and returns a constant, and that constant
 					// complies with the expectedType.
 					+L2Simple_MoveConstant(
+						this,
 						guaranteedType.instance.makeShared(),
 						stackp)
 					return boxedRestrictionForType(guaranteedType)
@@ -330,9 +334,9 @@ constructor(
 		if (nilpotentAttempt !== null)
 		{
 			+L2Simple_InvokeIfNilpotentAttemptFails(
+				this,
 				stackp,
 				pc,
-				instructions.size + 1,
 				registerIndices,
 				expectedType,
 				!guaranteedReturnType.isSubtypeOf(expectedType),
@@ -342,9 +346,9 @@ constructor(
 		else
 		{
 			+L2Simple_Invoke(
+				this,
 				stackp,
 				pc,
-				instructions.size + 1,
 				registerIndices,
 				expectedType,
 				!guaranteedReturnType.isSubtypeOf(expectedType),
@@ -430,14 +434,14 @@ constructor(
 	override fun L1_doPushLiteral()
 	{
 		val value = code.literalAt(instructionDecoder.getOperand())
-		+L2Simple_MoveConstant(value, --stackp)
+		+L2Simple_MoveConstant(this, value, --stackp)
 		restrictions[stackp] = boxedRestrictionForConstant(value)
 	}
 
 	override fun L1_doPushLastLocal()
 	{
 		val local = instructionDecoder.getOperand()
-		+L2Simple_Move(local, --stackp)
+		+L2Simple_Move(this, local, --stackp)
 		restrictions[stackp] = restrictions[local]
 		restrictions[local] = nilRestriction
 	}
@@ -450,9 +454,9 @@ constructor(
 		when (oldRestriction.hasFlag(IMMUTABLE_FLAG))
 		{
 			// No need to make the value immutable – it already is.
-			true -> +L2Simple_Move(local, stackp)
+			true -> +L2Simple_Move(this, local, stackp)
 			// Ensure the value is made immutable.
-			else -> +L2Simple_MoveAndMakeImmutable(local, stackp)
+			else -> +L2Simple_MoveAndMakeImmutable(this, local, stackp)
 		}
 		val newRestriction = oldRestriction.withFlag(IMMUTABLE_FLAG)
 		restrictions[stackp] = newRestriction
@@ -462,7 +466,7 @@ constructor(
 	override fun L1_doPushLastOuter()
 	{
 		val outer = instructionDecoder.getOperand()
-		+L2Simple_PushLastOuter(outer, --stackp)
+		+L2Simple_PushLastOuter(this, outer, --stackp)
 		restrictions[stackp] =
 			boxedRestrictionForType(code.outerTypeAt(outer))
 	}
@@ -477,12 +481,14 @@ constructor(
 		when (numOuters)
 		{
 			0 -> +L2Simple_MoveConstant(
-				createFunction(code, emptyTuple) as AvailObject, stackp)
-			1 -> +L2Simple_CloseFunction1(rawFunction, stackp)
-			2 -> +L2Simple_CloseFunction2(rawFunction, stackp)
-			3 -> +L2Simple_CloseFunction3(rawFunction, stackp)
-			4 -> +L2Simple_CloseFunction4(rawFunction, stackp)
-			else -> +L2Simple_CloseFunctionN(rawFunction, stackp)
+				this,
+				createFunction(code, emptyTuple) as AvailObject,
+				stackp)
+			1 -> +L2Simple_CloseFunction1(this, rawFunction, stackp)
+			2 -> +L2Simple_CloseFunction2(this, rawFunction, stackp)
+			3 -> +L2Simple_CloseFunction3(this, rawFunction, stackp)
+			4 -> +L2Simple_CloseFunction4(this, rawFunction, stackp)
+			else -> +L2Simple_CloseFunctionN(this, rawFunction, stackp)
 		}
 		for (i in oldStackp until stackp)
 			restrictions[i] = nilRestriction
@@ -494,9 +500,9 @@ constructor(
 	{
 		val variable = instructionDecoder.getOperand()
 		+L2Simple_SetVariable(
+			this,
 			stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			variable)
 		restrictions[stackp++] = nilRestriction
@@ -506,9 +512,9 @@ constructor(
 	{
 		val local = instructionDecoder.getOperand()
 		+L2Simple_GetVariableClearing(
+			this,
 			--stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			local)
 		restrictions[stackp] =
@@ -518,7 +524,7 @@ constructor(
 	override fun L1_doPushOuter()
 	{
 		val outer = instructionDecoder.getOperand()
-		+L2Simple_PushOuter(outer, --stackp)
+		+L2Simple_PushOuter(this, outer, --stackp)
 		restrictions[stackp] =
 			boxedRestrictionForType(code.outerTypeAt(outer))
 	}
@@ -533,9 +539,9 @@ constructor(
 	{
 		val outer = instructionDecoder.getOperand()
 		+L2Simple_GetLastOuter(
+			this,
 			--stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			outer)
 		restrictions[stackp] =
@@ -546,9 +552,9 @@ constructor(
 	{
 		val outer = instructionDecoder.getOperand()
 		+L2Simple_SetOuter(
+			this,
 			stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			outer)
 		restrictions[stackp++] = nilRestriction
@@ -558,9 +564,9 @@ constructor(
 	{
 		val local = instructionDecoder.getOperand()
 		+L2Simple_GetVariable(
+			this,
 			--stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			local)
 		restrictions[stackp] =
@@ -598,7 +604,7 @@ constructor(
 			}
 			for (i in oldStackp until stackp)
 				restrictions[i] = nilRestriction
-			+L2Simple_MoveConstant(tuple.makeShared(), stackp)
+			+L2Simple_MoveConstant(this, tuple.makeShared(), stackp)
 			restrictions[stackp] = boxedRestrictionForConstant(tuple)
 			return
 		}
@@ -608,23 +614,25 @@ constructor(
 		val elementType = types.fold(bottom) { a, b -> a.typeUnion(b) }
 		when
 		{
-			size == 0 -> +L2Simple_MoveConstant(emptyTuple, stackp)
+			size == 0 ->
+				+L2Simple_MoveConstant(this, emptyTuple, stackp)
 			elementType.isSubtypeOf(i64) -> when
 			{
 				elementType.isSubtypeOf(u4) ->
-					+L2Simple_MakeNybbleTupleN(size, stackp)
+					+L2Simple_MakeNybbleTupleN(this, size, stackp)
 				elementType.isSubtypeOf(u8) ->
-					+L2Simple_MakeByteTupleN(size, stackp)
+					+L2Simple_MakeByteTupleN(this, size, stackp)
 				elementType.isSubtypeOf(i32) ->
-					+L2Simple_MakeIntTupleN(size, stackp)
-				else -> +L2Simple_MakeLongTupleN(size, stackp)
+					+L2Simple_MakeIntTupleN(this, size, stackp)
+				else -> +L2Simple_MakeLongTupleN(this, size, stackp)
 			}
 			elementType.isSubtypeOf(Types.CHARACTER()) ->
-				+L2Simple_MakeCharacterTupleN(size, stackp)
-			size == 1 -> +L2Simple_MakeTuple1(stackp)
-			size == 2 -> +L2Simple_MakeTuple2(stackp)
-			size == 3 -> +L2Simple_MakeTuple3(stackp)
-			else -> +L2Simple_MakeTupleN(size, stackp)
+				+L2Simple_MakeCharacterTupleN(this, size, stackp)
+			size == 1 -> +L2Simple_MakeTuple1(this, stackp)
+			size == 2 -> +L2Simple_MakeTuple2(this, stackp)
+			size == 3 -> +L2Simple_MakeTuple3(this, stackp)
+			size == 4 -> +L2Simple_MakeTuple4(this, stackp)
+			else -> +L2Simple_MakeTupleN(this, size, stackp)
 		}
 		for (i in oldStackp until stackp)
 			restrictions[i] = nilRestriction
@@ -636,9 +644,9 @@ constructor(
 	{
 		val outer = instructionDecoder.getOperand()
 		+L2Simple_GetOuter(
+			this,
 			--stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			outer)
 		restrictions[stackp] =
@@ -662,9 +670,9 @@ constructor(
 		restrictions[stackp] = boxedRestrictionForType(
 			continuationTypeForFunctionType(code.functionType()))
 		+L2Simple_PushLabel(
+			this,
 			stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices())
 	}
 
@@ -672,9 +680,9 @@ constructor(
 	{
 		val variable = code.literalAt(instructionDecoder.getOperand())
 		+L2Simple_GetConstant(
+			this,
 			--stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			variable)
 		restrictions[stackp] =
@@ -686,9 +694,9 @@ constructor(
 	{
 		val variable = code.literalAt(instructionDecoder.getOperand())
 		+L2Simple_SetConstant(
+			this,
 			stackp,
 			pc,
-			instructions.size + 1,
 			liveIndices(),
 			variable)
 		restrictions[stackp++] = nilRestriction
@@ -700,9 +708,9 @@ constructor(
 		when (oldRestriction.hasFlag(IMMUTABLE_FLAG))
 		{
 			// No need to make the value immutable – it already is.
-			true -> +L2Simple_Move(stackp, stackp - 1)
+			true -> +L2Simple_Move(this, stackp, stackp - 1)
 			// Ensure the value is made immutable.
-			else -> +L2Simple_MoveAndMakeImmutable(stackp, stackp - 1)
+			else -> +L2Simple_MoveAndMakeImmutable(this, stackp, stackp - 1)
 		}
 		val newRestriction = oldRestriction.withFlag(IMMUTABLE_FLAG)
 		restrictions[stackp] = newRestriction
@@ -721,7 +729,7 @@ constructor(
 		}
 		val readRestrictions = reads.map { restrictions[it] }
 		val writes = IntArray(size) { earliestStackp - it }
-		+L2Simple_Permute(reads, writes)
+		+L2Simple_Permute(this, reads, writes)
 		// Permute the restrictions as well.
 		writes.zip(readRestrictions).forEach { (writeIndex, restriction) ->
 			restrictions[writeIndex] = restriction
@@ -742,7 +750,7 @@ constructor(
 	override fun L1Ext_doSetLocalSlot()
 	{
 		val localSlot = instructionDecoder.getOperand()
-		+L2Simple_Move(stackp, localSlot)
+		+L2Simple_Move(this, stackp, localSlot)
 		restrictions[localSlot] = restrictions[stackp]
 		restrictions[stackp++] = nilRestriction
 	}

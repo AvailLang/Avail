@@ -109,6 +109,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.EventQueue.invokeLater
 import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.WindowAdapter
@@ -1286,7 +1287,19 @@ class AvailDebugger internal constructor (
 		minimumSize = Dimension(550, 350)
 		preferredSize = Dimension(1040, 900)
 		add(panel)
+		fiberListPane.componentPopupMenu = JPopupMenu("Fiber").apply {
+			add(inspectFiber)
+		}
+		stackListPane.componentPopupMenu = JPopupMenu("Stack").apply {
+			add(inspectFrame)
+		}
+		variablesPane.componentPopupMenu = JPopupMenu("Variable").apply {
+			add(inspectVariable)
+		}
+
 		pack()
+		isVisible = true
+
 		codeHighlightPainter = run {
 			val selectionColor = disassemblyPane.selectionColor
 			val currentLineColor = AdaptiveColor(
@@ -1303,16 +1316,6 @@ class AvailDebugger internal constructor (
 			DefaultHighlightPainter(washedOut)
 		}
 
-		fiberListPane.componentPopupMenu = JPopupMenu("Fiber").apply {
-			add(inspectFiber)
-		}
-		stackListPane.componentPopupMenu = JPopupMenu("Stack").apply {
-			add(inspectFrame)
-		}
-		variablesPane.componentPopupMenu = JPopupMenu("Variable").apply {
-			add(inspectVariable)
-		}
-		isVisible = true
 		updateFiberList()
 	}
 
@@ -1351,7 +1354,9 @@ class AvailDebugger internal constructor (
 		runtime.whenSafePointDo(debuggerPriority) {
 			debuggerModel.gatherFibers(fibersProvider)
 			(FiberKind.all zip captureButtons).forEach { (kind, button) ->
-				button.isSelected = debuggerModel.isCapturingNewFibers(kind)
+				invokeLater {
+					button.isSelected = debuggerModel.isCapturingNewFibers(kind)
+				}
 			}
 			semaphore.release()
 		}

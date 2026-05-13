@@ -81,7 +81,7 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.newCrashFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
@@ -385,7 +385,7 @@ class AvailRuntime constructor(
 		{
 			val atoms = mutableSetOf<A_Atom>()
 			val definitions = mutableSetOf<A_Definition>()
-			modules.forEach { _, module ->
+			modules.forEachInMap { _, module ->
 				atoms.addAll(module.newNames.valuesAsTuple)
 				atoms.addAll(module.visibleNames)
 				var atomSets = module.importedNames.valuesAsTuple

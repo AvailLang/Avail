@@ -216,11 +216,10 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	 */
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>)
+		queueToProcess: MutableList<AvailObject>)
 	{
 		assert(mutability == Mutability.IMMUTABLE)
-		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
+		super.o_MakeImmutableInternal(self, queueToProcess)
 		// Scan the property map as well.
 		val map = self[PROPERTY_MAP_POJO]
 		// The map can only be nil in a subclasses, but it's always shared, so

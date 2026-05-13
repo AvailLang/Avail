@@ -49,6 +49,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.childCount
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.forEachInTuple
+import avail.descriptor.tuples.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
 import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
@@ -69,6 +71,8 @@ import avail.descriptor.tuples.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_
 import avail.descriptor.types.A_Type
 import avail.utility.structures.EnumMap.Companion.enumMap
 import java.nio.ByteBuffer
+import java.util.function.Consumer
+import java.util.function.IntConsumer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -492,6 +496,78 @@ class TreeTupleDescriptor internal constructor(
 			else ->
 				self.compareFromToWithStartingAt(1, self.tupleSize, aTuple, 1)
 		}
+	}
+
+	override fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>)
+	{
+		val lowChildIndex = childSubscriptForIndex(self, firstIndex)
+		val highChildIndex = childSubscriptForIndex(self, lastIndex)
+		if (lowChildIndex == highChildIndex)
+		{
+			// Starts and ends in the same child.  Pass the buck downwards.
+			val offset = offsetForChildSubscript(self, lowChildIndex)
+			self.childAt(lowChildIndex).forEachInTuple(
+				firstIndex - offset, lastIndex - offset, action)
+			return
+		}
+		assert(lowChildIndex < highChildIndex)
+		// The endpoints occur in distinct children.
+		val leftOffset = offsetForChildSubscript(self, lowChildIndex)
+		var child = self.childAt(lowChildIndex)
+		child.forEachInTuple(firstIndex - leftOffset, child.tupleSize, action)
+		for (childIndex in lowChildIndex + 1 until highChildIndex)
+		{
+			child = self.childAt(childIndex)
+			child.forEachInTuple(1, child.tupleSize, action)
+		}
+		child = self.childAt(highChildIndex)
+		val rightOffset = offsetForChildSubscript(self, highChildIndex)
+		child.forEachInTuple(1, lastIndex - rightOffset, action)
+	}
+
+	override fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer)
+	{
+		val lowChildIndex = childSubscriptForIndex(self, firstIndex)
+		val highChildIndex = childSubscriptForIndex(self, lastIndex)
+		if (lowChildIndex == highChildIndex)
+		{
+			// Starts and ends in the same child.  Pass the buck downwards.
+			val offset = offsetForChildSubscript(self, lowChildIndex)
+			self.childAt(lowChildIndex).forEachIntInTuple(
+				firstIndex - offset, lastIndex - offset, action)
+			return
+		}
+		assert(lowChildIndex < highChildIndex)
+		// The endpoints occur in distinct children.
+		val leftOffset = offsetForChildSubscript(self, lowChildIndex)
+		var child = self.childAt(lowChildIndex)
+		child.forEachIntInTuple(
+			firstIndex - leftOffset, child.tupleSize, action)
+		for (childIndex in lowChildIndex + 1 until highChildIndex)
+		{
+			child = self.childAt(childIndex)
+			child.forEachIntInTuple(1, child.tupleSize, action)
+		}
+		child = self.childAt(highChildIndex)
+		val rightOffset = offsetForChildSubscript(self, highChildIndex)
+		child.forEachIntInTuple(1, lastIndex - rightOffset, action)
+	}
+
+	override fun o_IsString(self: AvailObject): Boolean
+	{
+		for (i in 1 .. self.objectSlotsCount())
+		{
+			if (!self[SUBTUPLE_AT_, i].isString) return false
+		}
+		return true
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String = buildString {

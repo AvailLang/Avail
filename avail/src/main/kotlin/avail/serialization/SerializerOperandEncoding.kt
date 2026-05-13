@@ -33,7 +33,7 @@
 package avail.serialization
 
 import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor
@@ -628,7 +628,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun trace(obj: AvailObject, serializer: Serializer)
 		{
-			obj.forEach { key, value ->
+			obj.forEachInMap { key, value ->
 				serializer.traceOne(key)
 				serializer.traceOne(value)
 			}
@@ -637,7 +637,7 @@ internal enum class SerializerOperandEncoding
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
 			writeCompressedPositiveInt(obj.mapSize, serializer)
-			obj.forEach { key, value ->
+			obj.forEachInMap { key, value ->
 				writeCompressedPositiveInt(
 					serializer.compressedObjectIndex(key),
 					serializer)

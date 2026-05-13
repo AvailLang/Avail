@@ -797,20 +797,17 @@ class AvailObject private constructor(
 		// Create a queue of marked-immutable-but-not-yet-scanned objects,
 		// seeded with the root of the graph.
 		val queue =	mutableListOf(this)
-		val fixups = mutableListOf<()->Unit>()
 		do
 		{
-			queue.removeLast().makeImmutableInternal(queue, fixups)
+			queue.removeLast().makeImmutableInternal(queue)
 		}
 		while (queue.isNotEmpty())
-		fixups.forEach { it() }
 		return traversed()
 	}
 
 	override fun makeImmutableInternal(
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>
-	) = descriptor.o_MakeImmutableInternal(this, queueToProcess, fixups)
+		queueToProcess: MutableList<AvailObject>
+	) = descriptor.o_MakeImmutableInternal(this, queueToProcess)
 
 
 	override fun makeShared(): AvailObject

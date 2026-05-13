@@ -646,8 +646,7 @@ open class VariableDescriptor protected constructor(
 
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>)
+		queueToProcess: MutableList<AvailObject>)
 	{
 		assert(super.mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
@@ -775,12 +774,10 @@ open class VariableDescriptor protected constructor(
 
 	/**
 	 * If [variable&#32;write&#32;tracing][Interpreter.traceVariableWrites]
-	 * is enabled, then
-	 * [record&#32;the&#32;write][A_Fiber.recordVariableAccess]. If variable
-	 * write tracing is disabled, but the variable has write reactors, then
-	 * raise an [exception][VariableSetException] with
-	 * [E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
-	 * error code.
+	 * is enabled, then [record][A_Fiber.Companion.recordVariableAccess] the
+	 * write.  If variable write tracing is disabled, but the variable has write
+	 * reactors, then raise an [exception][VariableSetException] with
+	 * [E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the error code.
 	 *
 	 * @param self
 	 *   The variable.

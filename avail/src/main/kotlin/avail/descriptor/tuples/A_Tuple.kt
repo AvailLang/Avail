@@ -32,6 +32,7 @@
 package avail.descriptor.tuples
 
 import avail.descriptor.character.A_Character
+import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -43,6 +44,9 @@ import avail.descriptor.types.TypeDescriptor
 import avail.utility.cast
 import java.nio.ByteBuffer
 import java.util.Spliterator
+import java.util.function.Consumer
+import java.util.function.IntConsumer
+import java.util.stream.IntStream
 import java.util.stream.Stream
 
 /**
@@ -700,6 +704,44 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
+		 * Iterate from firstIndex to lastIndex, applying the action to the
+		 * tuple's element at each index.
+		 *
+		 * @param firstIndex
+		 *   The first index to start iterating from.
+		 * @param lastIndex
+		 *   The last index to iterate up to, inclusive.
+		 * @param action
+		 *   The action to apply to each element in the range.
+		 */
+		fun A_Tuple.forEachInTuple(
+			firstIndex: Int,
+			lastIndex: Int,
+			action: Consumer<in AvailObject>
+		): Unit = dispatch {
+			o_ForEachInTuple(it, firstIndex, lastIndex, action)
+		}
+
+		/**
+		 * Iterate from firstIndex to lastIndex, applying the action to the
+		 * tuple's element (which must be an [Int]) at each index.
+		 *
+		 * @param firstIndex
+		 *   The first index to start iterating from.
+		 * @param lastIndex
+		 *   The last index to iterate up to, inclusive.
+		 * @param action
+		 *   The action to apply to each [Int] element of the tuple in the range.
+		 */
+		fun A_Tuple.forEachIntInTuple(
+			firstIndex: Int,
+			lastIndex: Int,
+			action: IntConsumer
+		): Unit = dispatch {
+			o_ForEachIntInTuple(it, firstIndex, lastIndex, action)
+		}
+
+		/**
 		 * Calculate the hash of the subtuple spanning the two indices.
 		 *
 		 * @param startIndex
@@ -791,12 +833,25 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_ReplaceFirstChild(it, newFirst) }
 
 		/**
-		 * Returns a sequential `Stream` with this tuple as its source.
+		 * Returns a sequential [Stream] with this tuple as its source.
 		 *
 		 * @return
 		 *   A [Stream] of [AvailObject]s.
 		 */
 		fun A_Tuple.stream(): Stream<AvailObject> = dispatch { o_Stream(it) }
+
+		/**
+		 * Returns a sequential [Stream] with this tuple as its source, but
+		 * where the elements are produced as unboxed [Int].  Only use this if
+		 * the tuple [isIntTuple].
+		 *
+		 * @return
+		 *   A [Stream] of [Int]s.
+		 */
+		fun A_Tuple.streamOfInt(): IntStream = dispatch { o_StreamOfInt(it) }
+
+		fun A_Tuple.spliteratorOfInt(): Spliterator.OfInt =
+			dispatch { o_SpliteratorOfInt(it) }
 
 		/**
 		 * Transfer the specified subrange of this tuple of bytes into the

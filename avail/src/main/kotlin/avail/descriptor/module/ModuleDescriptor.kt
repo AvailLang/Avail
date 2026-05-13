@@ -63,7 +63,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEach
+import avail.descriptor.maps.A_Map.Companion.forEachInMap
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -835,11 +835,11 @@ class ModuleDescriptor private constructor(
 			{
 				// Compute it.
 				exportedNames = emptySet
-				self[IMPORTED_NAMES].forEach { _, value ->
+				self[IMPORTED_NAMES].forEachInMap { _, value ->
 					exportedNames = exportedNames.setUnionCanDestroy(
 						value.makeShared(), true)
 				}
-				self[PRIVATE_NAMES].forEach { _, value ->
+				self[PRIVATE_NAMES].forEachInMap { _, value ->
 					exportedNames = exportedNames.setMinusCanDestroy(
 						value.makeShared(), true)
 				}
@@ -1322,7 +1322,7 @@ class ModuleDescriptor private constructor(
 		semanticRestrictions.forEach(runtime::removeSemanticRestriction)
 		grammaticalRestrictions.forEach(runtime::removeGrammaticalRestriction)
 		// Remove seals.
-		self[SEALS].forEach { methodName, values ->
+		self[SEALS].forEachInMap { methodName, values ->
 			values.forEach { seal ->
 				try
 				{
@@ -1471,7 +1471,7 @@ class ModuleDescriptor private constructor(
 				val bundle: A_Bundle = visibleName.bundleOrNil
 				if (bundle.notNil)
 				{
-					bundle.definitionParsingPlans.forEach { key, plan ->
+					bundle.definitionParsingPlans.forEachInMap { key, plan ->
 						val definitionModule = key.definitionModule()
 						if (ancestors.hasElement(definitionModule)
 							|| definitionModule.equals(self))

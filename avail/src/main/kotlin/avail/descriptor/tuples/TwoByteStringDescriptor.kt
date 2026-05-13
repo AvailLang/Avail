@@ -203,6 +203,17 @@ class TwoByteStringDescriptor private constructor(
 		return result
 	}
 
+	override fun o_AsNativeString(self: AvailObject): String
+	{
+		val size = self.tupleSize
+		return buildString(size) {
+			for (i in 1 .. size)
+			{
+				appendCodePoint(self.shortSlot(RAW_LONGS_, i))
+			}
+		}
+	}
+
 	override fun o_CompareFromToWithStartingAt(
 		self: AvailObject,
 		startIndex1: Int,

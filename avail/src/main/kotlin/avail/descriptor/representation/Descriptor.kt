@@ -122,6 +122,9 @@ import java.nio.ByteBuffer
 import java.util.Deque
 import java.util.Spliterator
 import java.util.TimerTask
+import java.util.function.Consumer
+import java.util.function.IntConsumer
+import java.util.stream.IntStream
 import java.util.stream.Stream
 
 /**
@@ -2631,7 +2634,7 @@ protected constructor (
 		self: AvailObject
 	): LookupTree<A_Definition, A_Tuple> = unsupported
 
-	override fun o_ForEach (
+	override fun o_ForEachInMap (
 			self: AvailObject,
 			action: (AvailObject, AvailObject) -> Unit): Unit =
 		unsupported
@@ -2640,6 +2643,20 @@ protected constructor (
 			self: AvailObject,
 			action: (AvailObject, AvailObject) -> Unit): Unit =
 		unsupported
+
+	override fun o_ForEachInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: Consumer<in AvailObject>
+	): Unit = unsupported
+
+	override fun o_ForEachIntInTuple(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: IntConsumer
+	): Unit = unsupported
 
 	override fun o_SetSuccessAndFailure (
 		self: AvailObject,
@@ -2892,11 +2909,16 @@ protected constructor (
 	override fun o_SetNamesIndexRecordIndex(
 		self: AvailObject,
 		recordNumber: Long
-	): Unit  = unsupported
+	): Unit = unsupported
 
 	override fun o_NamesIndexRecord(
 		self: AvailObject
 	): NamesIndex = unsupported
+
+	override fun o_StreamOfInt(self: AvailObject): IntStream = unsupported
+
+	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt =
+		unsupported
 
 	companion object
 	{

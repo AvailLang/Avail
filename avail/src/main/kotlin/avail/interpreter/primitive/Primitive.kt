@@ -1110,6 +1110,7 @@ constructor(
 			{
 				// The primitive cannot fail.
 				+L2Simple_RunInfalliblePrimitiveNoCheck(
+					this,
 					stackp,
 					functionIfKnown,
 					rawFunction)

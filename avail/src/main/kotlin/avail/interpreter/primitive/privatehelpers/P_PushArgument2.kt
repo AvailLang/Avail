@@ -113,7 +113,7 @@ object P_PushArgument2 : PrimitiveN(
 		expectedType: A_Type
 	): TypeRestriction
 	{
-		+L2Simple_Move(stackp - 1, stackp)
+		+L2Simple_Move(this, stackp - 1, stackp)
 		return argRestrictions[1]
 	}
 }

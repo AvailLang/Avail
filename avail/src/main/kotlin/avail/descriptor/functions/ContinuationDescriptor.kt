@@ -527,8 +527,7 @@ class ContinuationDescriptor private constructor(
 	 */
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
-		fixups: MutableList<()->Unit>)
+		queueToProcess: MutableList<AvailObject>)
 	{
 		assert(mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
@@ -536,7 +535,7 @@ class ContinuationDescriptor private constructor(
 		self.descriptor = mutable
 		self.createElidedVariables()
 		self.descriptor = this
-		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
+		super.o_MakeImmutableInternal(self, queueToProcess)
 	}
 
 	/**
