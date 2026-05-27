@@ -61,6 +61,11 @@ interface IntegerSlotsEnum : AbstractSlotsEnum
 	 * annotations on the slot enumeration object which may define the way
 	 * it should be described.
 	 *
+	 * The default implementation is provided by [defaultDescribeIntegerSlot] in
+	 * the companion object, to avoid potential duplication of a significant
+	 * amount of code per subclass.  It's unclear if Kotlin is already doing
+	 * this.
+	 *
 	 * @param self
 	 *   The object containing the `int` value in some slot.
 	 * @param value
@@ -73,142 +78,174 @@ interface IntegerSlotsEnum : AbstractSlotsEnum
 	 * @param builder
 	 *   Where to write the description.
 	 */
-	fun describeIntegerSlot (
+	fun describeIntegerSlot(
 		self: AvailObject,
 		value: Long,
 		subscript: Int,
 		bitFields: List<BitField>,
-		builder: StringBuilder)
-	{
-		try
-		{
-			val slotName = fieldName
-			if (bitFields.isEmpty())
-			{
-				val slotMirror = javaClass.getField(slotName)
-				val enumAnnotation =
-					slotMirror.getAnnotation(EnumField::class.java)
-				var numBits = 64
-				if (enumAnnotation !== null)
-				{
-					val enumClass = enumAnnotation.describedBy.java
-					val enumValues = enumClass.enumConstants
-					numBits =
-						64 - enumValues.size.toLong().countLeadingZeroBits()
-				}
-				builder.append(" = ")
-				describeIntegerField(
-					value, numBits, enumAnnotation, builder)
-			}
-			else
-			{
-				builder.append("(")
-				var first = true
-				for (bitField in bitFields)
-				{
-					val fieldValue = self[bitField]
-					val presenter = bitField.presenter
-					val string = when (presenter)
-					{
-						null -> buildString {
-							describeIntegerField(
-								fieldValue.toLong(),
-								bitField.bits,
-								bitField.enumField,
-								this)
-						}
-						else -> presenter(fieldValue) ?: continue
-					}
-					if (!first)
-					{
-						builder.append(", ")
-					}
-					builder.append(bitField.name)
-					builder.append("=")
-					builder.append(string)
-					first = false
-				}
-				builder.append(")")
-			}
-		}
-		catch (e: SecurityException)
-		{
-			throw RuntimeException(e)
-		}
-		catch (e: IllegalArgumentException)
-		{
-			throw RuntimeException(e)
-		}
-		catch (e: ReflectiveOperationException)
-		{
-			throw RuntimeException(e)
-		}
-	}
-
-	/**
-	 * Write a description of an integer field to the [StringBuilder].
-	 *
-	 * @param value
-	 *   The value of the field, a `long`.
-	 * @param numBits
-	 *   The number of bits to show for this field.
-	 * @param enumAnnotation
-	 *   The optional [EnumField] annotation that was found on the field.
-	 * @param builder
-	 *   Where to write the description.
-	 * @throws ReflectiveOperationException
-	 *   If the [EnumField.lookupMethodName] is incorrect.
-	 */
-	@Throws(ReflectiveOperationException::class)
-	private fun describeIntegerField (
-		value: Long,
-		numBits: Int,
-		enumAnnotation: EnumField?,
 		builder: StringBuilder
-	) = with(builder) {
-		if (enumAnnotation !== null)
-		{
-			val describingClass = enumAnnotation.describedBy.java
-			val lookupName = enumAnnotation.lookupMethodName
-			if (lookupName.isEmpty())
-			{
-				// Look it up by ordinal (must be an actual Enum).
-				val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-					describingClass.enumConstants.cast()
-				if (value in allValues.indices)
-				{
-					append(allValues[value.toInt()].fieldName)
-				}
-				else
-				{
-					append("(enum out of range: ")
-					describeLong(value, numBits, builder)
-					append(")")
-				}
-			}
-			else
-			{
-				// Look it up via the specified static lookup method.  It's
-				// only required to be an IntegerEnumSlotDescriptionEnum in
-				// this case, not necessarily an Enum.
-				val lookupMethod = describingClass.getMethod(
-					lookupName, Int::class.javaPrimitiveType)
-				when (val lookedUp = lookupMethod(null, value.toInt()))
-				{
-					is IntegerEnumSlotDescriptionEnum ->
-						append(lookedUp.fieldName)
-					else -> append("null")
-				}
-			}
-		}
-		else
-		{
-			describeLong(value, numBits, builder)
-		}
-	}
+	) = defaultDescribeIntegerSlot(
+		this, self, value, subscript, bitFields, builder)
 
 	companion object
 	{
+		/**
+		 * Describe the integer field onto the provided [StringBuilder]. The
+		 * pre-extracted `long` value is provided, as well as the containing
+		 * [AvailObject] and the [IntegerSlotsEnum] instance. Take into account
+		 * annotations on the slot enumeration object which may define the way
+		 * it should be described.
+		 *
+		 * @param self
+		 *   The object containing the `int` value in some slot.
+		 * @param value
+		 *   The [Long] value in the slot.
+		 * @param subscript
+		 *   The [Int] subscript for this field occurrence, or `0` if it's not an
+		 *   indexable field.
+		 * @param bitFields
+		 *   The slot's [BitField]s, if any.
+		 * @param builder
+		 *   Where to write the description.
+		 */
+		fun defaultDescribeIntegerSlot (
+			slot: IntegerSlotsEnum,
+			self: AvailObject,
+			value: Long,
+			subscript: Int,
+			bitFields: List<BitField>,
+			builder: StringBuilder)
+		{
+			try
+			{
+				val slotName = slot.fieldName
+				if (bitFields.isEmpty())
+				{
+					val slotMirror = slot.javaClass.getField(slotName)
+					val enumAnnotation =
+						slotMirror.getAnnotation(EnumField::class.java)
+					var numBits = 64
+					if (enumAnnotation !== null)
+					{
+						val enumClass = enumAnnotation.describedBy.java
+						val enumValues = enumClass.enumConstants
+						numBits =
+							64 - enumValues.size.toLong().countLeadingZeroBits()
+					}
+					builder.append(" = ")
+					describeIntegerField(
+						slot, value, numBits, enumAnnotation, builder)
+				}
+				else
+				{
+					builder.append("(")
+					var first = true
+					for (bitField in bitFields)
+					{
+						val fieldValue = self[bitField]
+						val presenter = bitField.presenter
+						val string = when (presenter)
+						{
+							null -> buildString {
+								describeIntegerField(
+									slot,
+									fieldValue.toLong(),
+									bitField.bits,
+									bitField.enumField,
+									this)
+							}
+							else -> presenter(fieldValue) ?: continue
+						}
+						if (!first)
+						{
+							builder.append(", ")
+						}
+						builder.append(bitField.name)
+						builder.append("=")
+						builder.append(string)
+						first = false
+					}
+					builder.append(")")
+				}
+			}
+			catch (e: SecurityException)
+			{
+				throw RuntimeException(e)
+			}
+			catch (e: IllegalArgumentException)
+			{
+				throw RuntimeException(e)
+			}
+			catch (e: ReflectiveOperationException)
+			{
+				throw RuntimeException(e)
+			}
+		}
+
+		/**
+		 * Write a description of an integer field to the [StringBuilder].
+		 *
+		 * @param value
+		 *   The value of the field, a `long`.
+		 * @param numBits
+		 *   The number of bits to show for this field.
+		 * @param enumAnnotation
+		 *   The optional [EnumField] annotation that was found on the field.
+		 * @param builder
+		 *   Where to write the description.
+		 * @throws ReflectiveOperationException
+		 *   If the [EnumField.lookupMethodName] is incorrect.
+		 */
+		@Throws(ReflectiveOperationException::class)
+		private fun describeIntegerField(
+			slot: IntegerSlotsEnum,
+			value: Long,
+			numBits: Int,
+			enumAnnotation: EnumField?,
+			builder: StringBuilder
+		): Unit = with(builder) {
+			if (enumAnnotation !== null)
+			{
+				val describingClass = enumAnnotation.describedBy.java
+				val lookupName = enumAnnotation.lookupMethodName
+				if (lookupName.isEmpty())
+				{
+					// Look it up by ordinal (must be an actual Enum).
+					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
+						describingClass.enumConstants.cast()
+					if (value in allValues.indices)
+					{
+						append(allValues[value.toInt()].fieldName)
+					}
+					else
+					{
+						append("(enum out of range: ")
+						describeLong(value, numBits, builder)
+						append(")")
+					}
+				}
+				else
+				{
+					// Look it up via the specified static lookup method.  It's
+					// only required to be an IntegerEnumSlotDescriptionEnum in
+					// this case, not necessarily an Enum.
+					val lookupMethod = describingClass.getMethod(
+						lookupName, Int::class.javaPrimitiveType)
+					when (val lookedUp = lookupMethod(null, value.toInt()))
+					{
+						is IntegerEnumSlotDescriptionEnum ->
+							append(lookedUp.fieldName)
+						else -> append("null")
+					}
+				}
+			}
+			else
+			{
+				describeLong(value, numBits, builder)
+			}
+		}
+
+
 		/**
 		 * Write a description of this [Long] to the builder, taking note that
 		 * the value is constrained to contain only numBits of content.  Use
@@ -221,7 +258,7 @@ interface IntegerSlotsEnum : AbstractSlotsEnum
 		 * @param builder
 		 *   Where to describe the number.
 		 */
-		fun describeLong (
+		fun describeLong(
 			value: Long,
 			numBits: Int,
 			builder: StringBuilder

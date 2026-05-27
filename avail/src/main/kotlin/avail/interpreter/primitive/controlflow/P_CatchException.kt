@@ -31,6 +31,8 @@
  */
 package avail.interpreter.primitive.controlflow
 
+import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -53,6 +55,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CatchException
 import avail.interpreter.primitive.Primitive.Flag.PreserveArguments
@@ -98,6 +102,24 @@ object P_CatchException : Primitive3(
 			}
 		}
 		return fail(E_REQUIRED_FAILURE)
+	}
+
+	override fun L2SimpleTranslator.simplePrimitiveNilpotentInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type): ((Interpreter)->A_BasicObject?)?
+	{
+		return ::nilpotentAttempt
+	}
+
+	override fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
+	{
+		// We always fail the primitive, one way or another.  May as well be
+		// quick about the first attempt.  Once there's an L2Simple instruction
+		// for handling a catch more directly (perhpas skipping block argument
+		// type checks at most call sites), we can remove this.
+		return null
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

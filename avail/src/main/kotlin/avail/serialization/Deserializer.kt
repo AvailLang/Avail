@@ -33,6 +33,7 @@
 package avail.serialization
 
 import avail.AvailRuntime
+import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -121,7 +122,7 @@ class Deserializer constructor(
 			}
 			while (producedObject === null)
 			{
-				val before = System.nanoTime()
+				val before = captureNanos()
 				val ordinal = readByte()
 				val operation = SerializerOperation.byOrdinal(ordinal)
 				val operands = operation.operands
@@ -135,7 +136,7 @@ class Deserializer constructor(
 				{
 					serializedObjects.add(newObject)
 				}
-				operation.deserializeStat.record(System.nanoTime() - before)
+				operation.deserializeStat.record(captureNanos() - before)
 			}
 			val temp = producedObject
 			producedObject = null

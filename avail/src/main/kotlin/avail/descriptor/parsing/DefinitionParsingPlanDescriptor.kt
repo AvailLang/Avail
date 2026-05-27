@@ -145,7 +145,8 @@ class DefinitionParsingPlanDescriptor private constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		// Weaken the plan's type to make sure we're not sending something it
 		// won't understand.
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))

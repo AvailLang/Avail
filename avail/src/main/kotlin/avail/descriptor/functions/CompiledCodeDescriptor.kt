@@ -737,7 +737,8 @@ open class CompiledCodeDescriptor protected constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> = with(self) {
+	): Array<AvailObjectFieldHelper> = with(self)
+	{
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
 		fields.add(
 			AvailObjectFieldHelper(

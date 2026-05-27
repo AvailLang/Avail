@@ -35,6 +35,7 @@ import avail.annotations.ThreadSafe
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.representation.AvailObject
+import avail.interpreter.execution.Interpreter
 import avail.utility.ifZero
 import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
@@ -97,13 +98,25 @@ object AvailRuntimeSupport
 
 	/**
 	 * Capture the current time with nanosecond precision (but not necessarily
-	 * accuracy).  If per-thread accounting is available, use it.
+	 * accuracy).  When called on a thread that has an [Interpreter] bound to a
+	 * fiber, subtract that fiber's accumulated suspension bias so that elapsed
+	 * times computed from successive readings track *fiber time* (wall-clock
+	 * minus periods when the fiber was suspended).  Off the interpreter
+	 * threads – or when no fiber is bound – fall through to plain wall-clock
+	 * nanoseconds.
+	 *
+	 * The bias is cached on the [Interpreter] at fiber bind/unbind and is
+	 * invariant for the duration of the binding, so this is a fast inline
+	 * subtraction plus a ThreadLocal access (no per-call fiber dereference).
 	 *
 	 * @return
-	 *   The current value of the nanosecond counter, or if supported, the
-	 *   number of nanoseconds of CPU time that the current thread has consumed.
+	 *   Nanoseconds of fiber time if a fiber is bound; otherwise wall-clock
+	 *   nanoseconds.
 	 */
-	fun captureNanos(): Long = System.nanoTime()
+	fun captureNanos(): Long =
+		Interpreter.currentOrNull()?.run {
+			System.nanoTime() - cachedFiberBiasNanos
+		} ?: System.nanoTime()
 
 	/**
 	 * Utility class for wrapping a volatile counter that can be polled.

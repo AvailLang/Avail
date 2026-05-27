@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
 /**
- * A test of [avail.utility.structures.LeftistHeap].
+ * A test of [LeftistHeap].
  *
  * @author
  *   Mark van Gulik &lt;mark@availlang.org&gt;

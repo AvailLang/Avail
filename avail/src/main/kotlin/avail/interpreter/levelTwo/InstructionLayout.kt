@@ -424,7 +424,7 @@ internal constructor(
 		/** A map from [L2Instruction] subclass to its [InstructionLayout]. */
 		private val layoutsByClass:
 				MutableMap<KClass<out L2Instruction>, InstructionLayout<*>> =
-			ConcurrentHashMap(100)
+			ConcurrentHashMap(200)
 
 		/**
 		 * Look up or create and cache the [InstructionLayout] for the given
@@ -434,6 +434,8 @@ internal constructor(
 			instructionClass: KClass<out L2Instruction>
 		): InstructionLayout<*>?
 		{
+			// The vast majority of accesses will succeed here.
+			layoutsByClass[instructionClass]?.let { return it}
 			if (instructionClass == L2Instruction::class) return null
 			val parentLayout = layoutForClass(
 				instructionClass.superclasses.single().cast())

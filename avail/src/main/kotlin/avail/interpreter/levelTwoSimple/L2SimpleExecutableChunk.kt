@@ -35,23 +35,24 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
-import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
+import avail.descriptor.representation.DebugRenderer
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.HIGHEST_LEGAL_OFFSET
-import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.REIFY_NOW
-import avail.interpreter.levelTwoSimple.L2Simple_CheckForInterrupt.Companion.RETURN_NOW
+import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.HIGHEST_LEGAL_OFFSET_int
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.RETURN_NOW
+import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
@@ -103,6 +104,9 @@ import kotlin.math.max
  *   The [Array] of [L2SimpleInstruction]s comprising this chunk.
  * @property optimizationLevel
  *   The [OptimizationLevel] at which this chunk was created.
+ * @property registerCount
+ *   How big a [RegisterSet] to create for this chunk.  These are zero-based,
+ *   but 0 is reserved for the current function.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -110,13 +114,14 @@ class L2SimpleExecutableChunk
 constructor(
 	private val code: A_RawFunction,
 	private val instructions: Array<L2SimpleInstruction>,
-	private val optimizationLevel: OptimizationLevel
-) : ExecutableChunk
+	private val optimizationLevel: OptimizationLevel,
+	private val registerCount: Int
+) : ExecutableChunk, DebugRenderer
 {
 	/** Capture the primitive, if any, for easy access. */
 	private val primitive: Primitive? = code.codePrimitive()
 
-	override fun name(): String = "simple chunk for ${code.methodName}"
+	override fun name(): String = "L2Simple chunk: ${code.methodName}"
 
 	override fun runChunk(interpreter: Interpreter, offset: Int): A_BasicObject?
 	{
@@ -163,44 +168,9 @@ constructor(
 			}
 		}
 
-		val registers = Array(code.numSlots + 1) { nil }
-		registers[0] = interpreter.function as AvailObject
-		if (offset <= 0)
-		{
-			// The function represented by the chunk is being invoked.
-			// Capture arguments.
-			val numArgs = code.numArgs()
-			for (i in 1 .. numArgs)
-			{
-				registers[i] = interpreter.argsBuffer[i - 1]
-			}
-			// Create locals.
-			for (i in 1 .. code.numLocals)
-			{
-				registers[i + numArgs] =
-					newVariableWithOuterType(code.localTypeAt(i))
-			}
-			if (primitive !== null)
-			{
-				// The primitive either failed in this method (offset == 0), or
-				// in an attempt prior to this method (offset == -1).  Either
-				// way, put the failure value into the failure constant slot
-				// (the first one, right after the args and local variables).
-				try
-				{
-					val failureValue = interpreter.getLatestResult()
-					assert(failureValue.notNil)
-					registers[numArgs + code.numLocals + 1] = failureValue
-				}
-				catch (e: Exception)
-				{
-					throw AssertionError(
-						"Failure variable was not suitable for failure value",
-						e)
-				}
-			}
-		}
-		else
+		val registers = RegisterSet(Array(registerCount) { nil })
+		registers.function = interpreter.function!! as AvailObject
+		if (offset > 0)
 		{
 			// A continuation is being resumed at the given offset.
 			if (Interpreter.debugL2)
@@ -249,7 +219,7 @@ constructor(
 				return null
 			}
 		}
-		var off = max(offset, 0)
+		var off = Offset(max(offset, 0))
 		if (Interpreter.debugL2)
 		{
 			// A hard-coded interpreter loop that can log.
@@ -260,11 +230,11 @@ constructor(
 				depth++
 				pointer = pointer.caller
 			}
-			while (off < HIGHEST_LEGAL_OFFSET)
+			while (off.value < HIGHEST_LEGAL_OFFSET_int)
 			{
-				val instruction = instructions[off]
+				val instruction = instructions[off.value]
 				val instructionText = increaseIndentation(
-					instruction.toString(),
+					instruction.toString(off.value),
 					interpreter.unreifiedCallDepth() + 2)
 				// Extra logging shows what the step affects.
 				Interpreter.log(
@@ -272,7 +242,7 @@ constructor(
 					Level.FINER,
 					"{0}L2Simple step: {1}:{2}",
 					interpreter.debugModeString,
-					off - 1,
+					off.value,
 					instructionText)
 				off = instruction.step(registers, interpreter)
 			}
@@ -281,11 +251,9 @@ constructor(
 				REIFY_NOW -> null
 				else ->
 				{
-					// The return value is *always* written into the last
-					// register, even for non-local exits from a primitive like
-					// [P_ExitContinuationIf].
+					// The return value is stored in `interpreter.latestResult`.
 					assert(off == RETURN_NOW)
-					registers[registers.size - 1]
+					interpreter.latestResultOrNull()!!
 				}
 			}
 			log(
@@ -299,22 +267,46 @@ constructor(
 		else
 		{
 			// A hard-coded interpreter loop that cannot log.
-			while (off <= HIGHEST_LEGAL_OFFSET)
+			while (off.value <= HIGHEST_LEGAL_OFFSET_int)
 			{
-				off = instructions[off].step(registers, interpreter)
+				off = instructions[off.value].step(registers, interpreter)
 			}
 			when (off)
 			{
 				REIFY_NOW -> return null
 				else ->
 				{
-					// The return value is *always* written into the last
-					// register, even for non-local exits from a primitive like
-					// [P_ExitContinuationIf].
+					// The return value is stored in `interpreter.latestResult`.
 					assert(off == RETURN_NOW)
-					return registers[registers.size - 1]
+					return interpreter.latestResultOrNull()!!
 				}
 			}
 		}
 	}
+
+	override fun nameForDebugger(): String = name()
+
+	override fun describeForDebugger() = buildList<Pair<String, Any?>> {
+		// Produce the current function being executed...
+		add("code" to code)
+		if (primitive !== null) add ("primitive" to primitive)
+		add("instructions" to instructions)
+		add("Pretty" to instructions.withIndex().joinToString("\n") {
+			(i, instr) -> "$i: ${instr.toString(i)}"
+		})
+	}.map { (name, value) ->
+		AvailObjectFieldHelper(
+			parentObject = nil,
+			slot = DUMMY_DEBUGGER_SLOT,
+			subscript = -1,
+			value = if (value is Pair<*, *>) value.first else value,
+			forcedName = name,
+			forcedChildren =
+				when (value)
+				{
+					is Pair<*, *> -> value.second as Array<*>
+					null -> emptyArray<Any>()
+					else -> null
+				})
+	}.toTypedArray()
 }

@@ -219,7 +219,8 @@ class MapDescriptor private constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		if (self.isInstanceOfKind(
 				mapTypeForSizesKeyTypeValueType(
 					wholeNumbers, stringType, ANY())))

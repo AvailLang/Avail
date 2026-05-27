@@ -33,6 +33,7 @@ package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackp
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
@@ -67,7 +68,19 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_LocalRestartWithArguments
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_Move
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
@@ -145,6 +158,65 @@ object P_RestartContinuationWithArguments : Primitive2(
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_INCORRECT_NUMBER_OF_ARGUMENTS, E_INCORRECT_ARGUMENT_TYPE))
+
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
+		argRestrictions: List<TypeRestriction>,
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
+	{
+		val label = args[0]
+		val argumentsTuple = args[1]
+
+		if (!isLocalLabel(label))
+			return false
+
+		var postponedMakeTuple = postponedInstructions[argumentsTuple]
+		while (postponedMakeTuple !== null
+			&& postponedMakeTuple is L2Simple_Move)
+		{
+			postponedMakeTuple = postponedInstructions[postponedMakeTuple.from]
+		}
+		val tupleElementReads: ReadArray = when (postponedMakeTuple)
+		{
+			null ->
+			{
+				// The closure of the function isn't postponed, so we didn't
+				// keep a record of its construction.
+				return false
+			}
+			is L2Simple_MoveConstant ->
+			{
+				// The tuple is a constant.  We'll still have to synthesize the
+				// constant elements to make use of the restart instruction.
+				ReadArray(
+					postponedMakeTuple.value.map { tupleElementValue ->
+						val write = newRegister(
+							boxedRestrictionForConstant(tupleElementValue)
+						)
+						+L2Simple_MoveConstant(
+							value = tupleElementValue,
+							to = write)
+						Read(write.value)
+					})
+			}
+			is L2Simple_AbstractMakeTuple ->
+			{
+				postponedMakeTuple.elements
+			}
+			// The function was produced some other way.
+			else -> return false
+		}
+		+L2Simple_LocalRestartWithArguments(
+			nextOffset = Offset(0),
+			argSources = tupleElementReads)
+		return true
+	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

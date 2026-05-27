@@ -40,8 +40,7 @@ package avail.utility.fsm
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
-
- * Construct a new `ValidationException`.
+ *   Construct a new `ValidationException`.
  *
  * @param message
  *   A (hopefully) informative message explaining why the

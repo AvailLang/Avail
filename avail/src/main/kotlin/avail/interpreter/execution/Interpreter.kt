@@ -35,7 +35,6 @@ import avail.AvailDebuggerModel
 import avail.AvailRuntime
 import avail.AvailRuntime.HookType
 import avail.AvailRuntimeConfiguration.maxInterpreters
-import avail.AvailRuntimeSupport
 import avail.AvailRuntimeSupport.captureNanos
 import avail.AvailTask
 import avail.AvailThread
@@ -168,6 +167,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator.Companion.callTraceL2AfterEveryInstruction
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
+import avail.performance.StatisticReport
 import avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
 import avail.utility.Strings.tab
 import avail.utility.iterableWith
@@ -180,6 +180,7 @@ import java.util.function.Supplier
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.min
+import kotlin.reflect.jvm.javaGetter
 
 /**
  * This class is used to execute [Level&#32;Two&#32;code][L2Chunk], which is a
@@ -513,6 +514,17 @@ final class Interpreter(
 	private var fiber: A_Fiber? = null
 
 	/**
+	 * A cached snapshot of the bound fiber's
+	 * [FiberHelper.clockBiasNanos][FiberDescriptor.FiberHelper.clockBiasNanos],
+	 * refreshed on every fiber bind and cleared (to `0L`) on unbind.  The bias
+	 * is invariant while the fiber is bound, so this lets [captureNanos] adjust
+	 * the wall clock to fiber time without dereferencing the fiber on every
+	 * call.
+	 */
+	var cachedFiberBiasNanos = 0L
+		private set
+
+	/**
 	 * A fiber's debugger can only change during a safe point, but at that time
 	 * no interpreters are bound to fibers, so this can be cached when binding
 	 * the fiber to the interpreter, and cleared when unbinding.
@@ -590,6 +602,7 @@ final class Interpreter(
 				|| newFiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES)
 			debugger = newFiber.fiberHelper.debugger.get()
 			debuggerRunCondition = newFiber.fiberHelper.debuggerRunCondition
+			cachedFiberBiasNanos = newFiber.fiberHelper.clockBiasNanos
 		}
 		else
 		{
@@ -598,6 +611,7 @@ final class Interpreter(
 			traceVariableWrites = false
 			debugger = null
 			debuggerRunCondition = null
+			cachedFiberBiasNanos = 0L
 		}
 	}
 
@@ -1389,7 +1403,7 @@ final class Interpreter(
 		}
 		clearLatestResult()
 		assert(currentInterpreter == this)
-		return AvailRuntimeSupport.captureNanos()
+		return captureNanos()
 	}
 
 	/**
@@ -1684,7 +1698,8 @@ final class Interpreter(
 	private var startTick = -1L
 
 	/**
-	 * Answer true if an interrupt has been requested. The interrupt may be
+	 * Answer a [Statistic] if an interrupt has been requested, allowing the
+	 * statistics for causes of interrupts to be collected. The interrupt may be
 	 * specific to the current [fiber] or global to the [runtime][AvailRuntime].
 	 * There are several reasons why an interrupt might be requested:
 	 *
@@ -1717,11 +1732,20 @@ final class Interpreter(
 	 *   `true` if an interrupt is pending, `false` otherwise.
 	 */
 	@get:ReferencedInGeneratedCode
-	val isInterruptRequested: Boolean
-		get() = (runtime.safePointRequested
-			|| unreifiedCallDepth > maxUnreifiedCallDepth
-			|| runtime.clock.get() - startTick >= timeSliceTicks
-			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED))
+	@get:JvmName("statisticForRequestedInterrupt")
+	val statisticForRequestedInterrupt: Statistic?
+		get() = when
+		{
+			runtime.safePointRequested ->
+				safePointInterruptStatistic
+			unreifiedCallDepth > maxUnreifiedCallDepth ->
+				callDepthInterruptStatistic
+			runtime.clock.get() - startTick >= timeSliceTicks ->
+				timeSliceInterruptStatistic
+			fiber().interruptRequestFlag(REIFICATION_REQUESTED) ->
+				reificationRequestedFromOtherFiberStatistic
+			else -> null
+		}
 
 	/**
 	 * The current [fiber] has been asked to temporarily cease running for an
@@ -3021,11 +3045,11 @@ final class Interpreter(
 		 */
 		private const val timeSliceTicks = 20
 
-		/** Access the [isInterruptRequested] method. */
-		val isInterruptRequestedMethod = instanceMethod(
+		/** Access the [statisticForRequestedInterrupt] method. */
+		val statisticForRequestedInterruptMethod = instanceMethod(
 			Interpreter::class.java,
-			Interpreter::isInterruptRequested.name,
-			Boolean::class.javaPrimitiveType!!)
+			Interpreter::statisticForRequestedInterrupt.javaGetter!!.name,
+			Statistic::class.java)
 
 		/** A method to access [checkValidity]. */
 		val checkValidityMethod = instanceMethod(
@@ -3208,5 +3232,24 @@ final class Interpreter(
 				TypeTag.OBJECT_TYPE_TAG -> "objectType: ${nameForDebugger()}"
 				else -> typeTag.shorterName
 			}
+
+		/* Reifications statistics for interrupts. */
+
+		/** Reification for time-slice. */
+		val timeSliceInterruptStatistic =
+			Statistic(StatisticReport.REIFICATIONS, "Interrupt: time slice")
+
+		/** Reification for safe point. */
+		val safePointInterruptStatistic =
+			Statistic(StatisticReport.REIFICATIONS, "Interrupt: safe point")
+
+		/** Reification for reaching maximum call depth. */
+		val callDepthInterruptStatistic =
+			Statistic(StatisticReport.REIFICATIONS, "Interrupt: call depth")
+
+		val reificationRequestedFromOtherFiberStatistic =
+			Statistic(
+				StatisticReport.REIFICATIONS,
+				"Interrupt: reification requested from other fiber")
 	}
 }

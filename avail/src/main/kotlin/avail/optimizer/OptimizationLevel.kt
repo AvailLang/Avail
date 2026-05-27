@@ -64,11 +64,11 @@ constructor(val countdown: Long)
 	 * The [countdown] is very small to encourage early translation of any
 	 * function that is executed even a small number of times.
 	 */
-	UNOPTIMIZED(2L)
+	UNOPTIMIZED(1L)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
-			L2SimpleTranslator.translateToLevelTwoSimple(
+			L2SimpleTranslator.`🌺translateToLevelTwoSimple`(
 				code, SIMPLE_TRANSLATION, interpreter)
 		}
 	},

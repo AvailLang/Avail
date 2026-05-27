@@ -302,7 +302,8 @@ class MessageBundleDescriptor private constructor(
 
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		fields.add(
 			AvailObjectFieldHelper(

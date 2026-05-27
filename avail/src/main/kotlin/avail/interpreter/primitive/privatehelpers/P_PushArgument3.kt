@@ -42,7 +42,10 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.interpreter.levelTwoSimple.L2Simple_Move
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -109,11 +112,15 @@ object P_PushArgument3 : PrimitiveN(
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
 	{
-		+L2Simple_Move(this, stackp - 2, stackp)
-		return argRestrictions[2]
+		move(args[2], answer)
+		return true
 	}
 }

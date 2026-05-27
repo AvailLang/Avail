@@ -33,6 +33,7 @@
 package avail.performance
 
 import avail.AvailRuntimeConfiguration.maxInterpreters
+import avail.AvailRuntimeSupport.captureNanos
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -136,9 +137,9 @@ class Statistic constructor(
 		index: Int = Interpreter.currentIndexOrZero(),
 		body: () -> A
 	): A {
-		val before = System.nanoTime()
+		val before = captureNanos()
 		val result = body()
-		statistics[index].record((System.nanoTime() - before).toDouble())
+		statistics[index].record((captureNanos() - before).toDouble())
 		return result
 	}
 }

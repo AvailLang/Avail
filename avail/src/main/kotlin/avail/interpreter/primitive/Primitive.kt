@@ -33,6 +33,7 @@
 package avail.interpreter.primitive
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
+import avail.compiler.PragmaKind
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.specialPrimitivePatterns
@@ -80,7 +81,11 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestricti
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.interpreter.levelTwoSimple.L2Simple_RunInfalliblePrimitiveNoCheck
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_RunInfalliblePrimitiveNoCheck
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.primitive.controlflow.P_CatchException
@@ -197,8 +202,8 @@ constructor(
 {
 	/**
 	 * To simplify styling during bootstrapping, a method defined by the
-	 * [pragma][avail.compiler.PragmaKind] mechanism can have its primitive
-	 * declare a styler primitive to plug in as that method definition's styler.
+	 * [pragma][PragmaKind] mechanism can have its primitive declare a styler
+	 * primitive to plug in as that method definition's styler.
 	 */
 	open fun bootstrapStyler(): Primitive? = null
 
@@ -1012,28 +1017,40 @@ constructor(
 
 	/**
 	 * Attempt to generate a simplified, faster invocation of the given constant
-	 * function, with the given argument restrictions.  The arguments will be on
-	 * the stack, the last-pushed one at stackp.  Return null to fall back
-	 * statically to a regular invocation if the primitive can't guarantee to
-	 * meet the strengthened type at this call site.  Likewise fall back if the
-	 * primitive might fail or suspend.
-	 *
-	 * If this code generation attempt is successful, return a
-	 * [TypeRestriction], indicating the guaranteed result type for the call.
-	 * An invocation will be emitted to the [L2SimpleTranslator] in this case.
+	 * function, with the given argument restrictions.  The arguments have
+	 * already been assembled for this function into a [ReadArray], and
+	 * arrangements should be made to write the result to
+	 * [answer], if the receiver primitive can do that in some way.  In that
+	 * case, answer true, indicate the code generation was successful.
+	 * Otherwise answer false to allow a general call to be created.
 	 *
 	 * If a subclass needs to access [Primitive]'s implementation, it can't just
 	 * do a super call, because of the secondary receiver.  Therefore, a base
 	 * implementation is provided in [defaultAttemptToGenerateSimpleInvocation].
+	 *
+	 * The [optionalFunctionRead] is provided if the function may have been
+	 * created locally (i.e., by the caller), which is pretty common.  That can
+	 * be used to trace the provenance of the function, perhaps locating the
+	 * close instruction, from which we can directly access its outers.
 	 */
 	open fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction? =
+		stateOfL1: StateOfL1,
+		answer: Write,
+	): Boolean =
 		defaultAttemptToGenerateSimpleInvocation(
-			functionIfKnown, rawFunction, argRestrictions, expectedType)
+			functionIfKnown = functionIfKnown,
+			rawFunction = rawFunction,
+			argRestrictions = argRestrictions,
+			expectedType = expectedType,
+			arguments = args,
+			stateOfL1 = stateOfL1,
+			answer = answer)
 
 	/**
 	 * Attempt to generate a simplified, faster invocation of the given constant
@@ -1056,30 +1073,34 @@ constructor(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction?
+		expectedType: A_Type,
+		arguments: ReadArray,
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
 	{
 		if (functionIfKnown === null)
 		{
 			// Subclasses may be more lenient about the function being absent.
-			return null
+			return false
 		}
 		if (!hasFlag(Flag.CanInline)
 			|| hasFlag(Flag.CanSwitchContinuations)
 			|| hasFlag(Flag.CanSuspend)
+			|| hasFlag(Flag.HasSideEffect)
 			|| hasFlag(Flag.Invokes)
 			|| hasFlag(Flag.Unknown))
 		{
 			// The primitive might suspend or invoke.  Fall back to a general
 			// invocation.
-			return null
+			return false
 		}
 		val argTypes = argRestrictions.map { it.type }
 		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argTypes)
 		if (!guaranteedType.isSubtypeOf(expectedType))
 		{
 			// The result isn't strong enough to satisfy the expectedType.
-			return null
+			return false
 		}
 		when (fallibilityForArgumentTypes(argTypes))
 		{
@@ -1097,29 +1118,34 @@ constructor(
 					expectedType)
 				if (nilpotentAttempt !== null)
 				{
-					return generateGeneralInvocation(
-						nilpotentAttempt,
-						functionIfKnown,
-						expectedType)
+					generateGeneralInvocation(
+						nilpotentAttempt = nilpotentAttempt,
+						calledFunction = functionIfKnown,
+						arguments = arguments,
+						argumentRestrictions = argRestrictions,
+						expectedType = expectedType,
+						stateOfL1 = stateOfL1,
+						answer = answer)
+					return true
 				}
 				// It can fail, but there's no nilpotent function to invoke.
 				// Fall back to a general invocation.
-				return null
+				return false
 			}
 			Fallibility.CallSiteCannotFail ->
 			{
 				// The primitive cannot fail.
 				+L2Simple_RunInfalliblePrimitiveNoCheck(
-					this,
-					stackp,
-					functionIfKnown,
-					rawFunction)
-				return boxedRestrictionForType(guaranteedType)
+					function = functionIfKnown,
+					rawFunction = rawFunction,
+					arguments = arguments,
+					answer = answer)
+				return true // boxedRestrictionForType(guaranteedType)
 			}
 			else ->
 			{
 				// Fall back to a general invocation.
-				return null
+				return false
 			}
 		}
 	}
@@ -1143,15 +1169,24 @@ constructor(
 	): ((Interpreter)->A_BasicObject?)?
 	{
 		functionIfKnown ?: return null
-		return { interpreter ->
-			// At this point, the arguments have been pushed in the interpreter.
-			val valueOrNull = interpreter.afterAttemptPrimitive(
-				this@Primitive,
-				interpreter.beforeAttemptPrimitive(this@Primitive),
-				attempt(interpreter))
-			assert(valueOrNull != null || interpreter.currentReifier == null)
-			valueOrNull
-		}
+		return ::nilpotentAttempt
+	}
+
+	/**
+	 * A convenient operation that satisfies the function signature for the
+	 * returned function from [simplePrimitiveNilpotentInvocation].  While this
+	 * can just as easily be a lambda, it prints itself nicer if it's a named
+	 * function reference instead.
+	 */
+	open fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
+	{
+		// At this point, the arguments have been pushed in the interpreter.
+		val valueOrNull = interpreter.afterAttemptPrimitive(
+			this,
+			interpreter.beforeAttemptPrimitive(this),
+			attempt(interpreter))
+		assert(valueOrNull != null || interpreter.currentReifier == null)
+		return valueOrNull
 	}
 
 	/**

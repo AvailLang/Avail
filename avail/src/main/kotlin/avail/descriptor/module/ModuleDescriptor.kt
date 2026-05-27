@@ -781,7 +781,8 @@ class ModuleDescriptor private constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
 		fields.add(
 			0,

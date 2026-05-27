@@ -33,6 +33,7 @@ package avail.interpreter.primitive.privatehelpers
 
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -43,9 +44,14 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_Move
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -122,14 +128,55 @@ object P_PushLastOuter : PrimitiveN(
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction?
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
 	{
-		if (functionIfKnown === null)
-			return null
-		val constant = functionIfKnown.outerVarAt(1)
-		+L2Simple_MoveConstant(this, constant, stackp)
-		return boxedRestrictionForConstant(constant)
+		if (functionIfKnown !== null)
+		{
+			// The exact function is known, so extract the outer right now.
+			val constant = functionIfKnown.outerVarAt(1)
+			+L2Simple_MoveConstant(value = constant, to = answer)
+			return true
+		}
+		if (optionalFunctionRead === null)
+		{
+			// We don't know where the function was constructed.
+			return false
+		}
+		var postponedClose = postponedInstructions[optionalFunctionRead]
+		while (postponedClose !== null && postponedClose is L2Simple_Move)
+		{
+			postponedClose = postponedInstructions[postponedClose.from]
+		}
+		return when (postponedClose)
+		{
+			null ->
+			{
+				// The closure of the function isn't postponed, so we didn't
+				// keep a record of its construction.
+				false
+			}
+			is L2Simple_MoveConstant ->
+			{
+				+L2Simple_MoveConstant(
+					value = postponedClose.value,
+					to = answer)
+				true
+			}
+			is L2Simple_AbstractCloseFunction ->
+			{
+				assert(postponedClose.code.numOuters == 1)
+				val outer = postponedClose.outers[0]
+				move(outer, answer)
+				true
+			}
+			// The function was produced some other way.
+			else -> false
+		}
 	}
 }

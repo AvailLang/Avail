@@ -36,6 +36,7 @@ import avail.builder.ModuleName
 import avail.descriptor.tuples.A_String
 import avail.interpreter.LibraryClassLoader.Companion.moduleToLoader
 import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.PrimitiveClassLoader
 import avail.utility.safeWrite
 import java.io.File
 import java.net.URLClassLoader
@@ -72,7 +73,7 @@ class LibraryClassLoader constructor(
 {
 	/**
 	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
-	 * [avail.interpreter.primitive.PrimitiveClassLoader].
+	 * [PrimitiveClassLoader].
 	 */
 	private val holders = mutableSetOf<ClassHolder>()
 

@@ -343,7 +343,7 @@ constructor(
 	var phase: Phase = INITIALIZING
 
 	/**
-	 * The [avail.compiler.LexicalScanner] used for creating tokens from source code for this
+	 * The [LexicalScanner] used for creating tokens from source code for this
 	 * [AvailLoader].
 	 *
 	 * Start by using the module header lexical scanner, and replace it after
@@ -1697,11 +1697,11 @@ constructor(
 			if (functions.hasNext())
 			{
 				val function = functions.next()
+				val n = counter++
 				val fiber = newLoaderFiber(
 					TOP(),
 					this,
 					nameSupplier = {
-						val n = counter++
 						formatString(
 							"$purpose function #${n} for module %s",
 							module.shortModuleNameNative)

@@ -81,7 +81,6 @@ import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Initiate an asynchronous write from the
-
  * [socket][AsynchronousSocketChannel] referenced by the specified
  * [handle][A_Atom]. Create a new [fiber][FiberDescriptor] to respond to the
  * asynchronous completion of the operation; the fiber will run at the specified

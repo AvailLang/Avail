@@ -240,9 +240,10 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			val frame = prepareNewFrame(interpreter)
 
 			// Check for an interrupt.
-			if (interpreter.isInterruptRequested)
+			val interruptStatistic = interpreter.statisticForRequestedInterrupt
+			if (interruptStatistic !== null)
 			{
-				return reifyForInterrupt(interpreter, frame)
+				return reifyForInterrupt(interpreter, frame, interruptStatistic)
 			}
 			// No interrupt was requested.  Run the nybblecodes from the
 			// beginning, with an initially empty stack.
@@ -399,7 +400,8 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 	 */
 	fun reifyForInterrupt(
 		interpreter: Interpreter,
-		frame: Array<AvailObject>
+		frame: Array<AvailObject>,
+		statistic: Statistic
 	): A_BasicObject?
 	{
 		// Build an interrupted continuation, reify the rest of the stack, and
@@ -419,10 +421,8 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			frameValues = listOf(*frame),
 			zeroBasedStartIndex = 1)
 		// Push the continuation from above onto the reified stack.
-		interpreter.currentReifier = StackReifier(
-			true,
-			reificationForInterruptInL1Stat
-		) {
+		interpreter.currentReifier = StackReifier(true, statistic)
+		{
 			// Push the continuation from above onto the reified stack.
 			interpreter.setReifiedContinuation(
 				continuation.replacingCaller(

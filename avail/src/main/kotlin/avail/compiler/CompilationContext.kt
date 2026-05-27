@@ -550,7 +550,6 @@ class CompilationContext constructor(
 							lexingState.lineNumber,
 							lexingState.position, e)
 					}
-
 				}
 			}
 		}

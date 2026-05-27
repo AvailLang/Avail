@@ -86,7 +86,6 @@ import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
-
  * specified [handle][A_Atom] to an [IPv4&#32;address][Inet4Address] and port.
  * Create a new [fiber][FiberDescriptor] to respond to the asynchronous
  * completion of the operation; the fiber will run at the specified

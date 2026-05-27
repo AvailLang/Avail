@@ -40,13 +40,14 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive0
 
 /**
  * **Primitive:** Pause the VM.
  */
 @Suppress("unused")
-object P_BreakPoint : Primitive0(CanSuspend, CannotFail)
+object P_BreakPoint : Primitive0(CanSuspend, CannotFail, HasSideEffect)
 {
 	override fun Interpreter.attempt0(): A_BasicObject?
 	{

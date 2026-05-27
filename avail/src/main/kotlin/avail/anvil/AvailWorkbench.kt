@@ -6,7 +6,6 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
-
  * * Redistributions of source code must retain the above copyright notice,
  *   this list of conditions and the following disclaimer.
  *
@@ -35,6 +34,7 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
+import avail.AvailRuntimeSupport.captureNanos
 import avail.AvailTask
 import avail.anvil.AvailWorkbench.Companion.darkMode
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
@@ -1067,7 +1067,7 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun privateDiscardExcessLeadingQueuedUpdates(): Int
 	{
-		val before = System.nanoTime()
+		val before = captureNanos()
 		try
 		{
 			assert(dequeLock.isWriteLockedByCurrentThread)
@@ -1089,7 +1089,7 @@ class AvailWorkbench internal constructor(
 		}
 		finally
 		{
-			discardExcessLeadingStat.record(System.nanoTime() - before)
+			discardExcessLeadingStat.record(captureNanos() - before)
 		}
 	}
 
@@ -1156,15 +1156,15 @@ class AvailWorkbench internal constructor(
 			{
 				// We need to trim off part of the document, right after the
 				// module status area.
-				val beforeRemove = System.nanoTime()
+				val beforeRemove = captureNanos()
 				document.remove(
 					statusSize, min(amountToRemove, length - statusSize))
 				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
-				removeStringStat.record(System.nanoTime() - beforeRemove)
+				removeStringStat.record(captureNanos() - beforeRemove)
 			}
 			aggregatedEntries.forEach { entry ->
-				val before = System.nanoTime()
+				val before = captureNanos()
 				val context = stylesheet[entry.style.classifier]
 				document.insertString(
 					document.length, // The current length
@@ -1172,7 +1172,7 @@ class AvailWorkbench internal constructor(
 					context.documentAttributes)
 				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
-				insertStringStat.record(System.nanoTime() - before)
+				insertStringStat.record(captureNanos() - before)
 			}
 		}
 		catch (e: BadLocationException)
@@ -1243,13 +1243,13 @@ class AvailWorkbench internal constructor(
 		invokeLater {
 			try
 			{
-				val beforeRemove = System.nanoTime()
+				val beforeRemove = captureNanos()
 				document.remove(
 					perModuleStatusTextSize,
 					document.length - perModuleStatusTextSize)
 				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
-				removeStringStat.record(System.nanoTime() - beforeRemove)
+				removeStringStat.record(captureNanos() - beforeRemove)
 			}
 			catch (e: BadLocationException)
 			{
@@ -1816,19 +1816,19 @@ class AvailWorkbench internal constructor(
 		val doc = transcript.styledDocument
 		try
 		{
-			val beforeRemove = System.nanoTime()
+			val beforeRemove = captureNanos()
 			doc.remove(0, perModuleStatusTextSize)
 			// Always use index 0, since this only happens in the UI thread.
-			removeStringStat.record(System.nanoTime() - beforeRemove)
+			removeStringStat.record(captureNanos() - beforeRemove)
 
-			val beforeInsert = System.nanoTime()
+			val beforeInsert = captureNanos()
 			val context = stylesheet[BUILD_PROGRESS.classifier]
 			doc.insertString(
 				0,
 				string,
 				context.documentAttributes)
 			// Always use index 0, since this only happens in the UI thread.
-			insertStringStat.record(System.nanoTime() - beforeInsert)
+			insertStringStat.record(captureNanos() - beforeInsert)
 		}
 		catch (e: BadLocationException)
 		{
@@ -1851,7 +1851,7 @@ class AvailWorkbench internal constructor(
 	 */
 	fun writeText(text: String, streamStyle: StreamStyle)
 	{
-		val before = System.nanoTime()
+		val before = captureNanos()
 		val size = text.length
 		assert(size > 0)
 		updateQueue.add(BuildOutputStreamEntry(streamStyle, text))
@@ -1867,9 +1867,9 @@ class AvailWorkbench internal constructor(
 			// be displayed because it would be rolled off anyhow.  Since this
 			// has to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
-			val beforeLock = System.nanoTime()
+			val beforeLock = captureNanos()
 			dequeLock.safeWrite {
-				waitForDequeLockStat.record(System.nanoTime() - beforeLock)
+				waitForDequeLockStat.record(captureNanos() - beforeLock)
 				try
 				{
 					totalQueuedTextSize.getAndAdd(
@@ -1879,7 +1879,7 @@ class AvailWorkbench internal constructor(
 				{
 					// Record the stat just before unlocking, to avoid the need
 					// for a lock for the statistic itself.
-					writeTextStat.record(System.nanoTime() - before)
+					writeTextStat.record(captureNanos() - before)
 				}
 			}
 		}

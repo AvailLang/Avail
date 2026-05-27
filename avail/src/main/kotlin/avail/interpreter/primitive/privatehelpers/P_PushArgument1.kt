@@ -42,6 +42,10 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -104,14 +108,21 @@ object P_PushArgument1 : PrimitiveN(
 		callSiteHelper.useAnswer(arguments[0], false)
 		return true
 	}
+
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
 	{
-		// It's already on the stack in the right place.
-		return argRestrictions[0]
+		// It's already on the stack in the right place, but we're not operating
+		// at the slot level here, so do the move.
+		move(args[0], answer)
+		return true
 	}
 }

@@ -351,7 +351,8 @@ class ObjectTypeDescriptor internal constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		val fields = mutableListOf<AvailObjectFieldHelper>()
 		val otherAtoms = mutableListOf<A_Atom>()
 		variant.fieldToSlotIndex.forEach { (fieldKey, index) ->

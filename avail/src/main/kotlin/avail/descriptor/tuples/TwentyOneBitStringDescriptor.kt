@@ -645,7 +645,7 @@ class TwentyOneBitStringDescriptor private constructor(
 			val slotIndex = (index - 1).div3 + 1
 			val shift = (index - 1).mod3 * 21
 			val long = self[RAW_LONGS_, slotIndex]
-			return (long shr shift).toInt() and ((1 shl 21) - 1)
+			return ((long shr shift) and twentyOneBitMask).toInt()
 		}
 
 		/**
@@ -657,10 +657,10 @@ class TwentyOneBitStringDescriptor private constructor(
 			index: Int,
 			intValue: Int)
 		{
-			val mask = (1L shl 21) - 1
 			assert(intValue <= maxCodePointInt)
 			val slotIndex = (index - 1).div3 + 1
 			val shift = (index - 1).mod3 * 21
+			val mask = twentyOneBitMask shl shift
 			var long = self[RAW_LONGS_, slotIndex]
 			long = (long and mask.inv()) or (intValue.toLong() shl shift)
 			self[RAW_LONGS_, slotIndex] = long

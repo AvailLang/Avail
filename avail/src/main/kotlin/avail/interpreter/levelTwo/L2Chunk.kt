@@ -473,7 +473,7 @@ abstract class L2Chunk protected constructor(
 	 * original value on return.
 	 *
 	 * The first level of directory is the module name, and the second level is
-	 * `DDDD_function_name (version)`, to help locate code by (DDDD) line
+	 * `DDDDD_function_name (version)`, to help locate code by (DDDDD) line
 	 * number.
 	 *
 	 * @return
@@ -502,8 +502,11 @@ abstract class L2Chunk protected constructor(
 					val line = code.codeStartingLineNumber
 					if (line != 0)
 					{
-						// Pad line number to 4 digits, although it can be more.
-						append(String.format("%04d: ", line))
+						val lineString = line.toString()
+						// Zero-pad to at least 5 digits.
+						repeat(5 - lineString.length) { append('0') }
+						append(lineString)
+						append("-")
 					}
 					append(code.methodName.asNativeString())
 				}

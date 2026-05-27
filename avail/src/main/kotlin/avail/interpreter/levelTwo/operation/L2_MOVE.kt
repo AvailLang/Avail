@@ -79,11 +79,10 @@ import avail.utility.notNullAnd
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
-
  * @constructor
  * Construct an `L2_MOVE` operation.
  *
- * @param kind
+ * @param K
  *   The [RegisterKind] serviced by this operation.
  */
 sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()

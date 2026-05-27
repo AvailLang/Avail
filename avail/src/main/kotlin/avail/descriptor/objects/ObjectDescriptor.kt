@@ -215,7 +215,8 @@ class ObjectDescriptor internal constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		val fields = mutableListOf<AvailObjectFieldHelper>()
 		fields.add(
 			AvailObjectFieldHelper(

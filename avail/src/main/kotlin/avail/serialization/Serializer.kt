@@ -33,6 +33,7 @@
 package avail.serialization
 
 import avail.AllSpecialAtoms
+import avail.AvailRuntimeSupport.captureNanos
 import avail.SpecialObject
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -273,7 +274,7 @@ class Serializer constructor (
 	 */
 	internal fun traceOne(obj: AvailObject)
 	{
-		val before = System.nanoTime()
+		val before = captureNanos()
 		// Build but don't yet emit the instruction.
 		val instruction = encounteredObjects.computeIfAbsent(obj) {
 			newInstruction(obj).also {
@@ -325,7 +326,7 @@ class Serializer constructor (
 				// traced.
 				workStack.addFirst { traceOne(obj.value()) }
 			}
-			instruction.operation.traceStat.record(System.nanoTime() - before)
+			instruction.operation.traceStat.record(captureNanos() - before)
 		}
 	}
 

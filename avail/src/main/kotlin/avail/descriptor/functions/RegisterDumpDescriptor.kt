@@ -213,7 +213,7 @@ class RegisterDumpDescriptor private constructor(
 			immutables = arrayOfNulls(size)
 			shareds = arrayOfNulls(size)
 			emptyRegisterDumps = arrayOfNulls(size)
-			(0..DefaultEntryPointCatalog.maxEntryPointOffset).forEach { entry ->
+			(-1..DefaultEntryPointCatalog.maxEntryPointOffset).forEach { entry ->
 				mutables[entry + 1] =
 					RegisterDumpDescriptor(MUTABLE, entry)
 				immutables[entry + 1] =

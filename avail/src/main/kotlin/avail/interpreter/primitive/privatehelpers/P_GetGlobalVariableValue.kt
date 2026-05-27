@@ -50,10 +50,13 @@ import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.NeverClear
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -139,9 +142,13 @@ object P_GetGlobalVariableValue : Primitive1(
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction?
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
 	{
 		val variable = rawFunction.literalAt(1)
 		if (!variable.isInitializedWriteOnceVariable ||
@@ -150,10 +157,13 @@ object P_GetGlobalVariableValue : Primitive1(
 		{
 			// The variable is not an initialized stable global.
 			return defaultAttemptToGenerateSimpleInvocation(
-				functionIfKnown,
-				rawFunction,
-				argRestrictions,
-				expectedType)
+				functionIfKnown = functionIfKnown,
+				rawFunction = rawFunction,
+				argRestrictions = argRestrictions,
+				expectedType = expectedType,
+				arguments = args,
+				stateOfL1 = stateOfL1,
+				answer = answer)
 		}
 		// The variable is permanently set to this value.
 		val constant = try
@@ -165,7 +175,7 @@ object P_GetGlobalVariableValue : Primitive1(
 			throw RuntimeException(
 				"Assigned write-once variable should not fail in getValue()")
 		}
-		+L2Simple_MoveConstant(this, constant, stackp)
-		return boxedRestrictionForConstant(constant)
+		+L2Simple_MoveConstant(value = constant, to = answer)
+		return true
 	}
 }

@@ -37,7 +37,7 @@ import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.sets.A_Set
 import avail.interpreter.levelTwoSimple.L2SimpleExecutableChunk
-import avail.interpreter.levelTwoSimple.L2SimpleInstruction
+import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
@@ -113,6 +113,8 @@ class L2SimpleChunk private constructor(
 		 *   The offset into my [instructions] at which to begin if this chunk's
 		 *   code was primitive and that primitive has already been attempted
 		 *   and failed.
+		 * @param registerCount
+		 *   The number of registers to allocate for this chunk.
 		 * @param theInstructions
 		 *   A [List] of [L2SimpleInstruction]s that can be executed in place of
 		 *   the level one nybblecodes.
@@ -127,6 +129,7 @@ class L2SimpleChunk private constructor(
 		fun allocate(
 			code: A_RawFunction,
 			offsetAfterInitialTryPrimitive: Int,
+			registerCount: Int,
 			theInstructions: List<L2SimpleInstruction>,
 			contingentValues: A_Set,
 			optimizationLevel: OptimizationLevel
@@ -140,7 +143,8 @@ class L2SimpleChunk private constructor(
 				L2SimpleExecutableChunk(
 					code,
 					theInstructions.toTypedArray(),
-					optimizationLevel))
+					optimizationLevel,
+					registerCount))
 			contingentValues.forEach { it.addDependentChunk(chunk) }
 			Generation.addNewChunk(chunk)
 			return chunk

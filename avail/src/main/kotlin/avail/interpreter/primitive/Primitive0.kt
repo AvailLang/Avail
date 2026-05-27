@@ -35,6 +35,7 @@ package avail.interpreter.primitive
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
+import avail.optimizer.StackReifier
 
 /**
  * A [Primitive] taking exactly zero arguments.
@@ -52,9 +53,9 @@ constructor(
 	 * Attempt to run a primitive taking zero arguments, answering either an
 	 * AvailObject if successful, or null if the primitive could not complete
 	 * for some reason.  If the primitive reifies, the
-	 * [Interpreter.currentReifier] will capture the
-	 * [avail.optimizer.StackReifier].  If the primitive fails, its failure code
-	 * will be stored in the [Interpreter.latestResult].
+	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
+	 * primitive fails, its failure code will be stored in the
+	 * [Interpreter.latestResult].
 	 *
 	 * @receiver
 	 *   The [Interpreter] performing the primitive attempt.

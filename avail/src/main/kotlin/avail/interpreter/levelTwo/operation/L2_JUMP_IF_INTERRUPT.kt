@@ -38,6 +38,7 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes.DUP
 
 /**
  * Jump to the specified level two program counter if no interrupt has been
@@ -57,11 +58,14 @@ class L2_JUMP_IF_INTERRUPT(
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
 		loadInterpreter()
-		generateCall(Interpreter.isInterruptRequestedMethod)
+		generateCall(Interpreter.statisticForRequestedInterruptMethod)
+		method.visitInsn(DUP)
+		//TODO This is partly rewritten to leave a Statistic on the stack in the
+		// event of an interrupt, rather than nothing.
 		emitBranch(
-			this@L2_JUMP_IF_INTERRUPT,
-			Opcodes.IFNE,
-			ifInterrupt,
-			ifNotInterrupt)
+			instruction = this@L2_JUMP_IF_INTERRUPT,
+			opcode = Opcodes.IFNULL,
+			conditionHolds = ifNotInterrupt,
+			conditionDoesNotHold = ifInterrupt)
 	}
 }

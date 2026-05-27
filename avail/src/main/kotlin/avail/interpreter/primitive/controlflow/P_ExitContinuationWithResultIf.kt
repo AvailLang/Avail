@@ -34,6 +34,7 @@ package avail.interpreter.primitive.controlflow
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -52,7 +53,17 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_RETURN
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_JumpIfTrue
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_Return
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.RETURN_NOW
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive3
@@ -101,6 +112,58 @@ object P_ExitContinuationWithResultIf : Primitive3(
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_CONTINUATION_EXPECTED_STRONGER_TYPE))
+
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
+		argRestrictions: List<TypeRestriction>,
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
+	{
+		val continuation = args[0]
+		val result = args[1]
+		val condition = args[2]
+
+		if (!isLocalLabel(continuation))
+			return false
+		// The exit, if it happens, will be from the current context.
+		val conditionRestriction = argRestrictions[2]
+		if (conditionRestriction.isConstant)
+		{
+			if (conditionRestriction.constantOrNull!!.extractBoolean)
+			{
+				// Always return.
+				+L2Simple_Return(
+					nextOffset = RETURN_NOW,
+					value = result)
+				return true
+			}
+			else
+			{
+				// Never return.
+				return true
+			}
+		}
+		// The branch can't be postponed, nor can the return.  But make sure the
+		// condition is emitted before we start doing jump math, and also ensure
+		// the return value has also been emitted.
+		postponedInstructions.remove(condition)?.let(::forceEmit)
+		postponedInstructions.remove(result)?.let(::forceEmit)
+		+L2Simple_JumpIfTrue(
+			// Skip the return instruction if false.
+			nextOffset = Offset(instructions.size + 2),
+			ifTrueOffset = Offset.NEXT,
+			condition = condition)
+		// The return can't be postponed.
+		+L2Simple_Return(
+			nextOffset = RETURN_NOW,
+			value = result)
+		return true
+	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

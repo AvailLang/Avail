@@ -220,8 +220,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
-			val unreversedFirstTuple: A_Tuple =
-				self[ORIGIN_TUPLE]
+			val unreversedFirstTuple: A_Tuple = self[ORIGIN_TUPLE]
 			return generateObjectTupleFrom(newSize)
 			{
 				if (it <= size1)
@@ -284,8 +283,9 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.
-			val result = generateObjectTupleFrom(
-				subrangeSize) { self.tupleAt(it + start - 1) }
+			val result = generateObjectTupleFrom(subrangeSize) {
+				self.tupleAt(it + start - 1)
+			}
 			if (canDestroy)
 			{
 				self.assertObjectUnreachableIfMutable()
@@ -348,7 +348,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
-		val size = self[ORIGIN_TUPLE].tupleSize
+		val size = self[SIZE]
 		assert(index in 1 .. size)
 		val reverseIndex = size + 1 - index
 		return self[ORIGIN_TUPLE].tupleAt(reverseIndex)
@@ -381,7 +381,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		endIndex: Int,
 		type: A_Type): Boolean
 	{
-		val size = self[ORIGIN_TUPLE].tupleSize
+		val size = self[SIZE]
 		val originStart = size + 1 - endIndex
 		val originEnd = size + 1 - startIndex
 		return self[ORIGIN_TUPLE].tupleElementsInRangeAreInstancesOf(
@@ -390,7 +390,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		val size = self[ORIGIN_TUPLE].tupleSize
+		val size = self[SIZE]
 		assert(index in 1 .. size)
 		val reverseIndex = size + 1 - index
 		return self[ORIGIN_TUPLE].tupleIntAt(reverseIndex)
@@ -398,7 +398,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		val size = self[ORIGIN_TUPLE].tupleSize
+		val size = self[SIZE]
 		assert(index in 1 .. size)
 		val reverseIndex = size + 1 - index
 		return self[ORIGIN_TUPLE].tupleLongAt(reverseIndex)

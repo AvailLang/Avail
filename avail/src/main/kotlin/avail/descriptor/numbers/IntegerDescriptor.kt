@@ -230,7 +230,8 @@ class IntegerDescriptor private constructor(
 
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> = when {
+	): Array<AvailObjectFieldHelper> = when
+	{
 		self.isLong -> emptyArray()
 		else -> super.o_DescribeForDebugger(self)
 	}

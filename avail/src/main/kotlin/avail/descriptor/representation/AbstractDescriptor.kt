@@ -206,6 +206,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 
 /**
@@ -441,7 +442,8 @@ abstract class AbstractDescriptor protected constructor (
 	 *   of the given object.
 	 */
 	open fun o_DescribeForDebugger (
-		self: AvailObject): Array<AvailObjectFieldHelper>
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
 	{
 		val cls: Class<AbstractDescriptor> = javaClass
 		val loader = cls.classLoader
@@ -834,6 +836,7 @@ abstract class AbstractDescriptor protected constructor (
 		members.remove(AbstractDescriptor::isMutable)
 		members.remove(AbstractDescriptor::isShared)
 		return members
+			.filter { m -> m.isAccessible }
 			.map { m ->
 				try
 				{

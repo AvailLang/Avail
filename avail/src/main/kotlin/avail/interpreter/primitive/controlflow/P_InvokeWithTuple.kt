@@ -45,7 +45,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
+import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
@@ -67,10 +67,16 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
-import avail.interpreter.levelTwoSimple.L2Simple_Invoke
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMayInvoke
@@ -81,6 +87,7 @@ import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.utility.notNullAnd
 import java.util.Collections.nCopies
 
 /**
@@ -340,43 +347,74 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type
-	): TypeRestriction?
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
 	{
 		assert(argRestrictions.size == 2)
-		val argumentsRestriction = argRestrictions[1]
-		functionIfKnown ?: return null
-		// The exact function to invoke is known.  This might get extended some
-		// day to support functions created in the same chunk via a close
-		// instruction, but for now we only handle constant functions.
-		// Check the arguments.
-		val argumentsType = argumentsRestriction.type
-		assert(argumentsType.isTupleType)
-		val argCount = argumentsType.sizeRange.lowerBound
-		if (!argCount.isInt)
-			return null
-		val argCountInt = argCount.extractInt
-		if (!argumentsType.sizeRange.upperBound.equalsInt(argCountInt))
-			return null
-		val functionType = functionIfKnown.kind()
-		if (!functionType.acceptsTupleOfArgTypes(
-				argumentsType.tupleOfTypesFromTo(1, argCountInt)))
-			return null
-		// The arguments are compatible.  Invoke the function directly,
-		// without involving the invoke primitive.
-		val indices = liveIndices(stackp - 2 + 1 .. stackp - 1)
-		// The call of the invoke primitive is being reduced to a call of the
-		// statically known function instead, so that's the stronger guarantee.
-		val guaranteedReturnType = functionType.returnType
-		+L2Simple_Invoke(
-			translator = this,
-			stackp = stackp,
-			pc = pc,
-			liveIndices = indices,
-			expectedType = expectedType,
-			mustCheck = !guaranteedReturnType.isSubtypeOf(expectedType),
-			function = functionIfKnown)
-		return boxedRestrictionForType(guaranteedReturnType)
+		val functionToInvoke = args[0]
+		val functionArguments = args[1]
+		val makeTuple = postponedInstructions[functionArguments]
+		if (makeTuple === null || makeTuple !is L2Simple_AbstractMakeTuple)
+		{
+			// Somehow we already constructed the tuple of function arguments.
+			return false
+		}
+		// We can now pull the arguments out.
+		val tupleElements = makeTuple.elements
+		// Check if the function was closed locally, too.
+		val closeFunction = postponedInstructions[functionToInvoke]
+		val code = when
+		{
+			closeFunction is L2Simple_AbstractCloseFunction ->
+				closeFunction.code
+			closeFunction is L2Simple_MoveConstant ->
+				closeFunction.value.code()
+			restrictionFor(functionToInvoke).notNullAnd { isConstant } ->
+				restrictionFor(functionToInvoke)!!.constantOrNull!!.code()
+			else -> return false
+		}
+		val exactFunctionType = code.functionType()
+		if (code.numArgs() != tupleElements.size)
+		{
+			// Argument count mismatch.
+			return false
+		}
+		// See if the function will definitely accept the arguments.
+		val tupleElementRestrictions = tupleElements.values.map {
+			restrictionFor(Read(it)) ?: anyRestriction
+		}
+		val tupleElementTypes =
+			tupleElementRestrictions.map(TypeRestriction::type)
+		if (!exactFunctionType.acceptsListOfArgTypes(tupleElementTypes))
+		{
+			// The function won't necessarily accept the arguments.
+			return false
+		}
+		// The function will definitely accept the arguments.  Recurse in case
+		// the function being invoked is itself a primitive.
+		val calledPrim = code.codePrimitive()
+		calledPrim?.run {
+			// It's trying to invoke a primitive function, so let that primitive
+			// function do its code generation instead.
+			val generated = attemptToGenerateSimpleInvocation(
+				functionIfKnown =
+					restrictionFor(functionToInvoke)?.constantOrNull,
+				rawFunction = code,
+				optionalFunctionRead = functionToInvoke,
+				expectedType = expectedType,
+				args = tupleElements,
+				argRestrictions = tupleElementRestrictions,
+				stateOfL1 = stateOfL1,
+				answer = answer)
+			if (generated) return true
+		}
+		// Either the functionToInvoke isn't primitive or it didn't have strong
+		// enough types to generate a simple invocation.
+		return false
 	}
 }

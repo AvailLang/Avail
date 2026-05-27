@@ -128,20 +128,23 @@ object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
 		if (!valueType.isSubtypeOf(contentType.valueType)) return null
 		if (contentType.sizeRange.upperBound.isFinite) return null
 		// The value being written doesn't need to be type checked at runtime.
-		return { interpreter ->
-			val (variable, newKey, newValue) = interpreter.argsBuffer
-			try {
-				variable.atomicAddToMapNoCheck(newKey, newValue)
-				nil
-			}
-			catch (e: VariableGetException)
-			{
-				interpreter.fail(e.errorCode)
-			}
-			catch (e: VariableSetException)
-			{
-				interpreter.fail(e.errorCode)
-			}
+		return ::nilpotentAttempt
+	}
+
+	override fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
+	{
+		val (variable, newKey, newValue) = interpreter.argsBuffer
+		return try {
+			variable.atomicAddToMapNoCheck(newKey, newValue)
+			nil
+		}
+		catch (e: VariableGetException)
+		{
+			interpreter.fail(e.errorCode)
+		}
+		catch (e: VariableSetException)
+		{
+			interpreter.fail(e.errorCode)
 		}
 	}
 

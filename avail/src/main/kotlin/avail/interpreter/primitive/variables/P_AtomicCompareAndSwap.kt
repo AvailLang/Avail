@@ -182,20 +182,23 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 			return null
 		}
 		// The value being written doesn't need to be type checked at runtime.
-		return { interpreter ->
-			val (variable, reference, newValue) = interpreter.argsBuffer
-			try {
-				objectFromBoolean(
-					variable.compareAndSwapValuesNoCheck(reference, newValue))
-			}
-			catch (e: VariableGetException)
-			{
-				interpreter.fail(e.errorCode)
-			}
-			catch (e: VariableSetException)
-			{
-				interpreter.fail(e.errorCode)
-			}
+		return ::nilpotentAttempt
+	}
+
+	override fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
+	{
+		val (variable, reference, newValue) = interpreter.argsBuffer
+		return try {
+			objectFromBoolean(
+				variable.compareAndSwapValuesNoCheck(reference, newValue))
+		}
+		catch (e: VariableGetException)
+		{
+			interpreter.fail(e.errorCode)
+		}
+		catch (e: VariableSetException)
+		{
+			interpreter.fail(e.errorCode)
 		}
 	}
 

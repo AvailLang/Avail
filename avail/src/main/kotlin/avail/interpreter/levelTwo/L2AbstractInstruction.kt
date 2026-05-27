@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo
 
-import avail.interpreter.levelTwoSimple.L2SimpleInstruction
+import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.optimizer.L2Generator
 

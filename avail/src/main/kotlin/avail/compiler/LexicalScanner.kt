@@ -64,10 +64,10 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * A [LexicalScanner] tracks all visible [avail.descriptor.parsing.A_Lexer]s while compiling a module. It
- * maintains an [java.util.concurrent.atomic.AtomicReferenceArray] from Latin-1 codepoints (U+0000..U+00FF)
- * to the [avail.descriptor.tuples.A_Tuple] of lexers whose filters passed for that codepoint.  A
- * separate [java.util.concurrent.ConcurrentHashMap] tracks all remaining codepoints.
+ * A [LexicalScanner] tracks all visible [A_Lexer]s while compiling a module. It
+ * maintains an [AtomicReferenceArray] from Latin-1 codepoints (U+0000..U+00FF)
+ * to the [A_Tuple] of lexers whose filters passed for that codepoint.  A
+ * separate [ConcurrentHashMap] tracks all remaining codepoints.
  *
  * There is also a special instance that is reused for scanning module headers.
  *
@@ -82,7 +82,7 @@ constructor(
 	val moduleNameProducer : ()->String)
 {
 	/**
-	 * The [List] of all [lexers][avail.descriptor.parsing.A_Lexer] which are visible within the module
+	 * The [List] of all [lexers][A_Lexer] which are visible within the module
 	 * being compiled.
 	 */
 	val allVisibleLexers = mutableListOf<A_Lexer>()
@@ -106,7 +106,7 @@ constructor(
 
 	/**
 	 * A 256-way dispatch table that takes a Latin-1 character's Unicode
-	 * codepoint (which is in [0..255]) to a [tuple][avail.descriptor.tuples.A_Tuple] of
+	 * codepoint (which is in [0..255]) to a [tuple][A_Tuple] of
 	 * [lexers][A_Lexer].  Non-Latin1 characters (i.e., with codepoints ≥ 256)
 	 * are tracked separately in [nonLatin1Lexers].
 	 *
@@ -189,7 +189,7 @@ constructor(
 	 * *may* invoke the continuation synchronously for performance.
 	 *
 	 * @param lexingState
-	 *   The [avail.compiler.scanning.LexingState] at which the lexical scanning is happening.
+	 *   The [LexingState] at which the lexical scanning is happening.
 	 * @param codePoint
 	 *   The full Unicode code point in the range 0..1,114,111.
 	 * @param continuation
