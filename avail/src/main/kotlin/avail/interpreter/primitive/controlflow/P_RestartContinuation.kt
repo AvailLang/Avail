@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackp
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
@@ -47,7 +48,16 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_LocalRestartWithArguments
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_PushLabel
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
@@ -101,6 +111,34 @@ object P_RestartContinuation : Primitive1(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralContinuationType), bottom)
+
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		optionalFunctionRead: Read?,
+		expectedType: A_Type,
+		args: ReadArray,
+		argRestrictions: List<TypeRestriction>,
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
+	{
+		val continuation = args[0]
+
+		val continuationOrigin = originInstructionSkippingMoves(continuation)
+		if (continuationOrigin !is L2Simple_PushLabel) return false
+
+		// Read the original argument slots.  Since a label is pushed in this
+		// function, the arguments are never cleared.
+		val tupleElementReads =
+			ReadArray((1..code.numArgs()).map(::readSlot))
+
+		+L2Simple_LocalRestartWithArguments(
+			nextOffset = Offset(0),
+			argSources = tupleElementReads)
+		return true
+	}
+
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

@@ -69,14 +69,11 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_LocalRestartWithArguments
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_Move
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_PushLabel
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
@@ -170,48 +167,15 @@ object P_RestartContinuationWithArguments : Primitive2(
 		answer: Write
 	): Boolean
 	{
-		val label = args[0]
+		val continuation = args[0]
 		val argumentsTuple = args[1]
 
-		if (!isLocalLabel(label))
-			return false
+		val continuationOrigin = originInstructionSkippingMoves(continuation)
+		if (continuationOrigin !is L2Simple_PushLabel) return false
 
-		var postponedMakeTuple = postponedInstructions[argumentsTuple]
-		while (postponedMakeTuple !== null
-			&& postponedMakeTuple is L2Simple_Move)
-		{
-			postponedMakeTuple = postponedInstructions[postponedMakeTuple.from]
-		}
-		val tupleElementReads: ReadArray = when (postponedMakeTuple)
-		{
-			null ->
-			{
-				// The closure of the function isn't postponed, so we didn't
-				// keep a record of its construction.
-				return false
-			}
-			is L2Simple_MoveConstant ->
-			{
-				// The tuple is a constant.  We'll still have to synthesize the
-				// constant elements to make use of the restart instruction.
-				ReadArray(
-					postponedMakeTuple.value.map { tupleElementValue ->
-						val write = newRegister(
-							boxedRestrictionForConstant(tupleElementValue)
-						)
-						+L2Simple_MoveConstant(
-							value = tupleElementValue,
-							to = write)
-						Read(write.value)
-					})
-			}
-			is L2Simple_AbstractMakeTuple ->
-			{
-				postponedMakeTuple.elements
-			}
-			// The function was produced some other way.
-			else -> return false
-		}
+		val tupleElementReads = tupleElementSources(argumentsTuple)
+			?: return false
+
 		+L2Simple_LocalRestartWithArguments(
 			nextOffset = Offset(0),
 			argSources = tupleElementReads)

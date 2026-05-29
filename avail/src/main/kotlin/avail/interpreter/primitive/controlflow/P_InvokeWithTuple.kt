@@ -45,7 +45,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
@@ -67,13 +66,9 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
@@ -87,7 +82,6 @@ import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.utility.notNullAnd
 import java.util.Collections.nCopies
 
 /**
@@ -358,63 +352,11 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		assert(argRestrictions.size == 2)
 		val functionToInvoke = args[0]
 		val functionArguments = args[1]
-		val makeTuple = postponedInstructions[functionArguments]
-		if (makeTuple === null || makeTuple !is L2Simple_AbstractMakeTuple)
-		{
-			// Somehow we already constructed the tuple of function arguments.
-			return false
-		}
-		// We can now pull the arguments out.
-		val tupleElements = makeTuple.elements
-		// Check if the function was closed locally, too.
-		val closeFunction = postponedInstructions[functionToInvoke]
-		val code = when
-		{
-			closeFunction is L2Simple_AbstractCloseFunction ->
-				closeFunction.code
-			closeFunction is L2Simple_MoveConstant ->
-				closeFunction.value.code()
-			restrictionFor(functionToInvoke).notNullAnd { isConstant } ->
-				restrictionFor(functionToInvoke)!!.constantOrNull!!.code()
-			else -> return false
-		}
-		val exactFunctionType = code.functionType()
-		if (code.numArgs() != tupleElements.size)
-		{
-			// Argument count mismatch.
-			return false
-		}
-		// See if the function will definitely accept the arguments.
-		val tupleElementRestrictions = tupleElements.values.map {
-			restrictionFor(Read(it)) ?: anyRestriction
-		}
-		val tupleElementTypes =
-			tupleElementRestrictions.map(TypeRestriction::type)
-		if (!exactFunctionType.acceptsListOfArgTypes(tupleElementTypes))
-		{
-			// The function won't necessarily accept the arguments.
-			return false
-		}
-		// The function will definitely accept the arguments.  Recurse in case
-		// the function being invoked is itself a primitive.
-		val calledPrim = code.codePrimitive()
-		calledPrim?.run {
-			// It's trying to invoke a primitive function, so let that primitive
-			// function do its code generation instead.
-			val generated = attemptToGenerateSimpleInvocation(
-				functionIfKnown =
-					restrictionFor(functionToInvoke)?.constantOrNull,
-				rawFunction = code,
-				optionalFunctionRead = functionToInvoke,
-				expectedType = expectedType,
-				args = tupleElements,
-				argRestrictions = tupleElementRestrictions,
-				stateOfL1 = stateOfL1,
-				answer = answer)
-			if (generated) return true
-		}
-		// Either the functionToInvoke isn't primitive or it didn't have strong
-		// enough types to generate a simple invocation.
-		return false
+		return attemptToEmbedInvocation(
+			functionToInvoke = functionToInvoke,
+			functionArguments = functionArguments,
+			stateOfL1 = stateOfL1,
+			answer = answer,
+			expectedType = expectedType)
 	}
 }

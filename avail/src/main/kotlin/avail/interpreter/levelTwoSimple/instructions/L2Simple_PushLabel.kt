@@ -79,8 +79,7 @@ class L2Simple_PushLabel(
 	val answer: Write
 ) : L2SimpleInstruction(nextOffset)
 {
-	/** Don't postpone label creation, but allow it to be eliminated later. */
-	override val canBePostponed get() = false
+	override val canBePostponed get() = true
 
 	override fun step(
 		registers: RegisterSet,

@@ -79,13 +79,16 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwoSimple.StateOfL1.Companion.dummyStateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction.Companion.createCloseFunction
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple.Companion.createMakeTuple
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractReenter
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractReifiableInstruction
@@ -151,9 +154,6 @@ constructor(
 	/** The types of the registers at this point. */
 	val restrictions = mutableMapOf<Read, TypeRestriction>()
 
-	/** Track registers that definitely contain a local label. */
-	val localLabelReads = mutableSetOf<Read>()
-
 	/** The list of [L2SimpleInstruction]s being generated. */
 	val instructions = mutableListOf<L2SimpleInstruction>()
 
@@ -184,6 +184,36 @@ constructor(
 
 	val currentSlotReads = ReadArray(IntArray(code.numSlots + 1) { 0 })
 
+	/**
+	 * A map from negative "unresolved" offsets to their eventual positive
+	 * "resolved" offsets.  This simplifies forward branch generation.
+	 */
+	val labelResolutions = mutableMapOf<Offset, Offset>()
+
+	/**
+	 * The next "unresolved" offset to hand out as a symbolic label during
+	 * naive code generation.  It's always negative.
+	 */
+	var nextLabelOffset = -2
+
+	/**
+	 * Allocate a new "unresolved" label offset.
+	 */
+	fun newLabel() = Offset(nextLabelOffset--)
+
+	/**
+	 * Given an unresolved label previously created by [newLabel], resolve its
+	 * actual location to the current position in the instructions stream.
+	 */
+	fun emitLabel(label: Offset)
+	{
+		assert(label.value < 0)
+		assert(label !in labelResolutions) {
+			"Attempting to resolve a label twice"
+		}
+		labelResolutions[label] = Offset(instructions.size)
+	}
+
 	fun writeSlot(
 		slotIndex: Int,
 		restriction: TypeRestriction
@@ -209,9 +239,57 @@ constructor(
 	fun slotRestriction(slotIndex: Int): TypeRestriction =
 		restrictionFor(readSlot(slotIndex))!!
 
-	fun isLocalLabel(read: Read): Boolean = localLabelReads.contains(read)
-
+	/**
+	 * Instructions that have not yet been written, keyed by a [Read] that would
+	 * be made available if the postponed instruction is written.
+	 */
 	val postponedInstructions = mutableMapOf<Read, L2SimpleInstruction>()
+
+	/**
+	 * For every instruction that has been emitted, this records, under each
+	 * [Write.value], the indices of the [L2SimpleInstruction]s that wrote it.
+	 */
+	val emittedOrigins = mutableMapOf<Int, IntArray>()
+
+	/**
+	 * Answer all instructions, whether emitted or postponed, that populate the
+	 * register specified by the [Read].
+	 */
+	fun originInstructionsFor(read: Read): List<L2SimpleInstruction>
+	{
+		val emittedOffsets = emittedOrigins[read.value]
+		val postponed = postponedInstructions[read]
+		if (emittedOffsets == null)
+		{
+			// No emitted offsets, so return the postponed instruction if
+			// present, otherwise empty.
+			return postponed?.let(::listOf) ?: emptyList()
+		}
+		val emittedInstructions = emittedOffsets.map(instructions::get)
+		return when (postponed)
+		{
+			null -> emittedInstructions
+			else -> emittedInstructions + postponed
+		}
+	}
+
+	/**
+	 * If there's a unique [L2SimpleInstruction] that produces the value for the
+	 * specified [read], answer it, otherwise `null`.  Trace back through moves
+	 * as well.
+	 */
+	fun originInstructionSkippingMoves(read: Read): L2SimpleInstruction?
+	{
+		var currentRead = read
+		while (true)
+		{
+			val origin = originInstructionsFor(currentRead).singleOrNull()
+			if (origin == null) return null
+			if (origin !is L2Simple_Move) return origin
+			// Trace back through the move.
+			currentRead = origin.from
+		}
+	}
 
 	/**
 	 * Generate a naive translation of the L1 instructions.
@@ -267,7 +345,7 @@ constructor(
 				stackp = stackp,
 				pc = pc,
 				liveSlots = liveIndices()),
-			reentryOffset = Offset.NEXT)
+			reentryOffset = NEXT)
 		+L2Simple_ReenterToResume(
 			nextOffset = NEXT,
 			stateOfL1 = StateOfL1(
@@ -324,7 +402,7 @@ constructor(
 	 *    storage in a call frame.
 	 *  * So the first pass collects all last-read offsets, and the second pass
 	 *    actually transforms the instructions, allocating register colors as it
-	 *    goes.  The second pass also corrects [Offset.NEXT] uses to
+	 *    goes.  The second pass also corrects [NEXT] uses to
 	 *    the actual offsets.
 	 */
 	private fun colorRegistersAndFixOffsets()
@@ -475,8 +553,10 @@ constructor(
 					NEXT -> Offset(currentInstructionIndex + 1)
 					SKIP -> Offset(currentInstructionIndex + 2)
 					BACK -> Offset(currentInstructionIndex - 1)
-					// UNREACHABLE -> UNREACHABLE
-					else -> offset
+					UNREACHABLE -> UNREACHABLE
+					else ->
+						if (offset.value < 0) labelResolutions[offset]!!
+						else offset
 				}
 			}
 
@@ -582,6 +662,14 @@ constructor(
 			postponedInstructions.remove(read)?.let(::forceEmit)
 		}
 		instructions.add(instruction)
+		instruction.allWrites.forEach { write ->
+			emittedOrigins[write.value] =
+				when (val old = emittedOrigins[write.value])
+				{
+					null -> IntArray(1) { instructions.size - 1 }
+					else -> old + (instructions.size - 1)
+				}
+		}
 	}
 
 	/**
@@ -745,6 +833,128 @@ constructor(
 	}
 
 	/**
+	 * If it's possible to trace the tuple elements to origin instructions,
+	 * even if it involves adding postponed constant moves, answer a [ReadArray]
+	 * that says where they're from.  Otherwise answer `null`.
+	 */
+	fun tupleElementSources(
+		tupleRead: Read
+	): ReadArray?
+	{
+		val tupleSource = originInstructionSkippingMoves(tupleRead)
+		return when (tupleSource)
+		{
+			is L2Simple_AbstractMakeTuple -> tupleSource.elements
+			is L2Simple_MoveConstant ->
+			{
+				val tuple = tupleSource.value
+				ReadArray(
+					tuple.map { element ->
+						val temp =
+							newRegister(boxedRestrictionForConstant(element))
+						+L2Simple_MoveConstant(value = element, to = temp)
+						Read(temp.value)
+					})
+			}
+			else -> null
+		}
+
+	}
+
+	/**
+	 * We have a [Read] of a function to be invoked, and a [Read] of the tuple
+	 * of arguments to pass to it.  If we're able to type-check it and determine
+	 * the origins of the tuple elements, generate a direct invocation of the
+	 * function and answer `true`.  Otherwise emit nothing and answer `false`.
+	 */
+	fun attemptToEmbedInvocation(
+		functionToInvoke: Read,
+		functionArguments: Read,
+		stateOfL1: StateOfL1,
+		answer: Write,
+		expectedType: A_Type
+	): Boolean
+	{
+		val tupleElements =
+			tupleElementSources(functionArguments) ?: return false
+		// Check if the function itself was closed locally.
+		val closeFunction = originInstructionSkippingMoves(functionToInvoke)
+		val code = when
+		{
+			closeFunction is L2Simple_AbstractCloseFunction ->
+				closeFunction.code
+			closeFunction is L2Simple_MoveConstant ->
+				closeFunction.value.code()
+			restrictionFor(functionToInvoke).notNullAnd { isConstant } ->
+				restrictionFor(functionToInvoke)!!.constantOrNull!!.code()
+			else -> return false
+		}
+		if (code.numArgs() != tupleElements.size)
+		{
+			// Argument count mismatch.
+			return false
+		}
+		val exactFunctionType = code.functionType()
+		// See if the function will definitely accept the arguments.
+		val tupleElementRestrictions = tupleElements.values.map {
+			restrictionFor(Read(it)) ?: anyRestriction
+		}
+		val tupleElementTypes =
+			tupleElementRestrictions.map(TypeRestriction::type)
+		if (!exactFunctionType.acceptsListOfArgTypes(tupleElementTypes))
+		{
+			// The function won't necessarily accept the arguments.
+			return false
+		}
+		// The function will definitely accept the arguments.  If the called
+		// function is itself a primitive, give it the opportunity to do further
+		// specialization.
+		val calledPrim = code.codePrimitive()
+		var nilpotentAttempt: ((Interpreter)->A_BasicObject?)? = null
+		calledPrim?.run {
+			// It's trying to invoke a primitive function, so let that primitive
+			// function do its code generation instead.
+			val generated = attemptToGenerateSimpleInvocation(
+				functionIfKnown =
+					restrictionFor(functionToInvoke)?.constantOrNull,
+				rawFunction = code,
+				optionalFunctionRead = functionToInvoke,
+				expectedType = expectedType,
+				args = tupleElements,
+				argRestrictions = tupleElementRestrictions,
+				stateOfL1 = stateOfL1,
+				answer = answer)
+			if (generated) return true
+			nilpotentAttempt =
+				this@L2SimpleTranslator.simplePrimitiveNilpotentInvocation(
+					functionIfKnown =
+						restrictionFor(functionToInvoke)?.constantOrNull,
+					rawFunction = code,
+					argRestrictions = tupleElementRestrictions,
+					expectedType = expectedType)
+		}
+		val exactFunction = restrictionFor(functionToInvoke)?.constantOrNull
+		if (exactFunction === null) return false
+		// Even though it's not a primitive or the primitive didn't generate
+		// custom infallible code, we can still directly invoke the function.
+		val outputRestriction = generateGeneralInvocation(
+			nilpotentAttempt = nilpotentAttempt,
+			calledFunction = exactFunction,
+			arguments = tupleElements,
+			argumentRestrictions = tupleElementRestrictions,
+			expectedType = expectedType,
+			stateOfL1 = stateOfL1,
+			answer = answer)
+		val oldAnswerRestriction = restrictionFor(Read(answer.value))
+		restrictions[Read(answer.value)] = when
+		{
+			oldAnswerRestriction == null -> outputRestriction
+			else -> oldAnswerRestriction.intersection(outputRestriction)
+		}
+		return true
+	}
+
+	/**
 	 * Answer an [Array] of register indices which should constitute a reified
 	 * continuation at this position in the code.  For slots that are known to
 	 * be nil, rather than go to the effort of actually clearing them, we've set
@@ -804,21 +1014,17 @@ constructor(
 	}
 
 	/**
-	 * A utility operation for creating a move instruction.  As a convenience,
-	 * it also adds the destination to the [localLabelReads] if the source was
-	 * present in it.
+	 * A utility operation for creating a move instruction.
  	 */
 	fun move(
 		source: Read,
 		destination: Write)
 	{
 		+L2Simple_Move(from = source, to = destination)
-		if (source in localLabelReads)
-		{
-			localLabelReads += Read(destination.value)
-		}
 	}
 
+
+	// Translate L1 instructions
 
 	override fun L1_doCall()
 	{
@@ -1175,8 +1381,6 @@ constructor(
 				stackp = -999,
 				liveSlots = ReadArray((1..code.numArgs()).map(::readSlot))),
 			answer = answer)
-		// Record the fact that a local label is in the answer slot.
-		localLabelReads += Read(answer.value)
 	}
 
 	override fun L1Ext_doGetLiteral()

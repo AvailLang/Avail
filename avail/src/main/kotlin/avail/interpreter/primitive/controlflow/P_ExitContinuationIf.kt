@@ -57,6 +57,7 @@ import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_JumpIfTrue
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_PushLabel
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_ReturnConstant
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
@@ -118,8 +119,9 @@ object P_ExitContinuationIf : Primitive2(
 		val continuation = args[0]
 		val condition = args[1]
 
-		if (!isLocalLabel(continuation))
-			return false
+		val continuationOrigin = originInstructionSkippingMoves(continuation)
+		if (continuationOrigin !is L2Simple_PushLabel) return false
+
 		val conditionRestriction = argRestrictions[1]
 		if (conditionRestriction.isConstant)
 		{
@@ -135,15 +137,15 @@ object P_ExitContinuationIf : Primitive2(
 				return true
 			}
 		}
-		// The branch can't be postponed, nor can the return.  But make sure the
-		// condition is emitted before we start doing jump math.
-		postponedInstructions.remove(condition)?.let(::forceEmit)
+		// The branch can't be postponed, nor can the return.
+		val after = newLabel()
 		+L2Simple_JumpIfTrue(
 			// Skip the return instruction if false.
-			nextOffset = Offset(instructions.size + 2),
+			nextOffset = after,
 			ifTrueOffset = Offset.NEXT,
 			condition = condition)
 		+L2Simple_ReturnConstant(value = nil)
+		emitLabel(after)
 		return true
 	}
 
