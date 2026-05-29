@@ -47,7 +47,7 @@ import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
  * [RETURN_NOW], which is what this instruction requires for its [nextOffset].
  */
 class L2Simple_ReturnConstant(
-	nextOffset: Offset,
+	nextOffset: Offset = RETURN_NOW,
 	val value: AvailObject
 ) : L2SimpleInstruction(nextOffset)
 {

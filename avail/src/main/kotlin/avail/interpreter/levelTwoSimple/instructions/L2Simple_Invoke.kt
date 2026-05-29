@@ -41,8 +41,6 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
-import avail.interpreter.primitive.Primitive.Flag
-import avail.utility.notNullAnd
 
 /**
  * Invoke a constant [A_Function], perhaps the result of a lookup that was
@@ -50,7 +48,8 @@ import avail.utility.notNullAnd
  */
 class L2Simple_Invoke
 constructor(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	expectedType: A_Type,
 	mustCheck: Boolean,
@@ -59,23 +58,12 @@ constructor(
 	val arguments: ReadArray
 ) : L2Simple_AbstractInvokerInstruction(
 	nextOffset,
+	reentryOffset,
 	stateOfL1,
 	expectedType,
 	mustCheck,
 	answer)
 {
-	override val canBePostponed = function.code().codePrimitive().notNullAnd {
-		arrayOf(
-			Flag.HasSideEffect,
-			Flag.CatchException,
-			Flag.Invokes,
-			Flag.CanSwitchContinuations,
-			Flag.ReadsFromHiddenGlobalState,
-			Flag.WritesToHiddenGlobalState,
-			Flag.Unknown
-		).none(::hasFlag)
-	}
-
 	override fun step(
 		registers: RegisterSet,
 		interpreter: Interpreter
@@ -93,6 +81,7 @@ constructor(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_Invoke(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1),
 			expectedType = expectedType,
 			mustCheck = mustCheck,

@@ -36,7 +36,6 @@ import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDump
@@ -57,9 +56,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
-import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
-import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.StackReifier
 
@@ -72,25 +69,12 @@ import avail.optimizer.StackReifier
 abstract class L2Simple_AbstractReifiableInstruction
 constructor(
 	nextOffset: Offset,
-	val stateOfL1: StateOfL1
+	val reentryOffset: Offset,
+	val stateOfL1: StateOfL1,
+	val defaultEntryPoint: DefaultEntryPoint
 ) : L2SimpleInstruction(nextOffset)
 {
-	override val canBePostponed
-		get() = false
-
-	override fun defaultL1EntryPointIfInvalid(): DefaultEntryPoint =
-		DefaultEntryPoint.RESUME
-
-	override fun reenter(
-		registers: RegisterSet,
-		interpreter: Interpreter
-	): Boolean
-	{
-		// Pop the dummy continuation, repopulating the registers.
-		val con = interpreter.popContinuation()
-		restoreFromDump(con.registerDump, registers)
-		return true
-	}
+	final override val canBePostponed get() = false
 
 	/**
 	 * Given the complete [RegisterSet], extract the ones listed in my
@@ -99,26 +83,11 @@ constructor(
 	protected fun makeRegisterDump(
 		registers: RegisterSet,
 	): AvailObject = createRegisterDump(
-		defaultL1EntryPointIfInvalid().offset(),
+		defaultEntryPoint.offset(),
 		emptyTuple,
-		stateOfL1.allLiveRegisters!!.values
-			.map { index -> registers[Read(index)] }
-			.toTypedArray(),
+		registers[stateOfL1.allLiveRegisters!!],
 		emptyLongArray
 	)
-
-	/**
-	 * Repopulate the live [registers] from the given [A_RegisterDump].
-	 */
-	fun restoreFromDump(
-		dump: A_RegisterDump,
-		registers: RegisterSet)
-	{
-		stateOfL1.allLiveRegisters!!.forEachIndexed { zeroIndex, read ->
-			registers[Write(read.value)] =
-				dump.extractDumpedObjectAt(zeroIndex + 1)
-		}
-	}
 
 	/**
 	 * Create a continuation with the given data.  The previously captured
@@ -131,7 +100,7 @@ constructor(
 		registers: RegisterSet,
 		thisChunk: L2Chunk,
 		expectedType: A_Type?,
-		offset: Offset = nextOffset
+		offset: Offset
 	): A_Continuation
 	{
 		val continuation = createContinuationExceptFrame(
@@ -182,7 +151,8 @@ constructor(
 		if (reifier.actuallyReify)
 		{
 			reifier.pushAction {
-				createContinuation(it, registers, thisChunk, bottom)
+				createContinuation(
+					it, registers, thisChunk, bottom, Offset.UNREACHABLE)
 			}
 		}
 	}
@@ -219,7 +189,8 @@ constructor(
 		if (reifier.actuallyReify)
 		{
 			reifier.pushAction {
-				createContinuation(it, registers, thisChunk, TOP())
+				createContinuation(
+					it, registers, thisChunk, TOP(), reentryOffset)
 			}
 		}
 		return REIFY_NOW

@@ -33,15 +33,17 @@ package avail.interpreter.primitive.functions
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
@@ -83,13 +85,13 @@ object P_CreateFunctionType : Primitive2(CannotFail, CanFold, CanInline)
 		val arity = sizeRange.lowerBound
 		return when
 		{
-			sizeRange.upperBound.equals(arity) ->
+			sizeRange.upperBound.equals(arity) && arity.isInt ->
 			{
 				// The function arity is known.
 				instanceMeta(
 					functionType(
-						createRepeatedElementTuple(arity.extractInt, nil),
-						returnType))
+						createRepeatedElementTuple(arity.extractInt, bottom),
+						returnType.instance))
 			}
 			else -> instanceMeta(functionTypeReturning(returnType))
 		}

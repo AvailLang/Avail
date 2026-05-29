@@ -33,7 +33,7 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters3
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
@@ -65,7 +65,7 @@ class L2Simple_CloseFunction3(
 		interpreter: Interpreter
 	): Offset
 	{
-		registers[function] = FunctionDescriptor.createWithOuters3(
+		registers[function] = createWithOuters3(
 			code,
 			registers[outer1],
 			registers[outer2],

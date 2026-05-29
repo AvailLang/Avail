@@ -43,6 +43,7 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 
 /**
  * Read from the local variable `registers[fromVariable]`, and write the result
@@ -50,12 +51,13 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Write
  * mark the value as immutable.
  */
 class L2Simple_GetVariableClearing(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	val fromVariable: Read,
 	val answer: Write
 ) : L2Simple_AbstractReifiableInstruction(
-	nextOffset, stateOfL1)
+	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.UNREACHABLE_ENTRY)
 {
 	override fun step(
 		registers: RegisterSet,
@@ -84,6 +86,7 @@ class L2Simple_GetVariableClearing(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_GetVariableClearing(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1),
 			fromVariable = read(fromVariable),
 			answer = write(answer))

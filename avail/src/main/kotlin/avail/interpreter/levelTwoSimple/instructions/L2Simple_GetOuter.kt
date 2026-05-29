@@ -41,17 +41,20 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 
 /**
  * Get the value of outer number [outerNumber] of the current function, found in
  * `registers#0`, and write it to registers[ [answer] ].
  */
 class L2Simple_GetOuter(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	val outerNumber: Int,
 	val answer: Write
-) : L2Simple_AbstractReifiableInstruction(nextOffset, stateOfL1)
+) : L2Simple_AbstractReifiableInstruction(
+	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.UNREACHABLE_ENTRY)
 {
 	override fun step(
 		registers: RegisterSet,
@@ -76,6 +79,7 @@ class L2Simple_GetOuter(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_GetOuter(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1),
 			outerNumber = outerNumber,
 			answer = write(answer))

@@ -60,7 +60,8 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Write
  * suitably packaged arguments and the lookup failure code.
  */
 class L2Simple_GeneralCall(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	expectedType: A_Type,
 	mustCheck: Boolean,
@@ -69,6 +70,7 @@ class L2Simple_GeneralCall(
 	val arguments: ReadArray,
 ) : L2Simple_AbstractInvokerInstruction(
 	nextOffset,
+	reentryOffset,
 	stateOfL1,
 	expectedType,
 	mustCheck,
@@ -112,6 +114,7 @@ class L2Simple_GeneralCall(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_GeneralCall(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1),
 			expectedType = expectedType,
 			mustCheck = mustCheck,

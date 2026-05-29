@@ -86,4 +86,9 @@ value class ReadArray(val values: IntArray)
 	{
 		return values.joinToString(", ", "R[", "]")
 	}
+
+	companion object
+	{
+		val empty = ReadArray(IntArray(0))
+	}
 }

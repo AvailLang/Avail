@@ -32,49 +32,55 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
-import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuation
+import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
-import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
-import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
+import avail.interpreter.primitive.controlflow.P_ExitContinuationIf
+import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
-import avail.optimizer.StackReifier
 import avail.performance.Statistic
 import avail.performance.StatisticReport
 
 /**
  * Construct a label for restarting or exiting the current continuation.  Note
  * that this *may* cause reification to force the call chain to be reified, but
- * the reifier block answers CONTINUE_FIBER, so no invalidation is possible
- * before reentry happens.
+ * the reifier block answers CONTINUE_FIBER, so no *invalidation* is possible
+ * before reentry happens.  Therefore, there is no need to capture the current
+ * frame's state in L1 slots of the continuation – the [A_RegisterDump] will be
+ * sufficient.  The reentry is a [L2Simple_ReenterToResume], which, after
+ * restoring the dummy continuation's registers, jumps back to this instruction,
+ * which will detect the reified stack and create the label.
  *
- * Write the label (an [A_Continuation]) to [answer], and continue execution
- * where it left off.  If the label is later restarted, its caller will be the
- * same as the current virtual continuation, and its arguments will be the same
- * if using [P_RestartContinuation], or the ones provided explicitly if using
+ * If the label is later restarted, its caller will be the same as the current
+ * reified caller continuation, and its arguments will be the same if using
+ * [P_RestartContinuation], or the ones provided explicitly if using
  * [P_RestartContinuationWithArguments].
+ *
+ * If a label is exited via [P_ExitContinuationIf] or
+ * [P_ExitContinuationWithResultIf], it's as though the current frame has been
+ * returned into the (reified) caller, with either nil or a specific return
+ * value, respectively.
+ *
+ * Note that the [stateOfL1] should have its [StateOfL1.liveSlots] set up to
+ * include only the function arguments.  All live registers will still be
+ * preserved, but the label itself only captures the original arguments.  The
+ * [StateOfL1.pc] and [StateOfL1.stackp] are ignored.
  */
 class L2Simple_PushLabel(
 	nextOffset: Offset = Offset.NEXT,
-	stateOfL1: StateOfL1,
-	val originalArguments: ReadArray,
+	val stateOfL1: StateOfL1,
 	val answer: Write
-) : L2Simple_AbstractReifiableInstruction(nextOffset, stateOfL1)
+) : L2SimpleInstruction(nextOffset)
 {
-	override val canBePostponed
-		get() = true
+	/** Don't postpone label creation, but allow it to be eliminated later. */
+	override val canBePostponed get() = false
 
 	override fun step(
 		registers: RegisterSet,
@@ -83,98 +89,25 @@ class L2Simple_PushLabel(
 	{
 		val thisChunk = interpreter.chunk as L2SimpleChunk
 		val function = registers.function
-		if (interpreter.callerIsReified())
-		{
-			// Skip the reification step, since the caller is already
-			// conveniently reified.
-			val label = createLabelContinuation(
-				function = function,
-				caller = interpreter.getReifiedContinuation()!!.makeImmutable(),
-				startingChunk = thisChunk,
-				// Indicates a label.
-				startingOffset = 0,
-				args = List(originalArguments.size) {
-					registers[originalArguments[it]]
-				})
-			label.makeSubobjectsImmutable()
-			registers[answer] = label
-			return nextOffset
-		}
-		// Slower path.  Reify the caller, allowing the [reenter] to push a
-		// label.  If this is a loop, the next pass's label creation will see
-		// the caller has already been reified, and be able to use the fast path
-		// above.
-		val reifier = StackReifier(true, reificationBeforeLabelCreationStat) {
-			val caller = interpreter.getReifiedContinuation()!!.makeImmutable()
-			// Create a *dummy* continuation capturing the registers, and
-			// push it on the frame stack.  When this instruction immediately
-			// reenters, it will restore the register state from the dummy
-			// continuation's register dump, then push a label.
-			var dummyContinuation: A_Continuation = createDummyContinuation(
-				function = function,
-				registerDump = makeRegisterDump(registers),
-				levelTwoChunk = thisChunk,
-				levelTwoOffset = nextOffset.value)
-			dummyContinuation = dummyContinuation.replacingCaller(caller)
-			interpreter.setReifiedContinuation(dummyContinuation)
-			// Now we tell the interpreter to reenter the dummy continuation,
-			// which will extract the register dump back into the new
-			// RegisterSet, and continue running the chunk at the next offset.
-			interpreter.function = function
-			interpreter.chunk = thisChunk
-			interpreter.offset = nextOffset.value
-			StackReifier.AfterReification.CONTINUE_FIBER
-		}
-		interpreter.currentReifier = reifier
-		return REIFY_NOW
-	}
-
-	/**
-	 * The chunk can't actually become invalid during a push-label instruction,
-	 * but we still need a dummy value.
-	 */
-	override fun defaultL1EntryPointIfInvalid() = DefaultEntryPoint.TRANSIENT
-
-	/**
-	 * A dummy continuation has resumed *immediately* after a pushLabel caused
-	 * reification.  Pop the dummy continuation, using its register dump to
-	 * restore the [registers], then create and push a label.  Note that we
-	 * don't have to check validity of the reentering chunk, since the
-	 * interpreter offered no opportunity to suspend to a safe-point, which is
-	 * the only place where invalidation can happen.
-	 */
-	override fun reenter(
-		registers: RegisterSet,
-		interpreter: Interpreter
-	): Boolean
-	{
-		assert(interpreter.chunk!!.isValid)
-		val con = interpreter.popContinuation()
-		restoreFromDump(con.registerDump, registers)
-		// Register state has been restored.  Now create and push the label.
+		assert(interpreter.callerIsReified())
+		// Skip the reification step (or we reified and we're back again), since
+		// the caller is already conveniently reified.
 		val label = createLabelContinuation(
-			function = registers.function,
+			function = function,
 			caller = interpreter.getReifiedContinuation()!!.makeImmutable(),
-			startingChunk = interpreter.chunk!!,
-			// A block can't have both a primitive and a label.
+			startingChunk = thisChunk,
+			// Indicates a label.
 			startingOffset = 0,
-			args = List(originalArguments.size) {
-				registers[originalArguments[it]]
-			})
-		// Freeze all fields of the new object, including
-		// its caller, function, and args.
+			args = registers[stateOfL1.liveSlots].asList())
 		label.makeSubobjectsImmutable()
-
-		// Push that label.
-		registers[answer] = label as AvailObject
-		return true
+		registers[answer] = label
+		return nextOffset
 	}
 
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_PushLabel(
 			nextOffset = target(nextOffset),
 			stateOfL1 = state(stateOfL1),
-			originalArguments = read(originalArguments),
 			answer = write(answer))
 
 	companion object

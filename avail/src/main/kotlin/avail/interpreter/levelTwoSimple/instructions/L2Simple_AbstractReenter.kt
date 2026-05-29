@@ -1,5 +1,5 @@
 /*
- * L2Simple_SetVariable.kt
+ * L2Simple_AbstractReenter.kt
  * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,54 +32,36 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
-import avail.exceptions.VariableSetException
-import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
+import avail.descriptor.functions.A_RegisterDump
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
-import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
-import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 
 /**
- * Read a variable and value, and attempt to assign the value to the variable.
+ * An abstract instruction that can be the target of reentry to a function that
+ * has already started and was reified.
  */
-class L2Simple_SetVariable(
-	nextOffset: Offset,
-	reentryOffset: Offset,
-	stateOfL1: StateOfL1,
-	val variable: Read,
-	val value: Read
-) : L2Simple_AbstractReifiableInstruction(
-	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.RESUME)
+abstract class L2Simple_AbstractReenter(
+	nextOffset: Offset = Offset.NEXT,
+	val stateOfL1: StateOfL1
+) : L2SimpleInstruction(nextOffset)
 {
-	override fun step(
-		registers: RegisterSet,
-		interpreter: Interpreter
-	): Offset
+	/** Don't postpone a reenter instruction. */
+	override val canBePostponed get() = false
+
+	/**
+	 * Repopulate the live [registers] from the given [A_RegisterDump].
+	 */
+	fun restoreFromDump(
+		dump: A_RegisterDump,
+		registers: RegisterSet)
 	{
-		try
-		{
-			registers[variable].setValueNoCheck(registers[value])
-			return nextOffset
-		}
-		catch (e: VariableSetException)
-		{
-			return handleVariableSetException(
-				e,
-				registers[variable],
-				registers[value],
-				interpreter,
-				registers)
+		assert(dump.variableObjectSlotsCount() ==
+			stateOfL1.allLiveRegisters!!.size)
+		stateOfL1.allLiveRegisters!!.forEachIndexed { zeroIndex, read ->
+			registers[Write(read.value)] =
+				dump.extractDumpedObjectAt(zeroIndex + 1)
 		}
 	}
-
-	override fun L2SimpleInstructionTransformer.transformed() =
-		L2Simple_SetVariable(
-			nextOffset = target(nextOffset),
-			reentryOffset = target(reentryOffset),
-			stateOfL1 = state(stateOfL1),
-			variable = read(variable),
-			value = read(value))
 }

@@ -62,7 +62,8 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Write
  * the constraining tuple type.
  */
 class L2Simple_SuperCall(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	expectedType: A_Type,
 	mustCheck: Boolean,
@@ -72,6 +73,7 @@ class L2Simple_SuperCall(
 	val arguments: ReadArray
 ) : L2Simple_AbstractInvokerInstruction(
 	nextOffset,
+	reentryOffset,
 	stateOfL1,
 	expectedType,
 	mustCheck,
@@ -117,6 +119,7 @@ class L2Simple_SuperCall(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_SuperCall(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1),
 			expectedType = expectedType,
 			mustCheck = mustCheck,

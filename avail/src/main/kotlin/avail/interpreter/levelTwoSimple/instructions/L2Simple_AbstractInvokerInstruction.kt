@@ -35,9 +35,6 @@ package avail.interpreter.levelTwoSimple.instructions
 import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.functions.A_Continuation.Companion.frameAt
-import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -53,7 +50,6 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
-import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 
 /**
  * An abstract class for instructions whose primary purpose is to invoke some
@@ -65,11 +61,13 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 abstract class L2Simple_AbstractInvokerInstruction
 constructor(
 	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	val expectedType: A_Type,
 	val mustCheck: Boolean,
 	val answer: Write
-): L2Simple_AbstractReifiableInstruction(nextOffset, stateOfL1)
+): L2Simple_AbstractReifiableInstruction(
+	nextOffset, reentryOffset, stateOfL1, REENTRY_FROM_REIFIED_CALL)
 {
 	/**
 	 * A utility for invoking a given function, handling reification and return
@@ -95,7 +93,8 @@ constructor(
 			if (reifier.actuallyReify)
 			{
 				reifier.pushAction {
-					createContinuation(it, registers, thisChunk, expectedType)
+					createContinuation(
+						it, registers, thisChunk, expectedType, reentryOffset)
 				}
 			}
 			interpreter.currentReifier = reifier
@@ -124,76 +123,12 @@ constructor(
 			interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
 		// Note that the handler is ⊥-valued, so it can't return normally.
 		assert(handlerValueOrNull === null)
-		assert(interpreter.currentReifier != null)
+		interpreter.currentReifier!!.pushAction {
+			// Using the reentryOffset doesn't matter, since it can't continue.
+			createContinuation(
+				it, registers, thisChunk, expectedType, reentryOffset)
+		}
 		return REIFY_NOW
-	}
-
-	override fun defaultL1EntryPointIfInvalid() = REENTRY_FROM_REIFIED_CALL
-
-	/**
-	 * This is called when the invocation for this step had to reify, and now
-	 * we've finished the actual Avail call and we're attempting to continue
-	 * where we left off.  We have to check the returned value and either
-	 * capture it on the stack or invoke the result check failure function.
-	 *
-	 * Note that at this time, only registers.function has been set up, so if this
-	 * reentry succeeds (i.e., the return value satisfies the expectedType), we
-	 * need to transfer the top continuation's slots into the registers array
-	 * and pop that continuation off the call stack.
-	 *
-	 * Also, if the current chunk has become invalid, we will alter the
-	 * interpreter's current chunk to the [DefaultL1Chunk] to indicate this,
-	 * allowing the (Kotlin) caller to immediately return to the interpreter
-	 * loop for L1 interpretation.
-	 */
-	override fun reenter(
-		registers: RegisterSet,
-		interpreter: Interpreter
-	): Boolean
-	{
-		val result = interpreter.getLatestResult()
-		val con = interpreter.getReifiedContinuation()!!
-		val thisChunk = con.levelTwoChunk
-		if (!mustCheck || result.isInstanceOf(expectedType))
-		{
-			// Passed the return check, or didn't need to check.  This is the
-			// fastest path.  Restore the registers from the continuation and
-			// pop it.
-			assert(con.frameAt(stateOfL1.stackp).equals(expectedType))
-				// Restore the registers from the continuation.
-			restoreFromDump(con.registerDump, registers)
-			// Now replace the top-of-stack register with the (correctly typed)
-			// returned result.
-			registers[answer] = result
-			interpreter.popContinuation()
-			return true
-		}
-		// Rare - the return check failed, so we need to invoke the return
-		// check failure function.  It's ⊥-valued, so it won't return, but
-		// it will eventually reify.
-		val wrappedReturnValue = VariableDescriptor.newVariableWithContentType(
-			PrimitiveTypeDescriptor.Types.ANY(),
-			result)
-		interpreter.argsBuffer.run {
-			clear()
-			add(registers.function)
-			add(expectedType as AvailObject)
-			add(wrappedReturnValue)
-		}
-		val valueOrNull = interpreter.invokeFunction(
-			interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE])
-		// The handler is ⊥-valued, so it can't return normally.
-		assert(valueOrNull === null)
-		// We're reifying either the original call or the return check failure.
-		val reifier = interpreter.currentReifier!!
-		if (reifier.actuallyReify)
-		{
-			reifier.pushAction { currentContinuation ->
-				createContinuation(
-					currentContinuation, registers, thisChunk, expectedType)
-			}
-		}
-		return false
 	}
 
 	/**
@@ -223,7 +158,8 @@ constructor(
 		{
 			reifier.pushAction {
 				registers[answer] = expectedType as AvailObject
-				createContinuation(it, registers, thisChunk, bottom)
+				createContinuation(
+					it, registers, thisChunk, bottom, Offset.UNREACHABLE)
 			}
 		}
 		return REIFY_NOW

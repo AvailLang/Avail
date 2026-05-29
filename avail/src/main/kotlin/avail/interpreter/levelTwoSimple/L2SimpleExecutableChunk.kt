@@ -33,6 +33,7 @@ package avail.interpreter.levelTwoSimple
 
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -48,6 +49,7 @@ import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractReenter
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.HIGHEST_LEGAL_OFFSET_int
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
@@ -183,7 +185,8 @@ constructor(
 					depth++
 					pointer = pointer.caller
 				}
-				val instruction = instructions[offset - 1]
+				val instruction = instructions[offset]
+				assert(instruction is L2Simple_AbstractReenter)
 				val instructionText = increaseIndentation(
 					instruction.toString(),
 					interpreter.unreifiedCallDepth() + 2)
@@ -192,31 +195,28 @@ constructor(
 					Level.FINER,
 					"{0}L2Simple REENTER: {1}:{2}",
 					interpreter.debugModeString,
-					offset - 1,
+					offset,
 					instructionText)
 			}
-			// Calls to reenter() will set up the registers from the current
-			// frame and pop it, but only if the return type is valid.
-			// Otherwise they invoke the wrong-return-type hook function.
-			val reentryInstruction = instructions[offset - 1]
+			// After an interrupt or preparation for label creation completes,
+			// it hits this spot with a L2Simple_ReenterToResume instruction,
+			// which pops the frame and restores the registers, then continues
+			// running.
+			// If a call returns into a reified frame, it will continue here at
+			// an L2Simple_ReenterFromCall instruction, which will check the
+			// return value against the expected type, if necessary.  If it's
+			// not a valid value, the wrong-return-type hook function will be
+			// invoked, which, because it's ⊥-valued, can reify but can't
+			// return.
 			if (!interpreter.checkValidity(
-					reentryInstruction.defaultL1EntryPointIfInvalid().offset()))
+					interpreter.getReifiedContinuation()!!.registerDump
+						.fallbackEntryPoint))
 			{
 				// The chunk has become invalid, which can only happen while the
 				// fiber is fully reified.  The validity check has switched the
 				// chunk and offset already as a convenience.
 				assert(interpreter.chunk!! === DefaultL1Chunk)
 				return interpreter.runChunk()
-			}
-			val keepRunning = instructions[offset - 1]
-				.reenter(registers, interpreter)
-			// The reenter() is allowed to reify, for example if it fetches the
-			// returned value from the interpreter and it doesn't satisfy its
-			// return type check.
-			if (!keepRunning)
-			{
-				assert(interpreter.currentReifier !== null)
-				return null
 			}
 		}
 		var off = Offset(max(offset, 0))

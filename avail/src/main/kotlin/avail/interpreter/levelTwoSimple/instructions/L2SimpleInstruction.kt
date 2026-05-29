@@ -37,7 +37,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2AbstractInstruction
@@ -53,7 +52,6 @@ import avail.interpreter.levelTwoSimple.instructions.registers.WriteArray
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
-import avail.optimizer.DefaultL1ExecutableChunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.jvm.JVMChunk
 import avail.utility.mapToSet
@@ -112,40 +110,6 @@ constructor(
 		registers: RegisterSet,
 		interpreter: Interpreter
 	): Offset
-
-	/**
-	 * For instructions that can reenter, and only for those instructions, it's
-	 * possible that the containing chunk has become invalid due to
-	 * deoptimization (because of method definition changes, etc).  In that
-	 * case, this method will provide the fallback [DefaultEntryPoint] within
-	 * the [DefaultL1ExecutableChunk] for that kind of instruction.
-	 */
-	open fun defaultL1EntryPointIfInvalid(): DefaultEntryPoint =
-		unsupported
-
-	/**
-	 * A previously constructed continuation is being resumed in some way, and
-	 * the instruction *just before* the continuation's L2 offset has been asked
-	 * to do anything specific to reentering the continuation.  For example, a
-	 * method call might be forced to reify the stack, but at resumption time
-	 * (i.e., when "returning" into it), it will still need to check the type of
-	 * the "returned" value against the expected type.
-	 *
-	 * Most instructions are not suitable places for reentry.
-	 *
-	 * @param registers
-	 *   The current set of registers representing the stack fraame's state,
-	 *   which may be modified.
-	 * @param interpreter
-	 *   The [Interpreter] that is executing this instruction.
-	 * @return
-	 *   Answer `true` if execution should continue to the next instruction, or
-	 * ` false` if reification or an Avail return is needed.
-	 */
-	open fun reenter(
-		registers: RegisterSet,
-		interpreter: Interpreter
-	): Boolean = throw RuntimeException("Should not reenter here")
 
 	/**
 	 * Transform this instruction's reads, writes, and jump offsets to produce
@@ -239,7 +203,9 @@ constructor(
 		val nonwriteStrings = nonwrites
 			.map { (name, value) -> name to fieldValueToString(value) }
 		if (nonwriteStrings.any { (_, value) -> '\n' in value }
-			|| nonwriteStrings.sumOf { (_, value) -> value.length } > 50)
+			|| nonwriteStrings.sumOf { (key, value) ->
+				key.length + value.length
+			} > 60)
 		{
 			nonwriteStrings
 				.joinTo(this, ",\n\t", "(\n\t", ")") { (a,b) -> "$a=$b" }
@@ -279,6 +245,7 @@ constructor(
 			else -> value.toString()
 		}
 		is Offset -> value.toString()
+		is DefaultEntryPoint -> value.name
 		else -> value.toString()
 	}
 

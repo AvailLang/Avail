@@ -83,14 +83,15 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwoSimple.StateOfL1.Companion.dummyStateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction.Companion.createCloseFunction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractMakeTuple.Companion.createMakeTuple
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractReenter
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractReifiableInstruction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_CheckForInterrupt
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_GeneralCall
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_GetConstant
-import avail.interpreter.levelTwoSimple.instructions.L2Simple_GetLastOuter
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_GetOuter
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_GetVariable
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_GetVariableClearing
@@ -101,6 +102,9 @@ import avail.interpreter.levelTwoSimple.instructions.L2Simple_Move
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_PushLabel
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_PushOuter
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_ReenterFromCall
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_ReenterToResume
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_ReifyForPushLabel
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_Return
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_SetConstant
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_SetOuter
@@ -108,8 +112,11 @@ import avail.interpreter.levelTwoSimple.instructions.L2Simple_SetUpFrame
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_SetVariable
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_SuperCall
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.BACK
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.HIGHEST_LEGAL_OFFSET_int
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.NEXT
-import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.RETURN_NOW
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.SKIP
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.UNREACHABLE
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
@@ -255,10 +262,18 @@ constructor(
 				}),
 			primitiveFailureCode = failureCode)
 		+L2Simple_CheckForInterrupt(
+			nextOffset = SKIP,
 			stateOfL1 = StateOfL1(
 				stackp = stackp,
 				pc = pc,
-				liveSlots = liveIndices()))
+				liveSlots = liveIndices()),
+			reentryOffset = Offset.NEXT)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				stackp = -888,
+				pc = -888,
+				liveSlots = ReadArray.empty))
 		while (!instructionDecoder.atEnd())
 		{
 			instructionDecoder.getOperation().dispatch(this)
@@ -267,7 +282,7 @@ constructor(
 			"One value should have been left on stack"
 		}
 		// Use the last architectural stack slot to get the value to return.
-		+L2Simple_Return(RETURN_NOW, readSlot(stackp))
+		+L2Simple_Return(value = readSlot(stackp))
 	}
 
 	/**
@@ -388,12 +403,6 @@ constructor(
 				}
 			}
 
-		// Track the most recently dropped transformed read.  The colorer will
-		// attempt to reuse this if possible when allocating for a write, to
-		// increase the chance that a move source and destination end up in the
-		// same register, allowing it to be elided.  Since we simply check if
-		// this one is still available in liveNewRegisters, initialize it to 0.
-		var latestDroppedRead = 0
 		// With the partially transformed instruction, transform it with the
 		// writeTransformer, which only affects writes and offsets.  This is
 		// done in two steps because we do not have control over an
@@ -401,7 +410,18 @@ constructor(
 		// scratch writes here, where no reads of that register were discovered,
 		// and we deallocate it immediately after writing to it.
 		val scratchWrites = mutableSetOf<Write>()
-		val writeTransformer = object : L2SimpleInstructionTransformer() {
+		val writeTransformer = object : L2SimpleInstructionTransformer()
+		{
+			/**
+			 * Track the most recently dropped transformed read.  The colorer
+			 * will attempt to reuse this if possible when allocating for a
+			 * write, to increase the chance that a move source and destination
+			 * end up in the same register, allowing it to be elided.  Since we
+			 * simply check if this one is still available in liveNewRegisters,
+			 * initialize it to 0.
+			*/
+			var latestDroppedRead = 0
+
 			override fun write(write: Write): Write
 			{
 				var replacement = registerMap[write.value]
@@ -410,15 +430,15 @@ constructor(
 				if (replacement == -1)
 				{
 					// Choose a free register.
-					if (!liveNewRegisters[latestDroppedRead])
+					replacement = if (!liveNewRegisters[latestDroppedRead])
 					{
 						// The latest dropped read is still available.  Prefer
 						// it, to help elide more moves.
-						replacement = latestDroppedRead
+						latestDroppedRead
 					}
 					else
 					{
-						replacement = liveNewRegisters.nextClearBit(0)
+						liveNewRegisters.nextClearBit(0)
 					}
 					liveNewRegisters.set(replacement)
 					registerCounter = max(registerCounter, replacement + 1)
@@ -450,9 +470,14 @@ constructor(
 
 			override fun target(offset: Offset): Offset
 			{
-				if (offset == NEXT)
-					return Offset(currentInstructionIndex + 1)
-				return offset
+				return when (offset)
+				{
+					NEXT -> Offset(currentInstructionIndex + 1)
+					SKIP -> Offset(currentInstructionIndex + 2)
+					BACK -> Offset(currentInstructionIndex - 1)
+					// UNREACHABLE -> UNREACHABLE
+					else -> offset
+				}
 			}
 
 			override fun state(stateOfL1: StateOfL1): StateOfL1
@@ -477,11 +502,8 @@ constructor(
 			var readTransformedInstruction = oldInstruction.run {
 				readTransformer.transformed()
 			}
-			if (oldInstruction is L2Simple_AbstractReifiableInstruction)
-			{
-				readTransformedInstruction = readTransformedInstruction.run {
-					captureAllLiveRegistersTransformer.transformed()
-				}
+			readTransformedInstruction = readTransformedInstruction.run {
+				captureAllLiveRegistersTransformer.transformed()
 			}
 			// For any visited original reads that have an entry in lastReads
 			// indicating this is the instruction where it is last used, drop
@@ -497,7 +519,7 @@ constructor(
 					if (log) println("\tDropped: $original->$replacement")
 					registerMap[original] = -2  // Eye catcher.
 					liveNewRegisters.clear(replacement)
-					latestDroppedRead = replacement
+					writeTransformer.latestDroppedRead = replacement
 				}
 			}
 			scratchWrites.clear()
@@ -509,9 +531,27 @@ constructor(
 				if (log) println("\tDropped SCRATCH " +
 					"$write->${Write(registerMap[write.value])}")
 				liveNewRegisters.clear(registerMap[write.value])
-				registerMap[write.value] = -3 // Eye catcher.
 			}
 			currentInstructionIndex++
+		}
+		// Final fixup – each reentry point has its allLiveRegisters set now,
+		// and the reifiable
+		instructions.forEach { instruction ->
+			if (instruction is L2Simple_AbstractReifiableInstruction)
+			{
+				val reentryOffset = instruction.reentryOffset.value
+				if (reentryOffset in 0..HIGHEST_LEGAL_OFFSET_int)
+				{
+					val reentryInstruction =
+						instructions[reentryOffset] as L2Simple_AbstractReenter
+					// Update the reifiable instruction's live registers to
+					// use the reenter instruction's live registers.  They must
+					// agree for reentry to work, but we only have to preserve
+					// the registers that the reenter instruction needs.
+					instruction.stateOfL1.allLiveRegisters =
+						reentryInstruction.stateOfL1.allLiveRegisters!!
+				}
+			}
 		}
 		if (log) println("DONE coloring\n")
 	}
@@ -576,27 +616,37 @@ constructor(
 			typeUnion.typeUnion(def.bodySignature().returnType)
 		}
 		val narrowedExpectedType = possibleType.typeIntersection(expectedType)
-		if (superUnionType.isBottom)
+		val mustCheck = !possibleType.isSubtypeOf(expectedType)
+		when
 		{
-			+L2Simple_GeneralCall(
-				stateOfL1 = stateOfL1,
-				expectedType = narrowedExpectedType,
-				mustCheck = !possibleType.isSubtypeOf(expectedType),
-				answer = answer,
-				bundle = bundle,
-				arguments = arguments)
+			superUnionType.isBottom ->
+				+L2Simple_GeneralCall(
+					nextOffset = SKIP,
+					stateOfL1 = stateOfL1,
+					reentryOffset = NEXT,
+					expectedType = narrowedExpectedType,
+					mustCheck = mustCheck,
+					answer = answer,
+					bundle = bundle,
+					arguments = arguments)
+			else ->
+				+L2Simple_SuperCall(
+					nextOffset = SKIP,
+					stateOfL1 = stateOfL1,
+					reentryOffset = NEXT,
+					expectedType = narrowedExpectedType,
+					mustCheck = mustCheck,
+					answer = answer,
+					bundle = bundle,
+					superUnionType = superUnionType,
+					arguments = arguments)
 		}
-		else
-		{
-			+L2Simple_SuperCall(
-				stateOfL1 = stateOfL1,
-				expectedType = narrowedExpectedType,
-				mustCheck = !possibleType.isSubtypeOf(expectedType),
-				answer = answer,
-				bundle = bundle,
-				superUnionType = superUnionType,
-				arguments = arguments)
-		}
+		+L2Simple_ReenterFromCall(
+			nextOffset = NEXT,
+			stateOfL1 = stateOfL1.copy(liveSlots = ReadArray.empty),
+			answer = answer,
+			expectedType = narrowedExpectedType,
+			mustCheck = mustCheck)
 	}
 
 	/**
@@ -658,12 +708,15 @@ constructor(
 			}
 			else -> calledCode.functionType().returnType
 		}
+		val mustCheck = !guaranteedReturnType.isSubtypeOf(expectedType)
 		if (nilpotentAttempt !== null)
 		{
 			+L2Simple_InvokeIfNilpotentAttemptFails(
+				nextOffset = SKIP,
 				stateOfL1 = stateOfL1,
+				reentryOffset = NEXT,
 				expectedType = expectedType,
-				mustCheck = !guaranteedReturnType.isSubtypeOf(expectedType),
+				mustCheck = mustCheck,
 				answer = answer,
 				function = calledFunction,
 				arguments = arguments,
@@ -672,13 +725,21 @@ constructor(
 		else
 		{
 			+L2Simple_Invoke(
+				nextOffset = SKIP,
 				stateOfL1 = stateOfL1,
+				reentryOffset = NEXT,
 				expectedType = expectedType,
-				mustCheck = !guaranteedReturnType.isSubtypeOf(expectedType),
+				mustCheck = mustCheck,
 				answer = answer,
 				function = calledFunction,
 				arguments = arguments)
 		}
+		+L2Simple_ReenterFromCall(
+			nextOffset = if (expectedType.isBottom) UNREACHABLE else NEXT,
+			stateOfL1 = stateOfL1.copy(liveSlots = ReadArray.empty),
+			answer = answer,
+			expectedType = expectedType,
+			mustCheck = mustCheck)
 		return boxedRestrictionForType(
 			guaranteedReturnType.typeIntersection(expectedType))
 	}
@@ -707,9 +768,8 @@ constructor(
 				else -> read.value
 			}
 		}
-		return ReadArray(
-			interpreter.arraysForL2Simple
-				.computeIfAbsent(array.asList()) { array })
+		return interpreter.arraysForL2Simple
+			.computeIfAbsent(array.asList()) { ReadArray(array) }
 	}
 
 	/**
@@ -896,12 +956,20 @@ constructor(
 		nilSlot(stackp)
 		stackp++
 		+L2Simple_SetVariable(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
 				liveSlots = liveIndices()),
 			variable = variable,
 			value = value)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveSlots = liveIndices()))
 	}
 
 	override fun L1_doGetLocalClearing()
@@ -914,12 +982,20 @@ constructor(
 			variableRestriction.type.readType)
 		val answer = writeSlot(stackp, valueRestriction)
 		+L2Simple_GetVariableClearing(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
 				liveSlots = liveIndices(stackp..stackp)),
 			fromVariable = variable,
 			answer = answer)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveSlots = liveIndices(stackp..stackp)))
 	}
 
 	override fun L1_doPushOuter()
@@ -946,27 +1022,43 @@ constructor(
 		val valueRestriction =
 			boxedRestrictionForType(code.outerTypeAt(outer).readType)
 		--stackp
-		+L2Simple_GetLastOuter(
+		+L2Simple_GetOuter(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
 				liveSlots = liveIndices()),
 			outerNumber = outer,
 			answer = writeSlot(stackp, valueRestriction))
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveSlots = liveIndices()))
 	}
 
 	override fun L1_doSetOuter()
 	{
 		val outer = instructionDecoder.getOperand()
 		val value = readSlot(stackp)
+		setSlotRestriction(stackp, nilRestriction)
 		+L2Simple_SetOuter(
+			nextOffset = SKIP,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
 				liveSlots = liveIndices()),
+			reentryOffset = NEXT,
 			outerNumber = outer,
 			value = value)
-		setSlotRestriction(stackp, nilRestriction)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveSlots = liveIndices()))
 		++stackp
 	}
 
@@ -976,6 +1068,8 @@ constructor(
 		val localType = slotRestriction(local).type
 		--stackp
 		+L2Simple_GetVariable(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
@@ -985,6 +1079,12 @@ constructor(
 				stackp,
 				boxedRestrictionForType(localType.readType)
 					.withFlag(IMMUTABLE_FLAG)))
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveSlots = liveIndices()))
 	}
 
 	override fun L1_doMakeTuple()
@@ -1019,6 +1119,8 @@ constructor(
 		val outerType = code.outerTypeAt(outer)
 		--stackp
 		+L2Simple_GetOuter(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
@@ -1028,6 +1130,12 @@ constructor(
 				stackp,
 				boxedRestrictionForType(outerType.readType)
 					.withFlag(IMMUTABLE_FLAG)))
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveSlots = liveIndices()))
 	}
 
 	override fun L1_doExtension()
@@ -1051,18 +1159,21 @@ constructor(
 			stackp,
 			boxedRestrictionForType(
 				continuationTypeForFunctionType(code.functionType())))
+		+L2Simple_ReifyForPushLabel(
+			nextOffset = SKIP,
+			stateOfL1 = dummyStateOfL1(),
+			reentryOffset = NEXT)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = dummyStateOfL1())
 		+L2Simple_PushLabel(
+			nextOffset = NEXT,
 			// Note that this is the state to capture during reification, not
 			// the content of the label continuation itself.
 			stateOfL1 = StateOfL1(
-				pc = pc,
-				stackp = stackp,
-				liveSlots = liveIndices(stackp..stackp)),
-			originalArguments = ReadArray(
-				IntArray(code.numArgs())
-				{
-					readSlot(it + 1).value
-				}),
+				pc = -999,
+				stackp = -999,
+				liveSlots = ReadArray((1..code.numArgs()).map(::readSlot))),
 			answer = answer)
 		// Record the fact that a local label is in the answer slot.
 		localLabelReads += Read(answer.value)
@@ -1073,6 +1184,8 @@ constructor(
 		val variable = code.literalAt(instructionDecoder.getOperand())
 		--stackp
 		+L2Simple_GetConstant(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
@@ -1082,20 +1195,35 @@ constructor(
 				stackp,
 				boxedRestrictionForType(variable.kind().readType)
 					.withFlag(IMMUTABLE_FLAG)))
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveIndices()))
 	}
 
 	override fun L1Ext_doSetLiteral()
 	{
 		val variable = code.literalAt(instructionDecoder.getOperand())
+		val value = readSlot(stackp)
+		nilSlot(stackp)
+		stackp++
 		+L2Simple_SetConstant(
+			nextOffset = SKIP,
+			reentryOffset = NEXT,
 			stateOfL1 = StateOfL1(
 				pc = pc,
 				stackp = stackp,
 				liveSlots = liveIndices()),
 			variable = variable,
-			value = readSlot(stackp))
-		setSlotRestriction(stackp, nilRestriction)
-		stackp++
+			value = value)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc,
+				stackp = stackp,
+				liveIndices()))
 	}
 
 	override fun L1Ext_doDuplicate()

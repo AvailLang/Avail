@@ -61,7 +61,8 @@ import avail.interpreter.primitive.Primitive
  */
 class L2Simple_InvokeIfNilpotentAttemptFails
 constructor(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1,
 	expectedType: A_Type,
 	mustCheck: Boolean,
@@ -71,6 +72,7 @@ constructor(
 	val nilpotentAttempt: (Interpreter)->A_BasicObject?
 ) : L2Simple_AbstractInvokerInstruction(
 	nextOffset = nextOffset,
+	reentryOffset = reentryOffset,
 	stateOfL1 = stateOfL1,
 	expectedType = expectedType,
 	mustCheck = mustCheck,
@@ -107,6 +109,7 @@ constructor(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_InvokeIfNilpotentAttemptFails(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1),
 			expectedType = expectedType,
 			mustCheck = mustCheck,

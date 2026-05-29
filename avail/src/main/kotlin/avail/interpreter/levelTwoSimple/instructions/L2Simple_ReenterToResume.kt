@@ -1,5 +1,5 @@
 /*
- * L2Simple_GetLastOuter.kt
+ * L2Simple_ReenterToResume.kt
  * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,62 +32,48 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.variables.A_Variable.Companion.getValue
-import avail.descriptor.variables.A_Variable.Companion.getValueClearing
-import avail.exceptions.VariableGetException
+import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
-import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
-import avail.interpreter.levelTwoSimple.instructions.registers.Write
 
 /**
- * Get the value of outer number [outerNumber] of the current function, found in
- * `registers.function`, and write it to registers[ [answer] ].  If the variable is
- * mutable, clear that variable, otherwise make the value immutable.
+ * A reification just took place to allow label creation.  Extract the registers
+ * dumped in the dummy continuation, popping it, and jump to an offset suitable
+ * for building the label.  In this case, the original instruction that caused
+ * the reification should be fine, since we know that this time around it wall
+ * successfully construct the label.
+ *
+ * The [stateOfL1] should be set up with an empty [StateOfL1.liveSlots] array,
+ * since this instruction restore registers, not slots.  The [StateOfL1.pc] and
+ * [StateOfL1.stackp] are unused.
  */
-class L2Simple_GetLastOuter(
+class L2Simple_ReenterToResume(
 	nextOffset: Offset = Offset.NEXT,
-	stateOfL1: StateOfL1,
-	val outerNumber: Int,
-	val answer: Write
-) : L2Simple_AbstractReifiableInstruction(
-	nextOffset, stateOfL1)
+	stateOfL1: StateOfL1
+) : L2Simple_AbstractReenter(nextOffset, stateOfL1)
 {
+	/**
+	 * A dummy continuation has resumed *immediately* after a pushLabel caused
+	 * reification.  Pop the dummy continuation, using its register dump to
+	 * restore the [registers], then create and push a label.  Note that we
+	 * don't have to check validity of the reentering chunk, since the
+	 * interpreter offered no opportunity to suspend to a safe-point, which is
+	 * the only place where invalidation can happen.
+	 */
 	override fun step(
 		registers: RegisterSet,
 		interpreter: Interpreter
 	): Offset
 	{
-		val function = registers.function
-		val variable = function.outerVarAt(outerNumber)
-		try
-		{
-			registers[answer] = if (variable.traversed().descriptor.isMutable)
-			{
-				variable.getValueClearing().makeImmutable()
-			}
-			else
-			{
-				// Automatically makes the value immutable.
-				variable.getValue()
-			}
-			return nextOffset
-		}
-		catch (e: VariableGetException)
-		{
-			handleVariableGetException(e, interpreter, registers)
-			assert(interpreter.currentReifier !== null)
-			return REIFY_NOW
-		}
+		restoreFromDump(interpreter.popContinuation().registerDump, registers)
+		return nextOffset
 	}
 
 	override fun L2SimpleInstructionTransformer.transformed() =
-		L2Simple_GetLastOuter(
+		L2Simple_ReenterToResume(
 			nextOffset = target(nextOffset),
-			stateOfL1 = state(stateOfL1),
-			outerNumber = outerNumber,
-			answer = write(answer))
+			stateOfL1 = state(stateOfL1))
 }

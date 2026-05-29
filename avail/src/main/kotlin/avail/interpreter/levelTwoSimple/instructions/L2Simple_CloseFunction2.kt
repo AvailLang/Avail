@@ -64,7 +64,9 @@ class L2Simple_CloseFunction2(
 	): Offset
 	{
 		registers[function] = createWithOuters2(
-			code, registers[outer1], registers[outer2])
+			code,
+			registers[outer1],
+			registers[outer2])
 		return nextOffset
 	}
 

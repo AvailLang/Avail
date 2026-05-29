@@ -33,7 +33,6 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
@@ -52,24 +51,12 @@ import avail.optimizer.StackReifier
  * here.
  */
 class L2Simple_CheckForInterrupt(
-	nextOffset: Offset = Offset.NEXT,
+	nextOffset: Offset,
+	reentryOffset: Offset,
 	stateOfL1: StateOfL1
 ) : L2Simple_AbstractReifiableInstruction(
-	nextOffset, stateOfL1)
+	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.RESUME)
 {
-	override fun defaultL1EntryPointIfInvalid() = DefaultEntryPoint.RESUME
-
-	override fun reenter(
-		registers: RegisterSet,
-		interpreter: Interpreter
-	): Boolean
-	{
-		// Pop the continuation, repopulating the registers.
-		val con = interpreter.popContinuation()
-		restoreFromDump(con.registerDump, registers)
-		return true
-	}
-
 	override fun step(
 		registers: RegisterSet,
 		interpreter: Interpreter
@@ -90,7 +77,7 @@ class L2Simple_CheckForInterrupt(
 				stateOfL1.pc,
 				stateOfL1.stackp,
 				thisChunk,
-				nextOffset.value)
+				reentryOffset.value)
 			stateOfL1.liveSlots.forEachIndexed { zeroIndex, source ->
 				continuation.frameAtPut(
 					zeroIndex + 1,
@@ -99,7 +86,7 @@ class L2Simple_CheckForInterrupt(
 			interpreter.setReifiedContinuation(continuation)
 			interpreter.function = function
 			interpreter.chunk = thisChunk
-			interpreter.offset = nextOffset.value
+			interpreter.offset = reentryOffset.value
 			interpreter.processInterrupt(continuation)
 			StackReifier.AfterReification.SWITCH_FROM_FIBER
 		}
@@ -109,5 +96,6 @@ class L2Simple_CheckForInterrupt(
 	override fun L2SimpleInstructionTransformer.transformed() =
 		L2Simple_CheckForInterrupt(
 			nextOffset = target(nextOffset),
+			reentryOffset = target(reentryOffset),
 			stateOfL1 = state(stateOfL1))
 }

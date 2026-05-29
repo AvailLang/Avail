@@ -57,6 +57,13 @@ constructor (val values: Array<AvailObject>)
 		return values[read.value]
 	}
 
+	/**
+	 * Look up each [Read] of the [readArray] in this [RegisterSet], producing
+	 * an [Array] of [AvailObject]s.
+	 */
+	operator fun get(readArray: ReadArray): Array<AvailObject> =
+		Array(readArray.size) { get(readArray[it]) }
+
 	/** Write to the [RegisterSet]. */
 	operator fun set(write: Write, valueToWrite: AvailObject): Unit
 	{

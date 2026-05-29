@@ -137,6 +137,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
@@ -2534,7 +2535,7 @@ final class Interpreter(
 	 * greatly the amount of repetition of equivalent arrays.  The key is a
 	 * [List], just to get the right equality and hash semantics.
 	 */
-	val arraysForL2Simple = mutableMapOf<List<Int>, IntArray>()
+	val arraysForL2Simple = mutableMapOf<List<Int>, ReadArray>()
 
 	companion object
 	{

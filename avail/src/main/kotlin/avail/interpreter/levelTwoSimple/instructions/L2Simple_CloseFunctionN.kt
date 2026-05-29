@@ -33,7 +33,7 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
@@ -59,8 +59,7 @@ class L2Simple_CloseFunctionN(
 		interpreter: Interpreter
 	): Offset
 	{
-		val newFunction =
-			FunctionDescriptor.createExceptOuters(code, outerCount)
+		val newFunction = createExceptOuters(code, outerCount)
 		outers.forEachIndexed { zeroIndex, read ->
 			newFunction.outerVarAtPut(zeroIndex + 1, registers[read])
 		}

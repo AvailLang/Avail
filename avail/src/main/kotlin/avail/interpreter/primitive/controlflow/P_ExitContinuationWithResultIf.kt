@@ -60,7 +60,6 @@ import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_JumpIfTrue
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_Return
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
-import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.RETURN_NOW
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
@@ -137,9 +136,7 @@ object P_ExitContinuationWithResultIf : Primitive3(
 			if (conditionRestriction.constantOrNull!!.extractBoolean)
 			{
 				// Always return.
-				+L2Simple_Return(
-					nextOffset = RETURN_NOW,
-					value = result)
+				+L2Simple_Return(value = result)
 				return true
 			}
 			else
@@ -159,9 +156,7 @@ object P_ExitContinuationWithResultIf : Primitive3(
 			ifTrueOffset = Offset.NEXT,
 			condition = condition)
 		// The return can't be postponed.
-		+L2Simple_Return(
-			nextOffset = RETURN_NOW,
-			value = result)
+		+L2Simple_Return(value = result)
 		return true
 	}
 
