@@ -1,21 +1,21 @@
 /*
  * L2SimpleTranslator.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -115,9 +115,10 @@ import avail.interpreter.levelTwoSimple.instructions.L2Simple_SetUpFrame
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_SetVariable
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_SuperCall
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
-import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.BACK
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.HIGHEST_LEGAL_OFFSET_int
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.NEXT
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.REIFY_NOW
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.RETURN_NOW
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.SKIP
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset.Companion.UNREACHABLE
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
@@ -386,6 +387,114 @@ constructor(
 	}
 
 	/**
+	 * Adjust all offsets via the [labelResolutions] built up during naive
+	 * translation, including relative offsets like [NEXT], [SKIP]..
+	 */
+	private fun resolveLabels()
+	{
+		val offsetResolver = object : L2SimpleInstructionTransformer()
+		{
+			var index = 0
+
+			override fun target(offset: Offset): Offset
+			{
+				val resolved = when (offset)
+				{
+					UNREACHABLE, RETURN_NOW, REIFY_NOW -> return offset
+					// Ignore backward looping jumps.
+					Offset(0) -> return offset
+					NEXT -> Offset(index + 1)
+					SKIP -> Offset(index + 2)
+					else ->
+						if (offset.value < 0) labelResolutions[offset]!!
+						else offset
+				}
+				assert(resolved.value > index) {
+					"Must jump forward, to 0, or to a special offset."
+				}
+				return resolved
+			}
+		}
+		for (index in 0 until instructions.size)
+		{
+			offsetResolver.index = index
+			instructions[index] =
+				instructions[index].run { offsetResolver.transformed() }
+		}
+	}
+
+	/**
+	 * Determine which instructions can be removed (because they don't produce a
+	 * needed value or have a side effect), and remove them while adjusting the
+	 * offsets.
+	 */
+	private fun removeDeadCode()
+	{
+		val liveInstructionIndices = BitSet()
+		val neededReads = BitSet()
+		for (index in instructions.size - 1 downTo 0)
+		{
+			val instruction = instructions[index]
+			var keep = !instruction.canBePostponed
+				|| instruction.allWrites.any { neededReads.get(it.value) }
+			if (instruction is L2Simple_Move
+				&& instruction.from.value == instruction.to.value)
+			{
+				// We're doing post-colored dead code elimination, and we just
+				// found a move-to-same-register, which we can omit.
+				keep = false
+			}
+			if (keep)
+			{
+				instruction.allReads.forEach { neededReads.set(it.value) }
+				liveInstructionIndices.set(index)
+			}
+		}
+		if (instructions.none { it is L2Simple_PushLabel })
+		{
+			// There are no label creation instructions, we should also remove
+			// any ReifyForPushLabel instructions and their corresponding entry
+			// points.
+			instructions.forEachIndexed { index, instruction ->
+				if (instruction is L2Simple_ReifyForPushLabel)
+				{
+					liveInstructionIndices.clear(index)
+					liveInstructionIndices.clear(
+						instruction.reentryOffset.value)
+				}
+			}
+		}
+		if (liveInstructionIndices.nextClearBit(0) != instructions.size)
+		{
+			val renumber = mutableMapOf<Int, Int>()
+			val newInstructions = mutableListOf<L2SimpleInstruction>()
+			var keepPosition = 0
+			for (index in 0 until instructions.size)
+			{
+				renumber[index] = keepPosition
+				if (liveInstructionIndices[index])
+				{
+					keepPosition++
+					newInstructions.add(instructions[index])
+				}
+			}
+			val renumberer = object : L2SimpleInstructionTransformer()
+			{
+				override fun target(offset: Offset): Offset = when
+				{
+					offset.value in 0..HIGHEST_LEGAL_OFFSET_int ->
+						Offset(renumber[offset.value]!!)
+					else -> offset
+				}
+			}
+			instructions.clear()
+			newInstructions.forEach { instruction ->
+				instructions.add(instruction.run { renumberer.transformed() })
+			}
+		}
+	}
+
+	/**
 	 * This function performs register coloring:
 	 *  * Due to the simple way that L2Simple instructions are generated, every
 	 *    [Offset] except to [Offset]`(0)` are *forward* – the target is at a
@@ -405,7 +514,7 @@ constructor(
 	 *    goes.  The second pass also corrects [NEXT] uses to
 	 *    the actual offsets.
 	 */
-	private fun colorRegistersAndFixOffsets()
+	private fun colorRegisters()
 	{
 		val log = false
 		// Pass one: Find all last-read offsets.
@@ -544,20 +653,6 @@ constructor(
 					if (log) println("\tReused $write -> ${Write(replacement)}")
 				}
 				return Write(replacement)
-			}
-
-			override fun target(offset: Offset): Offset
-			{
-				return when (offset)
-				{
-					NEXT -> Offset(currentInstructionIndex + 1)
-					SKIP -> Offset(currentInstructionIndex + 2)
-					BACK -> Offset(currentInstructionIndex - 1)
-					UNREACHABLE -> UNREACHABLE
-					else ->
-						if (offset.value < 0) labelResolutions[offset]!!
-						else offset
-				}
 			}
 
 			override fun state(stateOfL1: StateOfL1): StateOfL1
@@ -1513,7 +1608,10 @@ constructor(
 			val translator = L2SimpleTranslator(
 				code, optimizationLevel, interpreter)
 			translator.naiveTranslateFromL1()
-			translator.colorRegistersAndFixOffsets()
+			translator.resolveLabels()
+			translator.removeDeadCode()
+			translator.colorRegisters()
+			translator.removeDeadCode()
 			val chunk = translator.createChunk()
 			code.setStartingChunkAndReoptimizationCountdown(
 				chunk, optimizationLevel.countdown)

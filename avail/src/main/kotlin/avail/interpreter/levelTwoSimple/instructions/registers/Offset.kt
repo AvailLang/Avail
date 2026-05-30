@@ -51,7 +51,6 @@ value class Offset(val value: Int)
 			RETURN_NOW -> "O:Return"
 			REIFY_NOW -> "O:Reify"
 			SKIP -> "O:Skip"
-			BACK -> "O:Back"
 			UNREACHABLE -> "O:Unreachable"
 			else -> "O:$value"
 		}
@@ -105,16 +104,6 @@ value class Offset(val value: Int)
 		const val SKIP_int = Int.MIN_VALUE + 1
 
 		val SKIP = Offset(SKIP_int)
-
-		/**
-		 * A sentinel value plugged into instructions during initial generation,
-		 * so that postponed instructions won't end up with the wrong offsets.
-		 * A subsequent pass corrects this value to mean it's a jump to the
-		 * instruction just prior to the current one.
-		 */
-		const val BACK_int = Int.MIN_VALUE + 2
-
-		val BACK = Offset(BACK_int)
 
 		/**
 		 * A sentinel value indicating this offset can never be taken, such as
