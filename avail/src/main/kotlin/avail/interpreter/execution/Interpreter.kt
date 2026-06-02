@@ -1404,7 +1404,7 @@ final class Interpreter(
 		}
 		clearLatestResult()
 		assert(currentInterpreter == this)
-		return captureNanos()
+		return captureNanos(this)
 	}
 
 	/**
@@ -1428,7 +1428,7 @@ final class Interpreter(
 	): A_BasicObject?
 	{
 		val duration =
-			captureNanos() - timeBefore - latestInvokingPrimitiveInnerTime
+			captureNanos(this) - timeBefore - latestInvokingPrimitiveInnerTime
 		// Tidy this up so it won't affect other invocation stats.
 		latestInvokingPrimitiveInnerTime = 0L
 		primitive.addNanosecondsRunning(duration, interpreterIndex)
@@ -2198,9 +2198,9 @@ final class Interpreter(
 	): A_BasicObject?
 	{
 		clearLatestResult()
-		val before = captureNanos()
+		val before = captureNanos(this)
 		val valueOrNull = invokeFunction(aFunction)
-		latestInvokingPrimitiveInnerTime = captureNanos() - before
+		latestInvokingPrimitiveInnerTime = captureNanos(this) - before
 		if (valueOrNull == null)
 		{
 			// Only completion or reification are allowed, not a primitive

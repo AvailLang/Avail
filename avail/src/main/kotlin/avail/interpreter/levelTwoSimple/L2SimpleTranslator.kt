@@ -51,9 +51,11 @@ import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReo
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.A_Method.Companion.definitionsAtOrBelow
+import avail.descriptor.methods.A_Method.Companion.testingTree
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -793,7 +795,8 @@ constructor(
 		// the union of their return types, then intersect it with the expected
 		// type.  This strengthened type might make subsequent calls, using the
 		// returned value as an argument, more restrictive, ideally monomorphic.
-		val possible = bundle.bundleMethod.definitionsAtOrBelow(argRestrictions)
+		val method = bundle.bundleMethod
+		val possible = method.definitionsAtOrBelow(argRestrictions)
 			.filter { it.isMethodDefinition() }
 		val possibleType = possible.fold(bottom) { typeUnion, def ->
 			typeUnion.typeUnion(def.bodySignature().returnType)
@@ -811,6 +814,10 @@ constructor(
 					mustCheck = mustCheck,
 					answer = answer,
 					bundle = bundle,
+					lookupTree = method.testingTree,
+					dynamicLookupStats =
+						(method.traversed().descriptor as MethodDescriptor)
+							.dynamicLookupStats(),
 					arguments = arguments)
 			else ->
 				+L2Simple_SuperCall(
@@ -1603,7 +1610,7 @@ constructor(
 			optimizationLevel: OptimizationLevel,
 			interpreter: Interpreter)
 		{
-			val before = captureNanos()
+			val before = captureNanos(interpreter)
 
 			val translator = L2SimpleTranslator(
 				code, optimizationLevel, interpreter)
@@ -1617,7 +1624,7 @@ constructor(
 				chunk, optimizationLevel.countdown)
 
 			simpleTranslationStat.record(
-				(captureNanos() - before).toDouble(),
+				(captureNanos(interpreter) - before).toDouble(),
 				interpreter.interpreterIndex)
 		}
 

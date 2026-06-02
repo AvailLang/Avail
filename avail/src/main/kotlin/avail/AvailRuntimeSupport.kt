@@ -113,10 +113,13 @@ object AvailRuntimeSupport
 	 *   Nanoseconds of fiber time if a fiber is bound; otherwise wall-clock
 	 *   nanoseconds.
 	 */
-	fun captureNanos(): Long =
-		Interpreter.currentOrNull()?.run {
-			System.nanoTime() - cachedFiberBiasNanos
-		} ?: System.nanoTime()
+	fun captureNanos(
+		interpreter: Interpreter? = Interpreter.currentOrNull()
+	): Long = when (interpreter)
+	{
+		null -> System.nanoTime()
+		else -> System.nanoTime() - interpreter.cachedFiberBiasNanos
+	}
 
 	/**
 	 * Utility class for wrapping a volatile counter that can be polled.

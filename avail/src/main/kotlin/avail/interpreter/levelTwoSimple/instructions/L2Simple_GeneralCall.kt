@@ -34,16 +34,19 @@ package avail.interpreter.levelTwoSimple.instructions
 
 import avail.AvailRuntime
 import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.methods.MethodDescriptor.Companion.runtimeDispatcher
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
+import avail.dispatch.LookupStatistics
+import avail.dispatch.LookupTree
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
+import avail.exceptions.MethodDefinitionException.Companion.extractUniqueMethod
 import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
@@ -67,6 +70,8 @@ class L2Simple_GeneralCall(
 	mustCheck: Boolean,
 	answer: Write,
 	val bundle: A_Bundle,
+	val lookupTree: LookupTree<A_Definition, A_Tuple>,
+	val dynamicLookupStats: LookupStatistics,
 	val arguments: ReadArray,
 ) : L2Simple_AbstractInvokerInstruction(
 	nextOffset,
@@ -88,19 +93,21 @@ class L2Simple_GeneralCall(
 				add(registers[read])
 			}
 		}
-		val matching: A_Definition = try
+		val definition: A_Definition
+		try
 		{
-			bundle.bundleMethod
-				.lookupByValuesFromList(
-					interpreter.argsBuffer,
-					interpreter.function?.code()?.lookupStat)
-				.also {
-					when
-					{
-						it.isAbstractDefinition() -> throw abstractMethod()
-						it.isForwardDefinition() -> throw forwardMethod()
-					}
-				}
+			definition = extractUniqueMethod(
+				runtimeDispatcher.lookupByValues(
+					lookupTree,
+					args,
+					Unit,
+					dynamicLookupStats,
+					interpreter.function?.code()?.lookupStat))
+			when
+			{
+				definition.isAbstractDefinition() -> throw abstractMethod()
+				definition.isForwardDefinition() -> throw forwardMethod()
+			}
 		}
 		catch (e: MethodDefinitionException)
 		{
@@ -108,7 +115,7 @@ class L2Simple_GeneralCall(
 		}
 		// Lookup was successful.  Invoke it, with the arguments that are still
 		// in the interpreter's argsBuffer.
-		return invocationHelper(interpreter, registers, matching.bodyBlock())
+		return invocationHelper(interpreter, registers, definition.bodyBlock())
 	}
 
 	override fun L2SimpleInstructionTransformer.transformed() =
@@ -120,5 +127,7 @@ class L2Simple_GeneralCall(
 			mustCheck = mustCheck,
 			answer = write(answer),
 			bundle = bundle,
+			lookupTree = lookupTree,
+			dynamicLookupStats = dynamicLookupStats,
 			arguments = read(arguments))
 }

@@ -1,5 +1,5 @@
 /*
- * WriteArray.kt
+ * ProfileFunction.kt
  * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,60 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.levelTwoSimple.instructions.registers
+package avail.interpreter.profile;
 
-import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.AvailObject.Companion.combine3
 
 /**
- * A field of an [L2SimpleInstruction] has this type if it represents a write to
- * multiple values of the registers array.  This does not necessarily represent
- * slot numbers in the L1 continuation.
- *
- * @constructor
- *   Build the [WriteArray] from an [IntArray].
- * @property values
- *   The underlying [IntArray].
+ * A [ProfileFunction] holds information about an [A_RawFunction] that was
+ * invoked one or more times and recorded by [ProfileCollector]s, and
+ * reconstructed via a [ProfileReconstructor] inside a tree of [ProfileNode]s.
+ * Note that it does not contain an actual reference to an [A_RawFunction],
+ * since profiles must be viewable when different code, or even when no code,
+ * has been loaded.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@JvmInline
-value class WriteArray(val values: IntArray)
+class ProfileFunction(
+	val functionName: String,
+	val moduleName: String,
+	val line: Int)
 {
-	/** Secondary constructor, given a collection of [Write]s. */
-	constructor(
-		writes: Collection<Write>
-	): this(writes.map { it.value }.toIntArray())
+	/** Capture the hash to speed up comparisons. */
+	val hash = combine3(functionName.hashCode(), moduleName.hashCode(), line)
 
-	/**
-	 * Transform each [Write] into another [Write], collecting them into a new
-	 * [WriteArray].
-	 */
-	fun map(mapper: (Write)->Write): WriteArray
+	override fun hashCode(): Int = hash
+
+	override fun equals(other: Any?): Boolean
 	{
-		val transformed = IntArray(values.size)
-		values.forEachIndexed { index, writeInt ->
-			transformed[index] = mapper(Write(writeInt)).value
-		}
-		return WriteArray(transformed)
-	}
-
-	/** Iterate over each [Write], passing the zero-based index as well. */
-	inline fun forEachIndexed(action: (Int, Write)->Unit)
-	{
-		values.forEachIndexed { index, writeInt ->
-			action(index, Write(writeInt))
-		}
-	}
-
-	/** Extract the [Write] at the indicated position. */
-	operator fun get(zeroIndex: Int): Write = Write(values[zeroIndex])
-
-	/** Answer the size of the [IntArray]. */
-	val size: Int get() = values.size
-
-	/** Pretty-print this [WriteArray]. */
-	override fun toString(): String
-	{
-		return values.joinToString(", ", "W[", "]")
+		if (this === other) return true
+		if (other !is ProfileFunction) return false
+		if (hash != other.hash) return false
+		if (line != other.line) return false
+		if (moduleName != other.moduleName) return false
+		if (functionName != other.functionName) return false
+		return true
 	}
 }

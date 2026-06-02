@@ -94,7 +94,7 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 		val variable = arg1
 		val reference = arg2
 		val newValue = arg3
-		val before = AvailRuntimeSupport.captureNanos()
+		val before = AvailRuntimeSupport.captureNanos(this)
 		val replaced: Boolean = try
 		{
 			variable.compareAndSwapValues(reference, newValue)
@@ -109,7 +109,7 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 		}
 		if (!replaced)
 		{
-			val after = AvailRuntimeSupport.captureNanos()
+			val after = AvailRuntimeSupport.captureNanos(this)
 			conflictStatistic.record(after - before, interpreterIndex)
 		}
 		return objectFromBoolean(replaced)

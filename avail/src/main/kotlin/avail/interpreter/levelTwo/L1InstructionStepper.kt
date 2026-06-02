@@ -1102,9 +1102,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		stackp: Int
 	): StackReifier?
 	{
-		val before = AvailRuntimeSupport.captureNanos()
+		val before = AvailRuntimeSupport.captureNanos(interpreter)
 		val checkOk = result.isInstanceOf(expectedReturnType)
-		val after = AvailRuntimeSupport.captureNanos()
+		val after = AvailRuntimeSupport.captureNanos(interpreter)
 		val returner = interpreter.returningFunction!!
 		val calledPrimitive = returner.code().codePrimitive()
 		if (calledPrimitive !== null)

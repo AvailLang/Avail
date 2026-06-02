@@ -1,5 +1,5 @@
 /*
- * L2Simple_MoveConstant.kt
+ * L2Simple_Return.kt
  * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *

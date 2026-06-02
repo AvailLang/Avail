@@ -1087,7 +1087,6 @@ constructor(
 		if (!hasFlag(Flag.CanInline)
 			|| hasFlag(Flag.CanSwitchContinuations)
 			|| hasFlag(Flag.CanSuspend)
-			|| hasFlag(Flag.HasSideEffect)
 			|| hasFlag(Flag.Invokes)
 			|| hasFlag(Flag.Unknown))
 		{

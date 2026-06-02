@@ -1067,7 +1067,7 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun privateDiscardExcessLeadingQueuedUpdates(): Int
 	{
-		val before = captureNanos()
+		val before = captureNanos(null)
 		try
 		{
 			assert(dequeLock.isWriteLockedByCurrentThread)
@@ -1089,7 +1089,7 @@ class AvailWorkbench internal constructor(
 		}
 		finally
 		{
-			discardExcessLeadingStat.record(captureNanos() - before)
+			discardExcessLeadingStat.record(captureNanos(null) - before)
 		}
 	}
 
@@ -1156,15 +1156,15 @@ class AvailWorkbench internal constructor(
 			{
 				// We need to trim off part of the document, right after the
 				// module status area.
-				val beforeRemove = captureNanos()
+				val beforeRemove = captureNanos(null)
 				document.remove(
 					statusSize, min(amountToRemove, length - statusSize))
 				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
-				removeStringStat.record(captureNanos() - beforeRemove)
+				removeStringStat.record(captureNanos(null) - beforeRemove)
 			}
 			aggregatedEntries.forEach { entry ->
-				val before = captureNanos()
+				val before = captureNanos(null)
 				val context = stylesheet[entry.style.classifier]
 				document.insertString(
 					document.length, // The current length
@@ -1172,7 +1172,7 @@ class AvailWorkbench internal constructor(
 					context.documentAttributes)
 				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
-				insertStringStat.record(captureNanos() - before)
+				insertStringStat.record(captureNanos(null) - before)
 			}
 		}
 		catch (e: BadLocationException)
@@ -1243,13 +1243,13 @@ class AvailWorkbench internal constructor(
 		invokeLater {
 			try
 			{
-				val beforeRemove = captureNanos()
+				val beforeRemove = captureNanos(null)
 				document.remove(
 					perModuleStatusTextSize,
 					document.length - perModuleStatusTextSize)
 				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
-				removeStringStat.record(captureNanos() - beforeRemove)
+				removeStringStat.record(captureNanos(null) - beforeRemove)
 			}
 			catch (e: BadLocationException)
 			{
@@ -1816,19 +1816,19 @@ class AvailWorkbench internal constructor(
 		val doc = transcript.styledDocument
 		try
 		{
-			val beforeRemove = captureNanos()
+			val beforeRemove = captureNanos(null)
 			doc.remove(0, perModuleStatusTextSize)
 			// Always use index 0, since this only happens in the UI thread.
-			removeStringStat.record(captureNanos() - beforeRemove)
+			removeStringStat.record(captureNanos(null) - beforeRemove)
 
-			val beforeInsert = captureNanos()
+			val beforeInsert = captureNanos(null)
 			val context = stylesheet[BUILD_PROGRESS.classifier]
 			doc.insertString(
 				0,
 				string,
 				context.documentAttributes)
 			// Always use index 0, since this only happens in the UI thread.
-			insertStringStat.record(captureNanos() - beforeInsert)
+			insertStringStat.record(captureNanos(null) - beforeInsert)
 		}
 		catch (e: BadLocationException)
 		{
@@ -1851,7 +1851,7 @@ class AvailWorkbench internal constructor(
 	 */
 	fun writeText(text: String, streamStyle: StreamStyle)
 	{
-		val before = captureNanos()
+		val before = captureNanos(null)
 		val size = text.length
 		assert(size > 0)
 		updateQueue.add(BuildOutputStreamEntry(streamStyle, text))
@@ -1867,9 +1867,9 @@ class AvailWorkbench internal constructor(
 			// be displayed because it would be rolled off anyhow.  Since this
 			// has to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
-			val beforeLock = captureNanos()
+			val beforeLock = captureNanos(null)
 			dequeLock.safeWrite {
-				waitForDequeLockStat.record(captureNanos() - beforeLock)
+				waitForDequeLockStat.record(captureNanos(null) - beforeLock)
 				try
 				{
 					totalQueuedTextSize.getAndAdd(
@@ -1879,7 +1879,7 @@ class AvailWorkbench internal constructor(
 				{
 					// Record the stat just before unlocking, to avoid the need
 					// for a lock for the statistic itself.
-					writeTextStat.record(captureNanos() - before)
+					writeTextStat.record(captureNanos(null) - before)
 				}
 			}
 		}
