@@ -165,8 +165,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 				addedSize,
 				0)
 			padded[TUPLE_AT_, newSize] = newElement
-			padded.fillSlots(
-				TUPLE_AT_, newSize + 1, addedSize - 1, zero)
+			padded.fillSlots(TUPLE_AT_, newSize + 1, addedSize - 1, zero)
 			padded[HASH_OR_ZERO] = 0
 			return createSubrange(padded, 1, newSize)
 		}

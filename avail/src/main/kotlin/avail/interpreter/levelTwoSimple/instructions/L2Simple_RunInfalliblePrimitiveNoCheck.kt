@@ -42,6 +42,7 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
+import avail.interpreter.primitive.Primitive.Flag
 
 /**
  * Invoke a primitive which is infallible for the given arguments, and does not
@@ -64,6 +65,12 @@ constructor(
 ) : L2SimpleInstruction(nextOffset)
 {
 	val primitive = rawFunction.codePrimitive()!!
+
+	override val canBePostponed: Boolean
+		get() = !primitive.hasFlag(Flag.HasSideEffect)
+			&& !primitive.hasFlag(Flag.Unknown)
+			&& !primitive.hasFlag(Flag.ReadsFromHiddenGlobalState)
+			&& !primitive.hasFlag(Flag.WritesToHiddenGlobalState)
 
 	override fun step(
 		registers: RegisterSet,

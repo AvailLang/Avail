@@ -57,7 +57,8 @@ import java.lang.reflect.Array
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateTupleFromPojoArray : Primitive1(CanInline, CannotFail, HasSideEffect)
+object P_CreateTupleFromPojoArray : Primitive1(
+	CanInline, CannotFail, HasSideEffect)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

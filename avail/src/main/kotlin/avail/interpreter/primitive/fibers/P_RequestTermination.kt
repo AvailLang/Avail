@@ -64,7 +64,8 @@ import avail.interpreter.primitive.Primitive1
  * [asleep][ExecutionState.ASLEEP], then unpark it.
  */
 @Suppress("unused")
-object P_RequestTermination : Primitive1(CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
+object P_RequestTermination : Primitive1(
+	CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

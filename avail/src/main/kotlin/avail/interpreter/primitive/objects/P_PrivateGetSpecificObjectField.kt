@@ -68,7 +68,8 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_PrivateGetSpecificObjectField : Primitive1(Private, CanInline, CannotFail)
+object P_PrivateGetSpecificObjectField : Primitive1(
+	Private, CanInline, CannotFail)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

@@ -1008,6 +1008,7 @@ class AvailDebugger internal constructor (
 		//val oldPath = variablesPane.selectionPath
 		val entries = mutableListOf<Variable>()
 		stackListPane.selectedValue?.let { frame ->
+			if (frame.numSlots() == 0) return@let
 			val function = frame.function
 			val code = function.code()
 			val numArgs = code.numArgs()
@@ -1023,36 +1024,28 @@ class AvailDebugger internal constructor (
 				entries.add(
 					Variable(
 						"[arg] " + names.next(),
-						frame.frameAt(frameIndex++)
-					)
-				)
+						frame.frameAt(frameIndex++)))
 			}
 			repeat(numLocals)
 			{
 				entries.add(
 					Variable(
 						"[local] " + names.next(),
-						frame.frameAt(frameIndex++)
-					)
-				)
+						frame.frameAt(frameIndex++)))
 			}
 			repeat(numConstants)
 			{
 				entries.add(
 					Variable(
 						"[const] " + names.next(),
-						frame.frameAt(frameIndex++)
-					)
-				)
+						frame.frameAt(frameIndex++)))
 			}
 			for (i in 1 .. numOuters)
 			{
 				entries.add(
 					Variable(
 						"[outer] " + names.next(),
-						function.outerVarAt(i)
-					)
-				)
+						function.outerVarAt(i)))
 			}
 			for (i in frame.numSlots() downTo frame.stackp)
 			{

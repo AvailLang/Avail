@@ -646,7 +646,7 @@ open class VariableDescriptor protected constructor(
 
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>)
+		stackToProcess: MutableList<AvailObject>)
 	{
 		assert(super.mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
@@ -667,7 +667,7 @@ open class VariableDescriptor protected constructor(
 				if (descriptor.isMutable)
 				{
 					traversed.descriptor = descriptor.immutable()
-					queueToProcess.add(traversed)
+					stackToProcess.add(traversed)
 				}
 				traversed
 			}
@@ -677,11 +677,11 @@ open class VariableDescriptor protected constructor(
 
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 	{
 		assert(this === transientShared)
-		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		super.o_MakeSharedInternal(self, stackToProcess, fixups)
 		val newVariable = VariableSharedDescriptor.createSharedLike(
 			self[KIND],
 			self.hash(),
@@ -690,7 +690,7 @@ open class VariableDescriptor protected constructor(
 		assert(newVariable.descriptor.isShared)
 
 		// The old variable (self) was marked as shared when it was added to the
-		// queueToProcess.  Therefore, it's not truly shared yet, as other
+		// stackToProcess.  Therefore, it's not truly shared yet, as other
 		// threads cannot actually see it.  Since shared objects can't become
 		// indirections, we switch the descriptor back to its mutable form
 		// before making it an indirection to the newVariable.

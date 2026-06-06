@@ -45,7 +45,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -58,7 +57,7 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_DefaultStyler : Primitive2(
-	CanInline, Bootstrap, ReadsFromHiddenGlobalState, WritesToHiddenGlobalState)
+	CanInline, Bootstrap, ReadsFromHiddenGlobalState)
 {
 	override fun Interpreter.attempt2(
 		arg1: AvailObject,

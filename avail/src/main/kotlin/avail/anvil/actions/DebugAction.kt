@@ -67,7 +67,7 @@ constructor(
 		FiberKind.all.forEach { kind ->
 			debugger.debuggerModel.installFiberCapture(kind, true)
 		}
-		debugger.gatherFibers { workbench.runtime.allFibers() }
+		debugger.gatherFibers { workbench.runtime.allFibersNow() }
 		debugger.open()
 	}
 

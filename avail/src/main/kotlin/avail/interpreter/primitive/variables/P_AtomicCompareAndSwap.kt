@@ -194,11 +194,13 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 		}
 		catch (e: VariableGetException)
 		{
-			interpreter.fail(e.errorCode)
+			// Let the subsequent full primitive retry handle this.
+			null
 		}
 		catch (e: VariableSetException)
 		{
-			interpreter.fail(e.errorCode)
+			// Let the subsequent full primitive retry handle this.
+			null
 		}
 	}
 

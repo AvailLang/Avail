@@ -202,7 +202,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor
-import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
@@ -1702,9 +1701,14 @@ constructor(
 					TOP(),
 					this,
 					nameSupplier = {
-						formatString(
-							"$purpose function #${n} for module %s",
-							module.shortModuleNameNative)
+						stringFrom(
+							buildString {
+								append(purpose)
+								append(" function #")
+								append(n)
+								append(" for module ")
+								append(module.shortModuleNameNative)
+							})
 					})
 				fiber.setSuccessAndFailure(
 					onSuccess = { again() },

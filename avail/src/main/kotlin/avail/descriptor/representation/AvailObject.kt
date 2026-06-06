@@ -794,20 +794,21 @@ class AvailObject private constructor(
 		// Switch the descriptor to prevent it from being added to the queue
 		// again.
 		descriptor = oldDescriptor.immutable()
-		// Create a queue of marked-immutable-but-not-yet-scanned objects,
+		// Create a stack of marked-immutable-but-not-yet-scanned objects,
 		// seeded with the root of the graph.
-		val queue =	mutableListOf(this)
+		val stack =	mutableListOf(this)
 		do
 		{
-			queue.removeLast().makeImmutableInternal(queue)
+			stack.removeLast().makeImmutableInternal(stack)
 		}
-		while (queue.isNotEmpty())
+		while (stack.isNotEmpty())
 		return traversed()
 	}
 
 	override fun makeImmutableInternal(
-		queueToProcess: MutableList<AvailObject>
-	) = descriptor.o_MakeImmutableInternal(this, queueToProcess)
+		stackToProcess: MutableList<AvailObject>
+
+	) = descriptor.o_MakeImmutableInternal(this, stackToProcess)
 
 
 	override fun makeShared(): AvailObject
@@ -816,22 +817,22 @@ class AvailObject private constructor(
 		// Switch the descriptor to prevent it from being added to the queue
 		// again.
 		descriptor = descriptor.shared()
-		// Create a queue of marked-shared-but-not-yet-scanned objects, seeded
+		// Create a stack of marked-shared-but-not-yet-scanned objects, seeded
 		// with the root of the graph.
-		val queue =	mutableListOf(this)
+		val stack =	mutableListOf(this)
 		val fixups = mutableListOf<()->Unit>()
 		do
 		{
-			queue.removeLast().makeSharedInternal(queue, fixups)
-		} while (queue.isNotEmpty())
+			stack.removeLast().makeSharedInternal(stack, fixups)
+		} while (stack.isNotEmpty())
 		fixups.forEach { it() }
 		return traversed()
 	}
 
 	override fun makeSharedInternal(
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>
-	) = descriptor.o_MakeSharedInternal(this, queueToProcess, fixups)
+	) = descriptor.o_MakeSharedInternal(this, stackToProcess, fixups)
 
 	override fun makeSubobjectsImmutable() =
 		descriptor.o_MakeSubobjectsImmutable(this)

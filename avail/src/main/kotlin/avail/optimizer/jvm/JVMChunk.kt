@@ -263,7 +263,7 @@ constructor() : ExecutableChunk
 		val badOffsetMethod = staticMethod(
 			JVMChunk::class.java,
 			::badOffset.name,
-			RuntimeException::class.java,
+			Nothing::class.java,
 			Int::class.javaPrimitiveType!!)
 	}
 }

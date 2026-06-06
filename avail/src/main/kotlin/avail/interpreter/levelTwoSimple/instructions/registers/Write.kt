@@ -55,4 +55,6 @@ value class Write(val value: Int)
 		return "W:" + value
 	}
 
+	/** Convert this [Write] to a [Read]. */
+	val read: Read get() = Read(value)
 }

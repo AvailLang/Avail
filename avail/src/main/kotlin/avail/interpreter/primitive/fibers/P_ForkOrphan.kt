@@ -78,7 +78,8 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ForkOrphan : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_ForkOrphan : Primitive3(
+	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun Interpreter.attempt3(
 		arg1: AvailObject,

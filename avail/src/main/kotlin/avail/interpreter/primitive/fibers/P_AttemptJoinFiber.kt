@@ -53,6 +53,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
@@ -82,6 +83,7 @@ import avail.interpreter.primitive.Primitive1
 object P_AttemptJoinFiber : Primitive1(
 	CanSuspend,
 	Unknown,
+	HasSideEffect,
 	// Don't re-order primitives around a join, in case it creates deadlocks.
 	WritesToHiddenGlobalState,
 	ReadsFromHiddenGlobalState)

@@ -164,7 +164,7 @@ class StackReifier constructor(
 	 * back to the default chunk.
 	 *
 	 * The code in the dummy continuation will restore register state, pop
-	 * the dummy continuation, then assemble and push whatever new
+	 * the dummy continuation, and then assemble and push whatever new
 	 * continuation(s) are needed to make the stack reflect some new state,
 	 * prior to running any previously pushed actions.
 	 *

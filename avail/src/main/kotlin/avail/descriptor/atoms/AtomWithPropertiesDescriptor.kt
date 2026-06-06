@@ -216,10 +216,11 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	 */
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>)
+		stackToProcess: MutableList<AvailObject>
+)
 	{
 		assert(mutability == Mutability.IMMUTABLE)
-		super.o_MakeImmutableInternal(self, queueToProcess)
+		super.o_MakeImmutableInternal(self, stackToProcess)
 		// Scan the property map as well.
 		val map = self[PROPERTY_MAP_POJO]
 		// The map can only be nil in a subclasses, but it's always shared, so
@@ -231,12 +232,12 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			if (key.descriptor.isMutable)
 			{
 				key.descriptor = key.descriptor.immutable()
-				queueToProcess.add(key)
+				stackToProcess.add(key)
 			}
 			if (value.descriptor.isMutable)
 			{
 				value.descriptor = value.descriptor.immutable()
-				queueToProcess.add(value)
+				stackToProcess.add(value)
 			}
 		}
 	}

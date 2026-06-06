@@ -240,7 +240,7 @@ constructor(
 				Interpreter.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
-					"{0}L2Simple step: {1}:{2}",
+					"{0}L2Simple step: {1}: {2}",
 					interpreter.debugModeString,
 					off.value,
 					instructionText)

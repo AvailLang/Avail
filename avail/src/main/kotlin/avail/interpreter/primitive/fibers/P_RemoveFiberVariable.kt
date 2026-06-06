@@ -66,7 +66,8 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveFiberVariable : Primitive1(CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_RemoveFiberVariable : Primitive1(
+	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

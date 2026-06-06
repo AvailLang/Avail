@@ -55,7 +55,7 @@ import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -67,7 +67,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_AtomFieldBound : Primitive1(
-	CanInline, CanFold, WritesToHiddenGlobalState)
+	CanInline, CanFold, ReadsFromHiddenGlobalState)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

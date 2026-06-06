@@ -33,8 +33,10 @@ package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -155,6 +157,22 @@ class TreeTupleDescriptor internal constructor(
 		 * each containing at least [minWidthOfNonRoot].
 		 */
 		SUBTUPLE_AT_
+	}
+
+	override fun o_DescribeForDebugger(self: AvailObject): Array<AvailObjectFieldHelper>
+	{
+		var end = 0
+		return Array(self.childCount) { zeroChildIndex ->
+			val childIndex = zeroChildIndex + 1
+			val start = end + 1
+			end = self.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
+			AvailObjectFieldHelper(
+				parentObject = self,
+				slot = DUMMY_DEBUGGER_SLOT,
+				subscript = childIndex,
+				value = self[SUBTUPLE_AT_, childIndex],
+				forcedName = "child #$childIndex, $start..$end")
+		}
 	}
 
 	override fun o_AppendCanDestroy(

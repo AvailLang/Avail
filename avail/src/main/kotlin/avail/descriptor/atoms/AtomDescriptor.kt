@@ -249,11 +249,11 @@ open class AtomDescriptor protected constructor (
 	 */
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 	{
 		assert(isShared)
-		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		super.o_MakeSharedInternal(self, stackToProcess, fixups)
 		val map = propertyMapOrNil(self)
 		if (map.notNil)
 		{
@@ -264,12 +264,12 @@ open class AtomDescriptor protected constructor (
 				if (!key.descriptor.isShared)
 				{
 					key.descriptor = key.descriptor.shared()
-					queueToProcess.add(key)
+					stackToProcess.add(key)
 				}
 				if (!value.descriptor.isShared)
 				{
 					value.descriptor = value.descriptor.shared()
-					queueToProcess.add(value)
+					stackToProcess.add(value)
 				}
 			}
 		}
@@ -283,7 +283,7 @@ open class AtomDescriptor protected constructor (
 		assert(substituteAtom.descriptor.isShared)
 
 		// The old atom (self) was marked as shared when it was added to the
-		// queueToProcess.  Therefore, it's not truly shared yet, as other
+		// stackToProcess.  Therefore, it's not truly shared yet, as other
 		// threads cannot actually see it.  Since shared objects can't become
 		// indirections, we switch the descriptor back to its mutable form
 		// before making it an indirection to the substituteAtom.

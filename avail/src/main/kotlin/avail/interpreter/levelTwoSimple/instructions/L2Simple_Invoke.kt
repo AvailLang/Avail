@@ -38,6 +38,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
@@ -54,7 +55,7 @@ constructor(
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	answer: Write,
-	val function: A_Function,
+	val function: Read,
 	val arguments: ReadArray
 ) : L2Simple_AbstractInvokerInstruction(
 	nextOffset,
@@ -75,7 +76,8 @@ constructor(
 				add(registers[read])
 			}
 		}
-		return invocationHelper(interpreter, registers, function)
+		val functionToInvoke = registers[function]
+		return invocationHelper(interpreter, registers, functionToInvoke)
 	}
 
 	override fun L2SimpleInstructionTransformer.transformed() =
@@ -86,6 +88,6 @@ constructor(
 			expectedType = expectedType,
 			mustCheck = mustCheck,
 			answer = write(answer),
-			function = function,
+			function = read(function),
 			arguments = read(arguments))
 }

@@ -83,8 +83,8 @@ constructor(
 		//assert(function.code().functionType().acceptsListOfArgValues(
 		//	interpreter.argsBuffer))
 		var valueOrNull = interpreter.invokeFunction(function)
-		interpreter.chunk = thisChunk
-		interpreter.function = registers.function
+		assert(interpreter.chunk === thisChunk)
+		assert(interpreter.function === registers.function)
 		if (valueOrNull === null)
 		{
 			// It reified inside the call.

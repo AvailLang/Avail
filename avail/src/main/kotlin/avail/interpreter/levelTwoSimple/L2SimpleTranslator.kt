@@ -37,7 +37,6 @@ import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.numArgs
-import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
@@ -58,6 +57,7 @@ import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -86,7 +86,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
-import avail.interpreter.levelTwoSimple.StateOfL1.Companion.dummyStateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction.Companion.createCloseFunction
@@ -744,7 +743,7 @@ constructor(
 		{
 			// Postpone it.
 			val write = allWrites.single()
-			postponedInstructions[Read(write.value)] = this
+			postponedInstructions[write.read] = this
 		}
 		else
 		{
@@ -860,7 +859,8 @@ constructor(
 	 */
 	fun generateGeneralInvocation(
 		nilpotentAttempt: ((Interpreter)->A_BasicObject?)?,
-		calledFunction: A_Function,
+		calledCode: A_RawFunction,
+		calledFunction: Read,
 		arguments: ReadArray,
 		argumentRestrictions: List<TypeRestriction>,
 		expectedType: A_Type,
@@ -868,7 +868,6 @@ constructor(
 		answer: Write
 	): TypeRestriction
 	{
-		val calledCode = calledFunction.code()
 		val prim = calledCode.codePrimitive()
 		val guaranteedReturnType = when
 		{
@@ -950,17 +949,10 @@ constructor(
 			is L2Simple_MoveConstant ->
 			{
 				val tuple = tupleSource.value
-				ReadArray(
-					tuple.map { element ->
-						val temp =
-							newRegister(boxedRestrictionForConstant(element))
-						+L2Simple_MoveConstant(value = element, to = temp)
-						Read(temp.value)
-					})
+				ReadArray(tuple.map(::constant))
 			}
 			else -> null
 		}
-
 	}
 
 	/**
@@ -1035,20 +1027,19 @@ constructor(
 					argRestrictions = tupleElementRestrictions,
 					expectedType = expectedType)
 		}
-		val exactFunction = restrictionFor(functionToInvoke)?.constantOrNull
-		if (exactFunction === null) return false
 		// Even though it's not a primitive or the primitive didn't generate
 		// custom infallible code, we can still directly invoke the function.
 		val outputRestriction = generateGeneralInvocation(
 			nilpotentAttempt = nilpotentAttempt,
-			calledFunction = exactFunction,
+			calledCode = code,
+			calledFunction = functionToInvoke,
 			arguments = tupleElements,
 			argumentRestrictions = tupleElementRestrictions,
 			expectedType = expectedType,
 			stateOfL1 = stateOfL1,
 			answer = answer)
-		val oldAnswerRestriction = restrictionFor(Read(answer.value))
-		restrictions[Read(answer.value)] = when
+		val oldAnswerRestriction = restrictionFor(answer.read)
+		restrictions[answer.read] = when
 		{
 			oldAnswerRestriction == null -> outputRestriction
 			else -> oldAnswerRestriction.intersection(outputRestriction)
@@ -1116,13 +1107,24 @@ constructor(
 	}
 
 	/**
-	 * A utility operation for creating a move instruction.
+	 * A utility operation for emitting a move instruction.
  	 */
 	fun move(
 		source: Read,
 		destination: Write)
 	{
 		+L2Simple_Move(from = source, to = destination)
+	}
+
+	/**
+	 * A utility operation for emitting a (postponable) constant move
+	 * instruction, answering a [Read] of the value.
+	 */
+	fun constant(value: A_BasicObject): Read
+	{
+		val temp = newRegister(boxedRestrictionForConstant(value))
+		+L2Simple_MoveConstant(value = value as AvailObject, to = temp)
+		return temp.read
 	}
 
 
@@ -1188,7 +1190,8 @@ constructor(
 			// Nothing was generated, so fall back.
 			generateGeneralInvocation(
 				nilpotentAttempt = null,
-				calledFunction = calledFunction,
+				calledCode = calledCode,
+				calledFunction = constant(calledFunction),
 				arguments = arguments,
 				argumentRestrictions = argRestrictions,
 				expectedType = expectedType,
@@ -1459,25 +1462,35 @@ constructor(
 		// consumer forces materialization through [unaryPlus], OR skip the
 		// construction entirely when a Restart/Exit primitive's override of
 		// [attemptToGenerateSimpleInvocation] recognizes a local-frame label
-		// and lowers the call directly.
-		--stackp
+		// and lowers the call into essentially a jump or return.
 		// Note that the push-label instruction stays postponed until (/unless)
-		// the value is needed along a path.
+		// the value is needed along a path.  We capture pc-2 in the L1 frame
+		// data, in case a debugger is in play.  It will then simply restore
+		// the registers and restart the L1 pushLabel instruction.
+		+L2Simple_ReifyForPushLabel(
+			nextOffset = SKIP,
+			stateOfL1 = StateOfL1(
+				pc = pc - 2,
+				stackp = stackp,
+				liveSlots = liveIndices()),
+			reentryOffset = NEXT)
+		+L2Simple_ReenterToResume(
+			nextOffset = NEXT,
+			stateOfL1 = StateOfL1(
+				pc = pc - 2,
+				stackp = stackp,
+				liveSlots = ReadArray.empty))
+		--stackp
 		val answer = writeSlot(
 			stackp,
 			boxedRestrictionForType(
 				continuationTypeForFunctionType(code.functionType())))
-		+L2Simple_ReifyForPushLabel(
-			nextOffset = SKIP,
-			stateOfL1 = dummyStateOfL1(),
-			reentryOffset = NEXT)
-		+L2Simple_ReenterToResume(
-			nextOffset = NEXT,
-			stateOfL1 = dummyStateOfL1())
 		+L2Simple_PushLabel(
 			nextOffset = NEXT,
 			// Note that this is the state to capture during reification, not
-			// the content of the label continuation itself.
+			// the content of the label continuation itself.  We have to
+			// capture the actual L1 state in frame slots, since the debugger
+			// *can* switch to L1 when stepping past such a step.
 			stateOfL1 = StateOfL1(
 				pc = -999,
 				stackp = -999,

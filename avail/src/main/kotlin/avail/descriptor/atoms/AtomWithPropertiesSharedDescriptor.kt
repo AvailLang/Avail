@@ -231,7 +231,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>
 	) = unsupported
 

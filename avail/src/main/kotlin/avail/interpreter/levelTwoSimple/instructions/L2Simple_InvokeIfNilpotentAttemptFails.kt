@@ -32,13 +32,13 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
@@ -67,7 +67,7 @@ constructor(
 	expectedType: A_Type,
 	mustCheck: Boolean,
 	answer: Write,
-	val function: A_Function,
+	val function: Read,
 	val arguments: ReadArray,
 	val nilpotentAttempt: (Interpreter)->A_BasicObject?
 ) : L2Simple_AbstractInvokerInstruction(
@@ -83,13 +83,15 @@ constructor(
 		interpreter: Interpreter
 	): Offset
 	{
+		val thisChunk = interpreter.chunk
 		interpreter.argsBuffer.run {
 			clear()
 			arguments.forEachIndexed { _, read ->
 				add(registers[read])
 			}
 		}
-		interpreter.function = function
+		val functionToInvoke = registers[function]
+		interpreter.function = functionToInvoke
 		// First try the nilpotent function supplied by the primitive.
 		val value = nilpotentAttempt(interpreter)
 		interpreter.function = registers.function
@@ -103,7 +105,11 @@ constructor(
 		// The primitive failed, but it left the arguments in the argsBuffer, so
 		// run it again.  It'll fail again, but this is a cold path and we don't
 		// expect the retry to be a significant cost.  And it's idempotent.
-		return invocationHelper(interpreter, registers, function)
+		val resultOrNull =
+			invocationHelper(interpreter, registers, functionToInvoke)
+		assert(interpreter.function === registers.function)
+		assert(interpreter.chunk === thisChunk)
+		return resultOrNull
 	}
 
 	override fun L2SimpleInstructionTransformer.transformed() =
@@ -114,7 +120,7 @@ constructor(
 			expectedType = expectedType,
 			mustCheck = mustCheck,
 			answer = write(answer),
-			function = function,
+			function = read(function),
 			arguments = read(arguments),
 			nilpotentAttempt = nilpotentAttempt)
 }

@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.numSlots
 import avail.descriptor.functions.A_Continuation.Companion.pc
@@ -254,21 +255,21 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 		}
 		if (offset == AFTER_REIFICATION_FOR_LABEL_CREATION.offset)
 		{
-			// The call stack was just reified, except for the top frame which
-			// was about to create a label (but needed to reify first).  It
-			// will have stashed the frame, pc, and stackp necessary to resume
-			// execution immediately.  Even better, the pc has been adjusted to
-			// point at the push-label instruction again, but this time it will
-			// notice that the call stack has been reified, and create the label
-			// without a problem.
-			val stepper = interpreter.levelOneStepper
-			val retrievedFrame = stepper.stashedFrameAtPushLabel!!
-			// Safety.
-			stepper.stashedFrameAtPushLabel = null
-			return stepper.run(
-				frame = retrievedFrame,
-				startingPc = stepper.stashedPcAtPushLabel,
-				startingStackp = stepper.stashedStackpAtPushLabel)
+			// The call stack was just reified, including the top frame.
+			// Extract the frame array from it, as well as pc/stackp, pop it
+			// off, and continue the stepper.
+			val popped = interpreter.popContinuation()
+			val frame = Array(popped.numSlots() + 1) {
+				when (it)
+				{
+					0 -> nil
+					else -> popped.frameAt(it)
+				}
+			}
+			return interpreter.levelOneStepper.run(
+				frame = frame,
+				startingPc = popped.pc,
+				startingStackp = popped.stackp)
 		}
 		if (offset == REENTRY_FROM_REIFIED_CALL.offset)
 		{

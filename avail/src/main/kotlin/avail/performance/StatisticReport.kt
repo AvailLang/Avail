@@ -32,12 +32,11 @@
 
 package avail.performance
 
+import avail.compiler.ParsingOperation
 import avail.descriptor.bundles.A_BundleTree
-import avail.descriptor.bundles.A_BundleTree.Companion.expand
 import avail.optimizer.StackReifier
 import avail.performance.ReportingUnit.BYTES
 import avail.performance.ReportingUnit.NANOSECONDS
-import avail.performance.StatisticReport.entries
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.ifZero
 import java.text.Collator
@@ -72,10 +71,9 @@ enum class StatisticReport constructor(
 	/** Statistics for type checking while parsing. */
 	TYPE_CHECKING_FOR_PARSER("Parser Type Check", NANOSECONDS),
 
-	/**
-	 * Statistics for [expanding][A_BundleTree.expand] ParsingOperations.
-	 */
-	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
+	/** Statistics for expanding the [A_BundleTree] for [ParsingOperation]s. */
+	EXPANDING_PARSING_INSTRUCTIONS(
+		"Expanding Parsing Operations", NANOSECONDS),
 
 	/** A breakdown of the time spent in L2 optimization phases. */
 	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
@@ -88,6 +86,9 @@ enum class StatisticReport constructor(
 
 	/** The Primitives report. */
 	PRIMITIVES("Primitives", NANOSECONDS),
+
+	/** A report of how long some primitives take for type checks. */
+	TYPE_CHECKS_IN_PRIMITIVES("Type Checks in Primitives", NANOSECONDS),
 
 	/** A report of how long and deep dynamic lookups are. */
 	DYNAMIC_LOOKUP_BY_TARGET("Dynamic lookup by target", NANOSECONDS),

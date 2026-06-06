@@ -2130,6 +2130,8 @@ final class Interpreter(
 	 */
 	fun invokeFunction(aFunction: A_Function): A_BasicObject?
 	{
+		val savedFunction = function
+		val savedChunk = chunk
 		function = aFunction
 		val code = aFunction.code()
 		assert(code.numArgs() == argsBuffer.size)
@@ -2180,6 +2182,8 @@ final class Interpreter(
 		finally
 		{
 			adjustUnreifiedCallDepthBy(-1)
+			function = savedFunction
+			chunk = savedChunk
 		}
 	}
 

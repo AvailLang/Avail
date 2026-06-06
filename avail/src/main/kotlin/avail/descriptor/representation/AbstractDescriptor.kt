@@ -2698,13 +2698,14 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * @param self
 	 *   An [AvailObject].
-	 * @param queueToProcess
+	 * @param stackToProcess
 	 *   The queue on which to write subobjects that still need to be scanned,
 	 *   after marking them here as immutable.
 	 */
 	open fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>)
+		stackToProcess: MutableList<AvailObject>
+)
 	{
 		assert(mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
@@ -2718,7 +2719,7 @@ abstract class AbstractDescriptor protected constructor (
 				val immutableDescriptor = descriptor.immutable()
 				//assert(immutableDescriptor.mutability == Mutability.IMMUTABLE)
 				traversed.descriptor = immutableDescriptor
-				queueToProcess.add(traversed)
+				stackToProcess.add(traversed)
 			}
 			traversed
 		}
@@ -2731,7 +2732,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * @param self
 	 *   An [AvailObject].
-	 * @param queueToProcess
+	 * @param stackToProcess
 	 *   The queue on which to write subobjects that still need to be scanned,
 	 *   after marking them here as shared.
 	 * @param fixups
@@ -2740,7 +2741,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	open fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 	{
 		assert(isShared) {
@@ -2753,7 +2754,7 @@ abstract class AbstractDescriptor protected constructor (
 			if (!descriptor.isShared)
 			{
 				traversed.descriptor = descriptor.shared()
-				queueToProcess.add(traversed)
+				stackToProcess.add(traversed)
 			}
 			traversed
 		}

@@ -54,7 +54,8 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateReadWriteVariableType : Primitive2(CannotFail, CanInline, CanFold)
+object P_CreateReadWriteVariableType : Primitive2(
+	CannotFail, CanInline, CanFold)
 {
 	override fun Interpreter.attempt2(
 		arg1: AvailObject,

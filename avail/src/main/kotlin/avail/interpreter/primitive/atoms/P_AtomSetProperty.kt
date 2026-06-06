@@ -64,7 +64,8 @@ import avail.interpreter.primitive.Primitive3
  * operation.
  */
 @Suppress("unused")
-object P_AtomSetProperty : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_AtomSetProperty : Primitive3(
+	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun Interpreter.attempt3(
 		arg1: AvailObject,

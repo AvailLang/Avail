@@ -33,8 +33,6 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
@@ -68,13 +66,11 @@ class L2Simple_ReifyForPushLabel(
 	reentryOffset: Offset,
 	stateOfL1: StateOfL1
 ) : L2Simple_AbstractReifiableInstruction(
-	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.TRANSIENT)
+	nextOffset = nextOffset,
+	reentryOffset = reentryOffset,
+	stateOfL1 = stateOfL1,
+	defaultEntryPoint = DefaultEntryPoint.AFTER_REIFICATION_FOR_LABEL_CREATION)
 {
-	init
-	{
-		assert(stateOfL1.liveSlots.size == 0)
-	}
-
 	override fun step(
 		registers: RegisterSet,
 		interpreter: Interpreter
@@ -101,15 +97,14 @@ class L2Simple_ReifyForPushLabel(
 				// immediately reenters, it will restore the register state
 				// from the dummy continuation's register dump, then push a
 				// label.
-				var dummyContinuation: A_Continuation =
-					createDummyContinuation(
-						function = function,
-						registerDump = makeRegisterDump(registers),
-						levelTwoChunk = thisChunk,
-						levelTwoOffset = nextOffset.value)
-				dummyContinuation =
-					dummyContinuation.replacingCaller(caller)
-				interpreter.setReifiedContinuation(dummyContinuation)
+				var postReificationContinuation: A_Continuation =
+					createContinuation(
+						caller = caller,
+						registers = registers,
+						thisChunk = thisChunk,
+						expectedType = null,
+						offset = nextOffset)
+				interpreter.setReifiedContinuation(postReificationContinuation)
 				// Now we tell the interpreter to reenter the dummy
 				// continuation, which will extract the register dump back
 				// into the new RegisterSet, and continue running the chunk

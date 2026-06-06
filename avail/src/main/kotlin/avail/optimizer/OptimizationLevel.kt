@@ -76,7 +76,7 @@ constructor(val countdown: Long)
 	/**
 	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
 	 */
-	SIMPLE_TRANSLATION(1_000_000_000_000_000_000L) //TODO 1_000L) -- suppress L2.
+	SIMPLE_TRANSLATION(1_000_000_000_000_000_000L) //TODO 1_000L) -- suppress L2)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{

@@ -137,6 +137,9 @@ class RegisterDumpDescriptor private constructor(
 		OBJECT_SLOTS_
 	}
 
+	override fun o_NameForDebugger(self: AvailObject) =
+		super.o_NameForDebugger(self) + " (fallback = $fallbackEntryPoint)"
+
 	override fun o_Hash(self: AvailObject): Int
 	{
 		return System.identityHashCode(self)

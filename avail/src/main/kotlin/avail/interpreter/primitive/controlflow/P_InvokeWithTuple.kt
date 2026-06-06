@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.controlflow
 
+import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
@@ -82,6 +83,8 @@ import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.performance.Statistic
+import avail.performance.StatisticReport
 import java.util.Collections.nCopies
 
 /**
@@ -108,14 +111,19 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		{
 			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val tupleType = functionType.argsTupleType
-		for (i in 1 .. numArgs)
+		if (numArgs > 0)
 		{
-			val arg = argTuple.tupleAt(i)
-			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
+			val before = captureNanos(this)
+			val tupleType = functionType.argsTupleType
+			for (i in 1 .. numArgs)
 			{
-				return fail(E_INCORRECT_ARGUMENT_TYPE)
+				val arg = argTuple.tupleAt(i)
+				if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
+				{
+					return fail(E_INCORRECT_ARGUMENT_TYPE)
+				}
 			}
+			argumentCheckStat.record(captureNanos(this) - before)
 		}
 
 		// The arguments and parameter types agree.  Can't fail after here, so
@@ -359,4 +367,13 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 			answer = answer,
 			expectedType = expectedType)
 	}
+
+	/**
+	 * A statistic that only measures the cost of type-checking arguments for
+	 * this primitive.  Note that this time is also counted as primitive
+	 * execution time.
+	 */
+	val argumentCheckStat = Statistic(
+		StatisticReport.TYPE_CHECKS_IN_PRIMITIVES,
+		"Check for arguments of $name")
 }

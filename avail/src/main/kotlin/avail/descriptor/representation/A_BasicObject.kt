@@ -1129,19 +1129,20 @@ interface A_BasicObject : JSONFriendly
 	 * have not yet been made immutable.  Scan them now, and do any additional
 	 * queueing necessary for the kind of object.
 	 *
-	 * @param queueToProcess
+	 * @param stackToProcess
 	 *   The queue on which to add newly discovered mutable objects, *after*
 	 *   marking them as immutable (but not scanning them yet).
 	 */
 	fun makeImmutableInternal(
-		queueToProcess: MutableList<AvailObject>)
+		stackToProcess: MutableList<AvailObject>
+)
 
 	/**
 	 * The receiver is marked with a [SHARED] descriptor, but its subobjects
 	 * have not yet been made shared.  Scan them now, and do any additional
 	 * fix-ups necessary for the kind of object.
 	 *
-	 * @param queueToProcess
+	 * @param stackToProcess
 	 *   The queue on which to add newly discovered unshared objects, after
 	 *   marking them as shared (but not scanning them yet).
 	 * @param fixups
@@ -1149,7 +1150,7 @@ interface A_BasicObject : JSONFriendly
 	 *   been shared.
 	 */
 	fun makeSharedInternal(
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 
 	/**

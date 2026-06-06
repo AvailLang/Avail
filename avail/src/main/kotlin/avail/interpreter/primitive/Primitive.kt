@@ -1119,7 +1119,8 @@ constructor(
 				{
 					generateGeneralInvocation(
 						nilpotentAttempt = nilpotentAttempt,
-						calledFunction = functionIfKnown,
+						calledCode = rawFunction,
+						calledFunction = constant(functionIfKnown),
 						arguments = arguments,
 						argumentRestrictions = argRestrictions,
 						expectedType = expectedType,

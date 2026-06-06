@@ -527,7 +527,8 @@ class ContinuationDescriptor private constructor(
 	 */
 	override fun o_MakeImmutableInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>)
+		stackToProcess: MutableList<AvailObject>
+)
 	{
 		assert(mutability == Mutability.IMMUTABLE) {
 			"The descriptor should have been switched to immutable already"
@@ -535,7 +536,7 @@ class ContinuationDescriptor private constructor(
 		self.descriptor = mutable
 		self.createElidedVariables()
 		self.descriptor = this
-		super.o_MakeImmutableInternal(self, queueToProcess)
+		super.o_MakeImmutableInternal(self, stackToProcess)
 	}
 
 	/**
@@ -549,7 +550,7 @@ class ContinuationDescriptor private constructor(
 	 */
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 	{
 		assert(mutability == Mutability.SHARED) {
@@ -558,7 +559,7 @@ class ContinuationDescriptor private constructor(
 		self.descriptor = mutable
 		self.createElidedVariables()
 		self.descriptor = this
-		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		super.o_MakeSharedInternal(self, stackToProcess, fixups)
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =

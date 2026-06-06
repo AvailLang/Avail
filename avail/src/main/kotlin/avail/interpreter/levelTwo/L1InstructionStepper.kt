@@ -62,6 +62,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
 import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import avail.descriptor.methods.A_Method
@@ -164,12 +165,6 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 {
 	/** The current position in the nybblecodes. */
 	val instructionDecoder = L1InstructionDecoder()
-
-	var stashedFrameAtPushLabel: Array<AvailObject>? = null
-
-	var stashedPcAtPushLabel: Int = Int.MIN_VALUE
-
-	var stashedStackpAtPushLabel: Int = Int.MIN_VALUE
 
 	/**
 	 * Get the current program counter.
@@ -508,39 +503,31 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// its caller, function, and args.
 					// ...always a fresh copy, always mutable (uniquely owned).
 					// ...and continue running the chunk.
-					if (interpreter.callerIsReified())
+					if (!interpreter.callerIsReified())
 					{
-						// The caller has already been reified, so we don't need
-						// to force reification here.
-						// Note that the locals are not present in the new
-						// continuation, just arguments.
-						val labelContinuation = createLabelContinuation(
-							interpreter.function!!,
-							interpreter.getReifiedContinuation()!!,
-							DefaultL1Chunk,
-							AFTER_PRIMITIVE_FAILURE.offset,
-							args)
-						// Freeze all fields of the new object, including its
-						// caller, function, and args.
-						labelContinuation.makeSubobjectsImmutable()
-						frame[--stackp] = labelContinuation as AvailObject
-					}
-					else
-					{
-						// Unfortunately, the caller is not yet reified.
-						// Stash the frame, pc-2, and stackp into fields of this
-						// stepper, reify any outer calls, then continue running
-						// at offset AFTER_REIFICATION_FOR_LABEL_CREATION.  This
-						// will retrieve the stashed data and continue the
-						// stepper at the same push-label instruction, but this
-						// time the caller will have been reified already.
-						stashedFrameAtPushLabel = frame
-						// Note: push-label is an extended nybblecode, and takes
-						// two nybbles.
-						stashedPcAtPushLabel = pc() - 2
-						stashedStackpAtPushLabel = stackp
+						// Unfortunately, the caller is not yet reified. Reify
+						// now and capture the current L1 state in a
+						// continuation that will continue at pc-2, which is the
+						// pushLocal instruction itself (one nybble for the
+						// extension, one for the pushLabel).  The continuation
+						// should continue at offset
+						// AFTER_REIFICATION_FOR_LABEL_CREATION, which will pop
+						// the continuation and reconstruct the frame, then
+						// resume this stepper at the pushLabel instruction.
+						val continuation = createContinuationWithFrame(
+							function = function,
+							caller = nil,
+							registerDump = emptyRegisterDump(
+								AFTER_REIFICATION_FOR_LABEL_CREATION.offset),
+							pc = pc() - 2,
+							stackp = stackp,
+							levelTwoChunk = DefaultL1Chunk,
+							levelTwoOffset =
+								AFTER_REIFICATION_FOR_LABEL_CREATION.offset,
+							frameValues = frame.asList(),
+							zeroBasedStartIndex = 1)
 						val savedFunction = interpreter.function!!
-						interpreter.currentReifier = StackReifier(
+						val reifier = StackReifier(
 							true,
 							reificationBeforeLabelCreationStat
 						) {
@@ -555,8 +542,26 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							// that the call chain has been reified.
 							CONTINUE_FIBER
 						}
+						reifier.pushAction {
+							continuation.replacingCaller(it)
+						}
+						interpreter.currentReifier = reifier
 						return null
 					}
+					// The caller has already been reified, so we don't need
+					// to force reification here.
+					// Note that the locals are not present in the new
+					// continuation, just arguments.
+					val labelContinuation = createLabelContinuation(
+						interpreter.function!!,
+						interpreter.getReifiedContinuation()!!,
+						DefaultL1Chunk,
+						AFTER_PRIMITIVE_FAILURE.offset,
+						args)
+					// Freeze all fields of the new object, including its
+					// caller, function, and args.
+					labelContinuation.makeSubobjectsImmutable()
+					frame[--stackp] = labelContinuation as AvailObject
 				}
 				L1Ext_doGetLiteral_ord ->
 				{

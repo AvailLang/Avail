@@ -279,7 +279,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 	{
 		// This was only surface shared at this point, and the internals have
@@ -289,7 +289,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		becomeRealTupleType(self)
 		self.descriptor = self.descriptor.shared()
 		// Process self, now that it's a surface-shared indirection object.
-		self.makeSharedInternal(queueToProcess, fixups)
+		self.makeSharedInternal(stackToProcess, fixups)
 	}
 
 	override fun o_SerializerOperation(

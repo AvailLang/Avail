@@ -59,6 +59,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.stringificationPriority
+import avail.descriptor.fiber.FiberDescriptor.Companion.uniqueFiberCounter
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RETIRED
@@ -126,6 +127,7 @@ import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -201,8 +203,6 @@ import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.stackToString
 import avail.utility.structures.EnumMap.Companion.enumMap
-import java.util.Collections.newSetFromMap
-import java.util.Collections.synchronizedSet
 import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
@@ -212,6 +212,7 @@ import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.read
@@ -824,9 +825,9 @@ class AvailRuntime constructor(
 	 * produced by a [method][MethodDescriptor] send disagrees with the
 	 * [type][TypeDescriptor] expected.
 	 *
-	 * The function takes the function that's attempting to return, the
-	 * expected return type, and a new variable holding the actual result being
-	 * returned (or unassigned if it was `nil`).
+	 * The function takes the function attempting to return, the expected return
+	 * type, and a new variable holding the actual result being returned (or
+	 * unassigned if it was `nil`).
 	 *
 	 * @return
 	 *   The requested function.
@@ -875,12 +876,29 @@ class AvailRuntime constructor(
 	fun unassignedVariableReadFunction(): A_Function =
 		get(HookType.READ_UNASSIGNED_VARIABLE)
 
+	/** Must be one less than a power of two. */
+	private val maskForWeakMaps = (1 shl 4) - 1
+
+	init { assert ((maskForWeakMaps + 1) and maskForWeakMaps == 0) }
+
 	/**
 	 * All [fibers][A_Fiber] that have not yet [retired][RETIRED] *or* been
-	 * reclaimed by garbage collection.
+	 * reclaimed by garbage collection.  Since Java & Kotlin don't provide a low
+	 * contention (concurrent) weak hash map, we scatter access among a few
+	 * weak maps, pairing a [ReadWriteLock] with each.
 	 */
-	private val allFibers = synchronizedSet(
-		newSetFromMap(WeakHashMap<A_Fiber, Boolean>()))
+	private val allFiberLocksAndWeakMaps = Array(maskForWeakMaps + 1) {
+		Pair(ReentrantReadWriteLock(), WeakHashMap<A_Fiber, Boolean>())
+	}
+
+	/**
+	 * Find the [Pair] of [ReadWriteLock] and [WeakHashMap] that the given
+	 * fiber is / would be in.
+	 */
+	private fun lockAndMapForFiber(
+		fiber: A_Fiber
+	) = allFiberLocksAndWeakMaps[
+		combine2(fiber.hash(), -0x7C19BABC) and maskForWeakMaps]
 
 	/**
 	 * An object that gets notified when the last fiber of the runtime has been
@@ -896,14 +914,14 @@ class AvailRuntime constructor(
 	 */
 	fun registerFiber(fiber: A_Fiber)
 	{
-		allFibers.add(fiber)
-		newFiberHandlers[fiber.fiberKind]!!.get()?.invoke(fiber)
+		val (lock, map) = lockAndMapForFiber(fiber)
+		lock.safeWrite { map[fiber] = true }
 	}
 
 	/**
 	 * Remove the specified [fiber][A_Fiber] from this [runtime][AvailRuntime].
 	 * This should be done explicitly when a fiber retires, although the fact
-	 * that [allFibers] wraps a [WeakHashMap] ensures that fibers that are no
+	 * that [allFibersNow] wraps a [WeakHashMap] ensures that fibers that are no
 	 * longer referenced will still be cleaned up at some point.
 	 *
 	 * @param fiber
@@ -911,7 +929,22 @@ class AvailRuntime constructor(
 	 */
 	fun unregisterFiber(fiber: A_Fiber)
 	{
-		allFibers.remove(fiber)
+		val (lock, map) = lockAndMapForFiber(fiber)
+		val mapIsEmpty = lock.safeWrite {
+			map.remove(fiber)
+			map.isEmpty()
+		}
+		if (!mapIsEmpty) return
+		if (anyFibersExist()) return
+		synchronized(noFibersMonitor)
+		{
+			noFibersMonitor.javaNotifyAll()
+		}
+	}
+
+	private fun anyFibersExist(): Boolean
+	{
+		val fiberCounterBefore = uniqueFiberCounter.get()
 		// If a race happens between these lines, due to a new fiber starting,
 		// we're already in the realm of unspecified behavior.  Even if waiters
 		// don't get notified because the momentary emptiness isn't detected,
@@ -924,13 +957,14 @@ class AvailRuntime constructor(
 		// garbage collection would have (if not for garbage collection) stuck
 		// around in this set infinitely long anyhow, so this behavior seems
 		// reasonable.
-		if (allFibers.isEmpty())
+		if (allFiberLocksAndWeakMaps
+			.any { (lock, map) -> lock.read { map.isNotEmpty() } })
 		{
-			synchronized(noFibersMonitor)
-			{
-				noFibersMonitor.javaNotifyAll()
-			}
+			return true
 		}
+		// See if any fiber was created while we were checking that all the maps
+		// are empty.
+		return uniqueFiberCounter.get() != fiberCounterBefore
 	}
 
 	/**
@@ -948,7 +982,7 @@ class AvailRuntime constructor(
 	{
 		synchronized(noFibersMonitor)
 		{
-			while (allFibers.isNotEmpty())
+			while (!anyFibersExist())
 			{
 				noFibersMonitor.javaWait()
 			}
@@ -967,7 +1001,11 @@ class AvailRuntime constructor(
 	 * @return
 	 *   All fibers belonging to this `AvailRuntime`.
 	 */
-	fun allFibers(): Set<A_Fiber> = allFibers.toSet()
+	fun allFibersNow(): Set<A_Fiber> = buildSet {
+		allFiberLocksAndWeakMaps.forEach { (lock, map) ->
+			lock.read { addAll(map.keys) }
+		}
+	}
 
 	/**
 	 * The [lock][ReentrantReadWriteLock] that protects the

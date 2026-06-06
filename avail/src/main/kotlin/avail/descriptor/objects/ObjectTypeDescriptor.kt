@@ -568,10 +568,10 @@ class ObjectTypeDescriptor internal constructor(
 
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
-		queueToProcess: MutableList<AvailObject>,
+		stackToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
 	{
-		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		super.o_MakeSharedInternal(self, stackToProcess, fixups)
 		fixups.add {
 			var canonical: AvailObject?
 			do
@@ -585,7 +585,7 @@ class ObjectTypeDescriptor internal constructor(
 						// enclosing synchronized section completes.
 						val refPojo = identityPojo(ref)
 						refPojo.descriptor = refPojo.descriptor.shared()
-						queueToProcess.add(refPojo)
+						stackToProcess.add(refPojo)
 						self.setVolatileSlot(WEAK_REFERENCE_POJO, refPojo)
 						ref
 					}.get()

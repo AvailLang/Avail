@@ -56,7 +56,8 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ExpressionAsStatementExpression : Primitive1(CannotFail, CanFold, CanInline)
+object P_ExpressionAsStatementExpression : Primitive1(
+	CannotFail, CanFold, CanInline)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

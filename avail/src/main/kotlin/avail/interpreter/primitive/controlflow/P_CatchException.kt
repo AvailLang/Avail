@@ -108,17 +108,11 @@ object P_CatchException : Primitive3(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
 		argRestrictions: List<TypeRestriction>,
-		expectedType: A_Type): ((Interpreter)->A_BasicObject?)?
+		expectedType: A_Type
+	): ((Interpreter)->A_BasicObject?)?
 	{
-		return ::nilpotentAttempt
-	}
-
-	override fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
-	{
-		// We always fail the primitive, one way or another.  May as well be
-		// quick about the first attempt.  Once there's an L2Simple instruction
-		// for handling a catch more directly (perhpas skipping block argument
-		// type checks at most call sites), we can remove this.
+		// Don't pre-attempt the catch primitive, since we know it will always
+		// fail anyhow.
 		return null
 	}
 

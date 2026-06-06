@@ -61,7 +61,8 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_NewNames : Primitive1(CanInline, CannotFail, ReadsFromHiddenGlobalState)
+object P_NewNames : Primitive1(
+	CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

@@ -60,7 +60,8 @@ import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
  * **Primitive:** Get the priority of a fiber.
  */
 @Suppress("unused")
-object P_GetFiberPriority : Primitive1(CannotFail, CanInline, ReadsFromHiddenGlobalState)
+object P_GetFiberPriority : Primitive1(
+	CannotFail, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject

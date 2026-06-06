@@ -109,6 +109,7 @@ import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.concurrent.GuardedBy
 import javax.swing.ImageIcon
@@ -300,7 +301,7 @@ class FiberDescriptor private constructor(
 		 * increasing counter.  Since it's only used for debugging, it's safe
 		 * even if the counter eventually overflows.
 		 */
-		val debugUniqueId = uniqueDebugCounter.incrementAndGet().toLong()
+		val debugUniqueId = uniqueFiberCounter.incrementAndGet()
 
 		/**
 		 * A [set][SetDescriptor] of raw [pojos][RawPojoDescriptor], each of
@@ -1198,7 +1199,7 @@ class FiberDescriptor private constructor(
 
 	companion object {
 		/** A simple counter for identifying fibers by creation order. */
-		private val uniqueDebugCounter = AtomicInteger(0)
+		val uniqueFiberCounter = AtomicLong(0)
 
 		/** The priority of module tracing tasks. */
 		const val tracerPriority = 50

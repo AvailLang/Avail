@@ -77,9 +77,11 @@ import avail.descriptor.types.A_Type
  * @param mutability
  *   The mutability of the descriptor.
  */
-class ReverseTupleDescriptor private constructor(mutability: Mutability)
-	: TupleDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+class ReverseTupleDescriptor private
+constructor(
+	mutability: Mutability
+): TupleDescriptor(
+	mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.

@@ -70,12 +70,3 @@ constructor(
 	val stackp: Int,
 	val liveSlots: ReadArray,
 	var allLiveRegisters: ReadArray? = null)
-{
-	companion object
-	{
-		fun dummyStateOfL1() = StateOfL1(
-			pc = -99,
-			stackp = -99,
-			liveSlots = ReadArray.empty)
-	}
-}
