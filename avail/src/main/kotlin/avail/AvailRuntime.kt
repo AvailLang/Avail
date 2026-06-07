@@ -964,7 +964,7 @@ class AvailRuntime constructor(
 		}
 		// See if any fiber was created while we were checking that all the maps
 		// are empty.
-		return uniqueFiberCounter.get() != fiberCounterBefore
+		return uniqueFiberCounter.get() == fiberCounterBefore
 	}
 
 	/**
@@ -984,7 +984,9 @@ class AvailRuntime constructor(
 		{
 			while (!anyFibersExist())
 			{
-				noFibersMonitor.javaWait()
+				// Since this isn't perfectly reliable, time out every second
+				// and keep retrying.
+				noFibersMonitor.javaWait(1000L)
 			}
 		}
 	}
