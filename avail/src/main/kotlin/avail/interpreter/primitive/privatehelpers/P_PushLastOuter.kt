@@ -128,7 +128,7 @@ object P_PushLastOuter : PrimitiveN(
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
-		optionalFunctionRead: Read?,
+		functionRead: Read,
 		expectedType: A_Type,
 		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
@@ -143,12 +143,7 @@ object P_PushLastOuter : PrimitiveN(
 			+L2Simple_MoveConstant(value = constant, to = answer)
 			return true
 		}
-		if (optionalFunctionRead === null)
-		{
-			// We don't know where the function was constructed.
-			return false
-		}
-		var postponedClose = postponedInstructions[optionalFunctionRead]
+		var postponedClose = postponedInstructions[functionRead]
 		while (postponedClose !== null && postponedClose is L2Simple_Move)
 		{
 			postponedClose = postponedInstructions[postponedClose.from]

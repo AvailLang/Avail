@@ -349,7 +349,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
-		optionalFunctionRead: Read?,
+		functionRead: Read,
 		expectedType: A_Type,
 		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,

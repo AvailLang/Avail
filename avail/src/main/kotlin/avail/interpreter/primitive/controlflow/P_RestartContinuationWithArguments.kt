@@ -159,7 +159,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
-		optionalFunctionRead: Read?,
+		functionRead: Read,
 		expectedType: A_Type,
 		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,

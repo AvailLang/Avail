@@ -56,6 +56,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -69,11 +70,14 @@ import avail.descriptor.types.A_Type.Companion.functionType
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
@@ -238,6 +242,23 @@ constructor(
 
 	fun restrictionFor(read: Read): TypeRestriction? = restrictions[read]
 
+	fun narrowRestriction(
+		read: Read,
+		restriction: TypeRestriction?)
+	{
+		val oldRestriction = restrictions[read]
+		val newRestriction = when
+		{
+			oldRestriction === null -> restriction
+			restriction === null -> oldRestriction
+			else -> oldRestriction.intersection(restriction)
+		}
+		if (newRestriction !== null)
+		{
+			restrictions[read] = newRestriction
+		}
+	}
+
 	fun slotRestriction(slotIndex: Int): TypeRestriction =
 		restrictionFor(readSlot(slotIndex))!!
 
@@ -290,6 +311,25 @@ constructor(
 			if (origin !is L2Simple_Move) return origin
 			// Trace back through the move.
 			currentRead = origin.from
+		}
+	}
+
+	/**
+	 * Given the [L2SimpleInstruction] that produces a function, attempt to
+	 * determine the [A_RawFunction] that is within that function, or `null` if
+	 * it can't be determined.
+	 */
+	fun codeForFunctionCreation(functionRead: Read): A_RawFunction?
+	{
+		restrictionFor(functionRead)?.constantOrNull?.code()?.let { return it }
+		val functionInstruction = originInstructionSkippingMoves(functionRead)
+		return when
+		{
+			functionInstruction is L2Simple_AbstractCloseFunction ->
+				functionInstruction.code
+			functionInstruction is L2Simple_MoveConstant ->
+				functionInstruction.value.code()
+			else -> null
 		}
 	}
 
@@ -969,81 +1009,89 @@ constructor(
 		expectedType: A_Type
 	): Boolean
 	{
-		val tupleElements =
-			tupleElementSources(functionArguments) ?: return false
-		// Check if the function itself was closed locally.
-		val closeFunction = originInstructionSkippingMoves(functionToInvoke)
-		val code = when
-		{
-			closeFunction is L2Simple_AbstractCloseFunction ->
-				closeFunction.code
-			closeFunction is L2Simple_MoveConstant ->
-				closeFunction.value.code()
-			restrictionFor(functionToInvoke).notNullAnd { isConstant } ->
-				restrictionFor(functionToInvoke)!!.constantOrNull!!.code()
-			else -> return false
-		}
-		if (code.numArgs() != tupleElements.size)
-		{
-			// Argument count mismatch.
-			return false
-		}
-		val exactFunctionType = code.functionType()
-		// See if the function will definitely accept the arguments.
+		val tupleElements = tupleElementSources(functionArguments)
+		tupleElements ?: return false
 		val tupleElementRestrictions = tupleElements.values.map {
 			restrictionFor(Read(it)) ?: anyRestriction
 		}
 		val tupleElementTypes =
 			tupleElementRestrictions.map(TypeRestriction::type)
-		if (!exactFunctionType.acceptsListOfArgTypes(tupleElementTypes))
+		// Check if the function itself was closed locally.
+		val functionRestriction = restrictionFor(functionToInvoke)!!
+		val exactFunction = functionRestriction.constantOrNull
+		val functionType = functionRestriction.type
+		val argsTupleType = functionType.argsTupleType
+		val argsTupleSizes = argsTupleType.sizeRange
+		val numArgs = argsTupleSizes.lowerBound
+		when
 		{
-			// The function won't necessarily accept the arguments.
-			return false
+			// Check if the argument count disagrees with the tuple.
+			!numArgs.isInt -> return false
+			!argsTupleSizes.upperBound.equals(numArgs) -> return false
+			!numArgs.equalsInt(tupleElements.size) -> return false
+			// Check if the function will definitely not accept the arguments.
+			!functionType.acceptsListOfArgTypes(tupleElementTypes) ->
+				return false
 		}
+		// The provided arguments satisfy the function's argument types.
+		val code = codeForFunctionCreation(functionToInvoke)
 		// The function will definitely accept the arguments.  If the called
 		// function is itself a primitive, give it the opportunity to do further
 		// specialization.
-		val calledPrim = code.codePrimitive()
+		val calledPrim = code?.codePrimitive()
 		var nilpotentAttempt: ((Interpreter)->A_BasicObject?)? = null
 		calledPrim?.run {
 			// It's trying to invoke a primitive function, so let that primitive
 			// function do its code generation instead.
 			val generated = attemptToGenerateSimpleInvocation(
-				functionIfKnown =
-					restrictionFor(functionToInvoke)?.constantOrNull,
+				functionIfKnown = exactFunction,
 				rawFunction = code,
-				optionalFunctionRead = functionToInvoke,
+				functionRead = functionToInvoke,
 				expectedType = expectedType,
 				args = tupleElements,
 				argRestrictions = tupleElementRestrictions,
 				stateOfL1 = stateOfL1,
 				answer = answer)
 			if (generated) return true
-			nilpotentAttempt =
-				this@L2SimpleTranslator.simplePrimitiveNilpotentInvocation(
-					functionIfKnown =
-						restrictionFor(functionToInvoke)?.constantOrNull,
-					rawFunction = code,
-					argRestrictions = tupleElementRestrictions,
-					expectedType = expectedType)
+			nilpotentAttempt = simplePrimitiveNilpotentInvocation(
+				functionIfKnown = exactFunction,
+				rawFunction = code,
+				argRestrictions = tupleElementRestrictions,
+				expectedType = expectedType)
 		}
 		// Even though it's not a primitive or the primitive didn't generate
 		// custom infallible code, we can still directly invoke the function.
-		val outputRestriction = generateGeneralInvocation(
-			nilpotentAttempt = nilpotentAttempt,
-			calledCode = code,
-			calledFunction = functionToInvoke,
-			arguments = tupleElements,
-			argumentRestrictions = tupleElementRestrictions,
-			expectedType = expectedType,
-			stateOfL1 = stateOfL1,
-			answer = answer)
-		val oldAnswerRestriction = restrictionFor(answer.read)
-		restrictions[answer.read] = when
-		{
-			oldAnswerRestriction == null -> outputRestriction
-			else -> oldAnswerRestriction.intersection(outputRestriction)
+		code?.run {
+			val outputRestriction = generateGeneralInvocation(
+				nilpotentAttempt = nilpotentAttempt,
+				calledCode = code,
+				calledFunction = functionToInvoke,
+				arguments = tupleElements,
+				argumentRestrictions = tupleElementRestrictions,
+				expectedType = expectedType,
+				stateOfL1 = stateOfL1,
+				answer = answer)
+			narrowRestriction(answer.read, outputRestriction)
+			return true
 		}
+		// The arguments satisfy the function's requirements, so we can still
+		// invoke it directly.
+		val mustCheck = !functionType.returnType.isSubtypeOf(expectedType)
+		+L2Simple_Invoke(
+			nextOffset = SKIP,
+			stateOfL1 = stateOfL1,
+			reentryOffset = NEXT,
+			expectedType = expectedType,
+			mustCheck = mustCheck,
+			answer = answer,
+			function = functionToInvoke,
+			arguments = tupleElements)
+		+L2Simple_ReenterFromCall(
+			nextOffset = if (expectedType.isBottom) UNREACHABLE else NEXT,
+			stateOfL1 = stateOfL1.copy(liveSlots = ReadArray.empty),
+			answer = answer,
+			expectedType = expectedType,
+			mustCheck = mustCheck)
 		return true
 	}
 
@@ -1177,7 +1225,7 @@ constructor(
 				attemptToGenerateSimpleInvocation(
 					functionIfKnown = calledFunction,
 					rawFunction = calledCode,
-					optionalFunctionRead = null,
+					functionRead = constant(calledFunction),
 					expectedType = expectedType,
 					args = arguments,
 					argRestrictions = argRestrictions,

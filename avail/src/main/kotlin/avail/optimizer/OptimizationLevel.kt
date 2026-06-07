@@ -64,7 +64,7 @@ constructor(val countdown: Long)
 	 * The [countdown] is very small to encourage early translation of any
 	 * function that is executed even a small number of times.
 	 */
-	UNOPTIMIZED(1L)
+	UNOPTIMIZED(2L)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{

@@ -1027,16 +1027,11 @@ constructor(
 	 * If a subclass needs to access [Primitive]'s implementation, it can't just
 	 * do a super call, because of the secondary receiver.  Therefore, a base
 	 * implementation is provided in [defaultAttemptToGenerateSimpleInvocation].
-	 *
-	 * The [optionalFunctionRead] is provided if the function may have been
-	 * created locally (i.e., by the caller), which is pretty common.  That can
-	 * be used to trace the provenance of the function, perhaps locating the
-	 * close instruction, from which we can directly access its outers.
 	 */
 	open fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
 		functionIfKnown: A_Function?,
 		rawFunction: A_RawFunction,
-		optionalFunctionRead: Read?,
+		functionRead: Read,
 		expectedType: A_Type,
 		args: ReadArray,
 		argRestrictions: List<TypeRestriction>,
