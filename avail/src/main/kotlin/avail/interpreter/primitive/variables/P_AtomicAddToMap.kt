@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.variables
 
+import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -133,8 +134,9 @@ object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
 
 	override fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
 	{
+		val before = captureNanos()
 		val (variable, newKey, newValue) = interpreter.argsBuffer
-		return try {
+		val success = try {
 			variable.atomicAddToMapNoCheck(newKey, newValue)
 			nil
 		}
@@ -148,6 +150,13 @@ object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
 			// Let the subsequent full primitive retry handle this.
 			null
 		}
+		val stat = when (success)
+		{
+			null -> l2SimpleNilpotentAbortStatistic
+			else -> l2SimpleNilpotentSuccessStatistic
+		}
+		stat.record(captureNanos() - before, interpreter.interpreterIndex)
+		return success
 	}
 
 	/**

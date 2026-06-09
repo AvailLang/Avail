@@ -49,6 +49,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.contentType
 import avail.descriptor.types.A_Type.Companion.functionType
+import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.keyType
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
@@ -325,15 +326,116 @@ constructor(
 		NUMBER_TYPE_TAG,
 		instance = EXTENDED_INTEGER_TAG,
 		Sup { instanceMeta(extendedIntegers) }),
+
+	// Phrase types, which duplicate phrases above.
 	PHRASE_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = PHRASE_TAG,
-		Sup { instanceMeta(PhraseKind.PARSE_PHRASE.mostGeneralType) },
-		Co("yields") { phraseTypeExpressionType }),
-	LIST_PHRASE_TYPE_TAG(
+		Sup { PhraseKind.PARSE_PHRASE.mostGeneralMeta },
+		Co("yields") { instance.phraseTypeExpressionType }),
+	EXPRESSION_PHRASE_TYPE_TAG(
 		PHRASE_TYPE_TAG,
+		instance = EXPRESSION_PHRASE_TAG,
+		Abstract,
+		Sup { PhraseKind.EXPRESSION_PHRASE.mostGeneralMeta }),
+	MARKER_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = MARKER_PHRASE_TAG,
+		Sup { PhraseKind.MARKER_PHRASE.mostGeneralMeta }),
+	ASSIGNMENT_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = ASSIGNMENT_PHRASE_TAG,
+		Sup { PhraseKind.ASSIGNMENT_PHRASE.mostGeneralMeta }),
+	BLOCK_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = BLOCK_PHRASE_TAG,
+		Sup { PhraseKind.BLOCK_PHRASE.mostGeneralMeta }),
+	LITERAL_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = LITERAL_PHRASE_TAG,
+		Sup { PhraseKind.LITERAL_PHRASE.mostGeneralMeta }),
+	REFERENCE_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = REFERENCE_PHRASE_TAG,
+		Sup { PhraseKind.REFERENCE_PHRASE.mostGeneralMeta }),
+	SUPER_CAST_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = SUPER_CAST_PHRASE_TAG,
+		Sup { PhraseKind.SUPER_CAST_PHRASE.mostGeneralMeta }),
+	SEND_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = SEND_PHRASE_TAG,
+		Sup { PhraseKind.SEND_PHRASE.mostGeneralMeta }),
+	LIST_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
 		instance = LIST_PHRASE_TAG,
-		Sup { instanceMeta(PhraseKind.LIST_PHRASE.mostGeneralType) }),
+		Sup { PhraseKind.LIST_PHRASE.mostGeneralMeta }),
+	PERMUTED_LIST_PHRASE_TYPE_TAG(
+		LIST_PHRASE_TYPE_TAG,
+		instance = PERMUTED_LIST_PHRASE_TAG,
+		Sup { PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralMeta }),
+	VARIABLE_USE_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = VARIABLE_USE_PHRASE_TAG,
+		Sup { PhraseKind.VARIABLE_USE_PHRASE.mostGeneralMeta }),
+	SEQUENCE_AS_EXPRESSION_PHRASE_TYPE_TAG(
+		EXPRESSION_PHRASE_TYPE_TAG,
+		instance = SEQUENCE_AS_EXPRESSION_PHRASE_TAG,
+		Sup { PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralMeta }),
+	STATEMENT_PHRASE_TYPE_TAG(
+		PHRASE_TYPE_TAG,
+		instance = STATEMENT_PHRASE_TAG,
+		Abstract,
+		Sup { PhraseKind.STATEMENT_PHRASE.mostGeneralMeta }),
+	SEQUENCE_PHRASE_TYPE_TAG(
+		STATEMENT_PHRASE_TYPE_TAG,
+		instance = SEQUENCE_PHRASE_TAG,
+		Sup { PhraseKind.SEQUENCE_PHRASE.mostGeneralMeta }),
+	FIRST_OF_SEQUENCE_PHRASE_TYPE_TAG(
+		STATEMENT_PHRASE_TYPE_TAG,
+		instance = FIRST_OF_SEQUENCE_PHRASE_TAG,
+		Sup { PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralMeta }),
+	DECLARATION_PHRASE_TYPE_TAG(
+		STATEMENT_PHRASE_TYPE_TAG,
+		instance = DECLARATION_PHRASE_TAG,
+		Sup { PhraseKind.STATEMENT_PHRASE.mostGeneralMeta }),
+	ARGUMENT_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = ARGUMENT_PHRASE_TAG,
+		Sup { PhraseKind.ARGUMENT_PHRASE.mostGeneralMeta }),
+	LABEL_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = LABEL_PHRASE_TAG,
+		Sup { PhraseKind.LABEL_PHRASE.mostGeneralMeta }),
+	LOCAL_VARIABLE_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = LOCAL_VARIABLE_PHRASE_TAG,
+		Sup { PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralMeta }),
+	LOCAL_CONSTANT_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = LOCAL_CONSTANT_PHRASE_TAG,
+		Sup { PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralMeta }),
+	MODULE_VARIABLE_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = MODULE_VARIABLE_PHRASE_TAG,
+		Sup { PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralMeta }),
+	MODULE_CONSTANT_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = MODULE_CONSTANT_PHRASE_TAG,
+		Sup { PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralMeta }),
+	PRIMITIVE_FAILURE_REASON_PHRASE_TYPE_TAG(
+		DECLARATION_PHRASE_TYPE_TAG,
+		instance = PRIMITIVE_FAILURE_REASON_PHRASE_TAG,
+		Sup { PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralMeta }),
+	EXPRESSION_AS_STATEMENT_PHRASE_TYPE_TAG(
+		STATEMENT_PHRASE_TYPE_TAG,
+		instance = EXPRESSION_AS_STATEMENT_PHRASE_TAG,
+		Sup { PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralMeta }),
+	MACRO_SUBSTITUTION_PHRASE_TYPE_TAG(
+		PHRASE_TYPE_TAG,
+		instance = MACRO_SUBSTITUTION_PHRASE_TAG,
+		Sup { PhraseKind.MACRO_SUBSTITUTION_PHRASE.mostGeneralMeta }),
+
 	VARIABLE_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = VARIABLE_TAG,
@@ -392,7 +494,7 @@ constructor(
 		Sup { instanceMeta(instanceMeta(Types.TOP())) }),
 	BOTTOM_TYPE_TAG(
 		TOP_TYPE_TAG,
-		NIL_TAG,
+		instance = NIL_TAG,
 		Unique { bottom });
 
 	/**

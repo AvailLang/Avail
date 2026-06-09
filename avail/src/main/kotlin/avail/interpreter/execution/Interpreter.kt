@@ -843,7 +843,7 @@ final class Interpreter(
 		val primitive = primitiveFunction.code().codePrimitive()!!
 		currentReifier = StackReifier(
 			actuallyReify,
-			primitive.reificationForNoninlineStat!!
+			primitive.reificationForNoninlineStat
 		) {
 			val once = AtomicBoolean(false)
 			lateinit var afterReificationFlag: AfterReification
@@ -1146,7 +1146,7 @@ final class Interpreter(
 		aFiber.suspendingFunction = suspendingFunction
 		currentReifier = StackReifier(
 			true,
-			primitive.reificationForNoninlineStat!!
+			primitive.reificationForNoninlineStat
 		) {
 			aFiber.lock {
 				assert(aFiber.executionState === RUNNING)
@@ -1324,7 +1324,7 @@ final class Interpreter(
 		assert(primitive.hasFlag(CanSwitchContinuations))
 		currentReifier = StackReifier(
 			actuallyReify = false,
-			primitive.reificationAbandonmentStat!!)
+			primitive.reificationAbandonmentStat)
 		{
 			setReifiedContinuation(continuation)
 			setLatestResult(returnedValue)
@@ -1367,7 +1367,7 @@ final class Interpreter(
 		assert(continuation.notNil)
 		currentReifier = StackReifier(
 			actuallyReify = false,
-			primitive.reificationAbandonmentStat!!)
+			primitive.reificationAbandonmentStat)
 		{
 			setReifiedContinuation(continuation)
 			function = continuation.function

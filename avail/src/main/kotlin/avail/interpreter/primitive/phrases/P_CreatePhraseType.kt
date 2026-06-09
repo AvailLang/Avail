@@ -38,7 +38,6 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.phraseKind
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -81,7 +80,7 @@ object P_CreatePhraseType : Primitive2(CanFold, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				instanceMeta(PARSE_PHRASE.mostGeneralType),
+				PARSE_PHRASE.mostGeneralMeta,
 				topMeta),
-			instanceMeta(PARSE_PHRASE.mostGeneralType))
+			PARSE_PHRASE.mostGeneralMeta)
 }

@@ -66,13 +66,13 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfPhraseType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
@@ -511,15 +511,23 @@ open class PhraseTypeDescriptor protected constructor(
 
 		/**
 		 * Answer a [phrase&#32;type][PhraseTypeDescriptor] whose kind is the
-		 * receiver and whose expression type is
-		 * [top][Types.TOP]. This is the most general phrase type
-		 * of that kind.
+		 * receiver and whose expression type is the most general allowed by
+		 * the kind.  This is the most general phrase type of that kind.
 		 *
 		 * @return
 		 *   The new phrase type, whose kind is the receiver and whose
-		 *   expression type is [top][Types.TOP].
+		 *   expression type is the kind's most general yield type.
 		 */
 		val mostGeneralType by lazy { createNoCheck(mostGeneralYieldType) }
+
+		/**
+		 * Answer the metatype of the [mostGeneralType] of this [PhraseKind].
+		 *
+		 * @return
+		 *   The new phrase meta, whose kind is the receiver and whose
+		 *   expression type is the kind's most general yield type.
+		 */
+		val mostGeneralMeta by lazy { instanceMeta(mostGeneralType) }
 
 		/**
 		 * Answer the `PhraseKind` that is the nearest common ancestor to both

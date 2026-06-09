@@ -261,7 +261,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				append(" (")
 				val primitiveFailureDeclaration = statementsTuple.tupleAt(1)
-				assert(primitiveFailureDeclaration.isInstanceOf(
+				assert(primitiveFailureDeclaration.isInstanceOfKind(
 					PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType))
 				primitiveFailureDeclaration.printOnAvoidingIndent(
 					this, recursionMap, indent)

@@ -90,6 +90,9 @@ enum class StatisticReport constructor(
 	/** A report of how long some primitives take for type checks. */
 	TYPE_CHECKS_IN_PRIMITIVES("Type Checks in Primitives", NANOSECONDS),
 
+	/** Miscellaneous costs associated with running L2Simple-specific code. */
+	L2SIMPLE_NILPOTENT("L2Simple nilpotent attempt", NANOSECONDS),
+
 	/** A report of how long and deep dynamic lookups are. */
 	DYNAMIC_LOOKUP_BY_TARGET("Dynamic lookup by target", NANOSECONDS),
 

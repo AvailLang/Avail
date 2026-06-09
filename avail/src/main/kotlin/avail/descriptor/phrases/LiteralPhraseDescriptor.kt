@@ -155,7 +155,7 @@ class LiteralPhraseDescriptor(
 				// argument *phrase* inside a synthetic literal (i.e., the value
 				// of that literal will be a phrase.  We should traverse into
 				// such a phrase.
-				literal.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
+				literal.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) ->
 					literal.applyStylesThen(context, visitedSet, then2)
 				else -> then2()
 			}
@@ -201,9 +201,9 @@ class LiteralPhraseDescriptor(
 		val literal1 = self.token.literal()
 		val literal2 = aPhrase.token.literal()
 		return when {
-			!literal1.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
+			!literal1.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) ->
 				literal1.equals(literal2)
-			!literal2.isInstanceOf(PARSE_PHRASE.mostGeneralType) -> false
+			!literal2.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) -> false
 			else -> literal1.equalsPhrase(literal2)
 		}
 	}

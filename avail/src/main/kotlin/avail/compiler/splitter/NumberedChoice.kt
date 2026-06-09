@@ -202,7 +202,7 @@ internal class NumberedChoice constructor(
 	{
 		val literal = arguments!!.next()
 		assert(
-			literal.isInstanceOf(
+			literal.isInstanceOfKind(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType))
 		val index = literal.token.literal().extractInt
 		builder.append('«')

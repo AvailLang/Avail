@@ -295,7 +295,7 @@ abstract class LookupTreeAdaptor<
 	 *   may have been generated during traversal of ancestors) have already
 	 *   been tested for constants.  Argument #n is indicated by a set bit in
 	 *   the n-1st bit position, the one whose value in the integer is 2^(n-1).
-	 * @property alreadyEnumerationOfNontypeTested
+	 * @param alreadyEnumerationOfNontypeTested
 	 *   An Avail [integer][A_Number] coding which arguments (and extras that
 	 *   may have been generated during traversal of ancestors) were known to
 	 *   contain at least one enumeration of non-types.  Those actual values can

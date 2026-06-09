@@ -79,6 +79,7 @@ import avail.descriptor.variables.A_Variable.Companion.getValue
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.descriptor.variables.VariableDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import avail.descriptor.variables.VariableDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.variables.VariableDescriptor.ObjectSlots.KIND
 import avail.descriptor.variables.VariableDescriptor.ObjectSlots.VALUE
 import avail.descriptor.variables.VariableDescriptor.ObjectSlots.WRITE_REACTORS
@@ -209,7 +210,7 @@ open class VariableDescriptor protected constructor(
 		e: AbstractSlotsEnum
 	): Boolean =
 		e === VALUE
-			|| e === IntegerSlots.HASH_AND_MORE
+			|| e === HASH_AND_MORE
 			|| e === WRITE_REACTORS
 
 	override fun o_Hash(self: AvailObject): Int =

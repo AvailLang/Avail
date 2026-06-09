@@ -78,7 +78,7 @@ object P_GetContinuationOfOtherFiber : Primitive1(
 	{
 		val otherFiber = arg1
 
-		currentReifier = StackReifier(true, reificationForNoninlineStat!!) {
+		currentReifier = StackReifier(true, reificationForNoninlineStat) {
 			suspendThen {
 				otherFiber.whenContinuationIsAvailableDo { otherContinuation ->
 					when {

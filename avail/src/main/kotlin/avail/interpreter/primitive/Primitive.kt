@@ -33,6 +33,7 @@
 package avail.interpreter.primitive
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
+import avail.AvailRuntimeSupport.captureNanos
 import avail.compiler.PragmaKind
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
@@ -69,6 +70,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -113,6 +115,7 @@ import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.performance.Statistic
+import avail.performance.StatisticReport
 import avail.performance.StatisticReport.PRIMITIVES
 import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
@@ -217,6 +220,12 @@ constructor(
 	private val blockTypeRestriction =
 		privateBlockTypeRestriction().makeShared()
 
+	/** Capture the name of the primitive class once for performance. */
+	val name: String = PrimitiveHolder.holdersByClassName[javaClass.name]!!.name
+
+	/** Capture the simpleName of the primitive class once for performance. */
+	val simpleName: String = javaClass.simpleName
+
 	/**
 	 * The flags that indicate to the [L2Generator] how an invocation of
 	 * this primitive should be handled.
@@ -228,35 +237,43 @@ constructor(
 	 * reason that this primitive failed.  The actual failure constant's type
 	 * must be this or a supertype.
 	 */
-	@Suppress("LeakingThis")
 	val failureVariableType: AvailObject =
 		privateFailureVariableType().makeShared()
+
+	/**
+	 * A performance metric indicating how long was spent executing each
+	 * primitive.
+	 */
+	private val runningNanos: Statistic =
+		Statistic(PRIMITIVES, "$simpleName (running)")
+
+	/**
+	 * A performance metric indicating how long a successful nilpotent attempt
+	 * took in an [L2SimpleChunk].
+	 */
+	val l2SimpleNilpotentSuccessStatistic = Statistic(
+		StatisticReport.L2SIMPLE_NILPOTENT, "success: $simpleName")
+
+	/**
+	 * A performance metric indicating how long an aborted nilpotent attempt
+	 * took in an [L2SimpleChunk].
+	 */
+	val l2SimpleNilpotentAbortStatistic = Statistic(
+		StatisticReport.L2SIMPLE_NILPOTENT, "aborted: $simpleName")
 
 	/**
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
 	 * changing the continuaation.
 	 */
-	var reificationAbandonmentStat: Statistic? = null
+	lateinit var reificationAbandonmentStat: Statistic
 		private set
 
 	/**
 	 * The [Statistic] for reification prior to invoking a primitive that
 	 * *does not* have [Flag.CanInline] set.
 	 */
-	var reificationForNoninlineStat: Statistic? = null
+	lateinit var reificationForNoninlineStat: Statistic
 		private set
-
-	/** Capture the name of the primitive class once for performance. */
-	val name: String = PrimitiveHolder.holdersByClassName[javaClass.name]!!.name
-
-	/** Capture the simpleName of the primitive class once for performance. */
-	val simpleName: String = javaClass.simpleName
-
-	/**
-	 * A performance metric indicating how long was spent executing each
-	 * primitive.
-	 */
-	private var runningNanos: Statistic
 
 	/**
 	 * A performance metric indicating how long was spent checking the return
@@ -291,10 +308,6 @@ constructor(
 		{
 			"Primitive ${javaClass.simpleName} has Invokes without CanInline"
 		}
-		runningNanos = Statistic(
-			PRIMITIVES,
-			(if (hasFlag(Flag.CanInline)) "" else "[NOT INLINE] ")
-				+ "$simpleName (running)")
 		if (hasFlag(Flag.CanSwitchContinuations))
 		{
 			reificationAbandonmentStat = Statistic(
@@ -1176,11 +1189,18 @@ constructor(
 	open fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
 	{
 		// At this point, the arguments have been pushed in the interpreter.
+		val before = captureNanos()
 		val valueOrNull = interpreter.afterAttemptPrimitive(
 			this,
 			interpreter.beforeAttemptPrimitive(this),
 			attempt(interpreter))
 		assert(valueOrNull != null || interpreter.currentReifier == null)
+		val stat = when (valueOrNull)
+		{
+			null -> l2SimpleNilpotentAbortStatistic
+			else -> l2SimpleNilpotentSuccessStatistic
+		}
+		stat.record(captureNanos() - before, interpreter.interpreterIndex)
 		return valueOrNull
 	}
 

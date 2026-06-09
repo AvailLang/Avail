@@ -93,7 +93,7 @@ object P_BootstrapAssignmentStatementMacro
 
 		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		assert(
-			variableNameLiteral.isInstanceOf(
+			variableNameLiteral.isInstanceOfKind(
 				LITERAL_PHRASE.mostGeneralType))
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)

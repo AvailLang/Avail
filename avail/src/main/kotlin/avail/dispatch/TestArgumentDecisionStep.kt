@@ -158,8 +158,10 @@ constructor(
 					node.knownArgumentRestrictions),
 				indent + 1))
 		newlineTab(indent + 1)
+		append("Y: ")
 		append(ifCheckHolds.toString(indent + 1))
 		newlineTab(indent + 1)
+		append("N: ")
 		append(ifCheckFails.toString(indent + 1))
 	}
 

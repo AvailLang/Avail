@@ -136,6 +136,7 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -1657,7 +1658,7 @@ class ModuleDescriptor private constructor(
 		 * new [A_Module], prior to replacing it with a new shared descriptor.
 		 */
 		private val initialMutableDescriptor = ModuleDescriptor(
-			Mutability.MUTABLE, emptyTuple, null)
+			MUTABLE, emptyTuple, null)
 
 		/**
 		 * Create an empty [BloomFilter] for use as a package's serialization

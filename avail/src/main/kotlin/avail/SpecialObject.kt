@@ -276,7 +276,7 @@ constructor(
 	TwoType(instanceType(two)),
 	EulersConstant(fromDouble(Math.E)),
 	EulersConstantType(instanceType(fromDouble(Math.E))),
-	PhraseMeta(instanceMeta(PhraseKind.PARSE_PHRASE.mostGeneralType)),
+	PhraseMeta(PhraseKind.PARSE_PHRASE.mostGeneralMeta),
 	AtomSet(setTypeForSizesContentType(wholeNumbers, Types.ATOM())),
 	Token(Types.TOKEN()),
 	LiteralToken(mostGeneralLiteralTokenType()),

@@ -92,10 +92,7 @@ object P_RaiseException : Primitive1(CanSuspend, CanSwitchContinuations)
 		val raiseFunction = function!!
 		assert(raiseFunction.code().codePrimitive() == P_RaiseException)
 
-		currentReifier = StackReifier(
-			true,
-			reificationForNoninlineStat!!
-		) {
+		currentReifier = StackReifier(true, reificationForNoninlineStat) {
 			// The call stack must have been reified now.
 			assert(callerIsReified())
 

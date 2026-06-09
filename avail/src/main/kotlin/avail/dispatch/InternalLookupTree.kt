@@ -47,7 +47,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
-import avail.descriptor.representation.AvailObjectRepresentation
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceTag
@@ -79,7 +79,6 @@ import avail.utility.iterableWith
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import java.lang.String.format
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -326,9 +325,9 @@ internal constructor(
 				constantSets.withIndex().maxByOrNull { (_, set) -> set.size }!!
 			if (mostConstants.value.size >= 3)
 			{
-				// At least 2 constants can be used to dispatch this argument.
+				// At least 3 constants can be used to dispatch this argument.
 				// Save computation time for building this up in subtrees by
-				// figuring out which argument positions have less than 2
+				// figuring out which argument positions have less than 3
 				// constants, and pretending those have already done their
 				// constant-dispatch.
 				var testedFlags = alreadyTestedConstants
@@ -812,9 +811,9 @@ internal constructor(
 	 * Create a [TypeTagDecisionStep] for the given values.  The basic idea is
 	 * to create a [Map] from [TypeTag] to a [Set] of [Result]s.  Only add
 	 * elements at the [A_Type.instanceTag] reported by the argument type.
-	 * During lookup, the [typeTag][AvailObjectRepresentation.typeTag] of the
-	 * actual argument value is used to find an entry in this map, but if
-	 * there's no entry, its tag's parent chain is searched instead.
+	 * During lookup, the [AvailObject.typeTag] of the actual argument value is
+	 * used to find an entry in this map, but if there's no entry, its tag's
+	 * parent chain is searched instead.
 	 *
 	 * [BOTTOM_TYPE_TAG] is problematic, because it breaks the tree shape.  We
 	 * can't just leave it out, and we can't pretend it's not a child of all
@@ -1388,7 +1387,7 @@ internal constructor(
 	 *
 	 * Lookup for singular instance types is as fast as a map lookup for those
 	 * cases where the instance type is a key of the map.  For all other cases,
-	 * a separate subtree is used, which contains all of the current node's
+	 * a separate subtree is used, which contains all the current node's
 	 * [Element]s, and which uses other techniques for dispatch.  This handles
 	 * the case of enumerations of other values, enumerations of more than one
 	 * non-type value, or the bottom type.

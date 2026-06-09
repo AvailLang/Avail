@@ -728,7 +728,7 @@ interface A_Phrase : A_BasicObject {
 								withChild(generator)
 							}
 							// This deals with: _!
-							else if (value.isInstanceOf(
+							else if (value.isInstanceOfKind(
 								PARSE_PHRASE.mostGeneralType))
 							{
 								exclude.add(phrase)

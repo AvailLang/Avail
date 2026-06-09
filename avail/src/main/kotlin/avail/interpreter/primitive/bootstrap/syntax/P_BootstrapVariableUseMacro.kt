@@ -92,7 +92,7 @@ object P_BootstrapVariableUseMacro
 
 		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		assert(
-			variableNameLiteral.isInstanceOf(
+			variableNameLiteral.isInstanceOfKind(
 				LITERAL_PHRASE.mostGeneralType))
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)

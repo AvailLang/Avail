@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.variables
 
 import avail.AvailRuntimeSupport
+import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -73,6 +74,7 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.performance.Statistic
+import avail.performance.StatisticReport
 import avail.performance.StatisticReport.PRIMITIVES
 
 /**
@@ -187,8 +189,9 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 
 	override fun nilpotentAttempt(interpreter: Interpreter): A_BasicObject?
 	{
+		val before = captureNanos()
 		val (variable, reference, newValue) = interpreter.argsBuffer
-		return try {
+		val success = try {
 			objectFromBoolean(
 				variable.compareAndSwapValuesNoCheck(reference, newValue))
 		}
@@ -202,6 +205,14 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 			// Let the subsequent full primitive retry handle this.
 			null
 		}
+		val stat = when (success)
+		{
+			null -> l2SimpleNilpotentAbortStatistic
+			trueObject -> l2SimpleNilpotentSuccessStatistic
+			else -> l2SimpleNilpotentConflictStatistic
+		}
+		stat.record(captureNanos() - before, interpreter.interpreterIndex)
+		return success
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -229,4 +240,7 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 	 */
 	val conflictStatistic =
 		Statistic(PRIMITIVES, "$simpleName (conflict on write)")
+
+	val l2SimpleNilpotentConflictStatistic =
+		Statistic(StatisticReport.L2SIMPLE_NILPOTENT, "conflict: $simpleName")
 }
