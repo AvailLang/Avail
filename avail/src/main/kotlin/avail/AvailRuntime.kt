@@ -192,6 +192,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.ObjectTracer
+import avail.utility.Strings.truncateTo
 import avail.utility.WorkStealingQueue
 import avail.utility.cast
 import avail.utility.evaluation.OnceSupplier
@@ -1113,7 +1114,12 @@ class AvailRuntime constructor(
 				if (result != null)
 				{
 					// This is a good line to breakpoint.
-					println("chain = $result")
+					val text = result.withIndex()
+						.joinToString(",\n", "Chain:\n\n") { (i, obj) ->
+							"${i + 1}. ${obj.toString().truncateTo(1000)}"
+						}
+					// This is a good place for a breakpoint.
+					println(text)
 				}
 			}
 		}

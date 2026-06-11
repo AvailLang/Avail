@@ -95,19 +95,13 @@ Private method "Forget_" is
 	↑suites by atom -= suiteID;
 	parentID ::= suite's parent suite ID;
 	isRootTestSuite ::= parentID = root test suite ID;
-	/* Ascertain the parentage of the test suite. */
-	parent ::= if isRootTestSuite
-		then [root suite]
-		else [suites by atom[parentID]];
-	/* Remove the suite atom from the parent's collection of child
-	 * suites.
-	 */
+	/* Remove the suite atom from the parent's collection of child suites. */
 	If isRootTestSuite then
 	[
 		Atomically update ↑root suite
 		using [r : root unit test suite |
 			childSuites : atom* :=
-				select each id from parent's child suite IDs
+				select each id from r's child suite IDs
 				where [id ≠ suiteID];
 			r's child suite IDs ::= childSuites
 		];
@@ -116,11 +110,12 @@ Private method "Forget_" is
 	[
 		Atomically update ↑suites by atom
 		using [m : {atom → unit test suite|} |
+			parent ::= m[parentID];
 			childSuites : atom* :=
 				select each id from parent's child suite IDs
 				where [id ≠ suiteID];
 			updatedParent ::= parent's child suite IDs ::= childSuites;
-			m + parentID → (updatedParent ?→ unit test suite)
+			m + parentID → updatedParent
 		];
 	];
 ] : ⊤;

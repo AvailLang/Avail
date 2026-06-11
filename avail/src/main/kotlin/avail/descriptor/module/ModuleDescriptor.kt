@@ -1362,7 +1362,7 @@ class ModuleDescriptor private constructor(
 		macroDefinitions = nil
 		grammaticalRestrictions = nil
 		semanticRestrictions = nil
-//		serializedObjects = nil
+		serializedObjects = nil
 		ancestorOffsetMap = nil
 		unionFilter = null
 		localFilter = null

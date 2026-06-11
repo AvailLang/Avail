@@ -316,7 +316,7 @@ constructor(
 		if (!hasFlag(Flag.CanInline))
 		{
 			reificationForNoninlineStat = Statistic(
-				REIFICATIONS, "Reification for non-inline $name")
+				REIFICATIONS, "Reification for $name")
 		}
 	}
 
