@@ -47,13 +47,25 @@ repositories {
 }
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "2.3"
+val kotlinLanguage = "2.3.10"
 
-/** The JVM target version for Kotlin. */
-val jvmTarget = 25
+/**
+ * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
+ * launching the workbench, and as the runtime image bundled inside Anvil.app
+ * by the `packageApp` task.
+ */
+val jvmTarget = 26
 
-/** The JVM target version for Kotlin. */
-val jvmTargetString = jvmTarget.toString()
+/**
+ * The bytecode level emitted by `javac` and `kotlinc`. Lags the toolchain
+ * when the Kotlin compiler doesn't yet support the toolchain's bytecode
+ * level — Kotlin 2.3.10 silently falls back to 25 on a JDK 26 toolchain,
+ * so Java needs to follow suit to avoid a target mismatch.
+ */
+val jvmBytecodeTarget = 25
+
+/** String form of [jvmBytecodeTarget] for `JavaCompile.sourceCompatibility`. */
+val jvmTargetString = jvmBytecodeTarget.toString()
 
 /** The `com.google.code.findbugs:jsr305` version. */
 val jsrVersion = "3.0.2"
