@@ -4,32 +4,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build and Test Commands
 
-All commands run from the repo root using the top-level `./gradlew` (or within `avail/` using `avail/gradlew`).
+The repo holds several independent Gradle builds, each with its own `gradlew`
+wrapper (`avail/`, `avail-artifact/`, `avail-stdlib/`, `avail-server/`,
+`avail-cli/`, `gradle-plugin/`). There is no top-level `gradlew`. The main VM
+and Anvil IDE live in `avail/`, so the commands below run from inside that
+directory (or use `avail/gradlew -p avail <task>` from the repo root).
 
 ```bash
 # Build
-./gradlew :avail:build
+./gradlew build
 
 # Run all tests (needs 4–6 GB heap; configured automatically)
-./gradlew :avail:test
+./gradlew test
 
 # Run a single test class
-./gradlew :avail:test --tests "avail.test.ArithmeticTest"
+./gradlew test --tests "avail.test.ArithmeticTest"
 
 # Build the Anvil IDE fat JAR
-./gradlew :avail:package
+./gradlew package
 
 # Build and launch Anvil
-./gradlew :avail:packageAndRun
+./gradlew packageAndRun
+
+# Assemble a self-contained Anvil.app on macOS (jpackage + jlinked JDK)
+./gradlew packageApp
+
+# Same, then open the .app
+./gradlew packageAppAndRun
 
 # Regenerate bootstrap files (needed after adding primitives or special objects)
-./gradlew :avail:generateAllNames
+./gradlew generateAllNames
 
 # Generate API docs
-./gradlew :avail:dokkaGeneratePublicationHtml
+./gradlew dokkaGeneratePublicationHtml
 ```
 
-JVM target is Java 25 (Oracle vendor). Tests run headless (`java.awt.headless=true`).
+JDK toolchain is Java 26 (Oracle vendor); Kotlin/Java emit Java 25 bytecode
+because Kotlin 2.3.10 cannot yet target 26. Tests run headless
+(`java.awt.headless=true`).
+
+`packageApp` is macOS-only. It writes `avail/build/jpackage/Anvil.app`, a
+self-contained bundle whose `Contents/runtime` is a jlinked image of the
+toolchain JDK. The launcher and runtime are single-architecture: build on
+an x86_64 host to get an x86_64 bundle, on Apple Silicon to get arm64.
 
 ## Repository Layout
 

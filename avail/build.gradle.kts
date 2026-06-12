@@ -88,11 +88,23 @@ val junitVersion = "6.0.2"
 /** The language level version of Kotlin. */
 val kotlinLanguage = "2.3.10"
 
-/** The JVM target version for Kotlin. */
-val jvmTarget = 25
+/**
+ * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
+ * launching the workbench, and as the runtime image bundled inside Anvil.app
+ * by the `packageApp` task.
+ */
+val jvmTarget = 26
 
-/** The JVM target version for Kotlin. */
-val jvmTargetString = jvmTarget.toString()
+/**
+ * The bytecode level emitted by `javac` and `kotlinc`. Lags the toolchain
+ * when the Kotlin compiler doesn't yet support the toolchain's bytecode
+ * level — Kotlin 2.3.10 silently falls back to 25 on a JDK 26 toolchain,
+ * so Java needs to follow suit to avoid a target mismatch.
+ */
+val jvmBytecodeTarget = 25
+
+/** String form of [jvmBytecodeTarget] for `JavaCompile.sourceCompatibility`. */
+val jvmTargetString = jvmBytecodeTarget.toString()
 
 /**
  * The list of compile-time arguments to be used during Kotlin compilation.
@@ -300,6 +312,128 @@ tasks {
 		group = "anvil"
 		description = "Run the Avail Project Manager for an already built anvil.jar"
 		classpath = files("../avail-anvil.jar")
+	}
+
+	// Native macOS bundling via jpackage. Produces a self-contained
+	// Anvil.app under avail/build/jpackage whose Contents/runtime is a
+	// jlinked image of the same JDK the workbench is compiled and run
+	// against — i.e. whatever java.toolchain resolves to. Bumping the
+	// project's jvmTarget automatically retargets the bundled runtime.
+	val anvilRuntimeDir = layout.buildDirectory.dir("anvil-runtime")
+	val anvilJpackageDir = layout.buildDirectory.dir("jpackage")
+	val anvilAppName = "Anvil"
+	val anvilMainClass = "avail.project.AvailProjectManagerRunner"
+	val anvilIcon = layout.projectDirectory.file(
+		"src/main/resources/workbench/AvailHammer.icns")
+	val anvilModules = listOf(
+		"java.base", "java.desktop", "java.logging", "java.naming",
+		"java.prefs", "java.management", "java.net.http",
+		"java.scripting", "java.sql", "java.xml", "java.compiler",
+		"jdk.unsupported", "jdk.crypto.ec", "jdk.crypto.cryptoki",
+		"jdk.attach", "jdk.localedata", "jdk.zipfs",
+		"jdk.management", "jdk.unsupported.desktop",
+		"jdk.jdwp.agent", "jdk.security.auth"
+	).joinToString(",")
+
+	val anvilJdkLauncher =
+		javaToolchains.launcherFor(java.toolchain)
+	val anvilJpackageInputDir =
+		layout.buildDirectory.dir("jpackage-input")
+
+	val jlinkAnvilRuntime by registering(Exec::class) {
+		group = "anvil"
+		description = "Build a slim JDK runtime image for Anvil.app."
+		val metadata = anvilJdkLauncher.get().metadata
+		val jdkHome = metadata.installationPath.asFile
+		val out = anvilRuntimeDir.get().asFile
+		outputs.dir(out)
+		inputs.property("modules", anvilModules)
+		inputs.property("jdk", metadata.javaRuntimeVersion)
+		executable = File(jdkHome, "bin/jlink").absolutePath
+		args = listOf(
+			"--module-path", File(jdkHome, "jmods").absolutePath,
+			"--add-modules", anvilModules,
+			"--no-header-files",
+			"--no-man-pages",
+			"--compress=zip-6",
+			"--output", out.absolutePath
+		)
+		doFirst { if (out.exists()) out.deleteRecursively() }
+	}
+
+	val stageAnvilApp by registering(Copy::class) {
+		group = "anvil"
+		description = "Stage avail-anvil.jar for jpackage."
+		dependsOn(`package`)
+		from(rootProject.layout.projectDirectory.file("../avail-anvil.jar"))
+		into(anvilJpackageInputDir)
+	}
+
+	val packageApp by registering(Exec::class) {
+		group = "anvil"
+		description =
+			"Assemble a self-contained Anvil.app via jpackage."
+		dependsOn(stageAnvilApp)
+		dependsOn(jlinkAnvilRuntime)
+		val jdkHome =
+			anvilJdkLauncher.get().metadata.installationPath.asFile
+		val destDir = anvilJpackageDir.get().asFile
+		val appBundle = File(destDir, "${anvilAppName}.app")
+		val runtime = anvilRuntimeDir.get().asFile
+		val input = anvilJpackageInputDir.get().asFile
+		val iconPath = anvilIcon.asFile.absolutePath
+		val appVersion = project.version.toString()
+			.substringBefore('-')
+			.split('.')
+			.take(3)
+			.joinToString(".") { it.toIntOrNull()?.toString() ?: "0" }
+		val copyrightYear = LocalDate.now().year.toString()
+		inputs.dir(anvilJpackageInputDir)
+		inputs.dir(anvilRuntimeDir)
+		inputs.file(anvilIcon)
+		inputs.property("appVersion", appVersion)
+		inputs.property("mainClass", anvilMainClass)
+		outputs.dir(anvilJpackageDir)
+		executable = File(jdkHome, "bin/jpackage").absolutePath
+		args = listOf(
+			"--type", "app-image",
+			"--name", anvilAppName,
+			"--app-version", appVersion,
+			"--vendor", "The Avail Foundation, LLC.",
+			"--copyright",
+			"Copyright © 1993-$copyrightYear, " +
+				"The Avail Foundation, LLC.",
+			"--description",
+			"Anvil, the Avail Workbench IDE.",
+			"--icon", iconPath,
+			"--input", input.absolutePath,
+			"--main-jar", "avail-anvil.jar",
+			"--main-class", anvilMainClass,
+			"--runtime-image", runtime.absolutePath,
+			"--java-options", "-ea",
+			"--java-options", "-Xmx6g",
+			"--java-options", "--enable-native-access=ALL-UNNAMED",
+			"--java-options",
+			"-splash:\$APPDIR/avail-anvil.jar!" +
+				"/workbench/AvailWBSplash.png",
+			"--mac-package-identifier", "org.availlang.anvil",
+			"--mac-package-name", anvilAppName,
+			"--dest", destDir.absolutePath
+		)
+		doFirst {
+			if (appBundle.exists()) appBundle.deleteRecursively()
+			destDir.mkdirs()
+		}
+	}
+
+	val packageAppAndRun by registering(Exec::class) {
+		group = "anvil"
+		description =
+			"Build a self-contained Anvil.app and launch it."
+		dependsOn(packageApp)
+		val appBundle = File(
+			anvilJpackageDir.get().asFile, "${anvilAppName}.app")
+		commandLine("open", appBundle.absolutePath)
 	}
 
 	/**
