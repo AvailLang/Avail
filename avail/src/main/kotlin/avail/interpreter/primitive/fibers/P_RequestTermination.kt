@@ -31,11 +31,6 @@
  */
 package avail.interpreter.primitive.fibers
 
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
-import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
-import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
-import avail.descriptor.fiber.A_Fiber.Companion.wakeupTask
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
@@ -44,10 +39,15 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_AVAILABLE
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.executionState
+import avail.descriptor.representation.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.representation.A_Fiber.Companion.setInterruptRequestFlag
+import avail.descriptor.representation.A_Fiber.Companion.suspendingFunction
+import avail.descriptor.representation.A_Fiber.Companion.wakeupTask
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP

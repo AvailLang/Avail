@@ -32,14 +32,14 @@
 
 package avail.files
 
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor
 import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets

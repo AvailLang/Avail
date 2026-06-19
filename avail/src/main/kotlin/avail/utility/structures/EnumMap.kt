@@ -36,7 +36,7 @@ import avail.utility.mapToSet
 
 /**
  * An `EnumMap` is a [Map] implementation for use with enum type keys only.  All
- * of the keys in an `EnumMap` must come from a single enum that is specified,
+ * the keys in an `EnumMap` must come from a single enum that is specified,
  * explicitly as the first parameterized type. `EnumMap`s are represented
  * internally as arrays. Enum maps are maintained in the natural order of their
  * keys ([Enum.ordinal]s).

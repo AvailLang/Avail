@@ -35,15 +35,15 @@ package avail.interpreter.primitive.bootstrap.syntax
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE

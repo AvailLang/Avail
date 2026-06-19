@@ -35,21 +35,20 @@ package avail.compiler
 import avail.compiler.scanning.LexingState
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import avail.descriptor.phrases.PhraseDescriptor
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.expressionsTuple
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.macroOriginalSendNode
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 
 /**
@@ -90,8 +89,8 @@ enum class ParsingConversionRule constructor(val number: Int)
 	/**
 	 * `1` - Convert a [list][ListPhraseDescriptor] into a
 	 * [literal&#32;phrase][LiteralPhraseDescriptor] that yields an
-	 * [integer][IntegerDescriptor] representing the [size][A_Tuple.tupleSize]
-	 * of the original list.
+	 * [integer][IntegerDescriptor] representing the [tupleSize] of the original
+	 * list.
 	 */
 	LIST_TO_SIZE(1)
 	{

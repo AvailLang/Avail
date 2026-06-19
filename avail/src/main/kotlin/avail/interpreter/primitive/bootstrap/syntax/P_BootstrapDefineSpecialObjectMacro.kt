@@ -32,16 +32,11 @@
 
 package avail.interpreter.primitive.bootstrap.syntax
 
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_PHRASE
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_TOKEN
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
@@ -49,12 +44,17 @@ import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
+import avail.descriptor.representation.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE

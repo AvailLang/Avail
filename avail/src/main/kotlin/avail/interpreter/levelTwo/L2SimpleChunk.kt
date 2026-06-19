@@ -31,11 +31,11 @@
  */
 package avail.interpreter.levelTwo
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
-import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.sets.A_Set
+import avail.descriptor.representation.A_ChunkDependable
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Set
 import avail.interpreter.levelTwoSimple.L2SimpleExecutableChunk
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.optimizer.OptimizationLevel

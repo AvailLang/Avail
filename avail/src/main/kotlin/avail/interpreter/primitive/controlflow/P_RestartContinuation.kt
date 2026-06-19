@@ -31,18 +31,18 @@
  */
 package avail.interpreter.primitive.controlflow
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.frameAt
-import avail.descriptor.functions.A_Continuation.Companion.pc
-import avail.descriptor.functions.A_Continuation.Companion.stackp
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.frameAt
+import avail.descriptor.representation.A_Continuation.Companion.pc
+import avail.descriptor.representation.A_Continuation.Companion.stackp
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numSlots
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

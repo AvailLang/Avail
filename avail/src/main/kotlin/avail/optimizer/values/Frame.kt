@@ -31,9 +31,10 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.pc
+import avail.descriptor.representation.A_RawFunction
 import avail.interpreter.levelTwo.L2Chunk
 import avail.utility.iterableWith
 

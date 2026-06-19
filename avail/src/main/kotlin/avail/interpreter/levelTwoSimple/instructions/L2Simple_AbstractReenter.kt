@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_RegisterDump
+import avail.descriptor.representation.A_RegisterDump
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet

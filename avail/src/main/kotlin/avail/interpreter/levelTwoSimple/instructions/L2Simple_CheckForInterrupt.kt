@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
+import avail.descriptor.representation.A_Continuation.Companion.frameAtPut
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleExecutableChunk

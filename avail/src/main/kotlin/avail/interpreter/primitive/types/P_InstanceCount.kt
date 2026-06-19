@@ -31,19 +31,19 @@
  */
 package avail.interpreter.primitive.types
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

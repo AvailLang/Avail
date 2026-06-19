@@ -33,18 +33,18 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_NEW_NAME
-import avail.descriptor.module.A_Module.Companion.addImportedName
-import avail.descriptor.module.A_Module.Companion.introduceNewName
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_Module.Companion.addImportedName
+import avail.descriptor.representation.A_Module.Companion.introduceNewName
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP

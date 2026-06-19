@@ -50,56 +50,56 @@ import avail.anvil.shortcuts.StepOutShortcut
 import avail.anvil.shortcuts.StepOverShortcut
 import avail.anvil.showTextRange
 import avail.anvil.text.CodePane
-import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.character.A_Character.Companion.isCharacter
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.A_Fiber.Companion.continuation
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.fiberName
-import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
 import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
-import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
-import avail.descriptor.functions.A_Continuation.Companion.frameAt
-import avail.descriptor.functions.A_Continuation.Companion.function
-import avail.descriptor.functions.A_Continuation.Companion.numSlots
-import avail.descriptor.functions.A_Continuation.Companion.pc
-import avail.descriptor.functions.A_Continuation.Companion.stackp
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numConstants
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
-import avail.descriptor.functions.A_RawFunction.Companion.numNybbles
-import avail.descriptor.functions.A_RawFunction.Companion.numOuters
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
-import avail.descriptor.module.A_Module.Companion.stylingRecord
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Character.Companion.isCharacter
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.caller
+import avail.descriptor.representation.A_Continuation.Companion.currentLineNumber
+import avail.descriptor.representation.A_Continuation.Companion.frameAt
+import avail.descriptor.representation.A_Continuation.Companion.function
+import avail.descriptor.representation.A_Continuation.Companion.numSlots
+import avail.descriptor.representation.A_Continuation.Companion.pc
+import avail.descriptor.representation.A_Continuation.Companion.stackp
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Fiber.Companion.continuation
+import avail.descriptor.representation.A_Fiber.Companion.executionState
+import avail.descriptor.representation.A_Fiber.Companion.fiberName
+import avail.descriptor.representation.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.moduleNameNative
+import avail.descriptor.representation.A_Module.Companion.stylingRecord
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numConstants
+import avail.descriptor.representation.A_RawFunction.Companion.numLocals
+import avail.descriptor.representation.A_RawFunction.Companion.numNybbles
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Variable.Companion.getValueForDebugger
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import avail.descriptor.representation.AvailIntegerValueHelper
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
-import avail.descriptor.variables.A_Variable.Companion.getValueForDebugger
 import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
@@ -1324,11 +1324,11 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
-	 * For every existing fiber that isn't already captured by another debugger,
+	 * For every existing fiber not already captured by another debugger,
 	 * capture that fiber with this debugger.  Those fibers are not permitted to
-	 * run unless *this* debugger says they may.  Any fibers launched after this
-	 * point (say, to compute a print representation or evaluate an expression)
-	 * will *not* be captured by this debugger.
+	 * run unless *this* debugger says they may.  This debugger will *not*
+	 * capture any fibers launched after this point (say, to compute a print
+	 * representation or evaluate an expression).
 	 *
 	 * Note that this operation will block the current thread (which should be a
 	 * UI-spawned thread) while holding the runtime at a safe point, to ensure
@@ -1357,7 +1357,7 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
-	 * Un-capture all of the debugger's captured fibers, allowing them to
+	 * Un-capture all the debugger's captured fibers, allowing them to
 	 * continue running freely.
 	 */
 	private fun releaseAllFibers()

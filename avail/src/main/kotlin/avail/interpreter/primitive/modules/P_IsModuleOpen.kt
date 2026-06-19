@@ -33,10 +33,10 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.ModuleDescriptor.State.Loading
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.moduleState
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType

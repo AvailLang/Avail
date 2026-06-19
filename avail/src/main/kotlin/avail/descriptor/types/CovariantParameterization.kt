@@ -31,6 +31,8 @@
  */
 package avail.descriptor.types
 
+import avail.descriptor.representation.A_Type
+
 /**
  * A dimension along which a [phrase type][PhraseTypeDescriptor] can be
  * covariantly specialized.

@@ -33,8 +33,8 @@
 package avail.interpreter.levelTwo.operation.variables
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Variable.Companion.compareAndSwapValuesNoCheckMethod
 import avail.descriptor.representation.Mutability
-import avail.descriptor.variables.A_Variable.Companion.compareAndSwapValuesNoCheckMethod
 import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE

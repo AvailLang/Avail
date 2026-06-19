@@ -33,13 +33,14 @@ package avail.descriptor.tuples
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleLongAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom

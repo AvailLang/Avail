@@ -31,13 +31,13 @@
  */
 package avail.optimizer.jvm
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.representation.A_Module.Companion.moduleNameNative
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import java.util.regex.Pattern
 
 /**

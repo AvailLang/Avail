@@ -32,18 +32,20 @@
 package avail.descriptor.methods
 
 import avail.annotations.HideFieldJustForPrinting
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.MODULE
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_Sendable.Companion.definitionModuleName
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ABSTRACT_DEFINITION
 import avail.descriptor.types.TypeTag

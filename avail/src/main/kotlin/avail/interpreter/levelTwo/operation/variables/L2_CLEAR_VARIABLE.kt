@@ -31,7 +31,7 @@
  */
 
 package avail.interpreter.levelTwo.operation.variables
-import avail.descriptor.variables.A_Variable.Companion.clearVariableMethod
+import avail.descriptor.representation.A_Variable.Companion.clearVariableMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand

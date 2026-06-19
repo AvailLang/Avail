@@ -32,8 +32,8 @@
 
 package avail.optimizer
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.countdownToReoptimize
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator

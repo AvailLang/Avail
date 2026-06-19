@@ -32,25 +32,25 @@
 
 package avail.interpreter.primitive.files
 
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import avail.descriptor.functions.A_Function
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.representation.A_Fiber.Companion.textInterface
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

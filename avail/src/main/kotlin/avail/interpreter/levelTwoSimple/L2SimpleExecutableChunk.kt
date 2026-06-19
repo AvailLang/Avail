@@ -31,14 +31,14 @@
  */
 package avail.interpreter.levelTwoSimple
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.caller
+import avail.descriptor.representation.A_Continuation.Companion.registerDump
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper

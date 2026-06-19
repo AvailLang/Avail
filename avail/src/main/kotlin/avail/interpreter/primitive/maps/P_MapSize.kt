@@ -31,16 +31,16 @@
  */
 package avail.interpreter.primitive.maps
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map.Companion.mapSize
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers

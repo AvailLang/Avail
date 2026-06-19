@@ -38,12 +38,12 @@ import avail.AvailThread
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.pojos.PojoDescriptor
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.AvailObject.Companion.multiplier
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple
-import org.availlang.cache.LRUCache
 import avail.utility.Mutable
 import avail.utility.SimpleThreadFactory
+import org.availlang.cache.LRUCache
 import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
 import java.nio.channels.AsynchronousFileChannel

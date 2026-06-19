@@ -89,8 +89,7 @@ class DeserializerDescriber constructor(
 	}
 
 	/**
-	 * Decode all of the deserialization steps, and return the resulting
-	 * [String].
+	 * Decode all the deserialization steps, and return the resulting [String].
 	 *
 	 * @return
 	 *   The descriptive [String].

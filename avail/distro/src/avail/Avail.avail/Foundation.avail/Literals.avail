@@ -571,7 +571,7 @@ Semantic restriction "{«_‡,»}" is
 |
 	/* Since the argument is derived from a lexically constructed tuple, then
 	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
+	 * value. Therefore, asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
 	limit ::= ⌈elements⌉;
@@ -702,7 +702,7 @@ Semantic restriction "{«_→_‡,»}" is
 |
 	/* Since the argument is derived from a lexically constructed tuple, then
 	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
+	 * value. Therefore, asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
 	limit ::= ⌈bindings⌉;

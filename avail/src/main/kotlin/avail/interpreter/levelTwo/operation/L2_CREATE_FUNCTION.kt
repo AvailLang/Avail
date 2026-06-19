@@ -32,23 +32,23 @@
 
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
-import avail.descriptor.functions.A_RawFunction.Companion.numOuters
-import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.phrases.LiteralPhraseDescriptor
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
+import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType

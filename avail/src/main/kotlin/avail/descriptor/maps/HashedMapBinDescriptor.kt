@@ -30,17 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package avail.descriptor.maps
-import avail.descriptor.maps.A_MapBin.Companion.forEachInMapBin
-import avail.descriptor.maps.A_MapBin.Companion.isHashedMapBin
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
-import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
-import avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
-import avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
-import avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIN_SIZE
 import avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIT_VECTOR
 import avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.COMBINED_HASHES
@@ -54,6 +43,21 @@ import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
 import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import avail.descriptor.representation.A_MapBin
+import avail.descriptor.representation.A_MapBin.Companion.forEachInMapBin
+import avail.descriptor.representation.A_MapBin.Companion.isHashedMapBin
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHash
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinKeyUnionKind
+import avail.descriptor.representation.A_MapBin.Companion.mapBinKeysHash
+import avail.descriptor.representation.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinSize
+import avail.descriptor.representation.A_MapBin.Companion.mapBinValueUnionKind
+import avail.descriptor.representation.A_MapBin.Companion.mapBinValuesHash
+import avail.descriptor.representation.A_SetBin.Companion.binElementAt
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
@@ -64,11 +68,8 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_SetBin.Companion.binElementAt
 import avail.descriptor.sets.HashedSetBinDescriptor
 import avail.descriptor.sets.SetDescriptor
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.TypeTag
 import avail.utility.structures.EnumMap.Companion.enumMap
@@ -295,7 +296,8 @@ class HashedMapBinDescriptor private constructor(
 		value: A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_MapBin {
+	): A_MapBin
+	{
 		assert(myLevel == level)
 		checkHashedMapBin(self)
 		val oldKeysHash = self.mapBinKeysHash
@@ -396,7 +398,8 @@ class HashedMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		canDestroy: Boolean
-	): A_MapBin {
+	): A_MapBin
+	{
 		checkHashedMapBin(self)
 		if (isMutable && !canDestroy) {
 			self.makeImmutable()
@@ -481,7 +484,8 @@ class HashedMapBinDescriptor private constructor(
 		myLevel: Int,
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
-	): A_MapBin {
+	): A_MapBin
+	{
 		checkHashedMapBin(self)
 		if (isMutable && !canDestroy) {
 			self.makeImmutable()

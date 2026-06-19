@@ -34,16 +34,16 @@ package avail.compiler
 
 import avail.compiler.AvailCompiler.PartialSubexpressionList
 import avail.compiler.splitter.MessageSplitter
-import avail.descriptor.module.A_Module
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.SendPhraseDescriptor
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.allTokens
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
 import kotlin.math.min

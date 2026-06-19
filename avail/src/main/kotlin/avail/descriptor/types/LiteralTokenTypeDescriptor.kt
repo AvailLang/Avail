@@ -32,19 +32,20 @@
 package avail.descriptor.types
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfLiteralTokenType
+import avail.descriptor.representation.A_Type.Companion.literalType
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfLiteralTokenType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfLiteralTokenType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfLiteralTokenType
-import avail.descriptor.types.A_Type.Companion.literalType
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfLiteralTokenType
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfLiteralTokenType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.LITERAL_TYPE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types

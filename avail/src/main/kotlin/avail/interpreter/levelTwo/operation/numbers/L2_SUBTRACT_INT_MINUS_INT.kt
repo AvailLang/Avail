@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE

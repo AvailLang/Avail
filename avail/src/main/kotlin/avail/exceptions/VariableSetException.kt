@@ -32,7 +32,7 @@
 
 package avail.exceptions
 
-import avail.descriptor.variables.A_Variable.Companion.setValue
+import avail.descriptor.representation.A_Variable.Companion.setValue
 
 /**
  * `VariableSetException` is thrown when [setValue] fails for any reason.

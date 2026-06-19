@@ -33,19 +33,19 @@ package avail
 
 import avail.AvailRuntimeConfiguration.availableProcessors
 import avail.CallbackSystem.Companion.rawFunctionCache
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import avail.interpreter.primitive.pojos.P_InvokeCallback

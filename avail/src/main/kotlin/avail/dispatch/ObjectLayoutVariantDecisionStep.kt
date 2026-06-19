@@ -32,17 +32,17 @@
 
 package avail.dispatch
 
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.objectTypeVariant
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant

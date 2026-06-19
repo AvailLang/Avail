@@ -32,19 +32,19 @@
 
 package avail.interpreter.effects
 
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
-import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
-import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.ABSTRACT_DEFINER
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.FORWARD_DEFINER
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Sendable.Companion.isAbstractDefinition
+import avail.descriptor.representation.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation

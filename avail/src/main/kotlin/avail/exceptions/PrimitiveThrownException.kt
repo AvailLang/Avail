@@ -32,12 +32,12 @@
 
 package avail.exceptions
 
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Fiber.Companion.failureContinuation
 
 /**
  * A `PrimitiveThrownException` may be thrown from a primitive as a way to
- * terminate a [fiber][FiberDescriptor], causing its
+ * terminate an [A_Fiber], causing its
  * [failure&#32;continuation][A_Fiber.failureContinuation] to be executed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

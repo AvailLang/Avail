@@ -33,7 +33,7 @@
 package avail.compiler
 
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
-import avail.descriptor.tuples.A_String
+import avail.descriptor.representation.A_String
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.exceptions.PrimitiveThrownException

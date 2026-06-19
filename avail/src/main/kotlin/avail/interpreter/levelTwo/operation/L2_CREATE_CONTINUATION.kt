@@ -31,15 +31,15 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithoutOuters
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrameMethod
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction.Companion.declarationNamesWithoutOuters
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numLocals
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HideInSimpleVisualization
 import avail.interpreter.levelTwo.L2Instruction

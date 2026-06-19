@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand

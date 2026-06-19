@@ -32,7 +32,6 @@
 package avail.descriptor.types
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
@@ -47,6 +46,17 @@ import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPhraseType
+import avail.descriptor.representation.A_Type.Companion.phraseKind
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Type.Companion.subexpressionsTupleType
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfPhraseType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfPhraseType
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
@@ -55,15 +65,6 @@ import avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPhraseType
-import avail.descriptor.types.A_Type.Companion.phraseKind
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
-import avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfPhraseType
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfPhraseType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta

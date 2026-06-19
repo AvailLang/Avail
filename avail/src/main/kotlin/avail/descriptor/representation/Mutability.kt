@@ -31,15 +31,7 @@
  */
 package avail.descriptor.representation
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.bundles.A_BundleTree
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.representation.Mutability.IMMUTABLE
-import avail.descriptor.representation.Mutability.MUTABLE
-import avail.descriptor.representation.Mutability.SHARED
 
 /**
  * A description of the mutability of an [AvailObject]. This information is not

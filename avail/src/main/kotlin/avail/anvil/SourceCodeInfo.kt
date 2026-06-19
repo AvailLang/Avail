@@ -36,8 +36,8 @@ import avail.AvailRuntime
 import avail.AvailRuntimeSupport.AvailLazyFuture
 import avail.builder.ModuleName
 import avail.compiler.AvailCompiler.Companion.normalizeLineEnds
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.moduleNameNative
 import avail.resolver.ResolverReference
 import java.util.Collections.synchronizedMap
 import javax.swing.JOptionPane

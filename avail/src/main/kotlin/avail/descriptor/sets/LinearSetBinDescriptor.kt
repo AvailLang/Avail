@@ -32,25 +32,27 @@
 package avail.descriptor.sets
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_SetBin
+import avail.descriptor.representation.A_SetBin.Companion.binHasElementWithHash
+import avail.descriptor.representation.A_SetBin.Companion.isBinSubsetOf
+import avail.descriptor.representation.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
+import avail.descriptor.representation.A_SetBin.Companion.setBinHash
+import avail.descriptor.representation.A_SetBin.Companion.setBinSize
+import avail.descriptor.representation.A_SetBin.Companion.setBinUnionWithLinearBin
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
-import avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
-import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
-import avail.descriptor.sets.A_SetBin.Companion.setBinHash
-import avail.descriptor.sets.A_SetBin.Companion.setBinSize
-import avail.descriptor.sets.A_SetBin.Companion.setBinUnionWithLinearBin
 import avail.descriptor.sets.HashedSetBinDescriptor.Companion.combineHashedAndLinear
 import avail.descriptor.sets.HashedSetBinDescriptor.Companion.createInitializedHashSetBin
 import avail.descriptor.sets.LinearSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
 import avail.descriptor.sets.SetDescriptor.SetIterator
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.TypeTag
 import avail.utility.structures.EnumMap.Companion.enumMap
 

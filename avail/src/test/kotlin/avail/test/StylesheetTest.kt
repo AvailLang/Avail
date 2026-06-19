@@ -3299,6 +3299,7 @@ class StylesheetTest
 		 * the vocabulary `A, B, C, D`, sans operators, organized by partition
 		 * size:
 		 *
+		 * <!--suppress SpellCheckingInspection -->
 		 * * 0: () [1]
 		 * * 1: (A) [1]
 		 * * 2: (A A) (A B) [2]

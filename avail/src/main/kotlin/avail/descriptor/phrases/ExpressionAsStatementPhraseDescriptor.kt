@@ -31,18 +31,19 @@
  */
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
-import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
-import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.expression
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.ObjectSlots.EXPRESSION
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.emitEffectOn
+import avail.descriptor.representation.A_Phrase.Companion.emitValueOn
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
+import avail.descriptor.representation.A_Phrase.Companion.expression
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag

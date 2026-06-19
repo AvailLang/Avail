@@ -31,16 +31,6 @@
  */
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
-import avail.descriptor.phrases.A_Phrase.Companion.declaration
-import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.expression
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.phrases.A_Phrase.Companion.variable
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.IntegerSlots.Companion.IS_INLINE
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.EXPRESSION
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.VARIABLE
@@ -52,6 +42,19 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODU
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.declaration
+import avail.descriptor.representation.A_Phrase.Companion.emitValueOn
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
+import avail.descriptor.representation.A_Phrase.Companion.expression
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_Phrase.Companion.variable
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.BitField
@@ -59,9 +62,7 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag

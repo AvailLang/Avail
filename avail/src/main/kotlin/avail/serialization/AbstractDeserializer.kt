@@ -33,15 +33,15 @@
 package avail.serialization
 
 import avail.AvailRuntime
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.moduleName
+import avail.descriptor.representation.A_String
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_String
 import java.io.IOException
 import java.io.InputStream
 

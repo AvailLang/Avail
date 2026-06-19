@@ -35,13 +35,13 @@ import avail.descriptor.pojos.PojoDescriptor.ObjectSlots.KIND
 import avail.descriptor.pojos.PojoDescriptor.ObjectSlots.RAW_POJO
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass

@@ -266,8 +266,8 @@ class StructureView constructor (
 		val scrollView = createScrollPane(structureViewTree).apply {
 			verticalScrollBarPolicy =
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-			// Take up all of the window space that is not already reserved for
-			// other pane components.
+			// Take up all the window space not already reserved for other pane
+			// components.
 			preferredSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
 		}
 		panel.layout = GroupLayout(panel).apply {

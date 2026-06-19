@@ -34,7 +34,7 @@ package avail.test
 import avail.AvailRuntime
 import avail.builder.RenamesFileParserException
 import avail.builder.UnresolvedDependencyException
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.test.AvailRuntimeTestHelper.Companion.rootDirectory
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertFalse

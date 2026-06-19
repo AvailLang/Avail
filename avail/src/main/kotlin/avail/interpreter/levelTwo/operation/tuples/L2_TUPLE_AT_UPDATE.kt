@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.tuples
 
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList

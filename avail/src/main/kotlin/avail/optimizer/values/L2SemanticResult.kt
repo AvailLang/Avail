@@ -31,7 +31,7 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND

@@ -77,7 +77,7 @@ import javax.swing.tree.TreePath
  * @param workbench
  *   The owning [workbench][AvailWorkbench].
  * @param guideLines
- *   The list of after how many (character) columns to display a guide line.
+ *   The columns (character positions) after which to display guide lines.
  *   Defaults to a single guideline at `80`.  Ignored if the receiver has
  *   already had this superstructure built for it by a previous call.
  * @return
@@ -529,7 +529,7 @@ class WindowAction constructor(
  * Perform the specified [action] on the
  * [event&#32;dispatch&#32;thread][SwingUtilities.isEventDispatchThread] and
  * wait for it to complete. If this _is_ the event dispatch thread, then
- * just perform the [action] synchronously.
+ * perform the [action] synchronously instead.
  *
  * @param action
  *   The action to perform on the

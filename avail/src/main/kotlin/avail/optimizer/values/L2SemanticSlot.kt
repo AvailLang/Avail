@@ -31,7 +31,8 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.functions.A_Continuation
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.pc
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND

@@ -32,13 +32,12 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Sendable
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Sendable.Companion.parsingSignature
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.BottomTypeDescriptor
 import avail.interpreter.levelTwo.operand.TypeRestriction
 
@@ -108,10 +107,10 @@ enum class TypeComparison
 	companion object
 	{
 		/**
-		 * Compare two types extracted from [A_Sendable.bodySignature]s.  The
-		 * first is the criterion, which will eventually be tested against
-		 * arguments.  The second signature is the one being compared by
-		 * specificity with the criterion.
+		 * Compare two types extracted from [bodySignature]s.  The first is the
+		 * criterion, which will eventually be tested against arguments.  The
+		 * second signature is the one being compared by specificity with the
+		 * criterion.
 		 *
 		 * @param argumentRestrictions
 		 *   The [TypeRestriction]s that are known to hold at some point.
@@ -163,7 +162,7 @@ enum class TypeComparison
 
 		/**
 		 * Compare two phrase types extracted from
-		 * [A_Sendable.parsingSignature]s.  The first is the criterion, which
+		 * [parsingSignature]s.  The first is the criterion, which
 		 * will eventually be tested against arguments.  The second signature is
 		 * the one being compared by specificity with the criterion.
 		 *

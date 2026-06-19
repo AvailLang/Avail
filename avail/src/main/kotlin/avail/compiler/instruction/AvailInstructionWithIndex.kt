@@ -32,8 +32,8 @@
 
 package avail.compiler.instruction
 
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
 
 /**
  * This abstract subclass of [AvailInstruction] introduces a generic index whose

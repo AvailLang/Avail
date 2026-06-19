@@ -35,10 +35,10 @@ package avail.interpreter.primitive.phrases
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE

@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
-import avail.descriptor.variables.A_Variable.Companion.checkForSharedOrReactorsMethod
+import avail.descriptor.representation.A_Variable.Companion.checkForSharedOrReactorsMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS

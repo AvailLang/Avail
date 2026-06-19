@@ -32,17 +32,17 @@
 
 package avail.optimizer
 
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.functions.A_Function
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_SemanticRestriction
+import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_SemanticRestriction
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckNoEscapes

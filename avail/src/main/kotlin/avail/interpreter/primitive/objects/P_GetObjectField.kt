@@ -31,24 +31,24 @@
  */
 package avail.interpreter.primitive.objects
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.fieldTypeMap
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.fieldTypeMap
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

@@ -32,10 +32,10 @@
 
 package avail.interpreter.levelTwo.operation.dispatch
 
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag

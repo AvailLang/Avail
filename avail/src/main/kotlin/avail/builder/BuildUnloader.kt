@@ -35,7 +35,7 @@ package avail.builder
 import avail.AvailTask
 import avail.builder.AvailBuilder.LoadedModule
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
-import avail.descriptor.module.A_Module.Companion.removeFrom
+import avail.descriptor.representation.A_Module.Companion.removeFrom
 import avail.interpreter.execution.AvailLoader
 import avail.utility.Graph
 import java.util.logging.Level

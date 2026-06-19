@@ -33,14 +33,14 @@
 package avail.interpreter.profile;
 
 import avail.AvailRuntimeSupport.captureNanos
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.methods.A_Styler.Companion.function
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleName
-import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.moduleName
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Styler.Companion.function
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2SimpleChunk

@@ -32,25 +32,25 @@
 
 package avail.interpreter.primitive.methods
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_Method.Companion.definitionsTuple
-import avail.descriptor.methods.A_Method.Companion.numArgs
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
-import avail.descriptor.module.A_Module.Companion.addSeal
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.bundleOrNil
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_Method.Companion.numArgs
+import avail.descriptor.representation.A_Module.Companion.addSeal
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -93,8 +93,8 @@ object P_SealMethodsAtExistingDefinitions : Primitive1(CanInline, HasSideEffect)
 				// The definition tuple of a method can only be replaced during
 				// a safe point. Like the vast majority of primitives, this one
 				// runs in an interpreter task, which is mutually exclusive of
-				// safe points. Therefore it is not necessary to lock the method
-				// while traversing its definition tuple.
+				// safe points. Therefore, it is not necessary to lock the
+				// method while traversing its definition tuple.
 				val method = bundle.bundleMethod
 				val definitions = method.definitionsTuple
 				// Ignore macros.

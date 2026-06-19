@@ -31,10 +31,13 @@
  */
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.tokenType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor
@@ -46,9 +49,6 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instanceCount
-import avail.descriptor.types.A_Type.Companion.tokenType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType

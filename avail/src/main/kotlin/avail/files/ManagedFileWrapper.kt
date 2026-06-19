@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * A `AbstractFileWrapper` is an abstraction for holding an [AvailFile]. The
+ * An `AbstractFileWrapper` is an abstraction for holding an [AvailFile]. The
  * purpose of this is to enable the Avail server  [FileManager] cache to delay
  * establishing the type of `AvailFile` until the file type can be read without
  * delaying adding a file object to the `FileManager` cache.
@@ -125,10 +125,10 @@ abstract class AbstractFileWrapper constructor(
 	 * Delete the wrapped file from its storage location.
 	 *
 	 * @param success
-	 *   Accepts the [FileManager] file id if remove successful. Maybe `null`
-	 *   if file not present in `FileManager`.
+	 *   Accepts the [FileManager] file id if the remove is successful. It may
+	 *   be `null` if the file is not present in `FileManager`.
 	 * @param failure
-	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   A function that accepts an [ErrorCode] that describes the nature
 	 *   of the failure and an optional [Throwable].
 	 */
 	abstract fun delete (
@@ -158,9 +158,9 @@ abstract class AbstractFileWrapper constructor(
 	 * [Update][FileAction.execute] the wrapped [AvailFile] with the provided
 	 * [FileAction].
 	 *
-	 * This method is [Synchronized] to enforce performing actions
+	 * This method is [Synchronized] to enforce performing [FileAction]s
 	 * synchronously. All single-client edits are performed synchronously in
-	 * client sent order via the client connection I/O message handling.
+	 * the order the client requests them.
 	 *
 	 * Concurrent edits by multiple clients cannot be synchronized other than
 	 * preventing concurrent edits. It is impossible for the server to reason
@@ -443,7 +443,7 @@ class ManagedFileWrapper constructor(
 /**
  * A `NullFileWrapper` is an [AbstractFileWrapper] not used by the [FileManager]
  * to hold an [AvailFile] that is on the file system of the machine Avail is
- * running. The purpose of this is to enable access outside of the [FileManager].
+ * running. The purpose of this is to enable access outside the [FileManager].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *

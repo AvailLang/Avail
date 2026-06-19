@@ -33,16 +33,6 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
-import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
-import avail.descriptor.phrases.A_Phrase.Companion.literalObject
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
@@ -56,24 +46,35 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.declaredType
+import avail.descriptor.representation.A_Phrase.Companion.emitEffectOn
+import avail.descriptor.representation.A_Phrase.Companion.emitValueOn
+import avail.descriptor.representation.A_Phrase.Companion.initializationExpression
+import avail.descriptor.representation.A_Phrase.Companion.literalObject
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_Phrase.Companion.typeExpression
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.functionType
+import avail.descriptor.representation.A_Type.Companion.readType
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.functionType
-import avail.descriptor.types.A_Type.Companion.readType
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.ContinuationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -773,7 +774,8 @@ class DeclarationPhraseDescriptor(
 			typeExpression: A_Phrase,
 			initializationExpression: A_Phrase,
 			literalObject: A_BasicObject
-		): A_Phrase {
+		): A_Phrase
+		{
 			assert(declaredType.isType)
 			assert(token.isInstanceOf(Types.TOKEN()))
 			assert(initializationExpression.isNil

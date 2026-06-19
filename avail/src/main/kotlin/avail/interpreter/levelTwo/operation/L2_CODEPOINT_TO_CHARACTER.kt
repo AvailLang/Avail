@@ -32,18 +32,18 @@
 
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.character.A_Character
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.staticFromByteCodePointMethod
 import avail.descriptor.character.CharacterDescriptor.Companion.staticFromCodePointMethod
-import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Character
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8

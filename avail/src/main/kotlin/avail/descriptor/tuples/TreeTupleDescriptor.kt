@@ -33,6 +33,28 @@ package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.childAt
+import avail.descriptor.representation.A_Tuple.Companion.childCount
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.forEachInTuple
+import avail.descriptor.representation.A_Tuple.Companion.forEachIntInTuple
+import avail.descriptor.representation.A_Tuple.Companion.hashFromTo
+import avail.descriptor.representation.A_Tuple.Companion.replaceFirstChild
+import avail.descriptor.representation.A_Tuple.Companion.transferIntoByteBuffer
+import avail.descriptor.representation.A_Tuple.Companion.treeTupleLevel
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleLongAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleReverse
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
@@ -45,32 +67,12 @@ import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.childAt
-import avail.descriptor.tuples.A_Tuple.Companion.childCount
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.forEachInTuple
-import avail.descriptor.tuples.A_Tuple.Companion.forEachIntInTuple
-import avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
-import avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
-import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
-import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.maxWidth
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.minWidthOfNonRoot
 import avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_
 import avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_
-import avail.descriptor.types.A_Type
 import avail.utility.structures.EnumMap.Companion.enumMap
 import java.nio.ByteBuffer
 import java.util.function.Consumer
@@ -185,7 +187,7 @@ class TreeTupleDescriptor internal constructor(
 		if (canDestroy && isMutable)
 		{
 			// We can recurse into the rightmost child, appending to it and
-			// writing that back into ourself.
+			// writing that back into self.
 			val oldHash = self[HASH_OR_ZERO]
 			val childCount = self.variableObjectSlotsCount()
 			val oldSize = self.intSlot(CUMULATIVE_SIZES_AREA_, childCount)

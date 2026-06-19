@@ -162,7 +162,7 @@ fast-loader is so much faster than the compiler.
 
 Additionally, most side-effecting primitive invocations can be batched together
 into larger functions (installing this method, installing that macro, adding
-another method, etc), reducing the number of launched fibers during replay of
+another method, etc.), reducing the number of launched fibers during replay of
 the fast-loader functions.  You may see such composite functions when using the
 Avail debugger during module loading.
 
@@ -284,7 +284,7 @@ See [StylingRecord.kt](../../src/main/kotlin/avail/persistence/cache/record/Styl
    1. `delta` (compressed, in UTF-16 codepoints) from end of previous 
       declaration
    2. `length` (compressed, in UTF-16 codepoints)
-   3. Optional 0 for special treatment (note: #usages cannot be zero)
+   3. Optional zero for special treatment (note: #usages cannot be zero)
    4. Count of `usages` (vlq)
    5. For each usage,
 
@@ -368,7 +368,7 @@ searches are imperceptibly fast.
    3. Count of definitions of the name (vlq)
    4. For each definition of the name,
       1. The ordinal (vlq) of the `DefinitionType` identifying the kind of
-         definition that this definition is (method, macro, etc)
+         definition that this definition is (method, macro, etc.)
       2. An index into the module's [ManifestRecord](#manifestrecord) that also
          identifies the definition.
    5. Count of usages of the name (vlq)

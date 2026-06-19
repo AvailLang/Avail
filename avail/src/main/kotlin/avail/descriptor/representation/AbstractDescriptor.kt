@@ -43,57 +43,21 @@ import avail.compiler.ModuleManifestEntry
 import avail.compiler.ParsingOperation
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
-import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
-import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_MapBin
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.MapIterator
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_GrammaticalRestriction
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
-import avail.descriptor.methods.A_SemanticRestriction
-import avail.descriptor.methods.A_Sendable
-import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
-import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.divideIntoInfinityCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.equalsInfinity
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.multiplyByInfinityCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -101,34 +65,51 @@ import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
-import avail.descriptor.parsing.A_DefinitionParsingPlan
-import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.parsing.A_ParsingPlanInProgress
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_Bundle.Companion.addGrammaticalRestriction
+import avail.descriptor.representation.A_Character.Companion.equalsCharacterWithCodePoint
+import avail.descriptor.representation.A_Method.Companion.methodAddDefinition
+import avail.descriptor.representation.A_Module.Companion.moduleAddDefinition
+import avail.descriptor.representation.A_Module.Companion.moduleAddGrammaticalRestriction
+import avail.descriptor.representation.A_Number.Companion.addToInfinityCanDestroy
+import avail.descriptor.representation.A_Number.Companion.addToIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
+import avail.descriptor.representation.A_Number.Companion.divideIntoInfinityCanDestroy
+import avail.descriptor.representation.A_Number.Companion.divideIntoIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.equalsInfinity
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.multiplyByInfinityCanDestroy
+import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.subtractFromInfinityCanDestroy
+import avail.descriptor.representation.A_Number.Companion.subtractFromIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
+import avail.descriptor.representation.A_Set.Companion.isSet
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.asSet
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithByteStringStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithTwentyOneBitStringStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
+import avail.descriptor.representation.A_Type.Companion.acceptsArgTypesFromFunctionType
+import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgTypes
+import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgValues
+import avail.descriptor.representation.A_Type.Companion.acceptsTupleOfArgTypes
+import avail.descriptor.representation.A_Type.Companion.acceptsTupleOfArguments
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.declaredExceptions
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.isSet
-import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.SetIterator
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.asSet
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwentyOneBitStringStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
 import avail.descriptor.tuples.ByteStringDescriptor
 import avail.descriptor.tuples.ByteTupleDescriptor
 import avail.descriptor.tuples.IntegerIntervalTupleDescriptor
@@ -141,22 +122,12 @@ import avail.descriptor.tuples.TreeTupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor
 import avail.descriptor.tuples.TwoByteStringDescriptor
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
-import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
-import avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
-import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
-import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.declaredExceptions
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
@@ -239,7 +210,7 @@ import kotlin.reflect.jvm.javaField
  * [A_BasicObject.descriptor] and invokes upon it the original message (that
  * started with "o_"), passing `this` as the first argument.  Code generation
  * will eventually make this relatively onerous task more tractable and less
- * error prone.
+ * error-prone.
  *
  * @property mutability
  *   The [mutability][Mutability] of my instances.
@@ -669,7 +640,7 @@ abstract class AbstractDescriptor protected constructor (
 	}
 
 	/**
-	 * Print the [object][AvailObject] to the [StringBuilder]. By default show
+	 * Print the [object][AvailObject] to the [StringBuilder]. By default, show
 	 * it as the descriptor's name and a line-by-line list of fields. If the
 	 * indent is beyond the [maximumIndent], indicate it's too deep without
 	 * recursing. If the object is in the specified recursion list, indicate a
@@ -682,7 +653,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @param recursionMap
 	 *   Which ancestor objects are currently being printed.
 	 * @param indent
-	 *   What level to indent subsequent lines.
+	 *   At what level subsequent lines should be indented.
 	 */
 	@ThreadSafe
 	open fun printObjectOnAvoidingIndent (

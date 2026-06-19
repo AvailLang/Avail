@@ -242,7 +242,7 @@ class ModuleRoots constructor(
 		lock.withLock { rootMap[rootName] }
 
 	/**
-	 * Retrieve all of the root [ResolverReference]s for each [ModuleRoot] in
+	 * Retrieve all the root [ResolverReference]s for each [ModuleRoot] in
 	 * this [ModuleRoots] and pass them to the provided function.
 	 *
 	 * @param withResults
@@ -320,7 +320,6 @@ class ModuleRoots constructor(
 		 */
 		fun moduleRootsForTest() = ModuleRoots(FileManager(), "") {
 			assert(it.isEmpty()) {
-				L2Optimizer
 				"There were no roots provided, so there should be no failures."
 			}
 		}

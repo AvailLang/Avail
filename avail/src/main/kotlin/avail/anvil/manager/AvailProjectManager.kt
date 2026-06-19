@@ -274,7 +274,7 @@ class AvailProjectManager constructor(
 	 */
 	private fun draw ()
 	{
-		var newHeight = height
+		var newHeight: Int
 		displayedComponent =
 			when (displayed)
 			{

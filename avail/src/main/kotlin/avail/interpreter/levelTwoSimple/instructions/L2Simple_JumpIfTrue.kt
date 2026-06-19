@@ -32,9 +32,9 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset

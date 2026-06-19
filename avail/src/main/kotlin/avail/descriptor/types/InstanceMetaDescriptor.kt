@@ -31,25 +31,26 @@
  */
 package avail.descriptor.types
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.maps.A_Map
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.IndirectionDescriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceOfMeta

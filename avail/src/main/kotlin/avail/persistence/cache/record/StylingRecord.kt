@@ -32,7 +32,7 @@
 
 package avail.persistence.cache.record
 
-import avail.descriptor.module.A_Module
+import avail.descriptor.representation.A_Module
 import avail.utility.decodeString
 import avail.utility.sizedString
 import avail.utility.unvlqInt

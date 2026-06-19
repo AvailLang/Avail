@@ -32,13 +32,13 @@
 package avail.interpreter.primitive.compiler
 
 import avail.compiler.AvailAcceptedParseException
-import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
-import avail.descriptor.methods.A_Macro
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.generalFlag
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Type
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -61,7 +61,7 @@ import avail.interpreter.primitive.Primitive0
  * this primitive is ⊥-valued, and therefore the semantic restriction body can
  * itself be ⊥-valued.  If all semantic restrictions for a method are ⊥-valued,
  * and if all method definitions are ⊤-valued, we can be assured that a call
- * site can never produce a type stronger than ⊤.  Therefore it can never occur
+ * site can never produce a type stronger than ⊤.  Therefore, it can never occur
  * as an argument of a send – other than of a macro that explicitly allows
  * ⊤-yielding expressions, such as "_!;", which is dealt with specially.  This
  * distinction allows less pointless parsing to take place, in theory yielding

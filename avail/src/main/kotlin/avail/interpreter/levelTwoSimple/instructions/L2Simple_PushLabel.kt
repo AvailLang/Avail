@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
+import avail.descriptor.representation.A_RegisterDump
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer

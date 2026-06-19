@@ -32,8 +32,8 @@
 package avail.interpreter.levelTwo.operand
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -63,9 +63,9 @@ import avail.utility.notNullAnd
  * @property restriction
  *   A type restriction, certified by the VM, that this particular read of this
  *   register is guaranteed to satisfy.
- * @property register
- *   The actual [L2Register].  This is only set during late optimization of the
- *   control flow graph.
+ * @property registerOrNull
+ *   The actual [L2Register], if set.  This is only set during late optimization
+ *   of the control flow graph.
  * @constructor
  * Construct a new `L2ReadOperand` for the specified [L2SemanticValue] and
  * [TypeRestriction], using information from the given [L2ValueManifest].

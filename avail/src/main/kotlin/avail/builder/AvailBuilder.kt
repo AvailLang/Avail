@@ -33,6 +33,7 @@
 package avail.builder
 
 import avail.AvailRuntime
+import avail.builder.AvailBuilder.Companion.debugBuilder
 import avail.compiler.AvailCompiler
 import avail.compiler.CompilerProgressReporter
 import avail.compiler.FiberTerminationException
@@ -44,32 +45,32 @@ import avail.compiler.problems.ProblemHandler
 import avail.compiler.problems.ProblemType.EXECUTION
 import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.problems.ProblemType.TRACE
-import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
-import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
-import avail.descriptor.maps.A_Map.Companion.mapAt
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapSize
-import avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.addImportedNames
-import avail.descriptor.module.A_Module.Companion.entryPoints
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.representation.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.representation.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Map.Companion.mapSize
+import avail.descriptor.representation.A_Map.Companion.valuesAsTuple
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.addImportedNames
+import avail.descriptor.representation.A_Module.Companion.entryPoints
+import avail.descriptor.representation.A_Module.Companion.moduleNameNative
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.apparentSendName
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.asSet
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
@@ -100,9 +101,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.stream.Collectors.joining
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**
@@ -169,7 +167,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 
 	/** How to handle problems during command execution. */
 	private val commandProblemHandler: ProblemHandler = BuilderProblemHandler(
-		this, "[%1\$s]: %4\$s%n")
+		this, $$"[%1$s]: %4$s%n")
 
 	/**
 	 * Record a new party to notify about module loading and unloading.
@@ -775,7 +773,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   What to do with each module version.  A function will be passed,
 	 *   which should be evaluated to indicate the module has been processed.
 	 * @param afterAll
-	 *   What to do after all of the modules have been processed.
+	 *   What to do after all the modules have been processed.
 	 */
 	fun traceDirectoriesThen(
 		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,

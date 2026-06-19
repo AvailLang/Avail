@@ -32,6 +32,12 @@
 package avail.descriptor.types
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfTokenType
+import avail.descriptor.representation.A_Type.Companion.tokenType
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfTokenType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfTokenType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -39,11 +45,6 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfTokenType
-import avail.descriptor.types.A_Type.Companion.tokenType
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfTokenType
-import avail.descriptor.types.A_Type.Companion.typeUnionOfTokenType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN

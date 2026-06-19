@@ -32,14 +32,14 @@
 
 package avail.interpreter.primitive.general
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType

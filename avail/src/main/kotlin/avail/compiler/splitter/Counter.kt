@@ -36,17 +36,16 @@ import avail.compiler.ParsingConversionRule.LIST_TO_SIZE
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.ListPhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -64,10 +63,9 @@ import java.util.Collections
  * it may contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].
  *
  * When a double dagger appears in a counter, the counter produces a
- * [whole&#32;number][IntegerRangeTypeDescriptor.wholeNumbers] that indicates
- * the number of occurrences of the subexpression to the left of the double
- * dagger. The message "«very‡,»#good" accepts a single argument: the count of
- * occurrences of "very".
+ * [wholeNumbers] that indicates the number of occurrences of the subexpression
+ * to the left of the double dagger. The message "«very‡,»#good" accepts a
+ * single argument: the count of occurrences of "very".
  *
  * When no double dagger appears in a counter, then the counter produces
  * a whole number that indicates the number of occurrences of the entire

@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
+import avail.descriptor.representation.A_Variable
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
-import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Instruction

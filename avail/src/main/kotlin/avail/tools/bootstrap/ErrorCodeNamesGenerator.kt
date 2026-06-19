@@ -32,16 +32,16 @@
 package avail.tools.bootstrap
 
 import avail.AvailRuntime
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Set.Companion.setMinusCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.readType
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode

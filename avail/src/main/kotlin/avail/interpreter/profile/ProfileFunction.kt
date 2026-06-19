@@ -32,7 +32,7 @@
 
 package avail.interpreter.profile;
 
-import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.AvailObject.Companion.combine3
 
 /**

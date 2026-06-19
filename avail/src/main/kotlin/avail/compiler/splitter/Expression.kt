@@ -31,12 +31,13 @@
  */
 package avail.compiler.splitter
 
-import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.PhraseDescriptor
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 

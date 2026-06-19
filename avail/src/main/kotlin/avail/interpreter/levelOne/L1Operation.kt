@@ -32,16 +32,16 @@
 
 package avail.interpreter.levelOne
 
-import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.functions.A_RawFunction.Companion.literalAt
-import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_RawFunction.Companion.literalAt
+import avail.descriptor.representation.A_RawFunction.Companion.nybbles
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AbstractDescriptor
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelOne.L1OperandType.IMMEDIATE
 import avail.interpreter.levelOne.L1OperandType.LITERAL

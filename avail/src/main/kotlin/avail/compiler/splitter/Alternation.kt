@@ -36,8 +36,8 @@ import avail.compiler.EnsureParseProgress
 import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
@@ -134,7 +134,7 @@ internal class Alternation constructor(
 			// checkpoint marker in one of the alternatives.  That's a
 			// reasonable way to indicate that a prefix function should only run
 			// when that alternative occurs.  Since no alternative can produce a
-			// value (argument, counter, etc), there's no problem.
+			// value (argument, counter, etc.), there's no problem.
 			val newWrapState = alternatives[i].emitOn(
 				emptyListPhraseType(), generator, wrapState)
 			assert(newWrapState === wrapState)

@@ -32,15 +32,15 @@
 
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.lowerInclusive
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.upperInclusive
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.lowerInclusive
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32

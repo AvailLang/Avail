@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwoSimple.instructions.registers
 
-import avail.descriptor.functions.A_Function
+import avail.descriptor.representation.A_Function
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.interpreter.primitive.controlflow.P_ExitContinuationIf
 

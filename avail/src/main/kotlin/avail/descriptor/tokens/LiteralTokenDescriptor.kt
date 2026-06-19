@@ -32,10 +32,15 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
-import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import avail.descriptor.representation.A_Type.Companion.literalType
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -51,11 +56,7 @@ import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.LITERAL
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.STRING
-import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import avail.descriptor.types.A_Type.Companion.literalType
 import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN

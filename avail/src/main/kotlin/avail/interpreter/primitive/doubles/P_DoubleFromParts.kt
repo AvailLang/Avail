@@ -32,16 +32,16 @@
 
 package avail.interpreter.primitive.doubles
 
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.character.CharacterDescriptor.Companion.nonemptyStringOfDigitsType
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE

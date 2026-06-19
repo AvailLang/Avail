@@ -33,9 +33,9 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

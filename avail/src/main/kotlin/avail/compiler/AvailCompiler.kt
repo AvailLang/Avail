@@ -50,11 +50,6 @@ import avail.compiler.problems.ProblemType.EXTERNAL
 import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -65,68 +60,20 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKEN_INDICES_KEY
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.bundles.A_Bundle.Companion.lookupMacroByPhraseTuple
-import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
-import avail.descriptor.bundles.A_BundleTree
-import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
-import avail.descriptor.bundles.A_BundleTree.Companion.expand
-import avail.descriptor.bundles.A_BundleTree.Companion.isSourceOfCycle
-import avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTree
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.ParserTypeChecker
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
-import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_RUNNING_TOP_STATEMENT
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_SEMANTIC_RESTRICTION
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEachInMap
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.keysAsSet
-import avail.descriptor.maps.A_Map.Companion.mapAt
-import avail.descriptor.maps.A_Map.Companion.mapAtEachReplacingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapIterable
-import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.Companion.mapFromPairs
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_Method.Companion.bundles
-import avail.descriptor.methods.A_Method.Companion.definitionsTuple
-import avail.descriptor.methods.A_Method.Companion.filterByTypes
-import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
-import avail.descriptor.methods.A_SemanticRestriction
-import avail.descriptor.methods.A_Sendable
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import avail.descriptor.methods.A_Sendable.Companion.definitionModule
-import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
-import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
-import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
@@ -139,64 +86,12 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS
 import avail.descriptor.methods.SemanticRestrictionDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.addConstantBinding
-import avail.descriptor.module.A_Module.Companion.addVariableBinding
-import avail.descriptor.module.A_Module.Companion.constantBindings
-import avail.descriptor.module.A_Module.Companion.exportedNames
-import avail.descriptor.module.A_Module.Companion.hasAncestor
-import avail.descriptor.module.A_Module.Companion.importedNames
-import avail.descriptor.module.A_Module.Companion.moduleName
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
-import avail.descriptor.module.A_Module.Companion.moduleState
-import avail.descriptor.module.A_Module.Companion.privateNames
-import avail.descriptor.module.A_Module.Companion.removeFrom
-import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
-import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
-import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
-import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.allTokens
-import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
-import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import avail.descriptor.phrases.A_Phrase.Companion.bundle
-import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
-import avail.descriptor.phrases.A_Phrase.Companion.childrenMap
-import avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
-import avail.descriptor.phrases.A_Phrase.Companion.declaration
-import avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.expression
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
-import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
-import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.permutedPhrases
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
-import avail.descriptor.phrases.A_Phrase.Companion.stripMacro
-import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
@@ -214,38 +109,157 @@ import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Atom.Companion.bundleOrNil
+import avail.descriptor.representation.A_Atom.Companion.extractBoolean
+import avail.descriptor.representation.A_Atom.Companion.issuingModule
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Bundle.Companion.lookupMacroByPhraseTuple
+import avail.descriptor.representation.A_Bundle.Companion.macrosTuple
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Bundle.Companion.messageSplitter
+import avail.descriptor.representation.A_BundleTree
+import avail.descriptor.representation.A_BundleTree.Companion.allParsingPlansInProgress
+import avail.descriptor.representation.A_BundleTree.Companion.expand
+import avail.descriptor.representation.A_BundleTree.Companion.isSourceOfCycle
+import avail.descriptor.representation.A_BundleTree.Companion.latestBackwardJump
+import avail.descriptor.representation.A_BundleTree.Companion.lazyActions
+import avail.descriptor.representation.A_BundleTree.Companion.lazyComplete
+import avail.descriptor.representation.A_BundleTree.Companion.lazyIncomplete
+import avail.descriptor.representation.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
+import avail.descriptor.representation.A_BundleTree.Companion.lazyPrefilterMap
+import avail.descriptor.representation.A_BundleTree.Companion.lazyTypeFilterTree
+import avail.descriptor.representation.A_DefinitionParsingPlan.Companion.parsingInstructions
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.representation.A_Fiber.Companion.setGeneralFlag
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.forEachInMap
+import avail.descriptor.representation.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Map.Companion.keysAsSet
+import avail.descriptor.representation.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_Map.Companion.mapAtEachReplacingCanDestroy
+import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Map.Companion.mapIterable
+import avail.descriptor.representation.A_Map.Companion.mapSize
+import avail.descriptor.representation.A_Method.Companion.bundles
+import avail.descriptor.representation.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_Method.Companion.filterByTypes
+import avail.descriptor.representation.A_Method.Companion.semanticRestrictions
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.addConstantBinding
+import avail.descriptor.representation.A_Module.Companion.addVariableBinding
+import avail.descriptor.representation.A_Module.Companion.constantBindings
+import avail.descriptor.representation.A_Module.Companion.exportedNames
+import avail.descriptor.representation.A_Module.Companion.hasAncestor
+import avail.descriptor.representation.A_Module.Companion.importedNames
+import avail.descriptor.representation.A_Module.Companion.moduleName
+import avail.descriptor.representation.A_Module.Companion.moduleNameNative
+import avail.descriptor.representation.A_Module.Companion.moduleState
+import avail.descriptor.representation.A_Module.Companion.privateNames
+import avail.descriptor.representation.A_Module.Companion.removeFrom
+import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.representation.A_Module.Companion.takePostLoadFunctions
+import avail.descriptor.representation.A_Module.Companion.variableBindings
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.nameHighlightingPc
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.parsingPc
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.parsingPlan
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.allTokens
+import avail.descriptor.representation.A_Phrase.Companion.apparentSendName
+import avail.descriptor.representation.A_Phrase.Companion.applyStylesThen
+import avail.descriptor.representation.A_Phrase.Companion.argumentsListNode
+import avail.descriptor.representation.A_Phrase.Companion.bundle
+import avail.descriptor.representation.A_Phrase.Companion.childrenDo
+import avail.descriptor.representation.A_Phrase.Companion.childrenMap
+import avail.descriptor.representation.A_Phrase.Companion.copyMutablePhrase
+import avail.descriptor.representation.A_Phrase.Companion.declaration
+import avail.descriptor.representation.A_Phrase.Companion.declaredType
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
+import avail.descriptor.representation.A_Phrase.Companion.expression
+import avail.descriptor.representation.A_Phrase.Companion.expressionsSize
+import avail.descriptor.representation.A_Phrase.Companion.expressionsTuple
+import avail.descriptor.representation.A_Phrase.Companion.hasSuperCast
+import avail.descriptor.representation.A_Phrase.Companion.initializationExpression
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.macroOriginalSendNode
+import avail.descriptor.representation.A_Phrase.Companion.outputPhrase
+import avail.descriptor.representation.A_Phrase.Companion.permutedPhrases
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.representation.A_Phrase.Companion.statementsDo
+import avail.descriptor.representation.A_Phrase.Companion.stripMacro
+import avail.descriptor.representation.A_Phrase.Companion.superUnionType
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Phrase.Companion.tokenIndicesInName
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_Phrase.Companion.typeExpression
+import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_RawFunction.Companion.originatingPhrase
+import avail.descriptor.representation.A_SemanticRestriction
+import avail.descriptor.representation.A_Sendable
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Sendable.Companion.definitionModule
+import avail.descriptor.representation.A_Sendable.Companion.definitionModuleName
+import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.asTuple
+import avail.descriptor.representation.A_Set.Companion.hasElement
+import avail.descriptor.representation.A_Set.Companion.setIntersects
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.component1
+import avail.descriptor.representation.A_Tuple.Companion.component2
+import avail.descriptor.representation.A_Tuple.Companion.component3
+import avail.descriptor.representation.A_Tuple.Companion.component4
+import avail.descriptor.representation.A_Tuple.Companion.component5
+import avail.descriptor.representation.A_Tuple.Companion.component6
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.acceptsArgTypesFromFunctionType
+import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgValues
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.couldEverBeInvokedWith
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Type.Companion.readType
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Variable.Companion.setValue
+import avail.descriptor.representation.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.asTuple
-import avail.descriptor.sets.A_Set.Companion.hasElement
-import avail.descriptor.sets.A_Set.Companion.setIntersects
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.component1
-import avail.descriptor.tuples.A_Tuple.Companion.component2
-import avail.descriptor.tuples.A_Tuple.Companion.component3
-import avail.descriptor.tuples.A_Tuple.Companion.component4
-import avail.descriptor.tuples.A_Tuple.Companion.component5
-import avail.descriptor.tuples.A_Tuple.Companion.component6
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -254,18 +268,6 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
-import avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
-import avail.descriptor.types.A_Type.Companion.readType
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
@@ -284,8 +286,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
-import avail.descriptor.variables.A_Variable.Companion.setValue
-import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.dispatch.LookupStatistics
 import avail.exceptions.AvailEmergencyExitException
@@ -2222,7 +2222,7 @@ class AvailCompiler constructor(
 					i++
 				}
 			}
-			if (allFailedIndices.size == 0)
+			if (allFailedIndices.isEmpty())
 			{
 				// Each argument applied to at least one definition, so put
 				// the blame on them all instead of none.
@@ -4584,7 +4584,7 @@ class AvailCompiler constructor(
 						differentIndices.add(i)
 					}
 				}
-				if (differentIndices.size == 0)
+				if (differentIndices.isEmpty())
 				{
 					// There were no differences, so we're at the problem.
 					return
@@ -4761,9 +4761,9 @@ class AvailCompiler constructor(
 						toKeep.add(token)
 					}
 				}
-				if (toSkip.size == 0)
+				if (toSkip.isEmpty())
 				{
-					if (toKeep.size == 0)
+					if (toKeep.isEmpty())
 					{
 						start.expected(
 							MEDIUM,
@@ -4781,7 +4781,7 @@ class AvailCompiler constructor(
 					}
 					return@withTokensDo
 				}
-				if (toSkip.size == 1 && toKeep.size == 0)
+				if (toSkip.size == 1 && toKeep.isEmpty())
 				{
 					// Common case of an unambiguous whitespace/comment token.
 					val token = toSkip[0]
@@ -4795,7 +4795,7 @@ class AvailCompiler constructor(
 				// Rarer, more complicated cases with at least two
 				// interpretations, at least one of which is whitespace/comment.
 				val result = mutableListOf<ParserState>()
-				if (toKeep.size > 0)
+				if (toKeep.isNotEmpty())
 				{
 					// There's at least one non-whitespace token present at
 					// start.

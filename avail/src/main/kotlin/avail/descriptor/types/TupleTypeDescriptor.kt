@@ -32,46 +32,47 @@
 package avail.descriptor.types
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.greaterOrEqual
+import avail.descriptor.representation.A_Number.Companion.greaterThan
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.computeSuperkind
+import avail.descriptor.representation.A_Type.Companion.defaultType
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfTupleType
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.lowerInclusive
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.trimType
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfTupleType
+import avail.descriptor.representation.A_Type.Companion.typeTuple
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfTupleType
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type.Companion.computeSuperkind
-import avail.descriptor.types.A_Type.Companion.defaultType
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfTupleType
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.lowerInclusive
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.trimType
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfTupleType
-import avail.descriptor.types.A_Type.Companion.typeTuple
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfTupleType
-import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -874,7 +875,7 @@ private constructor(
 		 */
 		fun mappingElementTypes(
 			aTupleType: A_Type,
-			elementTransformer: (A_Type) -> A_Type): A_Type
+			elementTransformer: (A_Type) ->A_Type): A_Type
 		{
 			val sizeRange = aTupleType.sizeRange
 			val typeTuple = aTupleType.typeTuple

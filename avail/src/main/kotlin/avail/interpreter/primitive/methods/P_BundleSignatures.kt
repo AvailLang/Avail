@@ -32,16 +32,16 @@
 package avail.interpreter.primitive.methods
 
 import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_Tuple.Companion.asSet
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor
-import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION

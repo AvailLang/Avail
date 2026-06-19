@@ -34,11 +34,13 @@ package avail.interpreter.primitive.variables
 
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable
+import avail.descriptor.representation.A_Variable.Companion.atomicRemoveFromMap
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -46,8 +48,6 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.A_Variable.Companion.atomicRemoveFromMap
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableGetException

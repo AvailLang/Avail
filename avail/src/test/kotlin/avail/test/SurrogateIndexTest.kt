@@ -31,7 +31,7 @@
  */
 package avail.test
 
-import avail.descriptor.tuples.A_String.SurrogateIndexConverter
+import avail.descriptor.representation.A_String.SurrogateIndexConverter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

@@ -32,34 +32,15 @@
 package avail.descriptor.representation
 
 import avail.compiler.scanning.LexingState
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_BundleTree
-import avail.descriptor.character.A_Character
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.numNybbles
-import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_MapBin
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_GrammaticalRestriction
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_SemanticRestriction
-import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.parsing.A_DefinitionParsingPlan
-import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.parsing.A_ParsingPlanInProgress
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_RawFunction.Companion.numNybbles
+import avail.descriptor.representation.A_Tuple.Companion.isBetterRepresentationThan
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.declaredExceptions
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject.Companion.frameAtPut
 import avail.descriptor.representation.AvailObject.Companion.frameAtPut2
@@ -68,14 +49,8 @@ import avail.descriptor.representation.AvailObject.Companion.frameAtPut4
 import avail.descriptor.representation.AvailObject.Companion.frameAtPut5
 import avail.descriptor.representation.AvailObject.Companion.frameAtPut6
 import avail.descriptor.representation.AvailObject.Companion.registerDumpStatic
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.TokenType
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.ByteStringDescriptor
 import avail.descriptor.tuples.ByteTupleDescriptor
 import avail.descriptor.tuples.IntTupleDescriptor
@@ -85,14 +60,9 @@ import avail.descriptor.tuples.RepeatedElementTupleDescriptor
 import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.declaredExceptions
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.descriptor.variables.A_Variable
 import avail.interpreter.levelTwo.L2Chunk
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -284,7 +254,7 @@ class AvailObject private constructor(
 	override fun toString() = buildString {
 		val recursionMap = IdentityHashMap<A_BasicObject, Unit>(10)
 		printOnAvoidingIndent(this@buildString, recursionMap, 1)
-		assert(recursionMap.size == 0)
+		assert(recursionMap.isEmpty())
 	}
 
 	/**

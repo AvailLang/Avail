@@ -31,8 +31,8 @@
  */
 package avail.interpreter.levelTwoSimple
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_RegisterDump
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction

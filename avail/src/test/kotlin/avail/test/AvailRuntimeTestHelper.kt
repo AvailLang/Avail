@@ -40,7 +40,7 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.builder.RenamesFileParserException
 import avail.builder.UnresolvedDependencyException
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Phrase
 import avail.files.FileManager
 import avail.io.TextInterface
 import avail.io.TextOutputChannel

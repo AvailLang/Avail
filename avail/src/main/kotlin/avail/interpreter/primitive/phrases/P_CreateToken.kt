@@ -32,16 +32,19 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
-import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.currentLexer
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -51,9 +54,6 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers

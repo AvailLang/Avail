@@ -31,19 +31,6 @@
  */
 package avail.test
 
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.asBigInteger
-import avail.descriptor.numbers.A_Number.Companion.bitShift
-import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.extractFloat
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.isLong
-import avail.descriptor.numbers.A_Number.Companion.isPositive
-import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.numericCompare
-import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedToExtendedInteger
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.FloatDescriptor
@@ -52,6 +39,19 @@ import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.asBigInteger
+import avail.descriptor.representation.A_Number.Companion.bitShift
+import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
+import avail.descriptor.representation.A_Number.Companion.extractFloat
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isLong
+import avail.descriptor.representation.A_Number.Companion.isPositive
+import avail.descriptor.representation.A_Number.Companion.lessOrEqual
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.numericCompare
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.AvailObject
 import avail.test.ArithmeticTest.Companion.baseOffsetsForShifting
 import org.junit.jupiter.api.Assertions

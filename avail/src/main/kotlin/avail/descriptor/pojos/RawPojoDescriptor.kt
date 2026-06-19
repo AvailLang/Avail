@@ -32,13 +32,13 @@
 package avail.descriptor.pojos
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import avail.descriptor.types.TypeTag
@@ -174,8 +174,7 @@ open class RawPojoDescriptor protected constructor(
 				javaObject))
 
 	@Deprecated(
-		"Not applicable to pojos",
-		replaceWith = ReplaceWith("Create a new pojo object instead"))
+		"Not applicable to pojos: Create a new pojo object instead")
 	override fun mutable(): Nothing = unsupported
 
 	override fun immutable() =

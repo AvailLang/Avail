@@ -37,9 +37,9 @@ import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.interpreter.execution.Interpreter

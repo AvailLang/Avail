@@ -34,8 +34,8 @@ package avail.compiler.splitter
 import avail.compiler.ParseRawKeywordToken
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Metacharacter
+import avail.descriptor.representation.A_Type
 import avail.descriptor.tokens.TokenDescriptor.TokenType
-import avail.descriptor.types.A_Type
 
 /**
  * A `RawKeywordTokenArgument` is an occurrence of

@@ -32,21 +32,6 @@
 package avail.descriptor.numbers
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.numbers.A_Number.Companion.addToDoubleCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.bitShift
-import avail.descriptor.numbers.A_Number.Companion.divideIntoDoubleCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.equalsDouble
-import avail.descriptor.numbers.A_Number.Companion.extractDouble
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.multiplyByDoubleCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.numericCompare
-import avail.descriptor.numbers.A_Number.Companion.numericCompareToDouble
-import avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAtPut
-import avail.descriptor.numbers.A_Number.Companion.subtractFromDoubleCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
@@ -61,12 +46,28 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.truncatedFromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.addToDoubleCanDestroy
+import avail.descriptor.representation.A_Number.Companion.bitShift
+import avail.descriptor.representation.A_Number.Companion.divideIntoDoubleCanDestroy
+import avail.descriptor.representation.A_Number.Companion.equalsDouble
+import avail.descriptor.representation.A_Number.Companion.extractDouble
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.multiplyByDoubleCanDestroy
+import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.numericCompare
+import avail.descriptor.representation.A_Number.Companion.numericCompareToDouble
+import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAtPut
+import avail.descriptor.representation.A_Number.Companion.subtractFromDoubleCanDestroy
+import avail.descriptor.representation.A_Number.Companion.trimExcessInts
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.TypeTag
 import avail.optimizer.jvm.CheckedMethod
@@ -129,7 +130,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		val sum = addDoubleAndIntegerCanDestroy(
 			getDouble(self), anInteger, canDestroy)
 		return fromDoubleRecycling(sum, self, canDestroy)
@@ -139,7 +141,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return objectFromDoubleRecycling(
 			getDouble(self) + doubleObject.extractDouble,
 			self,
@@ -151,7 +154,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return fromDoubleRecycling(
 			getDouble(self) + floatObject.extractDouble,
 			self,
@@ -162,7 +166,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return aNumber.divideIntoDoubleCanDestroy(self, canDestroy)
 	}
 
@@ -170,7 +175,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return fromDoubleRecycling(
 			sign.limitDouble() / getDouble(self),
 			self,
@@ -193,7 +199,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return objectFromDoubleRecycling(
 			doubleObject.extractDouble / getDouble(self),
 			self,
@@ -205,7 +212,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return fromDoubleRecycling(
 			floatObject.extractDouble / getDouble(self),
 			self,
@@ -567,7 +575,8 @@ class DoubleDescriptor private constructor(
 			aDouble: Double,
 			recyclable1: A_Number,
 			canDestroy: Boolean
-		): A_Number {
+		): A_Number
+		{
 			val result =
 				if (canDestroy && recyclable1.descriptor.isMutable)
 				{
@@ -602,7 +611,8 @@ class DoubleDescriptor private constructor(
 			recyclable1: A_Number,
 			recyclable2: A_Number,
 			canDestroy: Boolean
-		): A_Number {
+		): A_Number
+		{
 			val result: AvailObject = when {
 				canDestroy && recyclable1.descriptor.isMutable ->
 					recyclable1 as AvailObject
@@ -628,7 +638,8 @@ class DoubleDescriptor private constructor(
 		 */
 		fun doubleTruncatedToExtendedInteger(
 			inputD: Double
-		): A_Number {
+		): A_Number
+		{
 			assert(!isNaN(inputD))
 			if (inputD >= Long.MIN_VALUE && inputD <= Long.MAX_VALUE) {
 				// Common case -- it fits in a long.

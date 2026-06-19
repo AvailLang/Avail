@@ -35,9 +35,10 @@ import avail.compiler.CheckArgument
 import avail.compiler.ParseTopValuedArgument
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.ListPhraseDescriptor
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeTuple
 
 /**
  * An `ArgumentForMacroOnly` is the translation of an
@@ -49,8 +50,8 @@ import avail.descriptor.types.A_Type
  * macros, where the phrases themselves (including phrases yielding ⊤ or ⊥) are
  * what get passed to the macro body.
  *
- * Because [list&#32;phrases][ListPhraseDescriptor] have an
- * [expression&#32;type][A_Phrase.phraseExpressionType] that depends on the
+ * Because [list&#32;phrases][ListPhraseDescriptor] have a
+ * [phraseExpressionType] that depends on the
  * types of the `expressionType` of each subexpression, and because ⊥ as an
  * element in a tuple type makes the entire resulting tuple type also be ⊥, we
  * can't just directly accept an expression that produces ⊤ or ⊥ (e.g., the

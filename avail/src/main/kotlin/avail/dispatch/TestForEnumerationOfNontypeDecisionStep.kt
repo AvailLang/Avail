@@ -32,11 +32,11 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Definition
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock

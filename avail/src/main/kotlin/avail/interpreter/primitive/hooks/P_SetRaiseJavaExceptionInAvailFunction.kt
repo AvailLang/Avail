@@ -36,10 +36,10 @@ import avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import avail.CallbackSystem.Callback
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter

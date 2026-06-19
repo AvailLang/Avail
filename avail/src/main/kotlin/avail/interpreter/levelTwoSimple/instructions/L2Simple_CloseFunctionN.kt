@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import avail.descriptor.representation.A_RawFunction
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset

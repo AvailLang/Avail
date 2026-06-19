@@ -37,9 +37,9 @@ import avail.compiler.NoLineBreak
 import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
 /**
@@ -145,7 +145,7 @@ internal class CompletelyOptional constructor(
 		// checkpoint marker within this completely optional region.  That's a
 		// reasonable way to indicate that a prefix function should only run
 		// when the optional section actually occurs.  Since no completely
-		// optional section can produce a value (argument, counter, etc),
+		// optional section can produce a value (argument, counter, etc.),
 		// there's no problem.
 		sequence.expressions.forEach { expression ->
 			expression.emitOn(

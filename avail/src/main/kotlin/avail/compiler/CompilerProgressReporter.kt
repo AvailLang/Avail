@@ -33,7 +33,7 @@
 package avail.compiler
 
 import avail.builder.ModuleName
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Phrase
 
 /**
  * The [compiler][AvailCompiler] notifies a `CompilerProgressReporter`

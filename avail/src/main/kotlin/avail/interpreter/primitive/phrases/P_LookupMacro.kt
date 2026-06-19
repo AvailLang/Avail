@@ -32,22 +32,22 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import avail.descriptor.bundles.A_Bundle.Companion.lookupMacroByPhraseTuple
-import avail.descriptor.bundles.A_Bundle.Companion.numArgs
-import avail.descriptor.functions.A_Function
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.bundleOrNil
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle.Companion.lookupMacroByPhraseTuple
+import avail.descriptor.representation.A_Bundle.Companion.numArgs
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning

@@ -32,14 +32,14 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Definition
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
 import avail.interpreter.primitive.types.P_InstanceOfMeta

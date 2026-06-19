@@ -32,24 +32,24 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.interruptRequestFlag
-import avail.descriptor.fiber.A_Fiber.Companion.wakeupTask
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.executionState
+import avail.descriptor.representation.A_Fiber.Companion.interruptRequestFlag
+import avail.descriptor.representation.A_Fiber.Companion.wakeupTask
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isLong
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP

@@ -32,9 +32,9 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset

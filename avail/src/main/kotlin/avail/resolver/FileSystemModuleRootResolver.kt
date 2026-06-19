@@ -928,6 +928,6 @@ class FileSystemModuleRootResolver constructor(
 		 * notifications from the watcher about files starting with this
 		 * prefix.
 		 */
-		private fun tempFilePrefix() = "\$\$\$TEMPFILE\$\$\$-"
+		private fun tempFilePrefix() = $$$$"$$$TEMPFILE$$$-"
 	}
 }

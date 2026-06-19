@@ -33,7 +33,6 @@ package avail.descriptor.representation
 
 import avail.annotations.ThreadSafe
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation

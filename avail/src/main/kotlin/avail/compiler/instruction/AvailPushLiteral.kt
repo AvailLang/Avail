@@ -33,8 +33,8 @@
 package avail.compiler.instruction
 
 import avail.descriptor.functions.ContinuationDescriptor
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
 import avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
 import avail.io.NybbleOutputStream
 

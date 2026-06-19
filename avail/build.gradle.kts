@@ -76,7 +76,7 @@ val weblafVersion = "1.2.14"
 /** The `io.methvin:directory-watcher` version. */
 val directoryWatcherVersion = "0.19.1"
 
-/** The version of the Apache commons library to use. */
+/** The version of the Apache Commons library to use. */
 val apacheCommonsVersion = "4.5.0"
 
 /** The `com.google.code.findbugs:jsr305` version. */
@@ -85,7 +85,7 @@ val jsrVersion = "3.0.2"
 /** The `org.junit.jupiter:junit-jupiter` version. */
 val junitVersion = "6.0.2"
 
-/** The language level version of Kotlin. */
+/** The language version of Kotlin. */
 val kotlinLanguage = "2.3.10"
 
 /**
@@ -111,7 +111,7 @@ val jvmTargetString = jvmBytecodeTarget.toString()
  */
 val freeCompilerArgs = listOf<String>()
 
-/** The language level version of Kotlin. */
+/** The language version of Kotlin. */
 val languageVersion = kotlinLanguage
 
 /**
@@ -242,6 +242,8 @@ tasks {
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by registering(GenerateFileManifestTask::class) {
+		description =
+			"Generate the list of all primitives in All_Primitive.txt."
 		basePath = layout.projectDirectory.dir("src/main/kotlin").asFile.path
 		val prefix = "$basePath${File.separator}"
 		inputs.files(
@@ -317,7 +319,7 @@ tasks {
 	// Native macOS bundling via jpackage. Produces a self-contained
 	// Anvil.app under avail/build/jpackage whose Contents/runtime is a
 	// jlinked image of the same JDK the workbench is compiled and run
-	// against — i.e. whatever java.toolchain resolves to. Bumping the
+	// against — i.e., whatever java.toolchain resolves to. Bumping the
 	// project's jvmTarget automatically retargets the bundled runtime.
 	val anvilRuntimeDir = layout.buildDirectory.dir("anvil-runtime")
 	val anvilJpackageDir = layout.buildDirectory.dir("jpackage")
@@ -414,7 +416,7 @@ tasks {
 			"--java-options", "-Xmx6g",
 			"--java-options", "--enable-native-access=ALL-UNNAMED",
 			"--java-options",
-			"-splash:\$APPDIR/avail-anvil.jar!" +
+			$$"-splash:$APPDIR/avail-anvil.jar!" +
 				"/workbench/AvailWBSplash.png",
 			"--mac-package-identifier", "org.availlang.anvil",
 			"--mac-package-name", anvilAppName,
@@ -492,7 +494,7 @@ tasks {
 	}
 
 	/**
-	 * Copy the generated bootstrap property files into the build directory, so
+	 * Copy the generated bootstrap property files into the build directory so
 	 * that the executable tools can find them as resources.
 	 *
 	 * See [relocateGeneratedPropertyFiles].
@@ -577,7 +579,7 @@ tasks {
 	 * Gradle task to generate the new bootstrap Avail modules for the current
 	 * locale and copy them to the appropriate location for distribution.
 	 */
-	val generateBootstrap by registering(Copy::class) {
+	register("generateBootstrap", Copy::class) {
 		description =
 			"Gradle task to generate the new bootstrap Avail modules for the " +
 				"current locale and copy them to the appropriate location " +
@@ -589,8 +591,9 @@ tasks {
 	/**
 	 * Populate `VmVersion.kt` with the VM [version] of Avail.
 	 */
-	val generateVmVersion by registering(DefaultTask::class)
+	register("generateVmVersion", DefaultTask::class)
 	{
+		description = "Populate `VmVersion.kt` with the VM version of Avail."
 		val generatedVmVersion = file(
 			"${projectDir.absolutePath}/src/main/resources/VmVersionTemplate.txt"
 		).readText()
@@ -775,7 +778,7 @@ fun computeAvailRootsForTest (): String =
 		.joinToString(";") { availRoot(it).rootString }
 
 /**
- * Construct a operating system-specific file path using [File.separator].
+ * Construct an operating system-specific file path using [File.separator].
  *
  * @param path
  *   The locations to join using the system separator.
@@ -806,7 +809,7 @@ data class AvailRoot constructor(val name: String, val uri: URI)
 }
 
 /**
- * Copy the generated bootstrap property files into the build directory, so that
+ * Copy the generated bootstrap property files into the build directory so that
  * the executable tools can find them as resources.
  *
  * @param task

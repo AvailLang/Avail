@@ -33,12 +33,12 @@ package avail.compiler.splitter
 
 import avail.compiler.ParsePart
 import avail.compiler.ParsePartCaseInsensitively
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 
 /**
  * A `Simple` is an [expression][Expression] that

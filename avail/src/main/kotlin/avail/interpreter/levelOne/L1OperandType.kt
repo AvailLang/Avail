@@ -32,11 +32,10 @@
 
 package avail.interpreter.levelOne
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.literalAt
 import avail.descriptor.representation.AvailObject
-
 
 /**
  * An L1 instruction consists of an [L1Operation] and its operands, each
@@ -60,7 +59,7 @@ enum class L1OperandType
 
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
-	 * the current [compiled&#32;code][CompiledCodeDescriptor] object's
+	 * the current [compiled&#32;code][A_RawFunction] object's
 	 * [literals][A_RawFunction.literalAt]. This allows instructions to refer to
 	 * arbitrary [AvailObject]s.
 	 */

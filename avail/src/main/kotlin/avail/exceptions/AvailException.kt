@@ -32,7 +32,7 @@
 
 package avail.exceptions
 
-import avail.descriptor.numbers.A_Number
+import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.AvailObject
 
 /**

@@ -31,37 +31,6 @@
  */
 package avail.descriptor.numbers
 
-import avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.asBigInteger
-import avail.descriptor.numbers.A_Number.Companion.bitShift
-import avail.descriptor.numbers.A_Number.Companion.bitwiseXor
-import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.equalsInteger
-import avail.descriptor.numbers.A_Number.Companion.extractDouble
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.extractSignedByte
-import avail.descriptor.numbers.A_Number.Companion.extractSignedShort
-import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.isLong
-import avail.descriptor.numbers.A_Number.Companion.isSignedByte
-import avail.descriptor.numbers.A_Number.Companion.isSignedShort
-import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
-import avail.descriptor.numbers.A_Number.Companion.lessThan
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.numericCompareToInteger
-import avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAt
-import avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAtPut
-import avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAt
-import avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
-import avail.descriptor.numbers.A_Number.Companion.whichPowerOfTwo
 import avail.descriptor.numbers.DoubleDescriptor.Companion.addDoubleAndIntegerCanDestroy
 import avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubleAndInteger
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
@@ -78,6 +47,44 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegers
 import avail.descriptor.numbers.IntegerDescriptor.Companion.squaresOfQuintillionLock
 import avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.addToIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.asBigInteger
+import avail.descriptor.representation.A_Number.Companion.bitShift
+import avail.descriptor.representation.A_Number.Companion.bitwiseXor
+import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
+import avail.descriptor.representation.A_Number.Companion.divideIntoIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.equalsInteger
+import avail.descriptor.representation.A_Number.Companion.extractDouble
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.extractSignedByte
+import avail.descriptor.representation.A_Number.Companion.extractSignedShort
+import avail.descriptor.representation.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.representation.A_Number.Companion.greaterThan
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.isLong
+import avail.descriptor.representation.A_Number.Companion.isSignedByte
+import avail.descriptor.representation.A_Number.Companion.isSignedShort
+import avail.descriptor.representation.A_Number.Companion.lessOrEqual
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.numericCompareToInteger
+import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
+import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAtPut
+import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAt
+import avail.descriptor.representation.A_Number.Companion.subtractFromIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
+import avail.descriptor.representation.A_Number.Companion.trimExcessInts
+import avail.descriptor.representation.A_Number.Companion.whichPowerOfTwo
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.lowerInclusive
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -88,12 +95,6 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.lowerInclusive
-import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
@@ -481,7 +482,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return if (sign == Sign.POSITIVE) positiveInfinity
 		else negativeInfinity
 	}
@@ -527,7 +529,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		if (self.isLong && anInteger.isLong)
 		{
 			val x = anInteger.extractLong
@@ -606,7 +609,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		val d: Double = addDoubleAndIntegerCanDestroy(
 			doubleObject.extractDouble, self, canDestroy)
 		return fromDoubleRecycling(d, doubleObject, canDestroy)
@@ -616,7 +620,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		val d: Double = addDoubleAndIntegerCanDestroy(
 			floatObject.extractDouble, self, canDestroy)
 		return fromFloatRecycling(d.toFloat(), floatObject, canDestroy)
@@ -721,7 +726,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// This one is tricky.  The integer might be bigger than the maximum
 		// double, but the product with a very small double may produce a value
 		// that is still in range.  Avoid the overflow in that case by working
@@ -739,7 +745,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// This one is tricky.  The integer might be bigger than the maximum
 		// double, but the product with a very small double may produce a value
 		// that is still in range of a float.  Actually, I doubt this is
@@ -770,7 +777,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		var output: AvailObject?
 		if (self.isLong && anInteger.isLong)
 		{
@@ -868,7 +876,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// This one is tricky.  The integer might be bigger than the maximum
 		// double, but the product with a very small double may produce a value
 		// that is still in range.  Avoid the overflow in that case by working
@@ -886,7 +895,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// This one is tricky.  The integer might be bigger than the maximum
 		// double, but the product with a very small double may produce a value
 		// that is still in range of a float.  Actually, I doubt this is
@@ -912,7 +922,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		if (self.isLong && anInteger.isLong)
 		{
 			val x = anInteger.extractLong
@@ -993,7 +1004,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// Compute the negative (i.e., int-double)
 		val d: Double = addDoubleAndIntegerCanDestroy(
 			-doubleObject.extractDouble, self, canDestroy)
@@ -1005,7 +1017,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// Compute the negative (i.e., int-float)
 		val d: Double = addDoubleAndIntegerCanDestroy(
 			-floatObject.extractDouble, self, canDestroy)
@@ -1232,7 +1245,8 @@ class IntegerDescriptor private constructor(
 		shiftFactor: A_Number,
 		truncationBits: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		if (!truncationBits.isInt) {
 			throw ArithmeticException(AvailErrorCode.E_TOO_LARGE_TO_REPRESENT)
 		}
@@ -1353,7 +1367,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		shiftFactor: A_Number,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		if (self.equals(zero)) {
 			if (!canDestroy || isMutable) {
 				self.makeImmutable()
@@ -1740,7 +1755,8 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An Avail integer representing the same number as the argument.
 		 */
-		fun fromBigInteger(bigInteger: BigInteger): A_Number {
+		fun fromBigInteger(bigInteger: BigInteger): A_Number
+		{
 			val bytes = bigInteger.toByteArray()
 			if (bytes.size <= 8) {
 				return fromLong(bigInteger.toLong())
@@ -1787,7 +1803,8 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An Avail integer.
 		 */
-		fun truncatedFromDouble(aDouble: Double): A_Number {
+		fun truncatedFromDouble(aDouble: Double): A_Number
+		{
 			// Extract the top three 32-bit sections.  That guarantees 65 bits
 			// of mantissa, which is more than a double actually captures.
 			var truncated = aDouble
@@ -2123,7 +2140,8 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   The value `(10^18)^(2^n)`.
 		 */
-		fun cachedSquareOfQuintillion(n: Int): A_Number {
+		fun cachedSquareOfQuintillion(n: Int): A_Number
+		{
 			// Use a safe double-check mechanism.  Use a read-lock first.
 			squaresOfQuintillionLock.read {
 				if (n < squaresOfQuintillion.size) {

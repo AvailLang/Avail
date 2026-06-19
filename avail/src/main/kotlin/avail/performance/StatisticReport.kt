@@ -33,7 +33,7 @@
 package avail.performance
 
 import avail.compiler.ParsingOperation
-import avail.descriptor.bundles.A_BundleTree
+import avail.descriptor.representation.A_BundleTree
 import avail.optimizer.StackReifier
 import avail.performance.ReportingUnit.BYTES
 import avail.performance.ReportingUnit.NANOSECONDS

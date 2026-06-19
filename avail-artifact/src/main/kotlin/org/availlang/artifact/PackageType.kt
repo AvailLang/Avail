@@ -61,6 +61,6 @@ enum class PackageType
 		 *   `false` otherwise.
 		 */
 		fun checkOrdinal (proposedOrdinal: Int): Boolean =
-			proposedOrdinal in 0 until PackageType.values().size
+			proposedOrdinal in 0 until entries.size
 	}
 }

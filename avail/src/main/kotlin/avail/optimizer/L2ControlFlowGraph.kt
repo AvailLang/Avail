@@ -31,7 +31,7 @@
  */
 package avail.optimizer
 
-import avail.descriptor.functions.A_Continuation
+import avail.descriptor.representation.A_Continuation
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand

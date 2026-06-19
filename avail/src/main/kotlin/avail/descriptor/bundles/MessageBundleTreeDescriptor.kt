@@ -43,47 +43,63 @@ import avail.compiler.ParsingOperation
 import avail.compiler.PrepareToRunPrefixFunction
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter
-import avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
-import avail.descriptor.bundles.A_Bundle.Companion.messagePart
-import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
-import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
-import avail.descriptor.bundles.A_BundleTree.Companion.expand
-import avail.descriptor.bundles.A_BundleTree.Companion.hasBackwardJump
-import avail.descriptor.bundles.A_BundleTree.Companion.isSourceOfCycle
-import avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.IS_SOURCE_OF_CYCLE
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.forEachInMap
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
-import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapSize
-import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_GrammaticalRestriction
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_Sendable
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.parsing.A_DefinitionParsingPlan
-import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
-import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
-import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
-import avail.descriptor.parsing.A_ParsingPlanInProgress
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.isBackwardJump
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
-import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.grammaticalRestrictions
+import avail.descriptor.representation.A_Bundle.Companion.messagePart
+import avail.descriptor.representation.A_BundleTree
+import avail.descriptor.representation.A_BundleTree.Companion.addPlanInProgress
+import avail.descriptor.representation.A_BundleTree.Companion.allParsingPlansInProgress
+import avail.descriptor.representation.A_BundleTree.Companion.expand
+import avail.descriptor.representation.A_BundleTree.Companion.hasBackwardJump
+import avail.descriptor.representation.A_BundleTree.Companion.isSourceOfCycle
+import avail.descriptor.representation.A_BundleTree.Companion.latestBackwardJump
+import avail.descriptor.representation.A_BundleTree.Companion.lazyActions
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_DefinitionParsingPlan
+import avail.descriptor.representation.A_DefinitionParsingPlan.Companion.bundle
+import avail.descriptor.representation.A_DefinitionParsingPlan.Companion.definition
+import avail.descriptor.representation.A_DefinitionParsingPlan.Companion.parsingInstructions
+import avail.descriptor.representation.A_GrammaticalRestriction
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.forEachInMap
+import avail.descriptor.representation.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Map.Companion.mapAtReplacingCanDestroy
+import avail.descriptor.representation.A_Map.Companion.mapSize
+import avail.descriptor.representation.A_Map.Companion.mapWithoutKeyCanDestroy
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.hasAncestor
+import avail.descriptor.representation.A_ParsingPlanInProgress
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.isBackwardJump
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.nameHighlightingPc
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.parsingPc
+import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.parsingPlan
+import avail.descriptor.representation.A_Sendable
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.hasElement
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithoutElementCanDestroy
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.component1
+import avail.descriptor.representation.A_Tuple.Companion.component2
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -93,24 +109,10 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.hasElement
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.component1
-import avail.descriptor.tuples.A_Tuple.Companion.component2
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -133,9 +135,6 @@ import java.util.Collections.sort
 import java.util.Deque
 import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**
@@ -334,15 +333,15 @@ class MessageBundleTreeDescriptor private constructor(
 	 * restriction exists in at least one of the still possible [A_Bundle]s.
 	 * When [unclassified] is empty, *all* such restricted argument message
 	 * bundles occur in this map. Note that some of the resulting message bundle
-	 * trees may be completely empty. Also note that some of the trees may be
-	 * shared, so be careful to discard them rather than maintaining them when
-	 * new method bundles or grammatical restrictions are added.
+	 * trees may be completely empty. Also note that some trees may be shared,
+	 * so be careful to discard them rather than maintaining them when new
+	 * method bundles or grammatical restrictions are added.
 	 *
-	 * When an argument is a message that is not restricted for any of the
-	 * message bundles in this message bundle tree (i.e., it does not occur as a
-	 * key in this map), then the sole entry in [lazyIncomplete] is used. The
-	 * key is always the [CheckArgument], which all message bundles in this
-	 * message bundle tree must have.
+	 * When an argument is a message not restricted for any of the message
+	 * bundles in this message bundle tree (i.e., it does not occur as a key in
+	 * this map), then the sole entry in [lazyIncomplete] is used. The key is
+	 * always the [CheckArgument], which all message bundles in this message
+	 * bundle tree must have.
 	 */
 	private var lazyPrefilterMap = emptyMap
 

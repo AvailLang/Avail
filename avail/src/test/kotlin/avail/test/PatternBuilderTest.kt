@@ -36,8 +36,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.interpreter.primitive.general.P_Hash
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
-import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -78,8 +76,6 @@ class PatternBuilderTest
 				capture(2)
 			)
 		}
-		val manifest = L2ValueManifest(BySemanticValue)
-		manifest
 		val matches = mutableListOf<List<L2SemanticBoxedValue>>()
 		pattern.matchForEach(value) { matches.add(it.toList()) }
 		val (a, b, c) = matches[0]

@@ -35,35 +35,11 @@ import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
-import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
-import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
-import avail.descriptor.bundles.A_Bundle.Companion.bundleAddMacro
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
-import avail.descriptor.maps.A_Map
-import avail.descriptor.methods.A_Method.Companion.bundles
-import avail.descriptor.methods.A_Method.Companion.chooseBundle
-import avail.descriptor.methods.A_Method.Companion.definitionsTuple
-import avail.descriptor.methods.A_Method.Companion.membershipChanged
-import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
-import avail.descriptor.methods.A_Method.Companion.updateStylers
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
 import avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import avail.descriptor.methods.MethodDescriptor.Companion.initialMutableDescriptor
@@ -75,13 +51,57 @@ import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TY
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.allAncestors
-import avail.descriptor.module.A_Module.Companion.hasAncestor
-import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Atom.Companion.bundleOrCreate
+import avail.descriptor.representation.A_Atom.Companion.isAtomSpecial
+import avail.descriptor.representation.A_Atom.Companion.issuingModule
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.addDefinitionParsingPlan
+import avail.descriptor.representation.A_Bundle.Companion.bundleAddMacro
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Bundle.Companion.macrosTuple
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Bundle.Companion.removePlanForSendable
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Method.Companion.bundles
+import avail.descriptor.representation.A_Method.Companion.chooseBundle
+import avail.descriptor.representation.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_Method.Companion.membershipChanged
+import avail.descriptor.representation.A_Method.Companion.methodAddDefinition
+import avail.descriptor.representation.A_Method.Companion.updateStylers
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.allAncestors
+import avail.descriptor.representation.A_Module.Companion.hasAncestor
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_SemanticRestriction
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Sendable.Companion.definitionModule
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithoutElementCanDestroy
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Styler
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgTypes
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.couldEverBeInvokedWith
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Variable
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -92,28 +112,14 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleWithout
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -122,7 +128,6 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.descriptor.variables.A_Variable
 import avail.dispatch.LeafLookupTree
 import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
@@ -389,7 +394,7 @@ class MethodDescriptor private constructor(
 		 * The resulting tuple of ranges and styles (perhaps with line numbers)
 		 * might even be accessed with a binary search, to deliver a windowed
 		 * view into the styled text.  This allows enormous files to be
-		 * presented in an IDE without having to transfer and decode all of the
+		 * presented in an IDE without having to transfer and decode all the
 		 * styling information for the entire file.
 		 */
 		@HideFieldJustForPrinting
@@ -577,7 +582,7 @@ class MethodDescriptor private constructor(
 	 * Answer a [list][List] of
 	 * [method&#32;definitions][MethodDefinitionDescriptor].
 	 *
-	 * Uses the [A_Method.definitionsTuple] accessor instead of reading the slot
+	 * Uses the [definitionsTuple] accessor instead of reading the slot
 	 * directly, to acquire the monitor first.
 	 */
 	override fun o_FilterByTypes(
@@ -593,7 +598,7 @@ class MethodDescriptor private constructor(
 	/**
 	 * Test if the definition is present within this method.
 	 *
-	 * Uses the [A_Method.definitionsTuple] accessor instead of reading the slot
+	 * Uses the [definitionsTuple] accessor instead of reading the slot
 	 * directly, to acquire the monitor first.
 	 */
 	override fun o_IncludesDefinition(

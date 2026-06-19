@@ -32,34 +32,35 @@
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.applyStylesThen
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -294,7 +295,8 @@ class LiteralPhraseDescriptor(
 		 * @return
 		 *   The new literal phrase.
 		 */
-		fun literalNodeFromToken(token: A_Token): A_Phrase {
+		fun literalNodeFromToken(token: A_Token): A_Phrase
+		{
 			assert(token.isInstanceOfKind(mostGeneralLiteralTokenType()))
 			return mutable.createShared {
 				setSlot(TOKEN, token)

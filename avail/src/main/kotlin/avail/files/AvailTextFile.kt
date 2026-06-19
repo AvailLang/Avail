@@ -32,9 +32,8 @@
 
 package avail.files
 
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.util.UUID
@@ -160,11 +159,11 @@ internal class AvailTextFile : AbstractAvailTextFile
 	 * The client will use 0-based indexing in its request, so we must adjust by
 	 * one. The file, in zero-based indexing must be prefixed before the
 	 * requested `start`. Shifting to Avail's one-based indexing and utilizing
-	 * the [A_Tuple.copyTupleFromToCanDestroy]'s inclusive range requires the
-	 * remove being after the requested `start`. Because the `start` is shifted
-	 * and correctly inclusive in the first half of the file, the 2nd half of
-	 * the file, the `end` must begin at the index one place beyond `end`
-	 * (`end + 1`). Thus the inserted text happens after the `start` position.
+	 * the [copyTupleFromToCanDestroy]'s inclusive range requires the remove
+	 * being after the requested `start`. Because the `start` is shifted and
+	 * correctly inclusive in the first half of the file, the 2nd half of the
+	 * file, the `end` must begin at the index one place beyond `end` (`end +
+	 * 1`). Thus the inserted text happens after the `start` position.
 	 *
 	 * @param data
 	 *   The `ByteArray` data to add to this [AvailFile].

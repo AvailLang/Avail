@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP

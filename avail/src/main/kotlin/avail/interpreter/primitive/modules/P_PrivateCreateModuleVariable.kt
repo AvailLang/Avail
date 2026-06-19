@@ -31,20 +31,20 @@
  */
 package avail.interpreter.primitive.modules
 
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.module.A_Module.Companion.addConstantBinding
-import avail.descriptor.module.A_Module.Companion.addVariableBinding
+import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module.Companion.addConstantBinding
+import avail.descriptor.representation.A_Module.Companion.addVariableBinding
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
-import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.interpreter.execution.Interpreter

@@ -33,7 +33,7 @@
 package avail.io
 
 import avail.builder.AvailBuilder
-import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.representation.A_Fiber
 
 import java.nio.charset.StandardCharsets
 

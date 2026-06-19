@@ -31,17 +31,17 @@
  */
 package avail.optimizer
 
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantFromId
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instanceTag
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instanceTag
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32

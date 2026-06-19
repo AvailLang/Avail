@@ -31,10 +31,10 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType

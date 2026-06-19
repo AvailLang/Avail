@@ -32,9 +32,9 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
-import avail.descriptor.variables.A_Variable.Companion.getValueClearingMethod
-import avail.descriptor.variables.A_Variable.Companion.getValueClearingMethodIfMutableMethod
-import avail.descriptor.variables.A_Variable.Companion.getValueMakingImmutableMethod
+import avail.descriptor.representation.A_Variable.Companion.getValueClearingMethod
+import avail.descriptor.representation.A_Variable.Companion.getValueClearingMethodIfMutableMethod
+import avail.descriptor.representation.A_Variable.Companion.getValueMakingImmutableMethod
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2Instruction

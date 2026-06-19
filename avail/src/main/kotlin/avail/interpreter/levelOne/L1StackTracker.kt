@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelOne
 
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.methods.A_Method.Companion.numArgs
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Method.Companion.numArgs
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.error
 import kotlin.math.max

@@ -31,11 +31,11 @@
  */
 package avail
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.TokenDescriptor.StaticInit
 import avail.descriptor.tokens.TokenDescriptor.TokenType

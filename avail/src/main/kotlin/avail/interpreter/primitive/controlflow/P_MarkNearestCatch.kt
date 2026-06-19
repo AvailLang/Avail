@@ -32,26 +32,26 @@
 
 package avail.interpreter.primitive.controlflow
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
-import avail.descriptor.functions.A_Continuation.Companion.frameAt
-import avail.descriptor.functions.A_Continuation.Companion.function
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.caller
+import avail.descriptor.representation.A_Continuation.Companion.frameAt
+import avail.descriptor.representation.A_Continuation.Companion.function
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numLocals
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable
+import avail.descriptor.representation.A_Variable.Companion.setValueNoCheck
+import avail.descriptor.representation.A_Variable.Companion.value
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
-import avail.descriptor.variables.A_Variable.Companion.value
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
 import avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME

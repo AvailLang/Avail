@@ -34,8 +34,8 @@ package avail.compiler.instruction
 
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
 import avail.io.NybbleOutputStream
 
 /**

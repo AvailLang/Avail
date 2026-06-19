@@ -33,20 +33,20 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.flattenStatementsInto
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta

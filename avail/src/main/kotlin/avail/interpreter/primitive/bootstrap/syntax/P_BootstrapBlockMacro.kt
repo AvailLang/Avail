@@ -39,43 +39,43 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
-import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.declaredType
+import avail.descriptor.representation.A_Phrase.Companion.expressionAt
+import avail.descriptor.representation.A_Phrase.Companion.expressionsSize
+import avail.descriptor.representation.A_Phrase.Companion.expressionsTuple
+import avail.descriptor.representation.A_Phrase.Companion.lastExpression
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.functionType
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.functionType
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
@@ -112,7 +112,7 @@ import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
  * during block parsing.  The prefix functions are invoked with all arguments
  * that have been parsed up to that point.
  *
- *  * After the open square bracket ("["), push the existing scope stack.
+ *  * After the open square bracket (`"["`), push the existing scope stack.
  *  * After parsing each argument declaration, invoke a prefix function that
  *    adds it to the scope.
  *  * After parsing an optional primitive failure variable, invoke a prefix
@@ -121,7 +121,7 @@ import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
  *    add it to the scope.
  *  * When a statement is a local declaration (variable or constant), the macro
  *    that builds it also adds it to the scope.
- *  * After the close square bracket ("]"), pop the scope stack.
+ *  * After the close square bracket (`"]"`), pop the scope stack.
  *
  *
  * When the whole macro has been parsed, the actual parsed arguments are passed
@@ -157,7 +157,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 			return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
 		val tokens = clientData.mapAtOrNull(staticTokensKey) ?:
-		// It looks like somebody removed the used tokens information.
+		// It looks like somebody removed the used-tokens information.
 		return fail(E_INCONSISTENT_PREFIX_FUNCTION)
 		// Primitive P_BootstrapPrefixEndOfBlockBody already popped the scope
 		// stack to the map, then pushed the map with the block's local

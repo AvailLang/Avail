@@ -32,18 +32,18 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
-import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Method.Companion.lookupByTypesFromTuple
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.isAbstractDefinition
+import avail.descriptor.representation.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.abstractMethod

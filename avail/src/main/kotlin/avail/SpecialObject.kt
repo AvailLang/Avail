@@ -32,13 +32,11 @@
 package avail
 
 import avail.AvailRuntime.HookType
-import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
@@ -51,7 +49,9 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
+import avail.descriptor.representation.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet

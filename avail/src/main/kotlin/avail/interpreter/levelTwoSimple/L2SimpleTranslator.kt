@@ -34,50 +34,50 @@ package avail.interpreter.levelTwoSimple
 import avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND
 import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
 import avail.AvailRuntimeSupport.captureNanos
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.bundles.A_Bundle.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.literalAt
-import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
-import avail.descriptor.functions.A_RawFunction.Companion.numOuters
-import avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
-import avail.descriptor.methods.A_ChunkDependable
-import avail.descriptor.methods.A_Method.Companion.definitionsAtOrBelow
-import avail.descriptor.methods.A_Method.Companion.testingTree
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Bundle.Companion.numArgs
+import avail.descriptor.representation.A_ChunkDependable
+import avail.descriptor.representation.A_Method.Companion.definitionsAtOrBelow
+import avail.descriptor.representation.A_Method.Companion.testingTree
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.constantTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.literalAt
+import avail.descriptor.representation.A_RawFunction.Companion.localTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numLocals
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
+import avail.descriptor.representation.A_RawFunction.Companion.numSlots
+import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgTypes
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.functionType
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.readType
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.functionType
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.readType
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
@@ -323,12 +323,10 @@ constructor(
 	{
 		restrictionFor(functionRead)?.constantOrNull?.code()?.let { return it }
 		val functionInstruction = originInstructionSkippingMoves(functionRead)
-		return when
+		return when (functionInstruction)
 		{
-			functionInstruction is L2Simple_AbstractCloseFunction ->
-				functionInstruction.code
-			functionInstruction is L2Simple_MoveConstant ->
-				functionInstruction.value.code()
+			is L2Simple_AbstractCloseFunction -> functionInstruction.code
+			is L2Simple_MoveConstant -> functionInstruction.value.code()
 			else -> null
 		}
 	}

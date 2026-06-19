@@ -33,8 +33,8 @@
 package avail.stacks
 
 import avail.AvailRuntime
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.stacks.comment.AvailComment
 import avail.stacks.comment.ClassComment
 import avail.stacks.comment.GlobalComment

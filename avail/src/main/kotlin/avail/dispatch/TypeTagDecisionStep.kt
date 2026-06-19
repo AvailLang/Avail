@@ -32,16 +32,16 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instanceTag
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instanceTag
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive

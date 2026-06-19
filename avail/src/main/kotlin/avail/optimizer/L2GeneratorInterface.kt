@@ -32,12 +32,12 @@
 
 package avail.optimizer
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_ChunkDependable
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction

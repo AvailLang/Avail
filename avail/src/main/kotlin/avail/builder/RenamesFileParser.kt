@@ -33,7 +33,6 @@
 package avail.builder
 
 import avail.annotations.ThreadSafe
-import avail.builder.RenamesFileParser.Token
 import avail.descriptor.module.ModuleDescriptor
 import java.io.EOFException
 import java.io.File

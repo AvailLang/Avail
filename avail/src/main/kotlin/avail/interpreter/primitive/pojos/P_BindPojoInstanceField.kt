@@ -35,13 +35,13 @@ import avail.descriptor.pojos.PojoFieldDescriptor
 import avail.descriptor.pojos.PojoFieldDescriptor.Companion.pojoFieldVariableForInnerType
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeVariables
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeVariables
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType

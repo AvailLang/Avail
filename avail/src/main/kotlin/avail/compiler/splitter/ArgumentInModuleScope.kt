@@ -37,10 +37,11 @@ import avail.compiler.ParseArgumentInModuleScope
 import avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.LiteralPhraseDescriptor
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import java.util.IdentityHashMap
 

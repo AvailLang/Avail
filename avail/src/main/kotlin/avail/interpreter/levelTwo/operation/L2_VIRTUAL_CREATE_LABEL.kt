@@ -31,8 +31,8 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType

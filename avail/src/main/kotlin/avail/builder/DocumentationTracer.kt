@@ -40,15 +40,15 @@ import avail.compiler.problems.ProblemType.INTERNAL
 import avail.compiler.problems.ProblemType.TRACE
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.tokens.CommentTokenDescriptor
-import avail.descriptor.tuples.A_Tuple
 import avail.error.ErrorCode
-import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.record.ModuleVersion
 import avail.persistence.cache.record.ModuleVersionKey
 import avail.serialization.Deserializer
-import org.availlang.persistence.MalformedSerialStreamException
 import avail.stacks.StacksGenerator
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
+import org.availlang.persistence.MalformedSerialStreamException
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 

@@ -33,20 +33,20 @@
 package avail
 
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
-import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
-import avail.descriptor.fiber.A_Fiber.Companion.releaseFromDebugger
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
-import avail.descriptor.functions.A_Continuation.Companion.function
-import avail.descriptor.functions.A_Function
-import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.caller
+import avail.descriptor.representation.A_Continuation.Companion.function
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Fiber.Companion.captureInDebugger
+import avail.descriptor.representation.A_Fiber.Companion.executionState
+import avail.descriptor.representation.A_Fiber.Companion.fiberHelper
+import avail.descriptor.representation.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.representation.A_Fiber.Companion.releaseFromDebugger
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Map.Companion.hasKey
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.performance.Statistic
 import avail.performance.StatisticReport
@@ -282,11 +282,11 @@ class AvailDebuggerModel constructor (
 	}
 
 	/**
-	 * For every existing fiber that isn't already captured by another debugger,
-	 * bind that fiber to this debugger.  Those fibers are not permitted to
-	 * run unless *this* debugger says they may.  Any fibers launched after this
-	 * point (say, to compute a print representation or evaluate an expression)
-	 * will *not* be captured by this debugger.
+	 * For every existing fiber not already captured by another debugger, bind
+	 * that fiber to this debugger.  Those fibers are not permitted to run
+	 * unless *this* debugger says they may.  This debugger	 will *not*
+	 * capture any fibers launched after this point (say, to compute a print
+	 * representation or evaluate an expression).
 	 *
 	 * Must be called from within a safe point, to ensure no fibers are running.
 	 * It acquires the runtimeLock to prevent conflict with other safe point

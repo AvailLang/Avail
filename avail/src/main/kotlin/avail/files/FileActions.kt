@@ -90,7 +90,7 @@ interface FileAction
 	 * @param timestamp
 	 *   The time when this [FileAction] request was received.
 	 * @param originator
-	 *   The [Session.id] of the session that originated the change.
+	 *   The [UUID] of the session that originated the change.
 	 * @return
 	 *   The [TracedAction], when applied, will reverse this `FileAction`.
 	 */
@@ -114,7 +114,7 @@ interface FileAction
 
 /**
  * `EditRange` is a [FileAction] that effectively first removes data from the
- * stated range (with an exclusive upper bound), then splits the file and
+ * stated range (with an exclusive upper bound), then splits the file, and
  * inserts the new data at the position where the first element was removed.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -251,7 +251,7 @@ object RedoAction: FileAction
 
 /**
  * `SaveAction` is a [FileAction] that forces a save of an [AvailFile] to
- * disk outside of the normal save mechanism.
+ * disk outside the normal save mechanism.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -291,7 +291,7 @@ class SaveAction constructor(
  * @property timestamp
  *   The time when this [FileAction] request was received.
  * @property originator
- *   The [Session.id] of the session that originator of the change.
+ *   The [UUID] of the session that originator of the change.
  * @property forwardAction
  *   The originally requested [FileAction] that was made to a file.
  * @property reverseAction
@@ -303,7 +303,7 @@ class SaveAction constructor(
  * @param timestamp
  *   The time when this [FileAction] request was performed.
  * @param originator
- *   The [Session.id] of the session that originator of the change.
+ *   The [UUID] of the session that originator of the change.
  * @param forwardAction
  *   The originally requested [FileAction] that was made to a file.
  * @param reverseAction

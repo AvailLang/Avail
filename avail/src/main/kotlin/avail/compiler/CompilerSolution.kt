@@ -32,9 +32,9 @@
 
 package avail.compiler
 
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.PhraseDescriptor
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
 
 /**
  * A `CompilerSolution` is a record of having parsed some

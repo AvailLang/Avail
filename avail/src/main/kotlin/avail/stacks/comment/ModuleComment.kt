@@ -32,7 +32,7 @@
 
 package avail.stacks.comment
 
-import avail.descriptor.tuples.A_String
+import avail.descriptor.representation.A_String
 import avail.stacks.CommentGroup
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksDescription

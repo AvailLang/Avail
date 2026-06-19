@@ -32,13 +32,13 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE

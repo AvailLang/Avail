@@ -31,13 +31,13 @@
  */
 package avail.interpreter.primitive.rawfunctions
 
-import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction.Companion.nybbles
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4

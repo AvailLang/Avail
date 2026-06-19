@@ -34,7 +34,7 @@ package avail.compiler.splitter
 import avail.compiler.ParseAnyRawToken
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Type
 
 /**
  * A `RawTokenArgument` is an occurrence of [ellipsis][Metacharacter.ELLIPSIS]

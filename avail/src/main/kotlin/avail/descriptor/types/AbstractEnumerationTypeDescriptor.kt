@@ -31,25 +31,27 @@
  */
 package avail.descriptor.types
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.maps.A_Map
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.computeSuperkind
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.objectTypeVariant
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type.Companion.computeSuperkind
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.objectTypeVariant
-import avail.descriptor.types.A_Type.Companion.typeUnion
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
@@ -544,14 +546,12 @@ protected constructor(
 				return bottom
 			}
 			val typeCount = instancesSet.count(AvailObject::isType)
-			return when
+			return when (typeCount)
 			{
-				typeCount == 0 && setSize == 1 ->
-					instanceType(instancesSet.single())
-				typeCount == 0 ->
-					EnumerationTypeDescriptor.fromNormalizedSet(instancesSet)
+				0 if setSize == 1 -> instanceType(instancesSet.single())
+				0 -> EnumerationTypeDescriptor.fromNormalizedSet(instancesSet)
 				// They're all types.
-				typeCount == setSize ->
+				setSize ->
 					instanceMeta(
 						instancesSet.reduce { union: A_Type, type ->
 							union.typeUnion(type).cast()

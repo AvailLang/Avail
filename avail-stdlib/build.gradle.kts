@@ -81,8 +81,8 @@ val availExtension get() = extensions
 	.findByType(AvailExtension::class.java)!!
 
 /**
- * Copy the generated library jar to distro/lib to enable testing of workbench
- * with jar file library.
+ * Copy the generated library jar to distro/lib to enable testing of the
+ * workbench with a jar file library.
  */
 fun copyArtifactToDistroLib ()
 {
@@ -97,13 +97,14 @@ tasks {
 	// Copy the library into the distribution directory. This is used by the
 	// workbench configuration that uses the standard library jar to start the
 	// workbench with the Avail Standard Library.
-	val copyToDistroLib by registering(DefaultTask::class) {
+	register("copyToDistroLib", DefaultTask::class) {
+		description = "Copy the library jar to distro/lib."
 		dependsOn(availArtifactJar)
 		doLast { copyArtifactToDistroLib() }
 	}
 
 
-	val sourceJar by registering(Jar::class) {
+	register("sourceJar", Jar::class) {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
@@ -142,9 +143,9 @@ tasks {
 	}
 
 	// If this project has no JVM sources and no includes configured for Dokka,
-	// do not unconditionally run Dokka during assemble. The actual disabling
-	// of Dokka tasks is performed at configuration time below (outside the
-	// `tasks {}` block) so the Kotlin DSL resolves correctly.
+	// do not unconditionally run Dokka during the assemble task. The actual
+	// disabling of Dokka tasks is performed below, during configuration time
+	// (outside the `tasks {}` block), so the Kotlin DSL resolves correctly.
 
 	publish {
 		PublishingUtility.checkCredentials()

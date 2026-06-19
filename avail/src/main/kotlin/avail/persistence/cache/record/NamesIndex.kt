@@ -32,13 +32,12 @@
 
 package avail.persistence.cache.record
 
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_GrammaticalRestriction
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_SemanticRestriction
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.addSeal
-import avail.descriptor.parsing.A_Lexer
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_GrammaticalRestriction
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Module.Companion.addSeal
+import avail.descriptor.representation.A_SemanticRestriction
 import avail.interpreter.primitive.atoms.P_CreateAtom
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.utility.decodeString
@@ -254,7 +253,7 @@ class NamesIndex
 		constructor(
 			binaryStream: DataInputStream
 		): this(
-			DefinitionType.all[binaryStream.unvlqInt()],
+			DefinitionType.entries[binaryStream.unvlqInt()],
 			binaryStream.unvlqInt())
 	}
 
@@ -287,13 +286,8 @@ class NamesIndex
 		/** The definition is of a [lexer][A_Lexer]. */
 		Lexer,
 
-		/** The definition of a [seal][A_Module.addSeal] on some method. */
-		Seal;
-
-		companion object
-		{
-			val all = entries.toTypedArray()
-		}
+		/** The definition of a [seal][addSeal] on some method. */
+		Seal
 	}
 
 	/**

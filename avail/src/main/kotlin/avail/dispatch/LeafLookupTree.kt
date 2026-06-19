@@ -32,14 +32,14 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.AvailObject.Companion.error
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
 import java.lang.String.format
 
 /**

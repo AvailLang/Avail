@@ -32,6 +32,8 @@
 package avail.descriptor.sets
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_SetBin
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
@@ -42,7 +44,6 @@ import avail.descriptor.sets.HashedSetBinDescriptor.Companion.generateHashedSetB
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.generateLinearSetBinFrom
 import avail.descriptor.sets.SetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import avail.descriptor.sets.SetDescriptor.SetIterator
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.TypeTag
 import avail.exceptions.unsupported
 

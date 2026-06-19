@@ -1711,7 +1711,7 @@ color.fn = jQuery.extend( color.prototype, {
 	},
 	blend: function( opaque ) {
 
-		// if we are already opaque - return ourself
+		// if we are already opaque - return self
 		if ( this._rgba[ 3 ] === 1 ) {
 			return this;
 		}

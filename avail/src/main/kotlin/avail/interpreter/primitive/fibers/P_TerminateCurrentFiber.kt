@@ -35,8 +35,8 @@ package avail.interpreter.primitive.fibers
 import avail.compiler.FiberTerminationException
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.interpreter.execution.Interpreter

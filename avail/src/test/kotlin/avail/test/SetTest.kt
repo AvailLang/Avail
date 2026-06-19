@@ -32,15 +32,15 @@
 package avail.test
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setIntersects
-import avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.setIntersectionCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setIntersects
+import avail.descriptor.representation.A_Set.Companion.setMinusCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.asSet
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.Companion.createSmallInterval
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

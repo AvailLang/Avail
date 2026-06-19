@@ -31,13 +31,12 @@
  */
 package avail.compiler.splitter
 
+import avail.compiler.ForbidIncreaseIndent
 import avail.compiler.IncreaseIndent
 import avail.compiler.MatchIndent
-import avail.compiler.ForbidIncreaseIndent
-import avail.compiler.splitter.CheckIndent.IndentationMatchType
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
 
 /**
  * A [CheckIndent] expression is an occurrence of either the

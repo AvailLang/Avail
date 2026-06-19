@@ -31,12 +31,12 @@
  */
 package avail.interpreter.primitive.privatehelpers
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand

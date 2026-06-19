@@ -33,8 +33,8 @@ package avail.compiler.splitter
 
 import avail.compiler.ParsingOperation
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
 import avail.exceptions.SignatureException
 
 /**

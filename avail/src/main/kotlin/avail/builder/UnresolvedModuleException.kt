@@ -38,7 +38,7 @@ import avail.resolver.ModuleRootResolver
  * `UnresolvedModuleException` is a type of [UnresolvedDependencyException] that
  * is specifically for the case that the compiler could not find a module it
  * needed in order to resolve its dependency graph. It contains the list of
- * locations checked by the compiler for that module, which is all of the
+ * locations checked by the compiler for that module, which is all the
  * acceptable locations for the missing module according to its dependent's
  * location.
  *

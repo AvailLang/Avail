@@ -32,9 +32,9 @@
 package avail.interpreter.levelTwo.operation.dispatch
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_Type.Companion.instanceTag
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction

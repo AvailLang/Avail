@@ -229,7 +229,7 @@ abstract class AvailLocation constructor(
 			 * The set of valid names of [LocationType].
 			 */
 			private val validNames: Set<String> =
-				values().map { it.name }.toSet()
+				entries.map { it.name }.toSet()
 
 			/**
 			 * Read a [AvailLocation] from the provided JSON.

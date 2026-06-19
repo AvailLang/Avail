@@ -33,17 +33,19 @@ package avail.descriptor.types
 
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.functionType
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfCompiledCodeType
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfCompiledCodeType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfCompiledCodeType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type.Companion.functionType
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfCompiledCodeType
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfCompiledCodeType
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfCompiledCodeType
+import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralType
 import avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta

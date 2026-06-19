@@ -32,8 +32,8 @@
 package avail.optimizer
 
 import avail.AvailRuntimeSupport
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RegisterDump
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RegisterDump
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction

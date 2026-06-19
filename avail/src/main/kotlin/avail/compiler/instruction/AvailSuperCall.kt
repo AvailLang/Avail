@@ -32,10 +32,10 @@
 
 package avail.compiler.instruction
 
-import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.interpreter.levelOne.L1Operation.L1Ext_doSuperCall
 import avail.io.NybbleOutputStream

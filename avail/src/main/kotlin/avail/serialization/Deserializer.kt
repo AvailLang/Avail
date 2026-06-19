@@ -35,9 +35,9 @@ package avail.serialization
 import avail.AvailRuntime
 import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import org.availlang.persistence.MalformedSerialStreamException
 import java.io.InputStream

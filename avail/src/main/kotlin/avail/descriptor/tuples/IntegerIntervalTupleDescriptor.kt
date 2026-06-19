@@ -32,37 +32,40 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.lessThan
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.addToIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.greaterThan
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDestroy
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithIntegerIntervalTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
+import avail.descriptor.representation.A_Tuple.Companion.copyAsMutableObjectTuple
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.treeTupleLevel
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfIntegerRangeType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithIntegerIntervalTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
-import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.Companion.SIZE
 import avail.descriptor.tuples.IntegerIntervalTupleDescriptor.ObjectSlots.DELTA
@@ -72,8 +75,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import java.util.IdentityHashMap
 
@@ -116,7 +117,7 @@ private constructor(
 			/**
 			 * The number of elements in the tuple.
 			 *
-			 * The API's [tuple size accessor][A_Tuple.tupleSize] currently
+			 * The API's [tuple size accessor][tupleSize] currently
 			 * returns a Java integer, because there wasn't much of a problem
 			 * limiting manually-constructed tuples to two billion elements.
 			 * This restriction will eventually be removed.

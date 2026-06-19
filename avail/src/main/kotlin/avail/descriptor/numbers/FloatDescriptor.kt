@@ -32,14 +32,6 @@
 package avail.descriptor.numbers
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.numbers.A_Number.Companion.addToFloatCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.divideIntoFloatCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.equalsFloat
-import avail.descriptor.numbers.A_Number.Companion.extractDouble
-import avail.descriptor.numbers.A_Number.Companion.extractFloat
-import avail.descriptor.numbers.A_Number.Companion.multiplyByFloatCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.numericCompareToDouble
-import avail.descriptor.numbers.A_Number.Companion.subtractFromFloatCanDestroy
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
@@ -50,13 +42,22 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubles
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.IntegerSlots.Companion.RAW_INT
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.addToFloatCanDestroy
+import avail.descriptor.representation.A_Number.Companion.divideIntoFloatCanDestroy
+import avail.descriptor.representation.A_Number.Companion.equalsFloat
+import avail.descriptor.representation.A_Number.Companion.extractDouble
+import avail.descriptor.representation.A_Number.Companion.extractFloat
+import avail.descriptor.representation.A_Number.Companion.multiplyByFloatCanDestroy
+import avail.descriptor.representation.A_Number.Companion.numericCompareToDouble
+import avail.descriptor.representation.A_Number.Companion.subtractFromFloatCanDestroy
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
@@ -117,7 +118,8 @@ class FloatDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		val sum: Double = addDoubleAndIntegerCanDestroy(
 			getDouble(self),
 			anInteger,
@@ -437,7 +439,8 @@ class FloatDescriptor private constructor(
 			aFloat: Float,
 			recyclable1: A_Number,
 			canDestroy: Boolean
-		): A_Number {
+		): A_Number
+		{
 			val result =
 				if (canDestroy && recyclable1.descriptor.isMutable)
 				{
@@ -472,7 +475,8 @@ class FloatDescriptor private constructor(
 			recyclable1: A_Number,
 			recyclable2: A_Number,
 			canDestroy: Boolean
-		): A_Number {
+		): A_Number
+		{
 			val result: AvailObject = when {
 				canDestroy && recyclable1.descriptor.isMutable ->
 					recyclable1 as AvailObject

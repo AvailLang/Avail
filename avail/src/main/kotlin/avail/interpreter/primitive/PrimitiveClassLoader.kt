@@ -33,7 +33,7 @@
 package avail.interpreter.primitive
 
 import avail.builder.ModuleName
-import avail.descriptor.tuples.A_String
+import avail.descriptor.representation.A_String
 import avail.interpreter.primitive.PrimitiveClassLoader.Companion.moduleToLoader
 import java.io.File
 import java.net.URLClassLoader

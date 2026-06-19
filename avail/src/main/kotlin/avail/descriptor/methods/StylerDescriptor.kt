@@ -31,25 +31,27 @@
  */
 package avail.descriptor.methods
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.METHOD
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.MODULE
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Styler
+import avail.descriptor.representation.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TypeTag
 
@@ -90,9 +92,9 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
 		 * The [function][stylerFunctionType] to invoke for styling.  It should
-		 * accept the original send phrase being styled, plus the phrase that
-		 * was produced by a macro, if one was applied, otherwise the original
-		 * send phrase again.  Most functions are only interested in the first
+		 * accept the original send phrase being styled, plus the phrase
+		 * produced by a macro, if one was applied, otherwise the original send
+		 * phrase again.  Most functions are only interested in the first
 		 * argument, but some, like the variable-use macro's styler, require
 		 * access to the resulting [variable-use][VariableUsePhraseDescriptor]
 		 * phrase, to get to the declaration that it's a use of, so that it can
@@ -144,7 +146,7 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		/**
 		 * The code establishing a method name, or identifying the structure of
 		 * a method call within a string literal used as part of a method name
-		 * (i.e. method name metacharacters). In Avail code, methods may be
+		 * (i.e., method name metacharacters). In Avail code, methods may be
 		 * named using any string- or atom-valued expression. In practice, it
 		 * would make little sense to style an expression or block used to
 		 * calculate a method name in a special way just because it is used

@@ -33,12 +33,12 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
-import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
+import avail.descriptor.representation.A_Continuation.Companion.frameAtPut
+import avail.descriptor.representation.A_Continuation.Companion.registerDump
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.interpreter.execution.Interpreter

@@ -32,30 +32,30 @@
 
 package avail.interpreter.primitive.integers
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number.Companion.bitwiseAnd
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.equalsLong
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.isLong
-import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.bitwiseAnd
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.equalsLong
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.greaterOrEqual
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.isLong
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
@@ -113,8 +113,8 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 		val (aRange, bRange) = argumentTypes
 
 		// If either value is constrained to a positive range, then at least
-		// guarantee the bit-wise and can't be greater than or equal to the next
-		// higher power of two of that range's upper bound.
+		// guarantee the bit-wise `and` can't be greater than or equal to the
+		// next higher power of two of that range's upper bound.
 		val upper: Long =
 			if (aRange.lowerBound.greaterOrEqual(zero)
 				&& aRange.upperBound.isLong)

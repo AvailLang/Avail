@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_Continuation
+import avail.descriptor.representation.A_Continuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2OperandType

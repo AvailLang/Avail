@@ -33,10 +33,15 @@ package avail.descriptor.variables
 
 import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldJustForPrinting
-import avail.descriptor.module.A_Module
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.writeType
+import avail.descriptor.representation.A_Variable.Companion.globalName
+import avail.descriptor.representation.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -44,13 +49,8 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_String
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
-import avail.descriptor.variables.A_Variable.Companion.globalName
-import avail.descriptor.variables.A_Variable.Companion.valueWasStablyComputed
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.VALUE_IS_STABLE
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE

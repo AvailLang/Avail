@@ -31,19 +31,19 @@
  */
 package avail.interpreter.primitive.compiler
 
-import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
-import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.representation.A_Fiber.Companion.generalFlag
+import avail.descriptor.representation.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_Type
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM

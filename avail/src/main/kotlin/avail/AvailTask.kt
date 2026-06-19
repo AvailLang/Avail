@@ -31,18 +31,18 @@
  */
 package avail
 
-import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
-import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
-import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
-import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
-import avail.descriptor.fiber.A_Fiber.Companion.resultContinuation
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
+import avail.descriptor.representation.A_Fiber
+import avail.descriptor.representation.A_Fiber.Companion.executionState
+import avail.descriptor.representation.A_Fiber.Companion.failureContinuation
+import avail.descriptor.representation.A_Fiber.Companion.fiberHelper
+import avail.descriptor.representation.A_Fiber.Companion.fiberResult
+import avail.descriptor.representation.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.representation.A_Fiber.Companion.resultContinuation
 import avail.exceptions.PrimitiveThrownException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.currentInterpreter

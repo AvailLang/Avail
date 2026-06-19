@@ -32,14 +32,6 @@
 
 package avail.interpreter.primitive.integers
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.bitShift
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.lessThan
-import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -47,17 +39,25 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.bitShift
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.greaterOrEqual
+import avail.descriptor.representation.A_Number.Companion.greaterThan
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -94,15 +94,15 @@ object P_BitShiftRight : Primitive2(CanFold, CanInline)
 	{
 		val baseInteger = arg1
 		val shiftFactor = arg2
-		try
+		return try
 		{
-			return baseInteger.bitShift(
+			baseInteger.bitShift(
 				zero.minusCanDestroy(shiftFactor, true),
 				true)
 		}
 		catch (e: ArithmeticException)
 		{
-			return fail(e.errorCode)
+			fail(e.errorCode)
 		}
 	}
 

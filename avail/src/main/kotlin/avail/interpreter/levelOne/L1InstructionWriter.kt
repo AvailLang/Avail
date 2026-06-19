@@ -32,30 +32,30 @@
 
 package avail.interpreter.levelOne
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.IntegerDescriptor
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.argumentsTuple
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.NybbleTupleDescriptor
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
@@ -424,7 +424,7 @@ open class L1InstructionWriter constructor(
 		{
 			listOf(phrase.argumentsTuple, locals(phrase), constants(phrase))
 				.flatten()
-				.map { it.token.string().asNativeString() }
+				.mapTo(names) { it.token.string().asNativeString() }
 		}
 		else
 		{

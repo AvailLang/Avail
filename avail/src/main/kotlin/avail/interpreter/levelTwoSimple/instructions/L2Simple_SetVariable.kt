@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.variables.A_Variable.Companion.setValueNoCheck
+import avail.descriptor.representation.A_Variable.Companion.setValueNoCheck
 import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer

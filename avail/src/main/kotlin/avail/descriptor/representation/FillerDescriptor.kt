@@ -31,7 +31,6 @@
  */
 package avail.descriptor.representation
 
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.TypeTag
 import avail.exceptions.unsupported
 import java.util.IdentityHashMap

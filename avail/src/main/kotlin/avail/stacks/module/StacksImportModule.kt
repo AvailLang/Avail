@@ -32,8 +32,8 @@
 
 package avail.stacks.module
 
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.stacks.CommentGroup
 import avail.stacks.StacksFilename

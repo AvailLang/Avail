@@ -593,16 +593,15 @@ class Graph<Vertex> constructor ()
 			}
 		}
 		var allDoneFlag = false
-		parallelVisitThen(
-			wrappedAction,
-			{
-				val old = safetyCheck.getAndSet(true)
-				assert(!old) { "Reached end of graph traversal twice" }
-				synchronized(monitor) {
-					allDoneFlag = true
-					monitor.javaNotify()
-				}
-			})
+		parallelVisitThen(wrappedAction)
+		{
+			val old = safetyCheck.getAndSet(true)
+			assert(!old) { "Reached end of graph traversal twice" }
+			synchronized(monitor) {
+				allDoneFlag = true
+				monitor.javaNotify()
+			}
+		}
 		var isDone: Boolean
 		synchronized(monitor) {
 			do

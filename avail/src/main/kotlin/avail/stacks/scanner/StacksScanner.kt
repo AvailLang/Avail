@@ -33,9 +33,9 @@
 package avail.stacks.scanner
 
 import avail.descriptor.character.CharacterDescriptor
-import avail.descriptor.tokens.A_Token
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Token
 import avail.descriptor.tokens.CommentTokenDescriptor
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksParser
 import avail.stacks.comment.AvailComment
@@ -674,16 +674,14 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 					|| Character.isWhitespace(scanner.peek()))
 				{
 					var cp = scanner.next()
-					if (forCodePoint(
-							cp) === NEWLINE)
+					if (forCodePoint(cp) === NEWLINE)
 					{
 						scanner.incrementNewlineCount()
 					}
 					if (scanner.peekFor('*'))
 					{
 						cp = scanner.next()
-						if (forCodePoint(
-								cp) === NEWLINE)
+						if (forCodePoint(cp) === NEWLINE)
 						{
 							scanner.incrementNewlineCount()
 						}
@@ -693,11 +691,10 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 				{
 					scanner.hasHTMLTagTrue()
 				}
-				if (!scanner.hasHTMLTag() && scanner.newlineCount() > 1
-					&& !(forCodePoint(
-						scanner.peek()) === SLASH)
-					&& !(forCodePoint(
-						scanner.peek()) === KEYWORD_START))
+				if (!scanner.hasHTMLTag()
+					&& scanner.newlineCount() > 1
+					&& forCodePoint(scanner.peek()) !== SLASH
+					&& forCodePoint(scanner.peek()) !== KEYWORD_START)
 				{
 					if (scanner.addedParagraphHTMLTag())
 					{
@@ -712,18 +709,16 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 				if (scanner.hasHTMLTag() && scanner.newlineCount() > 1
 					&& scanner.addedParagraphHTMLTag())
 				{
-					if (!(forCodePoint(
-							scanner.peek()) === SLASH)
-						&& !(forCodePoint(
-							scanner.peek()) === KEYWORD_START))
+					if (forCodePoint(scanner.peek()) !== SLASH
+						&& forCodePoint(scanner.peek()) !== KEYWORD_START)
 					{
 						scanner.addHTMLTokens("</p>")
 						scanner.hasHTMLTagFalse()
 					}
 				}
-				if ((forCodePoint(
-						scanner.peek()) === KEYWORD_START
-						|| scanner.atEnd()) && scanner.addedParagraphHTMLTag())
+				if ((scanner.atEnd()
+						|| forCodePoint(scanner.peek()) === KEYWORD_START)
+					&& scanner.addedParagraphHTMLTag())
 				{
 					scanner.addHTMLTokens("</p>")
 					scanner.hasHTMLTagFalse()

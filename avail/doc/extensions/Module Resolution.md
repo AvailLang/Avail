@@ -3,7 +3,7 @@ Module Resolution
 
 Avail has a unique source-linking system. Avail source exists in `ModuleRoot`s. 
 A `ModuleRoot` is effectively a directory that contains Avail source packages
-that contain Avail source modules and resource files (e.g. image file) used by
+that contain Avail source modules and resource files (e.g., image file) used by
 the Avail program. Additionally, it may contain regular directories (non-packages) 
 that strictly contain resource files only. 
 
@@ -28,7 +28,7 @@ ModuleRootResolverRegistry.register(MyCustomModuleRootResolverFactory)
 
 The use of URIs to reach module source necessitates that all implementations of
 `ModuleRootResolver` must be handled asynchronously. The response time of
-source access will vary greatly between URI scheme types (_e.g. network vs
+source access will vary greatly between URI scheme types (_e.g., network vs
 local file system_). Avail must guarantee orders of certain operations
 involving the compilation of source files. The concurrent nature of the
 compiler also necessitates asynchronous implementations be thread-safe. 

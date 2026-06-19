@@ -32,7 +32,7 @@
 
 package avail.compiler.instruction
 
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Tuple
 import avail.interpreter.levelOne.L1Operation.L1Ext_doGetLiteral
 import avail.io.NybbleOutputStream
 

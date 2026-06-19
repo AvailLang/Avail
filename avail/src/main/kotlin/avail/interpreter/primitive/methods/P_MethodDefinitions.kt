@@ -32,13 +32,13 @@
 
 package avail.interpreter.primitive.methods
 
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD

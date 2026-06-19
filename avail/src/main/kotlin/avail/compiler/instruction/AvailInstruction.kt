@@ -33,10 +33,10 @@
 package avail.compiler.instruction
 
 import avail.compiler.AvailCodeGenerator
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.io.NybbleOutputStream
 import kotlin.math.abs
 

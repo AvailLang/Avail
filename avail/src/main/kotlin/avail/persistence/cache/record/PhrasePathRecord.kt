@@ -33,12 +33,12 @@
 package avail.persistence.cache.record
 
 import avail.compiler.splitter.MessageSplitter
-import avail.descriptor.module.A_Module
-import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.ListPhraseDescriptor
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE

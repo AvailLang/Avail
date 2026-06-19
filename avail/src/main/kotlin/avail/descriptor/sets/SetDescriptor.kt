@@ -32,8 +32,31 @@
 package avail.descriptor.sets
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Character.Companion.codePoint
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.asTuple
+import avail.descriptor.representation.A_Set.Companion.equalsSet
+import avail.descriptor.representation.A_Set.Companion.hasElement
+import avail.descriptor.representation.A_Set.Companion.setElementsAreAllInstancesOfKind
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setWithoutElementCanDestroy
+import avail.descriptor.representation.A_SetBin.Companion.binElementsAreAllInstancesOfKind
+import avail.descriptor.representation.A_SetBin.Companion.binHasElementWithHash
+import avail.descriptor.representation.A_SetBin.Companion.binRemoveElementHashLevelCanDestroy
+import avail.descriptor.representation.A_SetBin.Companion.isBinSubsetOf
+import avail.descriptor.representation.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
+import avail.descriptor.representation.A_SetBin.Companion.setBinHash
+import avail.descriptor.representation.A_SetBin.Companion.setBinIterator
+import avail.descriptor.representation.A_SetBin.Companion.setBinSize
+import avail.descriptor.representation.A_SetBin.Companion.setBinUnion
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.contentType
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import avail.descriptor.representation.A_Type.Companion.rangeIncludesLong
+import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -41,35 +64,13 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set.Companion.asTuple
-import avail.descriptor.sets.A_Set.Companion.equalsSet
-import avail.descriptor.sets.A_Set.Companion.hasElement
-import avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
-import avail.descriptor.sets.A_SetBin.Companion.binElementsAreAllInstancesOfKind
-import avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
-import avail.descriptor.sets.A_SetBin.Companion.binRemoveElementHashLevelCanDestroy
-import avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
-import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
-import avail.descriptor.sets.A_SetBin.Companion.setBinHash
-import avail.descriptor.sets.A_SetBin.Companion.setBinIterator
-import avail.descriptor.sets.A_SetBin.Companion.setBinSize
-import avail.descriptor.sets.A_SetBin.Companion.setBinUnion
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.ObjectSlots.ROOT_BIN
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.contentType
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
-import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -587,7 +588,8 @@ private constructor(
 		 * @return
 		 *   A new mutable set containing the elements of the collection.
 		 */
-		fun setFromCollection(collection: Collection<A_BasicObject>): A_Set {
+		fun setFromCollection(collection: Collection<A_BasicObject>): A_Set
+		{
 			val iterator = collection.iterator()
 			return generateSetFrom(collection.size) { iterator.next() }
 		}
@@ -690,7 +692,8 @@ private constructor(
 		private fun twoElementSet(
 			element1: A_BasicObject,
 			element2: A_BasicObject
-		): A_Set {
+		): A_Set
+		{
 			assert(!element1.equals(element2))
 			return mutable.create {
 				this[ROOT_BIN] = createLinearSetBinPair(0, element1, element2)

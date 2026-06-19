@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwo.operation.dispatch
 
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -150,7 +150,7 @@ constructor(
 		when
 		{
 			// Shouldn't happen, but play nice.
-			possibleEdges.size == 0 -> return L2_IMPOSSIBLE_CODE()
+			possibleEdges.isEmpty() -> return L2_IMPOSSIBLE_CODE()
 			possibleEdges.size == 1 -> return L2_JUMP(possibleEdges.single())
 			edges.size == 2 -> return L2_JUMP_IF_COMPARE_INT(
 				numericComparator = L2ArbitraryConstantOperand(GreaterOrEqual),

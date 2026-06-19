@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Phrase
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand

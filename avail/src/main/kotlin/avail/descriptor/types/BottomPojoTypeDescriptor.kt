@@ -32,13 +32,14 @@
 package avail.descriptor.types
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.maps.A_Map
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPojoBottomType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoBottomType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation

@@ -32,13 +32,13 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase.Companion.statements
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE

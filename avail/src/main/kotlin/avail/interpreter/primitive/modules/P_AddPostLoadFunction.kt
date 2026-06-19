@@ -32,16 +32,16 @@
 
 package avail.interpreter.primitive.modules
 
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
-import avail.descriptor.module.A_Module.Companion.addPostLoadFunction
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.availLoader
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Module.Companion.addPostLoadFunction
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning

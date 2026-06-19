@@ -34,16 +34,16 @@ package avail.interpreter.primitive.bootstrap.syntax
 
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
-import avail.descriptor.phrases.A_Phrase.Companion.lastExpression
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase.Companion.expressionAt
+import avail.descriptor.representation.A_Phrase.Companion.expressionsSize
+import avail.descriptor.representation.A_Phrase.Companion.lastExpression
+import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive

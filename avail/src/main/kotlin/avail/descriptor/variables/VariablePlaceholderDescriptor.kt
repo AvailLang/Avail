@@ -33,19 +33,19 @@ package avail.descriptor.variables
 
 import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
-import avail.descriptor.variables.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.variables.VariablePlaceholderDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.variables.VariablePlaceholderDescriptor.IntegerSlots.Companion.LOCAL_INDEX
 import avail.descriptor.variables.VariablePlaceholderDescriptor.ObjectSlots.KIND

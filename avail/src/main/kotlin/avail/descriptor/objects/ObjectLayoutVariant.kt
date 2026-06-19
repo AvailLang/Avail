@@ -31,21 +31,21 @@
  */
 package avail.descriptor.objects
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
-import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsByFieldSet
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsCounter
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.createUninitializedObjectType
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Atom.Companion.fieldAtomConstraint
+import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.isSubsetOf
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.Mutability
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.isSubsetOf
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.utility.safeWrite
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength

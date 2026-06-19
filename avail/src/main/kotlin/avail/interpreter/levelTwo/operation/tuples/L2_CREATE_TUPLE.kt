@@ -32,9 +32,15 @@
 
 package avail.interpreter.levelTwo.operation.tuples
 
-import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Character.Companion.codePoint
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteStringMethod
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.createUninitializedByteTupleMethod
@@ -53,12 +59,6 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.createUninitializedTwentyOneBitStringMethod
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.createUninitializedTwoByteStringMethod
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64

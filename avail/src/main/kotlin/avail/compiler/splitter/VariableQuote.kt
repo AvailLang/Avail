@@ -35,9 +35,9 @@ import avail.compiler.CheckArgument
 import avail.compiler.ParseVariableReference
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.ReferencePhraseDescriptor
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
 import avail.descriptor.variables.VariableDescriptor
 import java.util.IdentityHashMap
 

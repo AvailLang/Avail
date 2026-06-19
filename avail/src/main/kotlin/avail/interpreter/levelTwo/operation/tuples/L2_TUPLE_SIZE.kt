@@ -32,11 +32,11 @@
 
 package avail.interpreter.levelTwo.operation.tuples
 
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand

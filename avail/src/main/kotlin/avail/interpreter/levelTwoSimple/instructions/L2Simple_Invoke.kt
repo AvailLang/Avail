@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Type
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1

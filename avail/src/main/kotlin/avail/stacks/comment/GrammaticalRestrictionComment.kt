@@ -32,7 +32,7 @@
 
 package avail.stacks.comment
 
-import avail.descriptor.tuples.A_String
+import avail.descriptor.representation.A_String
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.stacks.CommentGroup
 import avail.stacks.LinkingFileMap
@@ -169,4 +169,3 @@ class GrammaticalRestrictionComment constructor(
 
 	override fun toString(): String = signature.toString()
 }
-

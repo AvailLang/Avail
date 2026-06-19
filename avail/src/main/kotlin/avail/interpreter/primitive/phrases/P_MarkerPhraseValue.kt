@@ -32,12 +32,12 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import avail.descriptor.phrases.MarkerPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Phrase.Companion.markerValue
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY

@@ -35,8 +35,8 @@ package avail.anvil.actions
 import avail.anvil.AvailWorkbench
 import avail.anvil.debugger.AvailDebugger
 import avail.anvil.shortcuts.DebugActionShortcut
-import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
+import avail.descriptor.representation.A_Fiber
 import java.awt.event.ActionEvent
 import javax.swing.Action
 

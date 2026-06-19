@@ -33,9 +33,9 @@
 package avail.compiler
 
 import avail.compiler.scanning.LexingState
-import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.tokens.A_Token
+import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Token
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
 

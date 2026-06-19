@@ -31,20 +31,22 @@
  */
 package avail.descriptor.methods
 
-import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE
 import avail.descriptor.methods.SemanticRestrictionDescriptor.ObjectSlots.FUNCTION
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_SemanticRestriction
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.primitive.compiler.P_RejectParsing

@@ -31,21 +31,21 @@
  */
 package avail.optimizer
 
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.frameAt
-import avail.descriptor.functions.A_Continuation.Companion.function
-import avail.descriptor.functions.A_Continuation.Companion.numSlots
-import avail.descriptor.functions.A_Continuation.Companion.pc
-import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
-import avail.descriptor.functions.A_Continuation.Companion.stackAt
-import avail.descriptor.functions.A_Continuation.Companion.stackp
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
-import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.frameAt
+import avail.descriptor.representation.A_Continuation.Companion.function
+import avail.descriptor.representation.A_Continuation.Companion.numSlots
+import avail.descriptor.representation.A_Continuation.Companion.pc
+import avail.descriptor.representation.A_Continuation.Companion.replacingCaller
+import avail.descriptor.representation.A_Continuation.Companion.stackAt
+import avail.descriptor.representation.A_Continuation.Companion.stackp
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.localTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numLocals
+import avail.descriptor.representation.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet

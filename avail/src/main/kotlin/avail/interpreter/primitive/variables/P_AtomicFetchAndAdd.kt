@@ -32,21 +32,21 @@
 
 package avail.interpreter.primitive.variables
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.readType
+import avail.descriptor.representation.A_Variable
+import avail.descriptor.representation.A_Variable.Companion.fetchAndAddValue
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.A_Variable.Companion.fetchAndAddValue
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD

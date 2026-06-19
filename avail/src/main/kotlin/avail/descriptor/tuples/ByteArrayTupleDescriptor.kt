@@ -32,42 +32,43 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
-import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.byteArray
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithByteArrayTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
+import avail.descriptor.representation.A_Tuple.Companion.copyAsMutableIntTuple
+import avail.descriptor.representation.A_Tuple.Companion.copyAsMutableObjectTuple
+import avail.descriptor.representation.A_Tuple.Companion.treeTupleLevel
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.defaultType
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import avail.descriptor.representation.A_Type.Companion.rangeIncludesLong
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.byteArray
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteArrayTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
-import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
-import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
-import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteArrayTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.defaultType
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import org.availlang.json.JSONWriter
@@ -549,16 +550,14 @@ private constructor(
 		/**
 		 * Answer a mutable copy of object that also only holds bytes.
 		 *
-		 * @param `object`
+		 * @param self
 		 *   The byte tuple to copy.
 		 * @return
-		 *   The new mutable byte tuple.
+		 *   The new mutable byte-array tuple.
 		 */
 		private fun copyAsMutableByteArrayTuple(self: AvailObject): A_Tuple
 		{
-			val array =
-				self[BYTE_ARRAY_POJO]
-					.javaObjectNotNull<ByteArray>()
+			val array = self[BYTE_ARRAY_POJO].javaObjectNotNull<ByteArray>()
 			val copy = array.copyOf(array.size)
 			val result = tupleForByteArray(copy)
 			result[HASH_OR_ZERO] = self.hashOrZero()

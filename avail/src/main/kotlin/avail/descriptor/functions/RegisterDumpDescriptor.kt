@@ -31,12 +31,18 @@
  */
 package avail.descriptor.functions
 
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.registerDump
+import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
+import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -46,9 +52,6 @@ import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -120,8 +123,8 @@ class RegisterDumpDescriptor private constructor(
 		 *    array contains a [Long] whose bit pattern can produce a [Double]
 		 *    to box and store in the new variable.
 		 *
-		 * These are encoded and decoded via [A_RegisterDump.encodeLocalValue]
-		 * and [A_RegisterDump.decodeBoxedValueFromDump].
+		 * These are encoded and decoded via [encodeLocalValue]
+		 * and [decodeBoxedValueFromDump].
 		 *
 		 * These values are used to initialize new local variables if a
 		 * continuation using this register dump is made immutable or shared.

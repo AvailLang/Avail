@@ -34,7 +34,7 @@ package avail.persistence.cache
 
 import avail.AvailRuntime
 import avail.compiler.ModuleManifestEntry
-import avail.descriptor.module.A_Module
+import avail.descriptor.representation.A_Module
 import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.record.ModuleVersion
 import avail.persistence.cache.record.NamesIndex

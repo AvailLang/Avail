@@ -1,5 +1,6 @@
 package org.availlang.artifact
 
+import org.availlang.artifact.ArtifactDescriptor.Companion.artifactDescriptorFilePath
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import java.io.File
 import java.nio.ByteBuffer
@@ -92,9 +93,9 @@ data class ArtifactDescriptor constructor(
 					"Expected the `artifact-descriptor` file to have a valid " +
 						"package type ordinal value: received $typeOrdinal " +
 						"but a valid ordianl is in the range [0, " +
-						"${PackageType.values().size})")
+						"${PackageType.entries.size})")
 			}
-			val packageType = PackageType.values()[typeOrdinal]
+			val packageType = PackageType.entries[typeOrdinal]
 			val version = descriptorBytes.int
 			if (!packageType.isValidVersion(version))
 			{

@@ -32,9 +32,9 @@
 
 package avail.descriptor.objects
 
-import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 
 /**

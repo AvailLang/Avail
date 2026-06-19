@@ -38,8 +38,8 @@ import avail.builder.ModuleNameResolver
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleImport
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.tokens.CommentTokenDescriptor
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.stacks.module.CommentsModule
 import avail.utility.IO
@@ -51,7 +51,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
-import kotlin.collections.set
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments

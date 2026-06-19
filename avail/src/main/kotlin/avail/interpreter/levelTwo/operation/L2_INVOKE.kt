@@ -31,10 +31,10 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_Function
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE

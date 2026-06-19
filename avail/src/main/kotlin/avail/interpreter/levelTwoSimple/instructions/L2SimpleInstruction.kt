@@ -33,7 +33,7 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType

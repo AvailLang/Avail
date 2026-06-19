@@ -31,25 +31,24 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.encounteredFallbackLookup
-import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
-import avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
+import avail.descriptor.representation.A_RawFunction.Companion.encounteredFallbackLookup
+import avail.descriptor.representation.A_RawFunction.Companion.lookupStat
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.toSet
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
@@ -93,11 +92,11 @@ import java.util.logging.Level
  * @property arguments
  *   The arguments supplied ot the lookup site.
  * @property trackForReoptimzation
- *   If true, generate code that calls [A_RawFunction.encounteredFallbackLookup]
- *   for the calling raw function, eventually leading to reoptimization of the
- *   chunk.  This is set to false when the complexity of the call indicates the
- *   dispatch should not be inlined, and any attempt to track it would be wasted
- *   effort, since it would be reoptimized into the same code.
+ *   If true, generate code that calls [encounteredFallbackLookup] for the
+ *   calling raw function, eventually leading to reoptimization of the chunk.
+ *   This is set to false when the complexity of the call indicates the dispatch
+ *   should not be inlined, and any attempt to track it would be wasted effort,
+ *   since it would be reoptimized into the same code.
  * @property lookedUpFunction
  *   Where to write the looked up function if successful.
  * @property ifLookupSucceeded

@@ -33,32 +33,33 @@ package avail.descriptor.types
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.maps.A_Map.Companion.mapSize
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map.Companion.mapSize
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.contentType
+import avail.descriptor.representation.A_Type.Companion.functionType
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.keyType
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Type.Companion.readType
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Type.Companion.valueType
+import avail.descriptor.representation.A_Type.Companion.writeType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.contentType
-import avail.descriptor.types.A_Type.Companion.functionType
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.keyType
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
-import avail.descriptor.types.A_Type.Companion.readType
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.valueType
-import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
@@ -532,7 +533,7 @@ constructor(
 	 * use that tag.  This is a lambda that produces the least upper bound
 	 * [A_Type] that constrains all those values.
 	 */
-	private lateinit var supremumProducer: (() -> A_Type)
+	private lateinit var supremumProducer: (() ->A_Type)
 
 	/**
 	 * Every [TypeTag] has a (potentially infinite) collection of values that

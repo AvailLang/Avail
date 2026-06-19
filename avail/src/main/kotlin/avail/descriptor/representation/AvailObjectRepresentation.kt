@@ -32,18 +32,16 @@
 package avail.descriptor.representation
 
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.shouldCheckSlots
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.utility.stackToString
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.VarHandle

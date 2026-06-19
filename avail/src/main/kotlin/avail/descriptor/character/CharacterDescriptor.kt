@@ -31,7 +31,6 @@
  */
 package avail.descriptor.character
 
-import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.characterCache
 import avail.descriptor.character.CharacterDescriptor.Companion.staticFromByteCodePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.staticFromCodePoint
@@ -40,15 +39,17 @@ import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HAS
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Character
+import avail.descriptor.representation.A_Character.Companion.equalsCharacterWithCodePoint
+import avail.descriptor.representation.A_Tuple.Companion.asSet
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
@@ -303,7 +304,8 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		fun fromByteCodePoint(codePoint: Short): A_Character {
+		fun fromByteCodePoint(codePoint: Short): A_Character
+		{
 			assert(codePoint in 0..255)
 			return byteCharacters[codePoint.toInt()]
 		}

@@ -33,32 +33,33 @@ package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.childAt
+import avail.descriptor.representation.A_Tuple.Companion.childCount
+import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.representation.A_Tuple.Companion.lastIndexOf
+import avail.descriptor.representation.A_Tuple.Companion.treeTupleLevel
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleLongAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleReverse
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.childAt
-import avail.descriptor.tuples.A_Tuple.Companion.childCount
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
-import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
-import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.Companion.SIZE
 import avail.descriptor.tuples.ReverseTupleDescriptor.ObjectSlots.ORIGIN_TUPLE
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.internalTreeReverse
-import avail.descriptor.types.A_Type
 
 /**
  * A reverse tuple holds a reference to an "origin" tuple and the origin

@@ -125,13 +125,10 @@ constructor(
 	internal inline fun getOr(key: K, otherwise: ()->String): String
 	{
 		val keyName = extractKey(key)
-		if (bundle.containsKey(keyName))
-		{
-			return bundle.getString(keyName).ifEmpty(otherwise)
-		}
-		else
-		{
-			return otherwise()
+		return when {
+			bundle.containsKey(keyName) ->
+				bundle.getString(keyName).ifEmpty(otherwise)
+			else -> otherwise()
 		}
 	}
 }

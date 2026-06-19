@@ -31,24 +31,25 @@
  */
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
-import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
-import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.statements
-import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.emitEffectOn
+import avail.descriptor.representation.A_Phrase.Companion.emitValueOn
+import avail.descriptor.representation.A_Phrase.Companion.flattenStatementsInto
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.statements
+import avail.descriptor.representation.A_Phrase.Companion.statementsDo
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
@@ -212,7 +213,8 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		 * @return
 		 *   The resulting first-of-sequence phrase.
 		 */
-		fun newFirstOfSequenceNode(statements: A_Tuple): A_Phrase {
+		fun newFirstOfSequenceNode(statements: A_Tuple): A_Phrase
+		{
 			assert(statements.tupleSize > 1)
 			return mutable.createShared {
 				setSlot(STATEMENTS, statements)

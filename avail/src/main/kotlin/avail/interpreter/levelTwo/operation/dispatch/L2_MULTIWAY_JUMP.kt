@@ -31,8 +31,8 @@
  */
 package avail.interpreter.levelTwo.operation.dispatch
 
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType

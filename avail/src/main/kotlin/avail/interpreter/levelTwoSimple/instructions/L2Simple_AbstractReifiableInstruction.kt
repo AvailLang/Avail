@@ -34,19 +34,19 @@ package avail.interpreter.levelTwoSimple.instructions
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
-import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDump
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.frameAtPut
+import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableGetException

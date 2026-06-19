@@ -31,7 +31,7 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.numbers.A_Number.Companion.equalsLong
+import avail.descriptor.representation.A_Number.Companion.equalsLong
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2ValueManifest

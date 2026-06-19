@@ -32,19 +32,19 @@
 package avail.interpreter.primitive.pojos
 
 import avail.AvailRuntime.HookType
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal

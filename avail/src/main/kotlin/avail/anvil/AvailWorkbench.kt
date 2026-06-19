@@ -155,12 +155,12 @@ import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.splitter.MessageSplitter
-import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.tuples.A_String.SurrogateIndexConverter
+import avail.descriptor.representation.A_Fiber.Companion.fiberHelper
+import avail.descriptor.representation.A_Module.Companion.entryPoints
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.quoteStringOn
 import avail.files.FileManager

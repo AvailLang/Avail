@@ -32,7 +32,7 @@
 package avail.optimizer.values
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.types.A_Type.Companion.instanceTag
+import avail.descriptor.representation.A_Type.Companion.instanceTag
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction

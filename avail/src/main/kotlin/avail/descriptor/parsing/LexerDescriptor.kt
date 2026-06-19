@@ -33,16 +33,7 @@ package avail.descriptor.parsing
 
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.scanning.LexingState
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.functions.A_Function
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_Method.Companion.bundles
-import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.methods.MacroDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.addLexer
-import avail.descriptor.module.A_Module.Companion.allAncestors
-import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.parsing.LexerDescriptor.IntegerSlots.LATIN1_BIT_VECTORS_
 import avail.descriptor.parsing.LexerDescriptor.ObjectSlots.DEFINITION_MODULE
@@ -50,6 +41,19 @@ import avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION
 import avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION
 import avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Lexer.Companion.lexerMethod
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Method.Companion.bundles
+import avail.descriptor.representation.A_Method.Companion.lexer
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.addLexer
+import avail.descriptor.representation.A_Module.Companion.allAncestors
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine5
@@ -58,10 +62,7 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers

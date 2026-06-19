@@ -33,10 +33,10 @@
 package avail.interpreter.primitive.hooks
 
 import avail.AvailRuntime.HookType.PRIMITIVE_FAILURE_HANDLER
-import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline

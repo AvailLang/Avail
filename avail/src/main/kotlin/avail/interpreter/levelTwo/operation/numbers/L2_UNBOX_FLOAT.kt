@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.numbers.A_Number
+import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType

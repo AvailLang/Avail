@@ -31,34 +31,24 @@
  */
 package avail.descriptor.representation
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.maps.A_Map
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.declaredExceptions
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ByteStringDescriptor
 import avail.descriptor.tuples.ByteTupleDescriptor
 import avail.descriptor.tuples.IntTupleDescriptor
 import avail.descriptor.tuples.LongTupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TwoByteStringDescriptor
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.declaredExceptions
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
@@ -92,7 +82,7 @@ import java.util.function.Supplier
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_BasicObject : JSONFriendly
+sealed interface A_BasicObject : JSONFriendly
 {
 	/**
 	 * Retrieve the object's {@linkplain AbstractDescriptor descriptor}.
@@ -251,7 +241,7 @@ interface A_BasicObject : JSONFriendly
 	 * Note that the argument is of type [AvailObject] so that correctly
 	 * typed uses (where the argument is statically known to be an AvailObject)
 	 * proceed normally. Incorrectly typed uses (where the argument is an
-	 * arbitrary Java [Object] should show up as calling a deprecated
+	 * arbitrary Java [Object]) should show up as calling a deprecated
 	 * method, and should fail at runtime if the argument is not actually an
 	 * AvailObject.
 	 *

@@ -31,17 +31,18 @@
  */
 package avail.descriptor.types
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.maps.A_Map
-import avail.descriptor.numbers.A_Number
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation

@@ -32,11 +32,11 @@
 
 package avail.interpreter.effects
 
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.methods.A_Macro
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation

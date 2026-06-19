@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
-import avail.descriptor.functions.A_RegisterDump
+import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction

@@ -32,9 +32,8 @@
 
 package avail.interpreter.levelOne
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.methods.MethodDefinitionDescriptor
+import avail.descriptor.representation.A_RawFunction.Companion.literalAt
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 
 /**
@@ -192,7 +191,7 @@ interface L1OperationDispatcher
 	 * Invoke a method with a supercall.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][A_RawFunction.literalAt], which specifies a
+	 * [literals][literalAt], which specifies a
 	 * [method][MethodDefinitionDescriptor] that contains a collection of
 	 * [method&#32;definition][MethodDefinitionDescriptor] that might be
 	 * invoked.

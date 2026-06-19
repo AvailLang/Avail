@@ -33,7 +33,7 @@
 package avail.interpreter.levelTwo.operation.dispatch
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.types.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.dispatch.LookupTree

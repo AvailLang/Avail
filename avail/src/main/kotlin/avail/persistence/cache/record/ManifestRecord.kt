@@ -33,7 +33,7 @@
 package avail.persistence.cache.record
 
 import avail.compiler.ModuleManifestEntry
-import avail.descriptor.module.A_Module
+import avail.descriptor.representation.A_Module
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream

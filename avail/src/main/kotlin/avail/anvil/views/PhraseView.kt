@@ -35,13 +35,13 @@ package avail.anvil.views
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
+import avail.anvil.WorkbenchFrame
 import avail.anvil.createScrollPane
 import avail.anvil.window.LayoutConfiguration
-import avail.anvil.WorkbenchFrame
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.escapedForHTML
@@ -122,8 +122,8 @@ class PhraseView constructor (
 		minimumSize = Dimension(550, 350)
 		preferredSize = Dimension(550, 600)
 		val scrollView = createScrollPane(phraseStructureList).apply {
-			// Take up all of the window space that is not already reserved for
-			// other pane components.
+			// Take up all the window space not already reserved for other pane
+			// components.
 			preferredSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
 		}
 		panel.layout = GroupLayout(panel).apply {

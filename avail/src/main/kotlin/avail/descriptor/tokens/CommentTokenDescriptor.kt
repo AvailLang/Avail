@@ -32,8 +32,10 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
-import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.RawPojoDescriptor
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_Token
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -47,7 +49,6 @@ import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.GENERATING_LEX
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.STRING
-import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation

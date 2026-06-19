@@ -33,9 +33,6 @@ package avail.descriptor.types
 
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.keysAsSet
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.pojos.PojoDescriptor
@@ -43,6 +40,20 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.keysAsSet
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.contentType
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfPojoType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfPojoFusedType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfPojoType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfPojoUnfusedType
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -54,16 +65,6 @@ import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type.Companion.contentType
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
-import avail.descriptor.types.A_Type.Companion.typeUnionOfPojoFusedType
-import avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
-import avail.descriptor.types.A_Type.Companion.typeUnionOfPojoUnfusedType
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.ArrayPojoTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.types.ArrayPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.CONTENT_TYPE

@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwoSimple.instructions.registers
 
-import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.AvailObject
 
 /**

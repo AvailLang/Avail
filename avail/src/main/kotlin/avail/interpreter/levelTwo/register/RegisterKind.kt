@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.register
 
-import avail.descriptor.numbers.A_Number.Companion.extractDouble
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.extractDouble
+import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -101,12 +101,12 @@ import org.objectweb.asm.Type
  * @property restrictionFlag
  *   The [RestrictionFlagEncoding] used to indicate a [TypeRestriction] has
  *   an available register of this kind.
- * @property Self
- *   The receiver's statically determinable type.
  *
  * @constructor
  * Create an instance of the enum.
  *
+ * @param Self
+ *   The receiver's statically determinable type.
  * @param ordinal
  *   A unique [Int] for each instance.
  * @param kindName

@@ -31,13 +31,13 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor.Companion.brief
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.InstructionLayout
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType

@@ -32,8 +32,8 @@
 
 package avail.persistence.cache.record
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.representation.A_RawFunction
 import avail.persistence.cache.Repository
 import avail.utility.unzigzagLong
 import avail.utility.zigzag

@@ -32,16 +32,18 @@
 package avail.descriptor.atoms
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_String
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -51,7 +53,6 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_String
 import avail.descriptor.types.TypeTag
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation

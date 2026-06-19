@@ -37,12 +37,12 @@ import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
@@ -171,7 +171,7 @@ internal class NumberedChoice constructor(
 			}
 			val alternative = alternation.alternatives[index]
 			// If a section checkpoint occurs within a numbered choice, we *do
-			// not* pass the choice number as an argument.  Therefore nothing
+			// not* pass the choice number as an argument.  Therefore, nothing
 			// new has been pushed for us to clean up at this point.
 			alternative.emitOn(
 				emptyListPhraseType(),

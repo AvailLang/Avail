@@ -32,29 +32,47 @@
 package avail.descriptor.maps
 
 import avail.annotations.ThreadSafe
-import avail.descriptor.maps.A_Map.Companion.forEachInMap
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.keysAsSet
-import avail.descriptor.maps.A_Map.Companion.mapAt
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapIterable
-import avail.descriptor.maps.A_Map.Companion.mapSize
-import avail.descriptor.maps.A_MapBin.Companion.forEachInMapBin
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinIterator
-import avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
-import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
-import avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
-import avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
-import avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Map.Companion.forEachInMap
+import avail.descriptor.representation.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Map.Companion.keysAsSet
+import avail.descriptor.representation.A_Map.Companion.mapAt
+import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.representation.A_Map.Companion.mapIterable
+import avail.descriptor.representation.A_Map.Companion.mapSize
+import avail.descriptor.representation.A_MapBin
+import avail.descriptor.representation.A_MapBin.Companion.forEachInMapBin
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHash
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinIterator
+import avail.descriptor.representation.A_MapBin.Companion.mapBinKeyUnionKind
+import avail.descriptor.representation.A_MapBin.Companion.mapBinKeysHash
+import avail.descriptor.representation.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinSize
+import avail.descriptor.representation.A_MapBin.Companion.mapBinValueUnionKind
+import avail.descriptor.representation.A_MapBin.Companion.mapBinValuesHash
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.component1
+import avail.descriptor.representation.A_Tuple.Companion.component2
+import avail.descriptor.representation.A_Tuple.Companion.concatenateTuplesCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import avail.descriptor.representation.A_Type.Companion.keyType
+import avail.descriptor.representation.A_Type.Companion.rangeIncludesLong
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.valueType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -65,27 +83,11 @@ import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.component1
-import avail.descriptor.tuples.A_Tuple.Companion.component2
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import avail.descriptor.types.A_Type.Companion.keyType
-import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
@@ -413,7 +415,8 @@ class MapDescriptor private constructor(
 		keyObject: A_BasicObject,
 		newValueObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Map {
+	): A_Map
+	{
 		val oldRoot = self[ROOT_BIN]
 		val traversedKey: A_BasicObject = keyObject.traversed()
 		val newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
@@ -438,7 +441,8 @@ class MapDescriptor private constructor(
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
-	): A_Map {
+	): A_Map
+	{
 		val oldRoot = self[ROOT_BIN]
 		val traversedKey = key.traversed()
 		val newRoot = oldRoot.mapBinAtHashReplacingLevelCanDestroy(
@@ -447,8 +451,8 @@ class MapDescriptor private constructor(
 			traversedKey.hash(),
 			notFoundValue.cast(),
 			0,
-			canDestroy,
-			{ _, k, v -> transformer(k, v) })
+			canDestroy
+		) { _, k, v -> transformer(k, v) }
 		if (canDestroy && isMutable)
 		{
 			self[ROOT_BIN] = newRoot
@@ -520,7 +524,8 @@ class MapDescriptor private constructor(
 		self: AvailObject,
 		keyObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Map {
+	): A_Map
+	{
 		// Answer a map like this one but with keyObject removed from it. The
 		// original map can be destroyed if canDestroy is true and it's mutable.
 		if (!self.hasKey(keyObject)) {
@@ -775,7 +780,8 @@ class MapDescriptor private constructor(
 		 * @return
 		 *   A new map.
 		 */
-		fun mapFromPairs(vararg keysAndValues: A_BasicObject): A_Map {
+		fun mapFromPairs(vararg keysAndValues: A_BasicObject): A_Map
+		{
 			assert(keysAndValues.size and 1 == 0)
 			return createFromBin(
 				(keysAndValues.indices step 2).fold(emptyLinearMapBin(0)) {

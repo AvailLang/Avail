@@ -32,38 +32,9 @@
 
 package avail.interpreter.levelOne
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.functions.A_Function.Companion.numOuterVars
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.literalAt
-import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.numConstants
-import avail.descriptor.functions.A_RawFunction.Companion.numLocals
-import avail.descriptor.functions.A_RawFunction.Companion.numNybbles
-import avail.descriptor.functions.A_RawFunction.Companion.numOuters
-import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.methods.A_Method.Companion.numArgs
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.declaration
-import avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
-import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
-import avail.descriptor.phrases.A_Phrase.Companion.isLastUse
-import avail.descriptor.phrases.A_Phrase.Companion.list
-import avail.descriptor.phrases.A_Phrase.Companion.permutation
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import avail.descriptor.phrases.A_Phrase.Companion.statements
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
@@ -93,25 +64,54 @@ import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import avail.descriptor.representation.A_Atom
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Function.Companion.numOuterVars
+import avail.descriptor.representation.A_Method.Companion.numArgs
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.declaration
+import avail.descriptor.representation.A_Phrase.Companion.declaredType
+import avail.descriptor.representation.A_Phrase.Companion.expressionAt
+import avail.descriptor.representation.A_Phrase.Companion.expressionsSize
+import avail.descriptor.representation.A_Phrase.Companion.initializationExpression
+import avail.descriptor.representation.A_Phrase.Companion.isLastUse
+import avail.descriptor.representation.A_Phrase.Companion.list
+import avail.descriptor.representation.A_Phrase.Companion.permutation
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.representation.A_Phrase.Companion.statements
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Phrase.Companion.typeExpression
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.representation.A_RawFunction.Companion.constantTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.literalAt
+import avail.descriptor.representation.A_RawFunction.Companion.localTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_RawFunction.Companion.numConstants
+import avail.descriptor.representation.A_RawFunction.Companion.numLocals
+import avail.descriptor.representation.A_RawFunction.Companion.numNybbles
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
+import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.declaredExceptions
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.writeType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.declaredExceptions
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
@@ -270,7 +270,7 @@ class L1Decompiler constructor(
 			}
 			// Otherwise nothing was left on the expression stack.
 		}
-		assert(expressionStack.size == 0) {
+		assert(expressionStack.isEmpty()) {
 			"There should be nothing on the stack after the final return"
 		}
 		mentionedLocals.forEach {

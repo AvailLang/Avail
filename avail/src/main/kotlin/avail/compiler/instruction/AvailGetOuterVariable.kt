@@ -34,10 +34,10 @@ package avail.compiler.instruction
 
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
-import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
 import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
+import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
 import avail.io.NybbleOutputStream
 
 /**

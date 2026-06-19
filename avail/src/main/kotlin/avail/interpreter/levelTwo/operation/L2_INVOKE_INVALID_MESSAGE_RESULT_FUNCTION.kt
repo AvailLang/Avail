@@ -32,7 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.AvailRuntime
-import avail.descriptor.functions.A_Continuation
+import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportWrongReturnTypeMethod

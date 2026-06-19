@@ -32,8 +32,8 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter

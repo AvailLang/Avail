@@ -31,11 +31,6 @@
  */
 package avail.descriptor.numbers
 
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.isNumericallyIntegral
-import avail.descriptor.numbers.A_Number.Companion.isPositive
-import avail.descriptor.numbers.A_Number.Companion.lessThan
-import avail.descriptor.numbers.A_Number.Companion.numericCompare
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
@@ -44,20 +39,26 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.greaterThan
+import avail.descriptor.representation.A_Number.Companion.isNumericallyIntegral
+import avail.descriptor.representation.A_Number.Companion.isPositive
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Number.Companion.numericCompare
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.lowerInclusive
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.lowerInclusive
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
@@ -487,7 +488,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 		) = when {
 			type.isEnumeration -> {
 				// Note that this should work even if an enumeration contains
-				// non-integers, or even NaNs.
+				// nonintegers, or even NaNs.
 				minInclusive.value = true
 				maxInclusive.value = true
 				min.value = null
@@ -751,7 +752,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 					// One is definitely a float.
 					if (union.isBottom) {
 						// Neither could be a double, but one is definitely a
-						// float. Therefore the result must be a float.
+						// float. Therefore, the result must be a float.
 						return FLOAT()
 					}
 				}

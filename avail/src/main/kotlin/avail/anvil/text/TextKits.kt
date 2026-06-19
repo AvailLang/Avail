@@ -529,7 +529,7 @@ private object RefreshStylesheet: TextAction(
 }
 
 /**
- * Dump all of the possible rendering solutions for the region enclosing the
+ * Dump all the possible rendering solutions for the region enclosing the
  * caret.
  */
 private object PrintAllRenderingSolutions: TextAction(

@@ -31,8 +31,8 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant

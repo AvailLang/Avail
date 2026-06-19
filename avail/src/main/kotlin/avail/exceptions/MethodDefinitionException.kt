@@ -32,14 +32,14 @@
 
 package avail.exceptions
 
-import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION

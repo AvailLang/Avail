@@ -85,7 +85,7 @@ abstract class AvailFile constructor(
 	private var isDirty = false
 
 	/**
-	 * Indicate this file has been edited to be different than what is saved
+	 * Indicate this file has been edited to be different from what is saved
 	 * to disk.
 	 */
 	@Synchronized
@@ -96,7 +96,7 @@ abstract class AvailFile constructor(
 	}
 
 	/**
-	 * Indicate this file has been edited to be different than what is saved
+	 * Indicate this file has been edited to be different from what is saved
 	 * to disk.
 	 */
 	@Synchronized

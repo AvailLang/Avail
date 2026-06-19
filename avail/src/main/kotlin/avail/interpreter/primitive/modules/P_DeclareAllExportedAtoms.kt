@@ -32,17 +32,17 @@
 
 package avail.interpreter.primitive.modules
 
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.module.A_Module.Companion.addImportedNames
-import avail.descriptor.module.A_Module.Companion.addPrivateNames
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots
+import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module.Companion.addImportedNames
+import avail.descriptor.representation.A_Module.Companion.addPrivateNames
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers

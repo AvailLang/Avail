@@ -33,12 +33,12 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.functions.A_Function
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor

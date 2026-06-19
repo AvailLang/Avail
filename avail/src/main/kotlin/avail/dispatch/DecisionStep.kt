@@ -32,14 +32,14 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Definition
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -98,7 +98,7 @@ constructor(
 	 * the updated list of values that takes this step into account. The given
 	 * and resulting lists must not be modified by subsequent steps.
 	 *
-	 * By default, simply return the input.
+	 * By default, return the input.
 	 */
 	open fun updateExtraValuesByValues(
 		argValues: List<A_BasicObject>,
@@ -110,7 +110,7 @@ constructor(
 	 * the updated list of values that takes this step into account. The given
 	 * and resulting lists must not be modified by subsequent steps.
 	 *
-	 * By default, simply return the input.
+	 * By default, return the input.
 	 */
 	open fun updateExtraValuesByTypes(
 		types: List<A_Type>,
@@ -122,7 +122,7 @@ constructor(
 	 * the updated list of values that takes this step into account. The given
 	 * and resulting lists must not be modified by subsequent steps.
 	 *
-	 * By default, simply return the input.
+	 * By default, return the input.
 	 */
 	open fun updateExtraValuesByTypes(
 		argTypes: A_Tuple,
@@ -134,7 +134,7 @@ constructor(
 	 * the updated list of values that takes this step into account. The given
 	 * and resulting lists must not be modified by subsequent steps.
 	 *
-	 * By default, simply return the input.
+	 * By default, return the input.
 	 */
 	open fun updateExtraValuesByValue(
 		probeValue: A_BasicObject,
@@ -383,7 +383,7 @@ constructor(
 		builder: StringBuilder)
 
 	/**
-	 * Generate an [L2_MULTIWAY_JUMP] that uses hashing to handle all of the
+	 * Generate an [L2_MULTIWAY_JUMP] that uses hashing to handle all the
 	 * entries listed in [valueToSubtree], minimizing conflicts.  If the value
 	 * at runtime does not match any of those listed values, control flow should
 	 * end up in code generated for the [noMatchSubtree].

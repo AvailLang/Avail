@@ -55,7 +55,7 @@ import avail.anvil.window.LayoutConfiguration
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
-import avail.descriptor.module.A_Module
+import avail.descriptor.representation.A_Module
 import avail.error.ErrorCode
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord

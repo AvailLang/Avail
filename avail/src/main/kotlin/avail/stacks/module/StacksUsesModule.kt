@@ -32,10 +32,10 @@
 
 package avail.stacks.module
 
-import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.MapDescriptor
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor
 import avail.stacks.CommentGroup
 import avail.stacks.StacksFilename
@@ -248,4 +248,3 @@ class StacksUsesModule : StacksImportModule
 		}
 	}.toString()
 }
-

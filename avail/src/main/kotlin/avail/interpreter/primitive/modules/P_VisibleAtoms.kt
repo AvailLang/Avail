@@ -32,13 +32,13 @@
 
 package avail.interpreter.primitive.modules
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.visibleNames
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.visibleNames
+import avail.descriptor.representation.A_Type
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers

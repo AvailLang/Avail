@@ -31,10 +31,10 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.functions.A_RegisterDump
-import avail.descriptor.functions.A_RegisterDump.Companion.encodeLocalValue
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDumpMethod
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
+import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList

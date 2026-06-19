@@ -62,43 +62,46 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
 import avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_BundleTree
-import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.ListPhraseDescriptor
+import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_BundleTree
+import avail.descriptor.representation.A_Lexer
+import avail.descriptor.representation.A_Macro
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.argumentsListNode
+import avail.descriptor.representation.A_Phrase.Companion.expressionsTuple
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.Mutability.SHARED
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor
@@ -218,8 +221,8 @@ private constructor(messageName: A_String)
 	 *    indicates only a *literal* token will be accepted.
 	 *  * The N<sup>th</sup> [section][Metacharacter.SECTION_SIGN] (§) in a
 	 *    message name indicates where a macro's N<sup>th</sup>
-	 *    [prefix&#32;function][A_Definition.prefixFunctions] should be invoked
-	 *    with the current parse stack up to that point.
+	 *    [prefix&#32;function][A_Macro.prefixFunctions] should be invoked with
+	 *    the current parse stack up to that point.
 	 *  * A [backquote][Metacharacter.BACK_QUOTE] (`) can precede any operator
 	 *    character, such as guillemets or double dagger, to ensure it is not
 	 *    used in a special way. A backquote may also operate on another
@@ -239,7 +242,7 @@ private constructor(messageName: A_String)
 
 	/**
 	 * The number of underscores/ellipses present in the method name. This is
-	 * not the same as the number of arguments that a method implementing this
+	 * different from the number of arguments that a method implementing this
 	 * name would accept, as a top-level guillemet group with `N` recursively
 	 * embedded underscores/ellipses is counted as `N`, not one.
 	 *

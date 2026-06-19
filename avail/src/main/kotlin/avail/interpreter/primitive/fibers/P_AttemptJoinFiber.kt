@@ -32,20 +32,20 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.descriptor.fiber.A_Fiber.Companion.executionState
-import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
-import avail.descriptor.fiber.A_Fiber.Companion.joiningFibers
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_AVAILABLE
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.executionState
+import avail.descriptor.representation.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.representation.A_Fiber.Companion.joiningFibers
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -60,22 +60,18 @@ import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 
 /**
- * **Primitive:** If the [fiber][FiberDescriptor] has
- * already [terminated][ExecutionState.indicatesTermination], then
- * answer right away; otherwise, record the current fiber as a joiner of the
- * specified fiber, and attempt to [park][ExecutionState.PARKED].
+ * **Primitive:** If the [fiber][FiberDescriptor] has already
+ * [terminated][ExecutionState.indicatesTermination], then answer right away;
+ * otherwise, record the current fiber as a joiner of the specified fiber, and
+ * attempt to [park][ExecutionState.PARKED].
  *
- *
- * To avoid potential deadlock from having multiple fiber locks held by the
- * same thread, we give best effort at removing this fiber from the joinee's set
- * of joining fibers in the event of an unpark.  Similarly, a termination of the
+ * To avoid potential deadlock from having multiple fiber locks held by the same
+ * thread, we apply best effort at removing this fiber from the joinee's set of
+ * joining fibers in the event of an unpark.  Similarly, a termination of the
  * joinee may happen between adding this fiber to the set and transitioning this
  * fiber to a parked state.  That will simply be dealt with as a spurious
  * unpark.  Note that in this case, the unpark logic should expect that a
- * joining fiber
- *
- *
- * It may also be the case that
+ * joining fiber has been removed from the set.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

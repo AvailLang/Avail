@@ -31,17 +31,17 @@
  */
 package avail.interpreter.primitive.objects
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.functions.A_Function.Companion.numOuterVars
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.objects.ObjectDescriptor
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function.Companion.numOuterVars
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand

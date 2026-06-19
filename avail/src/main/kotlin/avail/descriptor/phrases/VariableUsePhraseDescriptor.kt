@@ -33,32 +33,33 @@ package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
-import avail.descriptor.phrases.A_Phrase.Companion.declaration
-import avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.declaration
+import avail.descriptor.representation.A_Phrase.Companion.declaredType
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.token
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.TypeTag
@@ -270,7 +271,8 @@ class VariableUsePhraseDescriptor private constructor(
 		fun newUse(
 			theToken: A_Token,
 			declaration: A_Phrase
-		): A_Phrase {
+		): A_Phrase
+		{
 			assert(theToken.isInstanceOfKind(TOKEN()))
 			assert(declaration.isInstanceOfKind(
 				PhraseKind.DECLARATION_PHRASE.mostGeneralType))

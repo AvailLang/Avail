@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
-import avail.descriptor.variables.A_Variable
+import avail.descriptor.representation.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP

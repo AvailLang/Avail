@@ -31,20 +31,21 @@
  */
 package avail.descriptor.types
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.maps.A_Map
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.computeInstanceTag
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type.Companion.computeInstanceTag
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.unsupported
@@ -251,7 +252,7 @@ protected constructor(
 		self: AvailObject,
 		aPojoType: A_Type): Boolean = false
 
-	/* Check if object (some specialized type) is a supertype of
+	/* Check if self (some specialized type) is a supertype of
 	 * aPrimitiveType (some primitive type).  The only primitive type this
 	 * specialized type could be a supertype of is bottom, but
 	 * bottom doesn't dispatch this message.  Overridden in

@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_RegisterDump
-import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedLongAtMethod
-import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedObjectAtMethod
+import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.A_RegisterDump.Companion.extractDumpedLongAtMethod
+import avail.descriptor.representation.A_RegisterDump.Companion.extractDumpedObjectAtMethod
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter

@@ -32,7 +32,7 @@
 
 package avail.compiler
 
-import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.representation.A_Fiber
 import avail.exceptions.PrimitiveThrownException
 
 /**

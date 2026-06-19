@@ -31,9 +31,9 @@
  */
 package avail.descriptor.objects
 
+import avail.descriptor.representation.A_Type.Companion.hasObjectInstance
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
-import avail.descriptor.types.A_Type.Companion.hasObjectInstance
 
 /**
  * A [VettingsCache] is stored as a pojo in an [object][ObjectDescriptor] to

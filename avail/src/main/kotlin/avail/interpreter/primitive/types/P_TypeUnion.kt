@@ -31,14 +31,14 @@
  */
 package avail.interpreter.primitive.types
 
-import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -93,9 +93,9 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction
 	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
-		// Since we can optimize based on whether or not ⊥ is possible for one
-		// or the other argument, and also whether only ⊥ is present, try to
-		// avoid merges that destroy that information.
+		// Since we can optimize based on whether ⊥ is possible for one or the
+		// other argument, and also whether only ⊥ is present, try to avoid
+		// merges that destroy that information.
 		addAll(
 			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),

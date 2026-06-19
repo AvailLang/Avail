@@ -31,11 +31,11 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE

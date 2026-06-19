@@ -254,7 +254,7 @@ function presentUI ()
 
 	var expression = $("#expression");
 
-	//turn off word wrap so as to keep line numbers accurate
+	//turn off word wrap to keep line numbers accurate
 	expression.attr('wrap','off');
 
 	var historyStack = [];

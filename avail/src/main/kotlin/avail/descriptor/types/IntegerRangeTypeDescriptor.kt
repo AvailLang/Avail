@@ -33,18 +33,6 @@ package avail.descriptor.types
 
 import avail.annotations.ThreadSafe
 import avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.equalsInfinity
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.greaterThan
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.isLong
-import avail.descriptor.numbers.A_Number.Companion.isPositive
-import avail.descriptor.numbers.A_Number.Companion.lessThan
-import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign.NEGATIVE
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign.POSITIVE
 import avail.descriptor.numbers.InfinityDescriptor
@@ -57,6 +45,31 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.equalsInfinity
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.greaterThan
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.isLong
+import avail.descriptor.representation.A_Number.Companion.isPositive
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.noFailPlusCanDestroy
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfIntegerRangeType
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.lowerInclusive
+import avail.descriptor.representation.A_Type.Companion.trimType
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfIntegerRangeType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfIntegerRangeType
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AbstractDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
@@ -66,18 +79,6 @@ import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type.Companion.instanceCount
-import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.lowerInclusive
-import avail.descriptor.types.A_Type.Companion.trimType
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfIntegerRangeType
-import avail.descriptor.types.A_Type.Companion.typeUnionOfIntegerRangeType
-import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
@@ -140,14 +141,14 @@ private constructor(
 		/**
 		 * The extended integer which is the lower bound of this range. It is
 		 * either inclusive or exclusive depending on the
-		 * [A_Type.lowerInclusive] flag.
+		 * [lowerInclusive] flag.
 		 */
 		LOWER_BOUND,
 
 		/**
 		 * The extended integer which is the upper bound of this range. It is
 		 * either inclusive or exclusive depending on the
-		 * [A_Type.upperInclusive] flag.
+		 * [upperInclusive] flag.
 		 */
 		UPPER_BOUND
 	}

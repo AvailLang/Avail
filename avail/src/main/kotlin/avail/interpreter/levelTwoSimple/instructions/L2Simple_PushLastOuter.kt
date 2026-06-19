@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
+import avail.descriptor.representation.A_Function.Companion.optionallyNilOuterVar
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset

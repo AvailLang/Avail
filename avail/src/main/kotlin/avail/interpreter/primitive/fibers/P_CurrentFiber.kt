@@ -32,10 +32,10 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.A_Continuation
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.interpreter.execution.Interpreter

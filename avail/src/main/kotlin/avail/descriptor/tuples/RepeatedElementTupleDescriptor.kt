@@ -32,12 +32,22 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.character.A_Character.Companion.isCharacter
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Character.Companion.codePoint
+import avail.descriptor.representation.A_Character.Companion.isCharacter
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithRepeatedElementTupleStartingAt
+import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
+import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.treeTupleLevel
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -45,14 +55,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithRepeatedElementTupleStartingAt
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
-import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -62,7 +64,6 @@ import avail.descriptor.tuples.RepeatedElementTupleDescriptor.ObjectSlots.ELEMEN
 import avail.descriptor.tuples.StringDescriptor.Companion.generateStringFromCodePoints
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
-import avail.descriptor.types.A_Type
 import java.util.Collections
 import java.util.IdentityHashMap
 
@@ -100,7 +101,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			/**
 			 * The number of elements in the tuple.
 			 *
-			 * The API's [tuple size accessor][A_Tuple.tupleSize] currently
+			 * The API's [tuple size accessor][tupleSize] currently
 			 * returns a Java `int`, because there wasn't much of a problem
 			 * limiting manually-constructed tuples to two billion elements.
 			 * This restriction will eventually be removed.

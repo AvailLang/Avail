@@ -32,9 +32,9 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
+import avail.descriptor.representation.A_Variable
+import avail.descriptor.representation.A_Variable.Companion.getValue
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.A_Variable.Companion.getValue
 import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer

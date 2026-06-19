@@ -32,12 +32,12 @@
 package avail.interpreter.primitive.maps
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Map.Companion.hasKey
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType

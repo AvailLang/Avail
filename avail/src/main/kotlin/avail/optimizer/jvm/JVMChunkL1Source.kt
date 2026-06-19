@@ -31,7 +31,7 @@
  */
 package avail.optimizer.jvm
 
-import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_RawFunction
 import avail.optimizer.ExecutableChunk
 import java.nio.file.Path
 

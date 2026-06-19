@@ -202,7 +202,7 @@ internal class KnownProjectsPanel constructor(
 	}
 
 	/**
-	 * The [JPanel] used to display all of the project rows.
+	 * The [JPanel] used to display all the project rows.
 	 */
 	private val innerPanel: JPanel = JPanel().apply {
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)

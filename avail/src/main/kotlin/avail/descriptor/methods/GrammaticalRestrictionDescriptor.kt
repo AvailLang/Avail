@@ -32,15 +32,18 @@
 package avail.descriptor.methods
 
 import avail.AvailRuntimeSupport
-import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.methods.GrammaticalRestrictionDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.ARGUMENT_RESTRICTION_SETS
 import avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE
 import avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.RESTRICTED_BUNDLE
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_GrammaticalRestriction
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
@@ -48,9 +51,7 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TypeTag
 

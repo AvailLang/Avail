@@ -32,7 +32,7 @@
 
 package avail.compiler
 
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.representation.A_Phrase
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**

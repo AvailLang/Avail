@@ -33,15 +33,15 @@
 package avail.interpreter.levelTwoSimple.instructions
 
 import avail.AvailRuntime
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.functions.A_RawFunction.Companion.lookupStat
-import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
-import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
-import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.MethodDescriptor.Companion.runtimeDispatcher
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Definition
+import avail.descriptor.representation.A_RawFunction.Companion.lookupStat
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
+import avail.descriptor.representation.A_Sendable.Companion.isAbstractDefinition
+import avail.descriptor.representation.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
 import avail.exceptions.MethodDefinitionException

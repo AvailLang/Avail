@@ -31,15 +31,15 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.TypeTag.BUNDLE_TAG
 import avail.descriptor.types.TypeTag.FUNCTION_TAG
 import avail.descriptor.types.TypeTag.RAW_FUNCTION_TAG

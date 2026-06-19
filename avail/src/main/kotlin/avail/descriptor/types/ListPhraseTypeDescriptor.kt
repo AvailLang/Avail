@@ -33,6 +33,17 @@ package avail.descriptor.types
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfListNodeType
+import avail.descriptor.representation.A_Type.Companion.phraseKind
+import avail.descriptor.representation.A_Type.Companion.phraseKindIsUnder
+import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.representation.A_Type.Companion.subexpressionsTupleType
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfListNodeType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfListNodeType
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine4
@@ -41,16 +52,6 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfListNodeType
-import avail.descriptor.types.A_Type.Companion.phraseKind
-import avail.descriptor.types.A_Type.Companion.phraseKindIsUnder
-import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
-import avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfListNodeType
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfListNodeType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.ListPhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -74,7 +75,7 @@ import java.util.IdentityHashMap
  * lattice related to list phrases.
  *
  * A list phrase type preserves more than the
- * [yield&#32;type][A_Type.phraseTypeExpressionType] of list phrases that comply
+ * [yield&#32;type][phraseTypeExpressionType] of list phrases that comply
  * with it. It also preserves the types of the phrases in the tuple of
  * subexpressions (i.e., not just the types that those phrases yield).  For
  * example, a valid list phrase type might indicate that a complying list phrase

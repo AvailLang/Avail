@@ -31,12 +31,12 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.atoms.A_Atom.Companion.fieldAtomConstraint
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_Atom.Companion.fieldAtomConstraint
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.instanceCount
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand

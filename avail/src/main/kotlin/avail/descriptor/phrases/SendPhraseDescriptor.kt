@@ -33,36 +33,37 @@ package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.methods.A_Method
-import avail.descriptor.methods.A_Method.Companion.numArgs
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import avail.descriptor.phrases.A_Phrase.Companion.bundle
-import avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.ARGUMENTS_LIST_NODE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.BUNDLE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKEN_INDICES_IN_NAME
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Bundle
+import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Bundle.Companion.message
+import avail.descriptor.representation.A_Bundle.Companion.messageSplitter
+import avail.descriptor.representation.A_Method
+import avail.descriptor.representation.A_Method.Companion.numArgs
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Phrase.Companion.argumentsListNode
+import avail.descriptor.representation.A_Phrase.Companion.bundle
+import avail.descriptor.representation.A_Phrase.Companion.emitAllValuesOn
+import avail.descriptor.representation.A_Phrase.Companion.equalsPhrase
+import avail.descriptor.representation.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.representation.A_Phrase.Companion.phraseKind
+import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.representation.A_Phrase.Companion.superUnionType
+import avail.descriptor.representation.A_Phrase.Companion.tokens
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.descriptor.types.TypeDescriptor
@@ -280,7 +281,8 @@ private constructor(
 			bundle: A_Bundle,
 			argsListNode: A_Phrase,
 			returnType: A_Type
-		): A_Phrase {
+		): A_Phrase
+		{
 			assert(bundle.isInstanceOfKind(MESSAGE_BUNDLE()))
 			assert(argsListNode.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 			return mutable.createShared {

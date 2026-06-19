@@ -32,7 +32,7 @@
 
 package avail.stacks.comment
 
-import avail.descriptor.tuples.A_String
+import avail.descriptor.representation.A_String
 import avail.stacks.CommentGroup
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksDescription
@@ -99,7 +99,7 @@ class GlobalComment constructor (
 		commentGroup.global(this)
 	}
 
-	// Do nothing as globals will never be defined outside of its module.
+	// Do nothing as globals will never be defined outside its module.
 	override fun addImplementationToImportModule(
 		name: A_String, importModule: StacksImportModule) = Unit
 

@@ -36,27 +36,27 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleImport.Companion.fromSerializedTuple
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.applyModuleHeader
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.A_Module
+import avail.descriptor.representation.A_Module.Companion.applyModuleHeader
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.interpreter.execution.AvailLoader
 import avail.serialization.Deserializer
-import org.availlang.persistence.MalformedSerialStreamException
 import avail.serialization.Serializer
+import org.availlang.persistence.MalformedSerialStreamException
 
 /**
  * A module's header information.

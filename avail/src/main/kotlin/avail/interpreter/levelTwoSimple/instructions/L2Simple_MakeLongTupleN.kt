@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer

@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Type
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType

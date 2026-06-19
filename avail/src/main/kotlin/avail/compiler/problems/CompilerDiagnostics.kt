@@ -34,27 +34,28 @@ package avail.compiler.problems
 
 import avail.AvailRuntime.Companion.currentRuntime
 import avail.builder.ModuleName
+import avail.compiler.problems.CompilerDiagnostics.Companion.circledLetters
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.scanning.LexingState
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.representation.A_String.SurrogateIndexConverter
+import avail.descriptor.representation.A_Token
+import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.concatenateTuplesCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.representation.A_Tuple.Companion.lastIndexOf
+import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_String.SurrogateIndexConverter
-import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
-import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
-import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -75,7 +76,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.BooleanSupplier
 import java.util.regex.Matcher
 import javax.annotation.concurrent.GuardedBy
-import kotlin.collections.set
 import kotlin.concurrent.read
 import kotlin.math.min
 
@@ -791,7 +791,7 @@ class CompilerDiagnostics constructor(
 	 * method.  When it hits circled-Z, it stays at that letter and starts
 	 * suffixing consecutive integers and a space.
 	 */
-	internal inner class IndicatorGenerator
+	internal class IndicatorGenerator
 	{
 		/**
 		 * The zero-based index of the next `char` within [circledLetters].  If

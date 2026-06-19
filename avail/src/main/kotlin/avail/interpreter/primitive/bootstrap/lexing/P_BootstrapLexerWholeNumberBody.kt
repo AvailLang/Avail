@@ -32,25 +32,25 @@
 
 package avail.interpreter.primitive.bootstrap.lexing
 
-import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.cachedSquareOfQuintillion
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.currentLexer
+import avail.descriptor.representation.A_Number
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
+import avail.descriptor.representation.A_String
+import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.A_Type
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanFold

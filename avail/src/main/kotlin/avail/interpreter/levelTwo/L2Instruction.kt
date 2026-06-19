@@ -32,10 +32,10 @@
 
 package avail.interpreter.levelTwo
 
-import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.AvailObject.Companion.combine3
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.TypeTag
 import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
@@ -414,6 +414,9 @@ constructor() :
 	 * Produce code to extract the specified [index] of the tuple constructed by
 	 * this instruction, writing it to the [destinationSemanticValues].
 	 *
+	 * @receiver
+	 *   The [L2GeneratorInterface] on which to write code to extract the tuple
+	 *   element, if necessary.
 	 * @param synonym
 	 *   The [L2Synonym] that either will be or has been (perhaps partially)
 	 *   populated by this instruction.
@@ -421,9 +424,6 @@ constructor() :
 	 *   The one-based index of the tuple element to extract.
 	 * @param destinationSemanticValues
 	 *   The [L2SemanticBoxedValue]s that will containing the element.
-	 * @param this@extractTupleElement
-	 *   The [L2Generator] on which to write code to extract the tuple element,
-	 *   if necessary.
 	 */
 	open fun L2GeneratorInterface.extractTupleElement(
 		synonym: L2Synonym<BOXED_KIND>,

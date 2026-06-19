@@ -32,18 +32,17 @@
 
 package avail.compiler
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Module.Companion.originatingPhraseAtIndex
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_RawFunction.Companion.originatingPhraseIndex
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.persistence.cache.record.NameInModule
 import avail.utility.unvlqInt
 import avail.utility.vlq
@@ -106,11 +105,10 @@ class ModuleManifestEntry
 
 	/**
 	 * The index into the current module's tuple of phrases, accessible via
-	 * [A_Module.originatingPhraseAtIndex].  If this has not yet been computed,
-	 * it will be `-1`, and the [bodyFunction] will be some [A_Function].  If
-	 * there is no suitable body, or if it's not something that was serialized
-	 * with the module, it will also be `-1`, but the [bodyFunction] will be
-	 * `null`.
+	 * [originatingPhraseAtIndex].  If this has not yet been computed, it will
+	 * be `-1`, and the [bodyFunction] will be some [A_Function].  If there is
+	 * no suitable body, or if it's not something serialized with the module, it
+	 * will also be `-1`, but the [bodyFunction] will be `null`.
 	 */
 	var bodyPhraseIndexNumber: Int
 
@@ -140,11 +138,10 @@ class ModuleManifestEntry
 	 *   repository.
 	 * @param bodyPhraseIndexNumber
 	 *   The index into the current module's tuple of phrases, accessible via
-	 *   [A_Module.originatingPhraseAtIndex].  If this has not yet been
-	 *   computed, it will be `-1`, and the [bodyFunction] will be some
-	 *   [A_Function].  If there is no suitable body, or if it's not something
-	 *   that was serialized with the module, it will also be `-1`, but the
-	 *   [bodyFunction] will be `null`.
+	 *   [originatingPhraseAtIndex].  If this has not yet been computed, it will
+	 *   be `-1`, and the [bodyFunction] will be some [A_Function].  If there is
+	 *   no suitable body, or if it's not something serialized with the module,
+	 *   it will also be `-1`, but the [bodyFunction] will be `null`.
 	 */
 	constructor(
 		kind: SideEffectKind,
@@ -173,9 +170,9 @@ class ModuleManifestEntry
 	}
 
 	/**
-	 * Write this entry to the provided [DataOutputStream], in a way that is
-	 * naturally delimited for subsequent reading via the secondary constructor
-	 * that takes a [DataInputStream].
+	 * Write this entry to the provided [DataOutputStream], in a way naturally
+	 * delimited for subsequent reading via the secondary constructor that takes
+	 * a [DataInputStream].
 	 *
 	 * @param binaryStream
 	 *   A [DataOutputStream] on which to write this entry.
@@ -237,7 +234,7 @@ class ModuleManifestEntry
 		summaryText = binaryStream.readUTF()
 		when (val count = binaryStream.unvlqInt() - 1)
 		{
-			// Sentinel value indicates no signature was written by `write`.
+			// Sentinel value indicates `write` didn't write a signature.
 			-1 ->
 			{
 				argumentTypes = emptyArray()

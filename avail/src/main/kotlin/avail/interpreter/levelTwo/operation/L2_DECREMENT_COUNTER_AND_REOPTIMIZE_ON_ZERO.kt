@@ -31,10 +31,10 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.countdownToReoptimize
+import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
+import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction

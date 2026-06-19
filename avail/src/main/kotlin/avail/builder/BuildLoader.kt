@@ -42,36 +42,36 @@ import avail.compiler.ModuleHeader
 import avail.compiler.problems.Problem
 import avail.compiler.problems.ProblemHandler
 import avail.compiler.problems.ProblemType.EXECUTION
-import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
-import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
-import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_RUNNING_TOP_STATEMENT
-import avail.descriptor.functions.A_Function
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
-import avail.descriptor.module.A_Module.Companion.phrasePathRecord
-import avail.descriptor.module.A_Module.Companion.removeFrom
-import avail.descriptor.module.A_Module.Companion.serializedObjects
-import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
-import avail.descriptor.module.A_Module.Companion.setNamesIndexRecordIndex
-import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
-import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
-import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
-import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.representation.A_Fiber.Companion.fiberHelper
+import avail.descriptor.representation.A_Fiber.Companion.setGeneralFlag
+import avail.descriptor.representation.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import avail.descriptor.representation.A_Module.Companion.phrasePathRecord
+import avail.descriptor.representation.A_Module.Companion.removeFrom
+import avail.descriptor.representation.A_Module.Companion.serializedObjects
+import avail.descriptor.representation.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.representation.A_Module.Companion.setNamesIndexRecordIndex
+import avail.descriptor.representation.A_Module.Companion.setPhrasePathRecordIndex
+import avail.descriptor.representation.A_Module.Companion.setStylingRecordIndex
+import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.representation.A_Module.Companion.takePostLoadFunctions
+import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.module
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
@@ -187,9 +187,9 @@ internal class BuildLoader constructor(
 	/**
 	 * Load the specified [module][ModuleDescriptor] into the
 	 * [Avail&#32;runtime][AvailRuntime]. If a current compiled module is
-	 * available from the [repository][Repository], then simply load it.
-	 * Otherwise, [compile][AvailCompiler] the module, store it into the
-	 * repository, and then load it.
+	 * available from the [repository][Repository], then load it. Otherwise,
+	 * [compile][AvailCompiler] the module, store it into the repository, and
+	 * then load it.
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
 	 *

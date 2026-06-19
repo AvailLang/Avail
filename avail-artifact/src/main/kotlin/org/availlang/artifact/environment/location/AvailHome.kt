@@ -1,7 +1,6 @@
 package org.availlang.artifact.environment.location
 
 import org.availlang.artifact.environment.AvailEnvironment
-import org.availlang.artifact.environment.location.AvailLocation.LocationType
 import java.io.File
 
 /**

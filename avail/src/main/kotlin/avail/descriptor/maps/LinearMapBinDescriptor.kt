@@ -30,9 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package avail.descriptor.maps
-import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
-import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
 import avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.numberOfLevels
 import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
@@ -45,6 +42,12 @@ import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_
 import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import avail.descriptor.representation.A_MapBin
+import avail.descriptor.representation.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+import avail.descriptor.representation.A_MapBin.Companion.mapBinKeysHash
+import avail.descriptor.representation.A_MapBin.Companion.mapBinSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
@@ -57,8 +60,6 @@ import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.TypeTag
 import avail.utility.structures.EnumMap
@@ -203,7 +204,8 @@ internal class LinearMapBinDescriptor private constructor(
 		value: A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_MapBin {
+	): A_MapBin
+	{
 		// Associate the key and value in this bin, potentially modifying it if
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
 		// client is responsible for marking the key and value as immutable if
@@ -348,7 +350,8 @@ internal class LinearMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		canDestroy: Boolean
-	): A_MapBin {
+	): A_MapBin
+	{
 		check(self)
 		val oldSize = entryCount(self)
 		var index = 1
@@ -406,7 +409,8 @@ internal class LinearMapBinDescriptor private constructor(
 		myLevel: Int,
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
-	): A_MapBin {
+	): A_MapBin
+	{
 		// Associate the key and value in this bin, potentially modifying it if
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
 		// client is responsible for marking the key and value as immutable if

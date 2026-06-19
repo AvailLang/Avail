@@ -31,12 +31,12 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.numbers.A_Number.Companion.isDoubleMethod
-import avail.descriptor.numbers.A_Number.Companion.isIntMethod
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Number.Companion.isDoubleMethod
+import avail.descriptor.representation.A_Number.Companion.isIntMethod
+import avail.descriptor.representation.A_Type.Companion.instance
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY

@@ -64,6 +64,7 @@ import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL
 import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_3
 import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_N
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
+import avail.anvil.StyleRuleTree.Companion.wildcardSentinel
 import avail.anvil.streams.StreamStyle
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
@@ -2979,7 +2980,7 @@ object StyleRuleExecutor
 	) = context
 		.copy(
 			programCounter = programCounter,
-			state = when (literal === classifier)
+			state = when (literal == classifier)
 			{
 				true -> PAUSED
 				false -> REJECTED
@@ -3016,7 +3017,7 @@ object StyleRuleExecutor
 		jumpTarget: Int,
 		programCounter: Int
 	) =
-		when (literal === classifier)
+		when (literal == classifier)
 		{
 			true -> context.copy(
 				programCounter = programCounter,

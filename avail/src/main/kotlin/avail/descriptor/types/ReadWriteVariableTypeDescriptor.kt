@@ -32,18 +32,19 @@
 package avail.descriptor.types
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfVariableType
+import avail.descriptor.representation.A_Type.Companion.readType
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfVariableType
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfVariableType
+import avail.descriptor.representation.A_Type.Companion.writeType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfVariableType
-import avail.descriptor.types.A_Type.Companion.readType
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfVariableType
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfVariableType
-import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.READ_TYPE
 import avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.WRITE_TYPE
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType

@@ -34,42 +34,43 @@ package avail.descriptor.types
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.equalsInt
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Set
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
+import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.representation.A_Tuple
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.declaredExceptions
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfFunctionType
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.returnType
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfFunctionType
+import avail.descriptor.representation.A_Type.Companion.typeTuple
+import avail.descriptor.representation.A_Type.Companion.typeUnion
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfFunctionType
+import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.A_Type.Companion.argsTupleType
-import avail.descriptor.types.A_Type.Companion.declaredExceptions
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.A_Type.Companion.isSupertypeOfFunctionType
-import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.A_Type.Companion.sizeRange
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.A_Type.Companion.typeIntersectionOfFunctionType
-import avail.descriptor.types.A_Type.Companion.typeTuple
-import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.A_Type.Companion.typeUnionOfFunctionType
-import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -96,14 +97,14 @@ import java.util.IdentityHashMap
  * signal unsuccessful execution.
  *
  * Function types are contravariant by
- * [argument&#32;types][A_Type.argsTupleType], covariant by
- * [return&#32;type][A_Type.returnType], and covariant by the coverage of types
- * that are members of the [exception&#32;set][A_Type.declaredExceptions].
+ * [argument&#32;types][argsTupleType], covariant by
+ * [return&#32;type][returnType], and covariant by the coverage of types
+ * that are members of the [exception&#32;set][declaredExceptions].
  * I.e., if there is a type in the exception set of A that isn't equal to or a
  * subtype of an element of the exception set of B, then A can't be a subtype of
  * B.
  *
- * Note that the [A_Type.argsTupleType] can be [bottom] (⊥) instead of a tuple
+ * Note that the [argsTupleType] can be [bottom] (⊥) instead of a tuple
  * type.  Because bottom is more specific than any tuple type, the resulting
  * function type is considered more general than one with a tuple type (if the
  * other variances also hold).
@@ -398,7 +399,7 @@ private constructor(
 		if (self.equals(aFunctionType)) return true
 		if (!aFunctionType.returnType.isSubtypeOf(self[RETURN_TYPE]))
 			return false
-		// A ⊆ B if everything A can throw was declared by B.
+		// A ⊆ B if everything that A can throw was declared by B.
 		val inners: A_Set = self[DECLARED_EXCEPTIONS]
 		aFunctionType.declaredExceptions.forEach { other ->
 			if (inners.none { inner -> other.isSubtypeOf(inner) }) return false
@@ -622,15 +623,15 @@ private constructor(
 		private fun normalizeExceptionSet(exceptionSet: A_Set): A_Set
 		{
 			val setSize = exceptionSet.setSize
-			return when
+			return when (setSize)
 			{
 				// This is probably the most common case – no checked
 				// exceptions. Return the argument.
-				setSize == 0 -> emptySet
+				0 -> emptySet
 				// This is probably the next most common case – just one checked
 				// exception. If the element is bottom, then exclude it.
-				setSize == 1 && exceptionSet.single().isBottom -> emptySet
-				setSize == 1 -> exceptionSet
+				1 if exceptionSet.single().isBottom -> emptySet
+				1 -> exceptionSet
 
 				// Actually normalize the set. That is, eliminate types for
 				// which a supertype is already present. Also, eliminate bottom.

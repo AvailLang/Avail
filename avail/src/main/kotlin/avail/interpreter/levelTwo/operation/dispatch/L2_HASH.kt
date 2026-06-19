@@ -33,9 +33,9 @@ package avail.interpreter.levelTwo.operation.dispatch
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.hashMethod
-import avail.descriptor.sets.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Set.Companion.setSize
+import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.interpreter.levelTwo.L2Instruction

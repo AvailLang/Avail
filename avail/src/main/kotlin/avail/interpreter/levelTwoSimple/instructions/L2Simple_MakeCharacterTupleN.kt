@@ -32,7 +32,7 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.character.A_Character.Companion.codePoint
+import avail.descriptor.representation.A_Character.Companion.codePoint
 import avail.descriptor.tuples.StringDescriptor.Companion.generateStringFromCodePoints
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer

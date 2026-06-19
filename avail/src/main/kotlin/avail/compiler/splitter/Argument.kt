@@ -36,8 +36,8 @@ import avail.compiler.ParseArgument
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.types.A_Type
+import avail.descriptor.representation.A_Phrase
+import avail.descriptor.representation.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.SignatureException

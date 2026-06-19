@@ -33,7 +33,7 @@
 package avail.interpreter
 
 import avail.builder.ModuleName
-import avail.descriptor.tuples.A_String
+import avail.descriptor.representation.A_String
 import avail.interpreter.LibraryClassLoader.Companion.moduleToLoader
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.PrimitiveClassLoader

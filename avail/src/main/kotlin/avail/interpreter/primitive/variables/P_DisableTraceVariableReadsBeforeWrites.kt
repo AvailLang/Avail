@@ -32,24 +32,24 @@
 
 package avail.interpreter.primitive.variables
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.fiber.A_Fiber.Companion.variablesReadBeforeWritten
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Fiber.Companion.variablesReadBeforeWritten
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable
+import avail.descriptor.representation.A_Variable.Companion.addWriteReactor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.A_Variable.Companion.addWriteReactor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.execution.Interpreter

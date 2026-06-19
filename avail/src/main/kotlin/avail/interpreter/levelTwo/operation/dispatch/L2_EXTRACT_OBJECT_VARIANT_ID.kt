@@ -31,11 +31,11 @@
  */
 package avail.interpreter.levelTwo.operation.dispatch
 
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantFromId
-import avail.descriptor.types.A_Type.Companion.instances
+import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Type.Companion.instances
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
