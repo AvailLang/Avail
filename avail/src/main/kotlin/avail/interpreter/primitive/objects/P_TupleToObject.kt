@@ -44,6 +44,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTup
 import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_Map.Companion.hasKey
 import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.representation.A_Number.Companion.equalsInt
@@ -56,6 +57,7 @@ import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.instanceCount
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.A_Type.Companion.tupleOfTypesFromTo
@@ -71,6 +73,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
@@ -79,8 +82,16 @@ import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.StateOfL1
+import avail.interpreter.levelTwoSimple.instructions.L2Simple_CreateObjectWithKnownVariant
+import avail.interpreter.levelTwoSimple.instructions.registers.Offset
+import avail.interpreter.levelTwoSimple.instructions.registers.Read
+import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
+import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
@@ -157,6 +168,62 @@ object P_TupleToObject : Primitive1(CanFold, CanInline)
 				fieldTypeMap.mapAtPuttingCanDestroy(keyValue, valueType, true)
 		}
 		return objectTypeFromMap(fieldTypeMap)
+	}
+
+	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		functionRead: Read,
+		expectedType: A_Type,
+		args: ReadArray,
+		argRestrictions: List<TypeRestriction>,
+		stateOfL1: StateOfL1,
+		answer: Write
+	): Boolean
+	{
+		val tupleType = argRestrictions[0].type
+
+		assert(tupleType.isSubtypeOf(mostGeneralTupleType))
+		val sizes = tupleType.sizeRange
+		val lower = sizes.lowerBound
+		if (!lower.isInt) return false
+		val size = lower.extractInt
+		if (!sizes.upperBound.equalsInt(size)) return false
+		// The tuple is of fixed size.  Check the keys for constancy.
+		val keyTypes = (1..size).map {
+			tupleType.typeAtIndex(it).typeAtIndex(1)
+		}
+		val keys = keyTypes.map { keyType ->
+			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
+				return false
+			keyType.instance
+		}
+		// Ensure the keys are unique.
+		if (keys.toSet().size != size) return false
+
+		val tupleRead = args[0]
+		val pairSources = tupleElementSources(tupleRead) ?: return false
+		val valueSources = pairSources.map { pairRead ->
+			val keyAndValueSources =
+				tupleElementSources(pairRead) ?: return false
+			keyAndValueSources[1]
+		}
+
+		// The tuple has statically known keys, and valueSources has the Reads
+		// for the corresponding values.
+		val guaranteedType =
+			returnTypeGuaranteedByVM(rawFunction, listOf(tupleType))
+		val variant = variantForFields(setFromCollection(keys))
+		val readsInVariantSlotOrder = variant.realSlots.map { atom ->
+			valueSources[keys.indexOf(atom)]
+		}
+		+L2Simple_CreateObjectWithKnownVariant(
+			variant = variant,
+			guaranteedType = guaranteedType,
+			valuesInVariantSlotOrder = ReadArray(readsInVariantSlotOrder),
+			outputObject = answer,
+			nextOffset = Offset.NEXT)
+		return true
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
