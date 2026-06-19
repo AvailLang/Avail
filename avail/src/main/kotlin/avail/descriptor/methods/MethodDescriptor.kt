@@ -424,7 +424,8 @@ class MethodDescriptor private constructor(
 			{
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
-				// winner's tree.
+				// winner's tree.  It might still spuriously fail and still have
+				// null in the field, so retry only in that case.
 				methodTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = methodTestingTree
 			}

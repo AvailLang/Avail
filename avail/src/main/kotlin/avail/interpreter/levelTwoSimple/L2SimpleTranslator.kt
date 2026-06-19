@@ -36,13 +36,13 @@ import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
 import avail.AvailRuntimeSupport.captureNanos
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.methods.MethodDescriptor
+import avail.descriptor.methods.MethodDescriptor.Companion.runtimeDispatcher
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Bundle
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Bundle.Companion.numArgs
 import avail.descriptor.representation.A_ChunkDependable
 import avail.descriptor.representation.A_Method.Companion.definitionsAtOrBelow
-import avail.descriptor.representation.A_Method.Companion.testingTree
 import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_RawFunction
@@ -843,6 +843,12 @@ constructor(
 		when
 		{
 			superUnionType.isBottom ->
+			{
+				// For now, always plug in a brand new lookup tree.
+				val newTree = runtimeDispatcher.createRoot(
+					possible,
+					argRestrictions,
+					Unit)
 				+L2Simple_GeneralCall(
 					nextOffset = SKIP,
 					stateOfL1 = stateOfL1,
@@ -851,11 +857,12 @@ constructor(
 					mustCheck = mustCheck,
 					answer = answer,
 					bundle = bundle,
-					lookupTree = method.testingTree,
+					lookupTree = newTree,
 					dynamicLookupStats =
 						(method.traversed().descriptor as MethodDescriptor)
 							.dynamicLookupStats(),
 					arguments = arguments)
+			}
 			else ->
 				+L2Simple_SuperCall(
 					nextOffset = SKIP,
