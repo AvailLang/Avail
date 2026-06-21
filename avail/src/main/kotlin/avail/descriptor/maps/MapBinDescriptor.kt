@@ -32,9 +32,13 @@
 package avail.descriptor.maps
 
 import avail.annotations.HideFieldInDebugger
+import avail.descriptor.maps.HashedMapBinDescriptor.Companion.HashedMapBinBuilder
+import avail.descriptor.maps.LinearMapBinDescriptor.Companion.LinearMapBinBuilder
 import avail.descriptor.maps.MapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
+import avail.descriptor.maps.MapDescriptor.Entry
 import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_MapBin
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -130,4 +134,89 @@ abstract class MapBinDescriptor protected constructor(
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
 	abstract override fun o_MapBinIterator(self: AvailObject): MapIterator
+
+	companion object
+	{
+		/**
+		 * A builder for creating [A_MapBin]s.  The subclasses are specialized for
+		 * the kind of bin to create (hashed or linear), and whether the client
+		 * may produce the same key multiple times (in which case, value added with
+		 * the last occurrence of the key is kept).
+		 *
+		 * @constructor
+		 * @property size
+		 *   The number of elements to generate.
+		 * @property level
+		 *   The level of bin to create.
+		 */
+		abstract class MapBinBuilder(
+			val size: Int,
+			val level: Int)
+		{
+			/**
+			 * Add a key/value pair to the bin.  The key's hash is provided in
+			 * [keyHash] to reduce duplicate hashing requests.
+			 */
+			abstract fun add(key: AvailObject, value: AvailObject, keyHash: Int)
+
+			/**
+			 * Construct the final [A_MapBin] from this builder.
+			 */
+			abstract fun build(): A_MapBin
+		}
+
+		/**
+		 * Generate a bin at the requested level with values produced by [size]
+		 * invocations of the [generator], each of which should update the given
+		 * scratch [Entry].  If [checkForDuplicates] is true, then the generator
+		 * will check for duplicate keys, keeping only the last occurring value
+		 * for each key.  If it's false, the client has the responsibility to
+		 * ensure duplicate keys do not exist.
+		 *
+		 * @param level
+		 *   The level to create.
+		 * @param size
+		 *   The number of elements to generate.  There may be duplicates, which
+		 *   can lead to a bin with fewer elements than this number.
+		 * @param checkForDuplicates
+		 *   Whether to check for duplicate keys.
+		 * @param generator
+		 *   The generator, which takes a one-based increasing index and the
+		 *   reuseable [Entry] to update.
+		 * @return
+		 *   A map bin.
+		 */
+		fun generateMapBinFrom(
+			level: Int,
+			size: Int,
+			checkForDuplicates: Boolean,
+			generator: (Int, Entry)->Unit
+		): A_MapBin
+		{
+			val builder = mapBinBuilder(size, level, checkForDuplicates)
+			val entry = Entry()
+			for (i in 1..size)
+			{
+				generator(i, entry)
+				val (key, value, keyHash) = entry
+				builder.add(key, value, keyHash)
+			}
+			return builder.build()
+		}
+
+		/**
+		 * Create a suitable [MapBinBuilder] for the given [size] and [level].
+		 */
+		fun mapBinBuilder(
+			size: Int,
+			level: Int,
+			checkForDuplicates: Boolean
+		): MapBinBuilder = when
+		{
+			size < LinearMapBinDescriptor.thresholdToHash
+				|| level >= HashedMapBinDescriptor.numberOfLevels - 1
+					-> LinearMapBinBuilder(size, level, checkForDuplicates)
+			else -> HashedMapBinBuilder(size, level, checkForDuplicates)
+		}
+	}
 }

@@ -40,6 +40,8 @@ import avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_
 import avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.SUB_BINS_
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.createSingleLinearMapBin
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
+import avail.descriptor.maps.MapBinDescriptor.Companion.MapBinBuilder
+import avail.descriptor.maps.MapDescriptor.Entry
 import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
@@ -746,7 +748,7 @@ class HashedMapBinDescriptor private constructor(
 		 * The number of distinct levels that my instances can occupy in a map's
 		 * hash tree.
 		 */
-		private const val numberOfLevels: Int = 6
+		const val numberOfLevels: Int = 6
 
 		/**
 		 * The [HashedMapBinDescriptor] instances.  Each [Array] is indexed by
@@ -775,6 +777,107 @@ class HashedMapBinDescriptor private constructor(
 		): HashedMapBinDescriptor {
 			assert(level in 0 until numberOfLevels)
 			return descriptors[flag]!![level]
+		}
+
+		/**
+		 * Used for building linear bins.  If [checkForDuplicates], the client
+		 * may add the same key multiple times, in which case the value provided
+		 * with the last occurrence of the key is kept.
+		 *
+		 * @constructor
+		 * @param size
+		 *   The number of entries that will be added to the bin.
+		 * @param level
+		 *   The level to create.
+		 * @property checkForDuplicates
+		 *   Whether to check for duplicate keys.
+		 */
+		class HashedMapBinBuilder
+		constructor(
+			size: Int,
+			level: Int,
+			val checkForDuplicates: Boolean
+		) : MapBinBuilder(size, level)
+		{
+			/** How much to shift the hash by to get a logical sub-bin index. */
+			val shift = 6 * level
+
+			/**
+			 * The number of entries that have been added so far.  Regardless of
+			 * [checkForDuplicates], this includes any duplicates.
+			 */
+			var entriesAdded = 0
+
+			/**
+			 * The actual entries that have been added so far.  Regardless of
+			 * [checkForDuplicates], this includes any duplicates.
+			 */
+			val allEntries = arrayOfNulls<Entry>(size)
+
+			/**
+			 * The number of entries that have been added, broken down by which
+			 * sub-bin its hash indicates it will be placed in.
+			 */
+			val countsBySubBin = IntArray(64)
+
+			override fun add(key: AvailObject, value: AvailObject, keyHash: Int)
+			{
+				val entry = Entry()
+				entry.setKeyAndHashAndValue(key, keyHash, value)
+				allEntries[entriesAdded++] = entry
+				val subBinIndex = keyHash ushr shift and 63
+				countsBySubBin[subBinIndex]++
+			}
+
+			override fun build(): A_MapBin
+			{
+				assert(entriesAdded == size)
+				var bitVector = 0L
+				var totalSize = 0L
+				val subBins = run {
+					// This is within a run{} to allow earlier garbage
+					// collection of some of these structures.
+					val subBinBuilders = Array<MapBinBuilder?>(64) { i ->
+						when (val subBinSize = countsBySubBin[i])
+						{
+							0 -> null
+							else ->
+							{
+								bitVector = bitVector or (1L shl i)
+								mapBinBuilder(
+									subBinSize,
+									level + 1,
+									checkForDuplicates)
+							}
+						}
+					}
+					allEntries.forEach { entry ->
+						val (key, value, keyHash) = entry!!
+						val subBinIndex = keyHash ushr shift and 63
+						subBinBuilders[subBinIndex]!!.add(key, value, keyHash)
+					}
+					subBinBuilders.mapNotNull { subBinBuilder ->
+						subBinBuilder?.run {
+							val subBin = build()
+							totalSize += subBin.mapBinSize
+							subBin
+						}
+					}
+				}
+				assert(subBins.size == bitVector.countOneBits())
+				var cumulativeKeysHash = 0
+				return descriptorFor(MUTABLE, level).create(subBins.size) {
+					setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
+					setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+					subBins.forEachIndexed { zeroIndex, subBin ->
+						cumulativeKeysHash += subBin.mapBinKeysHash
+						setSlot(SUB_BINS_, zeroIndex + 1, subBin)
+					}
+					setSlot(BIN_SIZE, totalSize)
+					setSlot(BIT_VECTOR, bitVector)
+					setSlot(KEYS_HASH, cumulativeKeysHash)
+				}
+			}
 		}
 	}
 

@@ -38,6 +38,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.maximumTestOutcomesToKeep
@@ -449,14 +450,21 @@ class ObjectTypeDescriptor internal constructor(
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
 	{
-		// Warning: May be much slower than it was before ObjectLayoutVariant.
-		return variant.fieldToSlotIndex.entries.fold(emptyMap) {
-			map, (field, slotIndex) ->
-			map.mapAtPuttingCanDestroy(
-				field,
-				if (slotIndex == 0) instanceType(field)
-				else self[FIELD_TYPES_, slotIndex],
-				true)
+		val fieldSlots = variant.fieldToSlotIndex.entries
+		val iterator = fieldSlots.iterator()
+		return generateMapFrom(
+			size = fieldSlots.size,
+			checkForDuplicates = false
+		) { _, entry ->
+			val (key, fieldIndex) = iterator.next()
+			val keyHash = key.hash()
+			val type =
+				if (fieldIndex == 0) instanceType(key)
+				else self[FIELD_TYPES_, fieldIndex]
+			entry.setKeyAndHashAndValue(
+				key as AvailObject,
+				keyHash,
+				type)
 		}
 	}
 

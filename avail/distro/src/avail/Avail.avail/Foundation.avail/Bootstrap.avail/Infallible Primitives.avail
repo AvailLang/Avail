@@ -1,6 +1,6 @@
 /*
  * Infallible Primitives.avail
- * Copyright © 1993-2025, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/26/25, 11:41 PM
+ * * Last Generated: 6/19/26, 6:26 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -260,7 +260,7 @@ Primitive "_'s⁇name" is
 
 /**
  * Is {@param "name"} a valid message? Do not attempt to look up a method
- * associated with this name. Simply verify that {@param "name"} is a viable
+ * associated with this name. Only check that {@param "name"} is a viable
  * name of a method.
  *
  * @category "Primitives" "Methods" "Queries"
@@ -604,7 +604,7 @@ Primitive "_reinterpreted as double" is
 ] : double;
 
 /**
- * Compute and answer an approximation of the natural logarithm of the argument,
+ * Compute and answer an approximation for the natural logarithm of the argument,
  * i.e., ln {@param "x"}.
  *
  * @category "Primitives" "Numbers" "Mathematics"
@@ -643,7 +643,7 @@ Primitive "_mod_" is
 ] : double;
 
 /**
- * Compute and answer an approximation of sin {@param "theta"}, i.e. the
+ * Compute and answer an approximation of sin {@param "theta"}, i.e., the
  * ratio of the altitude to the distance between the origin and a point projected
  * at an angle given by the argument in radians.
  *
@@ -857,7 +857,7 @@ Primitive "termination requested" is
  * may be resumed only by calling `Unpark_`. A newly unparked fiber should
  * always recheck the basis for its having parked, to see if it should park
  * again. Low-level synchronization mechanisms may require the ability to
- * spuriously unpark in order to ensure correctness.
+ * spuriously unpark to ensure correctness.
  *
  * @category "Primitives" "Concurrency" "Synchronization" "Control Structures"
  * @method "Park current fiber"
@@ -928,7 +928,7 @@ Primitive "_'s⁇priority:=_" is
 /**
  * Set the value bound to {@param "key"} in the current fiber's environment,
  * overwriting any previous value. Since the fiber's environment essentially
- * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * contains fiber-local variables (i.e., bindings from atoms to arbitrary
  * values), this operation effectively writes a fiber-local variable.
  *
  * @category "Primitives" "Concurrency" "Mutators"
@@ -980,11 +980,11 @@ Primitive "Terminate current fiber" is
 
 /**
  * Unpark the specified fiber. If the permit associated with the fiber is
- * available, then simply continue. If the permit is not available, then restore
+ * available, then continue. If the permit is not available, then restore
  * the permit and schedule resumption of the fiber. A newly unparked fiber
  * should always recheck the basis for its having parked, to see if it should
  * park again. Low-level synchronization mechanisms may require the ability to
- * spuriously unpark in order to ensure correctness.
+ * spuriously unpark to ensure correctness.
  *
  * @category "Primitives" "Concurrency" "Synchronization" "Control Structures"
  * @method "Unpark_"
@@ -1108,7 +1108,7 @@ Primitive "_reinterpreted as float" is
 ] : float;
 
 /**
- * Compute and answer an approximation of the natural logarithm of the argument,
+ * Compute and answer an approximation for the natural logarithm of the argument,
  * i.e., ln {@param "x"}.
  *
  * @category "Primitives" "Numbers" "Mathematics"
@@ -1292,7 +1292,7 @@ Primitive "_'s⁇message" is
 
 /**
  * Answer all variables captured by the specified function. For functions
- * compiled directly from source code (i.e. the vast majority of them), these
+ * compiled directly from source code (i.e., the vast majority of them), these
  * variables are lexically captured.
  *
  * @category "Primitives" "Functions" "Queries"
@@ -1364,7 +1364,7 @@ Primitive "Breakpoint" is
 
 /**
  * Answer the number of milliseconds which have elapsed since midnight
- * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
+ * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e., the Unix
  * Epoch).
  *
  * @category "Primitives" "Time" "Queries"
@@ -1402,7 +1402,7 @@ Primitive "high-precision timer value" is
  * This method must not leak beyond the bootstrap package. Termination of
  * fibers is dangerous because it avoids cleaning up active continuations and
  * ergo promotes deadlock (by failing to relinquish held locks). Only
- * cooperative termination, e.g. interrupt queues, is supported in ordinary
+ * cooperative termination, e.g., interrupt queues, is supported in ordinary
  * system or application code. This method is provided only for early detection
  * of serious failures in bootstrap code. Real failures in system code outside
  * of the bootstrap package use Avail's usual exception handling machinery.
@@ -2312,7 +2312,7 @@ Primitive "_'s⁇value" is
  * @method "_'s⁇arguments"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "argument phrase⇒⊤*"
+ * @returns "(argument phrase⇒⊤)*"
  *    A tuple of argument declarations.
  */
 Primitive "_'s⁇arguments" is
@@ -2346,7 +2346,7 @@ Primitive "_'s⁇declared exceptions" is
  * @method "_'s⁇outer variables"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "declaration phrase⇒⊤*"
+ * @returns "(declaration phrase⇒⊤)*"
  *    A tuple of declarations of outer variables required to complete the
  *    meaning of the block.
  */
@@ -2399,7 +2399,7 @@ Primitive "_'s⁇return type" is
  * @method "_'s⁇statements"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "phrase⇒⊤*"
+ * @returns "(phrase⇒⊤)*"
  *    A tuple of statements. These are either assignments, declarations, labels,
  *    sequences, or ⊤-valued sends.
  */
@@ -2496,9 +2496,9 @@ Primitive "`«$_:_`»" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "_→list phrase"
- * @param "aTuple" "expression phrase⇒any*"
+ * @param "aTuple" "(expression phrase⇒any)*"
  *        A tuple of expressions.
- * @returns "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *    The requested list.
  */
 Primitive "_→list phrase" is
@@ -2780,7 +2780,7 @@ Primitive "_'s⁇expression" is
  * @method "_'s⁇statements"
  * @param "aFirstOfSequence" "first of sequence phrase⇒⊤"
  *        A first-of-sequence.
- * @returns "phrase⇒⊤*"
+ * @returns "(phrase⇒⊤)*"
  *    The requested tuple of statements.
  */
 Primitive "_'s⁇statements" is
@@ -2795,9 +2795,9 @@ Primitive "_'s⁇statements" is
  *
  * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇expressions"
- * @param "aList" "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @param "aList" "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *        A list.
- * @returns "expression phrase⇒any*"
+ * @returns "(expression phrase⇒any)*"
  *    The requested tuple of expressions.
  */
 Primitive "_'s⁇expressions" is
@@ -2882,9 +2882,9 @@ Primitive "_'s⁇value" is
  *
  * @category "Primitives"
  * @method "_'s⁇list"
- * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *        A {@type "permuted list phrase"}.
- * @returns "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *    The {@type "list phrase"} permuted by {@param "permuted"}.
  */
 Primitive "_'s⁇list" is
@@ -2900,7 +2900,7 @@ Primitive "_'s⁇list" is
  *
  * @category "Primitives"
  * @method "_'s⁇permutation"
- * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *        A {@type "permuted list phrase"}.
  * @returns "ℕ+"
  *    The permutation {@type "tuple"}. This comprises the target indices,
@@ -2992,7 +2992,7 @@ Primitive "`«↓_`»" is
  * @method "_'s⁇arguments"
  * @param "aSend" "send phrase⇒⊤"
  *        A message send.
- * @returns "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *    The requested list of argument expressions.
  */
 Primitive "_'s⁇arguments" is
@@ -3077,7 +3077,7 @@ Primitive "_'s⁇sequence" is
  * @method "_'s⁇statements"
  * @param "aSequence" "sequence phrase⇒⊤"
  *        A sequence.
- * @returns "phrase⇒⊤*"
+ * @returns "(phrase⇒⊤)*"
  *    The requested tuple of statements.
  */
 Primitive "_'s⁇statements" is
@@ -3771,8 +3771,8 @@ Primitive "_→set" is
 ] : set;
 
 /**
- * Construct and answer a tuple that is the left-to-right concatenation of all
- * elements (i.e. tuples) of the specified tuple.
+ * Construct and answer a tuple that is the left-to-right concatenation of the
+ * elements (i.e., tuples) of the specified tuple.
  *
  * @category "Primitives" "Tuples" "Transformers"
  * @method "concatenate_"

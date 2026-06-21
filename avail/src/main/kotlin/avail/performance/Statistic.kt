@@ -58,6 +58,14 @@ class Statistic constructor(
 	val statistics = Array(maxInterpreters) { PerInterpreterStatistic() }
 
 	/**
+	 * The next statistic in a linked list of statistics.  This is used to
+	 * implement the [StatisticReport] linked list, and the compare-and-set
+	 * mechanism used to prepend new statistics without a lock.  Terminated by
+	 * `null`.
+	 */
+	var nextInReport: Statistic? = null
+
+	/**
 	 * Answer the name of this `Statistic`.  Note that the [nameSupplier] may
 	 * produce different [String]s at different times.
 	 *

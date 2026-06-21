@@ -39,6 +39,8 @@ import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
+import avail.descriptor.maps.MapBinDescriptor.Companion.MapBinBuilder
+import avail.descriptor.maps.MapDescriptor.Entry
 import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
@@ -560,7 +562,7 @@ internal class LinearMapBinDescriptor private constructor(
 			/** A countdown of entry indices. */
 			var index = entryCount(self)
 
-			override fun next(): MapDescriptor.Entry {
+			override fun next(): Entry {
 				if (index < 1) {
 					throw NoSuchElementException()
 				}
@@ -760,6 +762,83 @@ internal class LinearMapBinDescriptor private constructor(
 		 *   An empty map bin.
 		 */
 		fun emptyLinearMapBin(level: Int) = emptyBins[level]
+
+		/**
+		 * Used for building linear bins.  If [checkForDuplicates], the client
+		 * may add the same key multiple times, in which case the value provided
+		 * with the last occurrence of the key is kept.
+		 *
+		 * @constructor
+		 * @param size
+		 *   The number of entries that will be added to the bin.
+		 * @param level
+		 *   The level to create.
+		 * @property checkForDuplicates
+		 *   Whether to check for duplicate keys.
+		 */
+		class LinearMapBinBuilder
+		constructor(
+			size: Int,
+			level: Int,
+			val checkForDuplicates: Boolean
+		) : MapBinBuilder(size, level)
+		{
+			/** The number of entries that have been added to the builder. */
+			var writtenCount = 0
+
+			/** Track the sum of hashes of keys. */
+			var cumulativeKeyHash = 0
+
+			/**
+			 * The linear bin being built.
+ 			 */
+			val bin = descriptorFor(MUTABLE, level).create(
+				size shl 1,
+				(size + 1) shr 1)
+			{
+				setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
+				setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+			}
+
+			override fun add(key: AvailObject, value: AvailObject, keyHash: Int)
+			{
+				// First check if the key is already present.
+				if (checkForDuplicates)
+				{
+					for (i in 1..writtenCount)
+					{
+						if (bin.intSlot(KEY_HASHES_AREA_, i) == keyHash
+							&& bin[BIN_SLOT_AT_, (i shl 1) - 1].equals(key))
+						{
+							// It's a duplicate.  Update the recorded value.
+							bin[BIN_SLOT_AT_, i shl 1] = value
+							return
+						}
+					}
+				}
+				// It's a new key.  Add it to the bin.
+				writtenCount++
+				cumulativeKeyHash += keyHash
+				bin.setIntSlot(KEY_HASHES_AREA_, writtenCount, keyHash)
+				bin[BIN_SLOT_AT_, (writtenCount shl 1) - 1] = key
+				bin[BIN_SLOT_AT_, (writtenCount shl 1)] = value
+			}
+
+			override fun build(): A_MapBin
+			{
+				bin[KEYS_HASH] = cumulativeKeyHash
+				if (writtenCount == size) return bin
+				assert(checkForDuplicates)
+				// Duplicates were encountered.  Truncate the bin.
+				val oldIntLongs = (size + 1) shr 1
+				val newIntLongs = (writtenCount + 1) shr 1
+				return newLike(
+					bin.descriptor,
+					bin,
+					deltaObjectSlots = (writtenCount - size) shl 1,
+					deltaIntegerSlots = newIntLongs - oldIntLongs)
+			}
+		}
 	}
 
 	override fun mutable() = descriptorFor(MUTABLE, level)

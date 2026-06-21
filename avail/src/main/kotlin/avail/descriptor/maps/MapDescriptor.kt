@@ -33,6 +33,7 @@ package avail.descriptor.maps
 
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
+import avail.descriptor.maps.MapBinDescriptor.Companion.generateMapBinFrom
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -693,6 +694,11 @@ class MapDescriptor private constructor(
 		fun value() = value!!
 
 		/**
+		 * Answer the previously captured [keyHash].
+		 */
+		fun keyHash() = keyHash
+
+		/**
 		 * Temporary Kotlin compatibility.
 		 *
 		 * @return The key.
@@ -754,6 +760,36 @@ class MapDescriptor private constructor(
 		/** The shared [MapDescriptor]. */
 		private val shared = MapDescriptor(SHARED)
 
+
+		/**
+		 * Create an [A_Map], then run the generator the specified number of
+		 * times to produce elements to add.  If [checkForDuplicates] is true,
+		 * check for duplicate keys, keeping only the last occurring value for
+		 * each key.  If it's false, the client has the responsibility to ensure
+		 * duplicate keys do not exist.
+		 *
+		 * @param size
+		 *   The number of values to extract from the generator.
+		 * @param checkForDuplicates
+		 *   Whether to check for duplicate keys.
+		 * @param generator
+		 *   A generator that updates a given [Entry]'s key and value for the
+		 *   current entry being added.
+		 * @return
+		 *   The new map.
+		 */
+		fun generateMapFrom(
+			size: Int,
+			checkForDuplicates: Boolean,
+			generator: (Int, Entry)->Unit
+		): A_Map
+		{
+			if (size == 0) return emptyMap
+			return createFromBin(
+				generateMapBinFrom(
+					0, size, checkForDuplicates, generator))
+		}
+
 		/**
 		 * Create a new [map][A_Map] whose contents correspond to the specified
 		 * [tuple][A_Tuple] of key-value bindings.
@@ -763,13 +799,23 @@ class MapDescriptor private constructor(
 		 * @return
 		 *   A new map.
 		 */
-		fun mapWithBindings(tupleOfBindings: A_Tuple): A_Map = createFromBin(
-			tupleOfBindings.fold(emptyLinearMapBin(0)) { root: A_MapBin, pair ->
-				assert(pair.tupleSize == 2)
-				val (key, value) = pair
-				root.mapBinAtHashPutLevelCanDestroy(
-					key.traversed(), key.hash(), value, 0, true)
-			})
+		fun mapWithBindings(tupleOfBindings: A_Tuple): A_Map
+		{
+			val iterator = tupleOfBindings.iterator()
+			val map = createFromBin(
+				generateMapBinFrom(
+					level = 0,
+					size = tupleOfBindings.tupleSize,
+					checkForDuplicates = true
+				) { _, entry ->
+					val pair = iterator.next()
+					assert(pair.tupleSize == 2)
+					val (key, value) = pair
+					entry.setKeyAndHashAndValue(key, key.hash(), value)
+				})
+			assert(!iterator.hasNext())
+			return map
+		}
 
 		/**
 		 * Create a new [map][A_Map] whose contents correspond to the specified
@@ -783,14 +829,19 @@ class MapDescriptor private constructor(
 		fun mapFromPairs(vararg keysAndValues: A_BasicObject): A_Map
 		{
 			assert(keysAndValues.size and 1 == 0)
-			return createFromBin(
-				(keysAndValues.indices step 2).fold(emptyLinearMapBin(0)) {
-					root: A_MapBin, i ->
-					val key = keysAndValues[i].traversed()
-					val value = keysAndValues[i + 1]
-					root.mapBinAtHashPutLevelCanDestroy(
-						key.traversed(), key.hash(), value, 0, true)
+			val iterator = keysAndValues.iterator()
+			val map = createFromBin(
+				generateMapBinFrom(
+					level = 0,
+					size = keysAndValues.size ushr 1,
+					checkForDuplicates = true
+				) { _, entry ->
+					val key = iterator.next().traversed()
+					val value = iterator.next() as AvailObject
+					entry.setKeyAndHashAndValue(key, key.hash(), value)
 				})
+			assert(!iterator.hasNext())
+			return map
 		}
 
 		/**
@@ -809,9 +860,9 @@ class MapDescriptor private constructor(
 		 * Combine the two [maps][A_Map] into a single map, destroying the
 		 * destination if possible and appropriate.
 		 *
-		 * @param destination
+		 * @param original
 		 *   The destination map.
-		 * @param source
+		 * @param edits
 		 *   The source map.
 		 * @param canDestroy
 		 *   `true` if the operation is permitted to modify the destination map
@@ -821,21 +872,22 @@ class MapDescriptor private constructor(
 		 */
 		@Suppress("unused")
 		fun combineMapsCanDestroy(
-			destination: A_Map,
-			source: A_Map,
+			original: A_Map,
+			edits: A_Map,
 			canDestroy: Boolean
 		): A_BasicObject {
-			assert(destination.isMap)
-			assert(source.isMap)
+			assert(original.isMap)
+			assert(edits.isMap)
 			if (!canDestroy)
 			{
-				destination.makeImmutable()
+				original.makeImmutable()
 			}
 			return when
 			{
-				source.sameAddressAs(destination) -> destination
-				source.mapSize == 0 -> destination
-				else -> source.mapIterable.fold(destination) { map, (k, v) ->
+				edits.sameAddressAs(original) -> original
+				edits.mapSize == 0 -> original
+				original.mapSize == 0 -> edits
+				else -> edits.mapIterable.fold(original) { map, (k, v) ->
 					map.mapAtPuttingCanDestroy(k, v, true)
 				}
 			}

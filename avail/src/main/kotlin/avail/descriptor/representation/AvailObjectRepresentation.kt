@@ -62,11 +62,11 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-sealed class AvailObjectRepresentation constructor(
+abstract class AvailObjectRepresentation constructor(
 	initialDescriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
 	integerSlotsCount: Int
-) : AbstractAvailObject(initialDescriptor), A_BasicObject
+) : AbstractAvailObject(initialDescriptor)
 {
 	init
 	{

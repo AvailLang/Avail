@@ -34,6 +34,7 @@ package avail.serialization
 
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -41,7 +42,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
 import avail.descriptor.representation.A_Character.Companion.codePoint
 import avail.descriptor.representation.A_Map.Companion.forEachInMap
-import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.representation.A_Map.Companion.mapSize
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
@@ -651,15 +651,15 @@ internal enum class SerializerOperandEncoding
 		{
 			val mapSize = readCompressedPositiveInt(deserializer)
 			if (mapSize == 0) return emptyMap as AvailObject
-			var map = emptyMap
-			for (index in 1..mapSize)
-			{
-				map = map.mapAtPuttingCanDestroy(
-					deserializer.fromCompressedObjectIndex(
-						readCompressedPositiveInt(deserializer)),
-					deserializer.fromCompressedObjectIndex(
-						readCompressedPositiveInt(deserializer)),
-					true)
+			var map = generateMapFrom(
+				size = mapSize,
+				checkForDuplicates = false
+			) { _, entry ->
+				val key = deserializer.fromCompressedObjectIndex(
+					readCompressedPositiveInt(deserializer))
+				val value = deserializer.fromCompressedObjectIndex(
+					readCompressedPositiveInt(deserializer))
+				entry.setKeyAndHashAndValue(key, key.hash(), value)
 			}
 			return map as AvailObject
 		}

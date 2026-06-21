@@ -34,6 +34,7 @@ package avail.interpreter.primitive
 
 import avail.builder.ModuleName
 import avail.descriptor.representation.A_String
+import avail.interpreter.primitive.Primitive.PrimitiveHolder
 import avail.interpreter.primitive.PrimitiveClassLoader.Companion.moduleToLoader
 import java.io.File
 import java.net.URLClassLoader
@@ -71,7 +72,7 @@ class PrimitiveClassLoader constructor(
 	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
 	 * [PrimitiveClassLoader].
 	 */
-	private val holders = mutableSetOf<Primitive.PrimitiveHolder>()
+	private val holders = mutableSetOf<PrimitiveHolder>()
 
 	/**
 	 * The path to the linked Jar file.
@@ -87,8 +88,8 @@ class PrimitiveClassLoader constructor(
 		synchronized(this)
 		{
 			holders.toList().forEach { holder ->
-				Primitive.PrimitiveHolder.holdersByName.remove(holder.name)
-				Primitive.PrimitiveHolder.holdersByClassName.remove(holder.className)
+				PrimitiveHolder.holdersByName.remove(holder.name)
+				PrimitiveHolder.holdersByClassName.remove(holder.className)
 			}
 			close()
 			jarToModule.remove(jarPath)
@@ -104,18 +105,18 @@ class PrimitiveClassLoader constructor(
 				jar.entries().asIterator().forEach { entry ->
 					if (!entry.name.endsWith(".class")) return@forEach
 					val last = entry.name.split("/").last()
-					if(last.startsWith(PRIMITIVE_NAME_PREFIX))
+					if (last.startsWith(PRIMITIVE_NAME_PREFIX))
 					{
 						val c = entry.name
 							.replace(".class", "")
 							.replace("/", ".")
 						val primitiveName =
-							Primitive.PrimitiveHolder.splitClassName(c).last()
+							PrimitiveHolder.splitClassName(c).last()
 								.split("P_").last()
 						val holder =
-							Primitive.PrimitiveHolder(primitiveName, c, this)
-						Primitive.PrimitiveHolder.holdersByClassName[c] = holder
-						Primitive.PrimitiveHolder.holdersByName[primitiveName] = holder
+							PrimitiveHolder(primitiveName, c, this)
+						PrimitiveHolder.holdersByClassName[c] = holder
+						PrimitiveHolder.holdersByName[primitiveName] = holder
 						holders.add(holder)
 					}
 				}
@@ -128,8 +129,8 @@ class PrimitiveClassLoader constructor(
 			// PrimitiveHolder.holdersByClassName. The caller is responsible for
 			// handling said exceptions.
 			holders.forEach {
-				Primitive.PrimitiveHolder.holdersByClassName.remove(it.className)
-				Primitive.PrimitiveHolder.holdersByName.remove(it.name)
+				PrimitiveHolder.holdersByClassName.remove(it.className)
+				PrimitiveHolder.holdersByName.remove(it.name)
 				throw e
 			}
 		}

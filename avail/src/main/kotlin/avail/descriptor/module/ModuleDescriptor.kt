@@ -48,7 +48,9 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleT
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.Companion.combineMapsCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
@@ -1049,20 +1051,40 @@ class ModuleDescriptor private constructor(
 	override fun o_AddPrivateNames(
 		self: AvailObject,
 		trueNames: A_Set
-	) = lock.safeWrite {
+	): Unit = lock.safeWrite {
 		// Add the set of atoms to the current private scope.
 		assertState(Loading)
+		if (trueNames.setSize == 0) return
 		self.updateSlot(VISIBLE_NAMES) {
 			setUnionCanDestroy(trueNames, true).makeShared()
 		}
 		self.updateSlot(PRIVATE_NAMES) {
-			trueNames.fold(this) { map: A_Map, trueName: A_Atom ->
+			val iterator = trueNames.iterator()
+			// First, collect a map from strings to sets of existing atoms,
+			// using the empty set if the string is not present yet.
+			val newNameToOldAtoms = generateMapFrom(
+				size = trueNames.setSize,
+				checkForDuplicates = true
+			) { _, entry ->
+				val name = iterator.next().atomName.traversed()
+				entry.setKeyAndHashAndValue(
+					newKey = name,
+					newKeyHash = name.hash(),
+					newValue = mapAtOrNull(name) ?: emptySet as AvailObject)
+			}
+			assert(!iterator.hasNext())
+			// Next, augment each set.  This doesn't change the structure of
+			// the map, so we can just do destructive updates.
+			val edits = trueNames.fold(newNameToOldAtoms) { map, atom ->
 				map.mapAtReplacingCanDestroy(
-					trueName.atomName, emptySet, true
-				) { _, set: A_Set ->
-					set.setWithElementCanDestroy(trueName, true)
-				}
-			}.makeShared()
+					key = atom.atomName,
+					notFoundValue = nil, // Shouldn't be consulted.
+					canDestroy = true,
+					transformer = { _, set ->
+						set.setWithElementCanDestroy(atom, true)
+					})
+			}
+			combineMapsCanDestroy(this, edits, true).makeShared()
 		}
 	}
 

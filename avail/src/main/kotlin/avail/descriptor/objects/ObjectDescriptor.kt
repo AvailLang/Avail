@@ -37,6 +37,7 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
 import avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
 import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import avail.descriptor.objects.ObjectDescriptor.Companion.setField
@@ -419,15 +420,25 @@ class ObjectDescriptor internal constructor(
 		}
 	}
 
-	override fun o_FieldMap(self: AvailObject): A_Map =
-		variant.fieldToSlotIndex.entries.fold(emptyMap) {
-			map, (field, slotIndex) ->
-			map.mapAtPuttingCanDestroy(
-				field,
-				if (slotIndex == 0) field
-				else self[FIELD_VALUES_, slotIndex],
-				true)
+	override fun o_FieldMap(self: AvailObject): A_Map
+	{
+		val fieldSlots = variant.fieldToSlotIndex.entries
+		val iterator = fieldSlots.iterator()
+		return generateMapFrom(
+			size = fieldSlots.size,
+			checkForDuplicates = false
+		) { _, entry ->
+			val (key, fieldIndex) = iterator.next()
+			val keyHash = key.hash()
+			val value =
+				if (fieldIndex == 0) key
+				else self[FIELD_VALUES_, fieldIndex]
+			entry.setKeyAndHashAndValue(
+				key as AvailObject,
+				keyHash,
+				value as AvailObject)
 		}
+	}
 
 	override fun o_FieldTuple(self: AvailObject): A_Tuple
 	{

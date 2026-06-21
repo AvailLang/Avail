@@ -1,6 +1,6 @@
 /*
  * Special Objects.avail
- * Copyright © 1993-2025, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/26/25, 11:41 PM
+ * * Last Generated: 6/19/26, 6:26 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -266,7 +266,7 @@ Special object "any" is special object 1;
  * thought.
  *
  * Bivalent logic assigns either {@method "true"} or {@method "false"} as the
- * unique truth value of every proposition. A primitive interrogative, i.e.
+ * unique truth value of every proposition. A primitive interrogative, i.e.,
  * {@method "boolean" "boolean-valued"} primitive, is stable iff it reliably answers
  * either {@method "true"} or {@method "false"} for a given set of arguments.
  *
@@ -307,7 +307,7 @@ Special object "boolean" is special object 2;
  * written or printed. The same character will differ in any two handwritten
  * occurrences, even when the same person is responsible for the production of
  * both. Likewise the printed representation of a character will differ by font
- * or style. So a character has identity independent of any and all glyphs that
+ * or style. So a character has identity independent of any glyphs that
  * transcribe it.
  *
  * Avail is only concerned with character value, not meaning or transcription. A
@@ -315,9 +315,9 @@ Special object "boolean" is special object 2;
  * Characters are immutable and possess but a single intrinsic property:
  * {@method "_'s⁇code point" Unicode code point}. Unicode is an international
  * standard for the codification of all widely used characters. A code point is
- * a numeric value that is uniquely associated with a character relative to some
- * system of codification. Thus a character's Unicode code point singularly
- * identifies it within the Unicode scheme.
+ * a numeric value uniquely associated with a character relative to some system
+ * of codification. Thus a character's Unicode code point singularly identifies
+ * it within the Unicode scheme.
  *
  * A character literal is expressed as a cent sign {@code "¢"} (U+00A2) followed
  * by a single-character lexeme or length-one string literal. Avail character

@@ -1,6 +1,6 @@
 /*
  * Fallible Primitives.avail
- * Copyright © 1993-2025, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/26/25, 11:41 PM
+ * * Last Generated: 6/19/26, 6:26 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -592,7 +592,7 @@ Primitive "_→function" is
  *        top of the stack.
  * @param "caller" "↑$[…]→⊥"
  *        A variable holding the new continuation's calling continuation.
- *        If the variable is unassigned, then create a root continuation (i.e.
+ *        If the variable is unassigned, then create a root continuation (i.e.,
  *        one without a caller).
  * @returns "$[…]→⊥"
  *    The requested continuation.
@@ -977,7 +977,7 @@ Primitive "_∈current fiber" is
 /**
  * Answer the value bound to {@param "key"} in the current fiber's environment.
  * Since the fiber's environment essentially contains fiber-local variables
- * (i.e. bindings from atoms to arbitrary values), this operation effectively
+ * (i.e., bindings from atoms to arbitrary values), this operation effectively
  * reads a fiber-local variable.
  *
  * @category "Primitives" "Concurrency" "Queries"
@@ -1094,7 +1094,7 @@ Primitive "_[_]" is
  * @category "Primitives" "Standard IO"
  * @method "Mark for_character|characters of read ahead"
  * @param "count" "𝕎"
- *        The requested number of characters of read ahead.
+ *        The requested number of characters of read-ahead.
  * @returns "⊤"
  * @raises "I/O-error code"
  */
@@ -2437,7 +2437,7 @@ Primitive "Seal method|methods_at existing definitions" is
  * @param "arguments" "{any}ᵀ*"
  *        The tuple of arguments that should be used to filter the semantic
  *        restrictions.
- * @returns "[…]→{⊤}ᵀ*"
+ * @returns "([…]→{⊤}ᵀ)*"
  *    The requested semantic restrictions.
  * @raises "incorrect-number-of-arguments code"
  */
@@ -2467,7 +2467,7 @@ Primitive "semantic restrictions for_given_" is
  *        The filter function of the lexer.
  * @param "bodyFunction" "[string, ℕ, ℕ]→{token+|}"
  *        The body of the lexer.
- * @param "optionalStyler" "[send phrase⇒⊤?, phrase⇒⊤]→⊤?"
+ * @param "optionalStyler" "([(send phrase⇒⊤)?, phrase⇒⊤]→⊤)?"
  *        The optional function used for styling invocations of this lexer.
  * @raises "⊤"
  * @raises "incorrect-argument-type code"
@@ -2546,11 +2546,11 @@ Primitive "Lexer_when_is_«styled by_»?" is
  * @method "Macro_is«_,»_«styled by_»?"
  * @param "macroName" "string"
  *        The name of the macro to define.
- * @param "prefixFunctions" "[…]→⊤*"
+ * @param "prefixFunctions" "([…]→⊤)*"
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
- * @param "optionalStyler" "[send phrase⇒⊤?, phrase⇒⊤]→⊤?"
+ * @param "optionalStyler" "([(send phrase⇒⊤)?, phrase⇒⊤]→⊤)?"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments code"
@@ -2647,11 +2647,11 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  * @method "Macro_is«_,»_«styled by_»?"
  * @param "macroName" "atom"
  *        The name of the macro to define.
- * @param "prefixFunctions" "[…]→⊤*"
+ * @param "prefixFunctions" "([…]→⊤)*"
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
- * @param "optionalStyler" "[send phrase⇒⊤?, phrase⇒⊤]→⊤?"
+ * @param "optionalStyler" "([(send phrase⇒⊤)?, phrase⇒⊤]→⊤)?"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments code"
@@ -2791,7 +2791,7 @@ Primitive "Close module_" is
  *
  * @category "Primitives" "Modules"
  * @method "new anonymous module importing_"
- * @param "allImports" "<string, <<boolean, character+, character+?…|3>*, boolean…|2>?…|2>+"
+ * @param "allImports" "<string, <<boolean, character+, character+?…|3>*, boolean…|…+"
  *        Every module and name to be imported privately by the new module.
  * @returns "module"
  *    The new module.
@@ -3239,11 +3239,11 @@ Primitive "`«_:=_`»" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "`«[_`|Primitive__]:_^_`»"
- * @param "argumentDeclarations" "argument phrase⇒⊤*"
+ * @param "argumentDeclarations" "(argument phrase⇒⊤)*"
  *        A tuple of argument declarations.
  * @param "primitiveName" "string"
  *        The primitive linkage number, or 0 for no primitive linkage.
- * @param "statements" "phrase⇒⊤*"
+ * @param "statements" "(phrase⇒⊤)*"
  *        A tuple of statements. Each element except for the last must be an
  *        assignment, declaration, label, sequence, or ⊤-valued send.
  * @param "returnType" "{⊤}ᵀ"
@@ -3275,7 +3275,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
  *
  * @category "Primitives"
  * @method "first-of-seq`«_`»"
- * @param "statements" "phrase⇒⊤*"
+ * @param "statements" "(phrase⇒⊤)*"
  *        A tuple of statements.
  * @returns "first of sequence phrase⇒⊤"
  *    The requested first-of-sequence phrase.
@@ -3305,7 +3305,7 @@ Primitive "first-of-seq`«_`»" is
  * @param "line" "𝕎"
  *        The one-based line number of the literal. A {@code 0}
  *        indicates that the line number is unknown or meaningless.
- * @param "optionalGeneratingPhrase" "phrase⇒⊤?"
+ * @param "optionalGeneratingPhrase" "(phrase⇒⊤)?"
  *        The optional phrase from which this token is considered to have been
  *        constructed.
  * @returns "literal token⇒any"
@@ -3332,13 +3332,13 @@ Primitive "``_``(_)@_:_«from phrase_»?" is
  *
  * @category "Primitives"
  * @method "_permuted by_"
- * @param "list" "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @param "list" "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *        The {@type "list phrase"} whose subexpressions should be permuted.
  * @param "permutation" "ℕ+"
  *        The permutation imposed by the resultant {@type
  *        "permuted list phrase"}. This is a {@type "tuple"} of target indices,
  *        index by source index.
- * @returns "permuted list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @returns "permuted list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *    The requested {@type "permuted list phrase"}.
  * @raises "inconsistent-argument-reordering code"
  */
@@ -3390,13 +3390,13 @@ Primitive "`«`↑_`»" is
  * @method "restricted report and send_with_:_"
  * @param "message" "atom"
  *        The atom that names the method to be invoked by the send phrase.
- * @param "args" "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @param "args" "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *        The list phrase of phrases that are supplied as arguments of the send
  *        phrase.
  * @param "basicReturnType" "{⊤}ᵀ"
  *        The return type of the send phrase, prior to strengthening by
  *        applicable method definitions and semantic restrictions.
- * @returns "<send phrase⇒⊤?, string…|2>"
+ * @returns "<(send phrase⇒⊤)?, string…|2>"
  *        A pair of the optional restricted send phrase and report string.
  * @raises "incorrect-number-of-arguments code"
  * @raises "incorrect-argument-type code"
@@ -3462,7 +3462,7 @@ Primitive "restricted report and send_with_:_" is
  * @method "send_with_:_"
  * @param "messageName" "atom"
  *        The name of the method to be invoked.
- * @param "argumentsList" "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
+ * @param "argumentsList" "list phrase⇒tuple (subexpressions tuple type=(phrase⇒any)*)"
  *        The list phrase containing the argument expressions, corresponding
  *        left-to-right with the arguments of the method.
  * @param "returnType" "{⊤}ᵀ"
@@ -3525,7 +3525,7 @@ Primitive "send_with_:_" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "seq`«_`»"
- * @param "statements" "phrase⇒⊤*"
+ * @param "statements" "(phrase⇒⊤)*"
  *        A tuple of statements.
  * @returns "sequence phrase⇒⊤"
  *    The requested sequence.
@@ -3633,7 +3633,7 @@ Primitive "_'s⁇initializing expression" is
  * @method "lookup macro_with phrases_"
  * @param "macro" "atom"
  *        The atom naming the macro.
- * @param "phrases" "phrase⇒⊤*"
+ * @param "phrases" "(phrase⇒⊤)*"
  *        The tuple of phrases to use as arguments for the lookup.
  * @returns "[…]→phrase⇒⊤"
  *    The body function of the looked up macro.
@@ -3963,7 +3963,7 @@ Primitive "_[_]:=_" is
  * @method "Style_with_"
  * @param "anAtom" "atom"
  *        The bundle for which invocations should be styled.
- * @param "aFunction" "[send phrase⇒⊤?, phrase⇒⊤]→⊤"
+ * @param "aFunction" "[(send phrase⇒⊤)?, phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
  * @raises "incorrect-argument-type code"
@@ -4122,7 +4122,7 @@ Primitive "Style token_as_«overwriting»?" is
 ] : ⊤;
 
 /**
- * Construct and answer a slice (i.e. subtuple) of the specified tuple.
+ * Construct and answer a slice (i.e., subtuple) of the specified tuple.
  *
  * @category "Primitives" "Tuples" "Transformers" "Queries"
  * @method "_[_.._]"

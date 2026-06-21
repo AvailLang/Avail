@@ -39,8 +39,10 @@ import avail.performance.ReportingUnit.BYTES
 import avail.performance.ReportingUnit.NANOSECONDS
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.ifZero
+import avail.utility.iterableWith
 import java.text.Collator
 import java.util.EnumSet
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * The statistic reports that group specific [Statistic]s collected by the
@@ -142,24 +144,36 @@ enum class StatisticReport constructor(
 
 	/**
 	 * The [List] of [Statistic] objects that have been registered
-	 * for this particular [StatisticReport].
+	 * for this particular [StatisticReport].  Entries are added by prepending
+	 * with a compare-and-set loop.  Reads should use volatile semantics.
 	 */
-	internal val statistics = mutableListOf<Statistic>()
+	val statisticsChain = AtomicReference<Statistic?>(null)
 
 	/**
 	 * Register a [Statistic] with this `StatisticReport`.  This happens when
-	 * the statistic is first created, as part of its constructor. Access to the
-	 * [List] of [statistics] is synchronized on the list, to ensure atomic
-	 * access among registrations and between registrations and enumeration of
-	 * the list.
+	 * the statistic is first created, as part of its constructor.  Adding to
+	 * the [statisticsChain] should be performed with compare-and-set semantics,
+	 * and reads should use volatile semantics.
 	 *
 	 * @param statistic The [Statistic] to be registered.
 	 */
-	fun registerStatistic(statistic: Statistic) =
-		synchronized(statistics) { statistics.add(statistic) }
+	fun registerStatistic(statistic: Statistic)
+	{
+		while (true)
+		{
+			val existingHead = statisticsChain.get()
+			statistic.nextInReport = existingHead
+			if (statisticsChain.compareAndSet(existingHead, statistic)) break
+		}
+	}
 
-	/** Clear all my [Statistic]s. */
-	fun clear() = synchronized(statistics) { statistics.forEach { it.clear() } }
+	/** Clear my [Statistic]s. */
+	fun clear()
+	{
+		statisticsChain.get()
+			.iterableWith(Statistic::nextInReport)
+			.forEach(Statistic::clear)
+	}
 
 	/**
 	 * Collect the aggregates of my statistics, filter out the ones with zero
@@ -169,22 +183,22 @@ enum class StatisticReport constructor(
 	 * @return A sorted [List] of [Pair]&lt;[String],
 	 * [PerInterpreterStatistic]&gt;.
 	 */
-	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>> =
-		synchronized(statistics) {
-			val namedSnapshots =
-				statistics.map { it.name() to it.aggregate() }.toMutableList()
-			namedSnapshots.removeIf {
-				(_, aggregate) -> aggregate.count() == 0L
+	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>>
+	{
+		val namedSnapshots = statisticsChain.get()
+			.iterableWith(Statistic::nextInReport)
+			.map { it.name() to it.aggregate() }
+			.filter { (_, aggregate) -> aggregate.count() > 0L }
+			.toMutableList()
+		val collator = Collator.getInstance()
+		namedSnapshots.sortWith {
+			(name1, aggregate1), (name2, aggregate2) ->
+			aggregate1.compareTo(aggregate2).ifZero {
+				collator.compare(name1, name2)
 			}
-			val collator = Collator.getInstance()
-			namedSnapshots.sortWith {
-				(name1, aggregate1), (name2, aggregate2) ->
-				aggregate1.compareTo(aggregate2).ifZero {
-					collator.compare(name1, name2)
-				}
-			}
-			return namedSnapshots
 		}
+		return namedSnapshots
+	}
 
 	companion object
 	{

@@ -50,7 +50,8 @@ package avail.descriptor.representation
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class AbstractAvailObject protected constructor(
-	initialDescriptor: AbstractDescriptor)
+	initialDescriptor: AbstractDescriptor
+): A_BasicObject
 {
 	/**
 	 * The object's [descriptor][AbstractDescriptor]. Most messages are
@@ -73,7 +74,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * because the object is not yet shared, so other fibers should not be able
 	 * to observe the change.
 	 */
-	var descriptor = initialDescriptor
+	override var descriptor = initialDescriptor
 
 	/**
 	 * Answer whether the [objects][AvailObject] occupy the same memory
@@ -84,7 +85,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   Whether the receiver and the other object occupy the same storage.
 	 */
-	fun sameAddressAs(anotherObject: A_BasicObject) = this === anotherObject
+	override fun sameAddressAs(anotherObject: A_BasicObject) = this === anotherObject
 
 	/**
 	 * Answer the number of integer slots. All variable integer slots occur
@@ -93,7 +94,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   The number of integer slots.
 	 */
-	abstract fun integerSlotsCount(): Int
+	override abstract fun integerSlotsCount(): Int
 
 	/**
 	 * Answer the number of variable integer slots in this object. This does not
@@ -102,7 +103,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   The number of variable integer slots.
 	 */
-	fun variableIntegerSlotsCount() =
+	override fun variableIntegerSlotsCount() =
 		integerSlotsCount() - descriptor.numberOfFixedIntegerSlots
 
 	/**
@@ -112,7 +113,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   The number of object slots.
 	 */
-	abstract fun objectSlotsCount(): Int
+	override abstract fun objectSlotsCount(): Int
 
 	/**
 	 * Answer the number of variable object slots in this [AvailObject]. This
@@ -121,7 +122,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   The number of variable object slots.
 	 */
-	fun variableObjectSlotsCount() =
+	override fun variableObjectSlotsCount() =
 		objectSlotsCount() - descriptor.numberOfFixedObjectSlots
 
 	/**
