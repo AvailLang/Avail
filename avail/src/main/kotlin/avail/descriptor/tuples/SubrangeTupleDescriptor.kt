@@ -41,6 +41,7 @@ import avail.descriptor.representation.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
 import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.representation.A_Tuple.Companion.forEachCodepointInString
 import avail.descriptor.representation.A_Tuple.Companion.forEachInTuple
 import avail.descriptor.representation.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.representation.A_Tuple.Companion.transferIntoByteBuffer
@@ -466,6 +467,24 @@ private constructor(
 		assert(lastIndex in firstIndex - 1..size)
 		val adjustment = self[START_INDEX] - 1
 		basis.forEachIntInTuple(
+			firstIndex + adjustment,
+			lastIndex + adjustment,
+			action)
+	}
+
+	override fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean
+	): Boolean
+	{
+		val basis: A_Tuple = self[BASIS_TUPLE]
+		val size = self[SIZE]
+		assert(firstIndex in 1..size)
+		assert(lastIndex in firstIndex - 1..size)
+		val adjustment = self[START_INDEX] - 1
+		return basis.forEachCodepointInString(
 			firstIndex + adjustment,
 			lastIndex + adjustment,
 			action)

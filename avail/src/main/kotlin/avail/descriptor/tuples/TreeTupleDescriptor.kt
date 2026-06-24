@@ -41,6 +41,7 @@ import avail.descriptor.representation.A_Tuple.Companion.childCount
 import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
 import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.representation.A_Tuple.Companion.forEachCodepointInString
 import avail.descriptor.representation.A_Tuple.Companion.forEachInTuple
 import avail.descriptor.representation.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.representation.A_Tuple.Companion.hashFromTo
@@ -579,6 +580,42 @@ class TreeTupleDescriptor internal constructor(
 		child = self.childAt(highChildIndex)
 		val rightOffset = offsetForChildSubscript(self, highChildIndex)
 		child.forEachIntInTuple(1, lastIndex - rightOffset, action)
+	}
+
+	override fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean): Boolean
+	{
+		val lowChildIndex = childSubscriptForIndex(self, firstIndex)
+		val highChildIndex = childSubscriptForIndex(self, lastIndex)
+		if (lowChildIndex == highChildIndex)
+		{
+			// Starts and ends in the same child.  Pass the buck downwards.
+			val offset = offsetForChildSubscript(self, lowChildIndex)
+			return self.childAt(lowChildIndex).forEachCodepointInString(
+				firstIndex - offset, lastIndex - offset, action)
+		}
+		assert(lowChildIndex < highChildIndex)
+		// The endpoints occur in distinct children.
+		val leftOffset = offsetForChildSubscript(self, lowChildIndex)
+		var child = self.childAt(lowChildIndex)
+		if (!child.forEachCodepointInString(
+			firstIndex - leftOffset, child.tupleSize, action))
+		{
+			return false
+		}
+		for (childIndex in lowChildIndex + 1 until highChildIndex)
+		{
+			child = self.childAt(childIndex)
+			if (!child.forEachCodepointInString(1, child.tupleSize, action))
+				return false
+		}
+		child = self.childAt(highChildIndex)
+		val rightOffset = offsetForChildSubscript(self, highChildIndex)
+		return child.forEachCodepointInString(
+			1, lastIndex - rightOffset, action)
 	}
 
 	override fun o_IsString(self: AvailObject): Boolean

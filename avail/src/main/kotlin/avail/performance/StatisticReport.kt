@@ -36,6 +36,7 @@ import avail.compiler.ParsingOperation
 import avail.descriptor.representation.A_BundleTree
 import avail.optimizer.StackReifier
 import avail.performance.ReportingUnit.BYTES
+import avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import avail.performance.ReportingUnit.NANOSECONDS
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.ifZero
@@ -140,7 +141,14 @@ enum class StatisticReport constructor(
 	 * The estimated number of bytes allocated for descriptors with the given
 	 * class name.
 	 */
-	ALLOCATIONS_BY_DESCRIPTOR_CLASS("Allocations by initial descriptor", BYTES);
+	ALLOCATIONS_BY_DESCRIPTOR_CLASS("Allocations by initial descriptor", BYTES),
+
+	/**
+	 * The number of times an object with some descriptor class was converted
+	 * into an indirection.
+	 */
+	BECOME_INDIRECTION(
+		"Objects turned into indirections", DIMENSIONLESS_INTEGRAL);
 
 	/**
 	 * The [List] of [Statistic] objects that have been registered

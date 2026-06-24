@@ -82,7 +82,10 @@ import java.util.function.Supplier
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-sealed interface A_BasicObject : JSONFriendly
+// We can't use `sealed` yet, because Kotlin incremental recompilation
+// still (2026, first reported 2023) messes up the list of permitted subclasses.
+/*sealed*/
+interface A_BasicObject : JSONFriendly
 {
 	/**
 	 * Retrieve the object's {@linkplain AbstractDescriptor descriptor}.

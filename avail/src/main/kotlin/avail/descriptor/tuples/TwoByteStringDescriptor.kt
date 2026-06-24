@@ -263,7 +263,7 @@ class TwoByteStringDescriptor private constructor(
 			self.hash() != aString.hash() -> return false
 			// The longs array *must* be padded with zeros for the last 0-3
 			// shorts. Compare long-by-long.
-			!self.intSlotsCompare(aString as AvailObject, RAW_LONGS_) ->
+			!self.longSlotsCompare(aString as AvailObject, RAW_LONGS_) ->
 				return false
 			// They're equal, but occupy disjoint storage. If possible, replace one
 			// with an indirection to the other to keep down the frequency of
@@ -343,6 +343,45 @@ class TwoByteStringDescriptor private constructor(
 			}
 		}
 		return 0
+	}
+
+	override fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean
+	): Boolean
+	{
+		val firstBulkIndex = (firstIndex + 3) ushr 2
+		val lastBulkIndex = (lastIndex + 3) ushr 2
+		if (firstIndex > lastIndex) return true
+		val firstLong = self[RAW_LONGS_, firstBulkIndex]
+		for (i in firstIndex..min(lastIndex, firstBulkIndex shl 2))
+		{
+			val zeroBasedSubscript = i - 1
+			val rightShift = zeroBasedSubscript and 0x03 shl 4
+			if (!action((firstLong ushr rightShift and 0xFFFFL).toInt()))
+				return false
+		}
+		if (firstBulkIndex == lastBulkIndex) return true
+		for (i in firstBulkIndex + 1 .. lastBulkIndex - 1)
+		{
+			val long = self[RAW_LONGS_, i]
+			for (shift in 0 .. 63 step 16)
+			{
+				if (!action((long ushr shift and 0xFFFFL).toInt()))
+					return false
+			}
+		}
+		val lastLong = self[RAW_LONGS_, lastBulkIndex]
+		for (i in max(firstIndex, (lastBulkIndex shl 2) - 3) .. lastIndex)
+		{
+			val zeroBasedSubscript = i - 1
+			val rightShift = zeroBasedSubscript and 0x03 shl 4
+			if (!action((lastLong ushr rightShift and 0xFFFFL).toInt()))
+				return false
+		}
+		return true
 	}
 
 	override fun o_IsTwoByteString(self: AvailObject): Boolean = true

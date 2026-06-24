@@ -2630,6 +2630,13 @@ protected constructor (
 		action: IntConsumer
 	): Unit = unsupported
 
+	override fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean
+	): Boolean = unsupported
+
 	override fun o_SetSuccessAndFailure (
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
@@ -2891,6 +2898,10 @@ protected constructor (
 
 	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt =
 		unsupported
+
+	override fun o_SpliteratorOfCodePoint(
+		self: AvailObject
+	): Spliterator.OfInt = unsupported
 
 	companion object
 	{

@@ -260,7 +260,7 @@ class TwentyOneBitStringDescriptor private constructor(
 			self.hash() != aTwentyOneBitString.hash() -> return false
 			// The longs array *must* be padded with zeros for the last 0-2
 			// entries. Compare long-by-long.
-			!self.intSlotsCompare(aTwentyOneBitString as AvailObject, RAW_LONGS_) ->
+			!self.longSlotsCompare(aTwentyOneBitString as AvailObject, RAW_LONGS_) ->
 				return false
 			// They're equal, but occupy disjoint storage. If possible, replace
 			// one with an indirection to the other to keep down the frequency

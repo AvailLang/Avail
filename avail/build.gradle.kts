@@ -241,7 +241,7 @@ tasks {
 
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
-	val generatePrimitivesList by registering(GenerateFileManifestTask::class) {
+	val generatePrimitivesList = register<GenerateFileManifestTask>("generatePrimitivesList") {
 		description =
 			"Generate the list of all primitives in All_Primitive.txt."
 		basePath = layout.projectDirectory.dir("src/main/kotlin").asFile.path
@@ -296,21 +296,62 @@ tasks {
 		destinationDirectory.set(file("../"))
 	}
 
-	val `package` by registering(DefaultTask::class) {
+	val `package` = register<DefaultTask>("package")
+	{
 		description = "Create Anvil Jar"
 		group = "anvil"
 		description = "Package anvil.jar"
 		dependsOn(shadowJar)
 	}
 
-	val packageAndRun by registering(JavaExec::class) {
+	val packageAndRun = register<JavaExec>("packageAndRun") {
 		dependsOn(`package`)
 		group = "anvil"
 		description = "Package anvil.jar and run the Avail Project Manager"
 		classpath = files("../avail-anvil.jar")
 	}
 
-	val run by registering(JavaExec::class) {
+	val run = register<JavaExec>("run") {
+		group = "anvil"
+		description = "Run the Avail Project Manager for an already built anvil.jar"
+		classpath = files("../avail-anvil.jar")
+	}
+
+	val aotDir = layout.projectDirectory.dir("out")
+
+	val aotJsa = aotDir.file("aot.app.jsa").asFile.path
+
+	val runTraining1 = register<JavaExec>("runTraining1") {
+		jvmArguments.addAll(
+			"-ea",
+			"-DavailDeveloper=true",
+			"-Xmx6g",
+			"--illegal-final-field-mutation=deny",
+// Uncommenting causes JDK's JSA file to be skipped
+//			"--enable-native-access=ALL-UNNAMED",
+			"-XX:+AutoCreateSharedArchive",
+			"-XX:SharedArchiveFile=$aotJsa"
+		)
+		group = "anvil"
+		description = "Run the Avail Project Manager for an already built anvil.jar"
+		classpath = files("../avail-anvil.jar")
+	}
+
+	val runTraining2 = register<JavaExec>("runTraining2") {
+		require(File(aotJsa).exists()) {
+			"runTraining1 should have created the jsa file."
+		}
+		jvmArguments.addAll(
+			"-ea",
+			"-DavailDeveloper=true",
+			"-Xmx6g",
+			"--illegal-final-field-mutation=deny",
+// Uncommenting causes JDK's JSA file to be skipped
+//			"--enable-native-access=ALL-UNNAMED",
+// Check that the jsa is used:
+			//"-Xlog:class+load",
+			"-XX:SharedArchiveFile=$aotJsa"
+		)
 		group = "anvil"
 		description = "Run the Avail Project Manager for an already built anvil.jar"
 		classpath = files("../avail-anvil.jar")
@@ -342,7 +383,7 @@ tasks {
 	val anvilJpackageInputDir =
 		layout.buildDirectory.dir("jpackage-input")
 
-	val jlinkAnvilRuntime by registering(Exec::class) {
+	val jlinkAnvilRuntime = register<Exec>("jlinkAnvilruntime") {
 		group = "anvil"
 		description = "Build a slim JDK runtime image for Anvil.app."
 		val metadata = anvilJdkLauncher.get().metadata
@@ -363,7 +404,7 @@ tasks {
 		doFirst { if (out.exists()) out.deleteRecursively() }
 	}
 
-	val stageAnvilApp by registering(Copy::class) {
+	val stageAnvilApp = register<Copy>("stageAnvilApp") {
 		group = "anvil"
 		description = "Stage avail-anvil.jar for jpackage."
 		dependsOn(`package`)
@@ -371,7 +412,7 @@ tasks {
 		into(anvilJpackageInputDir)
 	}
 
-	val packageApp by registering(Exec::class) {
+	val packageApp = register<Exec>("packageApp") {
 		group = "anvil"
 		description =
 			"Assemble a self-contained Anvil.app via jpackage."
@@ -428,7 +469,7 @@ tasks {
 		}
 	}
 
-	val packageAppAndRun by registering(Exec::class) {
+	val packageAppAndRun = register<Exec>("packageAppAndRun") {
 		group = "anvil"
 		description =
 			"Build a self-contained Anvil.app and launch it."
@@ -443,7 +484,7 @@ tasks {
 	 *
 	 * See [scrubReleases] in `Build.kt`.
 	 */
-	val scrubReleases by registering(Delete::class) {
+	val scrubReleases = register<Delete>("scrubReleases") {
 		description =
 			"Removes released libraries. See `scrubReleases` in `Build.kt`."
 		scrubReleases(this)
@@ -452,7 +493,7 @@ tasks {
 	// Update the dependencies of "clean".
 	clean { dependsOn(scrubReleases) }
 
-	val sourceJar by registering(Jar::class) {
+	val sourceJar = register<Jar>("sourceJar") {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
@@ -479,7 +520,7 @@ tasks {
 		}
 	}
 
-	val javadocJar by registering(Jar::class) {
+	val javadocJar = register<Jar>("javadocJar") {
 		// Dokka 2 task name for the html publication
 		dependsOn("dokkaGeneratePublicationHtml")
 		description = "Creates Javadoc JAR."
@@ -499,7 +540,7 @@ tasks {
 	 *
 	 * See [relocateGeneratedPropertyFiles].
 	 */
-	val relocateGeneratedPropertyFiles by registering(Copy::class) {
+	val relocateGeneratedPropertyFiles = register<Copy>("relocateGeneratedPropertyFiles") {
 		description =
 			"Copy the generated bootstrap property files into the build " +
 				"directory, that the executable tools can find them as " +
@@ -513,7 +554,7 @@ tasks {
 	classes { dependsOn(relocateGeneratedPropertyFiles) }
 
 	/** Bootstrap Primitive_<lang>.properties for the current locale. */
-	val generatePrimitiveNames by registering(JavaExec::class) {
+	val generatePrimitiveNames = register<JavaExec>("generatePrimitiveNames") {
 		description =
 			"Bootstrap Primitive_<lang>.properties for the current locale."
 		group = "bootstrap"
@@ -524,7 +565,7 @@ tasks {
 	}
 
 	/** Bootstrap ErrorCodeNames_<lang>.properties for the current locale. */
-	val generateErrorCodeNames by registering(JavaExec::class) {
+	val generateErrorCodeNames = register<JavaExec>("generateErrorCodeNames") {
 		description =
 			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
 		group = "bootstrap"
@@ -535,7 +576,7 @@ tasks {
 	}
 
 	/** Bootstrap ErrorCodeNames_<lang>.properties for the current locale. */
-	val generateSpecialObjectNames by registering(JavaExec::class) {
+	val generateSpecialObjectNames = register<JavaExec>("generateSpecialObjectNames") {
 		description =
 			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
 		group = "bootstrap"
@@ -549,7 +590,8 @@ tasks {
 	 * Gradle task to generate all bootstrap `.properties` files for the current
 	 * locale.
 	 */
-	val generateAllNames by registering {
+	val generateAllNames = register("generateAllNames")
+	{
 		description =
 			"Gradle task to generate all bootstrap `.properties` files for " +
 				"the current locale."
@@ -564,7 +606,7 @@ tasks {
 	 *
 	 * This is used in "projectGenerateBootStrap".
 	 */
-	val internalGenerateBootstrap by registering(JavaExec::class) {
+	val internalGenerateBootstrap = register<JavaExec>("internalGenerateBootstrap") {
 		description =
 			"Generate the new bootstrap Avail modules for the current locale." +
 				"\n\tThis is used in Project.generateBootStrap."

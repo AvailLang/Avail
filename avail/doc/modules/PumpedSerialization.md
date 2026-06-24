@@ -102,3 +102,24 @@ stability (the lower halves would all be unique).  Since the upper values are
 essentially random hashes, a biased search would probably be even faster than a
 pure binary search.  Combined with the bloom filter, this might yield the best
 actual performance and smallest footprint.
+
+
+## NEW PLAN: (2026-06-22)
+
+Never serialize the object map, only the tuple of values.  During fast-loading, concatenate the object tuples from the immediate predecessor modules – alphabetical module order, say in the order they're imported.
+
+When a module needs to be compiled, the predecessor modules' tuples of values (produced either by compilation or fast-loading) still need to be present and concatenated.  But for a compilation's serialization to work, the map from objects to indices (in the concatenated tuples) has to be present in memory.  We can use an ordinary Java/Kotlin Map, since it doesn't *have* to stick around after compilation.
+
+In the event that we have to keep recompiling a module (the development loop), we can cache just the pumped map, which is easily reconstructed if needed by inverting the concatenated tuples, producing a map from objects to indices.
+
+For the case where we're compiling a large number of modules, we'll want to cache the map for a module until all *successor* modules have been compiled.
+
+To make the map assembly quicker, the keys can be a structure that combines the serialized object itself and its hash – used for faster hashing in the map, and as a pre-test for equality.  The corresponding values can be a structure containing a reference to the module and the index into its tuple of objects.
+
+## Refinement
+
+One more thing.  Rather than build an entire map from object to index into the concatenated tuple, we could create a much more compact map from each objeect's _hash value_ into the tuple,  Collisions can be tracked in a separate, smaller map.  Note that equal objects appearing in peer modules within the concatenated tuple don't count as a collision.  Maybe use positive `Int`s to indicate a tuple subscript (without a collision), and a negative integer to index a `List` of `IntArray`s that list the (positive) subscripts with candidate objects, perhaps interspersed with the corresponding full hash values, first the hash then the (positive) subscript.  If the IntArray is larger than needed, to amortize growth, the last entry, which would be a positive subscript if the IntArray is full, could instead contain a negative number indicating the current occupied size of the array.
+
+### Incremental growth of map
+
+Every module (version) in a repository can be assigned a unique subrange of the eventual concatenated tuple.  Compiling a module causes the module's object tuple to be created, at which point a range can be allocated for it within a repository-wide tuple subscript listing – stored in the repo's metadata.  HOWEVER, since the available subscripts are reasonably plentiful, and since we can build tree-tuples that contain repeat-tuples (of nil, say) for modules that have space reserved but haven't been loaded yet, the repo's metadata can just bump a counter.   Or we could use a two-tiered index where a high Int specifies a tuple number and a low Int indexes it, and we use a Long as the value stored in the map.  ^^^TODO^^^ Check if we can use the record number for the high int, and how hard it would be to extend Deserializer support to use a Long for object references – it might already be doing that. 

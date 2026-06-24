@@ -120,12 +120,14 @@ abstract class AvailObjectRepresentation constructor(
 	override fun becomeIndirectionTo(anotherObject: A_BasicObject)
 	{
 		assert(!descriptor.isShared)
+		val oldDescriptor = descriptor
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
 		val traversed = traversed()
 		val anotherTraversed = anotherObject.traversed()
 		if (traversed.sameAddressAs(anotherTraversed)) return
-		if (objectSlotsCount() == 0)
+		val oldObjectSlotsSize = objectSlotsCount()
+		if (oldObjectSlotsSize == 0)
 		{
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
@@ -175,6 +177,12 @@ abstract class AvailObjectRepresentation constructor(
 			descriptor = IndirectionDescriptor.immutable(
 				anotherTraversed.descriptor.typeTag)
 		}
+		val stat = when (oldObjectSlotsSize)
+		{
+			0 -> oldDescriptor.becomeIndirectionNoSlotsStat
+			else -> oldDescriptor.becomeIndirectionWithSlotsStat
+		}
+		stat.record(1L)
 	}
 
 	/**
@@ -1238,7 +1246,8 @@ abstract class AvailObjectRepresentation constructor(
 	 * true.
 	 *
 	 * The [integerField] must be suitable for accessing slots in both the
-	 * receiver and the [otherObject].
+	 * receiver and the [otherObject], and must have the same number of variable
+	 * long slots.
 	 *
 	 * @param otherObject
 	 *   The other [AvailObjectRepresentation] to compare against.
@@ -1249,7 +1258,7 @@ abstract class AvailObjectRepresentation constructor(
 	 *   Whether the corresponding visited slots were equal.
 	 */
 	@Suppress("unused")
-	fun intSlotsCompare(
+	fun longSlotsCompare(
 		otherObject: AvailObjectRepresentation,
 		integerField: IntegerSlotsEnum
 	): Boolean
@@ -1261,12 +1270,7 @@ abstract class AvailObjectRepresentation constructor(
 		val size = mySlots.size
 		assert(otherSlots.size == size)
 		var pos = integerField.fieldOrdinal
-		while (pos < size)
-		{
-			if (mySlots[pos] != otherSlots[pos]) return false
-			pos++
-		}
-		return true
+		return Arrays.equals(mySlots, pos, size, otherSlots, pos, size)
 	}
 
 	/**

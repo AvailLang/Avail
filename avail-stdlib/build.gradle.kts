@@ -131,7 +131,7 @@ tasks {
 		}
 	}
 
-	val javadocJar by registering(Jar::class)
+	val javadocJar = register<Jar>("javadocJar")
 	{
 		// This subproject (avail-stdlib) contains Avail module data but
 		// no Kotlin/Java sources; avoid running Dokka here. Do not

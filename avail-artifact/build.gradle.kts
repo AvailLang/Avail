@@ -100,7 +100,7 @@ tasks {
 		}
 	}
 
-	val sourceJar by registering(Jar::class) {
+	val sourceJar = register<Jar>("sourceJar") {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
@@ -127,7 +127,7 @@ tasks {
 		}
 	}
 
-	val javadocJar by registering(Jar::class)
+	val javadocJar = register<Jar>("javadocJar")
 	{
 		// Use Dokka 2 task name for generating the html publication
 		dependsOn("dokkaGeneratePublicationHtml")

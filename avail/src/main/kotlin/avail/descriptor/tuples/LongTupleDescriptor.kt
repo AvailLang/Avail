@@ -65,6 +65,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -410,15 +411,13 @@ private constructor(
 		aLongTuple: A_Tuple): Boolean
 	{
 		// First, check for object-structure (address) identity.
-		val strongLongTuple = aLongTuple as AvailObject
+		aLongTuple as AvailObject
 		when
 		{
 			self.sameAddressAs(aLongTuple) -> return true
 			self.tupleSize != aLongTuple.tupleSize -> return false
 			self.hash() != aLongTuple.hash() -> return false
-			(1..self.tupleSize).any {
-				self[LONG_AT_, it] != strongLongTuple[LONG_AT_, it]
-			} -> return false
+			!self.longSlotsCompare(aLongTuple, RAW_LONGS_) -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
 			// replace one with an indirection to the other to keep down the
 			// frequency of long-wise comparisons.

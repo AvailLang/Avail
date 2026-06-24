@@ -447,20 +447,18 @@ private constructor(
 		self: AvailObject,
 		anIntTuple: A_Tuple): Boolean
 	{
-		// First, check for object-structure (address) identity.
 		when
 		{
 			self.sameAddressAs(anIntTuple) -> return true
 			self.tupleSize != anIntTuple.tupleSize -> return false
 			self.hash() != anIntTuple.hash() -> return false
-			!self.compareFromToWithIntTupleStartingAt(
-				1,
-				self.tupleSize,
-				anIntTuple,
-				1) -> return false
-			// They're equal (but occupy disjoint storage). If possible, then
-			// replace one with an indirection to the other to keep down the
-			// frequency of int-wise comparisons.
+			// If there are an odd number of ints, the final long is always
+			// padded with zero.
+			!self.longSlotsCompare(anIntTuple as AvailObject, RAW_LONG_AT_) ->
+				return false
+			// They're equal (but occupy disjoint storage). If possible, replace
+			// one with an indirection to the other to keep down the frequency
+			// of structural comparisons.
 			!isShared ->
 			{
 				anIntTuple.makeImmutable()

@@ -146,6 +146,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
+import avail.performance.StatisticReport.BECOME_INDIRECTION
 import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
@@ -290,7 +291,29 @@ abstract class AbstractDescriptor protected constructor (
 	 * A [Statistic] that records the number and size of each allocation.
 	 */
 	@Suppress("LeakingThis")
-	val allocationStat = allocationStatisticFor(this)
+	val allocationStatisticsSet: AllocationStatisticSet =
+		allocationStatisticSetFor(this)
+
+	/**
+	 * A [Statistic] that records the number and size of each allocation.
+ 	 */
+	val allocationStat: Statistic
+		get() = allocationStatisticsSet.allocationStat
+
+	/**
+	 * A [Statistic] that records the count of transitions to an indirection
+	 * from this descriptor, when the original had no object slots.
+	 */
+	val becomeIndirectionNoSlotsStat: Statistic
+		get() = allocationStatisticsSet.becomeIndirectionNoSlots
+
+	/**
+	 * A [Statistic] that records the count of transitions to an indirection
+	 * from this descriptor, when the original had at least one object slot.
+	 */
+	val becomeIndirectionWithSlotsStat: Statistic
+		get() = allocationStatisticsSet.becomeIndirectionWithSlots
+
 
 	init
 	{
@@ -797,7 +820,7 @@ abstract class AbstractDescriptor protected constructor (
 				.single()
 		}
 		while (cls != Any::class)
-		members.remove(AbstractDescriptor::allocationStat)
+		members.remove(AbstractDescriptor::allocationStatisticsSet)
 		members.remove(AbstractDescriptor::debugIntegerSlots)
 		members.remove(AbstractDescriptor::debugObjectSlots)
 		members.remove(AbstractDescriptor::hasVariableIntegerSlots)
@@ -4167,9 +4190,18 @@ abstract class AbstractDescriptor protected constructor (
 		lastIndex: Int,
 		action: IntConsumer)
 
+	abstract fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean
+	): Boolean
+
 	abstract fun o_StreamOfInt(self: AvailObject): IntStream
 
 	abstract fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt
+
+	abstract fun o_SpliteratorOfCodePoint(self: AvailObject): Spliterator.OfInt
 
 	companion object
 	{
@@ -4322,32 +4354,47 @@ abstract class AbstractDescriptor protected constructor (
 
 		/**
 		 * A thread-safe, low-contention map from each encountered
-		 * [AbstractDescriptor] class to the [Statistic] that tracks its
-		 * allocations.
+		 * [AbstractDescriptor] class to the [AllocationStatisticSet] that tracks its
+		 * allocations and transition to indirections.
 		 */
 		private val allocationStatisticsByClass =
-			ConcurrentHashMap<Class<AbstractDescriptor>, Statistic>()
+			ConcurrentHashMap<
+				Class<AbstractDescriptor>,
+				AllocationStatisticSet>()
 
 		/**
-		 * Answer a Statistic for recording allocations for the given
-		 * [AbstractDescriptor].  It will be cached within the descriptor for
-		 * performance.
+		 * Answer an [AllocationStatisticSet] for recording allocations for the
+		 * given [AbstractDescriptor], and for recording transitions to
+		 * indirection objects from this descriptor class.  It will be cached
+		 * within the descriptor for performance.
 		 *
 		 * @param descriptor
-		 *   The [AbstractDescriptor] for which to find or create a [Statistic].
+		 *   The [AbstractDescriptor] for which to find or create an
+		 *   [AllocationStatisticSet].
 		 */
-		fun allocationStatisticFor(descriptor: AbstractDescriptor): Statistic
+		fun allocationStatisticSetFor(
+			descriptor: AbstractDescriptor
+		): AllocationStatisticSet
 		{
 			return allocationStatisticsByClass.computeIfAbsent(
 				descriptor.javaClass
 			) {
-				var name = it.simpleName
-				if (name.endsWith("Descriptor"))
-				{
-					name = name.substring(0, name.length - 10)
-				}
-				Statistic(ALLOCATIONS_BY_DESCRIPTOR_CLASS, name)
+				AllocationStatisticSet(it.simpleName.removeSuffix("Descriptor"))
 			}
+		}
+
+		data class AllocationStatisticSet(
+			val allocationStat: Statistic,
+			val becomeIndirectionNoSlots: Statistic,
+			val becomeIndirectionWithSlots: Statistic)
+		{
+			constructor(descriptorName: String) : this(
+				allocationStat = Statistic(
+					ALLOCATIONS_BY_DESCRIPTOR_CLASS, descriptorName),
+				becomeIndirectionNoSlots = Statistic(
+					BECOME_INDIRECTION, descriptorName + " (0 slots)"),
+				becomeIndirectionWithSlots = Statistic(
+					BECOME_INDIRECTION, descriptorName))
 		}
 
 		/**

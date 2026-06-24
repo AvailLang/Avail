@@ -50,6 +50,7 @@ import avail.descriptor.representation.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.representation.A_Number.Companion.extractUnsignedShort
 import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
 import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAtPut
+import avail.descriptor.representation.A_Tuple.Companion.forEachCodepointInString
 import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
@@ -390,24 +391,51 @@ internal enum class SerializerOperandEncoding
 		{
 			val tupleSize = obj.tupleSize
 			val shiftedTupleSize = tupleSize.toULong() shl 2
+			var maxCodepoint = 0
 			when
 			{
-				obj.tupleSize == 0 || obj.isByteString ->
+				// It definitely only has one-byte characters.
+				obj.isByteString -> maxCodepoint = 0xFF
+				obj.isTwoByteString ->
+				{
+					// The characters are at most two-bytes, so just check if
+					// they all happen to be one-bytes.
+					obj.forEachCodepointInString(1, tupleSize) { cp ->
+						maxCodepoint = maxOf(maxCodepoint, cp)
+						cp <= 0xFF
+					}
+				}
+				else ->
+				{
+					// The answer might be 1-, 2-, or 3-byte characters.
+					// Compute the max, but end looping if we get any 3's.
+					obj.forEachCodepointInString(1, tupleSize) { cp ->
+						maxCodepoint = maxOf(maxCodepoint, cp)
+						cp <= 0xFFFF
+					}
+				}
+			}
+			when
+			{
+				maxCodepoint <= 0xFF ->
 				{
 					writeCompressedULong(shiftedTupleSize, serializer)
-					// Write uncompressed bytes.
-					(1..tupleSize).forEach { i ->
-						serializer.writeByte(obj.tupleCodePointAt(i))
+					// Write *uncompressed* bytes.
+					obj.forEachCodepointInString(1, tupleSize)
+					{
+						serializer.writeByte(it)
+						true
 					}
 					return
 				}
-				obj.isTwoByteString ->
+				maxCodepoint <= 0xFFFF ->
 					writeCompressedULong(shiftedTupleSize + 1_UL, serializer)
 				else ->
 					writeCompressedULong(shiftedTupleSize + 2_UL, serializer)
 			}
-			(1..tupleSize).forEach { i ->
-				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
+			obj.forEachCodepointInString(1, tupleSize) { codepoint ->
+				writeCompressedPositiveInt(codepoint, serializer)
+				true
 			}
 		}
 

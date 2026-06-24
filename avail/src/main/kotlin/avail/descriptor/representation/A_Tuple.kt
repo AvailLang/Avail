@@ -751,6 +751,29 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
+		 * Iterate from firstIndex to lastIndex, applying the action to the
+		 * codepoint of each of the [A_String]'s elements, in the given
+		 * inclusive range of indices.  If the action produces `false`, stop
+		 * iterating and return `false`.  Otherwise continue, and if it reaches
+		 * the end of the range, return `true`.
+		 *
+		 * @param firstIndex
+		 *   The first index to start iterating from.
+		 * @param lastIndex
+		 *   The last index to iterate up to, inclusive.
+		 * @param action
+		 *   The action to apply to each [Int] codepoint of the string in the
+		 *   range.  Answers `true` to continue iterating.
+		 */
+		fun A_Tuple.forEachCodepointInString(
+			firstIndex: Int,
+			lastIndex: Int,
+			action: (Int)->Boolean
+		): Boolean = dispatch {
+			o_ForEachCodepointInString(it, firstIndex, lastIndex, action)
+		}
+
+		/**
 		 * Calculate the hash of the subtuple spanning the two indices.
 		 *
 		 * @param startIndex
@@ -859,7 +882,17 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 */
 		fun A_Tuple.streamOfInt(): IntStream = dispatch { o_StreamOfInt(it) }
 
+		/**
+		 * Produce a [Spliterator] over the [Int]s that must be in the tuple.
+		 */
 		fun A_Tuple.spliteratorOfInt(): Spliterator.OfInt =
+			dispatch { o_SpliteratorOfInt(it) }
+
+		/**
+		 * Produce a [Spliterator] over the [Int]s that are the codepoints of
+		 * this string.
+		 */
+		fun A_Tuple.spliteratorOfCodePoint(): Spliterator.OfInt =
 			dispatch { o_SpliteratorOfInt(it) }
 
 		/**

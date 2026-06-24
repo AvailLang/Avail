@@ -52,6 +52,7 @@ import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
 import avail.descriptor.representation.A_Tuple.Companion.copyAsMutableObjectTuple
 import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.dummyElement
+import avail.descriptor.representation.A_Tuple.Companion.forEachCodepointInString
 import avail.descriptor.representation.A_Tuple.Companion.forEachInTuple
 import avail.descriptor.representation.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.representation.A_Tuple.Companion.isBetterRepresentationThan
@@ -396,6 +397,21 @@ protected constructor(
 		{
 			action.accept(self.tupleIntAt(i))
 		}
+	}
+
+	// Default to a loop with tupleCodePointAt().
+	override fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean
+	): Boolean
+	{
+		for (i in firstIndex..lastIndex)
+		{
+			if (!action(self.tupleCodePointAt(i))) return false
+		}
+		return true
 	}
 
 	override fun o_IsBetterRepresentationThan(
@@ -1199,7 +1215,7 @@ protected constructor(
 	 *
 	 * @constructor
 	 * Create an instance for spliterating over the [Int] values in the tuple,
-	 * tarting at the given [index] and stopping just before the [fence].  Both
+	 * starting at the given [index] and stopping just before the [fence].  Both
 	 * indices are one-based.
 	 *
 	 * @param tuple
@@ -1252,6 +1268,76 @@ protected constructor(
 				or Spliterator.IMMUTABLE)
 	}
 
+	/**
+	 * Index-based split-by-two, lazily initialized Spliterator over a string of
+	 * elements whose codepoints are treated as [Int].
+	 *
+	 * @property tuple
+	 *   The [A_String] being spliterated.
+	 * @property index
+	 *   The current one-based index into the tuple.
+	 * @property fence
+	 *   One past the last one-based index to visit.
+	 *
+	 * @constructor
+	 * Create an instance for spliterating over the [Int] codepoints in the
+	 * string, starting at the given [index] and stopping just before the
+	 * [fence].  Both indices are one-based.
+	 *
+	 * @param tuple
+	 *   The string to spliterate.
+	 * @param index
+	 *   The starting one-based index.
+	 * @param fence
+	 *   One past the last one-based index to visit.
+	 */
+	private class TupleSpliteratorOfCodepoint(
+		private val tuple: A_Tuple,
+		private var index: Int,
+		private val fence: Int
+	) : Spliterator.OfInt
+	{
+		override fun trySplit(): TupleSpliteratorOfCodepoint?
+		{
+			val remaining = fence - index
+			if (remaining < 2)
+			{
+				return null
+			}
+			val oldIndex = index
+			index += remaining ushr 1
+			return TupleSpliteratorOfCodepoint(tuple, oldIndex, index)
+		}
+
+		override fun tryAdvance(action: IntConsumer): Boolean
+		{
+			if (index < fence)
+			{
+				action.accept(tuple.tupleCodePointAt(index++))
+				return true
+			}
+			return false
+		}
+
+		override fun forEachRemaining(action: IntConsumer)
+		{
+			tuple.forEachCodepointInString(index, fence - 1) {
+				action.accept(it)
+				// Continue iterating.
+				true
+			}
+		}
+
+		override fun estimateSize(): Long = (fence - index).toLong()
+
+		override fun characteristics(): Int =
+			(Spliterator.ORDERED
+				or Spliterator.SIZED
+				or Spliterator.SUBSIZED
+				or Spliterator.NONNULL
+				or Spliterator.IMMUTABLE)
+	}
+
 	override fun o_Iterator(self: AvailObject): Iterator<AvailObject>
 	{
 		self.makeImmutable()
@@ -1279,6 +1365,11 @@ protected constructor(
 	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt
 	{
 		return TupleSpliteratorOfInt(self, 1, self.tupleSize + 1)
+	}
+
+	override fun o_SpliteratorOfCodePoint(self: AvailObject): Spliterator.OfInt
+	{
+		return TupleSpliteratorOfCodepoint(self, 1, self.tupleSize + 1)
 	}
 
 	override fun o_ParallelStream(self: AvailObject): Stream<AvailObject>

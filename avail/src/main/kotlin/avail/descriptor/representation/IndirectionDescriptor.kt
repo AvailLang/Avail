@@ -474,6 +474,7 @@ import avail.descriptor.representation.A_Tuple.Companion.dummyElement
 import avail.descriptor.representation.A_Tuple.Companion.extractNybbleFromTupleAt
 import avail.descriptor.representation.A_Tuple.Companion.firstIndexOf
 import avail.descriptor.representation.A_Tuple.Companion.firstIndexOfOr
+import avail.descriptor.representation.A_Tuple.Companion.forEachCodepointInString
 import avail.descriptor.representation.A_Tuple.Companion.forEachInTuple
 import avail.descriptor.representation.A_Tuple.Companion.forEachIntInTuple
 import avail.descriptor.representation.A_Tuple.Companion.hashFromTo
@@ -482,6 +483,7 @@ import avail.descriptor.representation.A_Tuple.Companion.lastIndexOf
 import avail.descriptor.representation.A_Tuple.Companion.parallelStream
 import avail.descriptor.representation.A_Tuple.Companion.rawByteForCharacterAt
 import avail.descriptor.representation.A_Tuple.Companion.replaceFirstChild
+import avail.descriptor.representation.A_Tuple.Companion.spliteratorOfCodePoint
 import avail.descriptor.representation.A_Tuple.Companion.spliteratorOfInt
 import avail.descriptor.representation.A_Tuple.Companion.stream
 import avail.descriptor.representation.A_Tuple.Companion.streamOfInt
@@ -720,7 +722,7 @@ class IndirectionDescriptor private constructor(
 		 * The target [object][AvailObject] to which my instance is delegating
 		 * all behavior.
 		 */
-		INDIRECTION_TARGET
+		INDIRECTION_TARGET,
 	}
 
 	/**
@@ -888,17 +890,18 @@ class IndirectionDescriptor private constructor(
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag {
 		val tag = self { typeTag }
 		// Now that we know it, switch to a descriptor that has it cached...
-		self.descriptor = when {
-			mutability === Mutability.MUTABLE -> mutable(tag)
-			mutability === Mutability.IMMUTABLE -> immutable(tag)
-			else -> shared(tag)
+		self.descriptor = when (mutability)
+		{
+			Mutability.MUTABLE -> mutable(tag)
+			Mutability.IMMUTABLE -> immutable(tag)
+			Mutability.SHARED -> shared(tag)
 		}
 		return tag
 	}
 
 	/**
-	 * Define the infix ".." operator to reduce redundancy in the many reflex
-	 * methods below.
+	 * Define the infix `invoke` operator to reduce redundancy in the many
+	 * reflex methods below.
 	 *
 	 * @param body
 	 *   The action to perform on the traversed receiver.
@@ -3860,6 +3863,13 @@ class IndirectionDescriptor private constructor(
 		action: IntConsumer
 	) = self { forEachIntInTuple(firstIndex, lastIndex, action) }
 
+	override fun o_ForEachCodepointInString(
+		self: AvailObject,
+		firstIndex: Int,
+		lastIndex: Int,
+		action: (Int)->Boolean
+	): Boolean = self { forEachCodepointInString(firstIndex, lastIndex, action) }
+
 	override fun o_SetSuccessAndFailure(
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
@@ -4169,6 +4179,10 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt =
 		self { spliteratorOfInt() }
+
+	override fun o_SpliteratorOfCodePoint(
+		self: AvailObject
+	): Spliterator.OfInt = self { spliteratorOfCodePoint() }
 
 	override fun o_StreamOfInt(self: AvailObject): IntStream =
 		self { streamOfInt() }
