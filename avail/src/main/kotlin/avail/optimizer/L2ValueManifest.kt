@@ -172,12 +172,35 @@ class L2ValueManifest
 	 *   semantic values of this constraint that do not yet have definitions.
 	 *   It's an instruction that has *not* yet been emitted, and might not ever
 	 *   be, if the semantic values it populates are never read.
+	 * @property members
+	 *   The [L2SemanticValue]s that this constraint describes.  This is the
+	 *   same set as the associated [L2Synonym]'s, but held here rather than
+	 *   being read back out of the map key, so that the key is free to become
+	 *   a pure identity.
 	 */
 	class Constraint<K: RegisterKind<K>>(
+		val members: Set<L2SemanticValue<K>>,
 		val definitions: List<L2Register<K>>,
 		val restriction: TypeRestriction,
 		val postponedInstruction: L2Instruction?)
 	{
+		/**
+		 * A lazily materialized [L2Synonym] view of [members].  Most constraints
+		 * are never asked for one.
+		 *
+		 * Mutating this field is safe even though a [Constraint] is shared
+		 * between manifests: it is a pure memoization of immutable data, so
+		 * every computation of it produces an equal result.  If [members] ever
+		 * becomes replaceable, null this slot at the same time.
+		 */
+		private var cachedSynonym: L2Synonym<K>? = null
+
+		/** An [L2Synonym] view of this constraint's [members]. */
+		val synonym: L2Synonym<K>
+			get() = cachedSynonym ?: L2Synonym(members).also {
+				cachedSynonym = it
+			}
+
 		init
 		{
 			assert(definitions.size == definitions.toSet().size)
@@ -312,21 +335,41 @@ class L2ValueManifest
 		fun toConstraint() = when
 		{
 			!modified -> originalConstraint
-			else -> Constraint(definitions, restriction, postponedInstruction)
+			else -> Constraint(
+				synonym.semanticValues(),
+				definitions,
+				restriction,
+				postponedInstruction)
 		}
 	}
 
 
-	/** The synonyms keyed by semantic values. */
-	private val semanticValueToSynonym:
-		MutableMap<L2SemanticValue<*>, L2Synonym<*>>?
+	/**
+	 * The [ValueClass] that each [L2SemanticValue] currently belongs to.  The
+	 * class recorded here may have been merged away since, so every read must
+	 * go through [resolve]; use [classOrNull] or [classFor] rather than
+	 * indexing this map directly.
+	 */
+	private val classOf: MutableMap<L2SemanticValue<*>, ValueClass>?
 
 	/**
-	 * A map from each [L2Synonym] to the [Constraint] that tracks the current
-	 * [TypeRestriction] and immutable list of [L2Register]s that hold the value
-	 * represented by that synonym.
+	 * Where merged [ValueClass]es forward to.  This is the union-find, and it
+	 * lives here – per manifest – rather than in [ValueClass], so that a merge
+	 * performed along one edge of a branch cannot be seen along the other.
+	 *
+	 * It grows monotonically within a manifest and is compacted lazily by the
+	 * path compression in [resolve].
 	 */
-	private val constraints: MutableMap<L2Synonym<*>, Constraint<*>>
+	private val forward: MutableMap<ValueClass, ValueClass>
+
+	/**
+	 * A map from each [ValueClass] to the [Constraint] describing what this
+	 * manifest knows about that value: its membership, its [TypeRestriction],
+	 * the [L2Register]s holding it, and any postponed [L2Instruction].
+	 *
+	 * Keys are always resolved; a class that has been merged away has no entry.
+	 */
+	private val states: MutableMap<ValueClass, Constraint<*>>
 
 	/**
 	 * An index from an [L2SemanticValue] that some postponed [L2Instruction]
@@ -374,13 +417,14 @@ class L2ValueManifest
 		do
 		{
 			var changed = false
-			constraints.entries.toList().forEach { (synonym, constraint) ->
+			states.entries.toList().forEach { (valueClass, constraint) ->
 				// A previous rewrite may have disrupted the synonym structure,
 				// so we have to check it here.  It can only have had an effect
 				// if it answered true, in which case we'll do another pass to
 				// make sure we get every rewrite that we can.
-				if (synonym in constraints)
+				if (valueClass in states)
 				{
+					val synonym = constraint.synonym
 					constraint.postponedInstruction?.let { instruction ->
 						val newChange = instruction.run {
 							rewritePostponed(synonym)
@@ -409,12 +453,13 @@ class L2ValueManifest
 	constructor(mode: GenerationMode)
 	{
 		this.mode = mode
-		semanticValueToSynonym = when (mode)
+		classOf = when (mode)
 		{
 			BySemanticValue -> mutableMapOf()
 			else -> null
 		}
-		constraints = mutableMapOf()
+		forward = mutableMapOf()
+		states = mutableMapOf()
 		postponedReaders = mutableMapOf()
 	}
 
@@ -428,8 +473,9 @@ class L2ValueManifest
 	constructor(original: L2ValueManifest)
 	{
 		mode = original.mode
-		semanticValueToSynonym = original.semanticValueToSynonym?.toMutableMap()
-		constraints = original.constraints.toMutableMap()
+		classOf = original.classOf?.toMutableMap()
+		forward = original.forward.toMutableMap()
+		states = original.states.toMutableMap()
 		postponedReaders = original.postponedReaders
 			.mapValuesTo(mutableMapOf()) { (_, targets) ->
 				targets.toMutableSet()
@@ -592,9 +638,9 @@ class L2ValueManifest
 	 *   A [Map] from [L2Synonym] to postponed [L2Instruction].
 	 */
 	fun allPostponedInstructions(): Map<L2Synonym<*>, L2Instruction> =
-		constraints
-			.filterValues { it.postponedInstruction != null }
-			.mapValues { (_, constraint) -> constraint.postponedInstruction!! }
+		states.values
+			.filter { it.postponedInstruction != null }
+			.associate { it.synonym to it.postponedInstruction!! }
 
 	/**
 	 * If there's a postponed instruction for the synonym containing the given
@@ -675,13 +721,16 @@ class L2ValueManifest
 	fun clearPostponedInstructions()
 	{
 		postponedReaders.clear()
-		constraints.entries.forEach { entry ->
+		states.entries.forEach { entry ->
 			val constraint = entry.value
 			if (constraint.postponedInstruction != null)
 			{
 				entry.setValue(
 					Constraint(
-						constraint.definitions, constraint.restriction, null))
+						constraint.members,
+						constraint.definitions,
+						constraint.restriction,
+						null))
 			}
 		}
 	}
@@ -699,23 +748,27 @@ class L2ValueManifest
 		body: ConstraintBuilder<K>.() -> Result
 	): Result
 	{
-		var constraint = constraintOrNull(synonym.pickSemanticValue())
+		val valueClass = classOrNull(synonym.pickSemanticValue())
+			?: ValueClass.newValueClass().also { fresh ->
+				bind(synonym.semanticValues(), fresh)
+			}
+		var constraint = states[valueClass]
 		if (constraint == null)
 		{
-			constraint = Constraint<K>(emptyList(), bottomRestriction, null)
+			constraint = Constraint(
+				synonym.semanticValues(),
+				emptyList(),
+				bottomRestriction,
+				null)
 			impossibleRestrictionCount++
-			for (sv in synonym.semanticValues())
-			{
-				val priorSynonym = semanticValueToSynonym!!.put(sv, synonym)
-				assert(priorSynonym === null)
-			}
+			bind(synonym.semanticValues(), valueClass)
 		}
-		val builder = ConstraintBuilder(constraint, synonym)
+		val builder = ConstraintBuilder(constraint.cast(), synonym)
 		val oldRestriction = constraint.restriction
 		val result = builder.body()
 		assert(caresAboutSemanticValues || builder.postponedInstruction == null)
-		constraints[synonym] = builder.toConstraint()
-		val newRestriction = constraints[synonym]!!.restriction
+		states[valueClass] = builder.toConstraint()
+		val newRestriction = states[valueClass]!!.restriction
 		if (newRestriction != oldRestriction)
 		{
 			if (oldRestriction == bottomRestriction)
@@ -742,7 +795,7 @@ class L2ValueManifest
 		body: TypeRestriction.() -> TypeRestriction
 	): Unit
 	{
-		if (semanticValue !in semanticValueToSynonym!!)
+		if (!hasSemanticValue(semanticValue))
 		{
 			val equivalent = equivalentSemanticValue(semanticValue)
 			introduceSynonym(
@@ -802,7 +855,7 @@ class L2ValueManifest
 					semanticValue.kind.createSemanticConstant(constant)
 				val synonym = semanticValueToSynonym(semanticValue)
 				val constSynonym: L2Synonym<K>? =
-					semanticValueToSynonym!![semanticConstant].cast()
+					semanticValueToSynonymOrNull(semanticConstant)
 				when (constSynonym) {
 					null -> extendSynonym(synonym, semanticConstant)
 					else -> mergeExistingSemanticValues(
@@ -992,7 +1045,9 @@ class L2ValueManifest
 		checkUniqueConstantSynonyms()
 		if (caresAboutSemanticValues)
 		{
-			assert(semanticValueToSynonym!!.values.toSet() == constraints.keys)
+			assert(
+				classOf!!.values.mapTo(mutableSetOf(), ::resolve) ==
+					states.keys)
 
 			// Check each constraint for consistency with its synonym. Postponed
 			// instructions are now source-only (no explicit targets), with
@@ -1000,8 +1055,9 @@ class L2ValueManifest
 			// semantic values. There is no special case for constant
 			// restrictions - they require an explicit postponed constant move
 			// instruction.
-			for ((synonym, constraint) in constraints)
+			for (constraint in states.values)
 			{
+				val synonym = constraint.synonym
 				// Collect the semantic values that have been defined.
 				val defined = constraint.definedSemanticValues()
 
@@ -1048,21 +1104,21 @@ class L2ValueManifest
 				}
 			}
 		}
-		val registers = constraints.values.flatMap { it.definitions }
+		val registers = states.values.flatMap { it.definitions }
 		if (mode !is WithFixedRegisterMap)
 		{
 			assert(registers.size == registers.toSet().size)
 		}
-		for (synonym in constraints.keys)
+		for (constraint in states.values)
 		{
-			assert(synonym.semanticValues()
+			assert(constraint.members
 				.distinctBy(L2SemanticValue<*>::kind)
 				.size == 1)
 			{
 				"Semantic values in synonym are of mixed kind"
 			}
 		}
-		val count = constraints.values.count(Constraint<*>::isImpossible)
+		val count = states.values.count(Constraint<*>::isImpossible)
 		assert(count == impossibleRestrictionCount)
 		{
 			"Incorrect value for hasImpossibleRestriction."
@@ -1075,19 +1131,17 @@ class L2ValueManifest
 	 * postponed instruction, automatic move, or automatic constant move.
 	 */
 	fun liveOrPostponedSemanticValues(): Set<L2SemanticValue<*>> =
-		constraints.entries
-			.filter { (synonym, constraint) ->
+		states.values
+			.filter { constraint ->
 				constraint.postponedInstruction != null
 					|| constraint.restriction.isConstant
 					|| constraint.definitions.any { reg ->
 						reg.definitions().isNotEmpty()
 					}
-					|| synonym.semanticValues()
+					|| constraint.members
 						.any(L2SemanticValue<*>::isConstant)
 			}
-			.flatMapTo(mutableSetOf()) { (synonym, _) ->
-				synonym.semanticValues()
-			}
+			.flatMapTo(mutableSetOf(), Constraint<*>::members)
 			.toSet()
 
 	/**
@@ -1101,7 +1155,107 @@ class L2ValueManifest
 	 */
 	fun <K: RegisterKind<K>> semanticValueToSynonymOrNull(
 		semanticValue: L2SemanticValue<K>
-	): L2Synonym<K>? = semanticValueToSynonym!![semanticValue]?.cast()
+	): L2Synonym<K>? = stateOrNull(semanticValue)?.synonym?.cast()
+
+	/**
+	 * Answer the [ValueClass] that the given class has been merged into,
+	 * following and compacting the chain of [forward] links.
+	 *
+	 * @param valueClass
+	 *   A possibly stale [ValueClass].
+	 * @return
+	 *   The live [ValueClass] representing the same value.
+	 */
+	fun resolve(valueClass: ValueClass): ValueClass
+	{
+		var target = forward[valueClass] ?: return valueClass
+		while (true)
+		{
+			target = forward[target] ?: break
+		}
+		// Path compression.  Rewrite every link on the way to the root.
+		var link = valueClass
+		while (link !== target)
+		{
+			val next = forward[link]!!
+			forward[link] = target
+			link = next
+		}
+		return target
+	}
+
+	/**
+	 * Answer the live [ValueClass] of the given [L2SemanticValue], or `null` if
+	 * this manifest doesn't know the value.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to look up.
+	 * @return
+	 *   Its [ValueClass], or `null`.
+	 */
+	private fun classOrNull(
+		semanticValue: L2SemanticValue<*>
+	): ValueClass? = classOf!![semanticValue]?.let(::resolve)
+
+	/**
+	 * Answer the live [ValueClass] of the given [L2SemanticValue].  Fail if the
+	 * value is unknown to this manifest.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to look up.
+	 * @return
+	 *   Its [ValueClass].
+	 */
+	private fun classFor(
+		semanticValue: L2SemanticValue<*>
+	): ValueClass = classOrNull(semanticValue)!!
+
+	/**
+	 * Answer the [Constraint] describing the given [L2SemanticValue], or `null`
+	 * if this manifest doesn't know the value.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to look up.
+	 * @return
+	 *   Its [Constraint], or `null`.
+	 */
+	private fun stateOrNull(
+		semanticValue: L2SemanticValue<*>
+	): Constraint<*>? = classOrNull(semanticValue)?.let(states::get)
+
+	/**
+	 * Bind the given [L2SemanticValue]s to the given [ValueClass], replacing
+	 * any prior binding.
+	 *
+	 * @param semanticValues
+	 *   The [L2SemanticValue]s to bind.
+	 * @param valueClass
+	 *   The [ValueClass] to bind them to.
+	 */
+	private fun bind(
+		semanticValues: Iterable<L2SemanticValue<*>>,
+		valueClass: ValueClass)
+	{
+		semanticValues.forEach { classOf!![it] = valueClass }
+	}
+
+	/**
+	 * Record that [loser] has been merged into [winner], so that any
+	 * [L2SemanticValue] still bound to [loser] resolves to [winner].  The
+	 * loser's entry in [states] is removed; the caller is responsible for
+	 * having already folded its contents into the winner's.
+	 *
+	 * @param winner
+	 *   The surviving [ValueClass].
+	 * @param loser
+	 *   The [ValueClass] being merged away.
+	 */
+	private fun forwardClass(winner: ValueClass, loser: ValueClass)
+	{
+		if (winner === loser) return
+		states.remove(loser)
+		forward[loser] = winner
+	}
 
 	/**
 	 * Look up the given [L2SemanticValue], answering the [L2Synonym] that's
@@ -1132,7 +1286,7 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue<K>,
 		elseSupplier: ()->L2Synonym<K>
 	): L2Synonym<K> =
-		semanticValueToSynonym!![semanticValue].cast() ?: elseSupplier()
+		semanticValueToSynonymOrNull(semanticValue) ?: elseSupplier()
 
 	/**
 	 * Capture information about a new [L2Synonym] and its [TypeRestriction].
@@ -1148,17 +1302,19 @@ class L2ValueManifest
 		semanticValues: Iterable<L2SemanticValue<*>>,
 		restriction: TypeRestriction)
 	{
-		assert(semanticValues.none(semanticValueToSynonym!!::containsKey))
+		assert(semanticValues.none(::hasSemanticValue))
 
 		val pick = semanticValues.first()
 		val freshSynonym = L2Synonym(
 			semanticValues.toSet().cast<Iterable<*>, Set<L2SemanticValue<K>>>())
-		for (sv in semanticValues)
-		{
-			semanticValueToSynonym[sv] = freshSynonym
-		}
-		constraints[freshSynonym] =
-			Constraint(emptyList(), pick.defaultRestriction, null)
+		val freshClass = ValueClass.newValueClass()
+		bind(semanticValues, freshClass)
+		states[freshClass] =
+			Constraint(
+				freshSynonym.semanticValues(),
+				emptyList(),
+				pick.defaultRestriction,
+				null)
 		updateRestriction(pick) { restriction }
 	}
 
@@ -1172,7 +1328,7 @@ class L2ValueManifest
 	 *   previous instruction that wrote it.
 	 */
 	fun hasSemanticValue(semanticValue: L2SemanticValue<*>): Boolean =
-		semanticValue in semanticValueToSynonym!!
+		classOf!!.containsKey(semanticValue)
 
 	/**
 	 * Answer whether the [L2SemanticValue] is known to this manifest AND the
@@ -1187,8 +1343,8 @@ class L2ValueManifest
 	 */
 	fun hasLiveSemanticValue(
 		semanticValue: L2SemanticValue<*>
-	): Boolean = semanticValueToSynonym!![semanticValue].notNullAnd {
-		constraints[this]!!.definitions.any { reg ->
+	): Boolean = stateOrNull(semanticValue).notNullAnd {
+		definitions.any { reg ->
 			reg.definitions().any { semanticValue in it.semanticValues() }
 		}
 	}
@@ -1213,7 +1369,7 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue<K>
 	): L2SemanticValue<K>?
 	{
-		if (semanticValue in semanticValueToSynonym!!)
+		if (hasSemanticValue(semanticValue))
 		{
 			// It already exists in exactly the form given, which is the vast
 			// majority of cases.
@@ -1221,7 +1377,7 @@ class L2ValueManifest
 		}
 		// Try a slower, far less frequent search.
 		val onlyClass = classRestrictingSearchFor(semanticValue)
-		return semanticValueToSynonym.keys.firstOrNull { other ->
+		return classOf!!.keys.firstOrNull { other ->
 			(onlyClass === null || other.javaClass === onlyClass)
 				&& isEquivalentSemanticValue(semanticValue, other)
 		}.cast()
@@ -1260,7 +1416,7 @@ class L2ValueManifest
 	): Class<out L2SemanticValue<*>>? = when
 	{
 		semanticValue is L2SemanticConstant -> null
-		semanticValue in semanticValueToSynonym!! -> null
+		hasSemanticValue(semanticValue) -> null
 		else -> semanticValue.javaClass
 	}
 
@@ -1411,7 +1567,7 @@ class L2ValueManifest
 		// cannot be narrowed by class, since the shared-synonym test can then
 		// match a candidate of some other class.
 		val onlyClass = classRestrictingSearchFor(semanticValue)
-		return semanticValueToSynonym!!.keys.firstOrNull { other ->
+		return classOf!!.keys.firstOrNull { other ->
 			(onlyClass === null || other.javaClass === onlyClass)
 				&& isEquivalentSemanticValue(semanticValue, other)
 				&& isPopulated(other)
@@ -1429,7 +1585,7 @@ class L2ValueManifest
 	 */
 	fun isPopulated(
 		semanticValue: L2SemanticValue<*>
-	): Boolean = (semanticValue in semanticValueToSynonym!!
+	): Boolean = (hasSemanticValue(semanticValue)
 		&& getDefinitions(semanticValue).any { register ->
 			register.definitions().any { write ->
 				semanticValue in write.semanticValues()
@@ -1456,9 +1612,8 @@ class L2ValueManifest
 	{
 		if (semanticValue == otherSemanticValue) return true
 		if (semanticValue.kind != otherSemanticValue.kind) return false
-		if (semanticValue in semanticValueToSynonym!! &&
-			semanticValueToSynonym[semanticValue] ===
-				semanticValueToSynonym[otherSemanticValue])
+		val ownClass = classOrNull(semanticValue)
+		if (ownClass !== null && ownClass === classOrNull(otherSemanticValue))
 		{
 			// They're already synonyms of each other.
 			return true
@@ -1560,14 +1715,14 @@ class L2ValueManifest
 				baseRestriction)
 			return
 		}
-		val existingSynonyms = mutableSetOf<L2Synonym<K>>()
+		val existingClasses = mutableSetOf<ValueClass>()
 		val strandedValues = mutableSetOf<L2SemanticValue<K>>()
 		semanticValues.forEach { sv ->
-			semanticValueToSynonymOrNull(sv)?.let(existingSynonyms::add)
+			classOrNull(sv)?.let(existingClasses::add)
 				?: strandedValues.add(sv)
 		}
 		// Common path, synonym already exists.
-		if (existingSynonyms.size == 1 && strandedValues.isEmpty())
+		if (existingClasses.size == 1 && strandedValues.isEmpty())
 		{
 			if (!restrictionFor(semanticValues.first())
 					.isStrongerThan(baseRestriction))
@@ -1587,23 +1742,24 @@ class L2ValueManifest
 		val newRestriction = existingSemanticConstant?.constantRestrictionOrNull
 			?: when
 			{
-				existingSynonyms.isEmpty() -> baseRestriction
-				else -> existingSynonyms
-					.map { constraints[it]!!.restriction }
+				existingClasses.isEmpty() -> baseRestriction
+				else -> existingClasses
+					.map { states[it]!!.restriction }
 					.reduce(TypeRestriction::intersection)
 			}
 
 		val definitions = mutableListOf<L2Register<K>>()
 		val postponedInstructions = mutableListOf<L2Instruction>()
-		val allSemanticValues: Set<L2SemanticValue<K>> = existingSynonyms
-			.flatMapTo(mutableSetOf(), L2Synonym<K>::semanticValues)
+		val allSemanticValues: Set<L2SemanticValue<K>> = existingClasses
+			.flatMapTo(mutableSetOf()) {
+				states[it]!!.members.cast<Set<*>, Set<L2SemanticValue<K>>>()
+			}
 			.plus(strandedValues)
-		existingSynonyms.forEach { synonym ->
-			val constraint = constraints[synonym]!!
+		existingClasses.forEach { existingClass ->
+			val constraint = states[existingClass]!!
 			definitions.addAll(constraint.definitions.cast())
 			constraint.postponedInstruction?.let(postponedInstructions::add)
 		}
-		val newSynonym = L2Synonym(allSemanticValues)
 
 		// Reuse any of tho existing postponed instructions, since they all will
 		// populate the entire synonym.
@@ -1639,14 +1795,19 @@ class L2ValueManifest
 			// added.
 			else -> postponedInstructions.firstOrNull()
 		}
-		// Wire it in.
-		constraints.keys.removeAll(existingSynonyms)
+		// Wire it in.  One of the existing classes survives and absorbs the
+		// others, so that anything still referring to a merged-away class
+		// resolves to the survivor.
 		assert(caresAboutSemanticValues || postponedInstruction == null)
-		constraints[newSynonym] =
-			Constraint(definitions, newRestriction, postponedInstruction)
-		allSemanticValues.forEach { sv ->
-			semanticValueToSynonym!![sv] = newSynonym
-		}
+		val winner = existingClasses.firstOrNull() ?: ValueClass.newValueClass()
+		existingClasses.forEach { loser -> forwardClass(winner, loser) }
+		states[winner] =
+			Constraint(
+				allSemanticValues,
+				definitions,
+				newRestriction,
+				postponedInstruction)
+		bind(allSemanticValues, winner)
 	}
 
 	/**
@@ -1733,12 +1894,16 @@ class L2ValueManifest
 		assert(!hasSemanticValue(semanticValue))
 		val semanticValues = existingSynonym.semanticValues().toMutableSet()
 		semanticValues.add(semanticValue)
-		val merged = L2Synonym(semanticValues)
-		semanticValues.forEach { sv ->
-			semanticValueToSynonym!![sv] = merged
-		}
-		val existingConstraint = constraints.remove(existingSynonym)!!
-		constraints[merged] = existingConstraint
+		// The class keeps its identity; only its state is replaced, since the
+		// constraint records its own membership.
+		val valueClass = classFor(existingSynonym.pickSemanticValue())
+		val existingConstraint = states[valueClass]!!
+		states[valueClass] = Constraint(
+			semanticValues,
+			existingConstraint.definitions.cast(),
+			existingConstraint.restriction,
+			existingConstraint.postponedInstruction)
+		bind(semanticValues, valueClass)
 	}
 
 	/**
@@ -1805,7 +1970,7 @@ class L2ValueManifest
 		// equivalent due to their arguments being merged into the same
 		// synonyms.  Repeat as necessary, alternating collection of newly
 		// matched pairs of synonyms with merging them.
-		val allSemanticPrimitives = semanticValueToSynonym!!.keys
+		val allSemanticPrimitives = classOf!!.keys
 			.filterIsInstance<L2SemanticPrimitiveInvocation>()
 			.groupBy(L2SemanticPrimitiveInvocation::primitive)
 		if (allSemanticPrimitives.isEmpty())
@@ -1849,7 +2014,7 @@ class L2ValueManifest
 					val primitiveSynonyms =
 						map.computeIfAbsent(argumentSynonyms) { mutableSetOf() }
 					val invocationSynonym: L2Synonym<BOXED_KIND> =
-						semanticValueToSynonym[invocation].cast()
+						semanticValueToSynonym(invocation)
 					if (primitiveSynonyms.isNotEmpty()
 						&& !primitiveSynonyms.contains(invocationSynonym))
 					{
@@ -1892,14 +2057,18 @@ class L2ValueManifest
 	): Boolean
 	{
 		if (synonym1 == synonym2) return false
-		val constraint1: Constraint<K> = constraints.remove(synonym1).cast()
-		val constraint2: Constraint<K> = constraints.remove(synonym2).cast()
+		val class1 = classFor(synonym1.pickSemanticValue())
+		val class2 = classFor(synonym2.pickSemanticValue())
+		if (class1 === class2) return false
+		val constraint1: Constraint<K> = states[class1].cast()
+		val constraint2: Constraint<K> = states[class2].cast()
 		val semanticValues =
 			synonym1.semanticValues() + synonym2.semanticValues()
 		val restriction =
 			constraint1.restriction.intersection(constraint2.restriction)
-		val mergedSynonym = L2Synonym(semanticValues)
-		semanticValues.forEach { semanticValueToSynonym!![it] = mergedSynonym }
+		// class1 survives and absorbs class2, so anything still holding class2
+		// resolves to class1.
+		forwardClass(class1, class2)
 		val definitions = constraint1.definitions + constraint2.definitions
 		val postponed1 = constraint1.postponedInstruction
 		val postponed2 = constraint2.postponedInstruction
@@ -1918,8 +2087,13 @@ class L2ValueManifest
 		// Just concatenate the input synonyms' lists, as this essentially
 		// preserves earliest definition order.
 		assert(caresAboutSemanticValues || newPostponed == null)
-		val newConstraint = Constraint(definitions, restriction, newPostponed)
-		constraints[mergedSynonym] = newConstraint
+		val newConstraint = Constraint(
+			semanticValues,
+			definitions,
+			restriction,
+			newPostponed)
+		states[class1] = newConstraint
+		bind(semanticValues, class1)
 		if (constraint1.isImpossible) impossibleRestrictionCount--
 		if (constraint2.isImpossible) impossibleRestrictionCount--
 		if (newConstraint.isImpossible) impossibleRestrictionCount++
@@ -1940,14 +2114,14 @@ class L2ValueManifest
 				// the boolean return value, since we must answer true from the
 				// outer call.
 				privateMergeSynonyms(
-					mergedSynonym,
+					states[class1]!!.synonym.cast(),
 					semanticValueToSynonym(semanticConstant))
 			}
 			else
 			{
 				// The semantic constant is not in any synonym yet, but it needs
 				// to be added to the new synonym.
-				extendSynonym(mergedSynonym, semanticConstant)
+				extendSynonym(states[class1]!!.synonym.cast(), semanticConstant)
 			}
 		}
 		return true
@@ -2119,7 +2293,7 @@ class L2ValueManifest
 	fun restrictionFor(read: L2ReadOperand<*>): TypeRestriction = when
 	{
 		// Simplify things for the caller.
-		semanticValueToSynonym == null -> read.restriction()
+		classOf == null -> read.restriction()
 		!caresAboutSemanticValues -> read.restriction()
 		else -> restrictionFor(read.semanticValue())
 			.intersection(read.restriction())
@@ -2128,7 +2302,7 @@ class L2ValueManifest
 	fun restrictionFor(write: L2WriteOperand<*>): TypeRestriction = when
 	{
 		// Simplify things for the caller.
-		semanticValueToSynonym == null -> write.restriction()
+		classOf == null -> write.restriction()
 		!caresAboutSemanticValues -> write.restriction()
 		!hasSemanticValue(write.pickSemanticValue()) -> write.restriction()
 		else -> restrictionFor(write.pickSemanticValue())
@@ -2159,7 +2333,7 @@ class L2ValueManifest
 		{
 			// Only auto-introduce constants in early phases
 			if (caresAboutSemanticValues &&
-				semanticValue !in semanticValueToSynonym!!)
+				!hasSemanticValue(semanticValue))
 			{
 				introduceSynonym(
 					setOf(semanticValue),
@@ -2168,9 +2342,7 @@ class L2ValueManifest
 			return semanticValue.constantRestrictionOrNull!!
 		}
 		val equivalent = equivalentSemanticValue(semanticValue)!!
-		semanticValueToSynonym!![equivalent]?.let { synonym ->
-			return constraints[synonym]!!.restriction
-		}
+		stateOrNull(equivalent)?.let { return it.restriction }
 		postponedInstructionFor(equivalent)?.let { instruction ->
 			return instruction
 				.writeOperands
@@ -2204,8 +2376,7 @@ class L2ValueManifest
 	): Constraint<K>?
 	{
 		val equivalent = equivalentSemanticValue(semanticValue)!!
-		val synonym = semanticValueToSynonymOrNull(equivalent) ?: return null
-		return constraints[synonym]!!.cast()
+		return stateOrNull(equivalent)?.cast()
 	}
 
 	/**
@@ -2227,7 +2398,8 @@ class L2ValueManifest
 	 * @return
 	 *   An array of [L2Synonym]s.
 	 */
-	fun synonymsArray(): Array<L2Synonym<*>> = constraints.keys.toTypedArray()
+	fun synonymsArray(): Array<L2Synonym<*>> =
+		states.values.map(Constraint<*>::synonym).toTypedArray()
 
 	/**
 	 * Answer a [Set] of all [L2SemanticValue]s in this manifest.  This is only
@@ -2241,7 +2413,7 @@ class L2ValueManifest
 	 * only exposed to make sanity checking easier.
 	 */
 	val allRegistersForChecking: Set<L2Register<*>> get() =
-		constraints.values.flatMapTo(mutableSetOf()) { it.definitions }
+		states.values.flatMapTo(mutableSetOf()) { it.definitions }
 
 
 	/**
@@ -2250,8 +2422,9 @@ class L2ValueManifest
 	 */
 	fun clear()
 	{
-		semanticValueToSynonym?.clear()
-		constraints.clear()
+		classOf?.clear()
+		forward.clear()
+		states.clear()
 		impossibleRestrictionCount = 0
 		clearPostponedInstructions()
 	}
@@ -2319,8 +2492,7 @@ class L2ValueManifest
 		else
 		{
 			// This is a write to a synonym that does not yet exist.
-			assert(semanticValues.none(
-				semanticValueToSynonym!!::containsKey))
+			assert(semanticValues.none(::hasSemanticValue))
 			introduceSynonym(semanticValues, writer.restriction())
 		}
 		updateDefinitions(semanticValues.first()) {
@@ -2417,9 +2589,9 @@ class L2ValueManifest
 	private fun <K: RegisterKind<K>> synonymsForRegisters(
 		registers: Set<L2Register<K>>
 	): Set<L2Synonym<K>> =
-		constraints.entries
-			.filter { it.value.definitions.any { def -> def in registers } }
-			.mapToSet { it.key }
+		states.values
+			.filter { it.definitions.any { def -> def in registers } }
+			.mapToSet { it.synonym }
 			.cast()  // strengthen from * to K
 
 	/**
@@ -2459,8 +2631,8 @@ class L2ValueManifest
 		generator: L2GeneratorInterface,
 		forcePhis: Boolean)
 	{
-		assert(semanticValueToSynonym!!.isEmpty())
-		assert(constraints.isEmpty())
+		assert(classOf!!.isEmpty())
+		assert(states.isEmpty())
 		// Here's a good place to reduce postponed instructions into simpler
 		// equivalents, since we're right at the merge that would consume them,
 		// and each edge will be visited once.
@@ -2475,9 +2647,9 @@ class L2ValueManifest
 			1 if !forcePhis ->
 			{
 				val soleManifest = block.predecessorEdges().single().manifest()
-				semanticValueToSynonym.putAll(
-					soleManifest.semanticValueToSynonym!!)
-				constraints.putAll(soleManifest.constraints)
+				classOf.putAll(soleManifest.classOf!!)
+				forward.putAll(soleManifest.forward)
+				states.putAll(soleManifest.states)
 				impossibleRestrictionCount =
 					soleManifest.impossibleRestrictionCount
 				return
@@ -2548,7 +2720,7 @@ class L2ValueManifest
 						Mutable<TypeRestriction>
 					>
 				>()
-				manifest.constraints.forEach { (synonym, constraint) ->
+				manifest.states.values.forEach { constraint ->
 					constraint.definitions.forEach { register ->
 						val pair = registerMap[register]
 						when (pair)
@@ -2556,7 +2728,7 @@ class L2ValueManifest
 							null ->
 							{
 								registerMap[register] = Pair(
-									synonym.semanticValues().toMutableSet(),
+									constraint.members.toMutableSet(),
 									Mutable(constraint.restriction))
 							}
 							else ->
@@ -2564,7 +2736,7 @@ class L2ValueManifest
 								// The same register *can* occur multiple times,
 								// but only after register coloring.
 								assert(generator.mode is WithFixedRegisterMap)
-								pair.first.addAll(synonym.semanticValues())
+								pair.first.addAll(constraint.members)
 								pair.second.update {
 									// Use the intersection, since it's the same
 									// register constrained twice.
@@ -2643,7 +2815,7 @@ class L2ValueManifest
 										else -> toSet()
 									}
 								}
-							semanticValueToSynonym.keys.firstOrNull { existing ->
+							classOf.keys.firstOrNull { existing ->
 								(onlyClasses === null
 										|| existing.javaClass in onlyClasses)
 									&& values.any { sv ->
@@ -3072,7 +3244,7 @@ class L2ValueManifest
 		}
 		// Recompute the impossible restriction count.
 		impossibleRestrictionCount =
-			constraints.values.count(Constraint<*>::isImpossible)
+			states.values.count(Constraint<*>::isImpossible)
 	}
 
 	/**
@@ -3121,14 +3293,14 @@ class L2ValueManifest
 	{
 		// Iterate over a copy of the map, so we can remove from it.
 		var changed = false
-		constraints.keys.toList().forEach { synonym ->
+		states.values.map(Constraint<*>::synonym).forEach { synonym ->
 			changed = changed ||
 				retainRegistersHelper(registersToRetain, synonym)
 		}
 		// Removing constraints can only transition from impossible to
 		// possible.
 		impossibleRestrictionCount =
-			constraints.values.count { it.isImpossible }
+			states.values.count { it.isImpossible }
 		check()
 		return changed
 	}
@@ -3149,8 +3321,8 @@ class L2ValueManifest
 			if (definitionList.isEmpty())
 			{
 				// Remove this synonym and any semantic values within it.
-				constraints.remove(synonym)
-				semanticValueToSynonym!!.keys.removeAll(
+				states.remove(classFor(synonym.pickSemanticValue()))
+				classOf!!.keys.removeAll(
 					synonym.semanticValues())
 			}
 		}
@@ -3199,7 +3371,8 @@ class L2ValueManifest
 		val originalSemanticValues = synonym.semanticValues()
 		val intersection =
 			originalSemanticValues.intersect(semanticValuesToRetain)
-		val constraint = constraints[synonym]!!
+		val valueClass = classFor(synonym.pickSemanticValue())
+		val constraint = states[valueClass]!!
 		val constant = constraint.restriction.constantOrNull
 		val newSemanticValues: Set<L2SemanticValue<K>> = when
 		{
@@ -3212,20 +3385,24 @@ class L2ValueManifest
 		}.cast()
 		// Exit quickly if no change to the synonym.
 		if (newSemanticValues == originalSemanticValues) return
-		// Remove the old synonym entirely.
-		constraints.remove(synonym)
-		semanticValueToSynonym!!.keys.removeAll(originalSemanticValues)
+		// Unbind every original member; the survivors are rebound below.
+		classOf!!.keys.removeAll(originalSemanticValues)
 		// Exit quickly if no semantic values survive.
 		if (newSemanticValues.isEmpty())
 		{
+			states.remove(valueClass)
 			// See if we just eliminated an impossible constraint.
 			if (constraint.isImpossible) impossibleRestrictionCount--
 			return
 		}
-		// Add the new synonym information.
-		val newSynonym = L2Synonym<K>(newSemanticValues)
-		constraints[newSynonym] = constraint
-		newSemanticValues.forEach { semanticValueToSynonym[it] = newSynonym }
+		// The class survives with a reduced membership; only its state is
+		// replaced, so anything still holding the class stays valid.
+		states[valueClass] = Constraint(
+			newSemanticValues,
+			constraint.definitions.cast(),
+			constraint.restriction,
+			constraint.postponedInstruction)
+		bind(newSemanticValues, valueClass)
 	}
 
 	fun checkUniqueConstantSynonyms()
@@ -3233,8 +3410,9 @@ class L2ValueManifest
 		val constants = mutableMapOf<
 			Pair<RegisterKind<*>, AvailObject>,
 			MutableSet<L2Synonym<*>>>()
-		constraints.forEach { (synonym, constraint) ->
+		states.values.forEach { constraint ->
 			constraint.restriction.constantOrNull?.let { constant ->
+				val synonym = constraint.synonym
 				constants.computeIfAbsent(synonym.kind to constant) {
 					mutableSetOf()
 				}.add(synonym)

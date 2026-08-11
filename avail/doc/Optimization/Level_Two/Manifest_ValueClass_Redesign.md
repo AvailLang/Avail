@@ -1,10 +1,18 @@
 # L2ValueManifest redesign: ValueClass / ValueState / Representation
 
-Status: **in progress.** Steps 1, 2a and 6 landed, all green under
+Status: **in progress.** Steps 1, 2a, 6 and the `ValueClass` re-keying of
+step 4 landed, all green under
 `compileKotlin` + `SimpleOptimizerTest` (31 tests). Steps 2b–2d are **blocked
 on step 4** – see the ordering correction in step 2 and the evidence in
 section 9. Next action: step 4, as designed in section 2. Section 10 records a
-shortcut that was proposed and **rejected**, and why.
+shortcut that was proposed and **rejected**, and why; section 11 tracks step 4
+itself.
+
+There is now a **failing reproducer** for the section 1.1 defect:
+`SimpleOptimizerTest.earlyMapsBindingsSemanticRestriction`. It is expected to
+fail until step 4 and the remaining specialization work are done, and is the
+acceptance criterion for them. Current state of that suite is therefore 31
+passing, 1 failing-by-design.
 
 Step 6 was deliberately done **before** step 4: its consumer index can be
 tolerant (keyed by `L2SemanticValue`, validated on use), so it does not need
@@ -754,3 +762,84 @@ are never asked for their synonym, and the view is only needed at the
 boundary where existing callers ask for one. The slot is also robust to a
 later decision to make `ValueState` mutable: replacing the members set simply
 nulls the cache.
+
+
+## 11. Step 4 progress
+
+### 11.1 Done: `Constraint` carries its own membership
+
+`Constraint` gained a `members: Set<L2SemanticValue<K>>` property and a
+lazily materialized `cachedSynonym` slot exposing an `L2Synonym` view. All
+membership now comes from the *value* of the `constraints` map rather than
+from its *key*, which is what frees the key to become a pure identity.
+
+Mutating `cachedSynonym` is safe despite constraints being shared between
+manifests, because it is a pure memoization of immutable data: every
+computation of it yields an equal result. If `members` is ever made
+replaceable, null the slot at the same time.
+
+Three sites reused a `Constraint` under a *different* synonym and would have
+carried stale membership across; they now rebuild:
+
+- `clearPostponedInstructions`
+- `extendSynonym`, which moved a constraint from the old synonym to the merged
+  one
+- `retainSemanticValuesInSynonym`, which refiled a constraint under a reduced
+  synonym
+
+`check()` now asserts `constraint.members == synonym.semanticValues()` under
+`deepManifestDebugCheck`. That assertion passes across the whole suite, which
+is the evidence that the rebuild sites are complete.
+
+### 11.2 Done: the key is now `ValueClass`
+
+`L2ValueManifest` now holds:
+
+```
+classOf : MutableMap<L2SemanticValue<*>, ValueClass>?
+forward : MutableMap<ValueClass, ValueClass>
+states  : MutableMap<ValueClass, Constraint<*>>
+```
+
+with `resolve` doing a path-compressed walk of `forward`, and `classOrNull` /
+`classFor` / `stateOrNull` / `bind` / `forwardClass` as the only ways in.
+`Constraint` is unchanged apart from the `members` and `cachedSynonym` of
+11.1, and the public `semanticValueToSynonym(sv)` keeps its signature,
+answering `stateOrNull(sv)?.synonym`.  The tautological 11.1 assertion is
+retired; `check()` now asserts instead that every class reachable from
+`classOf` resolves to a live key of `states`.
+
+**How it transformed.** Three operations got *simpler*, which is the sign the
+split was the right one:
+
+- `extendSynonym` used to remove the constraint from the old synonym key and
+  re-file it under a freshly constructed one.  The class now keeps its
+  identity and only its state is replaced.
+- `retainSemanticValuesInSynonym` likewise shrinks a class in place rather
+  than deleting and re-adding it under a new key.
+- `privateMergeSynonyms` gained an `if (class1 === class2) return false`
+  early exit, which the synonym-keyed version could not express - it could
+  only compare membership.
+
+Both merge sites now forward: `agglomerateSynonym` elects a survivor from the
+existing classes and absorbs the rest, and `privateMergeSynonyms` has class1
+absorb class2, so anything still holding a merged-away class resolves through
+`forward`.
+
+`isEquivalentSemanticValue`'s shared-synonym test was two map lookups compared
+with `===`; it is now `classOrNull(a) === classOrNull(b)`, which is the same
+test but says what it means.
+
+Verified behaviour-preserving: 31 of 32 `SimpleOptimizerTest` tests pass, the
+sole failure being the `earlyMapsBindingsSemanticRestriction` reproducer,
+which is expected to fail until the specialization work is finished.  This is
+with `deepManifestDebugCheck` enabled throughout.
+
+### 11.3 Next
+
+- Re-key `postponedReaders` (step 6) from `L2SemanticValue` to `ValueClass`,
+  upgrading it from tolerant to exact, and prune it in `forwardClass`.
+- Rewrite the `dynamicAgglomerateSynonym` helper site described in 10.2 as an
+  explicit class lookup instead of rebuilding an equal `L2Synonym`.
+- Then `ValueState` with per-kind `Representation`s, which is what 2b-2d
+  need.

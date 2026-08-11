@@ -156,8 +156,11 @@ import avail.interpreter.primitive.integers.P_BitwiseXor
 import avail.interpreter.primitive.integers.P_LowerBound
 import avail.interpreter.primitive.maps.P_KeyInMap
 import avail.interpreter.primitive.maps.P_MapAtKey
+import avail.interpreter.primitive.maps.P_MapTypeKeyType
+import avail.interpreter.primitive.maps.P_MapTypeValueType
 import avail.interpreter.primitive.maps.P_MapSize
 import avail.interpreter.primitive.numbers.P_Addition
+import avail.interpreter.primitive.phrases.P_LiteralTokenTypeValueType
 import avail.interpreter.primitive.numbers.P_Division
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.interpreter.primitive.numbers.P_LessThan
@@ -257,6 +260,12 @@ class SimpleOptimizerTest
 			"_∈_" to P_ElementInSet,
 			"_∈_" to P_IsInstanceOf,
 			"_'s⁇type" to P_Type,
+			"_'s⁇key type" to P_MapTypeKeyType,
+			// Two definitions, so that a call must dispatch.  Their argument
+			// types (map meta and literal token meta) intersect at bottom meta,
+			// which is what produces the interesting branch.
+			"_'s⁇value type" to P_MapTypeValueType,
+			"_'s⁇value type" to P_LiteralTokenTypeValueType,
 			"_'s⁇instances" to P_Instances,
 			"_to_by_" to P_IntegerIntervalTuple,
 			"Invoke_with tuple_" to P_InvokeWithTuple,
@@ -2821,6 +2830,56 @@ class SimpleOptimizerTest
 			val a = declareName("a")
 			L1_doPushLastLocal(a)
 			call("⌊_⌋", extendedIntegers)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * Regression test for the semantic restriction of `"_'s⁇bindings"` in
+	 * `Early Maps.avail`, currently lines 161-166:
+	 *
+	 * ```
+	 * Semantic restriction "_'s⁇bindings" is
+	 * [
+	 *     mapType : map meta
+	 * |
+	 *     <<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>
+	 * ];
+	 * ```
+	 *
+	 * This is the L1 prefix of line 165, reduced to the two calls that matter:
+	 *
+	 * ```
+	 * 3.  PushLocal mapType
+	 * 5.  Call "_'s⁇key type", {any}ᵀ
+	 * 8.  PushLocal mapType
+	 * 10. Call "_'s⁇value type", {any}ᵀ
+	 * 13. MakeTuple #2
+	 * ```
+	 *
+	 * `"_'s⁇key type"` is an infallible, side-effect-free primitive, so its
+	 * invocation is postponed.  `"_'s⁇value type"` has two definitions, for
+	 * map meta and for literal token meta, so the call must dispatch, and it
+	 * does so with a type tag test.  Along the branch where the tag is bottom
+	 * (112), the argument is narrowed to **bottom meta**.
+	 *
+	 * The postponed [P_MapTypeKeyType] invocation should have its input
+	 * specialized by that narrowing, which would make it eligible for folding.
+	 * It does not, and translation to L2 fails.
+	 */
+	@Test
+	fun earlyMapsBindingsSemanticRestriction()
+	{
+		val rawFunction = helper.rawFunction(mostGeneralTupleType) {
+			argumentTypes(mapMeta())
+			val mapType = declareName("mapType")
+
+			L1_doPushLocal(mapType)
+			call("_'s⁇key type", anyMeta)
+			L1_doPushLastLocal(mapType)
+			call("_'s⁇value type", anyMeta)
+			L1_doMakeTuple(2)
 		}
 
 		helper.testOptimize(rawFunction)
