@@ -205,6 +205,7 @@ import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticTemp
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
