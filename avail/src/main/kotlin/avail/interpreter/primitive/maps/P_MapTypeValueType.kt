@@ -33,11 +33,14 @@ package avail.interpreter.primitive.maps
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.valueType
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.TypeDescriptor
@@ -60,6 +63,20 @@ object P_MapTypeValueType : Primitive1(CannotFail, CanFold, CanInline)
 	{
 		val mapType = arg1
 		return mapType.valueType
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
+	{
+		val mapMetaType = argumentTypes[0]
+		if (mapMetaType.isInstanceMeta)
+		{
+			// The argument is exactly one known map type, so the answer is
+			// exactly its value type.
+			return instanceMeta(mapMetaType.instance.valueType)
+		}
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

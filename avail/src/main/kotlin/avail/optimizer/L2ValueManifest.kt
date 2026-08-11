@@ -58,6 +58,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -372,21 +373,23 @@ class L2ValueManifest
 	private val states: MutableMap<ValueClass, Constraint<*>>
 
 	/**
-	 * An index from an [L2SemanticValue] that some postponed [L2Instruction]
-	 * *reads*, to representative [L2SemanticValue]s of the synonyms under which
-	 * those postponed instructions are recorded.  It lets a narrowing of the
-	 * read find the postponed instructions that consume it, without scanning
-	 * every [Constraint].
+	 * An index from the [ValueClass] that some postponed [L2Instruction]
+	 * *reads*, to the [ValueClass]es under which those postponed instructions
+	 * are recorded.  It lets a narrowing of the read find the postponed
+	 * instructions that consume it, without scanning every [Constraint].
 	 *
-	 * This index is deliberately **tolerant**: entries are added but never
-	 * eagerly removed as synonyms merge, split, or are forgotten, and consumers
-	 * are re-validated when used.  A stale entry therefore costs one wasted
-	 * recomputation, never a wrong answer.  Maintaining it exactly would mean
-	 * touching every synonym mutation site, which is the very thing the
-	 * eventual `ValueClass` redesign exists to make safe.
+	 * This is keyed by [ValueClass] rather than by [L2SemanticValue] for a
+	 * reason that is easy to get wrong: narrowing is reported for whichever
+	 * member of a synonym happens to be [L2Synonym.pickSemanticValue], which
+	 * is very often *not* the member that the postponed instruction reads.  An
+	 * index keyed by the exact semantic value silently misses in that case, and
+	 * the specialization never happens.
+	 *
+	 * Keys are merged in [forwardClass]; values are resolved lazily on use, so
+	 * a merge costs one map operation rather than a scan.
 	 */
 	private val postponedReaders:
-		MutableMap<L2SemanticValue<*>, MutableSet<L2SemanticValue<*>>>
+		MutableMap<ValueClass, MutableSet<ValueClass>>
 
 	/**
 	 * The number of constraints in the manifest that are impossible, which is
@@ -556,13 +559,15 @@ class L2ValueManifest
 		updateConstraint(semanticValueToSynonym(semanticValue)) {
 			postponedInstruction = instruction
 		}
-		// Index the instruction under everything it reads, so that narrowing
-		// any of those values can find it again.
-		val target = semanticValueToSynonym(semanticValue).pickSemanticValue()
+		// Index the instruction under the class of everything it reads, so
+		// that narrowing any member of those classes can find it again.
+		val target = classFor(semanticValue)
 		instruction.readOperands.forEach { read ->
-			postponedReaders
-				.getOrPut(read.semanticValue(), ::mutableSetOf)
-				.add(target)
+			classOrNull(read.semanticValue())?.let { readClass ->
+				postponedReaders
+					.getOrPut(readClass, ::mutableSetOf)
+					.add(target)
+			}
 		}
 	}
 
@@ -587,23 +592,33 @@ class L2ValueManifest
 		// instructions are short; anything deeper simply waits until the value
 		// is actually needed, when the emit-time refresh handles it.
 		if (renarrowDepth >= maxRenarrowDepth) return
-		val targets = postponedReaders[narrowed] ?: return
+		val narrowedClass = classOrNull(narrowed) ?: return
+		val targets = postponedReaders[narrowedClass]
+		if (targets === null) return
 		// Copy, since re-narrowing can modify the index and the constraints.
 		renarrowDepth++
 		try
 		{
-			targets.toList().forEach { target ->
-				// Tolerant index: the target may have been forgotten, merged
-				// away, or already emitted.
-				if (!hasSemanticValue(target)) return@forEach
-				val postponed = postponedInstructionFor(target) ?: return@forEach
+			targets.toList().forEach { staleTarget ->
+				// Values are resolved lazily, and the target may since have
+				// been forgotten or had its instruction emitted.
+				val targetClass = resolve(staleTarget)
+				val state = states[targetClass] ?: return@forEach
+				val postponed = state.postponedInstruction ?: return@forEach
 				if (postponed.writeOperands.size != 1) return@forEach
-				val narrowedClone =
-					postponed.narrowedForManifest(this) ?: return@forEach
+				val narrowedClone = postponed.narrowedForManifest(this)
+				if (narrowedClone === null) return@forEach
 				val implied = narrowedClone.impliedWriteRestriction(
 					narrowedClone.readOperands.map { it.restriction() })
+				if (postponed is L2_RUN_INFALLIBLE_PRIMITIVE)
+					println("DIAGTRY prim=" + postponed.primitive.constant +
+						" cloneReads=" + narrowedClone.readOperands.map {
+							it.restriction().type } +
+						" implied=" + implied.type +
+						" existing=" + states[targetClass]!!.restriction.type)
 				narrowedClone.writeOperands.single().restrict { implied }
-				updateConstraint(semanticValueToSynonym(target)) {
+				val target = state.synonym.pickSemanticValue()
+				updateConstraint(state.synonym) {
 					postponedInstruction = narrowedClone
 				}
 				// isStrongerThan is reflexive, so test for an actual change.
@@ -1255,6 +1270,9 @@ class L2ValueManifest
 		if (winner === loser) return
 		states.remove(loser)
 		forward[loser] = winner
+		postponedReaders.remove(loser)?.let { consumers ->
+			postponedReaders.getOrPut(winner, ::mutableSetOf).addAll(consumers)
+		}
 	}
 
 	/**

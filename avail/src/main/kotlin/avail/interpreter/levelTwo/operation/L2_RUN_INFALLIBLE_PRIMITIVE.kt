@@ -31,7 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
@@ -46,6 +48,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.Primitive.Flag.CanFold
@@ -170,10 +173,6 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	}
 
 	/**
-	 * Give the primitive another chance to produce something more specific
-	 * than a basic infallible primitive invocation.
-	 */
-	/**
 	 * Answer the [TypeRestriction] this invocation's result is guaranteed to
 	 * satisfy, given the [TypeRestriction]s of the arguments.  This is the
 	 * single definition of "what this primitive guarantees", shared by
@@ -187,15 +186,74 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	 */
 	private fun resultRestrictionGiven(
 		argumentRestrictions: List<TypeRestriction>
-	): TypeRestriction = result.restriction().intersectionWithType(
-		primitive.constant.returnTypeGuaranteedByVM(
-			rawFunction.constant,
-			argumentRestrictions.map(TypeRestriction::type)))
+	): TypeRestriction
+	{
+		foldedResultOrNull(argumentRestrictions)?.let { folded ->
+			return result.restriction().intersection(
+				boxedRestrictionForConstant(folded))
+		}
+		return result.restriction().intersectionWithType(
+			primitive.constant.returnTypeGuaranteedByVM(
+				rawFunction.constant,
+				argumentRestrictions.map(TypeRestriction::type)))
+	}
+
+	/**
+	 * If this invocation can be folded and every argument is now known to be a
+	 * particular constant, evaluate the primitive and answer its result,
+	 * otherwise answer `null`.
+	 *
+	 * [L1Translator] already folds a call whose arguments are constants at the
+	 * moment the call is first translated.  This is the same thing for an
+	 * invocation that was *postponed* while its arguments were still unknown,
+	 * and only became constant afterwards - typically because it was sunk past
+	 * a branch that narrowed one of them.  Without this, such an invocation is
+	 * emitted as a real call even though its answer is already determined.
+	 *
+	 * Answers `null` rather than folding when there is no [Interpreter] on this
+	 * thread, since a foldable primitive is evaluated by running it.
+	 *
+	 * @param argumentRestrictions
+	 *   The [TypeRestriction]s of the arguments, in order.
+	 * @return
+	 *   The constant result, already immutable, or `null`.
+	 */
+	private fun foldedResultOrNull(
+		argumentRestrictions: List<TypeRestriction>
+	): AvailObject?
+	{
+		val prim = primitive.constant
+		if (!prim.hasFlag(CanFold) || hasSideEffect) return null
+		val constants = argumentRestrictions.map { restriction ->
+			restriction.constantOrNull ?: return null
+		}
+		val interpreter = Interpreter.currentOrNull() ?: return null
+		// A foldable primitive must not require access to the enclosing
+		// function or its code.
+		val savedFunction = interpreter.function
+		interpreter.function = null
+		val value = try
+		{
+			interpreter.argsBuffer.clear()
+			interpreter.argsBuffer.addAll(constants)
+			prim.attempt(interpreter)
+		}
+		finally
+		{
+			interpreter.function = savedFunction
+		}
+		if (value === null || interpreter.currentReifier !== null) return null
+		return value.makeImmutable().cast()
+	}
 
 	override fun impliedWriteRestriction(
 		readRestrictions: List<TypeRestriction>
 	): TypeRestriction = resultRestrictionGiven(readRestrictions)
 
+	/**
+	 * Give the primitive another chance to produce something more specific
+	 * than a basic infallible primitive invocation.
+	 */
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val strongerRestriction = resultRestrictionGiven(
