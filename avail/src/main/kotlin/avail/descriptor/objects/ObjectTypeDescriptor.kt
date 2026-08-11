@@ -40,9 +40,6 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPER
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.maximumTestOutcomesToKeep
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.TESTING_TYPES_POJO
@@ -90,7 +87,6 @@ import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfObjectType
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.A_Type.Companion.typeUnionOfObjectType
-import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -305,17 +301,17 @@ class ObjectTypeDescriptor internal constructor(
 		val otherHash = otherObjectType.hash()
 		val testResults: Array<Pair<WeakObjectTypeReference, TestOutcome>> =
 			self.volatileSlot(TESTING_TYPES_POJO).javaObjectNotNull()
-		for (result in testResults)
+		for ((first, second) in testResults)
 		{
-			if (result.first.hash == otherHash)
+			if (first.hash == otherHash)
 			{
 				// It's almost certainly the object type we're looking for.
-				val otherTypeInPair = result.first.get()
+				val otherTypeInPair = first.get()
 				if (otherTypeInPair !== null
 					&& (otherTypeInPair === otherObjectType
 						|| otherTypeInPair.equals(otherObjectType)))
 				{
-					return result.second
+					return second
 				}
 			}
 		}

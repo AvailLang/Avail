@@ -34,7 +34,6 @@ package avail.descriptor.maps
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
 import avail.descriptor.maps.MapBinDescriptor.Companion.generateMapBinFrom
-import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject

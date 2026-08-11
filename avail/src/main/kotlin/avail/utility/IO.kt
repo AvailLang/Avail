@@ -31,6 +31,9 @@
  */
 package avail.utility
 
+import java.lang.AutoCloseable
+import kotlin.Exception
+
 /**
  * [IO] is a utility class for input/output operations.
  *

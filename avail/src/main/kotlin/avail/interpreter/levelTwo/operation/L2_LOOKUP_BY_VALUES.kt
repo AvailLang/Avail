@@ -67,8 +67,6 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES.Companion.lookup
-import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES.Companion.lookupWithTracking
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod

@@ -36,9 +36,6 @@ import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELI
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
-import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
-import avail.descriptor.representation.A_RegisterDump.Companion.encodedElidedLocals
 import avail.exceptions.unsupported
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.JavaLibrary.long

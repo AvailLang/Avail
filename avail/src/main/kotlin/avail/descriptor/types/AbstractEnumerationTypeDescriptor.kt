@@ -51,7 +51,6 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType

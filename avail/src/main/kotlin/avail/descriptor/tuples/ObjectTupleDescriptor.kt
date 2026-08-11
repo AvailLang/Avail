@@ -58,8 +58,6 @@ import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFr
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_
 import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange

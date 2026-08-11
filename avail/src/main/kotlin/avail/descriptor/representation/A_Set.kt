@@ -32,8 +32,6 @@
 package avail.descriptor.representation
 
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Set.Companion.setSizeStatic
-import avail.descriptor.representation.A_Set.Companion.setWithElementStatic
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.interpreter.JavaLibrary.int

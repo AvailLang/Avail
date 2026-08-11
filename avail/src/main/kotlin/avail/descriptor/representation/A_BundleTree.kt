@@ -38,11 +38,6 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_BundleTree.Companion.addPlanInProgress
-import avail.descriptor.representation.A_BundleTree.Companion.expand
-import avail.descriptor.representation.A_BundleTree.Companion.latestBackwardJump
-import avail.descriptor.representation.A_BundleTree.Companion.lazyActions
-import avail.descriptor.representation.A_BundleTree.Companion.lazyIncomplete
 import avail.dispatch.LookupTree
 import java.util.Deque
 

@@ -54,6 +54,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
+import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -68,6 +69,7 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
@@ -176,7 +178,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 */
 	fun createBasicBlock(
 		name: String,
-		zone: L2ControlFlowGraph.Zone? = null,
+		zone: Zone? = null,
 		isCold: Boolean = false
 	): L2BasicBlock
 
@@ -912,9 +914,8 @@ interface L2GeneratorInterface : L2Visualizable
 	 * * Block B will be in the same [Zone] as block A.
 	 * * Block B will be considered [L2BasicBlock.isCold] if C is cold.
 	 *
-	 * @param generator
-	 *   The [L2GeneratorInterface] holding the [L2ControlFlowGraph] being
-	 *   updated.
+	 * @param edge
+	 *   The [L2PcOperand] to split within this generator's graph.
 	 */
 	fun splitEdge(edge: L2PcOperand)
 

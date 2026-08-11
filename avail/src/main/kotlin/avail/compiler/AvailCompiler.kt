@@ -162,7 +162,6 @@ import avail.descriptor.representation.A_Module.Companion.hasAncestor
 import avail.descriptor.representation.A_Module.Companion.importedNames
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleNameNative
-import avail.descriptor.representation.A_Module.Companion.moduleState
 import avail.descriptor.representation.A_Module.Companion.privateNames
 import avail.descriptor.representation.A_Module.Companion.removeFrom
 import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative

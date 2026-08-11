@@ -56,7 +56,6 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.PrimitiveN
-import avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 

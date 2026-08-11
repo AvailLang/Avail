@@ -55,8 +55,6 @@ import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.representation.A_Phrase.Companion.phraseKind
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.PhraseTypeDescriptor

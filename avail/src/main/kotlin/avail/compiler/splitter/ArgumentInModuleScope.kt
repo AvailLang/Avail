@@ -41,7 +41,6 @@ import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.phraseTypeExpressionType
-import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import java.util.IdentityHashMap
 

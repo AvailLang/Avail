@@ -38,8 +38,6 @@ import avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Bundle.Companion.message
-import avail.descriptor.representation.A_Bundle.Companion.messageParts
 import avail.exceptions.SignatureException
 
 /**

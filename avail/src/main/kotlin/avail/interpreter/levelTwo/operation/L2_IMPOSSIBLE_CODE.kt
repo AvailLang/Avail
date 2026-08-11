@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE.Companion.throwImpossibleCodeException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator

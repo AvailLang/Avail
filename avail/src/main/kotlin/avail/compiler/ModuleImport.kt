@@ -33,7 +33,6 @@
 package avail.compiler
 
 import avail.builder.ModuleName
-import avail.compiler.ModuleImport.Companion.fromSerializedTuple
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap

@@ -975,16 +975,15 @@ class CommentsModule constructor(
 					ambiguousMethodFileMap[key] = value
 				}
 
-				for (tempEntry in value)
+				for ((subkey, implementation) in value)
 				{
-					val implementation = tempEntry.value
 					if (filteredMap.containsKey(key))
 					filteredMap[key]?.let {
-						it[tempEntry.key] = implementation
+						it[subkey] = implementation
 					} ?: run {
 						val modToImplement =
 							mutableMapOf<String, CommentGroup>()
-						modToImplement[tempEntry.key] = implementation
+						modToImplement[subkey] = implementation
 						filteredMap[key] = modToImplement
 					}
 
@@ -1184,13 +1183,13 @@ class CommentsModule constructor(
 			jsonWriter.write("files")
 			jsonWriter.startArray()
 
-			for (link in ambiguousLinks)
+			for ((link, module) in ambiguousLinks)
 			{
 				jsonWriter.startObject()
 				jsonWriter.write("link")
-				jsonWriter.write(link.first)
+				jsonWriter.write(link)
 				jsonWriter.write("module")
-				jsonWriter.write(link.second)
+				jsonWriter.write(module)
 				jsonWriter.endObject()
 			}
 

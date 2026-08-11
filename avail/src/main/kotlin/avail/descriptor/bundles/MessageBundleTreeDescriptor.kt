@@ -57,7 +57,6 @@ import avail.descriptor.representation.A_Bundle.Companion.messagePart
 import avail.descriptor.representation.A_BundleTree
 import avail.descriptor.representation.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.representation.A_BundleTree.Companion.allParsingPlansInProgress
-import avail.descriptor.representation.A_BundleTree.Companion.expand
 import avail.descriptor.representation.A_BundleTree.Companion.hasBackwardJump
 import avail.descriptor.representation.A_BundleTree.Companion.isSourceOfCycle
 import avail.descriptor.representation.A_BundleTree.Companion.latestBackwardJump

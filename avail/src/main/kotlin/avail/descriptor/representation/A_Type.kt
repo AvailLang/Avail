@@ -39,12 +39,6 @@ import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Type.Companion.argsTupleType
-import avail.descriptor.representation.A_Type.Companion.argsTupleTypeStatic
-import avail.descriptor.representation.A_Type.Companion.isSubtypeOfStatic
-import avail.descriptor.representation.A_Type.Companion.phraseKind
-import avail.descriptor.representation.A_Type.Companion.typeAtIndexStatic
-import avail.descriptor.representation.A_Type.Companion.typeUnionStatic
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor

@@ -67,7 +67,6 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
-import avail.descriptor.tuples.LongTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.LONG_AT_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple

@@ -77,7 +77,7 @@ import avail.utility.cast
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @property K
+ * @param K
  *   The [RegisterKind] that says what kind of data is being processed.
  *
  * @constructor

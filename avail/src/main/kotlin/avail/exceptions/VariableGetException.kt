@@ -32,11 +32,12 @@
 
 package avail.exceptions
 
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.A_Variable.Companion.getValue
+import kotlin.Exception
+import kotlin.Throwable
 
 /**
- * `VariableGetException` is thrown when [AvailObject.getValue] fails for any
- * reason.
+ * `VariableGetException` is thrown when [getValue] fails for any reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

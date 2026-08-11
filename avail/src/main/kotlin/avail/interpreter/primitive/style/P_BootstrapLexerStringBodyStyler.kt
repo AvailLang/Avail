@@ -84,8 +84,8 @@ object P_BootstrapLexerStringBodyStyler : Primitive2(
 				loader.styleStringLiteral(token)
 			}
 		}
-		// This shouldn't happen, unless the primitive is somehow invoked
-		// directly by user code.  Ignore it.
+		// This shouldn't happen, unless user code somehow invokes the primitive
+		// directly.  Ignore it.
 		return nil
 	}
 

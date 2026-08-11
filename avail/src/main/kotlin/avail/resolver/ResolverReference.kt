@@ -37,7 +37,6 @@ import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
-import org.availlang.artifact.ResourceType
 import avail.builder.UnresolvedModuleException
 import avail.error.ErrorCode
 import avail.files.AvailFile
@@ -46,6 +45,7 @@ import avail.files.FileManager
 import avail.files.NullFileWrapper
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ModuleArchive
+import org.availlang.artifact.ResourceType
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.nio.ByteBuffer
@@ -200,12 +200,11 @@ class ResolverReference constructor(
 	private val repository: Repository get() = resolver.moduleRoot.repository
 
 	/**
-	 * Answer the [Repository.ModuleArchive] for the file this
-	 * [ResolverReference] points to.
+	 * Answer the [ModuleArchive] for the file this [ResolverReference] points
+	 * to.
 	 */
 	private val archive: ModuleArchive
-		get() =
-		repository.getArchive(moduleName.rootRelativeName)
+		get() = repository.getArchive(moduleName.rootRelativeName)
 
 	/**
 	 * The file MIME type of the associated resource or empty String if

@@ -94,7 +94,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   The number of integer slots.
 	 */
-	override abstract fun integerSlotsCount(): Int
+	abstract override fun integerSlotsCount(): Int
 
 	/**
 	 * Answer the number of variable integer slots in this object. This does not
@@ -113,7 +113,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * @return
 	 *   The number of object slots.
 	 */
-	override abstract fun objectSlotsCount(): Int
+	abstract override fun objectSlotsCount(): Int
 
 	/**
 	 * Answer the number of variable object slots in this [AvailObject]. This

@@ -33,7 +33,6 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.representation.A_Continuation
-import avail.descriptor.representation.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.variables.VariablePlaceholderDescriptor
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT

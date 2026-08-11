@@ -36,9 +36,6 @@ import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
-import avail.descriptor.representation.A_RawFunction.Companion.module
-import avail.descriptor.representation.A_RawFunction.Companion.nybbles
-import avail.descriptor.representation.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize

@@ -153,10 +153,10 @@ class RunTree<Value>: Iterable<Triple<Long, Long, Value>>
 		edit(start.toLong(), pastEnd.toLong(), edit)
 
 	/**
-	 * Insert a range that is currently not in the tree, and is assumed not to
-	 * overlap any range in the tree.  This operation deals with left and/or
-	 * right neighbors that are contiguous with the new range and have a value
-	 * equal to the new range's value.
+	 * Insert a range currently not in the tree, and is assumed not to overlap
+	 * any range in the tree.  This operation deals with left and/or right
+	 * neighbors that are contiguous with the new range and have a value equal
+	 * to the new range's value.
 	 *
 	 * @param start
 	 *   The start of the range to insert.
@@ -211,9 +211,9 @@ class RunTree<Value>: Iterable<Triple<Long, Long, Value>>
 	 * [otherTree], which is a [RunTree]&lt;[OtherValue]>, produce an aggregate
 	 * [RunTree]&lt;[Pair]&lt;[Value]?, [OtherValue]?>.  The ranges will be
 	 * split as needed to ensure that the spans in the output have:
-	 *   1. the same [Pair.first] as the value in the receiver (or null if
+	 *   1. The same [Pair.first] as the value in the receiver (or null if
 	 *     there was no such range in the receiver), and
-	 *   2. the same [Pair.second] as the value in the [otherTree] (or null if
+	 *   2. The same [Pair.second] as the value in the [otherTree] (or null if
 	 *     there was no such range in the [otherTree].
 	 *
 	 * The [Pair] (`null`, `null`) will not occur in the output.

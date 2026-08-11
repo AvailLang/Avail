@@ -35,16 +35,6 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Type.Companion.readType
-import avail.descriptor.representation.A_Type.Companion.writeType
-import avail.descriptor.representation.A_Variable.Companion.compareAndSwapValuesNoCheck
-import avail.descriptor.representation.A_Variable.Companion.getValue
-import avail.descriptor.representation.A_Variable.Companion.staticCheckForSharedOrReactors
-import avail.descriptor.representation.A_Variable.Companion.staticClearValue
-import avail.descriptor.representation.A_Variable.Companion.staticGetValueClearing
-import avail.descriptor.representation.A_Variable.Companion.staticGetValueMakingImmutable
-import avail.descriptor.representation.A_Variable.Companion.staticSetValue
-import avail.descriptor.representation.A_Variable.Companion.staticSetValueNoCheck
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers

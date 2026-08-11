@@ -36,7 +36,6 @@ import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.representation.A_Tuple
-import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor
 import java.nio.ByteBuffer

@@ -37,9 +37,6 @@ import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import avail.descriptor.representation.A_Type.Companion.argsTupleType
-import avail.descriptor.representation.A_Type.Companion.declaredExceptions
-import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil

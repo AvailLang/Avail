@@ -151,13 +151,11 @@ import avail.descriptor.representation.A_Module.Companion.buildFilteredBundleTre
 import avail.descriptor.representation.A_Module.Companion.createLexicalScanner
 import avail.descriptor.representation.A_Module.Companion.hasAncestor
 import avail.descriptor.representation.A_Module.Companion.importedNames
-import avail.descriptor.representation.A_Module.Companion.manifestEntries
 import avail.descriptor.representation.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.representation.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.representation.A_Module.Companion.moduleAddMacro
 import avail.descriptor.representation.A_Module.Companion.moduleAddSemanticRestriction
 import avail.descriptor.representation.A_Module.Companion.moduleAddStyler
-import avail.descriptor.representation.A_Module.Companion.namesIndexRecord
 import avail.descriptor.representation.A_Module.Companion.newNames
 import avail.descriptor.representation.A_Module.Companion.privateNames
 import avail.descriptor.representation.A_Module.Companion.resolveForward

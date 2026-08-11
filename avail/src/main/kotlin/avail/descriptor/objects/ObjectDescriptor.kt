@@ -38,9 +38,6 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KE
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
-import avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
-import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
-import avail.descriptor.objects.ObjectDescriptor.Companion.setField
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.FIELD_VALUES_
@@ -74,7 +71,6 @@ import avail.descriptor.representation.A_Type.Companion.fieldTypeMap
 import avail.descriptor.representation.A_Type.Companion.hasObjectInstance
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.representation.A_Variable.Companion.value
-import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject

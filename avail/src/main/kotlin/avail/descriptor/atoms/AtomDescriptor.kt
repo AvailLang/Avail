@@ -34,7 +34,6 @@ package avail.descriptor.atoms
 import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.ParserState
-import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.atoms.AtomDescriptor.IntegerSlots.HASH_AND_MORE

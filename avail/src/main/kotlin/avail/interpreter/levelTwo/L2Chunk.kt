@@ -44,14 +44,12 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
-import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Set
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
-import avail.interpreter.levelTwo.L2Chunk.Companion.invalidationLock
 import avail.interpreter.levelTwo.L2Chunk.Generation.Companion.generations
 import avail.interpreter.levelTwo.L2Chunk.Generation.Companion.maximumNewestGenerationSize
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.EVICTION

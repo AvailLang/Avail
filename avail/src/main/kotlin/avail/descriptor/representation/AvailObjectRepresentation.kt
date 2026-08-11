@@ -40,7 +40,6 @@ import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
-import avail.descriptor.representation.AvailObjectRepresentation.Companion.shouldCheckSlots
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.utility.stackToString
 import java.lang.invoke.MethodHandles

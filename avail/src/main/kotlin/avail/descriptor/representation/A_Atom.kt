@@ -36,7 +36,6 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.representation.A_Atom.Companion.issuingModule
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_String.Companion.asNativeString

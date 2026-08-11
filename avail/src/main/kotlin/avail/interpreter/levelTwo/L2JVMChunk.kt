@@ -41,7 +41,6 @@ import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.module
-import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Set
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.jvm.JVMChunk

@@ -59,7 +59,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -611,12 +610,6 @@ class L2ValueManifest
 				if (narrowedClone === null) return@forEach
 				val implied = narrowedClone.impliedWriteRestriction(
 					narrowedClone.readOperands.map { it.restriction() })
-				if (postponed is L2_RUN_INFALLIBLE_PRIMITIVE)
-					println("DIAGTRY prim=" + postponed.primitive.constant +
-						" cloneReads=" + narrowedClone.readOperands.map {
-							it.restriction().type } +
-						" implied=" + implied.type +
-						" existing=" + states[targetClass]!!.restriction.type)
 				narrowedClone.writeOperands.single().restrict { implied }
 				val target = state.synonym.pickSemanticValue()
 				updateConstraint(state.synonym) {

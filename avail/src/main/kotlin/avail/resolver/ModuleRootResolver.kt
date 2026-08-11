@@ -46,7 +46,7 @@ import avail.files.AbstractFileWrapper
 import avail.files.FileErrorCode
 import avail.files.FileManager
 import avail.files.ManagedFileWrapper
-import avail.persistence.cache.Repository
+import avail.persistence.cache.record.ModuleArchive
 import avail.utility.Strings.matchesAbbreviation
 import org.availlang.artifact.ResourceType
 import java.io.File
@@ -386,7 +386,7 @@ constructor(
 
 	/**
 	 * Specifically refresh the [ResolverReference.digest] in the
-	 * [Repository.ModuleArchive] for the most recent
+	 * [ModuleArchive] for the most recent
 	 * [ResolverReference.lastModified] timestamp. This also refreshes the
 	 * metrics (mutable state) of the provided [ResolverReference].
 	 * It should refresh:

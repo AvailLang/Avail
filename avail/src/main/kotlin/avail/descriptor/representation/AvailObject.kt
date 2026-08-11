@@ -38,17 +38,7 @@ import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.representation.A_RawFunction.Companion.numNybbles
 import avail.descriptor.representation.A_Tuple.Companion.isBetterRepresentationThan
-import avail.descriptor.representation.A_Type.Companion.argsTupleType
-import avail.descriptor.representation.A_Type.Companion.declaredExceptions
-import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut2
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut3
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut4
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut5
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut6
-import avail.descriptor.representation.AvailObject.Companion.registerDumpStatic
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ByteStringDescriptor

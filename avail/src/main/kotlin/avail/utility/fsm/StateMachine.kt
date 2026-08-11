@@ -48,7 +48,7 @@ import java.util.EnumMap
  * guard keys, and the type of argument that an action will receive. The client
  * provides each parameter for maximum type-safety and code-reuse.
  *
- * States, events, action keys and guard keys are enumerations, thereby allowing
+ * States, events, action keys, and guard keys are enumerations, thereby allowing
  * the compiler to check the correctness of usages and the runtime environment
  * to validate the comprehensiveness of the FSM model. In particular, all states
  * must be reachable, all events must occur, and all action keys must be bound

@@ -69,7 +69,6 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2ControlFlowGraph.StateFlag
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
-import avail.optimizer.L2Optimizer.Companion.perPassL2
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap

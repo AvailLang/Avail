@@ -61,7 +61,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive2
-import avail.interpreter.primitive.sockets.P_SocketSetOption.privateBlockTypeRestriction
 import avail.utility.cast
 import java.io.IOException
 import java.net.SocketOption

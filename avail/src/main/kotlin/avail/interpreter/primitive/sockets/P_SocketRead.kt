@@ -35,7 +35,7 @@ package avail.interpreter.primitive.sockets
 import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
-import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+;import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
