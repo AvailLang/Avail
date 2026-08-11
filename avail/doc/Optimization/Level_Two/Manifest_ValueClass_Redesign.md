@@ -843,3 +843,69 @@ with `deepManifestDebugCheck` enabled throughout.
   explicit class lookup instead of rebuilding an equal `L2Synonym`.
 - Then `ValueState` with per-kind `Representation`s, which is what 2b-2d
   need.
+
+## 12. The regenerator path does not need the emit-time refresh
+
+`L2Instruction.generateReplacement`'s default body and the tail of
+`basicForcePostponedTranslationNow` are the same two lines,
+`cloneFor(this).run { emitTransformedInstruction() }`, and only the latter
+gained a `refreshReadRestrictionsFrom`.  That asymmetry is correct.
+
+**Who drives each.**  `generateReplacement` has exactly one caller:
+`L2Optimizer.replacePlaceholderInstructions`, one of seven
+`regenerateGraph` passes.  The seven, with their `GenerationMode`:
+
+| Pass | Mode | Transformer |
+|---|---|---|
+| `removeDeadInstructions` | inherited | either |
+| `doCodeSplitting` | `BySemanticValue` | semantic |
+| `postponeConditionallyUsedValues` | `BySemanticValue` | semantic |
+| `replacePlaceholderInstructions` | `BySemanticValue` | semantic |
+| `insertPhiMoves` | `ByRegister` | register |
+| `replaceRegistersByColor` | inherited | register |
+| `removeUselessBranches` | `WithFixedRegisterMap` | register |
+
+**Why there is no staleness.**  A regenerator copies each instruction from the
+old graph into the new one by *rebuilding every operand*, and rebuilding is
+where it consults the manifest.  `OperandSemanticTransformer`, selected exactly
+when the mode is `BySemanticValue`, builds each read as
+
+```kotlin
+val equivalent = mapReadSemanticValue(operand.semanticValue())
+currentOperand = L2ReadBoxedOperand(
+    equivalent,
+    currentManifest.restrictionFor(equivalent)
+        .intersection(operand.restriction()))
+```
+
+and does the same for `L2ReadIntOperand` and `L2ReadFloatOperand`.  That *is*
+the refresh, applied earlier and in a different place.  By the time
+`generateReplacement` runs, the reads already carry the new manifest's
+knowledge.
+
+`OperandRegisterTransformer`, used for `ByRegister` and
+`WithFixedRegisterMap`, keeps `operand.restriction()` verbatim.  That is also
+correct: in those late passes the graph is held together by registers, the
+manifest does not track semantic values, and there is nothing to refresh
+against.  `refreshReadRestrictionsFrom` early-returns on exactly that
+condition, so the two paths agree.
+
+A postponed instruction has no rebuild step - it is stored verbatim in a
+`Constraint` and later cloned - which is why it needed an explicit refresh.
+Same requirement, different mechanism.
+
+**One real wart, left alone.**  `replacePlaceholderInstructions` does
+
+```kotlin
+basicTransformInstruction(sourceInstruction)
+    .cloneFor(this@regenerateGraph)
+    .run { generateReplacement(sourceInstruction) }
+```
+
+and the default `generateReplacement` then does `cloneFor(this)` again, so any
+instruction that does not override it is cloned twice.  Harmless, but
+wasteful and confusing to read.  Removing one of the clones means checking the
+four overriders (`L2ConditionalJump`, `L2_PHI`, `L2_VIRTUAL_CREATE_LABEL`,
+`L2_EXTRACT_OBJECT_TYPE_VARIANT_ID`), each of which relies on `cloneFor`
+having set the target block and adjusted the operands, so it is not a pure
+deletion.
