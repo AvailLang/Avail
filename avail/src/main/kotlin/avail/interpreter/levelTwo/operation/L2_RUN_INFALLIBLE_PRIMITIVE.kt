@@ -45,6 +45,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.Primitive.Flag.CanFold
@@ -172,14 +173,33 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	 * Give the primitive another chance to produce something more specific
 	 * than a basic infallible primitive invocation.
 	 */
+	/**
+	 * Answer the [TypeRestriction] this invocation's result is guaranteed to
+	 * satisfy, given the [TypeRestriction]s of the arguments.  This is the
+	 * single definition of "what this primitive guarantees", shared by
+	 * [emitTransformedInstruction] and [impliedWriteRestriction] so that eager
+	 * narrowing cannot drift from what is finally emitted.
+	 *
+	 * @param argumentRestrictions
+	 *   The [TypeRestriction]s of the arguments, in order.
+	 * @return
+	 *   The strengthened [TypeRestriction] for [result].
+	 */
+	private fun resultRestrictionGiven(
+		argumentRestrictions: List<TypeRestriction>
+	): TypeRestriction = result.restriction().intersectionWithType(
+		primitive.constant.returnTypeGuaranteedByVM(
+			rawFunction.constant,
+			argumentRestrictions.map(TypeRestriction::type)))
+
+	override fun impliedWriteRestriction(
+		readRestrictions: List<TypeRestriction>
+	): TypeRestriction = resultRestrictionGiven(readRestrictions)
+
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val strongerResultType =
-			primitive.constant.returnTypeGuaranteedByVM(
-				rawFunction.constant,
-				arguments.elements.map(L2ReadBoxedOperand::type))
-		val strongerRestriction =
-			result.restriction().intersectionWithType(strongerResultType)
+		val strongerRestriction = resultRestrictionGiven(
+			arguments.elements.map(L2ReadBoxedOperand::restriction))
 		val strongerResult = L2WriteBoxedOperand(
 			result.semanticValues(), strongerRestriction)
 		strongerRestriction.constantOrNull?.let { constant ->

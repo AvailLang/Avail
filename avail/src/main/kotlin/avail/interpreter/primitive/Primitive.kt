@@ -1388,12 +1388,10 @@ constructor(
 			// depending whether an unboxed value is desired.
 
 			// Check if there's already an equivalent int value available.
-			val equivalent = helper.currentManifest
-				.equivalentPopulatedSemanticValue(
-					primitiveInvocation(
-						this,
-						arguments.map(L2ReadBoxedOperand::semanticValue)
-					).unboxedInt)
+			val equivalent = helper.currentManifest.populatedIntFormOf(
+				primitiveInvocation(
+					this,
+					arguments.map(L2ReadBoxedOperand::semanticValue)))
 			when (equivalent)
 			{
 				null -> helper.ifOutputIsInt()

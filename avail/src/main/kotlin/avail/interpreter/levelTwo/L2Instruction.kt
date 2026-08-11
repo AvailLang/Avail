@@ -1379,6 +1379,86 @@ constructor() :
 	}
 
 	/**
+	 * Answer the [TypeRestriction] that this instruction's sole write operand
+	 * is guaranteed to satisfy, given the [TypeRestriction]s that its read
+	 * operands are now known to satisfy.  The default is to claim nothing
+	 * beyond what the write operand already says.
+	 *
+	 * Operations whose output type is a function of their input types should
+	 * override this, and should compute the answer with the *same* helper that
+	 * their [emitTransformedInstruction] uses, so that the eager narrowing
+	 * performed by [narrowedForManifest] cannot drift from what is ultimately
+	 * emitted.
+	 *
+	 * @param readRestrictions
+	 *   The [TypeRestriction]s of this instruction's [readOperands], in order.
+	 * @return
+	 *   The implied [TypeRestriction] for the sole write operand.
+	 */
+	open fun impliedWriteRestriction(
+		readRestrictions: List<TypeRestriction>
+	): TypeRestriction = writeOperands.single().restriction()
+
+	/**
+	 * Re-derive this instruction's [readOperands]' [TypeRestriction]s from the
+	 * given [L2ValueManifest].  Restrictions only ever intersect, so this is
+	 * monotone.
+	 *
+	 * This **mutates the receiver**, so it must only ever be sent to an
+	 * instruction that is not shared.  In particular, a postponed instruction
+	 * held in a [L2ValueManifest.Constraint] is reachable from every manifest
+	 * descended from the one that recorded it – including both outbound edges
+	 * of a branch, where the narrowings are contradictory – so a postponed
+	 * instruction must be cloned before being refreshed.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] supplying the current restrictions.
+	 */
+	fun refreshReadRestrictionsFrom(manifest: L2ValueManifest)
+	{
+		if (!manifest.caresAboutSemanticValues) return
+		readOperands.forEach { read ->
+			val semanticValue = read.semanticValue()
+			if (manifest.hasSemanticValue(semanticValue))
+			{
+				read.restrict { manifest.restrictionFor(semanticValue) }
+			}
+		}
+	}
+
+	/**
+	 * This instruction is currently postponed in the given [L2ValueManifest],
+	 * and something it reads may since have been narrowed.  If any of its reads
+	 * is now known more precisely, answer a clone with the tighter restrictions
+	 * in place, otherwise answer `null` to indicate that nothing changed.
+	 *
+	 * The receiver is never modified, since postponed instructions are shared
+	 * between manifests – see [refreshReadRestrictionsFrom].
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] in which this instruction is postponed.
+	 * @return
+	 *   A narrowed clone, or `null` if no read was narrowed.
+	 */
+	open fun narrowedForManifest(
+		manifest: L2ValueManifest
+	): L2Instruction?
+	{
+		if (!manifest.caresAboutSemanticValues) return null
+		// Note that isStrongerThan is reflexive, so it cannot be used to detect
+		// an actual improvement.  Ask instead whether intersecting would change
+		// the read's restriction, which is exactly what refreshing would do.
+		val anyNarrower = readOperands.any { read ->
+			val semanticValue = read.semanticValue()
+			manifest.hasSemanticValue(semanticValue)
+				&& manifest.restrictionFor(semanticValue)
+					.intersection(read.restriction()) != read.restriction()
+		}
+		if (!anyNarrower) return null
+		return clone().apply { refreshReadRestrictionsFrom(manifest) }
+	}
+
+	/**
 	 * Rewrite this postponed instruction in the manifest, replacing it and
 	 * sometimes others in the process.  For example, if an [L2_CREATE_VARIABLE]
 	 * produces a variable that's used in an [L2_SET_UNESCAPED_LOCAL_VARIABLE],
@@ -1462,6 +1542,12 @@ constructor() :
 			currentManifest.check() //TODO Remove
 		}
 		cloneFor(this).run {
+			// The operands were captured when this instruction was postponed,
+			// possibly above branches that have since narrowed what it reads.
+			// Refresh before emitting, so that the operation gets its chance to
+			// specialize or fold against what is known here.  Safe to mutate,
+			// since this is a clone.
+			refreshReadRestrictionsFrom(currentManifest)
 			emitTransformedInstruction()
 		}
 	}

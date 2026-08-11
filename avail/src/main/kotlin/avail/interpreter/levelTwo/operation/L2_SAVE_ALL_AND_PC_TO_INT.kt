@@ -56,8 +56,6 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_R
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 
@@ -202,10 +200,8 @@ constructor(
 			val manifest = generator.currentManifest
 			val valueRead = postponedCreation.initialValueOrNil
 			val semanticValue = valueRead.semanticValue()
-			val semanticInt = manifest.equivalentSemanticValue(
-				semanticValue.unboxedInt)
-			val semanticFloat = manifest.equivalentSemanticValue(
-				semanticValue.unboxedFloat)
+			val semanticInt = manifest.intFormOf(semanticValue)
+			val semanticFloat = manifest.floatFormOf(semanticValue)
 			val source = semanticInt ?: semanticFloat ?: semanticValue
 			val newElidedVariable = source.createRead(manifest)
 			elidedVariables.add(newElidedVariable)

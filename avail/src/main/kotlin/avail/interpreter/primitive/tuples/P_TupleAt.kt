@@ -166,10 +166,9 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			val outOfBounds = createBasicBlock(
 				"failed bounds check",
 				ZoneType.DEAD_END.createZone("failed bounds check"))
-			val unboxedSemanticSize =
-				P_TupleSize.semanticInvocation(
-					tupleReg.semanticValue()
-				).unboxedInt
+			val boxedSemanticSize =
+				P_TupleSize.semanticInvocation(tupleReg.semanticValue())
+			val unboxedSemanticSize = boxedSemanticSize.unboxedInt
 			val intSizeRestriction = intRestrictionForType(
 				tupleReg.type().sizeRange.typeIntersection(i31))
 			val intSizeType = intSizeRestriction.type
@@ -184,7 +183,7 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			else
 			{
 				val equivalent =
-					currentManifest.equivalentSemanticValue(unboxedSemanticSize)
+					currentManifest.intFormOf(boxedSemanticSize)
 				if (equivalent != null)
 					moveIntRegister(equivalent, setOf(unboxedSemanticSize))
 				else

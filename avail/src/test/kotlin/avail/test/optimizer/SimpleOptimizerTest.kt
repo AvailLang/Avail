@@ -75,6 +75,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -120,7 +121,15 @@ import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
@@ -177,13 +186,26 @@ import avail.interpreter.primitive.types.P_Type
 import avail.interpreter.primitive.variables.P_GetClearing
 import avail.interpreter.primitive.variables.P_GetValue
 import avail.interpreter.primitive.variables.P_SetValue
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
+import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticDummy
+import avail.optimizer.values.L2SemanticTemp
+import avail.optimizer.values.Frame
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
@@ -2802,5 +2824,169 @@ class SimpleOptimizerTest
 		}
 
 		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * Answer a fresh boxed [L2SemanticValue] suitable for manifest-level unit
+	 * tests.  Deliberately *not* an [L2SemanticDummy]: those exist for the
+	 * phase where the graph is held together by registers alone, and
+	 * [L2ValueManifest.restrictionFor] short-circuits them to
+	 * [TypeRestriction.topRestriction], which would make any assertion about
+	 * restrictions vacuous.
+	 *
+	 * @param name
+	 *   A short descriptive name.
+	 * @param uniqueId
+	 *   An id distinguishing this temp from others in the same test.
+	 * @return
+	 *   A fresh [L2SemanticBoxedValue].
+	 */
+	private fun newTemp(name: String, uniqueId: Int): L2SemanticBoxedValue =
+		L2SemanticTemp(
+			Frame(
+				null,
+				helper.createDummyRawFunction(returnType = TOP()),
+				0,
+				"test frame",
+				"test frame"),
+			name,
+			uniqueId)
+
+	/**
+	 * [L2SemanticUnboxedInt]s are keyed by one arbitrary representative of the
+	 * boxed [L2Synonym] they were derived from, so merging two boxed synonyms
+	 * leaves their unboxed int forms in separate synonyms.
+	 * [L2ValueManifest.equivalentSemanticValue] repairs this by searching, and
+	 * this test pins that search down.
+	 *
+	 * It is also a regression test for the optimization that restricts the
+	 * search to candidates of the probe's own concrete class.  That filter is
+	 * sound only because a probe which is absent from the manifest and is not
+	 * an [L2SemanticConstant] cannot match a candidate of a different class –
+	 * see `Manifest_ValueClass_Redesign.md`.  Narrowing it further, for
+	 * instance by also filtering the [L2SemanticUnboxedInt]'s representative,
+	 * would silently lose this equivalence and cost redundant unboxing.
+	 */
+	@Test
+	fun manifestFindsUnboxedIntAcrossMergedSynonyms()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		val boxedOne = newTemp("boxedOne", 1)
+		val boxedTwo = newTemp("boxedTwo", 2)
+		val i32Restriction = boxedRestrictionForType(i32)
+		manifest.introduceSynonym<BOXED_KIND>(setOf(boxedOne), i32Restriction)
+		manifest.introduceSynonym<BOXED_KIND>(setOf(boxedTwo), i32Restriction)
+		// Only boxedTwo has been unboxed so far.
+		manifest.introduceSynonym<INTEGER_KIND>(
+			setOf(boxedTwo.unboxedInt), i32Restriction.forUnboxedInt())
+
+		// The boxed values are unrelated so far, so neither is the int form.
+		assertNull(manifest.equivalentSemanticValue(boxedOne.unboxedInt))
+
+		// Now make the two boxed values synonymous.  Int(boxedOne) is still
+		// absent as a key, but it is now equivalent to Int(boxedTwo).
+		manifest.mergeExistingSemanticValues(boxedOne, boxedTwo)
+		assertEquals(
+			boxedTwo.unboxedInt,
+			manifest.equivalentSemanticValue(boxedOne.unboxedInt))
+		// The search is symmetric, and the direct hit still short-circuits.
+		assertEquals(
+			boxedTwo.unboxedInt,
+			manifest.equivalentSemanticValue(boxedTwo.unboxedInt))
+	}
+
+	/**
+	 * A postponed [L2Instruction] captures its operands' [TypeRestriction]s at
+	 * the moment it is postponed, which may be well above a branch that later
+	 * narrows what it reads.  [L2Instruction.narrowedForManifest] re-derives
+	 * those restrictions.
+	 *
+	 * The property this pins down above all is that it **clones**.  A postponed
+	 * instruction is shared by every manifest descended from the one that
+	 * recorded it, including *both* outbound edges of a branch, where the
+	 * narrowings are contradictory.  Narrowing in place would leak the true
+	 * branch's knowledge into the false branch and miscompile.
+	 */
+	@Test
+	fun postponedInstructionNarrowsByCloning()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		// Note: not L2SemanticDummy, whose whole purpose is to carry no
+		// restriction - L2ValueManifest.restrictionFor answers topRestriction
+		// for those unconditionally.
+		val argA: L2SemanticBoxedValue = newTemp("a", 1)
+		val argB: L2SemanticBoxedValue = newTemp("b", 2)
+		val wide = boxedRestrictionForType(inclusive(0, 100))
+		manifest.introduceSynonym<BOXED_KIND>(setOf(argA), wide)
+		manifest.introduceSynonym<BOXED_KIND>(setOf(argB), wide)
+
+		val instruction = L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+			L2ConstantOperand(
+				helper.createDummyRawFunction(returnType = NUMBER())),
+			P_Addition,
+			L2ReadBoxedVectorOperand(
+				listOf(
+					L2ReadBoxedOperand(argA, wide),
+					L2ReadBoxedOperand(argB, wide))),
+			L2WriteBoxedOperand(
+				emptySet(), boxedRestrictionForType(NUMBER())))
+
+		// Nothing has narrowed yet, so there is nothing to do.  Answering null
+		// rather than a copy is what lets callers skip work.
+		assertNull(instruction.narrowedForManifest(manifest))
+
+		// Narrow both arguments to single values, as a branch would.
+		manifest.updateRestriction(argA) {
+			boxedRestrictionForConstant(fromInt(3))
+		}
+		manifest.updateRestriction(argB) {
+			boxedRestrictionForConstant(fromInt(4))
+		}
+
+		val narrowed = instruction.narrowedForManifest(manifest)!!
+		// The clone sees the narrowed arguments...
+		narrowed.readOperands.forEach { read ->
+			assertEquals(
+				manifest.restrictionFor(read.semanticValue()),
+				read.restriction())
+		}
+		// ...and, crucially, the shared original does not.
+		instruction.readOperands.forEach { read ->
+			assertEquals(wide, read.restriction())
+		}
+		// The implied result is at least as strong as before, computed by the
+		// same helper that emitTransformedInstruction uses.
+		val impliedBefore = instruction.impliedWriteRestriction(
+			instruction.readOperands.map { it.restriction() })
+		val impliedAfter = narrowed.impliedWriteRestriction(
+			narrowed.readOperands.map { it.restriction() })
+		assertTrue(
+			impliedAfter == impliedBefore
+				|| impliedAfter.isStrongerThan(impliedBefore))
+	}
+
+	/**
+	 * A probe that is absent from the manifest must not be reported as
+	 * equivalent to an unrelated value, whatever its concrete class.  This
+	 * guards the class-restricted search in
+	 * [L2ValueManifest.equivalentSemanticValue] against being widened into
+	 * something that reports spurious hits.
+	 */
+	@Test
+	fun manifestReportsNoEquivalentForUnrelatedValues()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		val present = newTemp("present", 1)
+		val absent = newTemp("absent", 2)
+		manifest.introduceSynonym<BOXED_KIND>(
+			setOf(present), boxedRestrictionForType(i32))
+
+		// Same class, but unrelated identities.
+		assertNull(manifest.equivalentSemanticValue(absent))
+		// Different class from anything in the manifest.
+		assertNull(manifest.equivalentSemanticValue(absent.unboxedInt))
+		assertNull(manifest.equivalentSemanticValue(present.unboxedInt))
+		// Nothing is populated, since no instruction has written anything.
+		assertNull(manifest.equivalentPopulatedSemanticValue(present))
 	}
 }

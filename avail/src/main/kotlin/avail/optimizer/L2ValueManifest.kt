@@ -61,6 +61,8 @@ import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Optimizer.GenerationMode
@@ -156,10 +158,11 @@ class L2ValueManifest
 	 *
 	 * @property definitions
 	 *   An immutable [List] of [L2Register]s that hold the same value.  They
-	 *   may be of differing [RegisterKind], which is useful for tracking
-	 *   equivalent boxed and unboxed values.  The list may be replaced, but not
-	 *   internally modified.  Also, the caller must not modify the list after
-	 *   passing it to this constructor.
+	 *   all have the same [RegisterKind] as the associated [L2Synonym]; an
+	 *   earlier incarnation mixed kinds within one constraint, which caused
+	 *   problems, and is not something to reintroduce.  The list may be
+	 *   replaced, but not internally modified.  Also, the caller must not
+	 *   modify the list after passing it to this constructor.
 	 * @property restriction
 	 *   The [TypeRestriction] that describes the types, constant values,
 	 *   excluded types, excluded values, and [RegisterKind]s that constrain the
@@ -326,10 +329,36 @@ class L2ValueManifest
 	private val constraints: MutableMap<L2Synonym<*>, Constraint<*>>
 
 	/**
+	 * An index from an [L2SemanticValue] that some postponed [L2Instruction]
+	 * *reads*, to representative [L2SemanticValue]s of the synonyms under which
+	 * those postponed instructions are recorded.  It lets a narrowing of the
+	 * read find the postponed instructions that consume it, without scanning
+	 * every [Constraint].
+	 *
+	 * This index is deliberately **tolerant**: entries are added but never
+	 * eagerly removed as synonyms merge, split, or are forgotten, and consumers
+	 * are re-validated when used.  A stale entry therefore costs one wasted
+	 * recomputation, never a wrong answer.  Maintaining it exactly would mean
+	 * touching every synonym mutation site, which is the very thing the
+	 * eventual `ValueClass` redesign exists to make safe.
+	 */
+	private val postponedReaders:
+		MutableMap<L2SemanticValue<*>, MutableSet<L2SemanticValue<*>>>
+
+	/**
 	 * The number of constraints in the manifest that are impossible, which is
 	 * the case when the constraint's restriction is [bottomRestriction].
 	 */
 	private var impossibleRestrictionCount = 0
+
+	/**
+	 * The depth of nested [renarrowPostponedConsumersOf] activations, used to
+	 * bound the mutual recursion between narrowing a value and re-narrowing the
+	 * postponed instructions that consume it.  Narrowing is monotone, so the
+	 * recursion always terminates, but a deeply chained set of postponed
+	 * instructions could otherwise recurse further than is comfortable.
+	 */
+	private var renarrowDepth = 0
 
 	/**
 	 * Answer whether there are any impossible restrictions in this manifest.
@@ -386,6 +415,7 @@ class L2ValueManifest
 			else -> null
 		}
 		constraints = mutableMapOf()
+		postponedReaders = mutableMapOf()
 	}
 
 	/**
@@ -400,6 +430,10 @@ class L2ValueManifest
 		mode = original.mode
 		semanticValueToSynonym = original.semanticValueToSynonym?.toMutableMap()
 		constraints = original.constraints.toMutableMap()
+		postponedReaders = original.postponedReaders
+			.mapValuesTo(mutableMapOf()) { (_, targets) ->
+				targets.toMutableSet()
+			}
 		impossibleRestrictionCount = original.impossibleRestrictionCount
 	}
 
@@ -436,6 +470,33 @@ class L2ValueManifest
 			// values that get added to the synonym.
 			if (postponedInstructionFor(semanticValue) != null) return
 		}
+		installOrFoldPostponed(semanticValue, instruction)
+	}
+
+	/**
+	 * Either record the given [L2Instruction] as the postponed instruction for
+	 * the synonym containing [semanticValue], or – if its result is already
+	 * known to be a particular constant – skip it entirely, letting the synonym
+	 * be folded into the corresponding constant synonym instead.  In the latter
+	 * case [L2Generator.ensureDefinedOrEmitMove] will subsequently emit a
+	 * constant move, since it tests for a constant restriction before falling
+	 * back to a postponed instruction.
+	 *
+	 * This is shared between the original recording of a postponed instruction
+	 * and the re-recording performed by [renarrowPostponedConsumersOf] once a
+	 * narrowing has made the instruction's result more precise, so that the two
+	 * cannot disagree about when folding happens.
+	 *
+	 * @param semanticValue
+	 *   A semantic value that the instruction would define.
+	 * @param instruction
+	 *   The postponable instruction.
+	 */
+	private fun installOrFoldPostponed(
+		semanticValue: L2SemanticValue<*>,
+		instruction: L2Instruction)
+	{
+		val originalWrite = instruction.writeOperands.single()
 		val constant = originalWrite.restriction().constantOrNull
 		if (constant != null)
 		{
@@ -448,6 +509,77 @@ class L2ValueManifest
 		}
 		updateConstraint(semanticValueToSynonym(semanticValue)) {
 			postponedInstruction = instruction
+		}
+		// Index the instruction under everything it reads, so that narrowing
+		// any of those values can find it again.
+		val target = semanticValueToSynonym(semanticValue).pickSemanticValue()
+		instruction.readOperands.forEach { read ->
+			postponedReaders
+				.getOrPut(read.semanticValue(), ::mutableSetOf)
+				.add(target)
+		}
+	}
+
+	/**
+	 * The restriction on [narrowed] has just been tightened.  Find any
+	 * postponed [L2Instruction]s that read it, re-derive their read
+	 * restrictions, and if that makes an instruction's result more precise,
+	 * replace the postponed instruction with the narrowed clone and tighten the
+	 * restriction on the synonym it will populate.
+	 *
+	 * That tightening re-enters [updateRestriction], which is what ultimately
+	 * introduces an [L2SemanticConstant] and lets the value be emitted as a
+	 * constant move rather than as the original computation.
+	 *
+	 * @param narrowed
+	 *   The [L2SemanticValue] whose restriction just became stronger.
+	 */
+	private fun renarrowPostponedConsumersOf(narrowed: L2SemanticValue<*>)
+	{
+		if (!caresAboutSemanticValues) return
+		// Bound the mutual recursion with narrowing.  Chains of postponed
+		// instructions are short; anything deeper simply waits until the value
+		// is actually needed, when the emit-time refresh handles it.
+		if (renarrowDepth >= maxRenarrowDepth) return
+		val targets = postponedReaders[narrowed] ?: return
+		// Copy, since re-narrowing can modify the index and the constraints.
+		renarrowDepth++
+		try
+		{
+			targets.toList().forEach { target ->
+				// Tolerant index: the target may have been forgotten, merged
+				// away, or already emitted.
+				if (!hasSemanticValue(target)) return@forEach
+				val postponed = postponedInstructionFor(target) ?: return@forEach
+				if (postponed.writeOperands.size != 1) return@forEach
+				val narrowedClone =
+					postponed.narrowedForManifest(this) ?: return@forEach
+				val implied = narrowedClone.impliedWriteRestriction(
+					narrowedClone.readOperands.map { it.restriction() })
+				narrowedClone.writeOperands.single().restrict { implied }
+				updateConstraint(semanticValueToSynonym(target)) {
+					postponedInstruction = narrowedClone
+				}
+				// isStrongerThan is reflexive, so test for an actual change.
+				val existing = restrictionFor(target)
+				if (implied.intersection(existing) != existing)
+				{
+					// This may make the value constant, in which case the
+					// synonym gains an L2SemanticConstant and the postponed
+					// instruction becomes unnecessary.
+					updateRestriction(target) { implied }
+					if (restrictionFor(target).isConstant)
+					{
+						updateConstraint(semanticValueToSynonym(target)) {
+							postponedInstruction = null
+						}
+					}
+				}
+			}
+		}
+		finally
+		{
+			renarrowDepth--
 		}
 	}
 
@@ -542,6 +674,7 @@ class L2ValueManifest
 	/** Remove all postponed instructions. */
 	fun clearPostponedInstructions()
 	{
+		postponedReaders.clear()
 		constraints.entries.forEach { entry ->
 			val constraint = entry.value
 			if (constraint.postponedInstruction != null)
@@ -656,6 +789,10 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue<K>)
 	{
 		val restriction = restrictionFor(semanticValue)
+		// Any postponed instruction that reads this value may now compute a
+		// more precise result – possibly a constant, which lets it be emitted
+		// as a constant move instead of as the original computation.
+		renarrowPostponedConsumersOf(semanticValue)
 		// If we're at the point that we're only considering registers, don't
 		// automatically introduce constant moves.
 		if (caresAboutSemanticValues)
@@ -682,9 +819,7 @@ class L2ValueManifest
 				{
 					// The boxed form was restricted, so similarly restrict the
 					// int form.
-					equivalentSemanticValue(
-						semanticValue.unboxedInt
-					)?.let { unboxedInt ->
+					intFormOf(semanticValue)?.let { unboxedInt ->
 						updateRestriction(unboxedInt) {
 							restriction.forUnboxedInt()
 						}
@@ -695,17 +830,13 @@ class L2ValueManifest
 					// The boxed form was restricted, so similarly restrict the
 					// double form.  Floats/doubles don't have range types yet,
 					// but we support instance types.
-					equivalentSemanticValue(
-						semanticValue.unboxedFloat
-					)?.let { unboxedFloat ->
+					floatFormOf(semanticValue)?.let { unboxedFloat ->
 						updateRestriction(unboxedFloat) {
 							restriction.forUnboxedFloat()
 						}
 					}
 				}
-				equivalentSemanticValue(
-					L2SemanticExtractedTag(semanticValue).unboxedInt
-				)?.let { intTagValue ->
+				tagFormOf(semanticValue)?.let { intTagValue ->
 					// The boxed form was restricted, so see if we can prove a
 					// stronger bound for the [TypeTag].
 					updateRestriction(intTagValue) {
@@ -724,7 +855,7 @@ class L2ValueManifest
 			{
 				// The int form was restricted, so similarly restrict the boxed
 				// form.
-				equivalentSemanticValue(semanticValue.boxed)?.let { base ->
+				boxedFormOfInt(semanticValue)?.let { base ->
 					updateRestriction(base) {
 						restriction.forBoxed()
 					}
@@ -743,12 +874,12 @@ class L2ValueManifest
 								restrictionFromTag
 							}
 						}
-						equivalentSemanticValue(boxedSource.unboxedInt)?.let {
+						intFormOf(boxedSource)?.let {
 							updateRestriction(it) {
 								restrictionFromTag.forUnboxedInt()
 							}
 						}
-						equivalentSemanticValue(boxedSource.unboxedFloat)?.let {
+						floatFormOf(boxedSource)?.let {
 							updateRestriction(it) {
 								restrictionFromTag.forUnboxedFloat()
 							}
@@ -822,7 +953,7 @@ class L2ValueManifest
 			}
 			is L2SemanticUnboxedFloat ->
 			{
-				equivalentSemanticValue(semanticValue.boxed)?.let { base ->
+				boxedFormOfFloat(semanticValue)?.let { base ->
 					// The float form was just narrowed, so narrow the boxed
 					// form correspondingly.
 					updateRestriction(base) {
@@ -1089,10 +1220,168 @@ class L2ValueManifest
 			return semanticValue
 		}
 		// Try a slower, far less frequent search.
+		val onlyClass = classRestrictingSearchFor(semanticValue)
 		return semanticValueToSynonym.keys.firstOrNull { other ->
-			isEquivalentSemanticValue(semanticValue, other)
+			(onlyClass === null || other.javaClass === onlyClass)
+				&& isEquivalentSemanticValue(semanticValue, other)
 		}.cast()
 	}
+
+	/**
+	 * If a search for something equivalent to the given [L2SemanticValue] can
+	 * safely be narrowed to candidates having one particular concrete class,
+	 * answer that class, otherwise answer `null` to indicate that every
+	 * candidate must be considered.
+	 *
+	 * [isEquivalentSemanticValue] can only relate two semantic values of
+	 * differing concrete classes in three ways:
+	 *  * the shared-synonym test, which requires the probe to be present in
+	 *    this manifest already,
+	 *  * the case where the probe is an [L2SemanticConstant], which can match
+	 *    any value whose restriction is that same constant, and
+	 *  * the case where the *candidate* is an [L2SemanticConstant], which
+	 *    likewise requires the probe to be present in this manifest.
+	 *
+	 * When the probe is absent and is not itself a constant, none of the three
+	 * applies, and the remaining cases – equality and the structural
+	 * boxed/unboxed, tag, variant, and primitive-invocation recursions – all
+	 * require both values to have the same (final) class.  Filtering candidates
+	 * preserves their relative order, and any candidate that could have matched
+	 * is retained, so the value chosen is unchanged.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] being searched for.
+	 * @return
+	 *   The only concrete class worth examining, or `null` if all candidates
+	 *   must be examined.
+	 */
+	private fun classRestrictingSearchFor(
+		semanticValue: L2SemanticValue<*>
+	): Class<out L2SemanticValue<*>>? = when
+	{
+		semanticValue is L2SemanticConstant -> null
+		semanticValue in semanticValueToSynonym!! -> null
+		else -> semanticValue.javaClass
+	}
+
+	/**
+	 * If the value denoted by the given boxed [L2SemanticValue] is also
+	 * available in unboxed int form, answer the [L2SemanticValue] that names
+	 * that form, otherwise answer `null`.
+	 *
+	 * Note that an [L2SemanticUnboxedInt] is constructed from one arbitrary
+	 * representative of the boxed [L2Synonym], so the int form of a value is
+	 * *not* generally findable by a direct map lookup – it has to be searched
+	 * for.  Callers should prefer this operation over constructing an
+	 * [L2SemanticUnboxedInt] and searching for it themselves, both because the
+	 * search is subtle and because this is the operation that a later redesign
+	 * will turn into a simple field access.
+	 *
+	 * @param boxed
+	 *   The boxed [L2SemanticValue] whose int form is sought.
+	 * @return
+	 *   The equivalent unboxed int [L2SemanticValue], or `null`.
+	 */
+	fun intFormOf(
+		boxed: L2SemanticValue<BOXED_KIND>
+	): L2SemanticValue<INTEGER_KIND>? =
+		equivalentSemanticValue(boxed.unboxedInt)
+
+	/**
+	 * As [intFormOf], but only answer an int form that is already bound to a
+	 * register by a visible defining write.
+	 *
+	 * @param boxed
+	 *   The boxed [L2SemanticValue] whose int form is sought.
+	 * @return
+	 *   The equivalent populated unboxed int [L2SemanticValue], or `null`.
+	 */
+	fun populatedIntFormOf(
+		boxed: L2SemanticValue<BOXED_KIND>
+	): L2SemanticValue<INTEGER_KIND>? =
+		equivalentPopulatedSemanticValue(boxed.unboxedInt)
+
+	/**
+	 * If the value denoted by the given boxed [L2SemanticValue] is also
+	 * available in unboxed float form, answer the [L2SemanticValue] that names
+	 * that form, otherwise answer `null`.  See [intFormOf] for why this is a
+	 * search rather than a lookup.
+	 *
+	 * @param boxed
+	 *   The boxed [L2SemanticValue] whose float form is sought.
+	 * @return
+	 *   The equivalent unboxed float [L2SemanticValue], or `null`.
+	 */
+	fun floatFormOf(
+		boxed: L2SemanticValue<BOXED_KIND>
+	): L2SemanticValue<FLOAT_KIND>? =
+		equivalentSemanticValue(boxed.unboxedFloat)
+
+	/**
+	 * If the value denoted by the given unboxed int [L2SemanticValue] is also
+	 * available in boxed form, answer the [L2SemanticValue] that names that
+	 * form, otherwise answer `null`.  See [intFormOf] for why this is a search
+	 * rather than a lookup.
+	 *
+	 * @param unboxedInt
+	 *   The unboxed int [L2SemanticValue] whose boxed form is sought.
+	 * @return
+	 *   The equivalent boxed [L2SemanticValue], or `null`.
+	 */
+	fun boxedFormOfInt(
+		unboxedInt: L2SemanticValue<INTEGER_KIND>
+	): L2SemanticValue<BOXED_KIND>? =
+		equivalentSemanticValue(unboxedInt.boxed)
+
+	/**
+	 * If the value denoted by the given unboxed float [L2SemanticValue] is also
+	 * available in boxed form, answer the [L2SemanticValue] that names that
+	 * form, otherwise answer `null`.  See [intFormOf] for why this is a search
+	 * rather than a lookup.
+	 *
+	 * @param unboxedFloat
+	 *   The unboxed float [L2SemanticValue] whose boxed form is sought.
+	 * @return
+	 *   The equivalent boxed [L2SemanticValue], or `null`.
+	 */
+	fun boxedFormOfFloat(
+		unboxedFloat: L2SemanticValue<FLOAT_KIND>
+	): L2SemanticValue<BOXED_KIND>? =
+		equivalentSemanticValue(unboxedFloat.boxed)
+
+	/**
+	 * Answer the [L2SemanticValue] naming the [TypeTag] extracted from the
+	 * given boxed [L2SemanticValue], if that tag is available in this manifest
+	 * as an unboxed int, otherwise answer `null`.  See [intFormOf] for why this
+	 * is a search rather than a lookup.
+	 *
+	 * @param boxed
+	 *   The boxed [L2SemanticValue] whose extracted tag is sought.
+	 * @return
+	 *   The equivalent unboxed int [L2SemanticValue] holding the tag, or
+	 *   `null`.
+	 */
+	fun tagFormOf(
+		boxed: L2SemanticValue<BOXED_KIND>
+	): L2SemanticValue<INTEGER_KIND>? =
+		equivalentSemanticValue(L2SemanticExtractedTag(boxed).unboxedInt)
+
+	/**
+	 * Answer the [L2SemanticValue] naming the [ObjectLayoutVariant] id
+	 * extracted from the given boxed [L2SemanticValue], if that id is available
+	 * in this manifest as an unboxed int, otherwise answer `null`.  See
+	 * [intFormOf] for why this is a search rather than a lookup.
+	 *
+	 * @param boxed
+	 *   The boxed [L2SemanticValue] whose extracted variant id is sought.
+	 * @return
+	 *   The equivalent unboxed int [L2SemanticValue] holding the variant id, or
+	 *   `null`.
+	 */
+	fun variantIdFormOf(
+		boxed: L2SemanticValue<BOXED_KIND>
+	): L2SemanticValue<INTEGER_KIND>? =
+		equivalentSemanticValue(L2SemanticObjectVariantId(boxed).unboxedInt)
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one in
@@ -1117,10 +1406,15 @@ class L2ValueManifest
 	): L2SemanticValue<K>?
 	{
 		if (isPopulated(semanticValue)) return semanticValue
-		// Try a slower, far less frequent search.
+		// Try a slower, far less frequent search.  Note that the probe may be
+		// present in the manifest but unpopulated, in which case the search
+		// cannot be narrowed by class, since the shared-synonym test can then
+		// match a candidate of some other class.
+		val onlyClass = classRestrictingSearchFor(semanticValue)
 		return semanticValueToSynonym!!.keys.firstOrNull { other ->
-			isEquivalentSemanticValue(semanticValue, other) &&
-				isPopulated(other)
+			(onlyClass === null || other.javaClass === onlyClass)
+				&& isEquivalentSemanticValue(semanticValue, other)
+				&& isPopulated(other)
 		}.cast()
 	}
 
@@ -2334,12 +2628,27 @@ class L2ValueManifest
 				val firstValue = values.first()
 				firstValue.kind.run {
 					// Try to find any value already in the manifest that's
-					// equivalent.
+					// equivalent.  Reaching the scan means every probe is
+					// absent from the manifest, so each probe that isn't a
+					// constant can only match a candidate of its own class.
 					val equivalentAnchor = values
 						.firstOrNull(::hasSemanticValue)
-						?: semanticValueToSynonym.keys.firstOrNull { existing ->
-							values.any { sv ->
-								isEquivalentSemanticValue(sv, existing)
+						?: run {
+							val onlyClasses = values
+								.map(::classRestrictingSearchFor)
+								.run {
+									when
+									{
+										any { it === null } -> null
+										else -> toSet()
+									}
+								}
+							semanticValueToSynonym.keys.firstOrNull { existing ->
+								(onlyClasses === null
+										|| existing.javaClass in onlyClasses)
+									&& values.any { sv ->
+										isEquivalentSemanticValue(sv, existing)
+									}
 							}
 						}
 					if (equivalentAnchor != null)
@@ -2952,5 +3261,14 @@ class L2ValueManifest
 	{
 		/** Perform deep, slow checks every time a manifest changes. */
 		var deepManifestDebugCheck = true //  DEBUG: false
+
+		/**
+		 * How deeply [renarrowPostponedConsumersOf] may recurse through chains
+		 * of postponed instructions that feed one another.  Narrowing is
+		 * monotone, so this is a comfort bound rather than a termination
+		 * condition; anything deeper is simply left for the refresh that
+		 * happens when the value is actually emitted.
+		 */
+		const val maxRenarrowDepth = 5
 	}
 }

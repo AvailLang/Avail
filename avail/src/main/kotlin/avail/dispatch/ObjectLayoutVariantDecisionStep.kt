@@ -304,7 +304,7 @@ constructor(
 		}
 		var semanticVariantId: L2SemanticValue<INTEGER_KIND> =
 			L2SemanticObjectVariantId(semanticSource).unboxedInt
-		currentManifest.equivalentSemanticValue(semanticVariantId)?.let {
+		currentManifest.variantIdFormOf(semanticSource)?.let {
 			semanticVariantId = it
 		}
 

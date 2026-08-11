@@ -267,8 +267,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 			P_Hash(capture(0))
 		}.matchForEach(premask, manifest) { (valueToHash) ->
 			val equivalentIntValueToHash =
-				manifest.equivalentSemanticValue(valueToHash.unboxedInt)
-					?: return@matchForEach
+				manifest.intFormOf(valueToHash) ?: return@matchForEach
 			val type = manifest.restrictionFor(equivalentIntValueToHash).type
 			if (type.isEnumeration)
 			{

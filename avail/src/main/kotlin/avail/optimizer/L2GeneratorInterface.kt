@@ -1073,7 +1073,7 @@ interface L2GeneratorInterface : L2Visualizable
 			equivalentSemanticValue(semanticUnboxed)?.let {
 				return restrictionFor(it).intersectsType(i32)
 			}
-			equivalentSemanticValue(semanticUnboxed.boxed)?.let {
+			boxedFormOfInt(semanticUnboxed)?.let {
 				return restrictionFor(it).intersectsType(i32)
 			}
 			return false

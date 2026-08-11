@@ -137,8 +137,7 @@ object P_TupleSize : Primitive1(CannotFail, CanFold, CanInline)
 					P_TupleSize,
 					listOf(tupleReg.semanticValue()))
 				val sizeInt = sizeBoxed.unboxedInt
-				val equivalent =
-					currentManifest.equivalentSemanticValue(sizeInt)
+				val equivalent = currentManifest.intFormOf(sizeBoxed)
 				if (equivalent !== null)
 				{
 					// It already exists, so reuse it.

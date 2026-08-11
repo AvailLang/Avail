@@ -596,9 +596,7 @@ constructor(
 							false)
 						return true
 					}
-					currentManifest.equivalentSemanticValue(
-						intSemanticPrimitive
-					)?.let {
+					currentManifest.intFormOf(semanticPrimitive)?.let {
 						moveRegister(it, listOf(intSemanticPrimitive))
 						currentManifest.updateRestriction(intSemanticPrimitive) {
 							intersectionWithType(typeGuarantee)

@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation.numbers
 
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -73,6 +74,17 @@ class L2_UNBOX_INT(
 	{
 		destination.restrict { source.restriction().forUnboxedInt() }
 		super.instructionWasAdded(manifest)
+		// The [translateToJVM] below emits an unguarded extractInt, so the
+		// source must already have been proven to be an i32, normally by an
+		// L2_JUMP_IF_KIND_OF_OBJECT on the edge leading here.  Check this only
+		// after the super call, which is what re-restricts the read operands
+		// from the manifest; the restriction captured when the operand was
+		// built can predate the very type test that establishes the guarantee.
+		assert(source.restriction().containedByType(i32))
+		{
+			"L2_UNBOX_INT source was not proven to be an i32: " +
+				source.restriction()
+		}
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()

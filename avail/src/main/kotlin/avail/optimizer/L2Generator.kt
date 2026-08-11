@@ -433,8 +433,19 @@ constructor(
 			restriction.isConstant -> semanticValue.kind.moveConstant(
 				restriction.constantOrNull!!,
 				notDefined)
-			// Otherwise there must be a postponed instruction to emit.
+			// Otherwise there must be a postponed instruction to emit.  Its
+			// operands were captured when it was postponed, which may have been
+			// well above branches that have since narrowed what it reads, so
+			// re-derive the restrictions from the current manifest.  Note that
+			// the clone is essential: the postponed instruction itself is
+			// shared with every other manifest descended from the one that
+			// recorded it, including the opposite edge of any branch.
 			else -> postponed!!.clone().apply {
+				refreshReadRestrictionsFrom(currentManifest)
+				writeOperands.single().restrict {
+					impliedWriteRestriction(
+						readOperands.map { it.restriction() })
+				}
 				writeOperands.single()
 					.retroactivelySetSemanticValues(notDefined)
 			}
@@ -463,7 +474,7 @@ constructor(
 			}
 		// Can we box it from an existing int value?
 		currentManifest
-			.equivalentSemanticValue(semanticBoxed.unboxedInt)
+			.intFormOf(semanticBoxed)
 			?.let { unboxedInt ->
 				currentManifest.agglomerateSynonym(
 					setOf(semanticBoxed.unboxedInt, unboxedInt),
@@ -479,7 +490,7 @@ constructor(
 			}
 		// Can we box it from an existing float value?
 		currentManifest
-			.equivalentSemanticValue(semanticBoxed.unboxedFloat)
+			.floatFormOf(semanticBoxed)
 			?.let { unboxedFloat ->
 				currentManifest.agglomerateSynonym(
 					setOf(semanticBoxed.unboxedFloat, unboxedFloat),
@@ -619,8 +630,8 @@ constructor(
 		}
 		else
 		{
-			val equivalentBoxed = currentManifest
-				.equivalentSemanticValue(semanticUnboxed.boxed)
+			val equivalentBoxed =
+				currentManifest.boxedFormOfInt(semanticUnboxed)
 			restriction = currentManifest.restrictionFor(equivalentBoxed!!)
 				.forUnboxedInt()
 		}
@@ -1434,7 +1445,7 @@ constructor(
 			}
 		}
 		var equivalentUnboxed = currentManifest
-			.equivalentSemanticValue(semanticValue.unboxedInt)
+			.intFormOf(semanticValue)
 			?: run {
 				if (currentManifest.restrictionFor(semanticValue)
 					.containedByType(i32))

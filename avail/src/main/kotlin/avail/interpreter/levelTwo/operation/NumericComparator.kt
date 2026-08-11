@@ -55,7 +55,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
 
 /**
@@ -246,10 +245,10 @@ enum class NumericComparator(
 		val restriction1 = number1Read.restriction()
 		val restriction2 = number2Read.restriction()
 
-		val int1SemanticValue = currentManifest.equivalentSemanticValue(
-			number1Read.semanticValue().unboxedInt)
-		val int2SemanticValue = currentManifest.equivalentSemanticValue(
-			number2Read.semanticValue().unboxedInt)
+		val int1SemanticValue =
+			currentManifest.intFormOf(number1Read.semanticValue())
+		val int2SemanticValue =
+			currentManifest.intFormOf(number2Read.semanticValue())
 		if (int1SemanticValue !== null && int2SemanticValue !== null)
 		{
 			// We can compare the int registers instead.
