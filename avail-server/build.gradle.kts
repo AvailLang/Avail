@@ -37,7 +37,7 @@ import java.util.Locale
 
 plugins {
 	id("java")
-	kotlin("jvm") version "2.3.10"
+	kotlin("jvm") version "2.4.0"
 	id("com.gradleup.shadow") version "9.3.1"
 }
 
@@ -47,7 +47,7 @@ repositories {
 }
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "2.3.10"
+val kotlinLanguage = "2.4.0"
 
 /**
  * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
@@ -57,12 +57,10 @@ val kotlinLanguage = "2.3.10"
 val jvmTarget = 26
 
 /**
- * The bytecode level emitted by `javac` and `kotlinc`. Lags the toolchain
- * when the Kotlin compiler doesn't yet support the toolchain's bytecode
- * level — Kotlin 2.3.10 silently falls back to 25 on a JDK 26 toolchain,
- * so Java needs to follow suit to avoid a target mismatch.
+ * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4.0 supports
+ * emitting JVM 26 bytecode on a JDK 26 toolchain, so this matches [jvmTarget].
  */
-val jvmBytecodeTarget = 25
+val jvmBytecodeTarget = 26
 
 /** String form of [jvmBytecodeTarget] for `JavaCompile.sourceCompatibility`. */
 val jvmTargetString = jvmBytecodeTarget.toString()
@@ -159,7 +157,7 @@ tasks {
 
 tasks.withType<KotlinCompile>().configureEach {
 	compilerOptions {
-		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
-		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
+		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
 	}
 }

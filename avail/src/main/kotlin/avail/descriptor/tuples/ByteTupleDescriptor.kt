@@ -75,6 +75,7 @@ import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
 import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -618,7 +619,7 @@ private constructor(
 			ByteTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an

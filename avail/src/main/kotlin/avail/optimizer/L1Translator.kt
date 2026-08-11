@@ -153,13 +153,12 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_NOP
-import avail.interpreter.levelTwo.operation.L2_REIFY
+import avail.interpreter.levelTwo.operation.L2_REIFY_IF_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
@@ -181,6 +180,7 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VAR
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
@@ -809,7 +809,7 @@ class L1Translator private constructor(
 		+L2_ENTER_L2_CHUNK(
 			L2IntImmediateOperand(defaultEntryPoint.offset()),
 			L2CommentOperand(
-				"If invalid, reenter «default» at $defaultEntryPoint."))
+				"If invalid, reenter «default» at ${defaultEntryPoint.name}."))
 		if (expectedValueOrNull !== null && expectedValueOrNull.isVacuousType)
 		{
 			addUnreachableCode()
@@ -1837,30 +1837,18 @@ class L1Translator private constructor(
 			P_PushArgument3,
 			P_PushLastOuter -> return
 		}
-		val serviceInterrupt = createBasicBlock(
-			"service interrupt",
-			isCold = true)
-		val merge = createBasicBlock("merge after possible interrupt")
-		+L2_JUMP_IF_INTERRUPT(
-			ifInterrupt = edgeTo(serviceInterrupt),
-			ifNotInterrupt = edgeTo(merge))
-		startBlock(serviceInterrupt)
-		// Service the interrupt:  Generate the reification instructions,
-		// ensuring that when returning into the resulting continuation, it will
-		// enter a block where the slot registers are the new ones we just
-		// created.  After creating the continuation, actually service the
-		// interrupt.
-
-		// Reify everybody else, starting at the caller.
 		val onReification = createBasicBlock(
 			"On reification for interrupt",
 			ZoneType.BEGIN_REIFICATION_FOR_INTERRUPT.createZone(
 				"Start reification and run interrupt"),
 			isCold = true)
-		+L2_REIFY(
-			L2IntImmediateOperand(1),
-			L2ConstantOperand(nil),
-			edgeTo(onReification))
+		val merge = createBasicBlock("merge after possible interrupt")
+
+		+L2_REIFY_IF_INTERRUPT(
+			ifInterrupt = edgeTo(onReification),
+			ifNotInterrupt = edgeTo(merge))
+
+		// Process the reification, which will also service the interrupt.
 		startBlock(onReification)
 		+L2_ENTER_L2_CHUNK(
 			L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
@@ -2276,7 +2264,6 @@ class L1Translator private constructor(
 	{
 		val bundle = code.literalAt(instructionDecoder.getOperand())
 		val expectedType = code.literalAt(instructionDecoder.getOperand())
-
 		generateCall(bundle, expectedType, bottom)
 		// Now we're after the call.  Along every path here, each local was
 		// either checked and moved into a new semantic slot, or just moved. The
@@ -2617,6 +2604,12 @@ class L1Translator private constructor(
 
 	companion object
 	{
+		init
+		{
+			// Be sure class initialization happens in the right order.
+			RegisterKind.let {}
+		}
+
 		/**
 		 * Determine if the given [A_RawFunction]'s instantiations as
 		 * [A_Function]s must be mutually equal.
@@ -2701,9 +2694,9 @@ class L1Translator private constructor(
 				Frame(null, code, -1, codeName, "top frame"),
 				GenerationMode.BySemanticValue)
 			val translator = L1Translator(generator, interpreter, code)
-			// Catch exceptions here before retrowing them, so that a breakpoint
-			// can intercept things like IndexOutOfBoundsException and the user
-			// can then debug and retry.
+			// Catch exceptions here before rethrowing them, so that a
+			// breakpoint can intercept things like IndexOutOfBoundsException
+			// and the user can then debug and retry.
 			try
 			{
 				translator.translate()

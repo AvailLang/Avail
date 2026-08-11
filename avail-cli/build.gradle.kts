@@ -34,7 +34,7 @@ import java.io.File
 
 plugins {
 	id("java")
-	kotlin("jvm") version "2.3.10"
+	kotlin("jvm") version "2.4.0"
 	id("com.gradleup.shadow") version "9.3.1"
 }
 
@@ -44,10 +44,10 @@ repositories {
 }
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "2.3"
+val kotlinLanguage = "2.4"
 
 /** The JVM target version for Kotlin. */
-val jvmTarget = 25
+val jvmTarget = 26
 
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
@@ -125,7 +125,7 @@ tasks {
 
 tasks.withType<KotlinCompile>().configureEach {
 	compilerOptions {
-		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
-		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
+		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
 	}
 }

@@ -37,6 +37,8 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
 import avail.optimizer.StackReifier
+import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * A [Primitive] taking exactly one argument.
@@ -65,6 +67,7 @@ constructor(
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
+	@ReferencedInGeneratedCode
 	abstract fun Interpreter.attempt1(
 		arg1: AvailObject
 	): A_BasicObject?
@@ -74,5 +77,16 @@ constructor(
 		val args = interpreter.argsBuffer
 		assert(args.size == 1)
 		return interpreter.attempt1(args[0])
+	}
+
+	companion object
+	{
+		/** The method [attempt1]. */
+		val attempt1Method = instanceMethod(
+			Primitive1::class.java,
+			"attempt1",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			AvailObject::class.java)
 	}
 }

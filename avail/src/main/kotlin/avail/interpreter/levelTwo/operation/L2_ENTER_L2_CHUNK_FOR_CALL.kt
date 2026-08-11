@@ -91,14 +91,15 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 		// back to the default chunk, using the TO_RESTART entry point.  Note
 		// that there can't be a primitive for such continuations.
 
-		// :: if (!checkValidity()) {
+		// :: if (!checkValidity(offsetInL1DefaultChunk)) {
 		loadInterpreter()
 		intConstant(AFTER_PRIMITIVE_FAILURE.offset)
 		generateCall(Interpreter.checkValidityMethod)
 		val isValidLabel = Label()
 		method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
-		// ::    return null;
-		method.visitInsn(Opcodes.ACONST_NULL)
+		// ::    return interpreter.runChunk()
+		loadInterpreter()
+		generateCall(Interpreter.interpreterRunChunkMethod)
 		method.visitInsn(Opcodes.ARETURN)
 		// :: }
 		method.visitLabel(isValidLabel)

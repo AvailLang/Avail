@@ -80,6 +80,7 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastO
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -792,7 +793,7 @@ private constructor(
 			NybbleTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

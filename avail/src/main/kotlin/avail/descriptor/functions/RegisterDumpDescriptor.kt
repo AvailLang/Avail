@@ -38,6 +38,7 @@ import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.OBJECT_SLOT
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.registerDump
+import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
 import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
 import avail.descriptor.representation.A_Tuple
@@ -56,6 +57,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.L2Chunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPointCatalog
@@ -241,7 +243,7 @@ class RegisterDumpDescriptor private constructor(
 		 * @param longs
 		 *   The array of [Long]s to capture.
 		 * @return
-		 *   The new register dump object or [nil].
+		 *   The new [A_RegisterDump] or [nil].
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -271,7 +273,7 @@ class RegisterDumpDescriptor private constructor(
 			RegisterDumpDescriptor::class.java,
 			::createRegisterDump.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_Tuple::class.java,
 			Array<AvailObject>::class.java,
 			LongArray::class.java)

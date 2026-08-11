@@ -66,6 +66,9 @@ import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.exceptions.ArithmeticException
+import avail.interpreter.JavaLibrary.boolean
+import avail.interpreter.JavaLibrary.double
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -1223,7 +1226,7 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			boolean)
 
 
 		@ReferencedInGeneratedCode
@@ -1237,7 +1240,7 @@ interface A_Number : A_BasicObject
 		val extractDoubleMethod = staticMethod(
 			A_Number::class.java,
 			::extractDoubleStatic.name,
-			Double::class.javaPrimitiveType!!,
+			double,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1252,7 +1255,7 @@ interface A_Number : A_BasicObject
 		val extractIntStaticMethod = staticMethod(
 			A_Number::class.java,
 			::extractIntStatic.name,
-			Integer::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1275,7 +1278,7 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			boolean)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1314,7 +1317,7 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			boolean)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1325,7 +1328,7 @@ interface A_Number : A_BasicObject
 		val isIntMethod = staticMethod(
 			A_Number::class.java,
 			::isIntStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1337,9 +1340,9 @@ interface A_Number : A_BasicObject
 		val equalsIntMethod = staticMethod(
 			A_Number::class.java,
 			::equalsIntStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1350,7 +1353,7 @@ interface A_Number : A_BasicObject
 		val isDoubleMethod = staticMethod(
 			A_Number::class.java,
 			::isDoubleStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java)
 
 		// Numeric comparison operations:
@@ -1369,7 +1372,7 @@ interface A_Number : A_BasicObject
 		val numericLessThanMethod = staticMethod(
 			A_Number::class.java,
 			::numericLessThanStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1387,7 +1390,7 @@ interface A_Number : A_BasicObject
 		val numericLessOrEqualMethod = staticMethod(
 			A_Number::class.java,
 			::numericLessOrEqualStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1405,7 +1408,7 @@ interface A_Number : A_BasicObject
 		val numericGreaterThanMethod = staticMethod(
 			A_Number::class.java,
 			::numericGreaterThanStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1423,7 +1426,7 @@ interface A_Number : A_BasicObject
 		val numericGreaterOrEqualMethod = staticMethod(
 			A_Number::class.java,
 			::numericGreaterOrEqualStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1441,7 +1444,7 @@ interface A_Number : A_BasicObject
 		val numericEqualMethod = staticMethod(
 			A_Number::class.java,
 			::numericEqualStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1459,7 +1462,7 @@ interface A_Number : A_BasicObject
 		val numericNotEqualMethod = staticMethod(
 			A_Number::class.java,
 			::numericNotEqualStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			AvailObject::class.java)
 	}

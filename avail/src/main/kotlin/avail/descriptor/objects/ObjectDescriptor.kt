@@ -97,6 +97,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.dispatch.LookupTree
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.CheckedMethod
@@ -680,7 +681,7 @@ class ObjectDescriptor internal constructor(
 			::setField.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_BasicObject::class.java)
 
 		/**
@@ -793,7 +794,7 @@ class ObjectDescriptor internal constructor(
 		val staticObjectVariantIdMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::staticObjectVariantId.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 	}
 }

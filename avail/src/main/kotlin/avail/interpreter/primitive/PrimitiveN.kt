@@ -37,6 +37,8 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
 import avail.optimizer.StackReifier
+import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * A [Primitive] taking an unknown number of arguments in an [Array].
@@ -66,6 +68,7 @@ constructor(
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
+	@ReferencedInGeneratedCode
 	abstract fun Interpreter.attemptN(
 		args: Array<AvailObject>
 	): A_BasicObject?
@@ -74,5 +77,16 @@ constructor(
 	{
 		val args = interpreter.argsBuffer
 		return interpreter.attemptN(args.toTypedArray())
+	}
+
+	companion object
+	{
+		/** The method [attemptN]. */
+		val attemptNMethod = instanceMethod(
+			PrimitiveN::class.java,
+			"attemptN",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			Array<AvailObject>::class.java)
 	}
 }

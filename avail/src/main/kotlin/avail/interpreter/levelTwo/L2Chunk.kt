@@ -518,8 +518,8 @@ abstract class L2Chunk protected constructor(
 		 * interpreter during periodic polling, atomically decrease its
 		 * countdown by this amount, avoiding going below one (`1`).
 		 *
-		 * This temporal signal should be more effective at deciding what to
-		 * optimize than just counting the number of times the code is called.
+		 * This temporal signal is more effective at deciding what to optimize
+		 * than just counting the number of times the code is called.
 		 */
 		const val decrementForPolledActiveCode: Long = 100
 

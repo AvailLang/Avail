@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 
 plugins {
-	kotlin("jvm") version "2.3.10"
+	kotlin("jvm") version "2.4.0"
 	`maven-publish`
 	publishing
 	signing
@@ -21,9 +21,9 @@ repositories {
 	mavenCentral()
 }
 
-val targetJvm = JvmTarget.JVM_25
+val targetJvm = JvmTarget.JVM_26
 
-val kotlinVersion = KotlinVersion.KOTLIN_2_3
+val kotlinVersion = KotlinVersion.KOTLIN_2_4
 
 java {
 	toolchain {

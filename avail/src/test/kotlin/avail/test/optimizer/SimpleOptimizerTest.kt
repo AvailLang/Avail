@@ -354,6 +354,12 @@ class SimpleOptimizerTest
 			L1_doPushLocal(1)
 			call("_'s⁇genuine lower bound", extendedIntegers)
 		}
+		helper.defineMethod("⌊_⌋", bottom) {
+			argumentTypes(bottomMeta)
+			L1_doPushLocal(1)
+			call("Crash:_", bottom)
+		}
+
 		helper.defineMethod("⌊_⌋is inclusive", booleanType) {
 			argumentTypes(extendedIntegersMeta)
 			pushLiteral(stringFrom("\"⌊_⌋is inclusive\" is a stub."))
@@ -736,10 +742,10 @@ class SimpleOptimizerTest
 			val sites =
 				createOuter(variableTypeFor(zeroOrMoreOf(formatSiteType)))
 
-			assertEquals(declareName("closeDelimiter"), closeDelimiter)
-			assertEquals(declareName("interpType"), interpType)
-			assertEquals(declareName("start"), start)
-			assertEquals(declareName("varName"), varName)
+			assertEquals(closeDelimiter, declareName("closeDelimiter"))
+			assertEquals(interpType, declareName("interpType"))
+			assertEquals(start, declareName("start"))
+			assertEquals(varName, declareName("varName"))
 			declareName("index")
 			declareName("template")
 			declareName("sites")
@@ -2774,6 +2780,25 @@ class SimpleOptimizerTest
 			L1Ext_doPushLabel()
 			pushLiteral(tuple(two))
 			call("Restart_with_", bottom)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * The initial translation of Method "_×_" in Math.avail (line ~504) had a
+	 * lookup of the floor function (⌊a⌋) that failed translation to L2.  This
+	 * is a greatly reduced version of just the initial instructions.
+	 *
+	 */
+	@Test
+	fun testMultiplyIntegralTypes()
+	{
+		val rawFunction = helper.rawFunction(extendedIntegers) {
+			argumentTypes(extendedIntegersMeta)
+			val a = declareName("a")
+			L1_doPushLastLocal(a)
+			call("⌊_⌋", extendedIntegers)
 		}
 
 		helper.testOptimize(rawFunction)

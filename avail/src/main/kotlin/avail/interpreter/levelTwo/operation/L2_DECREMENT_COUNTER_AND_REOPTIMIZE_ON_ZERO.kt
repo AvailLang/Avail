@@ -35,6 +35,8 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.countdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
+import avail.interpreter.JavaLibrary.boolean
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
@@ -131,8 +133,8 @@ constructor(
 		private val decrementMethod = staticMethod(
 			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
 			::decrement.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			Interpreter::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 	}
 }

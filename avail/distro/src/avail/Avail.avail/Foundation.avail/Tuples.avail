@@ -1161,7 +1161,7 @@ Method "map and filter_by_" is
 			|
 				If ¬hasAlreadyKept then
 				[
-					theResult ?= eject theResult ++ <transformed>;
+					theResult ++= <transformed>;
 					hasAlreadyKept := true;
 				];
 			]

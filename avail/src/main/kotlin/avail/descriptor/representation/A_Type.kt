@@ -59,6 +59,8 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.boolean
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -1113,7 +1115,7 @@ interface A_Type : A_BasicObject
 		val isSubtypeOfMethod = staticMethod(
 			A_Type::class.java,
 			::isSubtypeOfStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			AvailObject::class.java,
 			A_Type::class.java)
 
@@ -1128,7 +1130,7 @@ interface A_Type : A_BasicObject
 			::typeAtIndexStatic.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic

@@ -65,6 +65,7 @@ import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -99,7 +100,8 @@ import kotlin.math.min
  */
 class ByteStringDescriptor private constructor(
 	mutability: Mutability,
-	private val unusedBytesOfLastLong: Int) : StringDescriptor(
+	private val unusedBytesOfLastLong: Int
+) : StringDescriptor(
 		mutability, null, IntegerSlots::class.java)
 {
 	/**
@@ -798,7 +800,7 @@ class ByteStringDescriptor private constructor(
 			ByteStringDescriptor::class.java,
 			::createUninitializedByteString.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * The [ByteStringDescriptor] instances.  Each [Array] is indexed by the

@@ -40,13 +40,19 @@ import avail.descriptor.representation.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.representation.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.representation.A_Continuation.Companion.replacingCaller
 import avail.descriptor.representation.AvailObject
+import avail.interpreter.JavaLibrary.void
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
+import avail.interpreter.execution.Interpreter.Companion.debugL2
+import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.execution.Interpreter.Companion.traceL2
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import avail.optimizer.jvm.JVMTranslator.Companion.emptyArrayOfObject
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import java.util.ArrayDeque
 import java.util.Deque
+import java.util.logging.Level
 
 /**
  * The level two execution machinery allows limited use of the Java stack during
@@ -119,7 +125,7 @@ class StackReifier constructor(
 	 * generated and pushed onto the [Interpreter.setReifiedContinuation].
 	 */
 	private val actionStack:
-			Deque<Interpreter.(A_Continuation) -> A_Continuation> =
+			Deque<Interpreter.() -> Unit> =
 		ArrayDeque()
 
 	/** The [System.nanoTime] when this stack reifier was created. */
@@ -134,12 +140,29 @@ class StackReifier constructor(
 	 */
 	fun runActions(interpreter: Interpreter)
 	{
+		if (debugL2)
+		{
+			log(
+				currentInterpreter.fiberOrNull(),
+				Interpreter.loggerDebugL2,
+				// Force logging when the switches are enabled.
+				Level.SEVERE,
+				"\nvvvvvv Starting runActions to build continuations")
+		}
 		while (!actionStack.isEmpty())
 		{
 			interpreter.run {
-				setReifiedContinuation(
-					actionStack.removeLast()(getReifiedContinuation()!!))
+				actionStack.removeLast()()
 			}
+		}
+		if (debugL2)
+		{
+			log(
+				currentInterpreter.fiberOrNull(),
+				Interpreter.loggerDebugL2,
+				// Force logging when the switches are enabled.
+				Level.SEVERE,
+				"^^^^^^ Completed runActions to build continuations\n")
 		}
 	}
 
@@ -150,7 +173,7 @@ class StackReifier constructor(
 	 * @param action
 	 *   The lambda to push.
 	 */
-	fun pushAction(action: Interpreter.(A_Continuation) -> A_Continuation)
+	fun pushAction(action: Interpreter.() -> Unit)
 	{
 		actionStack.addLast(action)
 	}
@@ -163,19 +186,17 @@ class StackReifier constructor(
 	 * normally – i.e., it must not trigger more reifications, or try to fall
 	 * back to the default chunk.
 	 *
-	 * The code in the dummy continuation will restore register state, pop
-	 * the dummy continuation, and then assemble and push whatever new
+	 * The code in the dummy continuation will restore register state, pop the
+	 * dummy continuation, and then assemble and push whatever new
 	 * continuation(s) are needed to make the stack reflect some new state,
 	 * prior to running any previously pushed actions.
 	 *
 	 * @param dummyContinuation
 	 *   A mutable continuation to add to the stack when more recently pushed
 	 *   actions have completed (thereby fully reifying the caller).
-	 * @return
-	 *   The receiver (a `StackReifier`), as a convenience.
 	 */
 	@ReferencedInGeneratedCode
-	fun pushContinuationAction(dummyContinuation: AvailObject): StackReifier
+	fun pushContinuationAction(dummyContinuation: AvailObject): Unit
 	{
 		assert(dummyContinuation.caller.isNil)
 		actionStack.addLast {
@@ -186,13 +207,16 @@ class StackReifier constructor(
 					this,
 					dummyContinuation.levelTwoOffset,
 					"Starting a reifier action",
-					emptyArray())
+					emptyArrayOfObject)
 			}
 			// The call stack reflects what the dummyContinuation expects to
 			// see reified so far.  Push the dummyContinuation.
-			val newDummy = dummyContinuation.replacingCaller(it)
+			val newDummy =
+				dummyContinuation.replacingCaller(getReifiedContinuation()!!)
+			setReifiedContinuation(newDummy)
 			// Now run it, which will pop itself and push anything that it
 			// is supposed to.
+
 			function = newDummy.function
 			chunk = newDummy.levelTwoChunk
 			setOffset(newDummy.levelTwoOffset)
@@ -210,11 +234,9 @@ class StackReifier constructor(
 					dummyContinuation.levelTwoOffset,
 					"Finished a reifier action (offset is for "
 						+ "instruction that queued it)",
-					emptyArray())
+					emptyArrayOfObject)
 			}
-			newDummy
 		}
-		return this
 	}
 
 	/**
@@ -237,7 +259,7 @@ class StackReifier constructor(
 		val pushContinuationActionMethod = instanceMethod(
 			StackReifier::class.java,
 			StackReifier::pushContinuationAction.name,
-			StackReifier::class.java,
+			void,
 			AvailObject::class.java)
 	}
 }

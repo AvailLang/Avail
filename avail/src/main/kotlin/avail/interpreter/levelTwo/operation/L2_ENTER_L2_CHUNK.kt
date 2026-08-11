@@ -37,6 +37,7 @@ import avail.descriptor.representation.A_RegisterDump.Companion.extractDumpedObj
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.interpreterRunChunkMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -91,16 +92,18 @@ constructor(
 		if (entryPointOffsetInDefaultChunk.value !=
 			DefaultEntryPoint.TRANSIENT.offset)
 		{
-			// :: if (!checkValidity()) {
+			// :: if (checkValidity()) {
 			loadInterpreter()
 			intConstant(entryPointOffsetInDefaultChunk.value)
 			generateCall(Interpreter.checkValidityMethod)
 			val isValidLabel = Label()
 			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
-			// ::    return null;
-			method.visitInsn(Opcodes.ACONST_NULL)
+			// ::    return interpreter.runChunk()
+			loadInterpreter()
+			generateCall(interpreterRunChunkMethod)
 			method.visitInsn(Opcodes.ARETURN)
-			// :: }
+
+			// Happy path, chunk is still valid.
 			method.visitLabel(isValidLabel)
 		}
 
@@ -120,20 +123,24 @@ constructor(
 			{
 				// Extract the register dump from the current continuation.
 				loadInterpreter()
-				generateCall(Interpreter.popContinuationMethod)
+				// :: [interpreter]
+				generateCall(Interpreter.getReifiedContinuationMethod)
+				// :: [continuation]
 				generateCall(AvailObject.registerDumpMethod)
+				// :: [registerDump]
 				// Stack now has the registerDump.
 				for (i in 0 until boxedCount)
 				{
 					if (--countdown > 0)
 					{
 						method.visitInsn(Opcodes.DUP)
-						// Stack has two registerDumps if needed.
+						// :: [registerDump, registerDump]
 					}
 					intConstant(i + 1) //one-based
 					generateCall(extractDumpedObjectAtMethod)
 					method.visitVarInsn(
 						BOXED_KIND.jvmStoreInstruction, boxedList[i])
+					// :: [registerDump], or [] on last use
 				}
 				var i = 1  //one-based
 				for (intRegisterIndex in intsList)
@@ -141,30 +148,40 @@ constructor(
 					if (--countdown > 0)
 					{
 						method.visitInsn(Opcodes.DUP)
-						// Stack has two registerDumps if needed.
+						// :: [registerDump, registerDump]
 					}
 					intConstant(i++) //one-based
 					generateCall(extractDumpedLongAtMethod)
 					method.visitInsn(Opcodes.L2I)
 					method.visitVarInsn(
 						INTEGER_KIND.jvmStoreInstruction, intRegisterIndex)
+					// :: [registerDump], or [] on last use
 				}
 				for (floatRegisterIndex in floatsList)
 				{
 					if (--countdown > 0)
 					{
 						method.visitInsn(Opcodes.DUP)
-						// Stack has two registerDumps if needed.
+						// :: [registerDump, registerDump]
 					}
 					intConstant(i++) //one-based
 					generateCall(extractDumpedLongAtMethod)
 					generateCall(bitCastLongToDoubleMethod)
 					method.visitVarInsn(
 						FLOAT_KIND.jvmStoreInstruction, floatRegisterIndex)
+					// :: [registerDump], or [] on last use
 				}
 				assert(countdown == 0)
 				// The last copy of registerDumps was popped.
+				// :: []
 			}
 		}
+		// :: interpreter.popContinuation();
+		loadInterpreter()
+		// :: [interpreter]
+		generateCall(Interpreter.popContinuationMethod)
+		// :: [poppedContinuation]
+		method.visitInsn(Opcodes.POP)
+		// :: []
 	}
 }

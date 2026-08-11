@@ -117,6 +117,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
@@ -1215,7 +1216,7 @@ class ObjectTypeDescriptor internal constructor(
 		val staticObjectTypeVariantIdMethod = CheckedMethod.staticMethod(
 			ObjectTypeDescriptor::class.java,
 			::staticObjectTypeVariantId.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 	}
 }

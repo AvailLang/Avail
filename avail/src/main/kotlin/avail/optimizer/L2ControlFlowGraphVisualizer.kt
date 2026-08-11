@@ -46,6 +46,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -677,9 +678,9 @@ class L2ControlFlowGraphVisualizer constructor(
 
 		// Check if we should show the manifest label for this edge
 		val showManifest = filter.shouldShowEdgeManifest(edge)
-		val edgeLabel = when
-		{
-			showManifest -> buildString {
+		val edgeLabel = buildString {
+			if (showManifest)
+			{
 				tag(
 					"table",
 					"border" to "0",
@@ -698,7 +699,20 @@ class L2ControlFlowGraphVisualizer constructor(
 								}
 							}
 							append("<br/>")
-
+							val targetInstruction =
+								targetBlock.instructions().firstOrNull()
+							if (targetInstruction is L2_ENTER_L2_CHUNK)
+							{
+								edge.sometimesLiveInEntities?.let {
+									val savedString = it
+										.filterIsInstance<L2Register<*>>()
+										.sortedBy(L2Register<*>::finalIndex)
+										.distinct()
+										.joinToString(", ", "live=[", "]")
+									append(escape(savedString))
+									append("<br/>")
+								}
+							}
 							if ((visualizeLiveness || visualizeManifest)
 								&& edge.forcedClampedEntities !== null)
 							{
@@ -781,7 +795,6 @@ class L2ControlFlowGraphVisualizer constructor(
 					}
 				}
 			}
-			else -> "" // Empty label when not showing manifest
 		}
 		try
 		{

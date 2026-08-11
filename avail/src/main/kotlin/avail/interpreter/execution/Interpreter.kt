@@ -58,6 +58,7 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.createElidedV
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
+import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Bundle.Companion.message
@@ -88,6 +89,7 @@ import avail.descriptor.representation.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.representation.A_Fiber.Companion.traceFlag
 import avail.descriptor.representation.A_Fiber.Companion.uniqueId
 import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Map.Companion.mapIterable
 import avail.descriptor.representation.A_Map.Companion.mapSize
 import avail.descriptor.representation.A_Module
 import avail.descriptor.representation.A_Module.Companion.moduleName
@@ -110,12 +112,15 @@ import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestr
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Variable
+import avail.descriptor.representation.A_Variable.Companion.isPlaceholderVariable
 import avail.descriptor.representation.A_Variable.Companion.value
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.DebugRenderer
+import avail.descriptor.representation.IndirectionDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor
@@ -127,9 +132,13 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode
+import avail.interpreter.JavaLibrary.boolean
+import avail.interpreter.JavaLibrary.int
+import avail.interpreter.JavaLibrary.long
+import avail.interpreter.JavaLibrary.void
+import avail.interpreter.execution.Interpreter.Companion.debugIntoFiberDebugLog
 import avail.interpreter.execution.Interpreter.Companion.maxUnreifiedCallDepth
 import avail.interpreter.execution.Interpreter.Companion.timeSliceTicks
-import avail.interpreter.execution.Interpreter.Companion.traceL2
 import avail.interpreter.execution.Interpreter.SuspendedPrimitiveHelper.Completed
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
@@ -181,7 +190,6 @@ import java.util.function.Supplier
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.min
-import kotlin.reflect.jvm.javaGetter
 
 /**
  * This class is used to execute [Level&#32;Two&#32;code][L2Chunk], which is a
@@ -1527,12 +1535,13 @@ final class Interpreter(
 					name = when (val prim = code.codePrimitive())
 					{
 						null -> name
-						P_CatchException ->
+						P_CatchException if (continuation.pc != -1) ->
 						{
 							val guard = continuation.frameAt(
 								P_CatchException.slotIndexOfGuardVariable)
 							val guardValue = when
 							{
+								guard.isPlaceholderVariable() -> "(elided)"
 								guard.isInstanceOfKind(mostGeneralVariableType)
 									-> guard.value().toString()
 								else -> "unknown"
@@ -1550,7 +1559,7 @@ final class Interpreter(
 						continuation.levelTwoChunk == DefaultL1Chunk ->
 							"(L1) pc=$pc of $name"
 						else ->
-							"(L2) pc=$pc of $name"
+							"(L2) off=$off pc=$pc of $name"
 					}
 				}
 			}
@@ -1558,7 +1567,7 @@ final class Interpreter(
 				(chunk?.executableChunk ?: DefaultL1ExecutableChunk),
 				this,
 				off,
-				"Set continuation = ",
+				"Set continuation",
 				arrayOf(text))
 		}
 	}
@@ -1610,9 +1619,8 @@ final class Interpreter(
 			(chunk?.executableChunk ?: DefaultL1ExecutableChunk),
 			this,
 			-100000,
-			"POPPING CONTINUATION from:",
-			arrayOf(text)
-		)
+			"POPPING CONTINUATION from",
+			arrayOf(text))
 	}
 
 	/**
@@ -1732,21 +1740,19 @@ final class Interpreter(
 	 * @return
 	 *   `true` if an interrupt is pending, `false` otherwise.
 	 */
-	@get:ReferencedInGeneratedCode
-	@get:JvmName("statisticForRequestedInterrupt")
-	val statisticForRequestedInterrupt: Statistic?
-		get() = when
-		{
-			runtime.safePointRequested ->
-				safePointInterruptStatistic
-			unreifiedCallDepth > maxUnreifiedCallDepth ->
-				callDepthInterruptStatistic
-			runtime.clock.get() - startTick >= timeSliceTicks ->
-				timeSliceInterruptStatistic
-			fiber().interruptRequestFlag(REIFICATION_REQUESTED) ->
-				reificationRequestedFromOtherFiberStatistic
-			else -> null
-		}
+	@ReferencedInGeneratedCode
+	fun statisticForRequestedInterrupt(): Statistic? = when
+	{
+		runtime.safePointRequested ->
+			safePointInterruptStatistic
+		unreifiedCallDepth > maxUnreifiedCallDepth ->
+			callDepthInterruptStatistic
+		runtime.clock.get() - startTick >= timeSliceTicks ->
+			timeSliceInterruptStatistic
+		fiber().interruptRequestFlag(REIFICATION_REQUESTED) ->
+			reificationRequestedFromOtherFiberStatistic
+		else -> null
+	}
 
 	/**
 	 * The current [fiber] has been asked to temporarily cease running for an
@@ -1826,6 +1832,15 @@ final class Interpreter(
 		chunk!!.isValid && debugger == null -> true
 		else ->
 		{
+			if (debugL2)
+			{
+				traceL2(
+					chunk!!.executableChunk,
+					this,
+					offset,
+					"Chunk was found to be invalidated.  Fallback L1 offset is",
+					arrayOf(offsetInDefaultChunkIfInvalid))
+			}
 			theReifiedContinuation!!.run {
 				if (notNil) createElidedVariables()
 			}
@@ -1870,51 +1885,79 @@ final class Interpreter(
 	}
 
 	/**
-	 * Answer a [StackReifier] which can be used for reifying the current stack
-	 * by returning it out to the [run] loop.  When it reaches there, a lambda
-	 * embedded in this reifier will run, performing an action suitable to the
-	 * provided flags.
+	 * Create a [StackReifier] and store it in [currentReifier].  Returning
+	 * `null` out to the [run] loop allows the intervening JVM frames to add
+	 * lambdas to the reifie to construct the stack of [A_Continuation]s.  When
+	 * the null returns read the [run] loop, another lambda embedded in this
+	 * reifier will run, allowing the top captured continuation to continue
+	 * running.
 	 *
-	 * @param processInterrupt
-	 *   Whether a pending interrupt should be processed after reification.
 	 * @param statistic
 	 *   A [Statistic] to record when a reification happens.
-	 * @return
-	 *   The new [StackReifier].
 	 */
 	@ReferencedInGeneratedCode
 	fun reify(
-		processInterrupt: Boolean,
 		statistic: Statistic
-	): StackReifier = when
+	): Unit
 	{
-		processInterrupt ->
-		{
-			// Reify-and-interrupt.
-			StackReifier(true, statistic) {
-				processInterrupt(getReifiedContinuation()!!)
-				CONTINUE_FIBER
-			}
-		}
-		else ->
-		{
-			// Capture the interpreter's state, reify the frames, and as an
-			// after-reification action, restore the interpreter's state.
-			val savedFunction = function!!
-			val newReturnValue = latestResultOrNull()
+		// Capture the interpreter's state, reify the frames, and as an
+		// after-reification action, restore the interpreter's state.
+		val savedFunction = function!!
+		val newReturnValue = latestResultOrNull()
 
-			// Reify-and-continue.  The current frame is also reified.
-			StackReifier(true, statistic) {
-				val continuation = getReifiedContinuation()!!
-				function = savedFunction
-				chunk = continuation.levelTwoChunk
-				offset = continuation.levelTwoOffset
-				newReturnValue ?: clearLatestResult()
-				newReturnValue?.let(::setLatestResult)
-				// Return into the Interpreter's run loop.
-				CONTINUE_FIBER
-			}
+		// Reify-and-continue.  The current frame is also reified.
+		currentReifier = StackReifier(true, statistic) {
+			val continuation = getReifiedContinuation()!!
+			function = savedFunction
+			chunk = continuation.levelTwoChunk
+			offset = continuation.levelTwoOffset
+			newReturnValue ?: clearLatestResult()
+			newReturnValue?.let(::setLatestResult)
+			// Return into the Interpreter's run loop.
+			CONTINUE_FIBER
 		}
+	}
+
+	/**
+	 * If no interrupt has been requested, answer false and return immediately,
+	 * to skip interrupt processing.
+	 *
+	 * Otherwise, an interrupt has been requested, so answer true after creating
+	 * a suitable [StackReifier].  The generated L2 JVM code should then push an
+	 * action into the reifier to capture the register state, to be popped back
+	 * into the registers upon resumption, which happens as soon as the
+	 * reified stack is complete.  This action runs last, allowing the actual
+	 * (L1-precise, L2-capable) top frame to be constructed and pushed onto the
+	 * continuation chain by actual L2 instructions.
+	 *
+	 * @return
+	 *   Whether reification for an interrupt was requested and set up in
+	 *   [currentReifier].
+	 */
+	@ReferencedInGeneratedCode
+	fun reifyIfInterrupt(): Boolean
+	{
+		// Capture the interpreter's state, reify the frames, and as an
+		// after-reification action, restore the interpreter's state.
+		val savedFunction = function!!
+
+		val statistic = statisticForRequestedInterrupt() ?: return false
+		// An interrupt was requested.  Start a reification.  The calling code
+		// is responsible for following up with a push of an actian that
+		// preserves necessary registers, since we can't just pass them all in
+		// here.  The action uses a "dummy" continuation that can't become
+		// invaid before being continued as part of the reification process, so
+		// it doesn't need to specifically preserve a valid L1 state.
+		currentReifier = StackReifier(true, statistic) {
+			val continuation = getReifiedContinuation()!!
+			assert(continuation.function.equals(savedFunction))
+			function = savedFunction
+			chunk = continuation.levelTwoChunk
+			offset = continuation.levelTwoOffset
+			processInterrupt(getReifiedContinuation()!!)
+			SWITCH_FROM_FIBER
+		}
+		return true
 	}
 
 	/**
@@ -1939,10 +1982,8 @@ final class Interpreter(
 			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
 		) {
 			val whichFunction = continuation.function
-			val numArgs = whichFunction.code().numArgs()
 			argsBuffer.clear()
 			argsBuffer.addAll(arguments)
-			assert(argsBuffer.size == numArgs)
 			setReifiedContinuation(continuation.caller)
 			function = whichFunction
 			chunk = continuation.levelTwoChunk
@@ -2065,6 +2106,86 @@ final class Interpreter(
 	}
 
 	/**
+	 * Prepare to run a [function][A_Function] invocation with four arguments.
+	 *
+	 * @param calledFunction
+	 *   The function to call.
+	 * @param arg1
+	 *   The first argument to the function.
+	 * @param arg2
+	 *   The second argument to the function.
+	 * @param arg3
+	 *   The third argument to the function.
+	 * @param arg4
+	 *   The fourth argument to the function.
+	 * @return
+	 *   The calling [A_Function]
+	 */
+	@ReferencedInGeneratedCode
+	fun preinvoke4(
+		calledFunction: A_Function,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject
+	): AvailObject
+	{
+		val savedFunction = function!! as AvailObject
+		argsBuffer.clear()
+		argsBuffer.add(arg1)
+		argsBuffer.add(arg2)
+		argsBuffer.add(arg3)
+		argsBuffer.add(arg4)
+		function = calledFunction
+		chunk = calledFunction.code().startingChunk
+		offset = 0
+		adjustUnreifiedCallDepthBy(1)
+		return savedFunction
+	}
+
+	/**
+	 * Prepare to run a [function][A_Function] invocation with five arguments.
+	 *
+	 * @param calledFunction
+	 *   The function to call.
+	 * @param arg1
+	 *   The first argument to the function.
+	 * @param arg2
+	 *   The second argument to the function.
+	 * @param arg3
+	 *   The third argument to the function.
+	 * @param arg4
+	 *   The fourth argument to the function.
+	 * @param arg5
+	 *   The fifth argument to the function.
+	 * @return
+	 *   The calling [A_Function]
+	 */
+	@ReferencedInGeneratedCode
+	fun preinvoke5(
+		calledFunction: A_Function,
+		arg1: AvailObject,
+		arg2: AvailObject,
+		arg3: AvailObject,
+		arg4: AvailObject,
+		arg5: AvailObject
+	): AvailObject
+	{
+		val savedFunction = function!! as AvailObject
+		argsBuffer.clear()
+		argsBuffer.add(arg1)
+		argsBuffer.add(arg2)
+		argsBuffer.add(arg3)
+		argsBuffer.add(arg4)
+		argsBuffer.add(arg5)
+		function = calledFunction
+		chunk = calledFunction.code().startingChunk
+		offset = 0
+		adjustUnreifiedCallDepthBy(1)
+		return savedFunction
+	}
+
+	/**
 	 * Prepare to run a [function][A_Function] invocation with an array of
 	 * arguments.
 	 *
@@ -2099,22 +2220,23 @@ final class Interpreter(
 	 *   The chunk to return into.
 	 * @param callingFunction
 	 *   The function to return into.
-	 * @param reifier
-	 *   The [StackReifier] produced by the call, if any.
+	 * @param result
+	 *   The [A_BasicObject] produced by the call, or `null` if reification was
+	 *   started.
 	 * @return
-	 *   The given [StackReifier], if any.
+	 *   The passed [result], as a convenience.
 	 */
 	@ReferencedInGeneratedCode
 	fun postinvoke(
 		callingChunk: L2Chunk,
 		callingFunction: A_Function,
-		reifier: StackReifier?
-	): StackReifier?
+		result: A_BasicObject?
+	): A_BasicObject?
 	{
 		chunk = callingChunk
 		function = callingFunction
 		adjustUnreifiedCallDepthBy(-1)
-		return reifier
+		return result
 	}
 
 	/**
@@ -2452,16 +2574,17 @@ final class Interpreter(
 		// Assemble a (non-resumable) stack frame for the reifier.
 		val reifier = currentReifier!!
 		reifier.pushAction {
-			createContinuationWithFrame(
-				callerFunction,
-				it,
-				emptyRegisterDump(UNREACHABLE_ENTRY.offset),
-				pc,
-				stackp,
-				DefaultL1Chunk,
-				UNREACHABLE_ENTRY.offset,
-				listOf(*slots),
-				0)
+			setReifiedContinuation(
+				createContinuationWithFrame(
+					callerFunction,
+					getReifiedContinuation()!!,
+					emptyRegisterDump(UNREACHABLE_ENTRY.offset),
+					pc,
+					stackp,
+					DefaultL1Chunk,
+					UNREACHABLE_ENTRY.offset,
+					listOf(*slots),
+					0))
 		}
 		return null
 	}
@@ -2556,6 +2679,12 @@ final class Interpreter(
 		var debugPrimitives = false
 
 		/**
+		 * Whether L2 should generate JVM instructions to track statistics for
+		 * inlined infallible primitive invocations.
+		 */
+		var trackInlineInfalliblePrimitives = false
+
+		/**
 		 * Whether to print detailed debug information related to compiler/lexer
 		 * work unit tracking.
 		 */
@@ -2619,7 +2748,8 @@ final class Interpreter(
 
 		/**
 		 * The approximate maximum number of bytes to log per fiber before
-		 * throwing away the earliest 25%.
+		 * throwing away the earliest 25%.  Only applies when
+		 * [debugIntoFiberDebugLog] is true.
 		 */
 		private const val maxFiberLogLength = 250_000
 
@@ -2736,23 +2866,24 @@ final class Interpreter(
 					// Ignore the bit of logging not tied to a specific fiber.
 					return
 				}
-				val builder = StringBuilder()
-				builder.append(
-					when
-					{
-						runningFiber !== null ->
-							String.format("%6d ", runningFiber.uniqueId)
-						else -> "?????? "
-					})
-				builder.append("→ ")
-				builder.append(
-					when
-					{
-						affectedFiber !== null ->
-							String.format("%6d ", affectedFiber.uniqueId)
-						else -> "?????? "
-					})
-				logger.log(level, builder.toString() + message, arguments)
+				val string = buildString {
+					append(
+						when
+						{
+							runningFiber !== null ->
+								String.format("%6d ", runningFiber.uniqueId)
+							else -> "?????? "
+						})
+					append("→ ")
+					append(
+						when
+						{
+							affectedFiber !== null ->
+								String.format("%6d ", affectedFiber.uniqueId)
+							else -> "?????? "
+						})
+				}
+				logger.log(level, string + message, arguments)
 			}
 		}
 
@@ -2781,99 +2912,139 @@ final class Interpreter(
 			description: String,
 			readValues: Array<Any>)
 		{
-			if (debugL2)
+			if (debugL2 && loggerDebugL2.isLoggable(Level.SEVERE))
 			{
-				if (mainLogger.isLoggable(Level.SEVERE))
-				{
-					val str = buildString {
-						append("[")
-						append(interpreter.interpreterIndex)
-						append("] L2 = ")
-						append(offset)
-						append(" of ")
-						append(executableChunk.name())
-						append(" ")
-						append(description)
+				val str = buildString {
+					append("[")
+					append(interpreter.interpreterIndex)
+					append("] L2 = ")
+					append(offset)
+					append(" of ")
+					append(executableChunk.name())
+					append(" ")
+					append(description)
+					if (readValues.isNotEmpty())
+					{
 						readValues.joinTo(
-							this@buildString, ", ", "[", "]"
+							this@buildString, ", ", ": [", "]"
 						) {
-							shortDebugString(it)
+							shortDebugString(it, 3)
 						}
 					}
-					val fiber = currentInterpreter.fiberOrNull()
-					log(
-						fiber,
-						mainLogger,
-						// Force logging when the switches are enabled.
-						Level.SEVERE,
-						"{0}",
-						str)
 				}
+				val fiber = currentInterpreter.fiberOrNull()
+				log(
+					fiber,
+					loggerDebugL2,
+					// Force logging when the switches are enabled.
+					Level.SEVERE,
+					"{0}",
+					str)
 			}
 		}
 
 		/**
 		 * Produce a short string describing the given value for the debugLog.
 		 */
-		fun shortDebugString(value: Any): String = buildString {
-			when (value)
+		fun shortDebugString(
+			value: Any,
+			remainingDepth: Int
+		): String = buildString {
+			if (remainingDepth <= 0)
 			{
-				is AvailObject ->
-				{
-					when (value.descriptor)
+				append("***depth***")
+				return@buildString
+			}
+			val depth = remainingDepth - 1
+			if (value !is AvailObject)
+			{
+				append(value)
+				return@buildString
+			}
+			when (value.descriptor)
+			{
+				is IndirectionDescriptor -> {
+					append("Ind->")
+					// Allow the alloted depth for an indirection.
+					append(shortDebugString(value.traversed(), remainingDepth))
+				}
+
+				is RegisterDumpDescriptor -> {
+					append("a RegisterDump(")
+					append(value.objectSlotsCount())
+					append(" objs / ")
+					append(value.integerSlotsCount())
+					append(" ints)")
+				}
+
+				is VariableDescriptor -> {
+					append("a Variable (value = ")
+					append(shortDebugString(value.value(), depth))
+					append(")")
+				}
+
+				is ContinuationDescriptor -> {
+					append("a Continuation for ")
+					append(value.function.code().shortMethodName)
+				}
+
+				is FunctionDescriptor -> {
+					append("a Function ")
+					append(value.code().shortMethodName)
+				}
+
+				is CompiledCodeDescriptor -> {
+					append("a RawFunction ")
+					append(value.shortMethodName)
+				}
+
+				is TupleDescriptor -> {
+					if (value.isString)
 					{
-						is RegisterDumpDescriptor -> {
-							append("a RegisterDump(")
-							append(value.objectSlotsCount())
-							append(" objs / ")
-							append(value.integerSlotsCount())
-							append(" ints)")
-						}
-						is VariableDescriptor -> {
-							append("a Variable (value = ")
-							append(shortDebugString(value.value()))
-							append(")")
-						}
-						is ContinuationDescriptor -> {
-							append("a Continuation for ")
-							append(value.function.code().shortMethodName)
-						}
-						is FunctionDescriptor -> {
-							append("a Function ")
-							append(value.code().shortMethodName)
-						}
-						is CompiledCodeDescriptor -> {
-							append("a RawFunction ")
-							append(value.shortMethodName)
-						}
-						is TupleDescriptor -> {
-							if (value.isString)
-							{
-								quoteStringOn(
-									if (value.tupleSize < 50) value
-									else value
-										.copyStringFromToCanDestroy(
-											1, 50, false)
-										.appendCanDestroy(
-											fromCodePoint('…'.code),
-											true,
-											false)
-										as A_String)
-							}
-							else
-							{
-								value.joinTo(
-									this@buildString,
-									prefix = "<",
-									postfix = ">",
-									limit = 4,
-									transform = { shortDebugString(it) })
-							}
-						}
-						else -> append(value)
+						quoteStringOn(
+							if (value.tupleSize < 50) value
+							else value
+								.copyStringFromToCanDestroy(1, 50, false)
+								.appendCanDestroy(
+									fromCodePoint('…'.code),
+									true,
+									false)
+								as A_String)
+					}
+					else
+					{
+						value.joinTo(
+							this@buildString,
+							prefix = "<",
+							postfix = ">",
+							limit = 4,
+							transform = { shortDebugString(it, depth) })
 					}
 				}
-				else -> append(value)
+
+				is SetDescriptor -> {
+					value.joinTo(
+						this@buildString,
+						prefix = "{",
+						postfix = "}",
+						limit = 4,
+						transform = { shortDebugString(it, depth) })
+				}
+
+				is MapDescriptor -> {
+					value.mapIterable.joinTo(
+						this@buildString,
+						prefix = "{",
+						postfix = "}",
+						limit = 4,
+						transform = { (k, v) ->
+							shortDebugString(k, depth) +
+								"->" +
+								shortDebugString(v, depth)
+						})
+				}
+
+				else -> append(value.typeTag.shorterName)
 			}
 		}
 
@@ -2886,7 +3057,7 @@ final class Interpreter(
 			Void.TYPE,
 			ExecutableChunk::class.java,
 			Interpreter::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			String::class.java,
 			Any::class.java.arrayType())
 
@@ -2941,7 +3112,7 @@ final class Interpreter(
 		val callerIsReifiedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::callerIsReified.name,
-			Boolean::class.javaPrimitiveType!!)
+			boolean)
 
 		/** The [CheckedField] for [runtime]. */
 		val runtimeField: CheckedField = instanceField(
@@ -2978,7 +3149,7 @@ final class Interpreter(
 		val beforeAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::beforeAttemptPrimitive.name,
-			Long::class.javaPrimitiveType!!,
+			long,
 			Primitive::class.java)
 
 		/** The method [afterAttemptPrimitive]. */
@@ -2987,7 +3158,7 @@ final class Interpreter(
 			Interpreter::afterAttemptPrimitive.name,
 			A_BasicObject::class.java,
 			Primitive::class.java,
-			Long::class.javaPrimitiveType!!,
+			long,
 			A_BasicObject::class.java)
 
 		/** Access the [getReifiedContinuation] method. */
@@ -3031,7 +3202,7 @@ final class Interpreter(
 		val offsetField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::offset.name,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/** The [CheckedField] for the field [argsBuffer]. */
 		val argsBufferField: CheckedField = instanceField(
@@ -3053,15 +3224,15 @@ final class Interpreter(
 		/** Access the [statisticForRequestedInterrupt] method. */
 		val statisticForRequestedInterruptMethod = instanceMethod(
 			Interpreter::class.java,
-			Interpreter::statisticForRequestedInterrupt.javaGetter!!.name,
+			Interpreter::statisticForRequestedInterrupt.name,
 			Statistic::class.java)
 
 		/** A method to access [checkValidity]. */
 		val checkValidityMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::checkValidity.name,
-			Boolean::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!)
+			boolean,
+			int)
 
 		/**
 		 * The [CheckedMethod] for [reifierToRestart].
@@ -3076,9 +3247,14 @@ final class Interpreter(
 		val reifyMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reify.name,
-			StackReifier::class.java,
-			Boolean::class.javaPrimitiveType!!,
+			void,
 			Statistic::class.java)
+
+		/** The [CheckedMethod] for [reifyIfInterrupt]. */
+		val reifyIfInterruptMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::reifyIfInterrupt.name,
+			boolean)
 
 		/**
 		 * The [CheckedMethod] for [reifierToRestartWithArguments].
@@ -3129,6 +3305,33 @@ final class Interpreter(
 			AvailObject::class.java)
 
 		/**
+		 * Access the [preinvoke4] method.
+		 */
+		val preinvoke4Method = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::preinvoke4.name,
+			AvailObject::class.java,
+			A_Function::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/**
+		 * Access the [preinvoke5] method.
+		 */
+		val preinvoke5Method = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::preinvoke5.name,
+			AvailObject::class.java,
+			A_Function::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/**
 		 * Access the [preinvoke] method.
 		 */
 		val preinvokeMethod = instanceMethod(
@@ -3142,12 +3345,12 @@ final class Interpreter(
 		 * Access the [postinvoke] method.
 		 */
 		val postinvokeMethod = instanceMethod(
-			Interpreter::class.java,
-			Interpreter::postinvoke.name,
-			StackReifier::class.java,
+			receiverClass = Interpreter::class.java,
+			methodName = Interpreter::postinvoke.name,
+			returnClass = A_BasicObject::class.java,
 			L2Chunk::class.java,
 			A_Function::class.java,
-			StackReifier::class.java)
+			A_BasicObject::class.java)
 
 		/**
 		 * Access the [runChunk] method.
@@ -3176,8 +3379,8 @@ final class Interpreter(
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,
 			A_Type::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!,
+			int,
+			int,
 			Array<A_BasicObject>::class.java)
 
 		/**
@@ -3187,8 +3390,8 @@ final class Interpreter(
 			Interpreter::class.java,
 			Interpreter::fallBackToL1.name,
 			StackReifier::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!,
+			int,
+			int,
 			Array<A_BasicObject>::class.java)
 
 		/**

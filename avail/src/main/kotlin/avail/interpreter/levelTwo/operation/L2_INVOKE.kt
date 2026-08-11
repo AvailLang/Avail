@@ -49,17 +49,15 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.utility.cast
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes.DUP
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -195,7 +193,9 @@ class L2_INVOKE(
 			Interpreter.preinvoke0Method,
 			Interpreter.preinvoke1Method,
 			Interpreter.preinvoke2Method,
-			Interpreter.preinvoke3Method)
+			Interpreter.preinvoke3Method,
+			Interpreter.preinvoke4Method,
+			Interpreter.preinvoke5Method)
 
 		/**
 		 * Generate code to push the arguments and invoke.  This expects the stack
@@ -216,51 +216,45 @@ class L2_INVOKE(
 		 *   Where to jump if reification is requested during the call.
 		 */
 		fun JVMTranslator.generatePushArgumentsAndInvoke(
-			argsRegsList: List<L2ReadOperand<BOXED_KIND>>,
+			argsRegsList: List<L2ReadBoxedOperand>,
 			result: L2WriteBoxedOperand,
 			onNormalReturn: L2PcOperand,
 			onReification: L2PcOperand)
 		{
-			// :: caller set up [interpreter, callingChunk, interpreter, function]
+			// :: caller set up [interpreter, callingChunk, interpreter, fn]
 			val numArgs = argsRegsList.size
 			if (numArgs < preinvokeMethods.size)
 			{
 				argsRegsList.forEach { load(it) }
-				// :: [interpreter, callingChunk, interpreter, function, [args...]]
+				// :: [interpreter, callingChunk, interpreter, fn, [args...]]
 				generateCall(preinvokeMethods[numArgs])
 			}
 			else
 			{
-				objectArray(argsRegsList.cast(), AvailObject::class.java)
-				// :: [interpreter, callingChunk, interpreter, function, argsArray]
+				objectArray(argsRegsList, AvailObject::class.java)
+				// :: [interpreter, callingChunk, interpreter, fn, argsArray]
 				generateCall(Interpreter.preinvokeMethod)
 			}
 			// :: [interpreter, callingChunk, callingFunction]
 			loadInterpreter()
 			// :: [interpreter, callingChunk, callingFunction, interpreter]
 			generateCall(Interpreter.interpreterRunChunkMethod)
-			// :: [interpreter, callingChunk, callingFunction, reifier]
+			// :: [interpreter, callingChunk, callingFunction, valueOrNull]
 			generateCall(Interpreter.postinvokeMethod)
-			// :: [reifier]
-			method.visitVarInsn(Opcodes.ASTORE, reifierLocal())
-			// :: []
-			method.visitVarInsn(Opcodes.ALOAD, reifierLocal())
-			// :: if (reifier !== null) goto onReificationPreamble;
-			// :: result = interpreter.getLatestResult();
-			// :: goto onNormalReturn;
-			// :: onReificationPreamble: ...
-			val onReificationPreamble = Label()
-			method.visitJumpInsn(Opcodes.IFNONNULL, onReificationPreamble)
-
-			loadInterpreter()
-			// :: [interpreter]
-			generateCall(Interpreter.getLatestResultMethod)
-			// :: [latestResult]
+			// :: [valueOrNull]
+			method.visitInsn(DUP)
+			// :: [valueOrNull, valueOrNull]
+			val isReification = Label()
+			method.visitJumpInsn(Opcodes.IFNULL, isReification)
+			// :: [value]
 			store(result.register())
 			// :: []
 			jump(onNormalReturn)
 
-			method.visitLabel(onReificationPreamble)
+			method.visitLabel(isReification)
+			// :: [null]
+			method.visitInsn(Opcodes.POP)
+			// :: []
 			generateReificationPreamble(onReification)
 		}
 	}

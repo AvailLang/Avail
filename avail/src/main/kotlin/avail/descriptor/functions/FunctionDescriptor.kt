@@ -95,6 +95,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
@@ -470,7 +471,7 @@ class FunctionDescriptor private constructor(
 			::createExceptOuters.name,
 			AvailObject::class.java,
 			A_RawFunction::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Construct a function with the given code and one outer variable.
@@ -672,14 +673,14 @@ class FunctionDescriptor private constructor(
 			A_Function::class.java,
 			A_Function::outerVarAt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/** Access the [A_Function.outerVarAtPut] method. */
 		val outerVarAtPutMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::outerVarAtPut.name,
 			Void.TYPE,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		/**

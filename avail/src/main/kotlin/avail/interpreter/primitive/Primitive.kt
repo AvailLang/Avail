@@ -106,6 +106,7 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
+import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -120,7 +121,6 @@ import avail.performance.StatisticReport.PRIMITIVES
 import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.isNullOr
-import org.objectweb.asm.Opcodes.ARETURN
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.POP
 import java.io.BufferedReader
@@ -1434,74 +1434,12 @@ constructor(
 		return true
 	}
 
-	companion object
-	{
-		/**
-		 * Determine whether the specified primitive declaration is acceptable
-		 * to be used with the given list of parameter declarations.  Answer
-		 * null if they are acceptable, otherwise answer a suitable `String`
-		 * that is expected to appear after the prefix "Expecting...".
-		 *
-		 * @param primitive
-		 *   Which primitive.
-		 * @param arguments
-		 *   The argument declarations that we should check are legal for this
-		 *   primitive.
-		 * @return Whether the primitive accepts arguments with types that
-		 *   conform to the given argument declarations.
-		 */
-		fun validatePrimitiveAcceptsArguments(
-			primitive: Primitive,
-			arguments: List<A_Phrase>): String?
-		{
-			val expected = primitive.argCount
-			if (expected == -1) return null
-			if (arguments.size != expected)
-			{
-				return format(
-					"number of declared arguments (%d) to agree with " +
-						"primitive's required number of arguments (%d).",
-					arguments.size,
-					expected)
-			}
-			val expectedTypes = primitive.blockTypeRestriction().argsTupleType
-			assert(expectedTypes.sizeRange.upperBound.extractInt == expected)
-			val string = buildString {
-				for (i in 1 .. expected)
-				{
-					val declaredType = arguments[i - 1].declaredType
-					val expectedType = expectedTypes.typeAtIndex(i)
-					if (!declaredType.isSubtypeOf(expectedType))
-					{
-						if (isNotEmpty()) append("\n")
-						append(
-							format(
-								"argument #%d (%s) of primitive %s to be a " +
-									"subtype of %s, not %s.",
-								i,
-								arguments[i - 1].token.string(),
-								primitive.name,
-								expectedType,
-								declaredType))
-					}
-				}
-			}
-			return string.ifEmpty { null }
-		}
-
-		/** The method [attempt]. */
-		val attemptMethod = instanceMethod(
-			Primitive::class.java,
-			Primitive::attempt.name,
-			A_BasicObject::class.java,
-			Interpreter::class.java)
-	}
-
 	/**
-	 * Write a JVM invocation of this primitive.  This sets up the interpreter,
-	 * calls [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt],
-	 * calls [Interpreter.afterAttemptPrimitive], and records statistics as
-	 * needed. It also deals with primitive failures, and reifications.
+	 * Write a JVM invocation of this primitive, *under the assumption that the
+	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
+	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls
+	 * [Interpreter.afterAttemptPrimitive], and records statistics as needed. It
+	 * also deals with primitive failures, and reifications.
 	 *
 	 * Subclasses may do something more specific and efficient, and should be
 	 * free to neglect the statistics.  However, the [result] register must be
@@ -1513,9 +1451,42 @@ constructor(
 	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
 	 * @param result
 	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
-	 *   the primitive, if successful.
+	 *   the primitive.
 	 */
 	fun JVMTranslator.generateJvmCode(
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		if (Interpreter.trackInlineInfalliblePrimitives)
+		{
+			generateJvmCodeWithTracking(arguments, result)
+		}
+		else
+		{
+			generateJvmCodeWithoutTracking(arguments, result)
+		}
+	}
+
+	/**
+	 * Write a JVM invocation of this primitive, *under the assumption that the
+	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
+	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls
+	 * [Interpreter.afterAttemptPrimitive], and records statistics as needed. It
+	 * also deals with primitive failures, and reifications.
+	 *
+	 * Subclasses may do something more specific and efficient, and should be
+	 * free to neglect the statistics.  However, the [result] register must be
+	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
+	 *
+	 * @receiver
+	 *   The [JVMTranslator] through which to write bytecodes.
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
+	 *   the primitive.
+	 */
+	fun JVMTranslator.generateJvmCodeWithTracking(
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
@@ -1524,25 +1495,39 @@ constructor(
 		// [interpreter]
 		load(argsBufferField)
 		// [argsBuffer]
-		// :: argsBuffer.clear();
-		if (arguments.elements.isNotEmpty())
+		when (arguments.elements.size)
 		{
-			method.visitInsn(DUP)
-		}
-		// [argsBuffer[, argsBuffer if #args > 0]]
-		generateCall(JavaLibrary.listClearMethod)
-		// [argsBuffer if #args > 0]
-		val limit = arguments.elements.size
-		for (i in 0 until limit)
-		{
-			// :: argsBuffer.add(«argument[i]»);
-			if (i < limit - 1)
+			0 ->
+			{
+				// :: argsBuffer.clear();
+				generateCall(JavaLibrary.listClearMethod)
+			}
+			else ->
 			{
 				method.visitInsn(DUP)
+				// [argsBuffer, argsBuffer]
+				// :: argsBuffer.clear();
+				generateCall(JavaLibrary.listClearMethod)
+				// [argsBuffer]
+				val limit = arguments.elements.size
+				for (i in 0 until limit)
+				{
+					// :: argsBuffer.add(«argument[i]»);
+					if (i < limit - 1)
+					{
+						method.visitInsn(DUP)
+						// :: [argsBuffer, argsBuffer]
+					}
+					// :: argsBuffer.add(«arguments[i]»);
+					load(arguments.elements[i])
+					// :: [{argsBuffer}, argsBuffer, arg]
+					generateCall(JavaLibrary.listAddMethod)
+					// :: [{argsBuffer}, boolean]
+					method.visitInsn(POP)
+					// :: [{argsBuffer}]
+				}
+				// :: []
 			}
-			load(arguments.elements[i])
-			generateCall(JavaLibrary.listAddMethod)
-			method.visitInsn(POP)
 		}
 		// []
 		loadInterpreter()
@@ -1566,9 +1551,54 @@ constructor(
 		// :: afterAttemptPrimitive(primitive, timeBeforeLong, valueOrNull)
 		generateCall(afterAttemptPrimitiveMethod)
 		// :: [valueOrNull] (returned as a nicety by afterAttemptPrimitive)
-		// Return it now, either to report the value or to propagate the
-		// reification.
-		method.visitInsn(ARETURN)
+		// Write the result into the given [result] register.
+		store(result.register())
+	}
+
+	/**
+	 * Write a JVM invocation of this primitive, *under the assumption that the
+	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
+	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls
+	 * [Interpreter.afterAttemptPrimitive], and records statistics as needed. It
+	 * also deals with primitive failures, and reifications.
+	 *
+	 * Subclasses may do something more specific and efficient, and should be
+	 * free to neglect the statistics.  However, the [result] register must be
+	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
+	 *
+	 * @receiver
+	 *   The [JVMTranslator] through which to write bytecodes.
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
+	 *   the primitive.
+	 */
+	fun JVMTranslator.generateJvmCodeWithoutTracking(
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		loadLiteralObject(this@Primitive)
+		loadInterpreter()
+		val method: CheckedMethod = when (this@Primitive)
+		{
+			is Primitive0 -> Primitive0.attempt0Method
+			is Primitive1 -> Primitive1.attempt1Method
+			is Primitive2 -> Primitive2.attempt2Method
+			is Primitive3 -> Primitive3.attempt3Method
+			is Primitive4 -> Primitive4.attempt4Method
+			is PrimitiveN ->
+			{
+				objectArray(arguments.elements, AvailObject::class.java)
+				generateCall(PrimitiveN.attemptNMethod)
+				store(result.register())
+				return
+			}
+			else -> error("Unsupported primitive argument count")
+		}
+		arguments.elements.forEach<L2ReadBoxedOperand>(::load)
+		generateCall(method)
+		store(result.register())
 	}
 
 	/**
@@ -1678,4 +1708,67 @@ constructor(
 	 * otherwise `null`.
 	 */
 	open val semanticInfixOperatorString: String? get() = null
+
+	companion object
+	{
+		/**
+		 * Determine whether the specified primitive declaration is acceptable
+		 * to be used with the given list of parameter declarations.  Answer
+		 * null if they are acceptable, otherwise answer a suitable `String`
+		 * that is expected to appear after the prefix "Expecting...".
+		 *
+		 * @param primitive
+		 *   Which primitive.
+		 * @param arguments
+		 *   The argument declarations that we should check are legal for this
+		 *   primitive.
+		 * @return Whether the primitive accepts arguments with types that
+		 *   conform to the given argument declarations.
+		 */
+		fun validatePrimitiveAcceptsArguments(
+			primitive: Primitive,
+			arguments: List<A_Phrase>): String?
+		{
+			val expected = primitive.argCount
+			if (expected == -1) return null
+			if (arguments.size != expected)
+			{
+				return format(
+					"number of declared arguments (%d) to agree with " +
+						"primitive's required number of arguments (%d).",
+					arguments.size,
+					expected)
+			}
+			val expectedTypes = primitive.blockTypeRestriction().argsTupleType
+			assert(expectedTypes.sizeRange.upperBound.extractInt == expected)
+			val string = buildString {
+				for (i in 1 .. expected)
+				{
+					val declaredType = arguments[i - 1].declaredType
+					val expectedType = expectedTypes.typeAtIndex(i)
+					if (!declaredType.isSubtypeOf(expectedType))
+					{
+						if (isNotEmpty()) append("\n")
+						append(
+							format(
+								"argument #%d (%s) of primitive %s to be a " +
+									"subtype of %s, not %s.",
+								i,
+								arguments[i - 1].token.string(),
+								primitive.name,
+								expectedType,
+								declaredType))
+					}
+				}
+			}
+			return string.ifEmpty { null }
+		}
+
+		/** The method [attempt]. */
+		val attemptMethod = instanceMethod(
+			Primitive::class.java,
+			Primitive::attempt.name,
+			A_BasicObject::class.java,
+			Interpreter::class.java)
+	}
 }

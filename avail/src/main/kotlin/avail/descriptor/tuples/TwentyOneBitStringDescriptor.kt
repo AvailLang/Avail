@@ -65,6 +65,7 @@ import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.mutableTwe
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -614,7 +615,7 @@ class TwentyOneBitStringDescriptor private constructor(
 				TwentyOneBitStringDescriptor::class.java,
 				::mutableTwentyOneBitStringOfSize.name,
 				AvailObject::class.java,
-				Int::class.javaPrimitiveType!!)
+				int)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

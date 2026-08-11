@@ -101,55 +101,23 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 			val o = constructor.newInstance()
 			return o as JVMChunk
 		}
-		catch (e: NoSuchMethodException)
+		catch (e: Exception)
 		{
-			log(
-				Interpreter.loggerDebugJVM,
-				Level.SEVERE,
-				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
-				className,
-				chunkName,
-				traceFor(e))
-		}
-		catch (e: InstantiationException)
-		{
-			log(
-				Interpreter.loggerDebugJVM,
-				Level.SEVERE,
-				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
-				className,
-				chunkName,
-				traceFor(e))
-		}
-		catch (e: IllegalAccessException)
-		{
-			log(
-				Interpreter.loggerDebugJVM,
-				Level.SEVERE,
-				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
-				className,
-				chunkName,
-				traceFor(e))
-		}
-		catch (e: InvocationTargetException)
-		{
-			log(
-				Interpreter.loggerDebugJVM,
-				Level.SEVERE,
-				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
-				className,
-				chunkName,
-				traceFor(e))
-		}
-		catch (e: ClassCastException)
-		{
-			log(
-				Interpreter.loggerDebugJVM,
-				Level.SEVERE,
-				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
-				className,
-				chunkName,
-				traceFor(e))
+			when (e)
+			{
+				is ReflectiveOperationException,
+				is ClassCastException ->
+				{
+					log(
+						Interpreter.loggerDebugJVM,
+						Level.SEVERE,
+						"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
+						className,
+						chunkName,
+						traceFor(e))
+				}
+				else -> throw e
+			}
 		}
 		return null
 	}

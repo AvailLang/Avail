@@ -70,6 +70,7 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.double
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -555,7 +556,7 @@ class DoubleDescriptor private constructor(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
 			A_Number::class.java,
-			Double::class.javaPrimitiveType!!)
+			double)
 
 		/**
 		 * Construct an Avail boxed [double][DoubleDescriptor]-precision

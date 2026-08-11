@@ -58,7 +58,8 @@ import avail.optimizer.jvm.JVMTranslator
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_EXTRACT_TAG_ORDINAL(
+class L2_EXTRACT_TAG_ORDINAL
+constructor (
 	var value: L2ReadBoxedOperand,
 	var tagOrdinal: L2WriteIntOperand
 ): L2Instruction()

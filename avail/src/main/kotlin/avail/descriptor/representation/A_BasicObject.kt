@@ -55,6 +55,8 @@ import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailException
+import avail.interpreter.JavaLibrary.boolean
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1219,14 +1221,14 @@ interface A_BasicObject : JSONFriendly
 		val equalsMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::equals.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [isInstanceOf]. */
 		val isInstanceOfMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInstanceOf.name,
-			Boolean::class.javaPrimitiveType!!,
+			boolean,
 			A_Type::class.java)
 
 		/** The [CheckedMethod] for [makeImmutable]. */
@@ -1252,6 +1254,6 @@ interface A_BasicObject : JSONFriendly
 		val hashMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::hash.name,
-			Int::class.javaPrimitiveType!!)
+			int)
 	}
 }

@@ -49,7 +49,6 @@ import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Number.Companion.lessOrEqual
 import avail.descriptor.representation.A_Set
-import avail.descriptor.representation.A_Set.Companion.isSubsetOf
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.instanceCount
@@ -748,8 +747,9 @@ class TypeRestriction private constructor(
 			.ifEmpty { null }
 		var excludedTypes = excludedTypes + other.excludedTypes
 		var excludedValues = excludedValues + other.excludedValues
-		if (canBeBottom)
+		if (!canBeBottom || !other.canBeBottom)
 		{
+			// No need to separately track the type/value exclusions.
 			excludedTypes -= bottomMeta
 			excludedValues -= bottom
 		}
@@ -765,7 +765,7 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = excludedTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom and other.canBeBottom,
+			canBeBottom = canBeBottom && other.canBeBottom,
 			flags = flags and other.flags
 		)
 	}
@@ -790,6 +790,12 @@ class TypeRestriction private constructor(
 			newType = newType.typeIntersection(it.supremum)
 		}
 		if (newType.isVacuousType) return bottomRestriction
+		if (newType.equals(bottomMeta) && !canBeBottom)
+		{
+			// The type intersection is the bottom meta, but the restriction
+			// forbids it, so the proposed restriction is impossible.
+			return bottomRestriction
+		}
 		return restriction(
 			givenType = newType,
 			constantOrNull = constantOrNull,
@@ -1144,9 +1150,9 @@ class TypeRestriction private constructor(
 	fun containedByType(testType: A_Type): Boolean = type.isSubtypeOf(testType)
 
 	/**
-	 * Answer true if this `TypeRestriction` contains any values in common
-	 * with the given type.  It uses the [A_Type.isVacuousType] test to
-	 * determine whether any instances exist in the intersection.
+	 * Answer true if this [TypeRestriction] contains any values in common with
+	 * the given type.  It uses the [A_Type.isVacuousType] test to determine
+	 * whether any instances exist in the intersection.
 	 *
 	 * @param testType
 	 *   The [A_Type] to intersect with this `TypeRestriction`
@@ -1157,26 +1163,11 @@ class TypeRestriction private constructor(
 	fun intersectsType(testType: A_Type): Boolean
 	{
 		constantOrNull?.run { return isInstanceOf(testType) }
-		var intersectedType = testType.typeIntersection(type)
+		val intersectedRestriction = intersectionWithType(testType)
+		if (intersectedRestriction.isImpossible) return false
+		val intersectedType = intersectedRestriction.type
 		if (intersectedType.isVacuousType) return false
-		intersectedType = excludedTypes.fold(intersectedType) { type, exclude ->
-			type.trimType(exclude)
-		}
-		intersectedType = excludedValues.fold(intersectedType) { type, value ->
-			type.trimType(instanceTypeOrMetaOn(value))
-		}
-		if (intersectedType.isVacuousType) return false
-		if (excludedTypes.any { intersectedType.isSubtypeOf(it) })
-		{
-			// Even though the bare types intersect, the restriction explicitly
-			// excluded the intersection.
-			return false
-		}
-		return !(excludedValues.isNotEmpty()
-			&& intersectedType.isEnumeration
-			&& !intersectedType.isInstanceMeta
-			&& intersectedType.instances.isSubsetOf(
-				setFromCollection(excludedValues)))
+		return true
 	}
 
 	/**
@@ -1354,21 +1345,6 @@ class TypeRestriction private constructor(
 	}
 
 	/**
-	 * Answer a restriction like the receiver, but excluding
-	 * [RegisterKind]-related flags that aren't set in the given
-	 * `kindFlagEncoding`.
-	 *
-	 * @param kinds
-	 *   The [RestrictionFlagEncoding] to clear.
-	 * @return
-	 *   The new `TypeRestriction`, or the receiver.
-	 */
-	fun restrictingKindsTo(kinds: Set<RegisterKind<*>>): TypeRestriction
-	{
-		return restrictingKindsTo(kinds.sumOf { it.restrictionFlag.mask })
-	}
-
-	/**
 	 * If this restriction has only a finite set of possible values, and the
 	 * number of such values is no more than the given maximum, answer an
 	 * [A_Set] of them, otherwise `null`.
@@ -1409,6 +1385,7 @@ class TypeRestriction private constructor(
 		else -> positiveGroup == other.positiveGroup
 			&& negativeGroup == other.negativeGroup
 			&& flags == other.flags
+			&& canBeBottom == other.canBeBottom
 	}
 
 	override fun hashCode(): Int = combine6(
@@ -1501,10 +1478,14 @@ class TypeRestriction private constructor(
 			constantOrNull ?: put("t", listOf(type))
 			put("ex.t", excludedTypes)
 			put("ex.v", excludedValues)
-			put("typeVariants", positiveGroup.objectTypeVariants)
-			put("variants", positiveGroup.objectVariants)
-			put("ex.typeVariants", negativeGroup.objectTypeVariants)
-			put("ex.variants", negativeGroup.objectVariants)
+			put("typeVariants",
+				positiveGroup.objectTypeVariants?.map { it.variantId })
+			put("variants",
+				positiveGroup.objectVariants?.map { it.variantId })
+			put("ex.typeVariants",
+				negativeGroup.objectTypeVariants?.map { it.variantId })
+			put("ex.variants",
+				negativeGroup.objectVariants?.map { it.variantId })
 			var flags = buildList {
 				if (canBeBottom) add("⊥")
 				if (isImmutable) add("imm")

@@ -845,7 +845,7 @@ class L2Optimizer internal constructor(
 			when
 			{
 				// The previous instructions of the block produced a dead end.
-				!currentlyReachable() -> { }
+				!currentlyReachable() -> Unit
 				instruction is L2_JUMP ->
 				{
 					// The edge is from a jump, so we can insert moves just

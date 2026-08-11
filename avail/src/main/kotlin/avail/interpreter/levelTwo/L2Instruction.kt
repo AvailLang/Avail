@@ -998,7 +998,7 @@ constructor() :
 		if (readOperands.any { manifest.restrictionFor(it).isImpossible }
 			|| writeOperands.any { manifest.restrictionFor(it).isImpossible })
 		{
-			return L2_IMPOSSIBLE_CODE()
+			return regenerator.impossibleCodeInstruction()
 		}
 		if (regenerator.mode is WithFixedRegisterMap
 			|| !altersControlFlow
@@ -1023,7 +1023,7 @@ constructor() :
 			{
 				// All paths are impossible, and none are possible. Rewrite as
 				// an impossible instruction.
-				0 -> return L2_IMPOSSIBLE_CODE()
+				0 -> return regenerator.impossibleCodeInstruction()
 				// At least one edge is impossible, but there's only one that's
 				// still possible, so rewrite it as a jump.
 				1 if canReduceToJumpIfOnePathRemains() ->
@@ -1044,7 +1044,7 @@ constructor() :
 				// since it shouldn't be executed at runtime.  This instruction
 				// will propagate backward in a later pass, eventually
 				// eliminating the arm of the branch instruction that led to it.
-				return L2_IMPOSSIBLE_CODE()
+				return regenerator.impossibleCodeInstruction()
 			}
 		}
 		return clone().also { clone ->
@@ -1090,6 +1090,46 @@ constructor() :
 		val clone = clone()
 		layout.updateOperands(clone) { it.transformEachWrite(transformer) }
 		return clone
+	}
+
+	/**
+	 * This instruction has no side-effect.  Ensure this instruction or an
+	 * equivalent effect is added as a postponed instruction in the generator's
+	 * current manifest.
+	 */
+	open fun postponeInstruction(generator: L2GeneratorInterface)
+	{
+		assert(canBePostponed)
+		val originalWrite = writeOperands.single()
+		assert(originalWrite.semanticValues().isNotEmpty())
+		val manifest = generator.currentManifest
+		// See if there's already an existing equivalent value.
+		val existing = originalWrite.semanticValues()
+			.firstNotNullOfOrNull { manifest.equivalentSemanticValue(it) }
+		if (existing != null)
+		{
+			// Just augment the existing synonym.
+			val newRestriction = manifest.restrictionFor(existing)
+				.intersection(originalWrite.restriction())
+			if (newRestriction.isImpossible)
+			{
+				// Emit an instruction that notes the impossibility of this
+				// path.
+				generator.addInstruction(generator.impossibleCodeInstruction())
+			}
+			manifest.dynamicAgglomerateSynonym(
+				originalWrite.semanticValues() + existing,
+				newRestriction)
+			return
+		}
+		manifest.agglomerateSynonym(
+			originalWrite.semanticValues(),
+			originalWrite.restriction())
+		manifest.recordPostponedInstruction(
+			originalWrite.pickSemanticValue(),
+			clone().apply {
+				writeOperands[0].retroactivelySetSemanticValues(emptySet())
+			})
 	}
 
 	/**

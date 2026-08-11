@@ -41,7 +41,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 plugins {
-	kotlin("jvm") version "2.3.10"
+	kotlin("jvm") version "2.4.0"
 	id("java")
 	`maven-publish`
 	publishing
@@ -59,7 +59,7 @@ group = "org.availlang"
 version = "2.0.0.alpha28"
 
 /** The version of Kotlin to be used by Avail. */
-val kotlin = "2.3.10"
+val kotlin = "2.4.0"
 
 /** The `com.gradleup.shadow` version. */
 val shadow = "9.3.1"
@@ -86,7 +86,7 @@ val jsrVersion = "3.0.2"
 val junitVersion = "6.0.2"
 
 /** The language version of Kotlin. */
-val kotlinLanguage = "2.3.10"
+val kotlinLanguage = "2.4.0"
 
 /**
  * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
@@ -96,12 +96,10 @@ val kotlinLanguage = "2.3.10"
 val jvmTarget = 26
 
 /**
- * The bytecode level emitted by `javac` and `kotlinc`. Lags the toolchain
- * when the Kotlin compiler doesn't yet support the toolchain's bytecode
- * level — Kotlin 2.3.10 silently falls back to 25 on a JDK 26 toolchain,
- * so Java needs to follow suit to avoid a target mismatch.
+ * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4.0 supports
+ * emitting JVM 26 bytecode on a JDK 26 toolchain, so this matches [jvmTarget].
  */
-val jvmBytecodeTarget = 25
+val jvmBytecodeTarget = 26
 
 /** String form of [jvmBytecodeTarget] for `JavaCompile.sourceCompatibility`. */
 val jvmTargetString = jvmBytecodeTarget.toString()

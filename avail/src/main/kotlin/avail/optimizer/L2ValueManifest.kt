@@ -49,12 +49,14 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
+import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -487,8 +489,8 @@ class L2ValueManifest
 	 *   The postponed [L2Instruction] for the given semantic value, or `null`
 	 *   if none existed.
 	 */
-	fun removePostponedInstructionFor(
-		semanticValue: L2SemanticValue<*>
+	fun <K: RegisterKind<K>> removePostponedInstructionFor(
+		semanticValue: L2SemanticValue<K>
 	): L2Instruction?
 	{
 		if (!caresAboutSemanticValues) return null
@@ -507,6 +509,19 @@ class L2ValueManifest
 			{
 				// Everything is defined, so there's no instruction.
 				notDefined.isEmpty() -> null
+				restriction.isImpossible ->
+				{
+					// A contradiction was discovered.  We can't do a move from
+					// it, but it doesn't matter – we just have to ensure the
+					// manifest has recorded a contradiction for the notDefined
+					// values, which we accomplish by just augmenting the
+					// synonym.  There won't be an *instruction* that would
+					// reconstruct this on subsequent regenerations, but the
+					// impossible restriction will avoid code generation for
+					// this basic block anyhow.
+					agglomerateSynonym(values, restriction)
+					L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW()
+				}
 				// Return a move from a defined value.
 				defined.isNotEmpty() ->
 					semanticValue.kind.dynamicMove(
@@ -596,8 +611,13 @@ class L2ValueManifest
 	{
 		if (semanticValue !in semanticValueToSynonym!!)
 		{
+			val equivalent = equivalentSemanticValue(semanticValue)
 			introduceSynonym(
 				setOf(semanticValue), semanticValue.defaultRestriction)
+			if (equivalent != null)
+			{
+				mergeExistingSemanticValues(semanticValue, equivalent)
+			}
 		}
 		// After the phase where we replace constant-valued registers with
 		// definitionless constants, we may still encounter places where
@@ -779,7 +799,8 @@ class L2ValueManifest
 									updateRestriction(objectValue) {
 										boxedRestrictionForType(
 											variant.mostGeneralObjectMeta
-										).intersectionWithObjectVariant(variant)
+										).intersectionWithObjectTypeVariant(
+											variant)
 									}
 								}
 							}
@@ -1305,6 +1326,10 @@ class L2ValueManifest
 			!caresAboutSemanticValues -> null
 			// If the value is defined for all, no instruction is needed.
 			notDefined.isEmpty() -> null
+			// If the new restriction is impossible, output an impossibleCode
+			// instruction, which should hopefully cause this path to become
+			// unreachable from the nearest branch.
+			newRestriction.isImpossible -> null
 			// If the value is defined for some and notDefined for others,
 			// produce a move.
 			defined.isNotEmpty() -> kind.dynamicMove(
@@ -2119,14 +2144,12 @@ class L2ValueManifest
 		.readOperand(semanticValue, restrictionFor(semanticValue))
 
 	/**
-	 * Populate the empty receiver with bindings from the incoming manifests.
-	 * Only keep the bindings for [L2SemanticValue]s that occur in all incoming
-	 * manifests.  Generate phi functions as needed on the provided [generator].
-	 * The phi functions' source registers correspond positionally with the list
-	 * of manifests.
+	 * Populate the empty receiver with bindings from the manifests on edges
+	 * leading to the generator's current block. Only keep the bindings for
+	 * [L2SemanticValue]s that occur in all incoming manifests.  Generate phi
+	 * functions as needed on the provided [generator].  The phi functions'
+	 * source registers correspond positionally with the incoming edges.
 	 *
-	 * @param manifests
-	 *   The list of manifests from which to populate the receiver.
 	 * @param generator
 	 *   The [L2GeneratorInterface] on which to write any necessary [L2_PHI]
 	 *   functions.  This can be an [L2Regenerator] if there are any postponed
@@ -2139,7 +2162,6 @@ class L2ValueManifest
 	 *   the [generator]'s [L2GeneratorInterface.mode] is [BySemanticValue].
 	 */
 	fun populateForMerge(
-		manifests: List<L2ValueManifest>,
 		generator: L2GeneratorInterface,
 		forcePhis: Boolean)
 	{
@@ -2148,22 +2170,25 @@ class L2ValueManifest
 		// Here's a good place to reduce postponed instructions into simpler
 		// equivalents, since we're right at the merge that would consume them,
 		// and each edge will be visited once.
+		val block = generator.currentBlock()
+		var edges = block.predecessorEdges()
+		var manifests = edges.map(L2PcOperand::manifest)
 		manifests.forEach(L2ValueManifest::rewriteAllPostponed)
-		val manifestsSize = manifests.size
-		if (manifestsSize == 0)
+		when (edges.size)
 		{
 			// Unreachable, or an entry point where no registers are set yet.
-			return
+			0 -> return
+			1 if !forcePhis ->
+			{
+				val soleManifest = block.predecessorEdges().single().manifest()
+				semanticValueToSynonym.putAll(
+					soleManifest.semanticValueToSynonym!!)
+				constraints.putAll(soleManifest.constraints)
+				impossibleRestrictionCount =
+					soleManifest.impossibleRestrictionCount
+				return
+			}
 		}
-		if (manifestsSize == 1 && !forcePhis)
-		{
-			val soleManifest = manifests[0]
-			semanticValueToSynonym.putAll(soleManifest.semanticValueToSynonym!!)
-			constraints.putAll(soleManifest.constraints)
-			impossibleRestrictionCount = soleManifest.impossibleRestrictionCount
-			return
-		}
-
 		if (generator.mode == BySemanticValue)
 		{
 			// 1. Compute live semantic values (intersection across all edges).
@@ -2177,9 +2202,13 @@ class L2ValueManifest
 			// new manifest.
 			if (manifests.any { it.allPostponedInstructions().isNotEmpty() })
 			{
-				mergeIncomingPostponedInstructions(manifests, generator)
+				mergeIncomingPostponedInstructions(generator)
 				// Recompute liveSemanticValues after forcing postponed
-				// instructions, since the manifests may have changed.
+				// instructions, since the manifests may have changed.  Even
+				// some incoming edges may have been removed due to discovery of
+				// impossible constraints.
+				edges = block.predecessorEdges()
+				manifests = edges.map(L2PcOperand::manifest)
 				liveSemanticValues = manifests
 					.map(L2ValueManifest::liveOrPostponedSemanticValues)
 					.reduce(Set<L2SemanticValue<*>>::intersect)
@@ -2207,7 +2236,6 @@ class L2ValueManifest
 					generator,
 					forcePhis)
 			}
-			mergeAllEquivalentSynonyms()
 			if (manifests.size > 1)
 			{
 				generator.run {
@@ -2337,13 +2365,10 @@ class L2ValueManifest
 					}
 				}
 			}
-
-			// Merge synonyms that contain equivalent semantic values (e.g.,
-			// constants with the same value, equivalent outer references).
-			mergeAllEquivalentSynonyms()
 		}
-		impossibleRestrictionCount =
-			constraints.values.count { it.isImpossible }
+		// Merge synonyms that contain equivalent semantic values (e.g.,
+		// constants with the same value, equivalent outer references).
+		mergeAllEquivalentSynonyms()
 		check()
 	}
 
@@ -2507,14 +2532,11 @@ class L2ValueManifest
 	 * Finally, move those remaining instructions into the postponed map of the
 	 * receiver, the merged manifest.
 	 *
-	 * @param manifests
-	 *   The predecessors of the current block (which is a merge).
 	 * @param generator
 	 *   The [L2GeneratorInterface] on which the transformed graph is being
 	 *   written.
 	 */
 	private fun mergeIncomingPostponedInstructions(
-		manifests: List<L2ValueManifest>,
 		generator: L2GeneratorInterface)
 	{
 		// Group the postponed instructions along each incoming manifest by the
@@ -2528,7 +2550,7 @@ class L2ValueManifest
 		// having same structure of dependencies.  Move those instructions past
 		// this merge point, keeping them postponed.
 		val predecessorEdges = generator.currentBlock().predecessorEdges()
-
+		val manifests = predecessorEdges.map(L2PcOperand::manifest)
 		do
 		{
 			val instructionEquivalencesByManifest = manifests.map { manifest ->
@@ -2679,6 +2701,11 @@ class L2ValueManifest
 	/**
 	 * Look for equivalent [L2SemanticValue]s in separate [L2Synonym]s, and
 	 * merge them.
+	 *
+	 * This also recomputes the impossible restriction count, since merging
+	 * groups will intersect their restrictions, potentially introducing
+	 * impossible restrictions.  Merging two already impossible restrictions
+	 * will also *decrease* the count.
 	 */
 	fun mergeAllEquivalentSynonyms()
 	{
@@ -2696,15 +2723,15 @@ class L2ValueManifest
 				if (group1 == group2) continue
 				val syn1 = initialSynonyms[i].semanticValues()
 				val syn2 = initialSynonyms[j].semanticValues()
-				if (constraintOrNull(syn1.first())!!.definitions.isEmpty() !=
-					constraintOrNull(syn2.first())!!.definitions.isEmpty())
-				{
-					// DO NOT mix synonyms where one has no definitions and the
-					// other does.  A synonym with no definition indicates it's
-					// holding information (restriction, synonymy) for a
-					// postponed instruction.
-					continue
-				}
+//				if (constraintOrNull(syn1.first())!!.definitions.isEmpty() !=
+//					constraintOrNull(syn2.first())!!.definitions.isEmpty())
+//				{
+//					// DO NOT mix synonyms where one has no definitions and the
+//					// other does.  A synonym with no definition indicates it's
+//					// holding information (restriction, synonymy) for a
+//					// postponed instruction.
+//					continue
+//				}
 				if (syn1.any { value1 ->
 					syn2.any { value2 ->
 						isEquivalentSemanticValue(value1, value2)
@@ -2734,6 +2761,9 @@ class L2ValueManifest
 					initialSynonyms[group[i]].pickSemanticValue())
 			}
 		}
+		// Recompute the impossible restriction count.
+		impossibleRestrictionCount =
+			constraints.values.count(Constraint<*>::isImpossible)
 	}
 
 	/**
@@ -2857,29 +2887,36 @@ class L2ValueManifest
 		synonym: L2Synonym<K>,
 		semanticValuesToRetain: Set<L2SemanticValue<*>>)
 	{
-		val constant = synonym.semanticValues().filter { it.isConstant }
-		val toRetainPlusConstant = semanticValuesToRetain + constant
-		val values = synonym.semanticValues()
-		val toKeep = values.toMutableSet()
-		val anyRemoved = toKeep.retainAll(toRetainPlusConstant)
-		if (anyRemoved)
+		val originalSemanticValues = synonym.semanticValues()
+		val intersection =
+			originalSemanticValues.intersect(semanticValuesToRetain)
+		val constraint = constraints[synonym]!!
+		val constant = constraint.restriction.constantOrNull
+		val newSemanticValues: Set<L2SemanticValue<K>> = when
 		{
-			val toRemove = values.toMutableSet()
-			toRemove.removeAll(semanticValuesToRetain)
-			val constraint = constraints.remove(synonym)!!
-			semanticValueToSynonym!!.keys.removeAll(toRemove)
-			if (toKeep.isNotEmpty())
-			{
-				val newSynonym = L2Synonym(toKeep)
-				toKeep.forEach { semanticValueToSynonym[it] = newSynonym }
-				constraints[newSynonym] = constraint
-			}
-			else if (constraint.isImpossible)
-			{
-				// The constraint was removed, and it was impossible.
-				impossibleRestrictionCount--
-			}
+			// DO NOT add a constant to the new synonym if it's empty.
+			intersection.isEmpty() -> intersection
+			// Not a constant.
+			constant == null -> intersection
+			// Combine non-empty survivor set with a constant.
+			else -> intersection + synonym.kind.createSemanticConstant(constant)
+		}.cast()
+		// Exit quickly if no change to the synonym.
+		if (newSemanticValues == originalSemanticValues) return
+		// Remove the old synonym entirely.
+		constraints.remove(synonym)
+		semanticValueToSynonym!!.keys.removeAll(originalSemanticValues)
+		// Exit quickly if no semantic values survive.
+		if (newSemanticValues.isEmpty())
+		{
+			// See if we just eliminated an impossible constraint.
+			if (constraint.isImpossible) impossibleRestrictionCount--
+			return
 		}
+		// Add the new synonym information.
+		val newSynonym = L2Synonym<K>(newSemanticValues)
+		constraints[newSynonym] = constraint
+		newSemanticValues.forEach { semanticValueToSynonym[it] = newSynonym }
 	}
 
 	fun checkUniqueConstantSynonyms()
@@ -2914,6 +2951,6 @@ class L2ValueManifest
 	companion object
 	{
 		/** Perform deep, slow checks every time a manifest changes. */
-		var deepManifestDebugCheck = false // DEBUG: true
+		var deepManifestDebugCheck = true //  DEBUG: false
 	}
 }

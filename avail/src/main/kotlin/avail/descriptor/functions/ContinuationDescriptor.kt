@@ -108,6 +108,7 @@ import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugL2
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -135,6 +136,7 @@ import avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.logging.Level
+import kotlin.math.min
 
 /**
  * A [continuation][ContinuationDescriptor] acts as an immutable execution
@@ -336,16 +338,16 @@ class ContinuationDescriptor private constructor(
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
 		val declarationNames = code.declarationNamesWithoutOuters
-		for (i in 1..self.numSlots)
+		for (i in 1..min(self.numSlots, self.variableObjectSlotsCount()))
 		{
 			var name = if (i <= declarationNames.tupleSize)
 			{
 				val declName = declarationNames.tupleAt(i).asNativeString()
-				"FRAME[$i: $declName]"
+				"Slot[$i: $declName]"
 			}
 			else
 			{
-				"Frame[$i]"
+				"Slot[$i]"
 			}
 			if (i == self.stackp) name = "\uD83D\uDC49 $name"  // Pointing hand.
 			fields.add(
@@ -585,7 +587,7 @@ class ContinuationDescriptor private constructor(
 			append(self.currentLineNumber(false))
 			append(")")
 			val primitive = code.codePrimitive()
-			if (primitive === P_CatchException)
+			if (primitive === P_CatchException && self.pc != -1)
 			{
 				append(" GUARD = ")
 				val guardVariable =
@@ -764,10 +766,10 @@ class ContinuationDescriptor private constructor(
 			A_Function::class.java,
 			A_Continuation::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!,
+			int,
+			int,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Create a mutable continuation with the specified fields.  Initialize
@@ -866,7 +868,7 @@ class ContinuationDescriptor private constructor(
 			A_Function::class.java,
 			A_RegisterDump::class.java,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/** The mutable [ContinuationDescriptor]. */
 		private val mutable = ContinuationDescriptor(Mutability.MUTABLE)

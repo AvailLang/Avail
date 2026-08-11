@@ -172,7 +172,6 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(startReification)
 			+L2_REIFY(
-				L2IntImmediateOperand(0),
 				L2ConstantOperand(
 					stringFrom("Reification for label creation in L2: "
 						+ topFrame.codeName.replace('\n', ' '))),

@@ -98,7 +98,9 @@ import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.L2Optimizer
 import avail.optimizer.StackReifier
+import avail.optimizer.jvm.CheckedField.Companion.staticField
 import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
+import avail.optimizer.jvm.JVMTranslator.Companion.emptyArrayOfObject
 import avail.optimizer.jvm.JVMTranslator.Companion.prepareOutputDirectory
 import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
@@ -119,7 +121,6 @@ import org.objectweb.asm.Opcodes.ACONST_NULL
 import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ARETURN
 import org.objectweb.asm.Opcodes.ASM9
-import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.ATHROW
 import org.objectweb.asm.Opcodes.BIPUSH
 import org.objectweb.asm.Opcodes.CHECKCAST
@@ -300,28 +301,32 @@ class JVMTranslator constructor(
 	fun generateReificationPreamble(
 		onReification: L2PcOperand)
 	{
-		method.visitVarInsn(ALOAD, reifierLocal())
-		// [reifier]
 		loadInterpreter()
-		// [reifier, interpreter]
+		// :: [interpreter]
+		load(Interpreter.currentReifierField)
+		// :: [reifier]
+		loadInterpreter()
+		// :: [reifier, interpreter]
 		load(Interpreter.interpreterFunctionField)
-		// [reifier, fn]
+		// :: [reifier, fn]
 		onReification.run {
 			createAndPushRegisterDump(DefaultEntryPoint.RESUME)
 		}
-		// [reifier, fn, dump]
+		// :: [reifier, fn, dump]
 		loadInterpreter()
+		// :: [reifier, fn, dump, interpreter]
 		load(Interpreter.chunkField)
-		// [reifier, fn, dump, chunk]
+		// :: [reifier, fn, dump, chunk]
 		intConstant(onReification.offset())
-		// [reifier, fn, dump, chunk, offset]
+		// :: [reifier, fn, dump, chunk, offset]
 		generateCall(createDummyContinuationMethod)
-		// [reifier, dummyContinuation]
+		// :: [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
 		// continuation.
 		generateCall(StackReifier.pushContinuationActionMethod)
-		// [reifier]
-		// Now return the reifier to the next level out on the stack.
+		// :: []
+		// Return null to continue reification.
+		method.visitInsn(ACONST_NULL)
 		method.visitInsn(ARETURN)
 	}
 
@@ -439,7 +444,7 @@ class JVMTranslator constructor(
 	 * Answer the next JVM local. The initial value is chosen to skip over the
 	 * Category-1 receiver and Category-1 [Interpreter] formal parameters.
 	 */
-	private var nextLocal = 4
+	private var nextLocal = 3
 
 	/**
 	 * Answer the next JVM local for use within generated code produced by
@@ -606,6 +611,7 @@ class JVMTranslator constructor(
 			var name: String = when
 			{
 				value is Primitive -> value.name
+				value is LongAdder -> "COUNTER_$index"
 				value !is AvailObject -> value.javaClass.simpleName
 				value.isInstanceOf(stringType) && value.tupleSize > 0 ->
 					"STRING_${tidy(value.asNativeString())}"
@@ -951,15 +957,6 @@ class JVMTranslator constructor(
 	fun offsetLocal(): Int = 2
 
 	/**
-	 * Answer the JVM local for the [StackReifier] local variable of a generated
-	 * implementation of [JVMChunk.runChunk].
-	 *
-	 * @return
-	 *   The `StackReifier` local.
-	 */
-	fun reifierLocal(): Int = 3
-
-	/**
 	 * Emit the effect of loading a constant `int`.
 	 *
 	 * @param value
@@ -1076,6 +1073,11 @@ class JVMTranslator constructor(
 		registers: List<L2Register<*>>)
 	{
 		val size = registers.size
+		if (size == 0)
+		{
+			load(emptyArrayOfObjectField)
+			return
+		}
 		intConstant(size)
 		method.visitTypeInsn(
 			Opcodes.ANEWARRAY,
@@ -1618,16 +1620,6 @@ class JVMTranslator constructor(
 				methodHead,
 				endLabel,
 				offsetLocal())
-			// Also initialize the stackReifier local.
-			method.visitInsn(ACONST_NULL)
-			method.visitVarInsn(ASTORE, reifierLocal())
-			method.visitLocalVariable(
-				"reifier",
-				Type.getDescriptor(StackReifier::class.java),
-				null,
-				labelHere(),
-				endLabel,
-				reifierLocal())
 			// Initialize the register locals.
 			locals
 				.flatMap { (kind, value) ->
@@ -1679,15 +1671,16 @@ class JVMTranslator constructor(
 			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver() // this, the executable chunk.
-				method.visitVarInsn(ILOAD, interpreterLocal()) // interpreter
+				loadInterpreter()
 				intConstant(instruction.offset)
-				// First line of the instruction toString
+				// First line of the instruction toString.
 				method.visitLdcInsn(
 					instruction.toString()
-						.split("\\n".toRegex(), 2).toTypedArray()[0])
-
-				// Output the first read operand's value, as an Object, or null.
+						.split("\\n".toRegex(), 2)[0]
+						.removeSuffix(":"))
+				// Output any read register values, summarized.
 				arbitraryValueArrayFromRegisters(instruction.sourceRegisters)
+				// :; [chunk, interpreter, offset, duscription, valuesArray]
 				generateCall(Interpreter.traceL2Method)
 			}
 			instruction.run {
@@ -1951,7 +1944,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = true //TODO false
+		const val debugNicerJavaDecompilation = false
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -2101,8 +2094,23 @@ class JVMTranslator constructor(
 		 * @return
 		 *   A [Triple] of `(classInternalName, dir, baseFileName)`.
 		 */
-		fun prepareOutputDirectory(code: A_RawFunction?): Triple<String, Path, String> =
+		fun prepareOutputDirectory(
+			code: A_RawFunction?
+		): Triple<String, Path, String> =
 			prepareOutputDirectory(CodeLoggingPathData.from(code))
+
+		/**
+		 * A reusable empty array of Java `Object`.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmField
+		val emptyArrayOfObject = emptyArray<Any>()
+
+		/** A static [CheckedField] for accessing [emptyArrayOfObject]. */
+		val emptyArrayOfObjectField = staticField(
+			JVMTranslator::class.java,
+			::emptyArrayOfObject.name,
+			Array<Any>::class.java)
 	}
 
 	init

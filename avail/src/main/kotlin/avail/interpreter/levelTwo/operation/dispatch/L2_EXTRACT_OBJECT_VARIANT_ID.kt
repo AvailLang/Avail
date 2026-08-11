@@ -31,21 +31,29 @@
  */
 package avail.interpreter.levelTwo.operation.dispatch
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantFromId
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * Extract the [ObjectLayoutVariant] of the given object, then extract its
@@ -89,6 +97,53 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		// There wasn't an equivalent register handy.  Fall back to emitting a
 		// copy of this instruction.
 		return this@L2_EXTRACT_OBJECT_VARIANT_ID
+	}
+
+	override fun transformedByRegenerator(
+		regenerator: L2Regenerator
+	): L2Instruction
+	{
+		var idRestriction = variantId.restriction()
+		sourceObject.restriction().positiveGroup.objectVariants
+			?.map { fromInt(it.variantId) }
+			?.let { ids ->
+				idRestriction = idRestriction.intersectionWithType(
+					enumerationWith(setFromCollection(ids)))
+			}
+		sourceObject.restriction().negativeGroup.objectVariants
+			?.map { fromInt(it.variantId) }
+			?.let { ids ->
+				idRestriction = idRestriction.minusValues(
+					setFromCollection(ids))
+			}
+		val destination = variantId.clone() as L2WriteIntOperand
+		destination.restrict { idRestriction }
+		val replacement = when
+		{
+			idRestriction.isImpossible ->
+			{
+				// Populate the output variant id with -1, which isn't a valid
+				// variant id.
+				regenerator.addInstruction(
+					INTEGER_KIND.moveConstant(
+						negativeOne,
+						destination.semanticValues()))
+				// Answer something that makes the entire manifest impossible,
+				// but will transform into an L2_IMPOSSIBLE_CODE in the next
+				// regeneration pass.
+				regenerator.impossibleCodeInstruction()
+			}
+			idRestriction.isConstant ->
+				L2_MOVE_CONSTANT_INT(
+					L2IntImmediateOperand(
+						idRestriction.constantOrNull!!.extractInt),
+					destination)
+			else -> L2_EXTRACT_OBJECT_VARIANT_ID(sourceObject, destination)
+		}
+		replacement.layout.updateOperands(
+			replacement,
+			regenerator::transformOperand)
+		return replacement
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()

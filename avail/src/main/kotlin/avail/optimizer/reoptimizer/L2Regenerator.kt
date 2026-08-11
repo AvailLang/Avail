@@ -59,6 +59,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -610,7 +611,11 @@ constructor(
 			emptySet<L2SplitCondition>() to start)
 		val impossibleBlocks = mutableSetOf<L2BasicBlock>()
 		oldGraph.backwardVisit { originalBlock ->
+			assert(originalBlock.instructions().isNotEmpty())
 			if (originalBlock.instructions().last() is L2_IMPOSSIBLE_CODE
+				|| originalBlock.instructions().any {
+					it is L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
+				}
 				|| originalBlock.successorEdges().run {
 					isNotEmpty() && all { it.targetBlock() in impossibleBlocks }
 				})
@@ -618,6 +623,10 @@ constructor(
 				impossibleBlocks.add(originalBlock)
 			}
 		}
+		// If we encounter an edge that contains inconsistent restrictions, we
+		// should always split it and jump to a block that simply contains an
+		// L2_IMPOSSIBLE_CODE instruction.  The next optimization pass will
+		// notice it and prune dead paths from branches.
 		oldGraph.forwardVisit { originalBlock ->
 			// All predecessors must have already been processed.
 			val submap = blockMap[originalBlock]!!
@@ -642,17 +651,14 @@ constructor(
 				// should point elsewhere.
 				val incomingEdges = noConditionBlock.predecessorEdges().toList()
 				incomingEdges.forEach { incomingEdge ->
-					val trueConditions =
-						if (forceCodeSplit)
-						{
-							setOf(fakeCondition(nextUnique()))
+					incomingEdge.manifest().mergeAllEquivalentSynonyms()
+					val trueConditions = when
+					{
+						forceCodeSplit -> setOf(fakeCondition(nextUnique()))
+						else -> interestingConditions.filterTo(mutableSetOf()) {
+							it.holdsFor(incomingEdge.manifest())
 						}
-						else
-						{
-							interestingConditions.filterTo(mutableSetOf()) {
-								it.holdsFor(incomingEdge.manifest())
-							}
-						}
+					}
 					val betterBlock = submap.computeIfAbsent(trueConditions) {
 						val reduced = reducedConditions(trueConditions)
 						val suffix = when (reduced.size)
@@ -794,7 +800,7 @@ constructor(
 			// would have been pointlessly recreated, and makes it easier for
 			// branch elimination later, by detecting this instruction directly
 			// in the target blocks of branches.
-			addInstruction(L2_IMPOSSIBLE_CODE())
+			addInstruction(impossibleCodeInstruction())
 		}
 		else
 		{

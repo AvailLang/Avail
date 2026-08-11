@@ -55,6 +55,7 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.interpreter.JavaLibrary.boolean
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -586,7 +587,7 @@ interface A_Variable : A_ChunkDependable
 		val compareAndSwapValuesNoCheckMethod = staticMethod(
 			receiverClass = A_Variable::class.java,
 			methodName = ::staticCompareAndSwapValuesNoCheck.name,
-			returnClass = Boolean::class.javaPrimitiveType!!,
+			returnClass = boolean,
 			A_Variable::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
@@ -601,7 +602,7 @@ interface A_Variable : A_ChunkDependable
 		val checkForSharedOrReactorsMethod = staticMethod(
 			receiverClass = A_Variable::class.java,
 			methodName = ::staticCheckForSharedOrReactors.name,
-			returnClass = Boolean::class.javaPrimitiveType!!,
+			returnClass = boolean,
 			A_Variable::class.java)
 	}
 }

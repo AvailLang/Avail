@@ -52,6 +52,8 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -66,7 +68,6 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
-import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
@@ -153,6 +154,12 @@ interface L2GeneratorInterface : L2Visualizable
 	val currentManifest: L2ValueManifest
 
 	/**
+	 * An indicator that retroactive generation (prior to a generated edge) is
+	 * currently taking place.
+	 */
+	var isGeneratingRetroactively: Boolean
+
+	/**
 	 * Create an [L2BasicBlock], and mark it as used for reification.
 	 *
 	 * @param name
@@ -189,7 +196,8 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * A convenience operation.  When an [L2GeneratorInterface] is in scope as a
-	 * receiver, the unary "+" will add a provided instruction.
+	 * receiver, the unary "+" will add a provided instruction, perhaps
+	 * postponing it, but still updating the manifest.
 	 */
 	operator fun L2Instruction.unaryPlus()
 	{
@@ -199,46 +207,7 @@ interface L2GeneratorInterface : L2Visualizable
 			addInstruction(this)
 			return
 		}
-		val originalWrite = writeOperands.single()
-		assert(originalWrite.semanticValues().isNotEmpty())
-		if (this is L2_MOVE<*>)
-		{
-			currentManifest.dynamicAgglomerateSynonym(
-				destination.semanticValues() + source.semanticValue(),
-				destination.restriction())
-			currentManifest.restrictionFor(source).constantOrNull?.let { c ->
-				val semanticConstant = source.kind.createSemanticConstant(c)
-				if (semanticConstant !in
-					currentManifest
-						.semanticValueToSynonym(source.semanticValue())
-						.semanticValues())
-				{
-					// The restriction is now constant, but there isn't a
-					// semantic constant in the synonym.  Add it.
-					currentManifest.dynamicAgglomerateSynonym(
-						setOf(source.semanticValue(), semanticConstant),
-						semanticConstant.defaultRestriction)
-				}
-			}
-			val existingPostponed = currentManifest.postponedInstructionFor(
-				destination.pickSemanticValue())
-			// If there's already a postponed instruction, we're done, because
-			// it will populate the whole synonym when needed.
-			if (existingPostponed != null) return
-			// Fall through to add a move that ensures the new destinations will
-			// get populated.
-		}
-		else
-		{
-			currentManifest.agglomerateSynonym(
-				originalWrite.semanticValues(),
-				originalWrite.restriction())
-		}
-		currentManifest.recordPostponedInstruction(
-			originalWrite.pickSemanticValue(),
-			clone().apply {
-				writeOperands[0].retroactivelySetSemanticValues(emptySet())
-			})
+		postponeInstruction(this@L2GeneratorInterface)
 	}
 
 	/** Add an instruction that should not be reachable at runtime. */
@@ -953,6 +922,20 @@ interface L2GeneratorInterface : L2Visualizable
 	 * Force emission of any delayed writes to local variables.
 	 */
 	fun forcePostponedWritesToLocals()
+
+	/**
+	 * Answer a suitable instruction to add to indicate the code at the current
+	 * position should not be reachable due to an impossible constraint.  Note
+	 * that we normally use an [L2_IMPOSSIBLE_CODE], but if we're in the middle
+	 * of generating code retroactively before an existing edge, we must not
+	 * destroy that edge, so use an [L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW]
+	 * which doesn't itself alter control flow.
+	 */
+	fun impossibleCodeInstruction(): L2Instruction = when
+	{
+		isGeneratingRetroactively -> L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW()
+		else -> L2_IMPOSSIBLE_CODE()
+	}
 
 	/**
 	 * Pass-through to [L2ControlFlowGraph].  This can be used in the debugger

@@ -63,6 +63,7 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.L2Chunk
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -1258,7 +1259,7 @@ class AvailObject private constructor(
 			::frameAtPut.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1283,9 +1284,9 @@ class AvailObject private constructor(
 			::frameAtPut2.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1313,11 +1314,11 @@ class AvailObject private constructor(
 			::frameAtPut3.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1348,13 +1349,13 @@ class AvailObject private constructor(
 			::frameAtPut4.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1388,15 +1389,15 @@ class AvailObject private constructor(
 			::frameAtPut5.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1433,17 +1434,17 @@ class AvailObject private constructor(
 			::frameAtPut6.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1470,7 +1471,7 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::fieldAtIndex.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/** Access the [fieldTypeAt] method. */
 		val fieldTypeAtMethod = instanceMethod(
@@ -1484,6 +1485,6 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::fieldTypeAtIndex.name,
 			A_Type::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 	}
 }

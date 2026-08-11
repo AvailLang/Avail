@@ -838,7 +838,14 @@ constructor(
 		val possibleType = possible.fold(bottom) { typeUnion, def ->
 			typeUnion.typeUnion(def.bodySignature().returnType)
 		}
-		val narrowedExpectedType = possibleType.typeIntersection(expectedType)
+		// Try to avoid created indirections here, since the types could be used
+		// in tight loops.
+		val narrowedExpectedType = when
+		{
+			// A passed equality test will introduce an indirection if possible.
+			possibleType.equals(expectedType) -> expectedType.traversed()
+			else -> possibleType.typeIntersection(expectedType)
+		}.makeShared()
 		val mustCheck = !possibleType.isSubtypeOf(expectedType)
 		when
 		{

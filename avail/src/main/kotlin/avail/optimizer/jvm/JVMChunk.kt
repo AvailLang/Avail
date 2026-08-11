@@ -32,6 +32,7 @@
 package avail.optimizer.jvm
 
 import avail.descriptor.representation.AvailObject
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.ExecutableChunk
@@ -244,7 +245,10 @@ constructor() : ExecutableChunk
 
 		/**
 		 * Throw a [RuntimeException] on account of a bad offset into the
-		 * calling generated `JVMChunk` subclass's [runChunk][runChunk].
+		 * calling generated `JVMChunk` subclass's [runChunk][runChunk].  Since
+		 * the JVM doesn't have a way to indicate a call site always throws, we
+		 * pretend to return the exception that the caller pretends to throw,
+		 * even though it can never actually get to that code.
 		 *
 		 * @param offset
 		 *   The illegal offset into the caller.
@@ -254,7 +258,7 @@ constructor() : ExecutableChunk
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun badOffset(offset: Int): Nothing
+		fun badOffset(offset: Int): RuntimeException
 		{
 			throw RuntimeException("bad offset $offset")
 		}
@@ -263,7 +267,7 @@ constructor() : ExecutableChunk
 		val badOffsetMethod = staticMethod(
 			JVMChunk::class.java,
 			::badOffset.name,
-			Nothing::class.java,
-			Int::class.javaPrimitiveType!!)
+			RuntimeException::class.java,
+			int)
 	}
 }

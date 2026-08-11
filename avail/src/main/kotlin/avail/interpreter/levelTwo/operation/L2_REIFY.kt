@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
@@ -48,7 +47,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.Strings.increaseIndentation
-import org.objectweb.asm.Opcodes
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will
@@ -62,7 +60,6 @@ import org.objectweb.asm.Opcodes
  */
 @WritesHiddenVariable(STACK_REIFIER::class)
 class L2_REIFY(
-	var processInterrupt: L2IntImmediateOperand,
 	var statisticName: L2ConstantOperand,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
 ) : L2ControlFlowInstruction()
@@ -99,9 +96,6 @@ class L2_REIFY(
 
 		companion object
 		{
-			/** All the enumeration values. */
-			private val all = entries.toTypedArray()
-
 			/**
 			 * Look up the category with the given ordinal.
 			 *
@@ -112,7 +106,7 @@ class L2_REIFY(
 			 */
 			fun lookup(ordinal: Int): StatisticCategory
 			{
-				return all[ordinal]
+				return entries[ordinal]
 			}
 		}
 	}
@@ -128,10 +122,6 @@ class L2_REIFY(
 			append(' ')
 			append(statisticName.constant)
 		}
-		if (processInterrupt.value != 0)
-		{
-			append(" [process interrupt]")
-		}
 		if (PC in desiredOperandTypes)
 		{
 			append("\n\t")
@@ -143,20 +133,16 @@ class L2_REIFY(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: reifier = interpreter.reify(processInterrupt, statistic)
+		// :: interpreter.reify(processInterrupt, statistic)
 		loadInterpreter()
-		intConstant(processInterrupt.value)
-		val statistic = if (processInterrupt.value != 0)
-		{
-			StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic
-		}
-		else
-		{
+		// :: [interpreter]
+		val statistic =
 			Statistic(REIFICATIONS, statisticName.constant.asNativeString())
-		}
 		loadLiteralObject(statistic)
+		// :: [interpreter, statistic]
 		generateCall(Interpreter.reifyMethod)
-		method.visitVarInsn(Opcodes.ASTORE, reifierLocal())
+		// :: []
+
 		// Arrange to arrive at the onReification target, which must be an
 		// L2_ENTER_L2_CHUNK.
 		generateReificationPreamble(ifReification)

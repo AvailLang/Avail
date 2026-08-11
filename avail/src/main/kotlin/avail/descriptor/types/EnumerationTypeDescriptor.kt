@@ -48,7 +48,9 @@ import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.representation.A_Set
 import avail.descriptor.representation.A_Set.Companion.hasElement
 import avail.descriptor.representation.A_Set.Companion.isSet
+import avail.descriptor.representation.A_Set.Companion.isSubsetOf
 import avail.descriptor.representation.A_Set.Companion.setElementsAreAllInstancesOfKind
+import avail.descriptor.representation.A_Set.Companion.setIntersectionCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
@@ -339,65 +341,33 @@ private constructor(
 		another: A_Type): A_Type
 	{
 		assert(another.isType)
-		var set = emptySet
+		// Avoid creating new enumerations whenever possible.
+		if (self.isSubtypeOf(another)) return self
+		if (another.isSubtypeOf(self)) return another.traversed()
 		val elements = getInstances(self)
 		if (another.isEnumeration)
 		{
-			// Create a new enumeration containing all non-type elements that
-			// are simultaneously present in object and another, plus the type
-			// intersections of all pairs of types in the product of the sets.
-			// This should even correctly deal with bottom as an element.
 			val otherElements = another.instances
-			var myTypes = emptySet
-			for (element in elements)
-			{
-				if (element.isType)
-				{
-					myTypes = myTypes.setWithElementCanDestroy(element, true)
-				}
-				else if (otherElements.hasElement(element))
-				{
-					set = set.setWithElementCanDestroy(element, true)
-				}
-			}
-			// We have the non-types now, so add the pair-wise intersection of
-			// the types.
-			if (myTypes.setSize > 0)
-			{
-				for (anotherElement in otherElements)
-				{
-					if (anotherElement.isType)
-					{
-						for (myType in myTypes)
-						{
-							set = set.setWithElementCanDestroy(
-								anotherElement.typeIntersection(myType),
-								true)
-						}
-					}
-				}
-			}
+			return enumerationWith(
+				elements.setIntersectionCanDestroy(otherElements, false))
 		}
-		else
+		var set = emptySet
+		// Keep the instances that comply with [another].
+		for (element in getInstances(self))
 		{
-			// Keep the instances that comply with another, which is not a union
-			// type.
-			for (element in getInstances(self))
+			if (element.isInstanceOfKind(another))
 			{
-				if (element.isInstanceOfKind(another))
-				{
-					set = set.setWithElementCanDestroy(element, true)
-				}
+				set = set.setWithElementCanDestroy(element, true)
 			}
 		}
 		if (set.setSize == 0)
 		{
-			// Decide whether this should be bottom or bottom's type
-			// based on whether object and another are both metas.  Note that
-			// object is a meta precisely when one of its instances is a type.
-			// One more thing:  The special case of another being bottom should
-			// not be treated as being a meta for our purposes, even though
-			// bottom technically is a meta.
+			// Decide whether this should be bottom or bottom's type based on
+			// whether object and another are both metas.  Note that object is a
+			// meta precisely when one of its instances is a type. One more
+			// thing:  The special case of another being bottom should not be
+			// treated as being a meta for our purposes, even though bottom
+			// technically is a meta.
 			if (self.isSubtypeOf(topMeta)
 				&& another.isSubtypeOf(topMeta)
 				&& !another.isBottom)
@@ -423,16 +393,31 @@ private constructor(
 	override fun computeUnionWith(
 		self: AvailObject,
 		another: A_Type
-	): A_Type = when (another.isEnumeration)
+	): A_Type
 	{
+		val elements = getInstances(self)
+		if (!another.isEnumeration)
+		{
+			// Take the union of kinds.
+			return elements.fold(another) { type, instance ->
+				type.typeUnion(instance.kind())
+			}
+		}
+		// Try to avoid creating extra enumeration objects if possible.
+		val otherElements = another.instances
+		if (elements.isSubsetOf(otherElements))
+		{
+			return another
+		}
+		if (otherElements.isSubsetOf(elements))
+		{
+			return self
+		}
 		// Create a new enumeration containing all elements from both
 		// enumerations.
-		true -> enumerationWith(getInstances(self).setUnionCanDestroy(
-			another.instances, false))
-		// Go up to my nearest kind, then compute the union with the given kind.
-		else -> getInstances(self).fold(another) {
-			type, instance -> type.typeUnion(instance.kind())
-		}
+		return enumerationWith(
+			getInstances(self).setUnionCanDestroy(
+				another.instances, false))
 	}
 
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =

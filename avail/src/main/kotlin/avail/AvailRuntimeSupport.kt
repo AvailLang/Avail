@@ -145,7 +145,7 @@ object AvailRuntimeSupport
 		 * @return
 		 *   The current clock value.
 		 */
-		fun get(): Long = counter.get()
+		fun get(): Long = counter.getAcquire()
 	}
 
 	/**

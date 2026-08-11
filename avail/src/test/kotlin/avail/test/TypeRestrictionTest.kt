@@ -31,10 +31,21 @@
  */
 package avail.test
 
+import avail.AvailRuntime.HookType.BASE_FRAME
+import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_FIELD_RESTRICTION_KEY
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_Atom.Companion.setAtomProperty
+import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -44,8 +55,16 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.Frame
+import avail.optimizer.values.L2SemanticObjectVariantId
+import avail.optimizer.values.L2SemanticSlot
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -98,11 +117,11 @@ class TypeRestrictionTest
 
 	/**
 	 * Test a complex regression case that failed in the optimizer, specifically
-	 * in Types.avail, at the tuple stringify () method, at the recursive call
+	 * in Types.avail, at the tuple stringify() method, at the recursive call
 	 * to stringify an element.  It produced a 64-way branch on some bits of the
 	 * hash to identify ⊥, ∅, month atoms, and weekday atoms, falling back into
 	 * a tag test.  In particular, there was a union at a control flow merge
-	 * between a TypeRestrictions whose excluded types set included {token}ᵀ,
+	 * between a TypeRestriction whose excluded types set included {token}ᵀ,
 	 * and another TypeRestriction containing the type {token}ᵀ.
 	 *
 	 * ```
@@ -155,6 +174,7 @@ class TypeRestrictionTest
 		val expectedUnion = boxedRestrictionForType(instanceMeta(Types.ANY()))
 			.minusType(instanceMeta(Types.ATOM()))
 			.minusType(instanceMeta(mostGeneralSetType()))
+			.withCanBeBottom(true)
 		assertEquals(expectedUnion, union)
 	}
 
@@ -214,5 +234,77 @@ class TypeRestrictionTest
 		var union2 = t1.union(t2Constant)
 		assertEquals(union.type, inclusive(negativeInfinity, zero))
 		assertEquals(union2.type, t2Constant.union(t1).type)
+	}
+
+	/**
+	 * Tag-based dispatching was leading to situations where bottom type's tag
+	 * was correctly eliminated as a possible int value, but the underlying
+	 * value didn't exclude bottom correctly.
+	 *
+	 * Resolution: The TypeRestriction equality operation was failing to compare
+	 * the canBeBottom flags.
+	 */
+	@Test
+	fun testIntersectionExcludesBottom()
+	{
+		val t1 = boxedRestrictionForType(extendedIntegersMeta)
+		val t2 = t1.minusType(bottomMeta)
+		assert(t1.canBeBottom)
+		assert(!t2.canBeBottom)
+		val intersection = t1.intersection(t2)
+		assert(!intersection.canBeBottom)
+		val reverse = t2.intersection(t1)
+		assert(!reverse.canBeBottom)
+		assert(reverse == intersection)
+		assert(t1 != intersection)
+		assert(t2 != intersection)
+		assert(t1 != t2)
+	}
+
+	/**
+	 * If two boxed registers are in the same synonym, and one of them has an
+	 * extracted int variant set to a constant, setting the other one's
+	 * extracted int variant to a different constant wasn't causing the manifest
+	 * to flag the contradiction.
+	 */
+	@Test
+	fun testImpossiblePropagation()
+	{
+		// Tweak initialization order.
+		@Suppress("UnusedExpression")
+		RegisterKind
+
+		val frame = Frame(
+			null,
+			BASE_FRAME.functionSupplier().code(),
+			-1,
+			"top",
+			"top frame")
+		val boxedA = L2SemanticSlot(frame, 1, 1, "A")
+		val boxedB = L2SemanticSlot(frame, 2, 2, "B")
+		val atomA = createAtom(stringFrom("atomA"), nil).apply {
+			setAtomProperty(OBJECT_FIELD_RESTRICTION_KEY.atom, Types.ANY())
+		}.makeShared()
+		val atomB = createAtom(stringFrom("atomB"), nil).apply {
+			setAtomProperty(OBJECT_FIELD_RESTRICTION_KEY.atom, Types.ANY())
+		}.makeShared()
+		val variantA = variantForFields(SetDescriptor.singletonSet(atomA))
+		val variantB = variantForFields(SetDescriptor.singletonSet(atomB))
+		val semanticVariantA =
+			L2SemanticUnboxedInt(L2SemanticObjectVariantId(boxedA))
+		val semanticVariantB =
+			L2SemanticUnboxedInt(L2SemanticObjectVariantId(boxedB))
+		val manifest = L2ValueManifest(BySemanticValue)
+		manifest.agglomerateSynonym(
+			listOf(boxedA, boxedB),
+			boxedRestrictionForType(mostGeneralObjectType))
+		manifest.setRestriction(
+			semanticVariantA,
+			intRestrictionForConstant(variantA.variantId))
+		assert(!manifest.hasImpossibleRestriction)
+		manifest.setRestriction(
+			semanticVariantB,
+			intRestrictionForConstant(variantB.variantId))
+		assert(manifest.hasImpossibleRestriction)
 	}
 }

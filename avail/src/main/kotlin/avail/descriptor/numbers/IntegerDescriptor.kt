@@ -103,6 +103,7 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import avail.exceptions.MarshalingException
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1836,7 +1837,7 @@ class IntegerDescriptor private constructor(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Convert the specified byte-valued Java `short` into an Avail

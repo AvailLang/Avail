@@ -121,7 +121,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
@@ -238,6 +238,8 @@ constructor(
 	private var currentBlock: L2BasicBlock? = null
 
 	override var currentManifest = L2ValueManifest(BySemanticValue)
+
+	override var isGeneratingRetroactively: Boolean = false
 
 	override fun restrictionFor(
 		semanticValue: L2SemanticValue<*>
@@ -385,10 +387,10 @@ constructor(
 		semanticValue: L2SemanticValue<K>
 	): Unit
 	{
-		// Happy path – here's already a definition/register backing it.
+		// Happy path – there's already a definition/register backing it.
 		if (currentManifest.hasLiveSemanticValue(semanticValue)) return
 		val synonym = currentManifest.semanticValueToSynonym(semanticValue)
-		val restriction = currentManifest.restrictionFor(semanticValue)
+		var restriction = currentManifest.restrictionFor(semanticValue)
 		val defined = currentManifest.getAllDefinitions(semanticValue)
 			.flatMap(L2Register<K>::definitions)
 			.flatMap(L2WriteOperand<K>::semanticValues)
@@ -408,29 +410,36 @@ constructor(
 		// below.
 		val postponed =
 			currentManifest.removePostponedInstructionFor(semanticValue)
-
-		when
+		if (origin != null)
 		{
+			restriction = restriction.intersection(restrictionFor(origin))
+		}
+
+		val newInstruction = when
+		{
+			// Contradictory restrictions led to an impossible situation, so
+			// emit either an L2_IMPOSSIBLE_CODE, or if we're retroactively
+			// generating before an edge, emit an
+			// L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW.
+			restriction.isImpossible -> impossibleCodeInstruction()
 			// The value is populated within the synonym, or in an equivalent
 			// semantic value, so move the value into the notDefined set.
-			origin != null -> addInstruction(
-				semanticValue.kind.dynamicMove(
-					origin,
-					notDefined.toSet(),
-					currentManifest,
-					restrictionFor(semanticValue)))
+			origin != null -> semanticValue.kind.dynamicMove(
+				origin,
+				notDefined.toSet(),
+				currentManifest,
+				restrictionFor(semanticValue))
 			// It's constant, so emit a constant move.
-			restriction.isConstant -> addInstruction(
-				semanticValue.kind.moveConstant(
-					restriction.constantOrNull!!,
-					notDefined))
+			restriction.isConstant -> semanticValue.kind.moveConstant(
+				restriction.constantOrNull!!,
+				notDefined)
 			// Otherwise there must be a postponed instruction to emit.
-			else -> addInstruction(
-				postponed!!.clone().apply {
-					writeOperands.single()
-						.retroactivelySetSemanticValues(notDefined)
-				})
+			else -> postponed!!.clone().apply {
+				writeOperands.single()
+					.retroactivelySetSemanticValues(notDefined)
+			}
 		}
+		addInstruction(newInstruction)
 	}
 
 	override fun readBoxed(
@@ -771,7 +780,7 @@ constructor(
 			return currentManifest.read(semanticValue)
 		}
 		val equivalent =
-			currentManifest.equivalentPopulatedSemanticValue(semanticValue)
+			currentManifest.equivalentSemanticValue(semanticValue)
 		equivalent?.let {
 			moveRegister(equivalent, listOf(semanticValue))
 			return currentManifest.read(semanticValue)
@@ -1065,15 +1074,15 @@ constructor(
 					// unconditionally jumps to it.  Remove the jump and
 					// continue generation in the predecessor block.  Restore
 					// the manifest from the jump edge.
-					predecessorBlock.debugNote.appendLine("Eliding jump to $block")
-					currentManifest.clear()
-					currentManifest.populateForMerge(
-						listOf(predecessorEdge.manifest()),
-						regenerator ?: this,
-						false)
+					predecessorBlock.debugNote.appendLine(
+						"Eliding jump to ${block.name()}")
+					currentManifest =
+						L2ValueManifest(predecessorEdge.manifest())
 					predecessorBlock.instructions().removeAt(
 						predecessorBlock.instructions().size - 1)
 					jump.justRemoved()
+					assert(predecessorBlock.successorEdges().isEmpty())
+					assert(!predecessorBlock.hasControlFlowAtEnd)
 					currentBlock = predecessorBlock
 					return
 				}
@@ -1103,13 +1112,9 @@ constructor(
 			if (currentManifest.hasImpossibleRestriction
 				&& mode !is WithFixedRegisterMap)
 			{
-				addToCurrentBlock(L2_IMPOSSIBLE_CODE())
+				addToCurrentBlock(impossibleCodeInstruction())
+				return
 			}
-			else
-			{
-				addToCurrentBlock(instruction)
-			}
-			return
 		}
 
 		// Actually emit the instruction.
@@ -1500,11 +1505,11 @@ constructor(
 		comment: String?,
 		body: L2Generator.()->Unit)
 	{
+		assert(!isGeneratingRetroactively)
 		assert(edge.sourceBlock().successorEdges().size == 1) {
 			"Can't generate retroactively before an unsplit edge: " +
 				edge.sourceBlock().successorEdges()
 		}
-
 		val sourceBlock = edge.sourceBlock()
 
 		val savedManifest = currentManifest
@@ -1513,25 +1518,30 @@ constructor(
 		currentManifest = edge.manifest()
 		currentBlock = sourceBlock
 		sourceBlock.removedControlFlowInstruction()
+		isGeneratingRetroactively = true
+
+		currentManifest.check()
+		comment?.let {
+			addInstruction(L2_NOP("Start retroactive generation$it"))
+		}
 		try
 		{
-			currentManifest.check()
-			comment?.let {
-				addInstruction(L2_NOP("Start retroactive generation$it"))
-			}
 			body()
+			assert(!currentBlock!!.hasControlFlowAtEnd)
 			comment?.let {
 				addInstruction(L2_NOP("...End retroactive generation"))
 			}
-			currentManifest.check()
 		}
 		finally
 		{
-			sourceBlock.instructions().add(savedFinalInstruction)
-			sourceBlock.readdedControlFlowInstruction()
-			currentManifest = savedManifest
-			currentBlock = savedBlock
+			isGeneratingRetroactively = false
 		}
+		currentManifest.check()
+		// Put back the final instruction.
+		sourceBlock.instructions().add(savedFinalInstruction)
+		sourceBlock.readdedControlFlowInstruction()
+		currentManifest = savedManifest
+		currentBlock = savedBlock
 	}
 
 	override fun addContingentValue(contingentValue: A_ChunkDependable)
@@ -1603,6 +1613,7 @@ constructor(
 		edge: L2PcOperand,
 		semanticValues: Iterable<L2SemanticValue<*>>)
 	{
+		assert(!isGeneratingRetroactively)
 		assert(currentManifest.caresAboutSemanticValues)
 		// Skip if we already have the value live.
 		val filtered = semanticValues.filterNot(
@@ -1623,6 +1634,14 @@ constructor(
 				// here.
 				if (!currentManifest.hasLiveSemanticValue(semanticValue))
 					forceTranslationForRead(semanticValue)
+				// An impossible restriction was uncovered while generating
+				// in the predecessor node.  Make this obvious for the next
+				// pass, to eliminate any path leading only to such
+				// instructions.
+				if (currentManifest.hasImpossibleRestriction)
+				{
+					addInstruction(L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW())
+				}
 			}
 		}
 	}

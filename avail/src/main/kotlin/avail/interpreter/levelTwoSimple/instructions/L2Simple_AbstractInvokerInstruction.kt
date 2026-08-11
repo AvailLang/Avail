@@ -69,6 +69,8 @@ constructor(
 ): L2Simple_AbstractReifiableInstruction(
 	nextOffset, reentryOffset, stateOfL1, REENTRY_FROM_REIFIED_CALL)
 {
+	init { assert(expectedType.descriptor.isShared) }
+
 	/**
 	 * A utility for invoking a given function, handling reification and return
 	 * type checking as needed.
@@ -93,8 +95,13 @@ constructor(
 			if (reifier.actuallyReify)
 			{
 				reifier.pushAction {
-					createContinuation(
-						it, registers, thisChunk, expectedType, reentryOffset)
+					setReifiedContinuation(
+						createContinuation(
+							getReifiedContinuation()!!,
+							registers,
+							thisChunk,
+							expectedType,
+							reentryOffset))
 				}
 			}
 			interpreter.currentReifier = reifier
@@ -125,8 +132,13 @@ constructor(
 		assert(handlerValueOrNull === null)
 		interpreter.currentReifier!!.pushAction {
 			// Using the reentryOffset doesn't matter, since it can't continue.
-			createContinuation(
-				it, registers, thisChunk, expectedType, reentryOffset)
+			setReifiedContinuation(
+				createContinuation(
+					getReifiedContinuation()!!,
+					registers,
+					thisChunk,
+					expectedType,
+					reentryOffset))
 		}
 		return REIFY_NOW
 	}
@@ -158,8 +170,13 @@ constructor(
 		{
 			reifier.pushAction {
 				registers[answer] = expectedType as AvailObject
-				createContinuation(
-					it, registers, thisChunk, bottom, Offset.UNREACHABLE)
+				setReifiedContinuation(
+					createContinuation(
+						getReifiedContinuation()!!,
+						registers,
+						thisChunk,
+						bottom,
+						Offset.UNREACHABLE))
 			}
 		}
 		return REIFY_NOW

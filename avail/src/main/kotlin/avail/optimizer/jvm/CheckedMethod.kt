@@ -93,7 +93,6 @@ class CheckedMethod private constructor(
 	returnClass: Class<*>,
 	vararg argumentTypes: Class<*>)
 {
-
 	/** Whether the method is defined in an interface. */
 	private val isInterface: Boolean
 

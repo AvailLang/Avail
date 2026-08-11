@@ -137,6 +137,7 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -4414,7 +4415,7 @@ abstract class AbstractDescriptor protected constructor (
 		val staticTypeTagOrdinalMethod = CheckedMethod.staticMethod(
 			AbstractDescriptor::class.java,
 			::staticTypeTagOrdinal.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 	}
 }

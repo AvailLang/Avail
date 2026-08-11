@@ -105,6 +105,7 @@ import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.AvailException
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1779,7 +1780,7 @@ protected constructor(
 			::staticTupleAt.name,
 			AvailObject::class.java,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the specified [Int] element of the tuple.
@@ -1801,9 +1802,9 @@ protected constructor(
 		val tupleIntAtMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleIntAt.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the codepoint [Int] of the character element of the tuple.
@@ -1827,9 +1828,9 @@ protected constructor(
 		val tupleCodePointAtMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleCodepointAt.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the specified elements of the tuple as another tuple.
@@ -1858,8 +1859,8 @@ protected constructor(
 			::staticTupleCopyFromTo.name,
 			AvailObject::class.java,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!)
+			int,
+			int)
 
 		/**
 		 * Replace the specified element of the tuple, destructively if it's
@@ -1889,7 +1890,7 @@ protected constructor(
 			::staticTupleAtPutting.name,
 			AvailObject::class.java,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_BasicObject::class.java)
 
 		/**
@@ -1906,7 +1907,7 @@ protected constructor(
 		val tupleSizeMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleSize.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_Tuple::class.java)
 	}
 }

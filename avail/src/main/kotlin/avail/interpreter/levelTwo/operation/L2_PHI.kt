@@ -137,6 +137,11 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 	/** Phi instructions are converted to moves along predecessor edges. */
 	override val shouldEmit get() = false
 
+	override fun postponeInstruction(generator: L2GeneratorInterface)
+	{
+		error("Phi instructions cannot be postponed")
+	}
+
 	/**
 	 * One of this phi function's predecessors has been removed because it's
 	 * dead code.  Clean up its vector of inputs by removing the specified

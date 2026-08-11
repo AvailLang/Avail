@@ -304,10 +304,7 @@ constructor(
 		}
 		// Keep semantic values that are common to all incoming paths.  Create
 		// phi functions if the registers disagree.
-		generator.currentManifest.populateForMerge(
-			predecessorEdges.map(L2PcOperand::manifest),
-			generator,
-			isLoopHead)
+		generator.currentManifest.populateForMerge(generator, isLoopHead)
 	}
 
 	/**

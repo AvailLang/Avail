@@ -66,8 +66,8 @@ class L2_ADD_INT_TO_INT(
 	var augend: L2ReadIntOperand,
 	var addend: L2ReadIntOperand,
 	@On(SUCCESS) var sum: L2WriteIntOperand,
-	@On(FAILURE) var outOfRange: L2PcOperand,
-	@On(SUCCESS) var inRange: L2PcOperand
+	@On(SUCCESS) var inRange: L2PcOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand
 ): L2ControlFlowInstruction()
 {
 	override fun instructionWasAdded(

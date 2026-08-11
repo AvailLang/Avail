@@ -39,12 +39,12 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 buildscript {
 	/** The JVM target version for Kotlin. */
-	val kotlin = "2.3.10"
+	val kotlin = "2.4.0"
 	extensions.add("kotlin_version", kotlin)
 }
 
 plugins {
-	kotlin("jvm") version "2.3.10"
+	kotlin("jvm") version "2.4.0"
 	`kotlin-dsl`
 	id("org.jetbrains.dokka") version "2.1.0"
 	`maven-publish`
@@ -61,13 +61,13 @@ version = "2.0.0.alpha20"
 val kotlinVersion get() = project.extensions.getByName("kotlin_version")
 
 /** The JVM target version for Kotlin. */
-val jvmTarget = 25
+val jvmTarget = 26
 
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "2.3"
+val kotlinLanguage = "2.4"
 
 /**
  * The location of the properties file that contains the last published

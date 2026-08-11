@@ -41,6 +41,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryInstanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryStaticMethod
 import java.util.concurrent.atomic.LongAdder
+import kotlin.reflect.KFunction
 
 // Alias the Java primitive classes for convenience.
 typealias JavaVoid = java.lang.Void

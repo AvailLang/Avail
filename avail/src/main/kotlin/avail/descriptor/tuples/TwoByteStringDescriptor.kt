@@ -62,6 +62,7 @@ import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.descriptorFor
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableTwoByteStringOfSize
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -90,7 +91,8 @@ import kotlin.math.min
  */
 class TwoByteStringDescriptor private constructor(
 	mutability: Mutability,
-	var unusedShortsOfLastLong: Int) : StringDescriptor(
+	var unusedShortsOfLastLong: Int
+) : StringDescriptor(
 		mutability, null, IntegerSlots::class.java)
 {
 	/**
@@ -651,7 +653,7 @@ class TwoByteStringDescriptor private constructor(
 				TwoByteStringDescriptor::class.java,
 				::mutableTwoByteStringOfSize.name,
 				AvailObject::class.java,
-				Int::class.javaPrimitiveType!!)
+				int)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

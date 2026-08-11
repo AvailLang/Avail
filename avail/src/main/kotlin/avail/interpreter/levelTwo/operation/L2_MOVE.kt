@@ -117,6 +117,38 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 				source.semanticValue() !in destination.semanticValues())
 	}
 
+	override fun postponeInstruction(generator: L2GeneratorInterface)
+	{
+		val manifest = generator.currentManifest
+		manifest.dynamicAgglomerateSynonym(
+			destination.semanticValues() + source.semanticValue(),
+			destination.restriction())
+		manifest.restrictionFor(source).constantOrNull?.let { c ->
+			val semanticConstant = source.kind.createSemanticConstant(c)
+			if (semanticConstant !in
+				manifest
+					.semanticValueToSynonym(source.semanticValue())
+					.semanticValues()
+			)
+			{
+				// The restriction is now constant, but there isn't a
+				// semantic constant in the synonym.  Add it.
+				manifest.dynamicAgglomerateSynonym(
+					setOf(source.semanticValue(), semanticConstant),
+					semanticConstant.defaultRestriction)
+			}
+		}
+		val existingPostponed = manifest.postponedInstructionFor(
+			destination.pickSemanticValue())
+		// If there's already a postponed instruction, we're done, because
+		// it will populate the whole synonym when needed.
+		if (existingPostponed == null)
+		{
+			// Add a move that ensures the new destinations will get populated.
+			super.postponeInstruction(generator)
+		}
+	}
+
 	/**
 	 * Omit the move if the source and destination registers have the same
 	 * color (finalIndex).
@@ -194,7 +226,7 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			if (definingInstruction.basicBlock() == currentBlock()
 				&& definingInstruction !is L2_PHI<*>)
 			{
-				+L2_NOP("transformed move: $this@L2_MOVE")
+				+L2_NOP("transformed move: ${this@L2_MOVE}")
 				// It was defined in the current block.  Augment the write.
 				// Note that phis don't count, since regeneration ignores them
 				// in BySemanticValue mode, regenerating them afresh.

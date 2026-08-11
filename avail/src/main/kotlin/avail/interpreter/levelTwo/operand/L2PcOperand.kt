@@ -403,7 +403,7 @@ constructor (
 		// is non-empty.  Create the encoded tuple of local/source info for
 		// initializing variables.  See ENCODED_ELIDED_LOCALS in
 		// RegisterDumpDescriptor.
-		loadLiteralObject(fallbackDefaultEntryPoint.offset())
+		intConstant(fallbackDefaultEntryPoint.offset())
 		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
 		{
 			// This is a real continuation that can become immutable or shared,

@@ -64,7 +64,7 @@ constructor(val countdown: Long)
 	 * The [countdown] is very small to encourage early translation of any
 	 * function that is executed even a small number of times.
 	 */
-	UNOPTIMIZED(2L)
+	UNOPTIMIZED(2L) //TODO 2L is a good value.
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
@@ -76,7 +76,7 @@ constructor(val countdown: Long)
 	/**
 	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
 	 */
-	SIMPLE_TRANSLATION(1_000_000_000_000_000_000L) //TODO 1_000L) -- suppress L2)
+	SIMPLE_TRANSLATION(1L) //TODO restore 10_000L)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{

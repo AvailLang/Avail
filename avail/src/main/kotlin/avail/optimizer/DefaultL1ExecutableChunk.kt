@@ -64,8 +64,6 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.INITIAL_ENTRY
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.RESUME
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.UNREACHABLE_ENTRY
-import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk.executableChunk
-import avail.optimizer.DefaultL1ExecutableChunk.runChunk
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
 import avail.optimizer.jvm.JVMChunk
 import avail.performance.Statistic
@@ -241,10 +239,8 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			val frame = prepareNewFrame(interpreter)
 
 			// Check for an interrupt.
-			val interruptStatistic = interpreter.statisticForRequestedInterrupt
-			if (interruptStatistic !== null)
-			{
-				return reifyForInterrupt(interpreter, frame, interruptStatistic)
+			interpreter.statisticForRequestedInterrupt()?.let { stat ->
+				return reifyForInterrupt(interpreter, frame, stat)
 			}
 			// No interrupt was requested.  Run the nybblecodes from the
 			// beginning, with an initially empty stack.
@@ -335,7 +331,7 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			// jump upon return from a call that must not return.
 			throw UnreachableCodeException()
 		}
-		JVMChunk.badOffset(offset)
+		throw JVMChunk.badOffset(offset)
 	}
 
 	private fun prepareNewFrame(

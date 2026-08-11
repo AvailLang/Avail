@@ -37,7 +37,7 @@ import org.availlang.artifact.environment.location.Scheme.FILE
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 
 plugins {
-	kotlin("jvm") version "2.3.10"
+	kotlin("jvm") version "2.4.0"
 	id("java")
 	`maven-publish`
 	publishing

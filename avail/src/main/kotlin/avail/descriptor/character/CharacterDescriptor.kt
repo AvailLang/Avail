@@ -55,6 +55,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MarshalingException
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -293,7 +294,7 @@ class CharacterDescriptor private constructor(
 			CharacterDescriptor::class.java,
 			::staticFromCodePoint.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer an already instantiated Avail [character][A_Character] for the
@@ -320,7 +321,7 @@ class CharacterDescriptor private constructor(
 			CharacterDescriptor::class.java,
 			::staticFromByteCodePoint.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/** The first 256 Unicode characters. */
 		private val byteCharacters = Array(256) {

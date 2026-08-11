@@ -58,7 +58,6 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
 import avail.descriptor.types.TypeTag
@@ -129,14 +128,24 @@ class MethodDefinitionDescriptor private constructor(
 		{
 			append('(')
 			self[DEFINITION_METHOD].bundles
-				.sortedBy {
-					when (val module = it.message.issuingModule)
-					{
-						nil -> Int.MAX_VALUE
-						else -> module.allAncestors.setSize
-					}
+				.map { bundle ->
+					val module = bundle.message.issuingModule
+					// The depth is the number of predecessor modules.  If there
+					// is no module, or if its ancestors set has been nilled
+					// by unloading but the bundle still exists (VERY rare), use
+					// the maximum integer.
+					val depth =
+						if (module.isNil) Int.MAX_VALUE
+						else
+						{
+							val ancestors = module.allAncestors
+							if (ancestors.isNil) Int.MAX_VALUE
+							else ancestors.setSize
+						}
+					depth to bundle.message.toString()
 				}
-				.joinTo(this, " a.k.a. ") { it.message.toString() }
+				.sortedBy(Pair<Int, String>::first)
+				.joinTo(this, " a.k.a. ", transform = Pair<*, String>::second)
 			val code: A_RawFunction = self[BODY_BLOCK].code()
 			val module = code.module
 			if (module.notNil)

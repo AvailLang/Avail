@@ -47,7 +47,7 @@ import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
 /**
- * `L2WriteOperand` abstracts the capabilities of actual register write
+ * [L2WriteOperand] abstracts the capabilities of actual register write
  * operands.
  *
  * @param K
@@ -55,13 +55,6 @@ import avail.utility.cast
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- *
- * @property restriction
- *   The [TypeRestriction] that indicates what values may be written to the
- *   destination register.
- * @property register
- *   The actual [L2Register]. This is only set during late optimization of the
- *   control flow graph.
  *
  * @constructor
  * Construct a new `L2WriteOperand` for the specified [L2SemanticValue].

@@ -212,11 +212,11 @@ object P_Addition : Primitive2(CanFold, CanInline)
 		},
 		ifOutputIsPossiblyInt = {
 			+L2_ADD_INT_TO_INT(
-				intA,
-				intB,
-				intWrite,
-				edgeTo(intFailure),
-				edgeTo(intSuccess))
+				augend = intA,
+				addend = intB,
+				sum = intWrite,
+				inRange = edgeTo(intSuccess),
+				outOfRange = edgeTo(intFailure))
 		})
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(

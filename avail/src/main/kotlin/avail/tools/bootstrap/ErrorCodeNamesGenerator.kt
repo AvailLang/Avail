@@ -165,8 +165,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 		private fun allErrorCodesAreReachableFromPrimitives(): Boolean
 		{
 			// This forces initialization of Avail.
-			@Suppress("UnusedExpression")
-			AvailRuntime
+			AvailRuntime.let {}
 			var allErrorCodes = emptySet
 			AvailErrorCode.entries.forEach { code ->
 				if (!code.isCausedByInstructionFailure)

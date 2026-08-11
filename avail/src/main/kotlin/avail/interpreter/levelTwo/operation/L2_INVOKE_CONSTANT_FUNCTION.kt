@@ -197,7 +197,6 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 					boxedWrite(
 						result.semanticValues(),
 						result.restriction().intersectionWithType(resultType)))
-				// Don't forget to jump to the ifReturn edge's target.
 				jumpTo(ifReturn.targetBlock())
 				return
 			}

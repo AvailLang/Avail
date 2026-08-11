@@ -150,7 +150,7 @@ constructor(
 		when
 		{
 			// Shouldn't happen, but play nice.
-			possibleEdges.isEmpty() -> return L2_IMPOSSIBLE_CODE()
+			possibleEdges.isEmpty() -> return impossibleCodeInstruction()
 			possibleEdges.size == 1 -> return L2_JUMP(possibleEdges.single())
 			edges.size == 2 -> return L2_JUMP_IF_COMPARE_INT(
 				numericComparator = L2ArbitraryConstantOperand(GreaterOrEqual),

@@ -1649,8 +1649,7 @@ class TypeConsistencyTest
 		{
 			// Force early initialization of the Avail runtime to prevent
 			// initialization errors.
-			@Suppress("UnusedExpression")
-			AvailRuntime
+			AvailRuntime.let {}
 
 			Node.createTypes()
 			@Suppress("ConstantConditionIf")

@@ -36,6 +36,7 @@ import avail.descriptor.representation.A_Set.Companion.setSizeStatic
 import avail.descriptor.representation.A_Set.Companion.setWithElementStatic
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.TupleDescriptor
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -256,7 +257,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		val setSizeMethod = staticMethod(
 			A_Set::class.java,
 			::setSizeStatic.name,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		/**

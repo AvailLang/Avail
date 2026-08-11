@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_INTERRUPT.kt
+ * L2_REIFY_IF_INTERRUPT.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,35 +37,43 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.performance.Statistic
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Opcodes.DUP
 
 /**
- * Jump to the specified level two program counter if no interrupt has been
- * requested since last serviced.  Otherwise an interrupt has been requested
- * and we should proceed to the next instruction.
+ * If reification has been requested for some reason for this fiber, the call
+ * to [Interpreter.statisticForRequestedInterruptMethod] will return the
+ * [Statistic] under which to track the cost, and we should reify the outer call
+ * stack, eventually invoking an action that runs more L2 code to reify the
+ * current frame as well, ultimately returning null from the JVM frame.  After
+ * interrupt processing completes, the chunk will be resumed at an L2 offset
+ * captured within that continuation (if the chunk has become invalid, an L1
+ * default chunk entry point will be invoked instead).
+ *
+ * In the far more frequent case that the returned statistic was `null`, we just
+ * jump to [ifNotInterrupt].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_JUMP_IF_INTERRUPT(
+class L2_REIFY_IF_INTERRUPT(
 	@On(OFF_RAMP) var ifInterrupt: L2PcOperand,
 	@On(SUCCESS) var ifNotInterrupt: L2PcOperand
-): L2ConditionalJump()
+): L2ControlFlowInstruction()
 {
+	// It jumps, which counts as a side effect.
+	override val hasSideEffect: Boolean get() = true
+
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
-		// :: else goto ifNotInterrupt;
+		// :: if (interpreter.reifyIfInterrupt()) goto ifInterrupt
+		// :: else goto ifNotinterrupt
 		loadInterpreter()
-		generateCall(Interpreter.statisticForRequestedInterruptMethod)
-		method.visitInsn(DUP)
-		//TODO This is partly rewritten to leave a Statistic on the stack in the
-		// event of an interrupt, rather than nothing.
-		emitBranch(
-			instruction = this@L2_JUMP_IF_INTERRUPT,
-			opcode = Opcodes.IFNULL,
-			conditionHolds = ifNotInterrupt,
-			conditionDoesNotHold = ifInterrupt)
+		generateCall(Interpreter.reifyIfInterruptMethod)
+		// Note: Don't bother capturing branch statistics here.
+		method.visitJumpInsn(Opcodes.IFEQ, labelFor(ifNotInterrupt.offset()))
+		// Interrupt was requested, and a reifier was set up for it, but not
+		// yet populated with continuations.
+		generateReificationPreamble(ifInterrupt)
 	}
 }
