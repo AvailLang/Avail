@@ -1,31 +1,29 @@
 # L2ValueManifest redesign: ValueClass / ValueState / Representation
 
-Status: **in progress.** Steps 1, 2a, 6 and the `ValueClass` re-keying of
-step 4 landed, all green under
-`compileKotlin` + `SimpleOptimizerTest` (31 tests). Steps 2b–2d are **blocked
-on step 4** – see the ordering correction in step 2 and the evidence in
-section 9. Next action: step 4, as designed in section 2. Section 10 records a
-shortcut that was proposed and **rejected**, and why; section 11 tracks step 4
-itself.
+Status: **in progress.** Landed: steps 1, 2a, 6, the `ValueClass` re-keying of
+step 4 (section 11.2), and derivation edges with base retention (section 13.4).
 
-There is now a **failing reproducer** for the section 1.1 defect:
-`SimpleOptimizerTest.earlyMapsBindingsSemanticRestriction`. It is expected to
-fail until step 4 and the remaining specialization work are done, and is the
-acceptance criterion for them. Current state of that suite is therefore 31
-passing, 1 failing-by-design.
+`SimpleOptimizerTest` stands at **31 of 32**. The one failure,
+`divisionSemanticRestriction_3_2`, is known and deliberately unpatched: an
+introduced derivation base is seeded with `defaultRestriction`, which for a tag
+anchor is `topRestriction`, and a class introduced at top is worse than no class
+at all for any pass that intersects restrictions across a merge. Seeding it from
+the derived value would probably go green, but it is scaffolding for a model
+about to replace it — see section 13.5.
 
-Step 6 was deliberately done **before** step 4: its consumer index can be
-tolerant (keyed by `L2SemanticValue`, validated on use), so it does not need
-stable class identity.
+**Next action: the per-kind `Representation` split** (step 4's remaining half).
+That is what dissolves the anchor problem rather than tuning it: once a tag is an
+edge from its base's `ValueState` instead of a class of its own in a different
+`RegisterKind`, there is no separate class to seed and the base cannot be
+missing.
 
-Note on running `AvailTest`: loading the standard library currently dies at
-~24% with `AssertionError: Invalid target of JVMTranslator` from
-`L2PcOperand.createAndPushRegisterDump` via `L2_SAVE_ALL_AND_PC_TO_INT`. This
-is a **pre-existing, unrelated** defect – `L2_SAVE_ALL_*` has edges to basic
-blocks that should have started with an `L2_ENTER_*` instruction – confirmed
-unchanged by this work. It is not the postponed-staleness defect of section
-1.1. Until it is fixed, `AvailTest` is not a usable gate; use `compileKotlin`
-and `SimpleOptimizerTest`.
+Note on running `AvailTest`: loading the standard library dies at ~24% with
+`AssertionError: Invalid target of JVMTranslator` from
+`L2PcOperand.createAndPushRegisterDump` via `L2_SAVE_ALL_AND_PC_TO_INT`. This is
+a **pre-existing, unrelated** defect – `L2_SAVE_ALL_*` has edges to basic blocks
+that should have started with an `L2_ENTER_*` instruction – confirmed unchanged
+by this work. Until it is fixed, `AvailTest` is not a usable gate; use
+`compileKotlin` and `SimpleOptimizerTest`.
 
 This document is the durable plan for replacing the `L2Synonym` →
 `Constraint` mapping in `L2ValueManifest` with an equivalence-class model. It
@@ -187,98 +185,85 @@ null and `states` holds boxed-only representations with no
 
 ---
 
-## 3. The union algorithm
+## 3. Merging classes
 
-```kotlin
-fun union(a0: ValueClass, b0: ValueClass): ValueClass
-{
-    val a = resolve(a0)
-    val b = resolve(b0)
-    if (a === b) return a
-    val sa = states[a]!!
-    val sb = states[b]!!
-    // Weighted: keep whichever class has more members.
-    val (win, lose, sw, sl) = order(a, b, sa, sb)
-    val merged = ValueState(
-        members = sw.members + sl.members,
-        restriction = sw.restriction.intersection(sl.restriction),
-        boxed = mergeRep(sw.boxed, sl.boxed),
-        int = mergeRep(sw.int, sl.int),
-        float = mergeRep(sw.float, sl.float),
-        tag = unify(sw.tag, sl.tag),               // downward congruence
-        variantId = unify(sw.variantId, sl.variantId),
-        derivations = sw.derivations + sl.derivations)
-    forward[lose] = win
-    states.remove(lose)
-    states[win] = merged
-    mergePostponedReaders(win, lose)
-    renarrow(win)     // the intersected restriction may have tightened
-    return win
-}
+**Implemented.** `agglomerateSynonym` elects a survivor from the existing
+classes and absorbs the rest; `privateMergeSynonyms` has class1 absorb class2;
+`forwardClass` records the forwarding and folds the loser's edges and postponed
+consumers into the survivor's; `mergeDerivationEdges` merges two derived classes
+when both their bases merge.
 
-private fun unify(x: ValueClass?, y: ValueClass?) = when
-{
-    x == null -> y
-    y == null -> x
-    else -> union(x, y)
-}
-```
+The invariants that matter, restated because they are easy to break:
 
-`mergeRep` unions definitions and picks a surviving postponed instruction —
-i.e. today's logic in `agglomerateSynonym`, applied per kind.
+- **Congruence is downward only.** `a === b` implies `Tag(a) === Tag(b)`, so a
+  merge must unify the `tag` and `variantId` edges. The converse is **false** —
+  neither tags nor variant ids are injective — so a merge must *never* unify the
+  bases reached from `derivations`.
+- **The merged restriction is the intersection**, which may be strictly tighter
+  than either input, so a merge has to re-narrow the survivor (section 4).
+- **Merging terminates** because every merge strictly reduces the number of
+  classes, which is what makes the recursion through `mergeDerivationEdges` safe.
+
+Still to do, with `ValueState`: merge the `Representation`s pairwise per
+`RegisterKind`, unioning definitions and picking a surviving postponed
+instruction — today's logic in `agglomerateSynonym`, applied per kind rather than
+to the single list.
 
 ## 4. The narrowing algorithm
 
-Converted from recursion to a drained worklist. This bounds the depth, gives
-one place to assert monotone progress (restrictions only ever intersect), and
-provides the single hook for postponed-instruction re-narrowing.
+Narrowing propagates by **immediate recursion**, directly from the point where a
+restriction is tightened. No worklist, no deferral.
 
-```kotlin
-private fun drain()
-{
-    while (worklist.isNotEmpty())
-    {
-        val (c0, body) = worklist.removeFirst()
-        val c = resolve(c0)
-        val old = states[c] ?: continue
-        val new = old.restriction.intersection(old.restriction.body())
-        if (new == old.restriction) continue        // no progress
-        states[c] = old.narrowed(new)
-        if (new.isImpossible) impossibleCount++
+That is worth stating plainly, because the current arrangement was shaped by a
+cost that no longer exists. Today each propagation step *searches* for the
+neighbours it should narrow – nine `equivalentSemanticValue` calls per step,
+each degrading to a linear scan (section 1.2) – so propagation was expensive
+enough that spreading it over a queue looked attractive. Once neighbours are
+reached by following a field or an edge, a step costs a handful of pointer hops,
+and the queue buys nothing but indirection.
 
-        // 1. Constant -> union with the canonical constant class.
-        new.constantOrNull?.let { k ->
-            constantOf[k]?.let { return@let union(c, it) }
-            registerConstant(k, c)
-        }
-        // 2. Representations that can no longer exist.
-        if (!new.type.isSubtypeOf(i32)) dropRep(c, INTEGER_KIND)
-        if (!new.type.isSubtypeOf(DOUBLE())) dropRep(c, FLOAT_KIND)
-        // 3. Derived classes, downward.  Field reads, no searching.
-        states[c]!!.tag?.let {
-            enqueue(it) { intersectionWithType(tagRange(new)) } }
-        states[c]!!.variantId?.let {
-            enqueue(it) { variantIdRange(new) } }
-        // 4. Derived classes, upward.  Back edges, no unwrapping.
-        states[c]!!.derivations.forEach { d ->
-            when (d)
-            {
-                is TagOf -> enqueue(d.base) {
-                    restrictionForTagRestriction(new) }
-                is VariantIdOf -> enqueue(d.base) {
-                    restrictionForVariantId(new) }
-            }
-        }
-        // 5. Postponed consumers -- the section 1.1 defect.
-        postponedReaders[c]?.forEach(::renarrowPostponed)
-    }
-}
-```
+Recursion is safe here because propagation **damps**:
 
-Step 4 replaces the `L2SemanticExtractedTag` / `L2SemanticObjectVariantId`
-unwrapping in today's `propagateForRestrictionChange`, including the stale
-comment claiming "we simply don't keep that backward map from id to variant"
-(`variantFromId` is called sixteen lines later).
+- Restrictions only ever intersect, so every step either strictly narrows a
+  class or stops. A step that changes nothing recurses no further.
+- The neighbour relation is narrow and shallow: sibling `Representation`s within
+  one `ValueState`, and one derivation edge in each direction. Tags and variant
+  ids are not themselves tagged, so the derived chains are a single link deep in
+  practice.
+- Restrictions form a lattice with a bottom, so there is no infinite descending
+  chain to follow.
+
+So the depth is bounded by the size of the neighbourhood, not by the size of the
+manifest, and no explicit depth cap is needed. The `maxRenarrowDepth` bound
+currently guarding `renarrowPostponedConsumersOf` exists only because the search
+based propagation could not be trusted to converge cheaply; **delete it** when
+propagation becomes immediate.
+
+On narrowing a class, in order:
+
+1. **Constant.** If the restriction became constant, union with the canonical
+   class for that constant, creating it if absent.
+2. **Sibling representations.** Recurse into the `int` and `float`
+   `Representation`s of the same `ValueState`, and drop any representation the
+   new restriction has made impossible. Under step 3 (one boxed restriction per
+   `ValueState`) there is nothing to keep in step, so this reduces to dropping
+   newly impossible representations.
+3. **Derived classes, downward.** Follow the `tag` and `variantId` edges and
+   narrow them — a field read, not a search.
+4. **Derived classes, upward.** Follow the `derivations` back edges and narrow
+   each base. This direction is cheap for the first time; today it is reachable
+   only by unwrapping an `L2SemanticExtractedTag` inside
+   `propagateForRestrictionChange`, which is also where the stale comment claims
+   "we simply don't keep that backward map from id to variant" (`variantFromId`
+   is called sixteen lines later).
+5. **Postponed consumers.** Re-narrow the postponed instructions that read this
+   class, via `postponedReaders` — the section 1.1 defect.
+
+Each of these recurses through the same entry point, so the change-detection at
+the top ("did the restriction actually move?") is the single thing that
+terminates the whole cascade. It must test for an actual change rather than
+using `TypeRestriction.isStrongerThan`, which is reflexive and therefore always
+reports progress.
 
 ## 5. Fixing the postponed-instruction defect (step 6)
 
@@ -325,9 +310,12 @@ back to the postponed instruction. Factor that constant-folding branch of
 `recordPostponedInstruction` into `installOrFoldPostponed(class, instruction)`
 and call it from both record-time and re-narrow-time so they cannot drift.
 
-`postponedReaders` may be a **tolerant** index: validate on use rather than
-maintaining it exactly across every synonym mutation. A stale entry costs one
-wasted recompute, not a wrong answer.
+`postponedReaders` is keyed by `ValueClass`, not by `L2SemanticValue`. Keying it
+by semantic value looks adequate and is not: narrowing is reported for whichever
+member `pickSemanticValue` happens to answer, which is very often not the member
+the postponed instruction reads, so the index silently misses and the
+specialization never happens. Keys merge in `forwardClass`; values resolve
+lazily, so a merge costs one map operation rather than a scan.
 
 ---
 
@@ -727,42 +715,13 @@ to prefer it:
 - Site 2 becomes an explicit lookup of the class for one of the new semantic
   values, which is what it meant all along.
 
-### 10.3 Shape of the change
-
-`L2Synonym` needs no modification. It stays immutable, and sharing it between
-manifests stays safe precisely *because* it is immutable. Membership changes
-produce a **new** `L2Synonym` inside a **new** `ValueState`, replacing the
-entry for the **same** `ValueClass`:
-
-```
-ValueClass   stateless identity; default identity equality
-ValueState   immutable: synonym (membership), definitions, restriction,
-             postponed
-classOf      MutableMap<L2SemanticValue, ValueClass>   (was semanticValueToSynonym)
-forward      MutableMap<ValueClass, ValueClass>        (per-manifest union-find)
-states       MutableMap<ValueClass, ValueState>        (was constraints)
-
-semanticValueToSynonym(sv) == states[resolve(classOf[sv])]!!.synonym
-```
-
-Scope in `L2ValueManifest`: 13 sites index `constraints` by synonym, 6
-construct an `L2Synonym`, and 34 read membership via `semanticValues()`.
-
-**Determinism.** `ValueClass` uses identity equality, so iteration order
-must not depend on identity hash codes, which vary between JVM runs and would
-make code generation nondeterministic. Kotlin's `mutableMapOf()` /
-`mutableSetOf()` already give insertion-ordered `LinkedHashMap` /
-`LinkedHashSet`, so the default is correct; the rule is simply never to
-substitute an explicit `HashMap`/`HashSet` for a collection keyed by
-`ValueClass`.
-
-**Lazily materialized synonym view.** Give `ValueState` a nullable
-`cachedSynonym` slot rather than building the `L2Synonym` eagerly. Most states
-are never asked for their synonym, and the view is only needed at the
-boundary where existing callers ask for one. The slot is also robust to a
-later decision to make `ValueState` mutable: replacing the members set simply
-nulls the cache.
-
+**Determinism, an enduring constraint.** `ValueClass` uses identity equality,
+so iteration order must not depend on identity hash codes, which vary between
+JVM runs and would make code generation nondeterministic. Kotlin's
+`mutableMapOf()` / `mutableSetOf()` already give insertion-ordered
+`LinkedHashMap` / `LinkedHashSet`, so the default is correct; the rule is
+simply never to substitute an explicit `HashMap`/`HashSet` for a collection
+keyed by `ValueClass`.
 
 ## 11. Step 4 progress
 
@@ -837,12 +796,13 @@ with `deepManifestDebugCheck` enabled throughout.
 
 ### 11.3 Next
 
-- Re-key `postponedReaders` (step 6) from `L2SemanticValue` to `ValueClass`,
-  upgrading it from tolerant to exact, and prune it in `forwardClass`.
+`postponedReaders` has since been re-keyed to `ValueClass` (section 5), so what
+remains of step 4 is:
+
 - Rewrite the `dynamicAgglomerateSynonym` helper site described in 10.2 as an
   explicit class lookup instead of rebuilding an equal `L2Synonym`.
-- Then `ValueState` with per-kind `Representation`s, which is what 2b-2d
-  need.
+- `ValueState` with per-kind `Representation`s, which is what 2b–2d need, and
+  what lets narrowing propagate by immediate recursion (section 4).
 
 ## 12. The regenerator path does not need the emit-time refresh
 
@@ -997,15 +957,31 @@ edges populate.
 
 ### 13.5 Next
 
-- Use the edges to make the inconsistency unrepresentable: a derived class must
-  not outlive its base. Either retain the base's membership when a derived
-  class is live, or drop the derived class with it.
-- Then move the edges onto `ValueState` proper, along with per-`RegisterKind`
-  `Representation`s.
-- Then the goal stated for this work: **only boxed `L2SemanticValue`s
-  participate in synonyms and appear in read/write operands**, even when an
-  unboxed representation is the one being accessed. The operand's static
-  `RegisterKind` selects the representation; the semantic value stops carrying
-  it. That is what finally deletes `L2SemanticUnboxedInt` and
-  `L2SemanticUnboxedFloat`, and with them the `<K>` parameter on
-  `L2SemanticValue`.
+The decision to always retain the base is made and implemented. What remains:
+
+1. **`ValueState` with per-`RegisterKind` `Representation`s**, with the `tag` and
+   `variantId` edges moved onto it. This is what dissolves the anchor-seeding
+   problem that leaves `divisionSemanticRestriction_3_2` red: a tag stops being a
+   class of its own in a different `RegisterKind` and becomes an edge from its
+   base's state, so there is no separate class to seed and the base cannot be
+   missing.
+2. **Immediate recursive propagation** (section 4), which becomes possible in the
+   same change, because neighbours are then reached by following a field or an
+   edge rather than by searching. Delete `maxRenarrowDepth` with it.
+3. **Only boxed `L2SemanticValue`s participate in synonyms and appear in
+   read/write operands**, even when an unboxed representation is the one being
+   accessed. A read of `Tag(x)` through an int read operand finds its definition
+   in the state's int `Representation`; the operand's static `RegisterKind`
+   selects the representation and the semantic value stops carrying it. That is
+   what finally deletes `L2SemanticUnboxedInt` and `L2SemanticUnboxedFloat`, and
+   with them the `<K>` parameter on `L2SemanticValue`.
+
+Deletions that fall out, and should not be left behind:
+
+- `checkDerivedValuesHaveTheirBases` and its `derivationBaseOrNull` helper — the
+  condition stops being representable, and these are the last type-test on
+  semantic values inside the manifest.
+- The search fallbacks in `tagFormOf` and `variantIdFormOf`, once the edges are
+  authoritative.
+- `L2SemanticUnboxedInt.recordDerivationIn`, which exists only to delegate to the
+  boxed form while unboxed semantic values still exist.
