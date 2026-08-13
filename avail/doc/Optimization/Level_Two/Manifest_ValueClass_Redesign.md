@@ -989,3 +989,71 @@ Deletions that fall out, and should not be left behind:
   authoritative.
 - `L2SemanticUnboxedInt.recordDerivationIn`, which exists only to delegate to the
   boxed form while unboxed semantic values still exist.
+
+## 14. Revised factoring for deleting the unboxed semantic values
+
+The earlier plan treated "per-kind `Representation`s" and "operands hold boxed
+semantic values" as one indivisible change across ~100 call sites. They are not,
+and two existing facts make the split clean.
+
+**`L2SemanticValue` is identityless.** It hashes and compares by content, so an
+`L2SemanticUnboxedInt` can be *synthesized* on demand from a stored boxed value
+and will be equal to any other with the same base. An int operand can therefore
+store a boxed semantic value immediately, and any code still wanting the unboxed
+spelling can reconstruct it. Operand storage stops depending on the manifest's
+internal shape.
+
+**`toBoxed` already dispatches the strip-to-base step.** It is abstract on
+`L2SemanticValue`, answers `this` on `L2SemanticBoxedValue`, and answers
+`privateBoxed` on both unboxed forms. Keying the manifest by
+`semanticValue.toBoxed` needs no new API and no type tests. It currently has a
+single caller, so it is effectively an unused-but-correct hook for exactly this.
+
+### 14.1 The pieces
+
+**C — `Constraint` holds representations per `RegisterKind`.** The prerequisite,
+and the one real design step. After B a class has no single kind, so
+`Constraint`'s `<K>` parameter becomes meaningless and goes; `members` narrows to
+`Set<L2SemanticBoxedValue>`; the register-level facts move into a per-kind map of
+`Representation`s; and the single `restriction` is the boxed one, with int and
+float obtained by projection (`forUnboxedInt`) rather than stored — see section 3
+for why the unboxed forms carry no information of their own.
+
+Which representation a given semantic value denotes is chosen by dispatching
+*through the semantic value* – `representationIn(constraint)` – not by testing
+its type in the manifest.
+
+**B — key the manifest by `toBoxed`.** `classOrNull`, `classFor` and `bind` strip
+to the base, so `x` and `Int(x)` become one class. Small, and it is the semantic
+switch: it cannot land before C, because a shared class would otherwise have to
+hold boxed and int registers in one list, which is the mixed-kind arrangement
+that caused problems before.
+
+**D — operands store boxed semantic values.** `L2ReadIntOperand` and friends hold
+the base; the operand's own static kind selects the representation. Mechanical,
+because of identitylessness: anything still wanting `L2SemanticUnboxedInt`
+synthesizes it. Decide `L2ReadOperand.restrictionIn(manifest)` up front, since
+`restrictionFor(read.semanticValue())` becomes ambiguous once the semantic value
+no longer carries the kind.
+
+**E — delete.** `L2SemanticUnboxedInt`, `L2SemanticUnboxedFloat`, the `<K>`
+parameter on `L2SemanticValue` and `L2Synonym`, `dynamicAgglomerateSynonym`'s
+genericity workaround, `L2SemanticUnboxedInt.recordDerivationIn`, and the search
+fallbacks in `tagFormOf`/`variantIdFormOf`.
+
+### 14.2 Why this is digestible
+
+Only C revisits the ~100 reads of `definitions` and `postponedInstruction`, and
+even there they divide mechanically rather than case by case:
+
+- reads driven by a semantic value become `representationIn(constraint)`;
+- reads driven by a class, iterating all its registers, become a fold over all
+  representations.
+
+Removing `Constraint`'s delegating `definitions` / `postponedInstruction`
+accessors at the end of C makes the compiler enumerate every site that still
+assumes one representation, which is the same technique that made the
+`ValueClass` re-keying tractable.
+
+B, D and E each keep the suite runnable on their own. C is the only step that
+should be attempted in one sitting.
