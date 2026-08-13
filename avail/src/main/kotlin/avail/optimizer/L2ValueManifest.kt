@@ -151,11 +151,73 @@ class L2ValueManifest
 	var mode: GenerationMode
 
 	/**
-	 * A utility type containing a list of [L2Register]s that currently hold the
-	 * same value, a [TypeRestriction], and an optional postponed
-	 * [L2Instruction], whose sole write operand contains no semantic values,
-	 * but will be populated with the semantic values of the associated synonym
-	 * (in a copy) if the instruction is eventually emitted.
+	 * The register-level facts about one value, for a single [RegisterKind]: the
+	 * [L2Register]s currently holding it in that kind, and the postponed
+	 * [L2Instruction] that would populate them.
+	 *
+	 * This is the slot that lets one value be described in several
+	 * representations at once.  Today a [Constraint] holds exactly one, matching
+	 * the single-kind classes the manifest still has.  When int and float
+	 * representations can hang off the same value, the boxed/int/float
+	 * distinction moves entirely in here, and an [L2ReadIntOperand] can name a
+	 * *boxed* [L2SemanticValue] and find its definition in the int
+	 * representation.  That is what allows [L2SemanticUnboxedInt] and
+	 * [L2SemanticUnboxedFloat] to be deleted: the operand's static kind selects
+	 * the representation, so the semantic value no longer has to carry it.
+	 *
+	 * Keeping the definitions of different kinds in separate representations is
+	 * a requirement, not an incidental arrangement.  An earlier incarnation
+	 * mixed kinds within one list and it caused problems.
+	 *
+	 * @property kind
+	 *   The [RegisterKind] this representation describes.
+	 * @property definitions
+	 *   An immutable [List] of [L2Register]s of this [kind] that hold the value.
+	 *   The list may be replaced, but not internally modified, and the caller
+	 *   must not modify the list after passing it to this constructor.
+	 * @property postponedInstruction
+	 *   The optional [L2Instruction] that is responsible for populating members
+	 *   that do not yet have definitions in this [kind].  It has *not* yet been
+	 *   emitted, and might never be, if the values it populates are never read.
+	 */
+	class Representation<K: RegisterKind<K>>(
+		val kind: K,
+		val definitions: List<L2Register<K>>,
+		val postponedInstruction: L2Instruction?)
+	{
+		/**
+		 * Answer a copy of the receiver with the given definitions.
+		 *
+		 * @param newDefinitions
+		 *   The replacement definitions.
+		 * @return
+		 *   The new [Representation], or the receiver if nothing changed.
+		 */
+		fun withDefinitions(newDefinitions: List<L2Register<K>>) = when
+		{
+			newDefinitions == definitions -> this
+			else -> Representation(kind, newDefinitions, postponedInstruction)
+		}
+
+		/**
+		 * Answer a copy of the receiver with the given postponed instruction.
+		 *
+		 * @param newPostponed
+		 *   The replacement postponed [L2Instruction], or `null`.
+		 * @return
+		 *   The new [Representation], or the receiver if nothing changed.
+		 */
+		fun withPostponed(newPostponed: L2Instruction?) = when
+		{
+			newPostponed === postponedInstruction -> this
+			else -> Representation(kind, definitions, newPostponed)
+		}
+	}
+
+	/**
+	 * A utility type describing one value: the [L2SemanticValue]s that name it,
+	 * the [TypeRestriction] bounding it, and the [Representation] holding its
+	 * register-level facts.
 	 *
 	 * @property definitions
 	 *   An immutable [List] of [L2Register]s that hold the same value.  They
@@ -181,10 +243,46 @@ class L2ValueManifest
 	 */
 	class Constraint<K: RegisterKind<K>>(
 		val members: Set<L2SemanticValue<K>>,
-		val definitions: List<L2Register<K>>,
 		val restriction: TypeRestriction,
-		val postponedInstruction: L2Instruction?)
+		val representation: Representation<K>)
 	{
+		/**
+		 * Build a constraint with a single [Representation], inferring its
+		 * [RegisterKind] from the members.  This is the shape the manifest still
+		 * uses everywhere, since a class currently has one kind.
+		 *
+		 * @param members
+		 *   The [L2SemanticValue]s naming this value.
+		 * @param definitions
+		 *   The [L2Register]s holding it.
+		 * @param restriction
+		 *   The [TypeRestriction] bounding it.
+		 * @param postponedInstruction
+		 *   The postponed [L2Instruction] that would populate it, or `null`.
+		 */
+		constructor(
+			members: Set<L2SemanticValue<K>>,
+			definitions: List<L2Register<K>>,
+			restriction: TypeRestriction,
+			postponedInstruction: L2Instruction?
+		): this(
+			members,
+			restriction,
+			Representation(
+				members.first().kind,
+				definitions,
+				postponedInstruction))
+
+		/** The [L2Register]s holding this value, in its sole representation. */
+		val definitions: List<L2Register<K>> get() = representation.definitions
+
+		/**
+		 * The postponed [L2Instruction] that would populate this value, in its
+		 * sole representation.
+		 */
+		val postponedInstruction: L2Instruction?
+			get() = representation.postponedInstruction
+
 		/**
 		 * A lazily materialized [L2Synonym] view of [members].  Most constraints
 		 * are never asked for one.
@@ -204,16 +302,18 @@ class L2ValueManifest
 
 		init
 		{
-			assert(definitions.size == definitions.toSet().size)
+			val registers = representation.definitions
+			val postponed = representation.postponedInstruction
+			assert(registers.size == registers.toSet().size)
 			assert(
-				postponedInstruction.isNullOr {
+				postponed.isNullOr {
 					writeOperands.single().semanticValues().isEmpty()
 				})
 			// Detect a move from a not-defined value.
-			if (postponedInstruction is L2_MOVE<*>)
+			if (postponed is L2_MOVE<*>)
 			{
-				val sourceValue = postponedInstruction.source.semanticValue()
-				assert(definitions.any { reg ->
+				val sourceValue = postponed.source.semanticValue()
+				assert(registers.any { reg ->
 					reg.definitions().any { write ->
 						sourceValue in write.semanticValues()
 					}
