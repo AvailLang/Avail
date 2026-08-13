@@ -40,6 +40,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.ValueClass
 
 /**
  * A semantic value which represents the [TypeTag] extracted from some [base]
@@ -72,6 +74,11 @@ class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
 		}
 
 	override val isUsefulForGlobalValueNumbering: Boolean get() = true
+
+	override fun recordDerivationIn(
+		manifest: L2ValueManifest,
+		valueClass: ValueClass
+	) = manifest.recordTagDerivation(base, valueClass)
 
 	override fun transform(
 		semanticValueTransformer:

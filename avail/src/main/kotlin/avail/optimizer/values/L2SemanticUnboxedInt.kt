@@ -36,6 +36,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.ValueClass
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.utility.cast
@@ -84,6 +86,17 @@ constructor(
 
 	override val isUsefulForGlobalValueNumbering: Boolean get() =
 		privateBoxed.isUsefulForGlobalValueNumbering
+
+	/**
+	 * An unboxed int is a *representation* of its boxed form, not a value
+	 * derived from something else, so whatever the boxed form is derived from
+	 * applies here unchanged.  This delegation disappears along with this class,
+	 * once a `ValueState`'s int [Representation] is how an int is reached.
+	 */
+	override fun recordDerivationIn(
+		manifest: L2ValueManifest,
+		valueClass: ValueClass
+	) = privateBoxed.recordDerivationIn(manifest, valueClass)
 
 	override val constantRestrictionOrNull: TypeRestriction?
 		get() = privateBoxed.constantRestrictionOrNull?.forUnboxedInt()

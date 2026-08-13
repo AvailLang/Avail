@@ -32,8 +32,10 @@
 package avail.optimizer.values
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -42,6 +44,7 @@ import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.ValueClass
 import avail.utility.cast
 import avail.utility.ifZero
 import avail.utility.notNullAnd
@@ -126,6 +129,31 @@ protected constructor(
 	 * written by the move is dead.
 	 */
 	open val isUsefulForGlobalValueNumbering: Boolean get() = false
+
+	/**
+	 * This semantic value has just been bound to the given [ValueClass] in the
+	 * given [L2ValueManifest].  If it describes some *other* value – as a
+	 * [TypeTag] or an [ObjectLayoutVariant] id does – tell the manifest how the
+	 * two classes are related.
+	 *
+	 * Subclasses that are derived from another value override this and call the
+	 * manifest operation appropriate to the kind of derivation.  Deciding that
+	 * by type-testing the semantic value at the manifest end would put knowledge
+	 * of every subclass into the manifest; dispatching here keeps each semantic
+	 * value responsible for describing itself, and leaves the manifest holding
+	 * only the narrow operations it is asked to perform.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] doing the binding.
+	 * @param valueClass
+	 *   The [ValueClass] this semantic value was just bound to.
+	 */
+	open fun recordDerivationIn(
+		manifest: L2ValueManifest,
+		valueClass: ValueClass)
+	{
+		// By default a semantic value is not derived from anything.
+	}
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with

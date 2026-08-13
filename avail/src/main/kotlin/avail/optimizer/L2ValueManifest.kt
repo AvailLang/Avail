@@ -1308,22 +1308,78 @@ class L2ValueManifest
 	 */
 	private fun linkDerivation(
 		semanticValue: L2SemanticValue<*>,
-		valueClass: ValueClass)
+		valueClass: ValueClass
+	) = semanticValue.recordDerivationIn(this, valueClass)
+
+	/**
+	 * Record that [derivedClass] holds the [TypeTag] of [base].  Called by
+	 * [L2SemanticExtractedTag] as it is bound; see
+	 * [L2SemanticValue.recordDerivationIn].
+	 *
+	 * @param base
+	 *   The [L2SemanticValue] whose tag this is.
+	 * @param derivedClass
+	 *   The [ValueClass] holding the tag.
+	 */
+	fun recordTagDerivation(
+		base: L2SemanticValue<*>,
+		derivedClass: ValueClass
+	) = recordDerivation(tagOf, base, derivedClass)
+
+	/**
+	 * Record that [derivedClass] holds the [ObjectLayoutVariant] id of [base].
+	 * Called by [L2SemanticObjectVariantId] as it is bound; see
+	 * [L2SemanticValue.recordDerivationIn].
+	 *
+	 * @param base
+	 *   The [L2SemanticValue] whose variant id this is.
+	 * @param derivedClass
+	 *   The [ValueClass] holding the variant id.
+	 */
+	fun recordVariantIdDerivation(
+		base: L2SemanticValue<*>,
+		derivedClass: ValueClass
+	) = recordDerivation(variantIdOf, base, derivedClass)
+
+	/**
+	 * Relate a derived [ValueClass] to the class of the value it describes,
+	 * **introducing that base class if this manifest does not have one**.
+	 *
+	 * Keeping the base is the whole point.  A derived class is only meaningful
+	 * relative to its base, and the base's class is what carries the synonymy
+	 * that makes two derived values equal.  If `x` and `y` have had their
+	 * variants computed separately and are then discovered to be equal, merging
+	 * their classes is what makes `variant(x)` and `variant(y)` synonymous; if
+	 * `x` and `y` were subsequently dropped for being dead, that synonymy could
+	 * only survive in a class common to both.  So the base class is retained
+	 * whether or not anything reads it, and is anchored by the base semantic
+	 * value that the derived value names.
+	 *
+	 * The base is introduced with its default restriction and no definition –
+	 * an anchor, not a value anyone will read.  Narrowing propagates into it
+	 * from the derived value in the usual way.
+	 *
+	 * @param edges
+	 *   Either [tagOf] or [variantIdOf].
+	 * @param base
+	 *   The [L2SemanticValue] the derived class describes.
+	 * @param derivedClass
+	 *   The derived [ValueClass].
+	 */
+	private fun recordDerivation(
+		edges: MutableMap<ValueClass, ValueClass>,
+		base: L2SemanticValue<*>,
+		derivedClass: ValueClass)
 	{
-		val derived = when (semanticValue)
-		{
-			is L2SemanticUnboxedInt -> semanticValue.boxed
-			else -> semanticValue
-		}
-		val edges = when (derived)
-		{
-			is L2SemanticExtractedTag -> tagOf
-			is L2SemanticObjectVariantId -> variantIdOf
-			else -> return
-		}
-		val baseClass = classOrNull(derivationBaseOrNull(derived)!!) ?: return
-		edges[baseClass] = valueClass
-		derivedFrom[valueClass] = baseClass
+		if (!caresAboutSemanticValues) return
+		val baseClass = classOrNull(base)
+			?: run {
+				introduceSynonym<BOXED_KIND>(
+					setOf(base), base.defaultRestriction)
+				classFor(base)
+			}
+		edges[baseClass] = derivedClass
+		derivedFrom[derivedClass] = baseClass
 	}
 
 	/**

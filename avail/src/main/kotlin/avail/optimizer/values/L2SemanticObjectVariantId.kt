@@ -40,6 +40,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.ValueClass
 
 /**
  * A semantic value which represents the variantId of the [ObjectLayoutVariant]
@@ -80,6 +82,11 @@ constructor(
 		get() = variantsRestriction
 
 	override val isUsefulForGlobalValueNumbering: Boolean get() = true
+
+	override fun recordDerivationIn(
+		manifest: L2ValueManifest,
+		valueClass: ValueClass
+	) = manifest.recordVariantIdDerivation(base, valueClass)
 
 	override fun toString(): String = "Variant($base)"
 
