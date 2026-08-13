@@ -2701,10 +2701,14 @@ class L1Translator private constructor(
 			{
 				translator.translate()
 			}
-			catch (e: Exception)
+			catch (e: Throwable)
 			{
 				// This is a good place for a breakpoint, as the user debugging
 				// the optimizer can repeatedly cut back and retry this method.
+				// Catch Throwable rather than Exception, so that the assertions
+				// guarding the optimizer's invariants – which are Errors, not
+				// Exceptions – stop here too, instead of slipping past the one
+				// breakpoint placed to catch them.
 				throw e
 			}
 			interpreter.function = savedFunction

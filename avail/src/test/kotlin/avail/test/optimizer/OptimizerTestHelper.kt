@@ -468,6 +468,18 @@ class OptimizerTestHelper(
 		}
 		val queue = SynchronousQueue<AvailObject>()
 		var error: Throwable? = null
+		// An internal failure - a blown assertion in the optimizer, say - is
+		// reported through this hook on the fiber's own thread.  The fiber then
+		// separately terminates, and its failure continuation receives only a
+		// derived FiberTerminationException, whose stack says nothing about
+		// where the real problem was.  Capture the original here so it, and not
+		// the derivative, is what reaches the test framework.
+		var internalError: Throwable? = null
+		val previousOnFailure = runtime.testHarnessOnFailure
+		runtime.testHarnessOnFailure = { throwable ->
+			if (internalError === null) internalError = throwable
+			previousOnFailure?.invoke(throwable)
+		}
 		fiber.setSuccessAndFailure(
 			onSuccess = queue::put,
 			onFailure = {
@@ -475,10 +487,22 @@ class OptimizerTestHelper(
 				queue.put(nil)
 			})
 		val function = createFunction(rawFunction, emptyTuple)
-		runtime.runOutermostFunction(fiber, function, emptyList(), false)
-		val result = queue.take()
-		// If there was an error, rethrow it now, allowing the test framework to
-		// report it.
+		val result = try
+		{
+			runtime.runOutermostFunction(fiber, function, emptyList(), false)
+			queue.take()
+		}
+		finally
+		{
+			runtime.testHarnessOnFailure = previousOnFailure
+		}
+		// Rethrow now, allowing the test framework to report it.  Prefer the
+		// internal error, which still carries the stack from the moment things
+		// went wrong, but keep the fiber's failure attached so nothing is lost.
+		internalError?.let { internal ->
+			error?.let(internal::addSuppressed)
+			throw internal
+		}
 		error?.let { throw it }
 		return result
 	}

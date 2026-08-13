@@ -2091,8 +2091,14 @@ class L2Optimizer internal constructor(
 			{
 				// Here's a good place for a breakpoint, to allow L2 translation
 				// to restart, since the outer catch is already too late.
+				// Print the whole trace, not just the message: by the time this
+				// surfaces in a test it may have been replaced by a derived
+				// failure, and the frames here are the only record of where the
+				// problem actually arose.
 				System.err.println(
-					"Unrecoverable problem during optimization: $e")
+					"Unrecoverable problem during optimization, in phase " +
+						"${phase.name}:")
+				e.printStackTrace()
 				throw e
 			}
 			val after = AvailRuntimeSupport.captureNanos()

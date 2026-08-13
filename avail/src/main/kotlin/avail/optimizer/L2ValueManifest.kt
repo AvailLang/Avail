@@ -364,6 +364,35 @@ class L2ValueManifest
 	private val forward: MutableMap<ValueClass, ValueClass>
 
 	/**
+	 * The [ValueClass] holding the [TypeTag] extracted from each base
+	 * [ValueClass], where such a value is known.  This is the *forward* edge of
+	 * the derivation relation.
+	 *
+	 * Derived values such as `Tag(x)` currently name their base by spelling it
+	 * into an [L2SemanticExtractedTag], which relates them to `x` only by the
+	 * shape of the semantic value.  Nothing structural stops `x` from being
+	 * dropped while `Tag(x)` survives – see [checkDerivedValuesHaveTheirBases].
+	 * These edges are the beginning of making that relation real, so that a
+	 * derived class cannot outlive the class it describes.
+	 */
+	private val tagOf: MutableMap<ValueClass, ValueClass>
+
+	/**
+	 * The [ValueClass] holding the [ObjectLayoutVariant] id extracted from each
+	 * base [ValueClass], where such a value is known.  The variant counterpart
+	 * of [tagOf].
+	 */
+	private val variantIdOf: MutableMap<ValueClass, ValueClass>
+
+	/**
+	 * The base [ValueClass] that each derived [ValueClass] describes – the
+	 * *backward* edge of [tagOf] and [variantIdOf].  Narrowing a derived value
+	 * constrains its base, so the relation has to be navigable in both
+	 * directions.
+	 */
+	private val derivedFrom: MutableMap<ValueClass, ValueClass>
+
+	/**
 	 * A map from each [ValueClass] to the [Constraint] describing what this
 	 * manifest knows about that value: its membership, its [TypeRestriction],
 	 * the [L2Register]s holding it, and any postponed [L2Instruction].
@@ -462,6 +491,9 @@ class L2ValueManifest
 			else -> null
 		}
 		forward = mutableMapOf()
+		tagOf = mutableMapOf()
+		variantIdOf = mutableMapOf()
+		derivedFrom = mutableMapOf()
 		states = mutableMapOf()
 		postponedReaders = mutableMapOf()
 	}
@@ -478,6 +510,9 @@ class L2ValueManifest
 		mode = original.mode
 		classOf = original.classOf?.toMutableMap()
 		forward = original.forward.toMutableMap()
+		tagOf = original.tagOf.toMutableMap()
+		variantIdOf = original.variantIdOf.toMutableMap()
+		derivedFrom = original.derivedFrom.toMutableMap()
 		states = original.states.toMutableMap()
 		postponedReaders = original.postponedReaders
 			.mapValuesTo(mutableMapOf()) { (_, targets) ->
@@ -1057,6 +1092,7 @@ class L2ValueManifest
 			assert(
 				classOf!!.values.mapTo(mutableSetOf(), ::resolve) ==
 					states.keys)
+			checkDerivedValuesHaveTheirBases()
 
 			// Check each constraint for consistency with its synonym. Postponed
 			// instructions are now source-only (no explicit targets), with
@@ -1245,7 +1281,49 @@ class L2ValueManifest
 		semanticValues: Iterable<L2SemanticValue<*>>,
 		valueClass: ValueClass)
 	{
-		semanticValues.forEach { classOf!![it] = valueClass }
+		semanticValues.forEach { semanticValue ->
+			classOf!![semanticValue] = valueClass
+			linkDerivation(semanticValue, valueClass)
+		}
+	}
+
+	/**
+	 * If the given [L2SemanticValue] is a derived value – a [TypeTag] or an
+	 * [ObjectLayoutVariant] id extracted from some base value – record the edges
+	 * relating [valueClass] to the class of that base.
+	 *
+	 * This is called for every member as it is bound, which is the one place
+	 * every class membership passes through, so the edges cannot drift out of
+	 * step with the memberships they describe.
+	 *
+	 * The base may not be known to this manifest, which is the very
+	 * inconsistency [checkDerivedValuesHaveTheirBases] reports; in that case
+	 * there is no edge to record and the situation is left for that assertion to
+	 * complain about.
+	 *
+	 * @param semanticValue
+	 *   The member just bound.
+	 * @param valueClass
+	 *   The [ValueClass] it was bound to.
+	 */
+	private fun linkDerivation(
+		semanticValue: L2SemanticValue<*>,
+		valueClass: ValueClass)
+	{
+		val derived = when (semanticValue)
+		{
+			is L2SemanticUnboxedInt -> semanticValue.boxed
+			else -> semanticValue
+		}
+		val edges = when (derived)
+		{
+			is L2SemanticExtractedTag -> tagOf
+			is L2SemanticObjectVariantId -> variantIdOf
+			else -> return
+		}
+		val baseClass = classOrNull(derivationBaseOrNull(derived)!!) ?: return
+		edges[baseClass] = valueClass
+		derivedFrom[valueClass] = baseClass
 	}
 
 	/**
@@ -1267,6 +1345,64 @@ class L2ValueManifest
 		postponedReaders.remove(loser)?.let { consumers ->
 			postponedReaders.getOrPut(winner, ::mutableSetOf).addAll(consumers)
 		}
+		// Congruence: if the two bases are the same value, so are the values
+		// derived from them.  Unify the derived classes rather than letting the
+		// loser's edges dangle.  Note that this direction only – merging bases
+		// merges their derived values, never the converse, since neither tags
+		// nor variant ids are injective.
+		mergeDerivationEdges(tagOf, winner, loser)
+		mergeDerivationEdges(variantIdOf, winner, loser)
+		derivedFrom.remove(loser)?.let { base ->
+			derivedFrom[winner] = resolve(base)
+		}
+	}
+
+	/**
+	 * Fold [loser]'s entry in a derivation edge map into [winner]'s.  If both
+	 * had a derived class, those two classes describe the same value and are
+	 * therefore merged.
+	 *
+	 * @param edges
+	 *   Either [tagOf] or [variantIdOf].
+	 * @param winner
+	 *   The surviving base [ValueClass].
+	 * @param loser
+	 *   The base [ValueClass] being merged away.
+	 */
+	private fun mergeDerivationEdges(
+		edges: MutableMap<ValueClass, ValueClass>,
+		winner: ValueClass,
+		loser: ValueClass)
+	{
+		val losersDerived = edges.remove(loser) ?: return
+		when (val winnersDerived = edges[winner])
+		{
+			null -> edges[winner] = resolve(losersDerived)
+			else -> mergeValueClasses(
+				resolve(winnersDerived), resolve(losersDerived))
+		}
+	}
+
+	/**
+	 * Merge two [ValueClass]es that have been shown to describe the same value,
+	 * folding the second into the first.
+	 *
+	 * @param winner
+	 *   The surviving [ValueClass].
+	 * @param loser
+	 *   The [ValueClass] to merge away.
+	 */
+	private fun mergeValueClasses(winner: ValueClass, loser: ValueClass)
+	{
+		if (winner === loser) return
+		val winnerState = states[winner] ?: return
+		val loserState = states[loser] ?: return
+		// This recurses back through forwardClass if the merged classes have
+		// derived values of their own, which terminates because every merge
+		// strictly reduces the number of classes.
+		dynamicAgglomerateSynonym(
+			winnerState.members + loserState.members,
+			winnerState.restriction.intersection(loserState.restriction))
 	}
 
 	/**
@@ -1532,7 +1668,36 @@ class L2ValueManifest
 	fun tagFormOf(
 		boxed: L2SemanticValue<BOXED_KIND>
 	): L2SemanticValue<INTEGER_KIND>? =
-		equivalentSemanticValue(L2SemanticExtractedTag(boxed).unboxedInt)
+		derivedFormOf(tagOf, boxed)
+			?: equivalentSemanticValue(L2SemanticExtractedTag(boxed).unboxedInt)
+
+	/**
+	 * Answer a member of the [ValueClass] reached from the given base by the
+	 * given derivation edges, or `null` if there is no such edge or the class it
+	 * points at has been forgotten.
+	 *
+	 * This replaces a search with an edge traversal.  The search it replaces is
+	 * subtly weak: it looks for whichever spelling of the derived value happens
+	 * to be present, so it misses when the base's synonym has since been merged
+	 * and the derived value is spelled in terms of a different member.
+	 *
+	 * @param edges
+	 *   Either [tagOf] or [variantIdOf].
+	 * @param boxed
+	 *   The base [L2SemanticValue].
+	 * @return
+	 *   A member of the derived [ValueClass], or `null`.
+	 */
+	private fun derivedFormOf(
+		edges: Map<ValueClass, ValueClass>,
+		boxed: L2SemanticValue<BOXED_KIND>
+	): L2SemanticValue<INTEGER_KIND>?
+	{
+		val baseClass = classOrNull(boxed) ?: return null
+		val derivedClass = edges[baseClass]?.let(::resolve) ?: return null
+		val state = states[derivedClass] ?: return null
+		return state.synonym.pickSemanticValue().cast()
+	}
 
 	/**
 	 * Answer the [L2SemanticValue] naming the [ObjectLayoutVariant] id
@@ -1549,7 +1714,9 @@ class L2ValueManifest
 	fun variantIdFormOf(
 		boxed: L2SemanticValue<BOXED_KIND>
 	): L2SemanticValue<INTEGER_KIND>? =
-		equivalentSemanticValue(L2SemanticObjectVariantId(boxed).unboxedInt)
+		derivedFormOf(variantIdOf, boxed)
+			?: equivalentSemanticValue(
+				L2SemanticObjectVariantId(boxed).unboxedInt)
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one in
@@ -3415,6 +3582,64 @@ class L2ValueManifest
 			constraint.restriction,
 			constraint.postponedInstruction)
 		bind(newSemanticValues, valueClass)
+	}
+
+	/**
+	 * If the given [L2SemanticValue] is derived from some other value – an
+	 * [L2SemanticExtractedTag] or an [L2SemanticObjectVariantId], possibly
+	 * wrapped in an [L2SemanticUnboxedInt] – answer the value it was derived
+	 * from, otherwise answer `null`.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to examine.
+	 * @return
+	 *   The value it was derived from, or `null` if it is not a derived value.
+	 */
+	private fun derivationBaseOrNull(
+		semanticValue: L2SemanticValue<*>
+	): L2SemanticValue<*>? = when (semanticValue)
+	{
+		is L2SemanticUnboxedInt -> derivationBaseOrNull(semanticValue.boxed)
+		is L2SemanticExtractedTag -> semanticValue.base
+		is L2SemanticObjectVariantId -> semanticValue.base
+		else -> null
+	}
+
+	/**
+	 * Check that no synonym mentions a derived [L2SemanticValue] whose base is
+	 * absent from this manifest.
+	 *
+	 * A derived value such as `Tag(x)` names a fact *about* `x`, but it lives
+	 * in a synonym of its own that is related to `x`'s synonym only by the
+	 * spelling of the semantic value.  Nothing structural prevents `x` from
+	 * being dropped while `Tag(x)` survives, and when that happens the manifest
+	 * still claims to know the tag of a value it no longer knows at all.  Later
+	 * passes that reasonably assume the base is present – code splitting in
+	 * particular, which consults the tag to decide what to duplicate – then
+	 * misbehave a long way from the damage.
+	 *
+	 * TODO Remove this check once derived values become `tag` and `variantId`
+	 *  edges from the base's `ValueState`.  At that point a derived class
+	 *  cannot outlive its base, because it has nowhere to hang, and this whole
+	 *  category of inconsistency stops being representable.
+	 */
+	private fun checkDerivedValuesHaveTheirBases()
+	{
+		states.values.forEach { constraint ->
+			constraint.members.forEach { member ->
+				val base = derivationBaseOrNull(member) ?: return@forEach
+				assert(hasSemanticValue(base))
+				{
+					buildString {
+						append("Manifest holds a derived semantic value ")
+						append("whose base it does not know.")
+						append("\n  Derived: $member")
+						append("\n  Missing base: $base")
+						append("\n  Its synonym: ${constraint.members}")
+					}
+				}
+			}
+		}
 	}
 
 	fun checkUniqueConstantSynonyms()

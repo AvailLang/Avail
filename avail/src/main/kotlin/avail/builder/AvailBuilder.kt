@@ -662,6 +662,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		problemHandler: ProblemHandler)
 	{
 		val semaphore = Semaphore(0)
+		var internalError: Throwable? = null
+		runtime.testHarnessOnFailure = { throwable ->
+			internalError = throwable
+			semaphore.release() }
 		buildTargetThen(
 			target,
 			localTracker,
@@ -671,6 +675,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			semaphore.release()
 		}
 		semaphore.acquireUninterruptibly()
+		// Tidy up.
+		runtime.testHarnessOnFailure = null
+		// Rethrow the internal error so the test harness can see it.
+		if (internalError != null) throw internalError
 	}
 
 	/**

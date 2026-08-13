@@ -182,8 +182,7 @@ class AvailTest
 	{
 		val testModuleName = "/avail/Avail Tests"
 		val loaded = helper.loadModule(testModuleName)
-		assertTrue(
-			loaded, "Failed to load module: $testModuleName")
+		assertTrue(loaded, "Failed to load module: $testModuleName")
 		val semaphore = Semaphore(0)
 		val ok = AtomicBoolean(false)
 		helper.builder.attemptCommand(

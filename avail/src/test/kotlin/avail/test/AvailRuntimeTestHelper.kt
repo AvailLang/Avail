@@ -44,7 +44,6 @@ import avail.descriptor.representation.A_Phrase
 import avail.files.FileManager
 import avail.io.TextInterface
 import avail.io.TextOutputChannel
-import avail.test.AvailRuntimeTestHelper.Companion.testDirectory
 import avail.utility.IO.closeIfNotNull
 import avail.utility.cast
 import java.io.BufferedReader
@@ -318,8 +317,7 @@ class AvailRuntimeTestHelper constructor (
 	@Throws(UnresolvedDependencyException::class)
 	fun loadModule(moduleName: String): Boolean
 	{
-		val library = resolver.resolve(
-			ModuleName(moduleName), null)
+		val library = resolver.resolve(ModuleName(moduleName), null)
 		builder.buildTarget(
 			library,
 			this::localTrack,
@@ -427,7 +425,8 @@ class AvailRuntimeTestHelper constructor (
 	 */
 	private fun createAvailRuntime(
 		resolver: ModuleNameResolver,
-		fileManager: FileManager): AvailRuntime =
+		fileManager: FileManager
+	): AvailRuntime =
 		AvailRuntime(resolver, fileManager)
 
 	companion object

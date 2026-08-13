@@ -909,3 +909,103 @@ four overriders (`L2ConditionalJump`, `L2_PHI`, `L2_VIRTUAL_CREATE_LABEL`,
 `L2_EXTRACT_OBJECT_TYPE_VARIANT_ID`), each of which relies on `cloneFor`
 having set the target block and adjusted the operands, so it is not a pure
 deletion.
+
+## 13. The derivation defect, and the decision about dead code
+
+### 13.1 What actually goes wrong
+
+Loading the library dies around 16% during code splitting, because a manifest
+holds `Int(Tag(6-13))` while knowing nothing about `6-13`. Code splitting
+consults the tag to decide what to duplicate, so it misbehaves a long way from
+the damage.
+
+Two graphs were compared: the pre-split CFG and the code-split copy. Checking
+**per edge manifest** rather than globally, exactly 2 of 32 manifests in the
+*pre-split* graph are already inconsistent, and they are the two outgoing edges
+of the first tag test – precisely the ones splitting later consumes:
+
+```
+112..112, BottomType (SUCCESS)
+  〖Outer#1(elements) & 6-3 & ⌛Constant(⊥)〗              <- no 6-13
+  〖Int(Tag(6-13)) & Int(Tag(6-3)) & ⌛Int(Constant(112))〗
+
+107..107, TupleType (FAILURE)
+  〖Outer#1(elements) & 6-3〗                              <- no 6-13
+  〖Int(Tag(6-13)) & Int(Tag(6-3)) & ⌛Int(Constant(107))〗
+```
+
+The culprit is `L2Optimizer.removeDeadInstructions`, in phase
+`REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS_1`. Its `else` branch emits a diagnostic
+`L2_NOP` and touches the manifest not at all, so every semantic value the
+omitted instruction would have written simply ceases to exist – including its
+membership in a synonym that otherwise survives. The pre-split graph contains
+the tombstone:
+
+```
+// Omitted: MoveBoxed →r71[5-28 & 6-13] ← @r17[Outer#1(elements)]:Meta
+```
+
+That move is what carried `6-13` into the outer's synonym. `Int(Tag(6-13))` was
+written by a different, live instruction, so it survived. Tag without base.
+
+### 13.2 Decision: do not "fix" dead code elimination
+
+The tempting fix – have the `else` branch re-agglomerate the omitted write's
+semantic values – is **rejected**. Dropping a move whose target is unused is
+not merely harmless, it is desirable: it reduces the weight of the manifest,
+which would otherwise carry every dead slot value through every merge. The
+asymmetry is entirely on the derivation side, and that is where it gets fixed.
+
+### 13.3 Interim tripwire
+
+`check()` gained `checkDerivedValuesHaveTheirBases`, asserting that no synonym
+mentions a derived semantic value whose base is absent. It fires in **8 of 32**
+`SimpleOptimizerTest` cases, turning a 16%-into-a-library-load failure into
+several second-long reproductions. One is starker than the 6-13 case: a
+*singleton* synonym `[Int(Tag(4-5))]`, a tag with no base and no companion.
+
+Those 8 tests are expected to stay red until the structural change lands; the
+tripwire is the progress meter. **Remove it once derived values are structural
+edges**, since the inconsistency stops being representable.
+
+Also improved, since the original stack was being lost: `L2Optimizer.optimize`
+now prints the failing phase and the whole trace rather than just the message,
+and `L1Translator`'s debugging catch was widened from `Exception` to
+`Throwable` so that assertion failures – which are `Error`s – stop at the
+breakpoint placed for them instead of slipping past. Note that an internal
+failure deliberately does **not** become a fiber termination, so it will not
+reach JUnit as itself; stderr plus the phase name is the intended diagnostic
+route.
+
+### 13.4 Landed: derivation as real edges
+
+`L2ValueManifest` now carries
+
+```
+tagOf       : MutableMap<ValueClass, ValueClass>   base -> Tag(base)
+variantIdOf : MutableMap<ValueClass, ValueClass>   base -> VariantId(base)
+derivedFrom : MutableMap<ValueClass, ValueClass>   derived -> base
+```
+
+maintained in `bind`, which is the single choke point every class membership
+passes through, so the edges cannot drift out of step with the memberships they
+describe. `forwardClass` folds a merged-away base's edges into the survivor's,
+merging the two derived classes when both exist – downward congruence only,
+since neither tags nor variant ids are injective. `tagFormOf` and
+`variantIdFormOf` now traverse an edge, falling back to the old search while the
+edges populate.
+
+### 13.5 Next
+
+- Use the edges to make the inconsistency unrepresentable: a derived class must
+  not outlive its base. Either retain the base's membership when a derived
+  class is live, or drop the derived class with it.
+- Then move the edges onto `ValueState` proper, along with per-`RegisterKind`
+  `Representation`s.
+- Then the goal stated for this work: **only boxed `L2SemanticValue`s
+  participate in synonyms and appear in read/write operands**, even when an
+  unboxed representation is the one being accessed. The operand's static
+  `RegisterKind` selects the representation; the semantic value stops carrying
+  it. That is what finally deletes `L2SemanticUnboxedInt` and
+  `L2SemanticUnboxedFloat`, and with them the `<K>` parameter on
+  `L2SemanticValue`.
