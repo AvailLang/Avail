@@ -297,7 +297,7 @@ that into a shared helper** so the eager and emit paths cannot drift. Worth
 overriding on `L2_TUPLE_AT_CONSTANT`, `L2_GET_OBJECT_FIELD`, the int
 arithmetic ops, and `L2_UNBOX_INT`.
 
-Driven from step 5 of `drain()` via `postponedReaders`. Drive re-narrowing
+Driven from step 5 of section 4 via `postponedReaders`. Drive re-narrowing
 off **manifest restrictions**, never off the producing instruction's write
 operand: then transitive chains (a postponed primitive reading another
 postponed primitive's output) resolve for free.
@@ -460,8 +460,12 @@ most of what made `Constraint` awkward.
 ### Step 5 — derived-class edges
 
 `tag` / `variantId` forward fields and `derivations` back edges. Rewrite
-`propagateForRestrictionChange` as the `drain()` of section 4. Delete the
-corresponding `isEquivalentSemanticValue` cases.
+`propagateForRestrictionChange` as the immediate recursion of section 4. Delete
+the corresponding `isEquivalentSemanticValue` cases.
+
+Partly landed: the edges exist as manifest-level maps (`tagOf`, `variantIdOf`,
+`derivedFrom`) with base retention — section 13.4. Moving them onto `ValueState`
+is what remains.
 
 ### Step 6 — postponed instructions
 
