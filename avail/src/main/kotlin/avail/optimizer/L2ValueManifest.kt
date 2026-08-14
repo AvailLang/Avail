@@ -1464,7 +1464,33 @@ class L2ValueManifest
 	 */
 	private fun classOrNull(
 		semanticValue: L2SemanticValue<*>
-	): ValueClass? = classOf!![semanticValue]?.let(::resolve)
+	): ValueClass? = classOf!![keyFor(semanticValue)]?.let(::resolve)
+
+	/**
+	 * Answer the [L2SemanticValue] under which the given one is filed in
+	 * [classOf].
+	 *
+	 * Today that is the value itself, so `x` and `Int(x)` occupy separate
+	 * classes.  This is the seam at which they stop doing so: answering
+	 * [L2SemanticValue.toBoxed] here files a value and its unboxed forms under
+	 * one class, whose [Constraint] then describes both with one
+	 * [Representation] per [RegisterKind].
+	 *
+	 * `toBoxed` is already the right dispatch for this – abstract on
+	 * [L2SemanticValue], `this` on [L2SemanticBoxedValue], and the base on both
+	 * unboxed forms – so the change needs no type tests.  It must not be made
+	 * until a kind-scoped view exists over [Constraint], because otherwise every
+	 * read of `restriction` or `members` on behalf of an int value would answer
+	 * with the boxed value's.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] being looked up.
+	 * @return
+	 *   The key it is filed under.
+	 */
+	private fun keyFor(
+		semanticValue: L2SemanticValue<*>
+	): L2SemanticValue<*> = semanticValue
 
 	/**
 	 * Answer the live [ValueClass] of the given [L2SemanticValue].  Fail if the
@@ -1506,7 +1532,7 @@ class L2ValueManifest
 		valueClass: ValueClass)
 	{
 		semanticValues.forEach { semanticValue ->
-			classOf!![semanticValue] = valueClass
+			classOf!![keyFor(semanticValue)] = valueClass
 			linkDerivation(semanticValue, valueClass)
 		}
 	}
@@ -1756,7 +1782,7 @@ class L2ValueManifest
 	 *   previous instruction that wrote it.
 	 */
 	fun hasSemanticValue(semanticValue: L2SemanticValue<*>): Boolean =
-		classOf!!.containsKey(semanticValue)
+		classOf!!.containsKey(keyFor(semanticValue))
 
 	/**
 	 * Answer whether the [L2SemanticValue] is known to this manifest AND the
