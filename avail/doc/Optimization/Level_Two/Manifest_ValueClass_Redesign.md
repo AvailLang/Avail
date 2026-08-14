@@ -1123,3 +1123,85 @@ and will be easier to spot once the type is explicitly a view.
 
 The reads are therefore retyped **once**, in step 4, after everything else is
 green — rather than once before B and again after.
+
+## 16. C-container as landed, and what B actually requires
+
+### 16.1 Landed
+
+`ValueState` is the record in `states`; `Constraint<K>` is a transient view over
+`(ValueState, RegisterKind)`. The two tricks of §15.1 are on `RegisterKind`, so
+the manifest never chooses them by inspecting a value:
+
+- `projectRestriction` — `forBoxed` / `forUnboxedInt` / `forUnboxedFloat`. Each
+  answers its argument unchanged when the flags already match, so for a
+  single-kinded value the view's restriction is *identically* the stored one.
+- `spellingOf` — identity / `unboxedInt` / `unboxedFloat`, over the canonical
+  boxed members.
+
+Three further things landed with it, none of them required by C but all of them
+required by B:
+
+- **Updates preserve other kinds.** `ValueState.updated` and `withMembers`
+  replace only the caller's kind. Previously `extendSynonym`,
+  `privateMergeSynonyms`, `agglomerateSynonym` and `retainSemanticValuesInSynonym`
+  each rebuilt the record from one kind's definitions, which after B would drop
+  an int register whenever a boxed-scoped update ran.
+- **Aggregate versus kind-scoped is explicit.** `check`, `allRegistersForChecking`,
+  `liveOrPostponedSemanticValues`, `allPostponedInstructions`,
+  `clearPostponedInstructions`, `rewriteAllPostponed` and
+  `checkUniqueConstantSynonyms` now fold over *all* representations. They were
+  single-kind reads that would have quietly under-reported.
+- **Lookups dispatch through the value.** `L2SemanticValue.hasRepresentationIn`
+  and `constraintIn` are abstract, with one implementation per kind calling
+  `hasBoxedRepresentation`/`boxedConstraint` and their int and float
+  counterparts. The manifest no longer reads a value's `RegisterKind` to decide
+  which `Representation` to consult — the value names its own. The `.kind` reads
+  that remain use a kind as a *factory* (`dynamicMove`, `moveConstant`,
+  `createSemanticConstant`, `readOperand`) or compare two kinds.
+
+`primaryView` is the scaffolding marker: reaching for it means the caller has no
+kind in hand, so grepping it enumerates the sites that still assume one kind.
+
+### 16.2 B is not a one-line flip
+
+Flipping `keyFor` to `toBoxed` merges the `x` and `Int(x)` classes, and four
+things then have to be true. The first is settled; the rest are not.
+
+**(a) Restriction storage — settled.** One boxed restriction per value,
+projected per kind. This needs the projection to be a retraction, so that an
+int-scoped narrowing survives the round trip through boxed storage.
+`unboxedIntRestrictionSurvivesTheRoundTripThroughBoxed` verifies it, including
+for a restriction wider than an int32 (the projection clamps) and one carrying
+tag information (the int form drops it). `ConstraintBuilder.toValueState` must
+canonicalize with `forBoxed()` when it writes.
+
+Note the consequence, which is the point of the exercise: `x` and `Int(x)` stop
+having independent restrictions, so narrowing either one narrows both with no
+propagation step at all. That subsumes part of §4.
+
+**(b) A second spelling must extend the existing class, not create one.**
+`introduceSynonym` asserts that none of its values are known, then creates a
+fresh `ValueClass`. After the flip, introducing `Int(x)` for a known `x` finds
+the class already bound, so the assertion fires — and binding a fresh class would
+orphan the boxed representation. It has to add an int `Representation` to the
+existing state instead. This branch can be written *before* the flip, where it is
+unreachable, and verified to change nothing.
+
+**(c) Merging must merge per kind.** `ValueState.updated` preserves the winner's
+other-kind representations but drops the losers'. Pre-flip the losers have only
+the one kind, so nothing is lost; post-flip a merge has to fold representations
+kind by kind, and two postponed instructions of the same kind have to be resolved
+the way `privateMergeSynonyms` already resolves one.
+
+**(d) `hasSemanticValue` had to become kind-aware.** Done — see §16.1. This was
+the sharpest hazard, because `Primitive.attemptToGenerateTwoIntToIntPrimitive`
+asks about a value and then separately about its unboxed int form, and would
+otherwise have read "the int register exists" from the boxed one's presence.
+
+### 16.3 Revised order
+
+1. ~~C-container~~ — done.
+2. **B-prep.** (b) and (c) written while unreachable; `forBoxed()`
+   canonicalization in the builder. Each verifiable pre-flip.
+3. **B.** `keyFor` answers `toBoxed`. Small, because 2 did the work.
+4. **D**, then **C-narrowing and E**, as in §15.3.
