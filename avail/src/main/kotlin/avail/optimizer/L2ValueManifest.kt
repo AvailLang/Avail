@@ -289,8 +289,83 @@ class L2ValueManifest
 	class Constraint<K: RegisterKind<K>>(
 		val members: Set<L2SemanticValue<K>>,
 		val restriction: TypeRestriction,
-		val representation: Representation<K>)
+		val representation: Representation<K>,
+		private val otherRepresentations: List<Representation<*>> = emptyList())
 	{
+		/**
+		 * Every [Representation] describing this value, in whatever
+		 * [RegisterKind]s it currently has.
+		 *
+		 * While a class is single-kinded this is just [representation].  The
+		 * "primary plus others" asymmetry is scaffolding: it keeps this
+		 * additive, and it disappears when the `<K>` parameter does and all
+		 * representations become peers.
+		 */
+		val allRepresentations: List<Representation<*>> get() = when
+		{
+			otherRepresentations.isEmpty() -> listOf(representation)
+			else -> listOf(representation) + otherRepresentations
+		}
+
+		/**
+		 * Answer the [Representation] describing this value in the given
+		 * [RegisterKind], or `null` if it has none.
+		 *
+		 * @param kind
+		 *   The [RegisterKind] of interest.
+		 * @return
+		 *   That kind's [Representation], or `null`.
+		 */
+		fun representationFor(
+			kind: RegisterKind<*>
+		): Representation<*>? =
+			allRepresentations.firstOrNull { it.kind == kind }
+
+		/**
+		 * Every [L2Register] holding this value, across all of its
+		 * [Representation]s.
+		 *
+		 * Callers wanting *a particular kind's* registers must ask
+		 * [representationFor] instead.  This is for the aggregate questions –
+		 * "which registers does this manifest mention at all" – where taking
+		 * only one kind's would silently under-report once a value has more than
+		 * one representation.
+		 */
+		val allDefinitions: List<L2Register<*>> get() =
+			allRepresentations.flatMap(Representation<*>::definitions)
+
+		/**
+		 * Answer a copy of the receiver whose [Representation] for the given
+		 * one's [RegisterKind] is replaced, or added if the value did not
+		 * previously have that kind.
+		 *
+		 * The primary [representation] is only replaced when the kinds match, so
+		 * a value that gains an int representation keeps its boxed one as
+		 * primary.  That asymmetry is scaffolding – see [allRepresentations].
+		 *
+		 * @param newRepresentation
+		 *   The [Representation] to install.
+		 * @return
+		 *   The new [Constraint], or the receiver if nothing changed.
+		 */
+		fun withRepresentation(
+			newRepresentation: Representation<*>
+		): Constraint<K> = when
+		{
+			newRepresentation === representation -> this
+			newRepresentation.kind == representation.kind -> Constraint(
+				members,
+				restriction,
+				newRepresentation.cast(),
+				otherRepresentations)
+			else -> Constraint(
+				members,
+				restriction,
+				representation,
+				otherRepresentations.filter {
+					it.kind != newRepresentation.kind
+				} + newRepresentation)
+		}
 		/**
 		 * Build a constraint with a single [Representation], inferring its
 		 * [RegisterKind] from the members.  This is the shape the manifest still
@@ -1297,7 +1372,8 @@ class L2ValueManifest
 				}
 			}
 		}
-		val registers = states.values.flatMap { it.definitions }
+		// Aggregate: every register in the manifest, of every kind.
+		val registers = states.values.flatMap(Constraint<*>::allDefinitions)
 		if (mode !is WithFixedRegisterMap)
 		{
 			assert(registers.size == registers.toSet().size)
@@ -2796,7 +2872,8 @@ class L2ValueManifest
 	 * only exposed to make sanity checking easier.
 	 */
 	val allRegistersForChecking: Set<L2Register<*>> get() =
-		states.values.flatMapTo(mutableSetOf()) { it.definitions }
+		// Aggregate: every register in the manifest, of every kind.
+		states.values.flatMapTo(mutableSetOf(), Constraint<*>::allDefinitions)
 
 
 	/**
