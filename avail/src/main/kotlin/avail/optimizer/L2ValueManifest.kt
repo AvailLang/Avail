@@ -2023,14 +2023,19 @@ class L2ValueManifest
 	private fun mergeValueClasses(winner: ValueClass, loser: ValueClass)
 	{
 		if (winner === loser) return
-		val winnerView = states[winner]?.primaryView ?: return
-		val loserView = states[loser]?.primaryView ?: return
+		val winnerState = states[winner] ?: return
+		val loserState = states[loser] ?: return
 		// This recurses back through forwardClass if the merged classes have
 		// derived values of their own, which terminates because every merge
 		// strictly reduces the number of classes.
 		dynamicAgglomerateSynonym(
-			winnerView.members + loserView.members,
-			winnerView.restriction.intersection(loserView.restriction))
+			winnerState.primaryView.members + loserState.primaryView.members,
+			// The stored restrictions, which are boxed, rather than the views'
+			// projections of them.  A tag or variant class is a boxed value with
+			// only its int aspect in play, so projecting to int here and boxing
+			// again on the way back into storage would discard what the boxed
+			// restriction knows.
+			winnerState.restriction.intersection(loserState.restriction))
 	}
 
 	/**
@@ -3003,12 +3008,13 @@ class L2ValueManifest
 		val class2 = classFor(synonym2.pickSemanticValue())
 		if (class1 === class2) return false
 		val kind = synonym1.kind
-		val constraint1 = states[class1]!!.viewFor(kind)
-		val constraint2 = states[class2]!!.viewFor(kind)
+		val state1 = states[class1]!!
+		val state2 = states[class2]!!
 		val semanticValues =
 			synonym1.semanticValues() + synonym2.semanticValues()
-		val restriction =
-			constraint1.restriction.intersection(constraint2.restriction)
+		// Intersect the stored restrictions, which are boxed, so that nothing the
+		// boxed form knows is lost by merging on behalf of an unboxed spelling.
+		val restriction = state1.restriction.intersection(state2.restriction)
 		// class1 survives and absorbs class2, so anything still holding class2
 		// resolves to class1.
 		forwardClass(class1, class2)
@@ -3016,7 +3022,7 @@ class L2ValueManifest
 		// merge derived values and thereby replace it.  Every kind either record
 		// was held in is reconciled, not just the one this synonym is spelled in.
 		val newState = states[class1]!!.mergedWith(
-			constraint2.state, semanticValues, restriction)
+			state2, semanticValues, restriction)
 		assert(
 			caresAboutSemanticValues
 				|| newState.representations.all {
@@ -3024,8 +3030,8 @@ class L2ValueManifest
 				})
 		states[class1] = newState
 		bind(semanticValues, class1)
-		if (constraint1.isImpossible) impossibleRestrictionCount--
-		if (constraint2.isImpossible) impossibleRestrictionCount--
+		if (state1.isImpossible) impossibleRestrictionCount--
+		if (state2.isImpossible) impossibleRestrictionCount--
 		if (newState.isImpossible) impossibleRestrictionCount++
 		if (restriction.isConstant
 			&& semanticValues.none(L2SemanticValue<*>::isConstant))

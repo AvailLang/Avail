@@ -1165,43 +1165,68 @@ kind in hand, so grepping it enumerates the sites that still assume one kind.
 ### 16.2 B is not a one-line flip
 
 Flipping `keyFor` to `toBoxed` merges the `x` and `Int(x)` classes, and four
-things then have to be true. The first is settled; the rest are not.
+things have to be true first. All four have now landed, each verifiable while
+still unreachable.
 
-**(a) Restriction storage — settled.** One boxed restriction per value,
-projected per kind. This needs the projection to be a retraction, so that an
-int-scoped narrowing survives the round trip through boxed storage.
-`unboxedIntRestrictionSurvivesTheRoundTripThroughBoxed` verifies it, including
-for a restriction wider than an int32 (the projection clamps) and one carrying
-tag information (the int form drops it). `ConstraintBuilder.toValueState` must
-canonicalize with `forBoxed()` when it writes.
+**(a) Restriction storage.** `ValueState` boxes whatever restriction it is
+given, so a value's constraint lives in exactly one place whatever kind it was
+last narrowed through, and each `Constraint` projects it. `forBoxed` answers its
+receiver when already boxed, so the ordinary case costs nothing.
 
-Note the consequence, which is the point of the exercise: `x` and `Int(x)` stop
-having independent restrictions, so narrowing either one narrows both with no
-propagation step at all. That subsumes part of §4.
+The consequence is the point of the exercise: `x` and `Int(x)` stop having
+independent restrictions, so narrowing either narrows both with no propagation
+step at all. That subsumes part of §4.
 
-**(b) A second spelling must extend the existing class, not create one.**
-`introduceSynonym` asserts that none of its values are known, then creates a
-fresh `ValueClass`. After the flip, introducing `Int(x)` for a known `x` finds
-the class already bound, so the assertion fires — and binding a fresh class would
-orphan the boxed representation. It has to add an int `Representation` to the
-existing state instead. This branch can be written *before* the flip, where it is
-unreachable, and verified to change nothing.
+**(b) A second spelling extends the existing class.** `introduceSynonym` asserts
+that none of its values are known, then created a fresh `ValueClass`. After the
+flip, introducing `Int(x)` for a known `x` finds the class already bound, and
+binding a fresh one would orphan the boxed representation. It now adds a
+`Representation` to the existing state, keeping that state's membership — which
+may name more values than were passed in, all of them equally available in the
+new kind, because they are the same value. That last part is the congruence
+`equivalentSemanticValue` currently reconstructs by linear search.
 
-**(c) Merging must merge per kind.** `ValueState.updated` preserves the winner's
-other-kind representations but drops the losers'. Pre-flip the losers have only
-the one kind, so nothing is lost; post-flip a merge has to fold representations
-kind by kind, and two postponed instructions of the same kind have to be resolved
-the way `privateMergeSynonyms` already resolves one.
+**(c) Merging reconciles every kind.** Not "the primary kind plus a patch for
+kinds the loser alone had" — that formulation still drops the loser's registers
+whenever *both* sides hold the same non-primary kind. Merging says nothing about
+kinds: every register of a kind holds the value, and an instruction is needed
+only where nothing yet writes it. Only the *choice* of instruction is
+kind-specific, and `RegisterKind` dispatches that (`dynamicMove` already accepts
+star-typed values for exactly this). So the rule is written once and applied per
+kind: `ValueState.mergedWith` for the pairwise case,
+`agglomeratedRepresentation` for the N-ary one. A kind only one side has is the
+reconciliation with nothing on the other side, which is what `combine` says.
 
-**(d) `hasSemanticValue` had to become kind-aware.** Done — see §16.1. This was
-the sharpest hazard, because `Primitive.attemptToGenerateTwoIntToIntPrimitive`
-asks about a value and then separately about its unboxed int form, and would
-otherwise have read "the int register exists" from the boxed one's presence.
+**(d) `hasSemanticValue` became kind-aware.** The sharpest hazard, because
+`Primitive.attemptToGenerateTwoIntToIntPrimitive` asks about a value and then
+separately about its unboxed int form, and would otherwise have read "the int
+register exists" out of the boxed one's presence.
 
-### 16.3 Revised order
+### 16.3 Only boxed restrictions are stored
+
+Every `ValueClass` is boxed, including a tag's or a variant id's — such a value
+*is* a boxed value that happens to have only its int aspect in play. (It can
+acquire a boxed aspect too, if it is compared against an int constant that
+happens to share a synonym with something already held boxed.)
+
+Since the stored form is therefore always boxed, **an intersection performed
+during an update is always safe** — there is no way to reach one with mismatched
+flags. Merging accordingly intersects the *stored* restrictions rather than the
+views' projections of them, in `agglomerateSynonym`, `privateMergeSynonyms` and
+`mergeValueClasses`; projecting to int and boxing again on the way back into
+storage would discard what the boxed restriction knows about tags and variants.
+
+This is a step toward retiring the register kinds from `TypeRestriction`
+altogether. The eventual form keeps only `canBeBottom` and `isImmutable`,
+probably as flag bits, at which point `projectRestriction` and the whole
+boxed-versus-unboxed distinction in restrictions disappear.
+
+### 16.4 Revised order
 
 1. ~~C-container~~ — done.
-2. **B-prep.** (b) and (c) written while unreachable; `forBoxed()`
-   canonicalization in the builder. Each verifiable pre-flip.
-3. **B.** `keyFor` answers `toBoxed`. Small, because 2 did the work.
+2. ~~B-prep~~ — done: (a) through (d) above.
+3. **B.** `keyFor` answers `toBoxed`. Small, because 2 did the work. One known
+   flip-time edit: `mergeValueClasses` passes `primaryView.members`, which must
+   become the stored boxed members, since after the flip the two records' primary
+   kinds can differ.
 4. **D**, then **C-narrowing and E**, as in §15.3.
