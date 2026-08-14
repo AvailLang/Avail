@@ -212,6 +212,51 @@ class L2ValueManifest
 			newPostponed === postponedInstruction -> this
 			else -> Representation(kind, definitions, newPostponed)
 		}
+
+		/**
+		 * Answer which of the owning [Constraint]'s members actually have a
+		 * defining write **in this representation's [kind]**.
+		 *
+		 * Definedness is necessarily per-representation: a value can be held in
+		 * an int register with no boxed register yet – the result of an
+		 * [L2_ADD_INT_TO_INT] before it is boxed – so "is it defined?" is only
+		 * answerable relative to a representation.  Membership, by contrast,
+		 * belongs to the [Constraint], which is why it is passed in rather than
+		 * duplicated here: three representations each holding their own member
+		 * set could drift apart, whereas this is derived on demand and cannot.
+		 *
+		 * The owner is a parameter rather than a back-pointer deliberately.  A
+		 * [Constraint] is replaced wholesale on every update and is shared
+		 * between manifests, so a stored back-pointer would need rewriting on
+		 * every copy and would otherwise go stale – the same aliasing hazard
+		 * that rules out a mutable [L2Synonym].
+		 *
+		 * @return
+		 *   The [L2SemanticValue]s that have a visible defining write of this
+		 *   kind.  Deliberately *not* intersected with the owner's members: the
+		 *   two being equal is an invariant that [check] tests, and narrowing
+		 *   this to the members would quietly satisfy that assertion instead.
+		 */
+		fun definedMembers(): Set<L2SemanticValue<K>> =
+			definitions
+				.flatMap(L2Register<K>::definitions)
+				.flatMap(L2WriteOperand<K>::semanticValues)
+				.toSet()
+
+		/**
+		 * Answer the owning [Constraint]'s members that do **not** yet have a
+		 * defining write in this representation's [kind], and so would be
+		 * populated by its [postponedInstruction] – or by an implicit move, when
+		 * there is no explicit instruction.
+		 *
+		 * @param owner
+		 *   The [Constraint] this representation belongs to.
+		 * @return
+		 *   The owner's members lacking a definition of this kind.
+		 */
+		fun notDefinedMembers(
+			owner: Constraint<K>
+		): Set<L2SemanticValue<K>> = owner.members - definedMembers()
 	}
 
 	/**
@@ -325,14 +370,17 @@ class L2ValueManifest
 		 * Answer the set of semantic values that have been defined, meaning they
 		 * appear in registers with at least one write operand.
 		 *
+		 * While a class has a single [Representation] this is that
+		 * representation's answer.  Once there are several, callers that mean a
+		 * particular kind must ask that representation directly; the aggregate
+		 * over all of them is a different question, and conflating the two would
+		 * treat "available boxed" and "available as an int" as the same thing.
+		 *
 		 * @return
 		 *   The set of [L2SemanticValue]s that have visible definitions.
 		 */
 		fun definedSemanticValues(): Set<L2SemanticValue<K>> =
-			definitions
-				.flatMap(L2Register<K>::definitions)
-				.flatMap(L2WriteOperand<K>::semanticValues)
-				.toSet()
+			representation.definedMembers()
 
 		fun postponedInstructionIncludingImplicitMove(
 			synonym: L2Synonym<K>,
