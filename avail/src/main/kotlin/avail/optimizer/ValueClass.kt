@@ -33,18 +33,17 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.values.L2SemanticValue
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * The stable identity of an equivalence class of [L2SemanticValue]s within an
  * [L2ValueManifest].
  *
- * A `ValueClass` deliberately holds **no state at all** beyond a debugging
- * label.  Every fact about the class – its membership, its [TypeRestriction],
- * its registers, its postponed instruction – lives in the manifest that is
- * asking, so that the same identity can safely be shared between the manifests
- * of a control flow graph while each manifest holds its own immutable, private
- * view of what that value is known to be.
+ * A `ValueClass` deliberately holds **no state at all** beyond its [id].  Every
+ * fact about the class – its membership, its [TypeRestriction], its registers,
+ * its postponed instruction – lives in the manifest that is asking, so that the
+ * same identity can safely be shared between the manifests of a control flow
+ * graph while each manifest holds its own immutable, private view of what that
+ * value is known to be.
  *
  * This is the whole reason the identity is separated from the state.  Both
  * outbound edges of a branch refer to the same values, and must agree about
@@ -54,33 +53,28 @@ import java.util.concurrent.atomic.AtomicLong
  * a merge performed along one edge silently alter the other.  Merging is
  * therefore recorded in each manifest's own forwarding map, not here.
  *
- * Note that instances compare by identity.  Any collection keyed by
- * `ValueClass` must preserve insertion order, or code generation becomes
- * dependent on identity hash codes and so varies between runs.  Kotlin's
- * `mutableMapOf` and `mutableSetOf` answer `LinkedHashMap` and `LinkedHashSet`,
- * which is exactly right; do not substitute a `HashMap` or `HashSet`.
+ * The [id]s are numbered *per manifest*, starting at one, and are copied along
+ * with the rest of a manifest's state when a manifest is cloned or inherited.
+ * They are meaningless across unrelated manifests, and since a `ValueClass`
+ * never escapes the manifest that made it – the only operation that passes one
+ * outward, [L2SemanticValue.recordDerivationIn], hands it straight back – there
+ * is nothing to be gained from numbering them globally, and a shared atomic
+ * counter to be avoided.
  *
- * @property debugId
- *   A small integer that makes instances legible while debugging.  It takes no
- *   part in equality or hashing, and must not be used to order anything.
+ * Because equality and hashing follow the [id], and the ids of a manifest are
+ * small and assigned deterministically, a collection keyed by `ValueClass` is
+ * no longer at the mercy of identity hash codes and cannot make code generation
+ * vary between runs.
+ *
+ * @property id
+ *   Distinguishes this class from every other in the same [L2ValueManifest],
+ *   and is unrelated to those in any other manifest.  Small enough to be
+ *   legible while debugging, and to serve as a subscript.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class ValueClass private constructor(private val debugId: Long)
+@JvmInline
+value class ValueClass(val id: Int)
 {
-	override fun toString(): String = "V$debugId"
-
-	companion object
-	{
-		/** Supplies [debugId]s.  Purely cosmetic. */
-		private val counter = AtomicLong(0)
-
-		/**
-		 * Answer a brand new [ValueClass], distinct from every other.
-		 *
-		 * @return
-		 *   The new [ValueClass].
-		 */
-		fun newValueClass() = ValueClass(counter.incrementAndGet())
-	}
+	override fun toString(): String = "V$id"
 }

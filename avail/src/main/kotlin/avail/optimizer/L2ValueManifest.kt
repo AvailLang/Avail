@@ -869,8 +869,15 @@ class L2ValueManifest
 	 * class recorded here may have been merged away since, so every read must
 	 * go through [resolve]; use [classOrNull] or [classFor] rather than
 	 * indexing this map directly.
+	 *
+	 * It is always present, even in the modes where the graph is held together by
+	 * registers and semantic values are not tracked.  Whether to consult it is
+	 * decided by [caresAboutSemanticValues], which follows the current [mode] –
+	 * the map's mere existence cannot decide it, since [mode] is reassigned on a
+	 * long-lived manifest as the phases progress while this map is created once.
 	 */
-	private val classOf: MutableMap<L2SemanticValue<*>, ValueClass>?
+	private val classOf: MutableMap<L2SemanticValue<*>, ValueClass> =
+		mutableMapOf()
 
 	/**
 	 * Where merged [ValueClass]es forward to.  This is the union-find, and it
@@ -960,6 +967,24 @@ class L2ValueManifest
 	private var renarrowDepth = 0
 
 	/**
+	 * The [ValueClass.id] to give the next [ValueClass] created here.
+	 *
+	 * Numbering is per manifest rather than global, since a [ValueClass] never
+	 * escapes the manifest that created it.  It is carried across by
+	 * [adoptEverythingFrom], so a manifest cloned or inherited from another keeps
+	 * minting ids that are distinct from the ones it inherited.
+	 */
+	private var nextValueClassId = 1
+
+	/**
+	 * Answer a [ValueClass] distinct from every other in this manifest.
+	 *
+	 * @return
+	 *   The new [ValueClass].
+	 */
+	private fun newValueClass() = ValueClass(nextValueClassId++)
+
+	/**
 	 * Answer whether there are any impossible restrictions in this manifest.
 	 */
 	val hasImpossibleRestriction: Boolean get() = impossibleRestrictionCount > 0
@@ -1008,33 +1033,9 @@ class L2ValueManifest
 	 * @param mode
 	 *   The [GenerationMode] that interprets semantic values and registers.
 	 */
-	constructor(mode: GenerationMode) :
-		this(mode, mode == BySemanticValue)
-
-	/**
-	 * Create a new empty manifest, saying explicitly whether it tracks semantic
-	 * values.
-	 *
-	 * That is normally decided by the [GenerationMode], but [mode] is a `var`
-	 * that later phases reassign, while whether [classOf] exists is fixed when
-	 * the manifest is created.  A manifest copied from another must therefore
-	 * take this from *it*, not from the mode it currently reports.
-	 *
-	 * @param mode
-	 *   The [GenerationMode] that interprets semantic values and registers.
-	 * @param tracksSemanticValues
-	 *   Whether to give the manifest a [classOf] map at all.
-	 */
-	private constructor(
-		mode: GenerationMode,
-		tracksSemanticValues: Boolean)
+	constructor(mode: GenerationMode)
 	{
 		this.mode = mode
-		classOf = when
-		{
-			tracksSemanticValues -> mutableMapOf()
-			else -> null
-		}
 		forward = mutableMapOf()
 		tagOf = mutableMapOf()
 		variantIdOf = mutableMapOf()
@@ -1050,8 +1051,7 @@ class L2ValueManifest
 	 * @param original
 	 *   The original [L2ValueManifest].
 	 */
-	constructor(original: L2ValueManifest) :
-		this(original.mode, original.classOf !== null)
+	constructor(original: L2ValueManifest) : this(original.mode)
 	{
 		adoptEverythingFrom(original)
 	}
@@ -1073,8 +1073,7 @@ class L2ValueManifest
 	 */
 	private fun adoptEverythingFrom(original: L2ValueManifest)
 	{
-		assert((classOf === null) == (original.classOf === null))
-		original.classOf?.let { classOf!!.putAll(it) }
+		classOf.putAll(original.classOf)
 		forward.putAll(original.forward)
 		tagOf.putAll(original.tagOf)
 		variantIdOf.putAll(original.variantIdOf)
@@ -1084,6 +1083,9 @@ class L2ValueManifest
 			postponedReaders[readClass] = consumers.toMutableSet()
 		}
 		impossibleRestrictionCount = original.impossibleRestrictionCount
+		// Continue the original's numbering, so that a class minted here cannot
+		// collide with one inherited from it.
+		nextValueClassId = original.nextValueClassId
 	}
 
 	/**
@@ -1359,7 +1361,7 @@ class L2ValueManifest
 	): Result
 	{
 		val valueClass = classOrNull(synonym.pickSemanticValue())
-			?: ValueClass.newValueClass().also { fresh ->
+			?: newValueClass().also { fresh ->
 				bind(synonym.semanticValues(), fresh)
 			}
 		var state = states[valueClass]
@@ -1656,7 +1658,7 @@ class L2ValueManifest
 		if (caresAboutSemanticValues)
 		{
 			assert(
-				classOf!!.values.mapTo(mutableSetOf(), ::resolve) ==
+				classOf.values.mapTo(mutableSetOf(), ::resolve) ==
 					states.keys)
 			checkDerivedValuesHaveTheirBases()
 
@@ -1786,7 +1788,7 @@ class L2ValueManifest
 		}
 		// Path compression.  Rewrite every link on the way to the root.
 		var link = valueClass
-		while (link !== target)
+		while (link != target)
 		{
 			val next = forward[link]!!
 			forward[link] = target
@@ -1806,7 +1808,7 @@ class L2ValueManifest
 	 */
 	private fun classOrNull(
 		semanticValue: L2SemanticValue<*>
-	): ValueClass? = classOf!![keyFor(semanticValue)]?.let(::resolve)
+	): ValueClass? = classOf[keyFor(semanticValue)]?.let(::resolve)
 
 	/**
 	 * Answer the [L2SemanticValue] under which the given one is filed in
@@ -1891,7 +1893,7 @@ class L2ValueManifest
 		valueClass: ValueClass)
 	{
 		semanticValues.forEach { semanticValue ->
-			classOf!![keyFor(semanticValue)] = valueClass
+			classOf[keyFor(semanticValue)] = valueClass
 			linkDerivation(semanticValue, valueClass)
 		}
 	}
@@ -2013,7 +2015,7 @@ class L2ValueManifest
 	 */
 	private fun forwardClass(winner: ValueClass, loser: ValueClass)
 	{
-		if (winner === loser) return
+		if (winner == loser) return
 		states.remove(loser)
 		forward[loser] = winner
 		postponedReaders.remove(loser)?.let { consumers ->
@@ -2068,7 +2070,7 @@ class L2ValueManifest
 	 */
 	private fun mergeValueClasses(winner: ValueClass, loser: ValueClass)
 	{
-		if (winner === loser) return
+		if (winner == loser) return
 		val winnerState = states[winner] ?: return
 		val loserState = states[loser] ?: return
 		// This recurses back through forwardClass if the merged classes have
@@ -2145,7 +2147,7 @@ class L2ValueManifest
 		val pick = semanticValues.first()
 		val freshSynonym = L2Synonym(
 			semanticValues.toSet().cast<Iterable<*>, Set<L2SemanticValue<K>>>())
-		val valueClass = classOrNull(pick) ?: ValueClass.newValueClass()
+		val valueClass = classOrNull(pick) ?: newValueClass()
 		bind(semanticValues, valueClass)
 		val existingState = states[valueClass]
 		states[valueClass] = when (existingState)
@@ -2186,7 +2188,7 @@ class L2ValueManifest
 	 */
 	fun hasSemanticValue(semanticValue: L2SemanticValue<*>): Boolean
 	{
-		val valueClass = classOf!![keyFor(semanticValue)] ?: return false
+		val valueClass = classOf[keyFor(semanticValue)] ?: return false
 		// A value's record is created a moment after its membership is bound,
 		// and callers do reach this during that window.  There is no
 		// representation to consult yet, so the binding itself is the answer.
@@ -2241,7 +2243,7 @@ class L2ValueManifest
 		}
 		// Try a slower, far less frequent search.
 		val onlyClass = classRestrictingSearchFor(semanticValue)
-		return classOf!!.keys.firstOrNull { other ->
+		return classOf.keys.firstOrNull { other ->
 			(onlyClass === null || other.javaClass === onlyClass)
 				&& isEquivalentSemanticValue(semanticValue, other)
 		}.cast()
@@ -2464,7 +2466,7 @@ class L2ValueManifest
 		// cannot be narrowed by class, since the shared-synonym test can then
 		// match a candidate of some other class.
 		val onlyClass = classRestrictingSearchFor(semanticValue)
-		return classOf!!.keys.firstOrNull { other ->
+		return classOf.keys.firstOrNull { other ->
 			(onlyClass === null || other.javaClass === onlyClass)
 				&& isEquivalentSemanticValue(semanticValue, other)
 				&& isPopulated(other)
@@ -2510,7 +2512,7 @@ class L2ValueManifest
 		if (semanticValue == otherSemanticValue) return true
 		if (semanticValue.kind != otherSemanticValue.kind) return false
 		val ownClass = classOrNull(semanticValue)
-		if (ownClass !== null && ownClass === classOrNull(otherSemanticValue))
+		if (ownClass != null && ownClass == classOrNull(otherSemanticValue))
 		{
 			// They're already synonyms of each other.
 			return true
@@ -2770,7 +2772,7 @@ class L2ValueManifest
 				|| newState.representations.all {
 					it.postponedInstruction === null
 				})
-		val winner = existingClasses.firstOrNull() ?: ValueClass.newValueClass()
+		val winner = existingClasses.firstOrNull() ?: newValueClass()
 		existingClasses.forEach { loser -> forwardClass(winner, loser) }
 		states[winner] = newState
 		bind(allSemanticValues, winner)
@@ -2931,7 +2933,7 @@ class L2ValueManifest
 		// equivalent due to their arguments being merged into the same
 		// synonyms.  Repeat as necessary, alternating collection of newly
 		// matched pairs of synonyms with merging them.
-		val allSemanticPrimitives = classOf!!.keys
+		val allSemanticPrimitives = classOf.keys
 			.filterIsInstance<L2SemanticPrimitiveInvocation>()
 			.groupBy(L2SemanticPrimitiveInvocation::primitive)
 		if (allSemanticPrimitives.isEmpty())
@@ -3020,7 +3022,7 @@ class L2ValueManifest
 		if (synonym1 == synonym2) return false
 		val class1 = classFor(synonym1.pickSemanticValue())
 		val class2 = classFor(synonym2.pickSemanticValue())
-		if (class1 === class2) return false
+		if (class1 == class2) return false
 		val kind = synonym1.kind
 		val state1 = states[class1]!!
 		val state2 = states[class2]!!
@@ -3243,8 +3245,9 @@ class L2ValueManifest
 
 	fun restrictionFor(read: L2ReadOperand<*>): TypeRestriction = when
 	{
-		// Simplify things for the caller.
-		classOf == null -> read.restriction()
+		// Simplify things for the caller.  The operand carries its own
+		// restriction, which is the whole answer once the graph is held together
+		// by registers rather than by semantic values.
 		!caresAboutSemanticValues -> read.restriction()
 		else -> restrictionFor(read.semanticValue())
 			.intersection(read.restriction())
@@ -3252,8 +3255,7 @@ class L2ValueManifest
 
 	fun restrictionFor(write: L2WriteOperand<*>): TypeRestriction = when
 	{
-		// Simplify things for the caller.
-		classOf == null -> write.restriction()
+		// Simplify things for the caller, as for the read overload above.
 		!caresAboutSemanticValues -> write.restriction()
 		!hasSemanticValue(write.pickSemanticValue()) -> write.restriction()
 		else -> restrictionFor(write.pickSemanticValue())
@@ -3379,11 +3381,21 @@ class L2ValueManifest
 	 */
 	fun clear()
 	{
-		classOf?.clear()
+		classOf.clear()
 		forward.clear()
+		tagOf.clear()
+		variantIdOf.clear()
+		derivedFrom.clear()
 		states.clear()
 		impossibleRestrictionCount = 0
 		clearPostponedInstructions()
+		// Back to the state of a newly created manifest, [ValueClass] numbering
+		// included.  A generator reuses one manifest object for every block, so
+		// anything left behind here is attributed to the *next* block's values -
+		// and since ids are numbered per manifest, a leftover derivation edge
+		// would not merely be stale, it would relate two unrelated values that
+		// happen to have been numbered alike.
+		nextValueClassId = 1
 	}
 
 	/**
@@ -3594,7 +3606,7 @@ class L2ValueManifest
 		generator: L2GeneratorInterface,
 		forcePhis: Boolean)
 	{
-		assert(classOf!!.isEmpty())
+		assert(classOf.isEmpty())
 		assert(states.isEmpty())
 		// Here's a good place to reduce postponed instructions into simpler
 		// equivalents, since we're right at the merge that would consume them,
@@ -4287,7 +4299,7 @@ class L2ValueManifest
 			{
 				// Remove this synonym and any semantic values within it.
 				states.remove(classFor(synonym.pickSemanticValue()))
-				classOf!!.keys.removeAll(
+				classOf.keys.removeAll(
 					synonym.semanticValues())
 			}
 		}
@@ -4351,7 +4363,7 @@ class L2ValueManifest
 		// Exit quickly if no change to the synonym.
 		if (newSemanticValues == originalSemanticValues) return
 		// Unbind every original member; the survivors are rebound below.
-		classOf!!.keys.removeAll(originalSemanticValues)
+		classOf.keys.removeAll(originalSemanticValues)
 		// Exit quickly if no semantic values survive.
 		if (newSemanticValues.isEmpty())
 		{
