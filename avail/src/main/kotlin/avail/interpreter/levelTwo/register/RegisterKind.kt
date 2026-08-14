@@ -31,10 +31,12 @@
  */
 package avail.interpreter.levelTwo.register
 
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.extractDouble
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -284,6 +286,49 @@ constructor (
 		value: AvailObject
 	): L2SemanticValue<Self>
 
+	/**
+	 * Answer how this [RegisterKind] spells the given boxed [L2SemanticValue].
+	 *
+	 * A value is named canonically by its boxed [L2SemanticValue], and the
+	 * unboxed forms are merely *spellings* of that name rather than values in
+	 * their own right.  This is the conversion from the canonical name to this
+	 * kind's spelling of it, and [L2SemanticValue.toBoxed] is its inverse.
+	 *
+	 * Synthesizing a spelling on demand is sound because [L2SemanticValue]s are
+	 * identityless – hashed and compared by content – so the result is equal to
+	 * any other spelling of the same base, however it was obtained.
+	 *
+	 * @param boxedValue
+	 *   The canonical, boxed [L2SemanticValue].
+	 * @return
+	 *   The [L2SemanticValue] naming that same value in this kind.
+	 */
+	abstract fun spellingOf(
+		boxedValue: L2SemanticBoxedValue
+	): L2SemanticValue<Self>
+
+	/**
+	 * Answer the given [TypeRestriction] as it applies to a register of this
+	 * kind.
+	 *
+	 * This is a projection rather than a lookup, because an unboxed restriction
+	 * carries no information that the boxed one does not: an int register's
+	 * restriction is derivable from its value's boxed restriction, while the
+	 * reverse direction loses [TypeTag]s and [ObjectLayoutVariant]s.  Each
+	 * projection answers its argument unchanged when the flags already match, so
+	 * projecting a restriction that is already of this kind is both free and
+	 * exact.
+	 *
+	 * @param restriction
+	 *   The [TypeRestriction] to project.
+	 * @return
+	 *   The projected [TypeRestriction], or the argument itself if it is already
+	 *   of this kind.
+	 */
+	abstract fun projectRestriction(
+		restriction: TypeRestriction
+	): TypeRestriction
+
 	abstract fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 
@@ -372,6 +417,14 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		value: AvailObject
 	): L2SemanticBoxedValue = constant(value)
 
+	override fun spellingOf(
+		boxedValue: L2SemanticBoxedValue
+	): L2SemanticBoxedValue = boxedValue
+
+	override fun projectRestriction(
+		restriction: TypeRestriction
+	): TypeRestriction = restriction.forBoxed()
+
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 	{
@@ -451,6 +504,14 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	override fun createSemanticConstant(
 		value: AvailObject
 	): L2SemanticUnboxedInt = constant(value).unboxedInt
+
+	override fun spellingOf(
+		boxedValue: L2SemanticBoxedValue
+	): L2SemanticUnboxedInt = boxedValue.unboxedInt
+
+	override fun projectRestriction(
+		restriction: TypeRestriction
+	): TypeRestriction = restriction.forUnboxedInt()
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -532,6 +593,14 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 	override fun createSemanticConstant(
 		value: AvailObject
 	): L2SemanticUnboxedFloat = constant(value).unboxedFloat
+
+	override fun spellingOf(
+		boxedValue: L2SemanticBoxedValue
+	): L2SemanticUnboxedFloat = boxedValue.unboxedFloat
+
+	override fun projectRestriction(
+		restriction: TypeRestriction
+	): TypeRestriction = restriction.forUnboxedFloat()
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
