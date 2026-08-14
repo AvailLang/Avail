@@ -44,6 +44,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
 import avail.descriptor.representation.A_Number.Companion.bitShift
@@ -191,6 +192,7 @@ import avail.interpreter.primitive.variables.P_GetValue
 import avail.interpreter.primitive.variables.P_SetValue
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
@@ -2911,6 +2913,40 @@ class SimpleOptimizerTest
 				"test frame"),
 			name,
 			uniqueId)
+
+	/**
+	 * A value's [TypeRestriction] is held once, in boxed form, and each
+	 * [RegisterKind]'s view of it is obtained by
+	 * [projection][RegisterKind.projectRestriction].  For that to be lossless
+	 * the projection has to be a *retraction*: boxing an int restriction and
+	 * projecting it back must reproduce it exactly, or an int-scoped narrowing
+	 * would be silently weakened by the round trip through storage.
+	 *
+	 * It only has to hold in that direction.  Boxed to int and back is
+	 * genuinely lossy – [TypeTag]s and [ObjectLayoutVariant]s have no unboxed
+	 * counterpart – which is precisely why the boxed form is the one stored.
+	 */
+	@Test
+	fun unboxedIntRestrictionSurvivesTheRoundTripThroughBoxed()
+	{
+		val samples = listOf(
+			boxedRestrictionForType(i32),
+			boxedRestrictionForType(inclusive(-5, 5)),
+			boxedRestrictionForConstant(fromInt(17)),
+			boxedRestrictionForType(i32).minusValue(zero),
+			boxedRestrictionForType(i32).minusType(inclusive(1, 3)),
+			// Wider than an int32, so the projection has to clamp it.
+			boxedRestrictionForType(integers),
+			// Narrower than the tag it carries, which the int form must drop.
+			boxedRestrictionForType(naturalNumbers).minusValue(one))
+		samples.forEach { boxed ->
+			val asInt = boxed.forUnboxedInt()
+			assertEquals(
+				asInt,
+				asInt.forBoxed().forUnboxedInt(),
+				"Projection to int is not a retraction, for $boxed")
+		}
+	}
 
 	/**
 	 * [L2SemanticUnboxedInt]s are keyed by one arbitrary representative of the
