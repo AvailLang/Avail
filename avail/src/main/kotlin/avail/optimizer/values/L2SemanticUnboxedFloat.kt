@@ -38,6 +38,7 @@ import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2ValueManifest.Constraint
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
 import avail.utility.cast
 
@@ -92,6 +93,10 @@ constructor(
 	override fun hasRepresentationIn(
 		manifest: L2ValueManifest
 	): Boolean = manifest.hasFloatRepresentation(this)
+
+	override fun constraintIn(
+		manifest: L2ValueManifest
+	): Constraint<FLOAT_KIND>? = manifest.floatConstraint(this)
 
 	override fun toString(): String = "Float($privateBoxed)"
 

@@ -1679,12 +1679,13 @@ class L2ValueManifest
 
 	/**
 	 * Answer the [Constraint] describing the given [L2SemanticValue] in the
-	 * [RegisterKind] that the value itself is spelled in, or `null` if this
-	 * manifest doesn't know the value.
+	 * representation that the value itself names, or `null` if this manifest
+	 * doesn't know the value.
 	 *
-	 * This is the redispatch point: the caller asks about a value, and the
-	 * value's own kind selects which of the record's [Representation]s the
-	 * answers come from.
+	 * This is the redispatch point: the caller asks about a value, and the value
+	 * decides which of the record's [Representation]s the answers come from; see
+	 * [L2SemanticValue.constraintIn].  The cast merely restores the static kind
+	 * that the caller already knew and the dispatch could not carry back.
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to look up.
@@ -1693,7 +1694,55 @@ class L2ValueManifest
 	 */
 	private fun <K: RegisterKind<K>> viewOrNull(
 		semanticValue: L2SemanticValue<K>
-	): Constraint<K>? = stateOrNull(semanticValue)?.viewFor(semanticValue.kind)
+	): Constraint<K>? = semanticValue.constraintIn(this)?.cast()
+
+	/**
+	 * Answer how this manifest describes the given value in a boxed register.
+	 * Called by [L2SemanticBoxedValue] from [L2SemanticValue.constraintIn]; ask
+	 * that instead, unless the boxed representation is specifically what is
+	 * wanted.
+	 *
+	 * @param semanticValue
+	 *   The boxed [L2SemanticValue] to look up.
+	 * @return
+	 *   Its boxed [Constraint], or `null` if this manifest doesn't know it.
+	 */
+	internal fun boxedConstraint(
+		semanticValue: L2SemanticValue<BOXED_KIND>
+	): Constraint<BOXED_KIND>? =
+		stateOrNull(semanticValue)?.viewFor(BOXED_KIND)
+
+	/**
+	 * Answer how this manifest describes the given value in an int register.
+	 * Called by [L2SemanticUnboxedInt] from [L2SemanticValue.constraintIn]; ask
+	 * that instead, unless the int representation is specifically what is
+	 * wanted.
+	 *
+	 * @param semanticValue
+	 *   The unboxed int [L2SemanticValue] to look up.
+	 * @return
+	 *   Its int [Constraint], or `null` if this manifest doesn't know it.
+	 */
+	internal fun intConstraint(
+		semanticValue: L2SemanticValue<INTEGER_KIND>
+	): Constraint<INTEGER_KIND>? =
+		stateOrNull(semanticValue)?.viewFor(INTEGER_KIND)
+
+	/**
+	 * Answer how this manifest describes the given value in a float register.
+	 * Called by [L2SemanticUnboxedFloat] from [L2SemanticValue.constraintIn];
+	 * ask that instead, unless the float representation is specifically what is
+	 * wanted.
+	 *
+	 * @param semanticValue
+	 *   The unboxed float [L2SemanticValue] to look up.
+	 * @return
+	 *   Its float [Constraint], or `null` if this manifest doesn't know it.
+	 */
+	internal fun floatConstraint(
+		semanticValue: L2SemanticValue<FLOAT_KIND>
+	): Constraint<FLOAT_KIND>? =
+		stateOrNull(semanticValue)?.viewFor(FLOAT_KIND)
 
 	/**
 	 * Bind the given [L2SemanticValue]s to the given [ValueClass], replacing
@@ -2048,13 +2097,11 @@ class L2ValueManifest
 	 */
 	fun hasLiveSemanticValue(
 		semanticValue: L2SemanticValue<*>
-	): Boolean = stateOrNull(semanticValue)
-		?.representationFor(semanticValue.kind)
-		.notNullAnd {
-			definitions.any { reg ->
-				reg.definitions().any { semanticValue in it.semanticValues() }
-			}
+	): Boolean = semanticValue.constraintIn(this).notNullAnd {
+		definitions.any { reg ->
+			reg.definitions().any { semanticValue in it.semanticValues() }
 		}
+	}
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one in

@@ -34,6 +34,7 @@ package avail.optimizer.values
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2ValueManifest.Constraint
 
 /**
  * A semantic value representing boxed values in [L2BoxedRegister]s.
@@ -55,6 +56,10 @@ constructor(
 	override fun hasRepresentationIn(
 		manifest: L2ValueManifest
 	): Boolean = manifest.hasBoxedRepresentation(this)
+
+	override fun constraintIn(
+		manifest: L2ValueManifest
+	): Constraint<BOXED_KIND>? = manifest.boxedConstraint(this)
 
 	companion object
 	{
