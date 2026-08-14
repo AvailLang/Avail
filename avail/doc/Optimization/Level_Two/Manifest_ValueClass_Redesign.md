@@ -1057,3 +1057,69 @@ assumes one representation, which is the same technique that made the
 
 B, D and E each keep the suite runnable on their own. C is the only step that
 should be attempted in one sitting.
+
+## 15. Scaffolding: keep the old protocol over a new implementation
+
+The ordering problem in section 14 was that `members` cannot narrow to boxed-only
+until B, so dropping `Constraint`'s `<K>` before B forces starred types through
+~97 reads, while doing it after B splits C around B. Both retype the reads twice.
+
+A throw-away compatibility layer avoids the choice entirely, and the measurements
+say it can be completely private: **`Constraint` has no references outside
+`L2ValueManifest.kt`**, and all eleven external `.definitions` uses are
+`L2Register.definitions()` or unrelated members. The old protocol is one file's
+internal API, so scaffolding it costs nothing outside and deleting it later
+touches nothing outside.
+
+### 15.1 The shape
+
+`ValueState` becomes the real record — non-generic, one member set, one boxed
+`TypeRestriction`, up to three `Representation`s. `Constraint<K>` survives as a
+**kind-scoped view** over `(ValueState, RegisterKind)` presenting exactly today's
+protocol:
+
+| Old protocol | View implementation |
+|---|---|
+| `definitions` | `state.representationFor(kind)?.definitions ?: emptyList()` |
+| `postponedInstruction` | `state.representationFor(kind)?.postponedInstruction` |
+| `restriction` | `state.restriction` **projected** to the kind |
+| `members`, `synonym` | `state.members` **synthesized** into the kind's spelling |
+| `definedSemanticValues()` | that representation's `definedMembers()` |
+
+Two things make the reads survive B untouched:
+
+- **Projection.** A view scoped to `INTEGER_KIND` answers
+  `state.restriction.forUnboxedInt()`. This is exactly why the unboxed
+  restrictions can stop being stored (section 3) without any caller noticing.
+- **Synthesis.** A view scoped to `INTEGER_KIND` answers members as
+  `state.members.map { it.unboxedInt }`. Sound precisely because
+  `L2SemanticValue` is identityless — a synthesized `L2SemanticUnboxedInt`
+  compares equal to any other with the same base.
+
+So after B merges the `x` and `Int(x)` states into one, a view scoped to
+`INTEGER_KIND` still presents `{Int(x)}`, an int restriction and the int
+registers: the old protocol's promise, over the new structure.
+
+### 15.2 Information hiding this needs
+
+A view over a `ValueState` that has since been replaced is stale. `Constraint`s
+are already handed out and retainable today, so this is not a new hazard, but the
+scaffolding makes it worth closing: give the view a private constructor, obtain it
+only from a manifest accessor, and never store one in a field or a collection.
+Anything that currently holds a `Constraint` across a mutation is a bug already
+and will be easier to spot once the type is explicitly a view.
+
+### 15.3 Resulting order
+
+1. **C-container.** Add `ValueState`; turn `Constraint<K>` into a view. All ~97
+   reads untouched. Verify.
+2. **B.** Key by `toBoxed`, so `x` and `Int(x)` share one state with two
+   representations. The view absorbs it. Verify.
+3. **D.** Operands store boxed semantic values, synthesizing unboxed spellings
+   where old code still wants them. Verify.
+4. **C-narrowing and E.** Migrate reads off the view to direct `ValueState`
+   access, then delete the view, the unboxed semantic value classes, and the
+   `<K>` parameter.
+
+The reads are therefore retyped **once**, in step 4, after everything else is
+green — rather than once before B and again after.
