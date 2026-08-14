@@ -72,6 +72,9 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.L2ValueManifest.Representation.Companion.emptyBoxedRepresentation
+import avail.optimizer.L2ValueManifest.Representation.Companion.emptyFloatRepresentation
+import avail.optimizer.L2ValueManifest.Representation.Companion.emptyIntRepresentation
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -90,7 +93,6 @@ import avail.optimizer.values.L2SemanticValue
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.cast
-import avail.utility.combine
 import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
@@ -263,6 +265,36 @@ class L2ValueManifest
 			owner: Constraint<K>
 		): Set<L2SemanticValue<K>> = owner.members - definedMembers()
 
+		/**
+		 * Whether this is the [RegisterKind.emptyRepresentation] standing for a
+		 * value that is *not held in this kind at all*.
+		 *
+		 * Distinct from having no definitions, which a real representation has
+		 * between the moment a value is introduced and the moment something writes
+		 * it.  Both say "no register yet"; only this one says "and no register is
+		 * coming, because the value has no life in this kind".
+		 */
+		val isAbsent: Boolean get() = this === kind.emptyRepresentation
+
+		companion object
+		{
+			/**
+			 * The [Representation] standing for a value that is not held in a
+			 * boxed register at all.  Shared, since it says nothing about the
+			 * value: it is the *absence* of boxed facts, and a manifest holds an
+			 * immense number of those.
+			 */
+			val emptyBoxedRepresentation =
+				Representation(BOXED_KIND, emptyList(), null)
+
+			/** As [emptyBoxedRepresentation], for int registers. */
+			val emptyIntRepresentation =
+				Representation(INTEGER_KIND, emptyList(), null)
+
+			/** As [emptyBoxedRepresentation], for float registers. */
+			val emptyFloatRepresentation =
+				Representation(FLOAT_KIND, emptyList(), null)
+		}
 	}
 
 	/**
@@ -291,10 +323,11 @@ class L2ValueManifest
 	 *   already been established to fit that register – for an int, within [i32].
 	 * @property boxedRepresentation
 	 *   The [L2BoxedRegister]s holding this value and the postponed
-	 *   [L2Instruction] that would populate them, or `null` if this value is not
-	 *   held boxed.
+	 *   [L2Instruction] that would populate them.  A value not held boxed at all
+	 *   has [Representation.emptyBoxedRepresentation] here rather than nothing,
+	 *   so that every kind can be asked about and answer.
 	 * @property intRepresentation
-	 *   As [boxedRepresentation], for [L2IntRegister]s.  Present only where the
+	 *   As [boxedRepresentation], for [L2IntRegister]s.  Non-empty only where the
 	 *   value has been established to fit an int register; see [restriction].
 	 * @property floatRepresentation
 	 *   As [boxedRepresentation], for [L2FloatRegister]s.
@@ -302,9 +335,12 @@ class L2ValueManifest
 	class ValueState(
 		val members: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction,
-		val boxedRepresentation: Representation<BOXED_KIND>?,
-		val intRepresentation: Representation<INTEGER_KIND>?,
-		val floatRepresentation: Representation<FLOAT_KIND>?)
+		val boxedRepresentation: Representation<BOXED_KIND> =
+			emptyBoxedRepresentation,
+		val intRepresentation: Representation<INTEGER_KIND> =
+			emptyIntRepresentation,
+		val floatRepresentation: Representation<FLOAT_KIND> =
+			emptyFloatRepresentation)
 	{
 		/**
 		 * The boxed form of the restriction supplied to the constructor.  An
@@ -318,7 +354,8 @@ class L2ValueManifest
 
 		/**
 		 * Every [Representation] this value currently has, for the [RegisterKind]s
-		 * it is held in.
+		 * it is held in – the [absent][Representation.isAbsent] ones excluded,
+		 * since they describe no register and name no synonym.
 		 *
 		 * A view over the three slots, for the operations that treat the kinds
 		 * symmetrically – folding the registers of every kind together, clearing
@@ -326,8 +363,9 @@ class L2ValueManifest
 		 * the storage, so "at most one representation per kind" is structural
 		 * rather than an invariant to be checked.
 		 */
-		val representations: List<Representation<*>> get() = listOfNotNull(
-			boxedRepresentation, intRepresentation, floatRepresentation)
+		val representations: List<Representation<*>> get() =
+			listOf(boxedRepresentation, intRepresentation, floatRepresentation)
+				.filterNot(Representation<*>::isAbsent)
 
 		/**
 		 * Every [L2Register] holding this value, across all of its
@@ -388,6 +426,7 @@ class L2ValueManifest
 			intRepresentation,
 			floatRepresentation)
 
+
 		/**
 		 * Answer a copy of the receiver with the given [Representation]
 		 * installed, replacing any existing one of the same [RegisterKind].
@@ -414,9 +453,9 @@ class L2ValueManifest
 			else -> ValueState(
 				members,
 				restriction,
-				boxedRepresentation?.withPostponed(null),
-				intRepresentation?.withPostponed(null),
-				floatRepresentation?.withPostponed(null))
+				boxedRepresentation.withPostponed(null),
+				intRepresentation.withPostponed(null),
+				floatRepresentation.withPostponed(null))
 		}
 
 		/**
@@ -451,15 +490,12 @@ class L2ValueManifest
 			return ValueState(
 				canonical(newMembers),
 				newRestriction,
-				boxedRepresentation.combine(other.boxedRepresentation) { a, b ->
-					mergeRepresentations(a, b, isConstant)
-				},
-				intRepresentation.combine(other.intRepresentation) { a, b ->
-					mergeRepresentations(a, b, isConstant)
-				},
-				floatRepresentation.combine(other.floatRepresentation) { a, b ->
-					mergeRepresentations(a, b, isConstant)
-				})
+				mergeRepresentations(
+					boxedRepresentation, other.boxedRepresentation, isConstant),
+				mergeRepresentations(
+					intRepresentation, other.intRepresentation, isConstant),
+				mergeRepresentations(
+					floatRepresentation, other.floatRepresentation, isConstant))
 		}
 
 		/**
@@ -597,26 +633,35 @@ class L2ValueManifest
 				first: Representation<K>,
 				second: Representation<K>,
 				valueIsConstant: Boolean
-			): Representation<K>
+			): Representation<K> = when
 			{
-				// Just concatenate the two lists, as this essentially preserves
-				// earliest definition order.
-				val definitions = first.definitions + second.definitions
-				return Representation(
-					first.kind,
-					definitions,
-					when
-					{
-						// Something already writes it in this kind.
-						definitions.isNotEmpty() -> null
-						valueIsConstant -> null
-						// In theory, if both postponed instructions are present we
-						// could decide which to keep and augment with the other
-						// synonym, but for now we can just choose arbitrarily,
-						// since they yield equivalent values.
-						else -> first.postponedInstruction
-							?: second.postponedInstruction
-					})
+				// Absence is the identity here: merging with a kind the other
+				// record was not held in must not make the result held in it, so
+				// the surviving representation is answered unchanged.
+				first.isAbsent -> second
+				second.isAbsent -> first
+				else ->
+				{
+					// Just concatenate the two lists, as this essentially
+					// preserves earliest definition order.
+					val definitions = first.definitions + second.definitions
+					Representation(
+						first.kind,
+						definitions,
+						when
+						{
+							// Something already writes it in this kind.
+							definitions.isNotEmpty() -> null
+							valueIsConstant -> null
+							// In theory, if both postponed instructions are
+							// present we could decide which to keep and augment
+							// with the other synonym, but for now we can just
+							// choose arbitrarily, since they yield equivalent
+							// values.
+							else -> first.postponedInstruction
+								?: second.postponedInstruction
+						})
+				}
 			}
 
 			/**
@@ -649,13 +694,15 @@ class L2ValueManifest
 		val state: ValueState,
 		val kind: K)
 	{
-		/** This kind's [Representation] of the value, if it has one. */
-		val representation: Representation<K>?
+		/**
+		 * This kind's [Representation] of the value, which is
+		 * [absent][Representation.isAbsent] if the value is not held in this kind.
+		 */
+		val representation: Representation<K>
 			get() = kind.representationIn(state)
 
 		/** The [L2Register]s of this kind that hold the value. */
-		val definitions: List<L2Register<K>>
-			get() = representation?.definitions ?: emptyList()
+		val definitions: List<L2Register<K>> get() = representation.definitions
 
 		/**
 		 * The postponed [L2Instruction] that would populate this value in this
@@ -663,7 +710,7 @@ class L2ValueManifest
 		 * values it populates are never read.
 		 */
 		val postponedInstruction: L2Instruction?
-			get() = representation?.postponedInstruction
+			get() = representation.postponedInstruction
 
 		/** The [TypeRestriction] bounding the value, in this kind. */
 		val restriction: TypeRestriction
@@ -701,7 +748,7 @@ class L2ValueManifest
 		 *   The set of [L2SemanticValue]s that have visible definitions.
 		 */
 		fun definedSemanticValues(): Set<L2SemanticValue<K>> =
-			representation?.definedMembers() ?: emptySet()
+			representation.definedMembers()
 
 		fun postponedInstructionIncludingImplicitMove(
 			synonym: L2Synonym<K>,
@@ -2096,7 +2143,7 @@ class L2ValueManifest
 		// and callers do reach this during that window.  There is no
 		// representation to consult yet, so the binding itself is the answer.
 		val state = states[resolve(valueClass)] ?: return true
-		return semanticValue.kind.representationIn(state) !== null
+		return !semanticValue.kind.representationIn(state).isAbsent
 	}
 
 	/**
@@ -2112,13 +2159,11 @@ class L2ValueManifest
 	 */
 	fun hasLiveSemanticValue(
 		semanticValue: L2SemanticValue<*>
-	): Boolean = stateOrNull(semanticValue)
-		?.let(semanticValue.kind::representationIn)
-		.notNullAnd {
-			definitions.any { reg ->
-				reg.definitions().any { semanticValue in it.semanticValues() }
-			}
+	): Boolean = stateOrNull(semanticValue).notNullAnd {
+		semanticValue.kind.representationIn(this).definitions.any { reg ->
+			reg.definitions().any { semanticValue in it.semanticValues() }
 		}
+	}
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one in
@@ -2518,9 +2563,9 @@ class L2ValueManifest
 	 *   The [RegisterKind] to reconcile.
 	 * @param kindsToRepresent
 	 *   The [RegisterKind]s the merged value is to be held in.  A kind outside
-	 *   this set answers `null`, since inventing a representation for a kind
-	 *   nobody mentioned would claim the value is available in a register that
-	 *   does not exist.
+	 *   this set answers [RegisterKind.emptyRepresentation], since inventing a
+	 *   representation for a kind nobody mentioned would claim the value is
+	 *   available in a register that does not exist.
 	 * @param sources
 	 *   The [ValueState]s being merged, including the survivor's.
 	 * @param boxedMembers
@@ -2528,7 +2573,7 @@ class L2ValueManifest
 	 * @param restriction
 	 *   The boxed [TypeRestriction] bounding the merged value.
 	 * @return
-	 *   The merged [Representation] for that kind, or `null`.
+	 *   The merged [Representation] for that kind.
 	 */
 	private fun <K: RegisterKind<K>> agglomeratedRepresentation(
 		kind: K,
@@ -2536,11 +2581,13 @@ class L2ValueManifest
 		sources: List<ValueState>,
 		boxedMembers: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction
-	): Representation<K>?
+	): Representation<K>
 	{
-		if (kind !in kindsToRepresent) return null
+		if (kind !in kindsToRepresent) return kind.emptyRepresentation
 		val members = boxedMembers.mapTo(mutableSetOf(), kind::spellingOf)
-		val present = sources.mapNotNull(kind::representationIn)
+		val present = sources
+			.map(kind::representationIn)
+			.filterNot(Representation<K>::isAbsent)
 		val definitions = present.flatMap(Representation<K>::definitions)
 		// Reuse any of the existing postponed instructions, since they all will
 		// populate the entire synonym.

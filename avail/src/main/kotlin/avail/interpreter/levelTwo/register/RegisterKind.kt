@@ -76,6 +76,9 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.L2ValueManifest.Constraint
 import avail.optimizer.L2ValueManifest.Representation
+import avail.optimizer.L2ValueManifest.Representation.Companion.emptyBoxedRepresentation
+import avail.optimizer.L2ValueManifest.Representation.Companion.emptyFloatRepresentation
+import avail.optimizer.L2ValueManifest.Representation.Companion.emptyIntRepresentation
 import avail.optimizer.L2ValueManifest.ValueState
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -333,8 +336,20 @@ constructor (
 	): TypeRestriction
 
 	/**
-	 * Answer the given [ValueState]'s [Representation] for this kind, or `null`
-	 * if the value is not held in a register of this kind.
+	 * The [Representation] that stands for a value not being held in a register
+	 * of this kind at all.
+	 *
+	 * Absence is a value rather than a `null`, so that asking a [ValueState] what
+	 * it knows about a kind always answers something usable.  It is a getter
+	 * rather than a stored property to keep this object's initialization from
+	 * depending on [Representation]'s, which depends on this object in turn.
+	 */
+	abstract val emptyRepresentation: Representation<Self>
+
+	/**
+	 * Answer the given [ValueState]'s [Representation] for this kind, which is
+	 * [RegisterKind.emptyRepresentation] if the value is not held in a register
+	 * of this kind.
 	 *
 	 * A [ValueState] keeps a separate slot per kind, so reaching the right one is
 	 * a three-way choice.  Making it here rather than in the [ValueState] keeps
@@ -344,9 +359,9 @@ constructor (
 	 * @param state
 	 *   The [ValueState] to interrogate.
 	 * @return
-	 *   That state's [Representation] for this kind, or `null`.
+	 *   That state's [Representation] for this kind.
 	 */
-	abstract fun representationIn(state: ValueState): Representation<Self>?
+	abstract fun representationIn(state: ValueState): Representation<Self>
 
 	/**
 	 * Answer the [Constraint] presenting the given [ValueState] in this kind.
@@ -367,8 +382,8 @@ constructor (
 	 * @param restriction
 	 *   The [TypeRestriction] bounding it.
 	 * @param representation
-	 *   This kind's [Representation] of it, or `null` if it is not held in a
-	 *   register of this kind.
+	 *   This kind's [Representation] of it, which is [emptyRepresentation] if it
+	 *   is not held in a register of this kind.
 	 * @param otherKinds
 	 *   The [ValueState] to take the *other* kinds' representations from, or
 	 *   `null` when building a record for a value that is new to a manifest and
@@ -379,7 +394,7 @@ constructor (
 	abstract fun stateWith(
 		members: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction,
-		representation: Representation<Self>?,
+		representation: Representation<Self>,
 		otherKinds: ValueState?
 	): ValueState
 
@@ -479,23 +494,25 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		restriction: TypeRestriction
 	): TypeRestriction = restriction.forBoxed()
 
+	override val emptyRepresentation get() = emptyBoxedRepresentation
+
 	override fun representationIn(
 		state: ValueState
-	): Representation<BOXED_KIND>? = state.boxedRepresentation
+	): Representation<BOXED_KIND> = state.boxedRepresentation
 
 	override fun viewIn(state: ValueState) = state.viewFor(this)
 
 	override fun stateWith(
 		members: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction,
-		representation: Representation<BOXED_KIND>?,
+		representation: Representation<BOXED_KIND>,
 		otherKinds: ValueState?
 	) = ValueState(
 		members,
 		restriction,
 		representation,
-		otherKinds?.intRepresentation,
-		otherKinds?.floatRepresentation)
+		otherKinds?.intRepresentation ?: emptyIntRepresentation,
+		otherKinds?.floatRepresentation ?: emptyFloatRepresentation)
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -585,23 +602,25 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		restriction: TypeRestriction
 	): TypeRestriction = restriction.forUnboxedInt()
 
+	override val emptyRepresentation get() = emptyIntRepresentation
+
 	override fun representationIn(
 		state: ValueState
-	): Representation<INTEGER_KIND>? = state.intRepresentation
+	): Representation<INTEGER_KIND> = state.intRepresentation
 
 	override fun viewIn(state: ValueState) = state.viewFor(this)
 
 	override fun stateWith(
 		members: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction,
-		representation: Representation<INTEGER_KIND>?,
+		representation: Representation<INTEGER_KIND>,
 		otherKinds: ValueState?
 	) = ValueState(
 		members,
 		restriction,
-		otherKinds?.boxedRepresentation,
+		otherKinds?.boxedRepresentation ?: emptyBoxedRepresentation,
 		representation,
-		otherKinds?.floatRepresentation)
+		otherKinds?.floatRepresentation ?: emptyFloatRepresentation)
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -692,22 +711,24 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		restriction: TypeRestriction
 	): TypeRestriction = restriction.forUnboxedFloat()
 
+	override val emptyRepresentation get() = emptyFloatRepresentation
+
 	override fun representationIn(
 		state: ValueState
-	): Representation<FLOAT_KIND>? = state.floatRepresentation
+	): Representation<FLOAT_KIND> = state.floatRepresentation
 
 	override fun viewIn(state: ValueState) = state.viewFor(this)
 
 	override fun stateWith(
 		members: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction,
-		representation: Representation<FLOAT_KIND>?,
+		representation: Representation<FLOAT_KIND>,
 		otherKinds: ValueState?
 	) = ValueState(
 		members,
 		restriction,
-		otherKinds?.boxedRepresentation,
-		otherKinds?.intRepresentation,
+		otherKinds?.boxedRepresentation ?: emptyBoxedRepresentation,
+		otherKinds?.intRepresentation ?: emptyIntRepresentation,
 		representation)
 
 	override fun JVMTranslator.jvmLoadConstant(

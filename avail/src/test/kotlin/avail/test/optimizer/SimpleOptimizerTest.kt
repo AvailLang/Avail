@@ -217,6 +217,7 @@ import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -2971,11 +2972,22 @@ class SimpleOptimizerTest
 		assertTrue(both.viewFor(BOXED_KIND).restriction.isBoxed)
 		assertTrue(both.viewFor(INTEGER_KIND).restriction.isUnboxedInt)
 
-		// A kind the value is not held in has a view, but an empty one.
-		assertNull(both.viewFor(FLOAT_KIND).representation)
+		// A kind the value is not held in has a view, and that view reports the
+		// absence rather than nothing at all.
+		assertTrue(both.viewFor(FLOAT_KIND).representation.isAbsent)
 		assertEquals(
 			emptyList<L2Register<FLOAT_KIND>>(),
 			both.viewFor(FLOAT_KIND).definitions)
+		// Absence is distinct from being held with no register yet, which is what
+		// a value looks like between being introduced and being written.
+		assertFalse(both.viewFor(BOXED_KIND).representation.isAbsent)
+		assertFalse(
+			ValueState.newState(
+				setOf(shared),
+				emptyList(),
+				boxedRestrictionForType(i32),
+				null
+			).viewFor(BOXED_KIND).representation.isAbsent)
 
 		// An update scoped to one kind preserves the other.
 		val emptiedBoxed = both.updated(
