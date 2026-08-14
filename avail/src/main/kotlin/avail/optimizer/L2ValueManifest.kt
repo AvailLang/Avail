@@ -87,6 +87,7 @@ import avail.optimizer.values.L2SemanticValue
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.cast
+import avail.utility.combine
 import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
@@ -258,6 +259,32 @@ class L2ValueManifest
 		fun notDefinedMembers(
 			owner: Constraint<K>
 		): Set<L2SemanticValue<K>> = owner.members - definedMembers()
+
+		companion object
+		{
+			/**
+			 * Create a [Representation] for a [RegisterKind] that is not known
+			 * statically, as when folding together every kind a value is held in.
+			 *
+			 * The type argument is a placeholder, erased at runtime; the kind that
+			 * the representation reports is the argument.
+			 *
+			 * @param kind
+			 *   The [RegisterKind] the representation is for.
+			 * @param definitions
+			 *   The [L2Register]s of that kind holding the value.
+			 * @param postponedInstruction
+			 *   The postponed [L2Instruction] that would populate it, or `null`.
+			 * @return
+			 *   The new [Representation].
+			 */
+			fun forAnyKind(
+				kind: RegisterKind<*>,
+				definitions: List<L2Register<*>>,
+				postponedInstruction: L2Instruction?
+			): Representation<*> = Representation<BOXED_KIND>(
+				kind.cast(), definitions.cast(), postponedInstruction)
+		}
 	}
 
 	/**
@@ -278,9 +305,12 @@ class L2ValueManifest
 	 *   identityless.
 	 * @property restriction
 	 *   The [TypeRestriction] that describes the types, constant values,
-	 *   excluded types, excluded values, and [RegisterKind]s that constrain this
-	 *   value.  It is stored in the spelling of [kind], and each [Constraint]
-	 *   projects it into its own kind; see [RegisterKind.projectRestriction].
+	 *   excluded types and excluded values that constrain this value.  It is held
+	 *   once, in boxed form, and each [Constraint] projects it into its own kind;
+	 *   see [RegisterKind.projectRestriction].  The unboxed forms carry no
+	 *   information the boxed one does not, and the projection back out is exact,
+	 *   because an unboxed [Representation] only exists where the value has
+	 *   already been established to fit that register – for an int, within [i32].
 	 * @property kind
 	 *   The [RegisterKind] this record was created for.  Scaffolding: it exists
 	 *   only for [primaryView], so that code which reads a record without a kind
@@ -293,10 +323,20 @@ class L2ValueManifest
 	 */
 	class ValueState(
 		val members: Set<L2SemanticBoxedValue>,
-		val restriction: TypeRestriction,
+		restriction: TypeRestriction,
 		val kind: RegisterKind<*>,
 		val representations: List<Representation<*>>)
 	{
+		/**
+		 * The boxed form of the restriction supplied to the constructor.  An
+		 * unboxed one arrives here from a kind-scoped update, and is boxed on the
+		 * way in so that there is exactly one place a value's constraint lives,
+		 * whatever kind it was last narrowed through.  [TypeRestriction.forBoxed]
+		 * answers its receiver when it is already boxed, so the usual case costs
+		 * nothing.
+		 */
+		val restriction: TypeRestriction = restriction.forBoxed()
+
 		/**
 		 * Answer the [Representation] describing this value in the given
 		 * [RegisterKind], or `null` if it has none.
@@ -398,6 +438,62 @@ class L2ValueManifest
 				kind,
 				representations.map { it.withPostponed(null) })
 		}
+
+		/**
+		 * Answer the [ValueState] describing what two records, just shown to
+		 * describe the same value, jointly know about it.
+		 *
+		 * Every [RegisterKind] either holds is reconciled the same way, because a
+		 * merge says nothing about kinds: the registers of that kind from both
+		 * sides all hold the value, and a postponed instruction is needed only
+		 * where nothing yet writes it.  A kind only one side was held in is not a
+		 * special case, it is the reconciliation with nothing on the other side.
+		 *
+		 * @param other
+		 *   The [ValueState] being merged away.
+		 * @param newMembers
+		 *   The members of the merged value, in any one kind's spelling.
+		 * @param newRestriction
+		 *   The [TypeRestriction] bounding the merged value, normally the
+		 *   intersection of the two.
+		 * @return
+		 *   The merged [ValueState].
+		 */
+		fun mergedWith(
+			other: ValueState,
+			newMembers: Set<L2SemanticValue<*>>,
+			newRestriction: TypeRestriction
+		): ValueState = ValueState(
+			canonical(newMembers),
+			newRestriction,
+			kind,
+			RegisterKind.all.mapNotNull { anyKind ->
+				representationFor(anyKind).combine(
+					other.representationFor(anyKind)
+				) { mine, theirs ->
+					// Just concatenate the two lists, as this essentially
+					// preserves earliest definition order.
+					val definitions = mine.definitions + theirs.definitions
+					Representation.forAnyKind(
+						anyKind,
+						definitions,
+						when
+						{
+							// Something already writes it in this kind.
+							definitions.isNotEmpty() -> null
+							// A constant can be reconstructed in any kind.
+							newMembers.any(
+								L2SemanticValue<*>::isConstant) -> null
+							// In theory, if both postponed instructions are
+							// present we could decide which to keep and augment
+							// with the other synonym, but for now we can just
+							// choose arbitrarily, since they yield equivalent
+							// values.
+							else -> mine.postponedInstruction
+								?: theirs.postponedInstruction
+						})
+				}
+			})
 
 		/**
 		 * The [Constraint] views of this record, indexed by [RegisterKind]
@@ -1973,6 +2069,12 @@ class L2ValueManifest
 	 * It's an error if any of the provided [L2SemanticValue]s are already bound
 	 * to other synonyms in this manifest.
 	 *
+	 * The values may nonetheless *name* a value this manifest already knows, when
+	 * they are the unboxed spelling of one it holds boxed.  That is not a new
+	 * value but a new [Representation] of an existing one, so it joins that
+	 * [ValueClass] rather than starting one: a value has a single class, and its
+	 * boxed and unboxed forms cannot be allowed to drift apart into two.
+	 *
 	 * @param semanticValues
 	 *   The new [L2SemanticValue]s to place in the new synonym.
 	 * @param restriction
@@ -1987,14 +2089,23 @@ class L2ValueManifest
 		val pick = semanticValues.first()
 		val freshSynonym = L2Synonym(
 			semanticValues.toSet().cast<Iterable<*>, Set<L2SemanticValue<K>>>())
-		val freshClass = ValueClass.newValueClass()
-		bind(semanticValues, freshClass)
-		states[freshClass] =
-			ValueState.newState(
+		val valueClass = classOrNull(pick) ?: ValueClass.newValueClass()
+		bind(semanticValues, valueClass)
+		val existingState = states[valueClass]
+		states[valueClass] = when (existingState)
+		{
+			null -> ValueState.newState(
 				freshSynonym.semanticValues(),
 				emptyList(),
 				pick.defaultRestriction,
 				null)
+			// The value is already known in another kind.  Keep its membership -
+			// which may name more values than were passed here, all of them
+			// equally available in this new kind - and add an empty
+			// representation for the kind being introduced.
+			else -> existingState.withRepresentation(
+				Representation(freshSynonym.kind, emptyList(), null))
+		}
 		updateRestriction(pick) { restriction }
 	}
 
@@ -2487,6 +2598,82 @@ class L2ValueManifest
 	 *   created.  It may be further strengthened by the restrictions present
 	 *   for existing synonyms.
 	 */
+	/**
+	 * Combine what several [ValueState]s know about one [RegisterKind] into the
+	 * single [Representation] that the merged value has in that kind.
+	 *
+	 * The rule is the same for every kind, and is therefore expressed once:
+	 * every register of that kind holds the value, and the value needs an
+	 * instruction to populate it only where nothing yet writes it.  Only the
+	 * *choice* of instruction depends on the kind, and that is dispatched through
+	 * the [RegisterKind] itself.
+	 *
+	 * @param kind
+	 *   The [RegisterKind] to reconcile.  Not known statically, since this is
+	 *   applied to every kind the merged records are held in.
+	 * @param sources
+	 *   The [ValueState]s being merged, including the survivor's.
+	 * @param boxedMembers
+	 *   The canonical members of the merged value.
+	 * @param restriction
+	 *   The boxed [TypeRestriction] bounding the merged value.
+	 * @return
+	 *   The merged [Representation] for that kind.
+	 */
+	private fun agglomeratedRepresentation(
+		kind: RegisterKind<*>,
+		sources: List<ValueState>,
+		boxedMembers: Set<L2SemanticBoxedValue>,
+		restriction: TypeRestriction
+	): Representation<*>
+	{
+		val members = boxedMembers.mapTo(mutableSetOf<L2SemanticValue<*>>()) {
+			kind.spellingOf(it)
+		}
+		val present = sources.mapNotNull { it.representationFor(kind) }
+		val definitions = present.flatMap(Representation<*>::definitions)
+		// Reuse any of the existing postponed instructions, since they all will
+		// populate the entire synonym.
+		val postponedInstructions =
+			present.mapNotNull(Representation<*>::postponedInstruction)
+		val defined = definitions
+			.flatMap(L2Register<*>::definitions)
+			.flatMap(L2WriteOperand<*>::semanticValues)
+			.intersect(members)
+		val notDefined = members - defined
+		// An instruction written into a register of this kind needs the
+		// restriction as that kind sees it.
+		val kindRestriction = kind.projectRestriction(restriction)
+		val postponedInstruction = when
+		{
+			// Don't generate postponed instructions when the graph is held
+			// together by registers instead of semantic values.
+			!caresAboutSemanticValues -> null
+			// If the value is defined for all, no instruction is needed.
+			notDefined.isEmpty() -> null
+			// If the new restriction is impossible, output an impossibleCode
+			// instruction, which should hopefully cause this path to become
+			// unreachable from the nearest branch.
+			restriction.isImpossible -> null
+			// If the value is defined for some and notDefined for others,
+			// produce a move.
+			defined.isNotEmpty() -> kind.dynamicMove(
+				defined.first(), emptySet(), this, kindRestriction)
+			// The value is defined for none.  Check for a constant restriction.
+			restriction.isConstant -> kind.moveConstant(
+				restriction.constantOrNull!!, emptySet())
+			// Defined for none, and not constant.  Keep (any) one of the
+			// (definitely non-move, non-constant-move) postponed instructions
+			// found in the prior synonyms.  Allow there to have been no
+			// postponed instruction *just* to simplify intermediate states,
+			// where the synonym is built before the defining instruction is
+			// added.
+			else -> postponedInstructions.firstOrNull()
+		}
+		return Representation.forAnyKind(
+			kind, definitions, postponedInstruction)
+	}
+
 	fun <K: RegisterKind<K>> agglomerateSynonym(
 		semanticValues: Iterable<L2SemanticValue<K>>,
 		baseRestriction: TypeRestriction)
@@ -2526,85 +2713,47 @@ class L2ValueManifest
 		// synonyms' restrictions.
 		val existingSemanticConstant =
 			strandedValues.firstOrNull(L2SemanticValue<K>::isConstant)
-		// Every value being agglomerated is of this one kind, so that is the
-		// kind in which the existing records are examined and combined.
-		val kind = semanticValues.first().kind
+		// Intersect the *stored* restrictions, which are boxed, so that tag and
+		// variant information survives an agglomeration performed on behalf of
+		// an unboxed spelling.
 		val newRestriction = existingSemanticConstant?.constantRestrictionOrNull
 			?: when
 			{
 				existingClasses.isEmpty() -> baseRestriction
 				else -> existingClasses
-					.map { states[it]!!.viewFor(kind).restriction }
+					.map { states[it]!!.restriction }
 					.reduce(TypeRestriction::intersection)
 			}
 
-		val definitions = mutableListOf<L2Register<K>>()
-		val postponedInstructions = mutableListOf<L2Instruction>()
-		val allSemanticValues: Set<L2SemanticValue<K>> = existingClasses
-			.flatMapTo(mutableSetOf()) { states[it]!!.viewFor(kind).members }
+		// Capture the records now, since forwarding the losers below removes them
+		// from the map, while their representations are still needed afterwards.
+		val existingStates = existingClasses.map { states[it]!! }
+		// The kind this call is spelled in is always one of the kinds to
+		// reconcile, even when no existing record is held in it yet.
+		val kind = semanticValues.first().kind
+		val allSemanticValues: Set<L2SemanticValue<K>> = existingStates
+			.flatMapTo(mutableSetOf()) { it.viewFor(kind).members }
 			.plus(strandedValues)
-		existingClasses.forEach { existingClass ->
-			val constraint = states[existingClass]!!.viewFor(kind)
-			definitions.addAll(constraint.definitions)
-			constraint.postponedInstruction?.let(postponedInstructions::add)
-		}
-
-		// Reuse any of tho existing postponed instructions, since they all will
-		// populate the entire synonym.
-		val defined = definitions
-			.flatMap(L2Register<K>::definitions)
-			.flatMap(L2WriteOperand<K>::semanticValues)
-			.intersect(allSemanticValues)
-		val notDefined = allSemanticValues - defined
-		val postponedInstruction = when
-		{
-			// Don't generate postponed instructions when the graph is held
-			// together by registers instead of semantic values.
-			!caresAboutSemanticValues -> null
-			// If the value is defined for all, no instruction is needed.
-			notDefined.isEmpty() -> null
-			// If the new restriction is impossible, output an impossibleCode
-			// instruction, which should hopefully cause this path to become
-			// unreachable from the nearest branch.
-			newRestriction.isImpossible -> null
-			// If the value is defined for some and notDefined for others,
-			// produce a move.
-			defined.isNotEmpty() -> kind.dynamicMove(
-				defined.first(), emptySet(), this, newRestriction)
-			// The value is defined for none.  Check for a constant restriction.
-			newRestriction.isConstant -> kind.moveConstant(
-				newRestriction.constantOrNull!!, emptySet())
-			// Defined for none, and not constant.  Keep (any) one of the
-			// (definitely non-move, non-constant-move) postponed instructions
-			// found in the prior synonyms.  Allow there to have been no
-			// postponed instruction *just* to simplify intermediate states,
-			// where the synonym is built before the defining instruction is
-			// added.
-			else -> postponedInstructions.firstOrNull()
+		val boxedMembers =
+			allSemanticValues.mapTo(mutableSetOf(), L2SemanticValue<K>::toBoxed)
+		val representations = (
+			existingStates.flatMap {
+				it.representations.map(Representation<*>::kind)
+			} + kind
+		).distinct().map { anyKind ->
+			agglomeratedRepresentation(
+				anyKind, existingStates, boxedMembers, newRestriction)
 		}
 		// Wire it in.  One of the existing classes survives and absorbs the
 		// others, so that anything still referring to a merged-away class
 		// resolves to the survivor.
-		assert(caresAboutSemanticValues || postponedInstruction == null)
+		assert(
+			caresAboutSemanticValues
+				|| representations.all { it.postponedInstruction === null })
 		val winner = existingClasses.firstOrNull() ?: ValueClass.newValueClass()
 		existingClasses.forEach { loser -> forwardClass(winner, loser) }
-		// Read the winner's record only now, since forwarding the losers can
-		// recursively agglomerate derived values and thereby replace it.  Update
-		// it rather than rebuilding, so that a representation of some *other*
-		// kind survives a merge in this one.
-		val previousState = states[winner]
-		states[winner] = when (previousState)
-		{
-			null -> ValueState.newState(
-				allSemanticValues,
-				definitions,
-				newRestriction,
-				postponedInstruction)
-			else -> previousState.updated(
-				allSemanticValues,
-				newRestriction,
-				Representation(kind, definitions, postponedInstruction))
-		}
+		states[winner] = ValueState(
+			boxedMembers, newRestriction, kind, representations)
 		bind(allSemanticValues, winner)
 	}
 
@@ -2863,30 +3012,16 @@ class L2ValueManifest
 		// class1 survives and absorbs class2, so anything still holding class2
 		// resolves to class1.
 		forwardClass(class1, class2)
-		val definitions = constraint1.definitions + constraint2.definitions
-		val postponed1 = constraint1.postponedInstruction
-		val postponed2 = constraint2.postponedInstruction
-		// In theory, if both postponed instructions are present we could decide
-		// which to keep and augment with the other synonym, but for now we can
-		// just choose arbitrarily, since they yield equivalent values.
-		val newPostponed = (postponed1 ?: postponed2)?.let { instruction ->
-			when {
-				// There's already a definition, so drop the instruction.
-				definitions.isNotEmpty() -> null
-				// It's a constant, so drop the instruction.
-				semanticValues.any(L2SemanticValue<*>::isConstant) -> null
-				else -> instruction
-			}
-		}
-		// Just concatenate the input synonyms' lists, as this essentially
-		// preserves earliest definition order.
-		assert(caresAboutSemanticValues || newPostponed == null)
-		// class1's record survives, updated in this kind, so that a
-		// representation of some other kind is not lost by the merge.
-		val newState = states[class1]!!.updated(
-			semanticValues,
-			restriction,
-			Representation(kind, definitions, newPostponed))
+		// class1's record is re-read, since forwarding class2 can recursively
+		// merge derived values and thereby replace it.  Every kind either record
+		// was held in is reconciled, not just the one this synonym is spelled in.
+		val newState = states[class1]!!.mergedWith(
+			constraint2.state, semanticValues, restriction)
+		assert(
+			caresAboutSemanticValues
+				|| newState.representations.all {
+					it.postponedInstruction === null
+				})
 		states[class1] = newState
 		bind(semanticValues, class1)
 		if (constraint1.isImpossible) impossibleRestrictionCount--

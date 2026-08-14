@@ -516,3 +516,15 @@ fun <X> List<Iterable<X>>.cartesianProductForEach(action: (List<X>)->Unit)
 		}
 	}
 }
+
+/**
+ * Combine two nullable values.  If either is null, answer the other.  If both
+ * are null, answer null.  If neither is null, run the supplied fold function to
+ * produce a combined value.
+ */
+fun <X> X?.combine(other: X?, fold: (a: X, b: X)->X): X? = when
+{
+	this == null -> other
+	other == null -> this
+	else -> fold(this, other)
+}
