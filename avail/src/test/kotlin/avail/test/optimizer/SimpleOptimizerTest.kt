@@ -191,7 +191,11 @@ import avail.interpreter.primitive.variables.P_GetClearing
 import avail.interpreter.primitive.variables.P_GetValue
 import avail.interpreter.primitive.variables.P_SetValue
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator
@@ -200,6 +204,9 @@ import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2ValueManifest.Constraint
+import avail.optimizer.L2ValueManifest.Representation
+import avail.optimizer.L2ValueManifest.ValueState
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticConstant
@@ -2913,6 +2920,68 @@ class SimpleOptimizerTest
 				"test frame"),
 			name,
 			uniqueId)
+
+	/**
+	 * A [ValueState] holds one [Representation] per [RegisterKind], and a
+	 * [Constraint] presents exactly one of them.  Nothing in the manifest builds
+	 * such a state yet – a value is still born in a single kind – so this
+	 * exercises the machinery that step B will start depending on.
+	 *
+	 * The three properties that matter are that the kinds do not bleed into each
+	 * other, that the aggregate view sees all of them, and that an update scoped
+	 * to one kind leaves the others alone.  The last one is the dangerous one:
+	 * losing an int register because a boxed-scoped update rebuilt the record
+	 * would show up much later as an unnecessary unbox, or worse, as a read of a
+	 * register nothing wrote.
+	 */
+	@Test
+	fun aValueStateKeepsItsRepresentationsSeparate()
+	{
+		val shared = newTemp("shared", 1)
+		val boxedRegister = L2BoxedRegister(1)
+		val intRegister = L2IntRegister(2)
+		val boxedOnly = ValueState.newState(
+			setOf(shared),
+			listOf(boxedRegister),
+			boxedRestrictionForType(i32),
+			null)
+		val both = boxedOnly.withRepresentation(
+			Representation(INTEGER_KIND, listOf(intRegister), null))
+
+		// Each view reports only its own kind's registers, and the aggregate
+		// reports both.
+		assertEquals(listOf(boxedRegister), both.viewFor(BOXED_KIND).definitions)
+		assertEquals(listOf(intRegister), both.viewFor(INTEGER_KIND).definitions)
+		assertEquals(
+			setOf<L2Register<*>>(boxedRegister, intRegister),
+			both.allDefinitions.toSet())
+
+		// One member set, spelled per kind.
+		assertEquals(setOf(shared), both.viewFor(BOXED_KIND).members)
+		assertEquals(
+			setOf(shared.unboxedInt), both.viewFor(INTEGER_KIND).members)
+
+		// One restriction, projected per kind.
+		assertTrue(both.viewFor(BOXED_KIND).restriction.isBoxed)
+		assertTrue(both.viewFor(INTEGER_KIND).restriction.isUnboxedInt)
+
+		// A kind the value is not held in has a view, but an empty one.
+		assertNull(both.viewFor(FLOAT_KIND).representation)
+		assertEquals(
+			emptyList<L2Register<FLOAT_KIND>>(),
+			both.viewFor(FLOAT_KIND).definitions)
+
+		// An update scoped to one kind preserves the other.
+		val emptiedBoxed = both.updated(
+			setOf(shared),
+			boxedRestrictionForType(inclusive(0, 5)),
+			Representation(BOXED_KIND, emptyList(), null))
+		assertEquals(
+			listOf(intRegister), emptiedBoxed.viewFor(INTEGER_KIND).definitions)
+		assertEquals(
+			emptyList<L2Register<BOXED_KIND>>(),
+			emptiedBoxed.viewFor(BOXED_KIND).definitions)
+	}
 
 	/**
 	 * A value's [TypeRestriction] is held once, in boxed form, and each
