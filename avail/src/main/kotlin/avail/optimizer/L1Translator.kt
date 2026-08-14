@@ -41,6 +41,7 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Bundle
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
+import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Definition
 import avail.descriptor.representation.A_Function
@@ -982,8 +983,17 @@ class L1Translator private constructor(
 			}
 			catch (_: MethodDefinitionException)
 			{
+				// Report what was being looked up.  A restriction that is wider
+				// than the sole definition's signature means the manifest lost
+				// track of what an argument is, which is otherwise very hard to
+				// place from the bare assertion.
 				throw AssertionError(
-					"Couldn't look up method by its own signature")
+					"Couldn't look up method by its own signature" +
+						"\n  Bundle: ${bundle.message}" +
+						"\n  Sole definition: " +
+						"${method.definitionsTuple.tupleAt(1).bodySignature()}" +
+						"\n  Argument restrictions: $argumentRestrictions" +
+						"\n  Semantic arguments: $semanticArguments")
 			}
 			// The tree is now warmed up for a monomorphic inline.
 		}

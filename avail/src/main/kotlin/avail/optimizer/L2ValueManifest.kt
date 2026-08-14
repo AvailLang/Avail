@@ -1944,6 +1944,15 @@ class L2ValueManifest
 		if (!caresAboutSemanticValues) return
 		val baseClass = classOrNull(base)
 			?: run {
+				// The base is not (yet) known here, which happens at a merge:
+				// mergeIncomingPostponedInstructions brings a postponed
+				// instruction's derived value across before populateForMerge
+				// populates the ordinary values, so the base arrives moments
+				// later.  Introducing it under its default restriction keeps the
+				// edge recordable, and the restriction is corrected when the base
+				// does arrive - which requires agglomerateSynonym to intersect the
+				// caller's restriction in rather than trusting only what is
+				// already recorded.
 				introduceSynonym<BOXED_KIND>(
 					setOf(base), base.defaultRestriction)
 				classFor(base)
@@ -2672,13 +2681,20 @@ class L2ValueManifest
 		// Intersect the *stored* restrictions, which are boxed, so that tag and
 		// variant information survives an agglomeration performed on behalf of
 		// an unboxed spelling.
+		// The caller's restriction is a constraint on the value too, so it is
+		// intersected in rather than being used only when there is nothing else -
+		// which is what "may be further strengthened by the restrictions present
+		// for existing synonyms" says, and what the single-class path above
+		// already does.  Dropping it let a class carrying no real knowledge decide
+		// the merged restriction on its own.
+		// The caller's restriction arrives in whatever kind the caller was working
+		// in - an int move supplies an int-flagged one - while stored restrictions
+		// are boxed, and mixing the two in one restriction is forbidden.  Boxing it
+		// first is what makes the intersection well formed.
 		val newRestriction = existingSemanticConstant?.constantRestrictionOrNull
-			?: when
-			{
-				existingClasses.isEmpty() -> baseRestriction
-				else -> existingClasses
-					.map { states[it]!!.restriction }
-					.reduce(TypeRestriction::intersection)
+			?: existingClasses.fold(baseRestriction.forBoxed()) {
+					restriction, existing ->
+				restriction.intersection(states[existing]!!.restriction)
 			}
 
 		// Capture the records now, since forwarding the losers below removes them
