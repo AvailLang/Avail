@@ -1008,12 +1008,31 @@ class L2ValueManifest
 	 * @param mode
 	 *   The [GenerationMode] that interprets semantic values and registers.
 	 */
-	constructor(mode: GenerationMode)
+	constructor(mode: GenerationMode) :
+		this(mode, mode == BySemanticValue)
+
+	/**
+	 * Create a new empty manifest, saying explicitly whether it tracks semantic
+	 * values.
+	 *
+	 * That is normally decided by the [GenerationMode], but [mode] is a `var`
+	 * that later phases reassign, while whether [classOf] exists is fixed when
+	 * the manifest is created.  A manifest copied from another must therefore
+	 * take this from *it*, not from the mode it currently reports.
+	 *
+	 * @param mode
+	 *   The [GenerationMode] that interprets semantic values and registers.
+	 * @param tracksSemanticValues
+	 *   Whether to give the manifest a [classOf] map at all.
+	 */
+	private constructor(
+		mode: GenerationMode,
+		tracksSemanticValues: Boolean)
 	{
 		this.mode = mode
-		classOf = when (mode)
+		classOf = when
 		{
-			BySemanticValue -> mutableMapOf()
+			tracksSemanticValues -> mutableMapOf()
 			else -> null
 		}
 		forward = mutableMapOf()
@@ -1025,25 +1044,45 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Copy an existing manifest.  Clone the maps, and also clone the mutable
-	 * [Constraint] associated with each synonym.
+	 * Copy an existing manifest.  Clone the maps; the [ValueState]s they contain
+	 * are immutable and are shared rather than copied.
 	 *
 	 * @param original
 	 *   The original [L2ValueManifest].
 	 */
-	constructor(original: L2ValueManifest)
+	constructor(original: L2ValueManifest) :
+		this(original.mode, original.classOf !== null)
 	{
-		mode = original.mode
-		classOf = original.classOf?.toMutableMap()
-		forward = original.forward.toMutableMap()
-		tagOf = original.tagOf.toMutableMap()
-		variantIdOf = original.variantIdOf.toMutableMap()
-		derivedFrom = original.derivedFrom.toMutableMap()
-		states = original.states.toMutableMap()
-		postponedReaders = original.postponedReaders
-			.mapValuesTo(mutableMapOf()) { (_, targets) ->
-				targets.toMutableSet()
-			}
+		adoptEverythingFrom(original)
+	}
+
+	/**
+	 * Copy every piece of state that another manifest holds into the receiver,
+	 * which must be empty.
+	 *
+	 * This is the one place that knows what a manifest is made of, so that a
+	 * manifest inherited wholesale cannot quietly lose part of what the original
+	 * knew.  Losing the derivation edges this way was invisible, because
+	 * [derivedFormOf] falls back to a search when an edge is missing and
+	 * therefore still found the right answer, just more slowly and only while
+	 * that fallback exists.
+	 *
+	 * @param original
+	 *   The manifest to copy.  It is left unchanged: the maps are cloned, and the
+	 *   [ValueState]s within them are immutable and safely shared.
+	 */
+	private fun adoptEverythingFrom(original: L2ValueManifest)
+	{
+		assert((classOf === null) == (original.classOf === null))
+		original.classOf?.let { classOf!!.putAll(it) }
+		forward.putAll(original.forward)
+		tagOf.putAll(original.tagOf)
+		variantIdOf.putAll(original.variantIdOf)
+		derivedFrom.putAll(original.derivedFrom)
+		states.putAll(original.states)
+		original.postponedReaders.forEach { (readClass, consumers) ->
+			postponedReaders[readClass] = consumers.toMutableSet()
+		}
 		impossibleRestrictionCount = original.impossibleRestrictionCount
 	}
 
@@ -3571,11 +3610,7 @@ class L2ValueManifest
 			1 if !forcePhis ->
 			{
 				val soleManifest = block.predecessorEdges().single().manifest()
-				classOf.putAll(soleManifest.classOf!!)
-				forward.putAll(soleManifest.forward)
-				states.putAll(soleManifest.states)
-				impossibleRestrictionCount =
-					soleManifest.impossibleRestrictionCount
+				adoptEverythingFrom(soleManifest)
 				return
 			}
 		}
