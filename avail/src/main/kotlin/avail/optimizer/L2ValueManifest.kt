@@ -64,6 +64,9 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
@@ -260,31 +263,6 @@ class L2ValueManifest
 			owner: Constraint<K>
 		): Set<L2SemanticValue<K>> = owner.members - definedMembers()
 
-		companion object
-		{
-			/**
-			 * Create a [Representation] for a [RegisterKind] that is not known
-			 * statically, as when folding together every kind a value is held in.
-			 *
-			 * The type argument is a placeholder, erased at runtime; the kind that
-			 * the representation reports is the argument.
-			 *
-			 * @param kind
-			 *   The [RegisterKind] the representation is for.
-			 * @param definitions
-			 *   The [L2Register]s of that kind holding the value.
-			 * @param postponedInstruction
-			 *   The postponed [L2Instruction] that would populate it, or `null`.
-			 * @return
-			 *   The new [Representation].
-			 */
-			fun forAnyKind(
-				kind: RegisterKind<*>,
-				definitions: List<L2Register<*>>,
-				postponedInstruction: L2Instruction?
-			): Representation<*> = Representation<BOXED_KIND>(
-				kind.cast(), definitions.cast(), postponedInstruction)
-		}
 	}
 
 	/**
@@ -311,21 +289,22 @@ class L2ValueManifest
 	 *   information the boxed one does not, and the projection back out is exact,
 	 *   because an unboxed [Representation] only exists where the value has
 	 *   already been established to fit that register – for an int, within [i32].
-	 * @property kind
-	 *   The [RegisterKind] this record was created for.  Scaffolding: it exists
-	 *   only for [primaryView], so that code which reads a record without a kind
-	 *   in hand keeps working.  Every such site still assumes that a value has
-	 *   exactly one kind, which is what makes them the work list for the step
-	 *   that keys the manifest by [L2SemanticValue.toBoxed].
-	 * @property representations
-	 *   The register-level facts, one [Representation] per [RegisterKind] in
-	 *   which this value is currently held.  At most one per kind.
+	 * @property boxedRepresentation
+	 *   The [L2BoxedRegister]s holding this value and the postponed
+	 *   [L2Instruction] that would populate them, or `null` if this value is not
+	 *   held boxed.
+	 * @property intRepresentation
+	 *   As [boxedRepresentation], for [L2IntRegister]s.  Present only where the
+	 *   value has been established to fit an int register; see [restriction].
+	 * @property floatRepresentation
+	 *   As [boxedRepresentation], for [L2FloatRegister]s.
 	 */
 	class ValueState(
 		val members: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction,
-		val kind: RegisterKind<*>,
-		val representations: List<Representation<*>>)
+		val boxedRepresentation: Representation<BOXED_KIND>?,
+		val intRepresentation: Representation<INTEGER_KIND>?,
+		val floatRepresentation: Representation<FLOAT_KIND>?)
 	{
 		/**
 		 * The boxed form of the restriction supplied to the constructor.  An
@@ -338,27 +317,27 @@ class L2ValueManifest
 		val restriction: TypeRestriction = restriction.forBoxed()
 
 		/**
-		 * Answer the [Representation] describing this value in the given
-		 * [RegisterKind], or `null` if it has none.
+		 * Every [Representation] this value currently has, for the [RegisterKind]s
+		 * it is held in.
 		 *
-		 * @param kind
-		 *   The [RegisterKind] of interest.
-		 * @return
-		 *   That kind's [Representation], or `null`.
+		 * A view over the three slots, for the operations that treat the kinds
+		 * symmetrically – folding the registers of every kind together, clearing
+		 * every postponed instruction, checking each kind in turn.  The slots are
+		 * the storage, so "at most one representation per kind" is structural
+		 * rather than an invariant to be checked.
 		 */
-		fun representationFor(
-			kind: RegisterKind<*>
-		): Representation<*>? = representations.firstOrNull { it.kind == kind }
+		val representations: List<Representation<*>> get() = listOfNotNull(
+			boxedRepresentation, intRepresentation, floatRepresentation)
 
 		/**
 		 * Every [L2Register] holding this value, across all of its
 		 * [Representation]s.
 		 *
-		 * Callers wanting *a particular kind's* registers must ask
-		 * [representationFor] instead.  This is for the aggregate questions –
-		 * "which registers does this manifest mention at all" – where taking
-		 * only one kind's would silently under-report once a value has more than
-		 * one representation.
+		 * Callers wanting *a particular kind's* registers must ask that kind for
+		 * its [RegisterKind.representationIn] instead.  This is for the aggregate
+		 * questions – "which registers does this manifest mention at all" – where
+		 * taking only one kind's would silently under-report once a value has more
+		 * than one representation.
 		 */
 		val allDefinitions: List<L2Register<*>> get() =
 			representations.flatMap(Representation<*>::definitions)
@@ -385,16 +364,12 @@ class L2ValueManifest
 		 * @return
 		 *   The new [ValueState].
 		 */
-		fun updated(
+		fun <K: RegisterKind<K>> updated(
 			newMembers: Set<L2SemanticValue<*>>,
 			newRestriction: TypeRestriction,
-			newRepresentation: Representation<*>
-		): ValueState = ValueState(
-			canonical(newMembers),
-			newRestriction,
-			kind,
-			representations.filter { it.kind != newRepresentation.kind }
-				+ newRepresentation)
+			newRepresentation: Representation<K>
+		): ValueState = newRepresentation.kind.stateWith(
+			canonical(newMembers), newRestriction, newRepresentation, this)
 
 		/**
 		 * Answer a copy of the receiver naming the given members instead.
@@ -406,8 +381,12 @@ class L2ValueManifest
 		 */
 		fun withMembers(
 			newMembers: Set<L2SemanticValue<*>>
-		): ValueState =
-			ValueState(canonical(newMembers), restriction, kind, representations)
+		): ValueState = ValueState(
+			canonical(newMembers),
+			restriction,
+			boxedRepresentation,
+			intRepresentation,
+			floatRepresentation)
 
 		/**
 		 * Answer a copy of the receiver with the given [Representation]
@@ -418,8 +397,8 @@ class L2ValueManifest
 		 * @return
 		 *   The new [ValueState].
 		 */
-		fun withRepresentation(
-			newRepresentation: Representation<*>
+		fun <K: RegisterKind<K>> withRepresentation(
+			newRepresentation: Representation<K>
 		): ValueState = updated(members, restriction, newRepresentation)
 
 		/**
@@ -431,12 +410,13 @@ class L2ValueManifest
 		 */
 		fun withoutPostponed(): ValueState = when
 		{
-			representations.none { it.postponedInstruction != null } -> this
+			representations.none { it.postponedInstruction !== null } -> this
 			else -> ValueState(
 				members,
 				restriction,
-				kind,
-				representations.map { it.withPostponed(null) })
+				boxedRepresentation?.withPostponed(null),
+				intRepresentation?.withPostponed(null),
+				floatRepresentation?.withPostponed(null))
 		}
 
 		/**
@@ -463,37 +443,24 @@ class L2ValueManifest
 			other: ValueState,
 			newMembers: Set<L2SemanticValue<*>>,
 			newRestriction: TypeRestriction
-		): ValueState = ValueState(
-			canonical(newMembers),
-			newRestriction,
-			kind,
-			RegisterKind.all.mapNotNull { anyKind ->
-				representationFor(anyKind).combine(
-					other.representationFor(anyKind)
-				) { mine, theirs ->
-					// Just concatenate the two lists, as this essentially
-					// preserves earliest definition order.
-					val definitions = mine.definitions + theirs.definitions
-					Representation.forAnyKind(
-						anyKind,
-						definitions,
-						when
-						{
-							// Something already writes it in this kind.
-							definitions.isNotEmpty() -> null
-							// A constant can be reconstructed in any kind.
-							newMembers.any(
-								L2SemanticValue<*>::isConstant) -> null
-							// In theory, if both postponed instructions are
-							// present we could decide which to keep and augment
-							// with the other synonym, but for now we can just
-							// choose arbitrarily, since they yield equivalent
-							// values.
-							else -> mine.postponedInstruction
-								?: theirs.postponedInstruction
-						})
-				}
-			})
+		): ValueState
+		{
+			// A constant can be reconstructed in any kind, so it never needs an
+			// instruction kept for it.
+			val isConstant = newMembers.any(L2SemanticValue<*>::isConstant)
+			return ValueState(
+				canonical(newMembers),
+				newRestriction,
+				boxedRepresentation.combine(other.boxedRepresentation) { a, b ->
+					mergeRepresentations(a, b, isConstant)
+				},
+				intRepresentation.combine(other.intRepresentation) { a, b ->
+					mergeRepresentations(a, b, isConstant)
+				},
+				floatRepresentation.combine(other.floatRepresentation) { a, b ->
+					mergeRepresentations(a, b, isConstant)
+				})
+		}
 
 		/**
 		 * The [Constraint] views of this record, indexed by [RegisterKind]
@@ -516,11 +483,13 @@ class L2ValueManifest
 		 *   The kind-scoped [Constraint].
 		 */
 		fun <K: RegisterKind<K>> viewFor(kind: K): Constraint<K> =
-			cachedView(kind).cast()
+			views[kind.ordinal]?.cast()
+				?: Constraint(this, kind).also { views[kind.ordinal] = it }
 
 		/**
-		 * Answer the [Constraint] presenting this record in the [RegisterKind]
-		 * of the given [Representation].
+		 * Answer the [Constraint] presenting this record in the [RegisterKind] of
+		 * the given [Representation], which is not known statically.  The kind
+		 * answers for itself, so this needs no cast.
 		 *
 		 * @param representation
 		 *   The [Representation] whose kind should scope the view.
@@ -529,40 +498,22 @@ class L2ValueManifest
 		 */
 		fun viewOf(
 			representation: Representation<*>
-		): Constraint<*> = cachedView(representation.kind)
+		): Constraint<*> = representation.kind.viewIn(this)
 
 		/**
-		 * The [Constraint] presenting this record in its own [kind].
+		 * The [Constraint] presenting this record in the [RegisterKind] of its one
+		 * and only [Representation].
 		 *
-		 * This is the scaffolding accessor.  Reaching for it means the calling
-		 * code has no [RegisterKind] in hand and is therefore still assuming
-		 * that a value has exactly one; see [kind].
+		 * Scaffolding, and it fails outright if a value is held in more than one
+		 * kind.  Reaching for it means the calling code has no kind in hand, and is
+		 * therefore still assuming that a value has exactly one – which is what
+		 * makes these the sites to revisit when a value's spellings come to share a
+		 * [ValueClass].
 		 */
-		val primaryView: Constraint<*> get() = cachedView(kind)
-
-		private fun cachedView(kind: RegisterKind<*>): Constraint<*> =
-			views[kind.ordinal] ?: uncheckedView(kind).also {
-				views[kind.ordinal] = it
-			}
-
-		/**
-		 * Create a [Constraint] scoped to the given [RegisterKind], which is
-		 * statically unknown here.  The type argument is a placeholder that is
-		 * erased at runtime; the kind that the view actually reports is the
-		 * argument.
-		 */
-		private fun uncheckedView(
-			kind: RegisterKind<*>
-		): Constraint<*> = Constraint<BOXED_KIND>(this, kind)
+		val soleView: Constraint<*> get() = viewOf(representations.single())
 
 		init
 		{
-			assert(
-				representations.distinctBy(Representation<*>::kind).size
-					== representations.size)
-			{
-				"A value has two representations of the same RegisterKind"
-			}
 			representations.forEach { representation ->
 				val registers = representation.definitions
 				val postponed = representation.postponedInstruction
@@ -584,7 +535,17 @@ class L2ValueManifest
 			}
 		}
 
-		override fun toString(): String = primaryView.toString()
+		override fun toString(): String = buildString {
+			when
+			{
+				representations.all { it.definitions.isEmpty() } ->
+					append("⌛️️POSTPONED")
+				restriction.isImpossible -> append("⛔️Impossible")
+				else -> allDefinitions.joinTo(this)
+			}
+			append(": ")
+			append(restriction)
+		}
 
 		companion object
 		{
@@ -610,15 +571,53 @@ class L2ValueManifest
 				definitions: List<L2Register<K>>,
 				restriction: TypeRestriction,
 				postponedInstruction: L2Instruction?
-			): ValueState = ValueState(
-				canonical(members),
-				restriction,
-				members.first().kind,
-				listOf(
-					Representation(
-						members.first().kind,
-						definitions,
-						postponedInstruction)))
+			): ValueState = members.first().kind.let { kind ->
+				kind.stateWith(
+					canonical(members),
+					restriction,
+					Representation(kind, definitions, postponedInstruction),
+					null)
+			}
+
+			/**
+			 * Reconcile two [Representation]s of one [RegisterKind], both of which
+			 * describe a value that has just been shown to be a single value.
+			 *
+			 * @param first
+			 *   One [Representation].
+			 * @param second
+			 *   The other [Representation], of the same [RegisterKind].
+			 * @param valueIsConstant
+			 *   Whether the merged value is a known constant, and therefore
+			 *   reconstructible in any kind without a postponed instruction.
+			 * @return
+			 *   The reconciled [Representation].
+			 */
+			private fun <K: RegisterKind<K>> mergeRepresentations(
+				first: Representation<K>,
+				second: Representation<K>,
+				valueIsConstant: Boolean
+			): Representation<K>
+			{
+				// Just concatenate the two lists, as this essentially preserves
+				// earliest definition order.
+				val definitions = first.definitions + second.definitions
+				return Representation(
+					first.kind,
+					definitions,
+					when
+					{
+						// Something already writes it in this kind.
+						definitions.isNotEmpty() -> null
+						valueIsConstant -> null
+						// In theory, if both postponed instructions are present we
+						// could decide which to keep and augment with the other
+						// synonym, but for now we can just choose arbitrarily,
+						// since they yield equivalent values.
+						else -> first.postponedInstruction
+							?: second.postponedInstruction
+					})
+			}
 
 			/**
 			 * Answer the canonical, boxed spellings of the given
@@ -643,17 +642,16 @@ class L2ValueManifest
 	 *
 	 * @property state
 	 *   The [ValueState] being viewed.
+	 * @property kind
+	 *   The [RegisterKind] this view is scoped to.
 	 */
 	class Constraint<K: RegisterKind<K>> internal constructor(
 		val state: ValueState,
-		private val anyKind: RegisterKind<*>)
+		val kind: K)
 	{
-		/** The [RegisterKind] this view is scoped to. */
-		val kind: K get() = anyKind.cast()
-
 		/** This kind's [Representation] of the value, if it has one. */
 		val representation: Representation<K>?
-			get() = state.representationFor(anyKind).cast()
+			get() = kind.representationIn(state)
 
 		/** The [L2Register]s of this kind that hold the value. */
 		val definitions: List<L2Register<K>>
@@ -669,7 +667,7 @@ class L2ValueManifest
 
 		/** The [TypeRestriction] bounding the value, in this kind. */
 		val restriction: TypeRestriction
-			get() = anyKind.projectRestriction(state.restriction)
+			get() = kind.projectRestriction(state.restriction)
 
 		/** Memoization of [members]; see [ValueState.views]. */
 		private var cachedMembers: Set<L2SemanticValue<K>>? = null
@@ -677,10 +675,7 @@ class L2ValueManifest
 		/** The [L2SemanticValue]s naming this value, spelled in this kind. */
 		val members: Set<L2SemanticValue<K>>
 			get() = cachedMembers ?: state.members
-				.mapTo(mutableSetOf<L2SemanticValue<*>>()) {
-					anyKind.spellingOf(it)
-				}
-				.cast<Set<L2SemanticValue<*>>, Set<L2SemanticValue<K>>>()
+				.mapTo(mutableSetOf(), kind::spellingOf)
 				.also { cachedMembers = it }
 
 		/** Memoization of [synonym]; see [ValueState.views]. */
@@ -1122,30 +1117,36 @@ class L2ValueManifest
 				// Values are resolved lazily, and the target may since have
 				// been forgotten or had its instruction emitted.
 				val targetClass = resolve(staleTarget)
-				val view = states[targetClass]?.primaryView ?: return@forEach
-				val postponed = view.postponedInstruction ?: return@forEach
-				if (postponed.writeOperands.size != 1) return@forEach
-				val narrowedClone = postponed.narrowedForManifest(this)
-				if (narrowedClone === null) return@forEach
-				val implied = narrowedClone.impliedWriteRestriction(
-					narrowedClone.readOperands.map { it.restriction() })
-				narrowedClone.writeOperands.single().restrict { implied }
-				val target = view.synonym.pickSemanticValue()
-				updateConstraint(view.synonym) {
-					postponedInstruction = narrowedClone
-				}
-				// isStrongerThan is reflexive, so test for an actual change.
-				val existing = restrictionFor(target)
-				if (implied.intersection(existing) != existing)
-				{
-					// This may make the value constant, in which case the
-					// synonym gains an L2SemanticConstant and the postponed
-					// instruction becomes unnecessary.
-					updateRestriction(target) { implied }
-					if (restrictionFor(target).isConstant)
+				val state = states[targetClass] ?: return@forEach
+				// A value can have a postponed instruction per kind, and the
+				// narrowing may sharpen any of them.
+				state.representations.forEach inner@ { representation ->
+					val postponed =
+						representation.postponedInstruction ?: return@inner
+					if (postponed.writeOperands.size != 1) return@inner
+					val narrowedClone = postponed.narrowedForManifest(this)
+					if (narrowedClone === null) return@inner
+					val implied = narrowedClone.impliedWriteRestriction(
+						narrowedClone.readOperands.map { it.restriction() })
+					narrowedClone.writeOperands.single().restrict { implied }
+					val synonym = state.viewOf(representation).synonym
+					val target = synonym.pickSemanticValue()
+					updateConstraint(synonym) {
+						postponedInstruction = narrowedClone
+					}
+					// isStrongerThan is reflexive, so test for an actual change.
+					val existing = restrictionFor(target)
+					if (implied.intersection(existing) != existing)
 					{
-						updateConstraint(semanticValueToSynonym(target)) {
-							postponedInstruction = null
+						// This may make the value constant, in which case the
+						// synonym gains an L2SemanticConstant and the postponed
+						// instruction becomes unnecessary.
+						updateRestriction(target) { implied }
+						if (restrictionFor(target).isConstant)
+						{
+							updateConstraint(semanticValueToSynonym(target)) {
+								postponedInstruction = null
+							}
 						}
 					}
 				}
@@ -1778,10 +1779,8 @@ class L2ValueManifest
 	 * representation that the value itself names, or `null` if this manifest
 	 * doesn't know the value.
 	 *
-	 * This is the redispatch point: the caller asks about a value, and the value
-	 * decides which of the record's [Representation]s the answers come from; see
-	 * [L2SemanticValue.constraintIn].  The cast merely restores the static kind
-	 * that the caller already knew and the dispatch could not carry back.
+	 * The value supplies its [RegisterKind], and the kind reaches its own slot,
+	 * so nothing here has to ask what sort of semantic value it was handed.
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to look up.
@@ -1790,55 +1789,7 @@ class L2ValueManifest
 	 */
 	private fun <K: RegisterKind<K>> viewOrNull(
 		semanticValue: L2SemanticValue<K>
-	): Constraint<K>? = semanticValue.constraintIn(this)?.cast()
-
-	/**
-	 * Answer how this manifest describes the given value in a boxed register.
-	 * Called by [L2SemanticBoxedValue] from [L2SemanticValue.constraintIn]; ask
-	 * that instead, unless the boxed representation is specifically what is
-	 * wanted.
-	 *
-	 * @param semanticValue
-	 *   The boxed [L2SemanticValue] to look up.
-	 * @return
-	 *   Its boxed [Constraint], or `null` if this manifest doesn't know it.
-	 */
-	internal fun boxedConstraint(
-		semanticValue: L2SemanticValue<BOXED_KIND>
-	): Constraint<BOXED_KIND>? =
-		stateOrNull(semanticValue)?.viewFor(BOXED_KIND)
-
-	/**
-	 * Answer how this manifest describes the given value in an int register.
-	 * Called by [L2SemanticUnboxedInt] from [L2SemanticValue.constraintIn]; ask
-	 * that instead, unless the int representation is specifically what is
-	 * wanted.
-	 *
-	 * @param semanticValue
-	 *   The unboxed int [L2SemanticValue] to look up.
-	 * @return
-	 *   Its int [Constraint], or `null` if this manifest doesn't know it.
-	 */
-	internal fun intConstraint(
-		semanticValue: L2SemanticValue<INTEGER_KIND>
-	): Constraint<INTEGER_KIND>? =
-		stateOrNull(semanticValue)?.viewFor(INTEGER_KIND)
-
-	/**
-	 * Answer how this manifest describes the given value in a float register.
-	 * Called by [L2SemanticUnboxedFloat] from [L2SemanticValue.constraintIn];
-	 * ask that instead, unless the float representation is specifically what is
-	 * wanted.
-	 *
-	 * @param semanticValue
-	 *   The unboxed float [L2SemanticValue] to look up.
-	 * @return
-	 *   Its float [Constraint], or `null` if this manifest doesn't know it.
-	 */
-	internal fun floatConstraint(
-		semanticValue: L2SemanticValue<FLOAT_KIND>
-	): Constraint<FLOAT_KIND>? =
-		stateOrNull(semanticValue)?.viewFor(FLOAT_KIND)
+	): Constraint<K>? = stateOrNull(semanticValue)?.viewFor(semanticValue.kind)
 
 	/**
 	 * Bind the given [L2SemanticValue]s to the given [ValueClass], replacing
@@ -2028,8 +1979,13 @@ class L2ValueManifest
 		// This recurses back through forwardClass if the merged classes have
 		// derived values of their own, which terminates because every merge
 		// strictly reduces the number of classes.
+		//
+		// The members are taken in the spelling of each record's sole
+		// representation, which is what a derived value has: a tag or a variant id
+		// is reached as an int.  Once a value's spellings share a class this must
+		// become the canonical boxed members instead.
 		dynamicAgglomerateSynonym(
-			winnerState.primaryView.members + loserState.primaryView.members,
+			winnerState.soleView.members + loserState.soleView.members,
 			// The stored restrictions, which are boxed, rather than the views'
 			// projections of them.  A tag or variant class is a boxed value with
 			// only its int aspect in play, so projecting to int here and boxing
@@ -2117,14 +2073,15 @@ class L2ValueManifest
 	/**
 	 * Answer whether the [L2SemanticValue] is known to this manifest.
 	 *
-	 * The question is asked *in the value's own [RegisterKind]*, by dispatching
-	 * through the value; see [L2SemanticValue.hasRepresentationIn].  Callers such
-	 * as [Primitive.attemptToGenerateTwoIntToIntPrimitive], which asks about a
-	 * value and then separately about its unboxed int form, depend on the two
-	 * being distinguishable: knowing `x` boxed says nothing about there being an
-	 * int register for it.  Once [keyFor] files a value and its unboxed forms
-	 * under one [ValueClass], the spelling alone can no longer answer this, so
-	 * the [Representation] does.
+	 * The question is asked *in the value's own [RegisterKind]*, which the value
+	 * supplies and the kind then answers for, via
+	 * [RegisterKind.representationIn].  Callers such as
+	 * [Primitive.attemptToGenerateTwoIntToIntPrimitive], which asks about a value
+	 * and then separately about its unboxed int form, depend on the two being
+	 * distinguishable: knowing `x` boxed says nothing about there being an int
+	 * register for it.  Once [keyFor] files a value and its unboxed forms under
+	 * one [ValueClass], the spelling alone can no longer answer this, so the
+	 * [Representation] does.
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
@@ -2132,72 +2089,14 @@ class L2ValueManifest
 	 *   Whether this semantic value is known to this manifest, due to a
 	 *   previous instruction that wrote it.
 	 */
-	fun hasSemanticValue(
-		semanticValue: L2SemanticValue<*>
-	): Boolean = semanticValue.hasRepresentationIn(this)
-
-	/**
-	 * Answer whether this manifest holds the given value in a boxed register or
-	 * would populate one for it.  Called by [L2SemanticBoxedValue] from
-	 * [L2SemanticValue.hasRepresentationIn]; ask that instead, unless the boxed
-	 * representation is specifically what is wanted.
-	 *
-	 * @param semanticValue
-	 *   The boxed [L2SemanticValue] to look up.
-	 * @return
-	 *   Whether it has a boxed [Representation] here.
-	 */
-	internal fun hasBoxedRepresentation(
-		semanticValue: L2SemanticValue<BOXED_KIND>
-	): Boolean = hasRepresentation(semanticValue, BOXED_KIND)
-
-	/**
-	 * Answer whether this manifest holds the given value in an int register or
-	 * would populate one for it.  Called by [L2SemanticUnboxedInt] from
-	 * [L2SemanticValue.hasRepresentationIn]; ask that instead, unless the int
-	 * representation is specifically what is wanted.
-	 *
-	 * @param semanticValue
-	 *   The unboxed int [L2SemanticValue] to look up.
-	 * @return
-	 *   Whether it has an int [Representation] here.
-	 */
-	internal fun hasIntRepresentation(
-		semanticValue: L2SemanticValue<INTEGER_KIND>
-	): Boolean = hasRepresentation(semanticValue, INTEGER_KIND)
-
-	/**
-	 * Answer whether this manifest holds the given value in a float register or
-	 * would populate one for it.  Called by [L2SemanticUnboxedFloat] from
-	 * [L2SemanticValue.hasRepresentationIn]; ask that instead, unless the float
-	 * representation is specifically what is wanted.
-	 *
-	 * @param semanticValue
-	 *   The unboxed float [L2SemanticValue] to look up.
-	 * @return
-	 *   Whether it has a float [Representation] here.
-	 */
-	internal fun hasFloatRepresentation(
-		semanticValue: L2SemanticValue<FLOAT_KIND>
-	): Boolean = hasRepresentation(semanticValue, FLOAT_KIND)
-
-	/**
-	 * The shared body of [hasBoxedRepresentation], [hasIntRepresentation] and
-	 * [hasFloatRepresentation].  The [RegisterKind] arrives from the caller,
-	 * which learned it by being the semantic value that named it, so this never
-	 * has to ask a semantic value what it is.
-	 */
-	private fun hasRepresentation(
-		semanticValue: L2SemanticValue<*>,
-		kind: RegisterKind<*>
-	): Boolean
+	fun hasSemanticValue(semanticValue: L2SemanticValue<*>): Boolean
 	{
 		val valueClass = classOf!![keyFor(semanticValue)] ?: return false
 		// A value's record is created a moment after its membership is bound,
 		// and callers do reach this during that window.  There is no
 		// representation to consult yet, so the binding itself is the answer.
 		val state = states[resolve(valueClass)] ?: return true
-		return state.representationFor(kind) != null
+		return semanticValue.kind.representationIn(state) !== null
 	}
 
 	/**
@@ -2213,11 +2112,13 @@ class L2ValueManifest
 	 */
 	fun hasLiveSemanticValue(
 		semanticValue: L2SemanticValue<*>
-	): Boolean = semanticValue.constraintIn(this).notNullAnd {
-		definitions.any { reg ->
-			reg.definitions().any { semanticValue in it.semanticValues() }
+	): Boolean = stateOrNull(semanticValue)
+		?.let(semanticValue.kind::representationIn)
+		.notNullAnd {
+			definitions.any { reg ->
+				reg.definitions().any { semanticValue in it.semanticValues() }
+			}
 		}
-	}
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one in
@@ -2614,8 +2515,12 @@ class L2ValueManifest
 	 * the [RegisterKind] itself.
 	 *
 	 * @param kind
-	 *   The [RegisterKind] to reconcile.  Not known statically, since this is
-	 *   applied to every kind the merged records are held in.
+	 *   The [RegisterKind] to reconcile.
+	 * @param kindsToRepresent
+	 *   The [RegisterKind]s the merged value is to be held in.  A kind outside
+	 *   this set answers `null`, since inventing a representation for a kind
+	 *   nobody mentioned would claim the value is available in a register that
+	 *   does not exist.
 	 * @param sources
 	 *   The [ValueState]s being merged, including the survivor's.
 	 * @param boxedMembers
@@ -2623,27 +2528,27 @@ class L2ValueManifest
 	 * @param restriction
 	 *   The boxed [TypeRestriction] bounding the merged value.
 	 * @return
-	 *   The merged [Representation] for that kind.
+	 *   The merged [Representation] for that kind, or `null`.
 	 */
-	private fun agglomeratedRepresentation(
-		kind: RegisterKind<*>,
+	private fun <K: RegisterKind<K>> agglomeratedRepresentation(
+		kind: K,
+		kindsToRepresent: Set<RegisterKind<*>>,
 		sources: List<ValueState>,
 		boxedMembers: Set<L2SemanticBoxedValue>,
 		restriction: TypeRestriction
-	): Representation<*>
+	): Representation<K>?
 	{
-		val members = boxedMembers.mapTo(mutableSetOf<L2SemanticValue<*>>()) {
-			kind.spellingOf(it)
-		}
-		val present = sources.mapNotNull { it.representationFor(kind) }
-		val definitions = present.flatMap(Representation<*>::definitions)
+		if (kind !in kindsToRepresent) return null
+		val members = boxedMembers.mapTo(mutableSetOf(), kind::spellingOf)
+		val present = sources.mapNotNull(kind::representationIn)
+		val definitions = present.flatMap(Representation<K>::definitions)
 		// Reuse any of the existing postponed instructions, since they all will
 		// populate the entire synonym.
 		val postponedInstructions =
-			present.mapNotNull(Representation<*>::postponedInstruction)
+			present.mapNotNull(Representation<K>::postponedInstruction)
 		val defined = definitions
-			.flatMap(L2Register<*>::definitions)
-			.flatMap(L2WriteOperand<*>::semanticValues)
+			.flatMap(L2Register<K>::definitions)
+			.flatMap(L2WriteOperand<K>::semanticValues)
 			.intersect(members)
 		val notDefined = members - defined
 		// An instruction written into a register of this kind needs the
@@ -2675,8 +2580,7 @@ class L2ValueManifest
 			// added.
 			else -> postponedInstructions.firstOrNull()
 		}
-		return Representation.forAnyKind(
-			kind, definitions, postponedInstruction)
+		return Representation(kind, definitions, postponedInstruction)
 	}
 
 	fun <K: RegisterKind<K>> agglomerateSynonym(
@@ -2741,24 +2645,32 @@ class L2ValueManifest
 			.plus(strandedValues)
 		val boxedMembers =
 			allSemanticValues.mapTo(mutableSetOf(), L2SemanticValue<K>::toBoxed)
-		val representations = (
-			existingStates.flatMap {
-				it.representations.map(Representation<*>::kind)
-			} + kind
-		).distinct().map { anyKind ->
-			agglomeratedRepresentation(
-				anyKind, existingStates, boxedMembers, newRestriction)
+		val kindsToRepresent = existingStates.flatMapTo(mutableSetOf(kind)) {
+			it.representations.map(Representation<*>::kind)
 		}
+		val newState = ValueState(
+			boxedMembers,
+			newRestriction,
+			agglomeratedRepresentation(
+				BOXED_KIND, kindsToRepresent, existingStates, boxedMembers,
+				newRestriction),
+			agglomeratedRepresentation(
+				INTEGER_KIND, kindsToRepresent, existingStates, boxedMembers,
+				newRestriction),
+			agglomeratedRepresentation(
+				FLOAT_KIND, kindsToRepresent, existingStates, boxedMembers,
+				newRestriction))
 		// Wire it in.  One of the existing classes survives and absorbs the
 		// others, so that anything still referring to a merged-away class
 		// resolves to the survivor.
 		assert(
 			caresAboutSemanticValues
-				|| representations.all { it.postponedInstruction === null })
+				|| newState.representations.all {
+					it.postponedInstruction === null
+				})
 		val winner = existingClasses.firstOrNull() ?: ValueClass.newValueClass()
 		existingClasses.forEach { loser -> forwardClass(winner, loser) }
-		states[winner] = ValueState(
-			boxedMembers, newRestriction, kind, representations)
+		states[winner] = newState
 		bind(allSemanticValues, winner)
 	}
 
@@ -3330,13 +3242,18 @@ class L2ValueManifest
 	): Constraint<K> = constraintOrNull(semanticValue)!!
 
 	/**
-	 * Answer an arbitrarily ordered array of the [L2Synonym]s in this manifest.
+	 * Answer an arbitrarily ordered array of the [L2Synonym]s in this manifest,
+	 * one per value per [RegisterKind] it is held in, since a synonym names its
+	 * members in one kind's spelling.
 	 *
 	 * @return
 	 *   An array of [L2Synonym]s.
 	 */
 	fun synonymsArray(): Array<L2Synonym<*>> =
-		states.values.map { it.primaryView.synonym }.toTypedArray()
+		states.values
+			.flatMap { state -> state.representations.map(state::viewOf) }
+			.map(Constraint<*>::synonym)
+			.toTypedArray()
 
 	/**
 	 * Answer a [Set] of all [L2SemanticValue]s in this manifest.  This is only
@@ -4240,9 +4157,10 @@ class L2ValueManifest
 	 */
 	fun retainRegisters(registersToRetain: Set<L2Register<*>>): Boolean
 	{
-		// Iterate over a copy of the map, so we can remove from it.
+		// Iterate over a copy of the map, so we can remove from it.  Registers of
+		// every kind are subject to retention, so every kind's synonym is visited.
 		var changed = false
-		states.values.map { it.primaryView.synonym }.forEach { synonym ->
+		synonymsArray().forEach { synonym ->
 			changed = changed ||
 				retainRegistersHelper(registersToRetain, synonym)
 		}

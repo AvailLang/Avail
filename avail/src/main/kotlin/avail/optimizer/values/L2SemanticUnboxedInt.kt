@@ -37,7 +37,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestricti
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2ValueManifest
-import avail.optimizer.L2ValueManifest.Constraint
 import avail.optimizer.ValueClass
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
@@ -98,14 +97,6 @@ constructor(
 		manifest: L2ValueManifest,
 		valueClass: ValueClass
 	) = privateBoxed.recordDerivationIn(manifest, valueClass)
-
-	override fun hasRepresentationIn(
-		manifest: L2ValueManifest
-	): Boolean = manifest.hasIntRepresentation(this)
-
-	override fun constraintIn(
-		manifest: L2ValueManifest
-	): Constraint<INTEGER_KIND>? = manifest.intConstraint(this)
 
 	override val constantRestrictionOrNull: TypeRestriction?
 		get() = privateBoxed.constantRestrictionOrNull?.forUnboxedInt()

@@ -130,14 +130,21 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_IfFalseThenElse
 import avail.interpreter.primitive.controlflow.P_IfTrueThenElse
@@ -157,16 +164,16 @@ import avail.interpreter.primitive.integers.P_BitwiseXor
 import avail.interpreter.primitive.integers.P_LowerBound
 import avail.interpreter.primitive.maps.P_KeyInMap
 import avail.interpreter.primitive.maps.P_MapAtKey
+import avail.interpreter.primitive.maps.P_MapSize
 import avail.interpreter.primitive.maps.P_MapTypeKeyType
 import avail.interpreter.primitive.maps.P_MapTypeValueType
-import avail.interpreter.primitive.maps.P_MapSize
 import avail.interpreter.primitive.numbers.P_Addition
-import avail.interpreter.primitive.phrases.P_LiteralTokenTypeValueType
 import avail.interpreter.primitive.numbers.P_Division
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.interpreter.primitive.numbers.P_LessThan
 import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.interpreter.primitive.numbers.P_Subtraction
+import avail.interpreter.primitive.phrases.P_LiteralTokenTypeValueType
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.interpreter.primitive.rawfunctions.P_PrivateForceOptimizationForTests
@@ -190,13 +197,6 @@ import avail.interpreter.primitive.types.P_Type
 import avail.interpreter.primitive.variables.P_GetClearing
 import avail.interpreter.primitive.variables.P_GetValue
 import avail.interpreter.primitive.variables.P_SetValue
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
@@ -207,12 +207,12 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.L2ValueManifest.Constraint
 import avail.optimizer.L2ValueManifest.Representation
 import avail.optimizer.L2ValueManifest.ValueState
+import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticTemp
-import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import org.junit.jupiter.api.AfterEach
@@ -852,10 +852,16 @@ class SimpleOptimizerTest
 
 
 	/**
-	 * Somehow, the union of specific TypeRestrictions
-	 * Test optimization of a function that finds one more format site for
-	 * pattern substitution.  This is equivalent to the addSite block in the
-	 * Format module's "format sites for_" method.  This is a regression test.
+	 * Using the same outer as an argument for two calls over-strengthened the
+	 * restriction somehow, and failed during naive translation of the second
+	 * call.  The argument for the second call had a restriction of ⊤, which is
+	 * due to a default restriction being applied for the semantic value.  Say
+	 * x is the semantic value for the slot for the first push of the outer,
+	 * and y is the second push.  It calculated Int(Tag(x)) for dispatching the
+	 * first call, performed complicated logic to do an inline division, and at
+	 * the point of control flow merge prior to the next outer, it weakened the
+	 * restriction on x to ⊤.  That's the defaultRestriction for boxed values,
+	 * so tha might be where that restriction came from, but it's unclear why.
 	 */
 	@Test
 	fun divisionSemanticRestriction_3_2()

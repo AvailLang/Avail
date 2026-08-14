@@ -74,6 +74,9 @@ import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT
 import avail.interpreter.levelTwo.operation.L2_PHI_INT
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2ValueManifest.Constraint
+import avail.optimizer.L2ValueManifest.Representation
+import avail.optimizer.L2ValueManifest.ValueState
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
@@ -329,6 +332,57 @@ constructor (
 		restriction: TypeRestriction
 	): TypeRestriction
 
+	/**
+	 * Answer the given [ValueState]'s [Representation] for this kind, or `null`
+	 * if the value is not held in a register of this kind.
+	 *
+	 * A [ValueState] keeps a separate slot per kind, so reaching the right one is
+	 * a three-way choice.  Making it here rather than in the [ValueState] keeps
+	 * the choice in the one place that already knows the answer, and keeps it
+	 * typed: the caller gets a [Representation] of *this* kind, with no cast.
+	 *
+	 * @param state
+	 *   The [ValueState] to interrogate.
+	 * @return
+	 *   That state's [Representation] for this kind, or `null`.
+	 */
+	abstract fun representationIn(state: ValueState): Representation<Self>?
+
+	/**
+	 * Answer the [Constraint] presenting the given [ValueState] in this kind.
+	 *
+	 * @param state
+	 *   The [ValueState] to view.
+	 * @return
+	 *   The [Constraint] scoped to this kind.
+	 */
+	abstract fun viewIn(state: ValueState): Constraint<Self>
+
+	/**
+	 * Answer a [ValueState] holding the given [Representation] as its
+	 * representation for this kind.
+	 *
+	 * @param members
+	 *   The canonical, boxed [L2SemanticValue]s naming the value.
+	 * @param restriction
+	 *   The [TypeRestriction] bounding it.
+	 * @param representation
+	 *   This kind's [Representation] of it, or `null` if it is not held in a
+	 *   register of this kind.
+	 * @param otherKinds
+	 *   The [ValueState] to take the *other* kinds' representations from, or
+	 *   `null` when building a record for a value that is new to a manifest and
+	 *   therefore held in this kind alone.
+	 * @return
+	 *   The new [ValueState].
+	 */
+	abstract fun stateWith(
+		members: Set<L2SemanticBoxedValue>,
+		restriction: TypeRestriction,
+		representation: Representation<Self>?,
+		otherKinds: ValueState?
+	): ValueState
+
 	abstract fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 
@@ -425,6 +479,24 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		restriction: TypeRestriction
 	): TypeRestriction = restriction.forBoxed()
 
+	override fun representationIn(
+		state: ValueState
+	): Representation<BOXED_KIND>? = state.boxedRepresentation
+
+	override fun viewIn(state: ValueState) = state.viewFor(this)
+
+	override fun stateWith(
+		members: Set<L2SemanticBoxedValue>,
+		restriction: TypeRestriction,
+		representation: Representation<BOXED_KIND>?,
+		otherKinds: ValueState?
+	) = ValueState(
+		members,
+		restriction,
+		representation,
+		otherKinds?.intRepresentation,
+		otherKinds?.floatRepresentation)
+
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 	{
@@ -512,6 +584,24 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	override fun projectRestriction(
 		restriction: TypeRestriction
 	): TypeRestriction = restriction.forUnboxedInt()
+
+	override fun representationIn(
+		state: ValueState
+	): Representation<INTEGER_KIND>? = state.intRepresentation
+
+	override fun viewIn(state: ValueState) = state.viewFor(this)
+
+	override fun stateWith(
+		members: Set<L2SemanticBoxedValue>,
+		restriction: TypeRestriction,
+		representation: Representation<INTEGER_KIND>?,
+		otherKinds: ValueState?
+	) = ValueState(
+		members,
+		restriction,
+		otherKinds?.boxedRepresentation,
+		representation,
+		otherKinds?.floatRepresentation)
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -601,6 +691,24 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 	override fun projectRestriction(
 		restriction: TypeRestriction
 	): TypeRestriction = restriction.forUnboxedFloat()
+
+	override fun representationIn(
+		state: ValueState
+	): Representation<FLOAT_KIND>? = state.floatRepresentation
+
+	override fun viewIn(state: ValueState) = state.viewFor(this)
+
+	override fun stateWith(
+		members: Set<L2SemanticBoxedValue>,
+		restriction: TypeRestriction,
+		representation: Representation<FLOAT_KIND>?,
+		otherKinds: ValueState?
+	) = ValueState(
+		members,
+		restriction,
+		otherKinds?.boxedRepresentation,
+		otherKinds?.intRepresentation,
+		representation)
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)

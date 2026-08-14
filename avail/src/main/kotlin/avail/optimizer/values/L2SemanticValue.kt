@@ -44,8 +44,6 @@ import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.optimizer.L2ValueManifest
-import avail.optimizer.L2ValueManifest.Constraint
-import avail.optimizer.L2ValueManifest.Representation
 import avail.optimizer.ValueClass
 import avail.utility.cast
 import avail.utility.ifZero
@@ -156,47 +154,6 @@ protected constructor(
 	{
 		// By default a semantic value is not derived from anything.
 	}
-
-	/**
-	 * Answer whether the given [L2ValueManifest] holds this value *in the
-	 * representation that this semantic value names*.
-	 *
-	 * Knowing `x` in a boxed register says nothing about there being an int
-	 * register for it, so this cannot be answered by the presence of a
-	 * [ValueClass] alone: it is a question about one [RegisterKind]'s
-	 * [Representation] of that class.  Which one is the receiver's business, not
-	 * the manifest's, so each subclass names its own [RegisterKind] here and the
-	 * manifest merely performs the lookup it is handed.
-	 *
-	 * @param manifest
-	 *   The [L2ValueManifest] to interrogate.
-	 * @return
-	 *   Whether the manifest holds this value in this value's representation.
-	 */
-	internal abstract fun hasRepresentationIn(
-		manifest: L2ValueManifest
-	): Boolean
-
-	/**
-	 * Answer how the given [L2ValueManifest] describes this value *in the
-	 * representation that this semantic value names*, or `null` if the manifest
-	 * does not know the value at all.
-	 *
-	 * This is the same dispatch as [hasRepresentationIn], for the case where the
-	 * caller wants the [Constraint] rather than merely its existence.  Every
-	 * kind-specific answer the manifest can give – the registers, the postponed
-	 * instruction, the restriction, the synonym – is reached through the
-	 * constraint this answers, so this is the single point at which a semantic
-	 * value selects its own representation.
-	 *
-	 * @param manifest
-	 *   The [L2ValueManifest] to interrogate.
-	 * @return
-	 *   The kind-scoped [Constraint], or `null` if the value is unknown.
-	 */
-	internal abstract fun constraintIn(
-		manifest: L2ValueManifest
-	): Constraint<*>?
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
