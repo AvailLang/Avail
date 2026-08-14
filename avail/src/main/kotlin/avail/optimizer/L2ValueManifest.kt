@@ -66,6 +66,7 @@ import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
@@ -1951,14 +1952,88 @@ class L2ValueManifest
 	/**
 	 * Answer whether the [L2SemanticValue] is known to this manifest.
 	 *
+	 * The question is asked *in the value's own [RegisterKind]*, by dispatching
+	 * through the value; see [L2SemanticValue.hasRepresentationIn].  Callers such
+	 * as [Primitive.attemptToGenerateTwoIntToIntPrimitive], which asks about a
+	 * value and then separately about its unboxed int form, depend on the two
+	 * being distinguishable: knowing `x` boxed says nothing about there being an
+	 * int register for it.  Once [keyFor] files a value and its unboxed forms
+	 * under one [ValueClass], the spelling alone can no longer answer this, so
+	 * the [Representation] does.
+	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
 	 * @return
 	 *   Whether this semantic value is known to this manifest, due to a
 	 *   previous instruction that wrote it.
 	 */
-	fun hasSemanticValue(semanticValue: L2SemanticValue<*>): Boolean =
-		classOf!!.containsKey(keyFor(semanticValue))
+	fun hasSemanticValue(
+		semanticValue: L2SemanticValue<*>
+	): Boolean = semanticValue.hasRepresentationIn(this)
+
+	/**
+	 * Answer whether this manifest holds the given value in a boxed register or
+	 * would populate one for it.  Called by [L2SemanticBoxedValue] from
+	 * [L2SemanticValue.hasRepresentationIn]; ask that instead, unless the boxed
+	 * representation is specifically what is wanted.
+	 *
+	 * @param semanticValue
+	 *   The boxed [L2SemanticValue] to look up.
+	 * @return
+	 *   Whether it has a boxed [Representation] here.
+	 */
+	internal fun hasBoxedRepresentation(
+		semanticValue: L2SemanticValue<BOXED_KIND>
+	): Boolean = hasRepresentation(semanticValue, BOXED_KIND)
+
+	/**
+	 * Answer whether this manifest holds the given value in an int register or
+	 * would populate one for it.  Called by [L2SemanticUnboxedInt] from
+	 * [L2SemanticValue.hasRepresentationIn]; ask that instead, unless the int
+	 * representation is specifically what is wanted.
+	 *
+	 * @param semanticValue
+	 *   The unboxed int [L2SemanticValue] to look up.
+	 * @return
+	 *   Whether it has an int [Representation] here.
+	 */
+	internal fun hasIntRepresentation(
+		semanticValue: L2SemanticValue<INTEGER_KIND>
+	): Boolean = hasRepresentation(semanticValue, INTEGER_KIND)
+
+	/**
+	 * Answer whether this manifest holds the given value in a float register or
+	 * would populate one for it.  Called by [L2SemanticUnboxedFloat] from
+	 * [L2SemanticValue.hasRepresentationIn]; ask that instead, unless the float
+	 * representation is specifically what is wanted.
+	 *
+	 * @param semanticValue
+	 *   The unboxed float [L2SemanticValue] to look up.
+	 * @return
+	 *   Whether it has a float [Representation] here.
+	 */
+	internal fun hasFloatRepresentation(
+		semanticValue: L2SemanticValue<FLOAT_KIND>
+	): Boolean = hasRepresentation(semanticValue, FLOAT_KIND)
+
+	/**
+	 * The shared body of [hasBoxedRepresentation], [hasIntRepresentation] and
+	 * [hasFloatRepresentation].  The [RegisterKind] arrives from the caller,
+	 * which learned it by being the semantic value that named it, so this never
+	 * has to ask a semantic value what it is.
+	 */
+	private fun hasRepresentation(
+		semanticValue: L2SemanticValue<*>,
+		kind: RegisterKind<*>
+	): Boolean
+	{
+		val valueClass = classOf!![keyFor(semanticValue)] ?: return false
+		// A value's record is created a moment after its membership is bound,
+		// and callers do reach this during that window.  There is no
+		// representation to consult yet, so the binding itself is the answer.
+		val state = states[resolve(valueClass)] ?: return true
+		return state.representationFor(kind) != null
+	}
 
 	/**
 	 * Answer whether the [L2SemanticValue] is known to this manifest AND the

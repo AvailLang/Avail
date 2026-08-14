@@ -33,6 +33,7 @@ package avail.optimizer.values
 
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.optimizer.L2ValueManifest
 
 /**
  * A semantic value representing boxed values in [L2BoxedRegister]s.
@@ -50,6 +51,10 @@ constructor(
 	override val kind get() = BOXED_KIND
 
 	override val toBoxed: L2SemanticBoxedValue get() = this
+
+	override fun hasRepresentationIn(
+		manifest: L2ValueManifest
+	): Boolean = manifest.hasBoxedRepresentation(this)
 
 	companion object
 	{

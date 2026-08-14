@@ -37,6 +37,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
 import avail.utility.cast
 
@@ -87,6 +88,10 @@ constructor(
 
 	override val constantRestrictionOrNull: TypeRestriction?
 		get() = privateBoxed.constantRestrictionOrNull?.forUnboxedFloat()
+
+	override fun hasRepresentationIn(
+		manifest: L2ValueManifest
+	): Boolean = manifest.hasFloatRepresentation(this)
 
 	override fun toString(): String = "Float($privateBoxed)"
 

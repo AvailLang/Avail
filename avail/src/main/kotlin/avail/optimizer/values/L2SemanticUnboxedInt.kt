@@ -98,6 +98,10 @@ constructor(
 		valueClass: ValueClass
 	) = privateBoxed.recordDerivationIn(manifest, valueClass)
 
+	override fun hasRepresentationIn(
+		manifest: L2ValueManifest
+	): Boolean = manifest.hasIntRepresentation(this)
+
 	override val constantRestrictionOrNull: TypeRestriction?
 		get() = privateBoxed.constantRestrictionOrNull?.forUnboxedInt()
 

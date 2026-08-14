@@ -44,6 +44,7 @@ import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2ValueManifest.Representation
 import avail.optimizer.ValueClass
 import avail.utility.cast
 import avail.utility.ifZero
@@ -154,6 +155,26 @@ protected constructor(
 	{
 		// By default a semantic value is not derived from anything.
 	}
+
+	/**
+	 * Answer whether the given [L2ValueManifest] holds this value *in the
+	 * representation that this semantic value names*.
+	 *
+	 * Knowing `x` in a boxed register says nothing about there being an int
+	 * register for it, so this cannot be answered by the presence of a
+	 * [ValueClass] alone: it is a question about one [RegisterKind]'s
+	 * [Representation] of that class.  Which one is the receiver's business, not
+	 * the manifest's, so each subclass names its own [RegisterKind] here and the
+	 * manifest merely performs the lookup it is handed.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] to interrogate.
+	 * @return
+	 *   Whether the manifest holds this value in this value's representation.
+	 */
+	internal abstract fun hasRepresentationIn(
+		manifest: L2ValueManifest
+	): Boolean
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
