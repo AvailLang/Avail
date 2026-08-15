@@ -1935,7 +1935,11 @@ class L2ValueManifest
 	fun recordTagDerivation(
 		base: L2SemanticValue<*>,
 		derivedClass: ValueClass
-	) = recordDerivation(tagOf, base, derivedClass)
+	) = recordDerivation(tagOf, base, derivedClass) { tagRestriction ->
+		// A known tag is a fact about the base, so a base introduced here starts
+		// from what its tag already says rather than from nothing.
+		restrictionForTagRestriction(tagRestriction.forUnboxedInt())
+	}
 
 	/**
 	 * Record that [derivedClass] holds the [ObjectLayoutVariant] id of [base].
@@ -1950,7 +1954,11 @@ class L2ValueManifest
 	fun recordVariantIdDerivation(
 		base: L2SemanticValue<*>,
 		derivedClass: ValueClass
-	) = recordDerivation(variantIdOf, base, derivedClass)
+	) = recordDerivation(variantIdOf, base, derivedClass) {
+		// There is no backward map from a variant id to its variant, so a variant
+		// id says nothing here that could narrow a base being introduced.
+		topRestriction
+	}
 
 	/**
 	 * Relate a derived [ValueClass] to the class of the value it describes,
@@ -1966,9 +1974,15 @@ class L2ValueManifest
 	 * whether or not anything reads it, and is anchored by the base semantic
 	 * value that the derived value names.
 	 *
-	 * The base is introduced with its default restriction and no definition –
-	 * an anchor, not a value anyone will read.  Narrowing propagates into it
-	 * from the derived value in the usual way.
+	 * The base is introduced with no definition – an anchor, not a value anyone
+	 * will read – but *not* with a blank restriction.  A default restriction
+	 * asserts that nothing at all is known about the value, which is both untrue
+	 * and contagious: everything computed from the base inherits the ⊤, and a
+	 * primitive asked what it returns for a ⊤ argument can do no better than ⊤
+	 * in turn.  The derivation itself constrains the base – knowing a value's
+	 * [TypeTag] says a great deal about the value – so that is where the
+	 * introduced restriction comes from, with narrowing continuing to propagate
+	 * into it from the derived value in the usual way afterwards.
 	 *
 	 * @param edges
 	 *   Either [tagOf] or [variantIdOf].
@@ -1976,26 +1990,35 @@ class L2ValueManifest
 	 *   The [L2SemanticValue] the derived class describes.
 	 * @param derivedClass
 	 *   The derived [ValueClass].
+	 * @param baseRestrictionFromDerived
+	 *   What the derived value's [TypeRestriction] implies about the base, used
+	 *   only when the base has to be introduced here.  Answer [topRestriction]
+	 *   for a derivation that implies nothing.
 	 */
 	private fun recordDerivation(
 		edges: MutableMap<ValueClass, ValueClass>,
 		base: L2SemanticValue<*>,
-		derivedClass: ValueClass)
+		derivedClass: ValueClass,
+		baseRestrictionFromDerived: (TypeRestriction) -> TypeRestriction)
 	{
 		if (!caresAboutSemanticValues) return
 		val baseClass = classOrNull(base)
 			?: run {
-				// The base is not (yet) known here, which happens at a merge:
-				// mergeIncomingPostponedInstructions brings a postponed
-				// instruction's derived value across before populateForMerge
-				// populates the ordinary values, so the base arrives moments
-				// later.  Introducing it under its default restriction keeps the
-				// edge recordable, and the restriction is corrected when the base
-				// does arrive - which requires agglomerateSynonym to intersect the
-				// caller's restriction in rather than trusting only what is
-				// already recorded.
+				// The base is not (yet) known here.  That happens when a value is
+				// named only by something derived from it - a tag computed for a
+				// dispatch on a value that has no register of its own yet - and at
+				// a merge, where mergeIncomingPostponedInstructions brings a
+				// postponed instruction's derived value across before
+				// populateForMerge populates the ordinary values.
+				val derived = states[resolve(derivedClass)]
 				introduceSynonym<BOXED_KIND>(
-					setOf(base), base.defaultRestriction)
+					setOf(base),
+					when (derived)
+					{
+						null -> base.defaultRestriction
+						else -> base.defaultRestriction.intersection(
+							baseRestrictionFromDerived(derived.restriction))
+					})
 				classFor(base)
 			}
 		edges[baseClass] = derivedClass

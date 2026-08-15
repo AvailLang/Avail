@@ -96,6 +96,7 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
@@ -187,6 +188,7 @@ import avail.interpreter.primitive.tuples.P_IntegerIntervalTuple
 import avail.interpreter.primitive.tuples.P_TupleAt
 import avail.interpreter.primitive.tuples.P_TupleReplaceAt
 import avail.interpreter.primitive.tuples.P_TupleSize
+import avail.interpreter.primitive.tuples.P_TupleTypeAt
 import avail.interpreter.primitive.types.P_CastIntoElse
 import avail.interpreter.primitive.types.P_CreateEnumeration
 import avail.interpreter.primitive.types.P_InstanceCount
@@ -258,6 +260,7 @@ class SimpleOptimizerTest
 			"`|_`|" to P_MapSize,
 			"`|_`|" to P_InstanceCount,
 			"_[_]" to P_TupleAt,
+			"_[_]" to P_TupleTypeAt,
 			"_[_]" to P_MapAtKey,
 			"_[_]" to P_ParamTypeAt,
 			"_[_.._]" to P_ExtractSubtuple,
@@ -3171,5 +3174,69 @@ class SimpleOptimizerTest
 		assertNull(manifest.equivalentSemanticValue(present.unboxedInt))
 		// Nothing is populated, since no instruction has written anything.
 		assertNull(manifest.equivalentPopulatedSemanticValue(present))
+	}
+
+	/**
+	 * A semantic restriction for the set building method, `"{«_‡,»}"#1`,
+	 * currently in Literals.avail:581, leads to an inconsistency in the
+	 * manifest during code splitting.  It pushes outer#1, of type tupleType,
+	 * and the argument, a natural number, then calls `'_[_]"`.  It later pushes
+	 * the same outer and argument, and again calls `"_[_]"`.  That time, it
+	 * knows the tag for the outer is the same as the tag for the first push of
+	 * the outer, but it hasn't figured out that the two pushes of the outer
+	 * should be in the same synonym.
+	 */
+	@Test
+	fun testSemanticRestrictionOfSetCreation_1()
+	{
+		var extendedWholeNumbers = inclusive(zero, positiveInfinity)
+		val rawFunction = helper.rawFunction(booleanType) {
+			val elementsType = instanceMeta(oneOrMoreOf(Types.ANY()))
+
+			argumentTypes(naturalNumbers)
+			val index = declareName("index")
+
+			// Constants
+			val element = createConstant(anyMeta)
+			declareName("element")
+
+			// Outers
+			val elementsOuter = createOuter(elementsType)
+			declareName("elements")
+
+			// This has some simplifications from the original raw function.
+			// :: element ::= elements[index]
+			L1_doPushOuter(elementsOuter)
+			L1_doPushLocal(index)
+			call("_[_]", anyMeta)
+			L1Ext_doSetLocalSlot(element)
+			// :: ... |elements[index]| ...
+			L1_doPushOuter(elementsOuter)
+			L1_doPushLocal(index)
+			call("_[_]", anyMeta)
+			call("`|_`|", extendedWholeNumbers)
+			// :: ... |elements[index]| = 1 ...
+			pushLiteral(one)
+			call("_=_", booleanType)
+			// :: ... [...elements ... index ...] ...
+			L1_doPushLastOuter(elementsOuter)
+			L1_doPushLastLocal(index)
+			close(
+				emptyList(),
+				listOf(
+					"elements" to elementsType,
+					"index" to naturalNumbers),
+				TOP())
+			// :; [...]
+			pushLiteral(
+				createFunction(
+					helper.createDummyRawFunction(
+						emptyList(), emptyList(), TOP()),
+					emptyTuple))
+			// :: If _ = 1 then [...elements ... index...] else [...]
+			call("If_then_else_", TOP())
+		}
+
+		helper.testOptimize(rawFunction)
 	}
 }

@@ -2231,7 +2231,9 @@ class L1Translator private constructor(
 		{
 			val readResult = readSlot(stackp)
 			+L2_RETURN(readResult)
-			assert(stackp == numSlots)
+			assert(stackp == numSlots) {
+				"Incorrect final stack depth: $stackp != $numSlots"
+			}
 			stackp = Int.MIN_VALUE
 		}
 	}
