@@ -1,8 +1,10 @@
-# Declared manifest effects: `L2_DECLARE`
+# Declared manifest effects: the post-phi manifest
 
-Status: **proposed, not started.** Design captured 2026-08-15 from the analysis
+Status: **proposed, not started.** First captured 2026-08-15 from the analysis
 of `testSemanticRestrictionOfSetCreation_1`, which reproduces the failure that
-was stopping a full library load at roughly 16%.
+was stopping a full library load at roughly 16%. Revised after review: the
+mechanism is a registerless manifest held on the basic block, not an
+instruction.
 
 Companion to `Manifest_ValueClass_Redesign.md`, which supplies the value-level
 versus register-level split this design depends on.
@@ -45,136 +47,206 @@ elimination are for.
 
 So the information has to be *transported*, not recomputed.
 
-## 3. Value-level and register-level facts
+## 3. Which facts transport
 
-The two halves of a manifest entry behave completely differently under a
-rewrite:
+The parts of a manifest entry behave completely differently under a rewrite:
 
-- **Value-level** — which semantic values name one value, and the
-  `TypeRestriction` bounding it. These are facts about the program, monotone,
-  and survive any rewrite that does not change what the program computes. This
-  is `ValueState.members` and `ValueState.restriction`.
-- **Register-level** — which registers hold the value, and any postponed
-  instruction that would populate one. These are facts about the *current*
-  graph and are meaningless in a graph being built. This is `Representation`.
+- **Transportable** — which semantic values name one value, the
+  `TypeRestriction` bounding it, and any postponed instruction that would
+  produce it. These are facts about the program. They are monotone and survive
+  any rewrite that does not change what the program computes.
+- **Not transportable** — which registers hold the value. These are facts about
+  the *current* graph and are meaningless in a graph being built.
+
+In the terms of the `ValueState` redesign, the transportable part is
+`ValueState.members`, `ValueState.restriction` and each `Representation`'s
+postponed instruction; the untransportable part is each `Representation`'s
+definitions.
 
 The bug is entirely in the first category. A rewrite may legitimately change
 every register; it may not silently forget that two names denote one value.
 
-## 4. `L2_DECLARE`
+## 4. The post-phi manifest
 
-Emit every manifest-affecting instruction as a pair:
+Every basic block carries a **`postPhiManifest`**: a registerless manifest
+holding synonyms, restrictions and postponed instructions, and no registers.
 
-- an **`L2_DECLARE`** wrapping a translation of the instruction, emitted
-  **eagerly** at the point where the effect belongs, which performs only the
-  value-level part of the effect — synonymy and restriction, no definitions —
-  and generates no JVM code;
-- the **real instruction**, free to float by the existing postponement
-  machinery, materializing only when some instruction that cannot be postponed
-  requires the value, recursively.
+It is not an instruction. An instruction that never reads, never writes, never
+emits code and may appear in only one position is not an instruction, and
+making it one obliges every pass that manipulates instructions to know it is
+special. Blocks already carry `zone`, `isLoopHead`, `isCold` and
+`hasControlFlowAtEnd`, so block-level state is not a new idea here.
 
-The declaration is not a prophecy. It stays where it was emitted. What moves is
-the *action*, and postponement already lets actions move with no
-inter-instruction constraints.
+### 4.1 When it is captured
 
-### 4.1 Why eager, and how early
+At the end of code generation for the block: **after the reads of the final
+instruction have been processed, but before any of its writes and before any
+edge-specific narrowing.**
 
-Synonyms and restrictions must be established before *both*:
+Both halves of that matter.
 
-- instructions that **consume** them, and
-- live instructions that **populate** them.
+- *After the reads* — a read forces any postponed instruction it depends on to
+  be materialized. Capturing afterwards means a postponed instruction that
+  supplies a value to a compare-and-branch has already been reified into the
+  block, and is recorded as what it now is rather than as a postponement that
+  will never happen there.
+- *Before the writes and the edge-specific parts* — the narrowing a branch
+  applies differs per outgoing edge, so it belongs to the edges, not to the
+  block. Capturing before it keeps the block's record true on every outgoing
+  edge, which is exactly the property that lets the edges be rebuilt from it.
 
-The second is the one that is easy to miss. An instruction that populates a
-value needs the manifest to already agree about what that value *is*, or it
-records its register against a different value than the one the rest of the
-graph is discussing — which is precisely how 5-13 ends up in a synonym of its
-own holding a register nobody else believes in.
+### 4.2 When it is replayed
 
-### 4.2 What a declaration does when added
+During regeneration, in passes that track semantic values, the *old* block's
+`postPhiManifest` is replayed into the new block's manifest **after phis have
+been generated**, ensuring the synonym structure and the narrowed restrictions
+are present before any instruction in the block is processed.
 
-Not a replay of `instructionWasAdded`. It contributes membership and
-restriction and *no* `Representation` definitions — the ⌛ state that a value
-has between being known and being written. The existing manifest already models
-this; `L2_DECLARE` makes it explicit in the instruction stream so that a
-regeneration reproduces it instead of having to rediscover it.
+It is not copied into the new block. The new block captures its own at the end,
+which is the old one plus whatever this pass managed to strengthen.
 
-### 4.3 What it must not do
+### 4.3 Prescience is not a problem here
 
-- **It must not pin registers alive.** Its operands have to be semantic-value
-  references, not register reads. A declaration holding a real read operand
-  would keep the dead move's source register live forever, trading a manifest
-  bug for a register-pressure bug.
-- **It must not generate code**, and must not participate in reification.
-- **It must not be removed by dead code elimination.** The instruction it
-  declares may be removed; the declaration is the surviving carrier of the
-  fact.
+Replaying at the top of a block asserts facts that, in the original generation
+order, only became true partway through it. That is fine, and the existing
+postponement mechanism already does much the same thing: it records what an
+unconditionally-downstream instruction would produce, long before producing it.
+Nothing here crosses a block boundary, and in straight-line code every
+instruction in the block runs, so a fact true at the end of the block is true
+for anyone who reaches the end.
 
-### 4.4 Stripping
+Writing a value the manifest already knows is already supported:
+`recordDefinitionNoCheck` takes its "existing semantic value" branch, extends
+the synonym, intersects the restriction, adds the definition and clears the
+postponement. Note that this makes that branch — written for the boxed/int case
+— the common path for nearly every write, and that the comment above
+`recordDefinition` claiming the value "must not yet be in this manifest" is
+already stale and would become actively misleading.
 
-Once every postponement-enabled pass has run, all `L2_DECLARE`s are stripped in
-one sweep. De-edge-splitting, register colouring and JVM translation then run
-on a graph with no declarations in it, and never need to know about them.
+## 5. Witnesses, and why postponements must be captured
 
-That is what makes the accumulation question moot: declarations do not need a
-liveness-based discard rule, because they have a defined end of life. If they
-prove expensive before that point, a pass may drop one whose values are dead in
-every successor, but nothing depends on it happening.
+Every synonym in a `postPhiManifest` needs a **witness**: something that will
+make the value producible again when the manifest is replayed. A synonym with
+no witness is a value that is known, unproducible, and reachable by anything
+that goes looking — the exact pathology this whole effort has been chasing.
 
-## 5. What this makes unnecessary
+The admissible witnesses are:
 
-- **Explicit edge transport.** Since declarations are ordinary instructions,
-  they are transformed by a regenerator like anything else, and each output
-  edge acquires the right manifest by construction. No separate mechanism for
-  copying an input edge's manifest to a corresponding output edge is needed.
-- **Correspondence between input and output edges.** Rewrites that change the
-  shape of control flow are then fine: a multi-way tag branch becoming
-  one-direction jumps, `≤` rewritten as `>` or `=` according to the boundaries
-  of known restrictions, and elision of edges all of whose paths lead to
-  impossible conditions. Eliding jumps to enlarge basic blocks stays available.
+1. an instruction in the block that writes it, replayed by processing the block
+   in the ordinary way;
+2. a postponed instruction recorded in the `postPhiManifest`;
+3. a constant restriction;
+4. synonymy with a value that is itself witnessed, which produces it by the
+   implicit move;
+5. presence in every incoming edge, witnessed by the predecessors.
+
+Capturing postponements is what makes (2) available, and it is load-bearing
+across passes in a way that is easy to miss:
+
+> Suppose instruction X cannot be postponed all the way out of its block on
+> pass 1. It is not a postponement in that block's `postPhiManifest`, but X
+> itself is a perfectly good witness — a replayable statement about a write.
+> On pass 2, code splitting makes X postponable, and it is postponed out; now
+> the captured postponement is the witness. On pass 3 the `postPhiManifest` is
+> replayed and the postponement is preserved into the new one. **In the current
+> implementation that postponed instruction is simply lost at that point.**
+
+A consequence worth stating explicitly, because it changes liveness: **a
+postponed instruction's reads are not uses of its inputs.** An input read only
+by a postponed instruction does not have to be emitted — but neither may it be
+dropped, since the postponed instruction still needs it if it ever
+materializes. So liveness becomes three-valued: used (must emit), read only by
+a postponement (may postpone, must not drop), and unused (may drop).
+
+## 6. The monotonicity law
+
+The rule that makes replay sound:
+
+> **A pass must never weaken a constraint found at an analogous location in a
+> previous pass.**
+
+Merging synonyms, whether between passes or along a path, is a strengthening.
+Breaking them apart is forbidden — with exactly one exception, phi generation,
+where a control flow merge genuinely destroys information because the
+predecessors disagree.
+
+That destruction is not incidental; it is the driving force behind code
+splitting, which exists to specialize paths so that the information survives.
+Code splitting narrows constraints along a specialized path, which is a
+strengthening and therefore always allowed.
+
+## 7. Control flow preconditions
+
+**Predecessor sets.** Replaying a block's own captured facts is sound as long
+as no path reaches the block that did not reach it before. Losing a predecessor
+is safe. Gaining one is only done by loop generation, which already handles it
+with `L2_STRIP_MANIFEST` and `forcedClampedEntities`; planned loop splitting —
+running a first iteration to hoist bounds checks, parts of lookups and some
+unboxing, much as code splitting does today — is expected to work the same way.
+
+Note that the predecessor *count* can go up or down between a graph and its
+regeneration, through code splitting, without any new path reaching the block.
+Replay after phi generation has to cope with that, but there is no reason to
+expect it to be hard.
+
+**Jump elision.** Merging a block into its sole predecessor leaves the merged
+block's `postPhiManifest` describing a mid-block point. Since these are
+re-derived every pass, discarding the absorbed block's copy is right; the
+combined block captures its own at the end.
+
+## 8. What this makes unnecessary, and what it improves
+
+- **Explicit edge transport, and any need for input/output edge
+  correspondence.** Rewrites that change the shape of control flow are then
+  free: a multi-way tag branch becoming one-direction jumps, `≤` rewritten as
+  `>` or `=` according to the boundaries of known restrictions, elision of
+  edges all of whose paths lead to impossible conditions, and jump elision to
+  enlarge basic blocks.
 - **The `L2_NOP` tombstone** that `removeDeadInstructions` leaves where it drops
-  an instruction. That NOP is a declaration with its effect discarded.
+  an instruction. It is a witness with its content thrown away.
 - Probably **the base fabrication in `recordDerivation`**. It exists because a
-  derived value can be bound while its base is unknown; with the declaration
-  carrying the base's synonymy, the base should already be present. The
-  restriction seeded from the tag (commit `a3cf993db`) is a narrower patch for
-  the same hole and may become redundant.
+  derived value can be bound while its base is unknown; if the base's synonymy
+  is transported, the base should already be present. The restriction seeded
+  from the tag (commit `a3cf993db`) is a narrower patch for the same hole and
+  may become redundant.
+- **Dead code elimination gets stronger, not weaker.** Previously the only
+  record that `x` and `z` were synonymous might be two overlapping facts,
+  `[x,y]` and `[y,z]`, so `y` could not be dropped without losing the
+  relationship. A `postPhiManifest` records the synonym `{x,y,z}` directly, so
+  `y` can be dropped outright. Once semantic values and registers that are
+  never used or populated have been identified, they can be excluded from every
+  manifest in a fresh regeneration pass, and synonyms left empty are dropped.
 
-## 6. Design questions to settle while implementing
+## 9. Remaining questions
 
-1. **Is a postponed instruction just a declaration plus a deferred action?**
-   The manifest's postponed instruction already means "this value is known, and
-   here is how to produce it when asked". If so, postponement could be expressed
-   as `L2_DECLARE` at the original site plus the real instruction wherever it
-   materializes, and the two mechanisms become one. Attractive, but a larger
-   change than the defect requires.
-2. **Ordering constraints among declarations.** They are pure manifest edits, so
-   two declarations touching disjoint values commute. The real constraint is
-   against other manifest-affecting instructions touching *the same* values.
-3. **Non-SSA phases.** A declaration asserts something about semantic values; if
-   a later pass reuses a register for a different value, the declaration must
-   still describe the value, not the register. Stripping before colouring should
-   make this a non-issue, but it is worth checking that no phase between here
-   and there rewrites values in place.
-4. **What exactly is "a translation of" the declared instruction?** Holding the
-   whole `L2Instruction` keeps effect and knowledge together and avoids a second
-   language of manifest deltas that would drift from `instructionWasAdded`. But
-   the inner instruction's write operands mention registers that may not exist
-   in the new graph. Either those operands are rewritten to registerless form
-   when the declaration is built, or the declaration holds only the semantic
-   content — the write's semantic values and restriction, and the reads'
-   semantic values.
+1. **Rendering.** Every diagnosis in this effort has come from reading .dot
+   output, so an invisible mechanism this central would be a bad trade. Options
+   are a graph-level node beside the block, or an extra column in the block's
+   table — the latter is awkward because multi-way final instructions already
+   use multiple columns.
+2. **Semantic value transformation.** A transported map keyed by semantic
+   values must be mapped when a pass renames them. Not a problem today, since
+   `L2ValueManifest.transform` has no callers; it is intended for inlining
+   called graphs, where a callee's stack slots must be distinguished from the
+   caller's via `Frame`. Whatever holds the map will need to participate then.
+3. **Replay order for derived values.** Binding `Int(Tag(x))` before `x` takes
+   the introduce-the-base path. Harmless, and it disappears when the manifest
+   becomes keyed by boxed-only semantic values, with the int forms implicit in
+   the read and write operands.
 
-## 7. Suggested order
+## 10. Suggested order
 
-1. Give `removeDeadInstructions` a declaration instead of an `L2_NOP` when it
-   drops an instruction. Smallest change that exercises the whole combination
-   — no registers, no code, not removable — against the exact failure in
-   `testSemanticRestrictionOfSetCreation_1`.
-2. Emit declarations generally, at every point a manifest-affecting instruction
-   is generated, and confirm that edge manifests survive regeneration
-   unchanged. A per-edge comparison of input against output manifests makes a
-   good assertion here, and is the invariant this whole design exists to
-   establish.
-3. Strip declarations after the last postponement-enabled pass, and check that
-   de-edge-splitting and register colouring are untouched.
-4. Remove what section 5 makes unnecessary.
+1. Add `postPhiManifest` to `L2BasicBlock` and capture it at the point
+   described in section 4.1. Render it in the .dot output. Nothing consumes it
+   yet, so the graphs should be unchanged and the captures inspectable.
+2. Assert the witness invariant of section 5 over each capture. This is the
+   property the design turns on, and it is cheaper to establish before anything
+   depends on it.
+3. Replay it during regeneration, after phi generation. Verify against
+   `testSemanticRestrictionOfSetCreation_1`, and add a per-edge assertion that
+   an output edge is at least as informative as the corresponding input edge —
+   the invariant this whole design exists to establish.
+4. Adjust liveness for the three-valued rule in section 5, so that inputs read
+   only by postponements are postponed rather than emitted or dropped.
+5. Remove what section 8 makes unnecessary, and add the never-used exclusion
+   pass that section 8 makes possible.
