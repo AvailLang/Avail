@@ -72,10 +72,10 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2ValueManifest.Representation.Companion.emptyBoxedRepresentation
 import avail.optimizer.L2ValueManifest.Representation.Companion.emptyFloatRepresentation
 import avail.optimizer.L2ValueManifest.Representation.Companion.emptyIntRepresentation
-import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
@@ -3423,8 +3423,7 @@ class L2ValueManifest
 
 	/**
 	 * Record the fact that an [L2Instruction] has been emitted, which writes to
-	 * the given [L2WriteOperand].  Since this is the introduction of a new
-	 * [L2SemanticValue], it must not yet be in this manifest.
+	 * the given [L2WriteOperand].
 	 *
 	 * [L2Instruction]s that move values between semantic values should
 	 * customize their [L2Instruction.instructionWasAdded] method to use
@@ -3440,8 +3439,7 @@ class L2ValueManifest
 
 	/**
 	 * Record the fact that an [L2Instruction] has been emitted, which writes to
-	 * the given [L2WriteOperand].  Since this is the introduction of a new
-	 * [L2SemanticValue], it must not yet be in this manifest.
+	 * the given [L2WriteOperand].
 	 *
 	 * [L2Instruction]s that move values between semantic values should
 	 * customize their [L2Instruction.instructionWasAdded] method to use

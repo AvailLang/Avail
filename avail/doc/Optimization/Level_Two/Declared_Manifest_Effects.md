@@ -1,10 +1,11 @@
 # Declared manifest effects: the post-phi manifest
 
-Status: **proposed, not started.** First captured 2026-08-15 from the analysis
-of `testSemanticRestrictionOfSetCreation_1`, which reproduces the failure that
-was stopping a full library load at roughly 16%. Revised after review: the
-mechanism is a registerless manifest held on the basic block, not an
-instruction.
+Status: **proposed, started.** First captured 2026-08-15 from the analysis of
+`testSemanticRestrictionOfSetCreation_1`, which reproduces the failure that was
+stopping a full library load at roughly 16%. Revised 2026-08-31: the mechanism
+is a registerless manifest held on the basic block rather than an instruction,
+and it carries synonyms and restrictions only — **not** postponed instructions,
+for the reasons in section 5.
 
 Companion to `Manifest_ValueClass_Redesign.md`, which supplies the value-level
 versus register-level split this design depends on.
@@ -51,17 +52,18 @@ So the information has to be *transported*, not recomputed.
 
 The parts of a manifest entry behave completely differently under a rewrite:
 
-- **Transportable** — which semantic values name one value, the
-  `TypeRestriction` bounding it, and any postponed instruction that would
-  produce it. These are facts about the program. They are monotone and survive
-  any rewrite that does not change what the program computes.
-- **Not transportable** — which registers hold the value. These are facts about
-  the *current* graph and are meaningless in a graph being built.
+- **Transportable** — which semantic values name one value, and the
+  `TypeRestriction` bounding it. These are facts about the program. They are
+  monotone and survive any rewrite that does not change what the program
+  computes.
+- **Not transportable** — which registers hold the value, and where a postponed
+  instruction currently sits. These are facts about the *current* graph, and
+  are either meaningless in a graph being built or re-established by building
+  it.
 
 In the terms of the `ValueState` redesign, the transportable part is
-`ValueState.members`, `ValueState.restriction` and each `Representation`'s
-postponed instruction; the untransportable part is each `Representation`'s
-definitions.
+`ValueState.members` and `ValueState.restriction`; the untransportable part is
+the whole of each `Representation`.
 
 The bug is entirely in the first category. A rewrite may legitimately change
 every register; it may not silently forget that two names denote one value.
@@ -69,7 +71,8 @@ every register; it may not silently forget that two names denote one value.
 ## 4. The post-phi manifest
 
 Every basic block carries a **`postPhiManifest`**: a registerless manifest
-holding synonyms, restrictions and postponed instructions, and no registers.
+holding synonyms and restrictions, and neither registers nor postponed
+instructions.
 
 It is not an instruction. An instruction that never reads, never writes, never
 emits code and may appear in only one position is not an instruction, and
@@ -86,10 +89,10 @@ edge-specific narrowing.**
 Both halves of that matter.
 
 - *After the reads* — a read forces any postponed instruction it depends on to
-  be materialized. Capturing afterwards means a postponed instruction that
-  supplies a value to a compare-and-branch has already been reified into the
-  block, and is recorded as what it now is rather than as a postponement that
-  will never happen there.
+  be materialized, and materializing one can strengthen the manifest: folding a
+  constant, merging synonyms, narrowing a result. Capturing afterwards means a
+  postponement that supplies a value to a compare-and-branch has already been
+  reified into the block and its consequences are part of the record.
 - *Before the writes and the edge-specific parts* — the narrowing a branch
   applies differs per outgoing edge, so it belongs to the edges, not to the
   block. Capturing before it keeps the block's record true on every outgoing
@@ -123,7 +126,7 @@ postponement. Note that this makes that branch — written for the boxed/int cas
 `recordDefinition` claiming the value "must not yet be in this manifest" is
 already stale and would become actively misleading.
 
-## 5. Witnesses, and why postponements must be captured
+## 5. Witnesses, and why postponements need not be captured
 
 Every synonym in a `postPhiManifest` needs a **witness**: something that will
 make the value producible again when the manifest is replayed. A synonym with
@@ -134,29 +137,57 @@ The admissible witnesses are:
 
 1. an instruction in the block that writes it, replayed by processing the block
    in the ordinary way;
-2. a postponed instruction recorded in the `postPhiManifest`;
-3. a constant restriction;
-4. synonymy with a value that is itself witnessed, which produces it by the
+2. a constant restriction, which the implicit postponed constant move satisfies;
+3. synonymy with a value that is itself witnessed, which produces it by the
    implicit move;
-5. presence in every incoming edge, witnessed by the predecessors.
+4. presence in every incoming edge, witnessed by the predecessors;
+5. a semantic value that describes its own computation — an
+   `L2SemanticPrimitiveInvocation`, a tag, a variant id — for which a fresh
+   instruction can be synthesized on demand.
 
-Capturing postponements is what makes (2) available, and it is load-bearing
-across passes in a way that is easy to miss:
+An earlier draft of this design also captured postponed instructions, on the
+grounds that a postponement is the only witness for a value that has floated
+out of its block. That is not so, and the four arguments against it are worth
+recording, since the temptation will recur.
 
-> Suppose instruction X cannot be postponed all the way out of its block on
-> pass 1. It is not a postponement in that block's `postPhiManifest`, but X
-> itself is a perfectly good witness — a replayable statement about a write.
-> On pass 2, code splitting makes X postponable, and it is postponed out; now
-> the captured postponement is the witness. On pass 3 the `postPhiManifest` is
-> replayed and the postponement is preserved into the new one. **In the current
-> implementation that postponed instruction is simply lost at that point.**
+**Ordering.** SSA puts a write before its reads, so nothing in the block can
+observe a value before the instruction that produces it. The concern that a
+hoisted fact would be visible "too early" only bites for observers that are not
+reads, and each of those turns out to be safe.
 
-A consequence worth stating explicitly, because it changes liveness: **a
-postponed instruction's reads are not uses of its inputs.** An input read only
-by a postponed instruction does not have to be emitted — but neither may it be
-dropped, since the postponed instruction still needs it if it ever
-materializes. So liveness becomes three-valued: used (must emit), read only by
-a postponement (may postpone, must not drop), and unused (may drop).
+**Constant folding** operates only on constants, so the implicit postponed
+constant move is a sufficient witness — witness (2). Nothing needs to be
+carried.
+
+**Primitive output re-strengthening** operates on restrictions — the constant
+if it is known, otherwise the type — and restrictions are exactly what the
+`postPhiManifest` carries. It never consults a register.
+
+**Primitive invocation reuse** has two cases, and both are witnessed:
+
+- there is a register holding an equivalent invocation, in which case the
+  synonym is simply extended with the new semantic value; or
+- there is no register, in which case the synonym is still augmented and a
+  *fresh* postponed instruction is added that runs the primitive — witness (5).
+
+The second case is the interesting one, because the freshly postponed
+instruction may be emitted at a point earlier than wherever the original
+producer ended up, which can be far downstream. That is harmless: when
+regeneration eventually reaches the later original instruction, `unaryPlus`
+finds the synonym already present in the manifest with a populated register,
+and degrades to a move.
+
+So a postponement is a statement about *placement*, not about existence. Every
+value the manifest knows is producible from a register in its synonym, from a
+constant, or by re-running the computation its own semantic value describes,
+and all three survive without being transported.
+
+A related property of postponement, independent of this design but worth
+keeping in view: **a postponed instruction's reads are not uses of its
+inputs.** Dead code elimination walks the instruction graph, and a postponed
+instruction is not in it, so an input read only by a postponement looks unused.
+It may be postponed in turn, but it must not be dropped, or the postponement
+becomes unemittable.
 
 ## 6. The monotonicity law
 
@@ -239,14 +270,17 @@ combined block captures its own at the end.
 1. Add `postPhiManifest` to `L2BasicBlock` and capture it at the point
    described in section 4.1. Render it in the .dot output. Nothing consumes it
    yet, so the graphs should be unchanged and the captures inspectable.
-2. Assert the witness invariant of section 5 over each capture. This is the
-   property the design turns on, and it is cheaper to establish before anything
-   depends on it.
+2. Assert the witness invariant of section 5 over each capture: every synonym
+   has a register in it, a constant restriction, or a self-describing member.
+   This is the property the design turns on, and the assertion is also what
+   would catch a value whose only witness really was a postponement, if the
+   argument in section 5 has a gap in it.
 3. Replay it during regeneration, after phi generation. Verify against
    `testSemanticRestrictionOfSetCreation_1`, and add a per-edge assertion that
    an output edge is at least as informative as the corresponding input edge —
    the invariant this whole design exists to establish.
-4. Adjust liveness for the three-valued rule in section 5, so that inputs read
-   only by postponements are postponed rather than emitted or dropped.
+4. Check that an input read only by a postponement is postponed rather than
+   dropped, per the note at the end of section 5. Independent of the rest, but
+   the failure it causes looks like the ones this design is meant to end.
 5. Remove what section 8 makes unnecessary, and add the never-used exclusion
    pass that section 8 makes possible.
