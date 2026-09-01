@@ -1681,6 +1681,7 @@ constructor(
 			"edge-split ${nextUnique()} to ${originalTargetBlock.name()}",
 			originalTargetBlock.zone,
 			isCold = originalTargetBlock.isCold)
+		newBlock.postPhiMap = edge.manifest().extractPostPhiMap()
 		var prototypeJump = L2_JUMP(
 			L2PcOperand(newBlock, false, null, edge.optionalName)
 		).cloneFor(this, newBlock) as L2_JUMP

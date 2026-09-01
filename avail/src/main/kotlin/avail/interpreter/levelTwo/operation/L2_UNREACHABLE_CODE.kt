@@ -50,8 +50,6 @@ class L2_UNREACHABLE_CODE(
 {
 	override val isCold get() = true
 
-	override val altersControlFlow: Boolean get() = true
-
 	override val hasSideEffect get() = true
 
 	/**

@@ -33,8 +33,11 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import java.lang.Integer.toHexString
 
 /**
@@ -129,6 +132,28 @@ constructor(
 	 * block.
 	 */
 	var hasControlFlowAtEnd = false
+
+	/**
+	 * During code generation, this field holds the synonym and restriction
+	 * state captured just before the final [L2ControlFlowInstruction]
+	 * instruction is emitted.  When this block is used as a source of
+	 * instructions during regeneration, right after any [L2_PHI]s are generated
+	 * in the new block, the original block's [postPhiMap] synonym and
+	 * restriction information is merged into the current manifest, which may
+	 * force synonyms to be extended or merged, and restrictions to be narrowed.
+	 *
+	 * These are effects that would be lost when a postponed instruction travels
+	 * downstream and the graph is regenerated only from previously emitted
+	 * instructions.  This feature instead keeps the information alive between
+	 * regeneration passes, like an eddy of information.
+	 *
+	 * Having synonym and restriction information known *earlier* than the
+	 * instruction that would produce it is safe.  We already (prior to the
+	 * introduction of this field) do instruction postponement, which captures
+	 * synonym and output restriction information prior to the eventual emission
+	 * point of the instruction.
+	 */
+	var postPhiMap: Map<L2Synonym<BOXED_KIND>, TypeRestriction>? = null
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -325,7 +350,6 @@ constructor(
 		assert(isIrremovable || predecessorEdges().isNotEmpty())
 		justAddInstruction(instruction)
 		instruction.justAdded(manifest)
-
 		manifest.check()
 	}
 

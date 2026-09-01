@@ -55,6 +55,7 @@ import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.L2Synonym.Companion.appendSemanticValues
 import avail.optimizer.values.L2SemanticExtractedTag
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
@@ -91,11 +92,11 @@ import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.rankdir
 import avail.utility.dot.DotWriter.StringAttributeName.arrowhead
 import avail.utility.dot.DotWriter.StringAttributeName.fontname
 import avail.utility.dot.DotWriter.StringAttributeName.headlabel
-import avail.utility.dot.DotWriter.StringAttributeName.taillabel
 import avail.utility.dot.DotWriter.StringAttributeName.id
 import avail.utility.dot.DotWriter.StringAttributeName.label
 import avail.utility.dot.DotWriter.StringAttributeName.shape
 import avail.utility.dot.DotWriter.StringAttributeName.style
+import avail.utility.dot.DotWriter.StringAttributeName.taillabel
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import java.io.IOException
@@ -105,7 +106,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.collections.sorted
 
 /**
  * An `L2ControlFlowGraphVisualizer` generates a `dot` source file that
@@ -453,11 +453,17 @@ class L2ControlFlowGraphVisualizer constructor(
 						}
 					}
 				}
+				basicBlock.postPhiMap?.let { map ->
+					if (map.isNotEmpty())
+					{
+						postPhiMap(gridcolor, map, this@basicBlock)
+					}
+				}
 				if (instructions.isNotEmpty())
 				{
 					instructions.forEachIndexed { port, instruction ->
 						instructionTableRow(
-							gridcolor, instruction, this@basicBlock, basicBlock)
+							gridcolor, instruction, this@basicBlock)
 					}
 				}
 				else
@@ -520,11 +526,53 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 	}
 
+	private fun StringBuilder.postPhiMap(
+		gridcolor: String,
+		map: Map<L2Synonym<BOXED_KIND>, TypeRestriction>,
+		writer: GraphWriter)
+	{
+		tag("tr") {
+			val cellAttributes = mutableMapOf(
+				"colspan" to "2",
+				"align" to "left",
+				"balign" to "left",
+				"border" to "1",
+				"color" to gridcolor,
+				"valign" to "top")
+			cellAttributes["bgcolor"] = writer.adjust("#e0fff0/#286040")
+			tagIf(true, "td", cellAttributes) {
+				font(
+					italic = true,
+					color = writer.adjust("#808080/a0a0a0"))
+				{
+					var first = true
+					map.forEach { synonym, restriction ->
+						if (!first) append("<br/>")
+						first = false
+						append('〖')
+						append(
+							escape(
+								buildString {
+									appendSemanticValues(
+										synonym.semanticValues(),
+										canWrap = false)
+								}))
+						append("〗: ")
+						append(
+							escape(
+								restriction.toString(
+									isTag = false,
+									bare = true)))
+					}
+				}
+			}
+		}
+	}
+
 	private fun StringBuilder.instructionTableRow(
 		gridcolor: String,
 		instruction: L2Instruction,
-		writer: GraphWriter,
-		basicBlock: L2BasicBlock)
+		writer: GraphWriter)
 	{
 		val interesting = filter.isInstructionInteresting(instruction)
 		if (!interesting && instruction is L2_PHI<*>) return
@@ -545,7 +593,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					cellAttributes["bgcolor"] = writer.adjust("#ffe0ff/#602860")
 				instruction.isPlaceholder ->
 					cellAttributes["bgcolor"] = writer.adjust("#ffC090/#604800")
-				basicBlock.isCold ->
+				instruction.basicBlock().isCold ->
 				{
 					cellAttributes["bgcolor"] =
 						writer.adjust(coldInstructionBackColor)
@@ -567,7 +615,9 @@ class L2ControlFlowGraphVisualizer constructor(
 							{
 								append(" ")
 								append(
-									instruction.comment.comment.truncateTo(30))
+									escape(
+										instruction.comment.comment
+											.truncateTo(30)))
 							}
 						}
 					}
@@ -965,6 +1015,11 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 	}
 
+	/**
+	 * Note: if [definitions] is `null`, the hourglass symbol will not appear
+	 * next to any semantic values.  If it's present, it appears next to any
+	 * semantic value not mentioned in any of the definitions (write operands).
+	 */
 	private fun StringBuilder.synonym(
 		writer: GraphWriter,
 		synonym: L2Synonym<*>,
@@ -1025,7 +1080,9 @@ class L2ControlFlowGraphVisualizer constructor(
 		if (deltaManifestOnly
 			&& !newSynonym && !changedSynonym && !changedRestriction
 			&& !changedDefinitions && !isError)
+		{
 			return
+		}
 		val isUnboxed = kindsOfRegisters != setOf(BOXED_KIND)
 		val noRegs = definitions.isEmpty()
 		val (synonymColor, restrictionColor, definitionsColor) = when

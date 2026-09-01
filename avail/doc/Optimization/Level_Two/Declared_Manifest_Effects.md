@@ -68,17 +68,12 @@ the whole of each `Representation`.
 The bug is entirely in the first category. A rewrite may legitimately change
 every register; it may not silently forget that two names denote one value.
 
-## 4. The post-phi manifest
+## 4. The post-phi map
 
-Every basic block carries a **`postPhiManifest`**: a registerless manifest
-holding synonyms and restrictions, and neither registers nor postponed
-instructions.
-
-It is not an instruction. An instruction that never reads, never writes, never
-emits code and may appear in only one position is not an instruction, and
-making it one obliges every pass that manipulates instructions to know it is
-special. Blocks already carry `zone`, `isLoopHead`, `isCold` and
-`hasControlFlowAtEnd`, so block-level state is not a new idea here.
+Every basic block carries a **`postPhiMap`** from synonym to restriction.
+Neither registers nor postponed instructions are captured.  Its purpose is to
+preserve this information across regenerations, even when the instructions that
+originally produced it have been postponed out of the block.
 
 ### 4.1 When it is captured
 
@@ -101,12 +96,12 @@ Both halves of that matter.
 ### 4.2 When it is replayed
 
 During regeneration, in passes that track semantic values, the *old* block's
-`postPhiManifest` is replayed into the new block's manifest **after phis have
+`postPhiMap` is replayed into the new block's manifest **after phis have
 been generated**, ensuring the synonym structure and the narrowed restrictions
 are present before any instruction in the block is processed.
 
-It is not copied into the new block. The new block captures its own at the end,
-which is the old one plus whatever this pass managed to strengthen.
+It is not explicitly copied into the new block. The new block captures its own
+at the end, which is the old one plus whatever this pass managed to strengthen.
 
 ### 4.3 Prescience is not a problem here
 
@@ -128,8 +123,8 @@ already stale and would become actively misleading.
 
 ## 5. Witnesses, and why postponements need not be captured
 
-Every synonym in a `postPhiManifest` needs a **witness**: something that will
-make the value producible again when the manifest is replayed. A synonym with
+Every synonym in a `postPhiMap` needs a **witness**: something that will
+make the value producible again when the information is replayed. A synonym with
 no witness is a value that is known, unproducible, and reachable by anything
 that goes looking — the exact pathology this whole effort has been chasing.
 
@@ -161,7 +156,7 @@ carried.
 
 **Primitive output re-strengthening** operates on restrictions — the constant
 if it is known, otherwise the type — and restrictions are exactly what the
-`postPhiManifest` carries. It never consults a register.
+`postPhiMap` carries. It never consults a register.
 
 **Primitive invocation reuse** has two cases, and both are witnessed:
 
@@ -221,9 +216,9 @@ Replay after phi generation has to cope with that, but there is no reason to
 expect it to be hard.
 
 **Jump elision.** Merging a block into its sole predecessor leaves the merged
-block's `postPhiManifest` describing a mid-block point. Since these are
-re-derived every pass, discarding the absorbed block's copy is right; the
-combined block captures its own at the end.
+*block's `postPhiMap` describing a mid-block point. Since these are re-derived
+*every pass, discarding the absorbed block's copy is right; the combined block
+*captures its own at the end.
 
 ## 8. What this makes unnecessary, and what it improves
 
@@ -267,8 +262,8 @@ combined block captures its own at the end.
 
 ## 10. Suggested order
 
-1. Add `postPhiManifest` to `L2BasicBlock` and capture it at the point
-   described in section 4.1. Render it in the .dot output. Nothing consumes it
+1. Add `postPhiMap` to `L2BasicBlock` and capture it at the point described
+   in section 4.1. Render it in the .dot output. Nothing consumes it
    yet, so the graphs should be unchanged and the captures inspectable.
 2. Assert the witness invariant of section 5 over each capture: every synonym
    has a register in it, a constant restriction, or a self-describing member.

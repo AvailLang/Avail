@@ -142,7 +142,7 @@ constructor(
 	): String = buildString {
 		append('〖')
 		val defined = semanticValues.intersect(valuesHavingDefinitions)
-;		val undefined = semanticValues - defined
+		val undefined = semanticValues - defined
 		if (defined.isNotEmpty()) appendSemanticValues(defined, true)
 		if (defined.isNotEmpty() && undefined.isNotEmpty()) append(" & ")
 		if (undefined.isNotEmpty()) appendSemanticValues(undefined, true, "⌛")

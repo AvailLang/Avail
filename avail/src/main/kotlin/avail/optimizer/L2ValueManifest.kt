@@ -51,6 +51,7 @@ import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -61,6 +62,7 @@ import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NO
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -225,7 +227,7 @@ class L2ValueManifest
 		 * defining write **in this representation's [kind]**.
 		 *
 		 * Definedness is necessarily per-representation: a value can be held in
-		 * an int register with no boxed register yet – the result of an
+		 * an int register with no boxed register yet – say the result of an
 		 * [L2_ADD_INT_TO_INT] before it is boxed – so "is it defined?" is only
 		 * answerable relative to a representation.  Membership, by contrast,
 		 * belongs to the [Constraint], which is why it is passed in rather than
@@ -676,14 +678,15 @@ class L2ValueManifest
 	}
 
 	/**
-	 * A kind-scoped view of a [ValueState], presenting that record as though the
-	 * value existed only in this one [RegisterKind]: the members in that kind's
-	 * spelling, the restriction projected into that kind, and only that kind's
-	 * registers and postponed instruction.
+	 * A kind-scoped view of a [ValueState], presenting that record as though
+	 * the value existed only in this one [RegisterKind]: the members in that
+	 * kind's spelling, the restriction projected into that kind, and only that
+	 * kind's registers and postponed instruction.
 	 *
-	 * A view is a transient wrapper, obtained from the [ValueState] it describes
-	 * and discarded.  Never store one: a manifest replaces a record wholesale on
-	 * every update, so a retained view silently describes a value's past.
+	 * A view is a transient wrapper, obtained from the [ValueState] it
+	 * describes and discarded.  Never store one: a manifest replaces a record
+	 * wholesale on every update, so a retained view silently describes a
+	 * value's past.
 	 *
 	 * @property state
 	 *   The [ValueState] being viewed.
@@ -750,32 +753,6 @@ class L2ValueManifest
 		fun definedSemanticValues(): Set<L2SemanticValue<K>> =
 			representation.definedMembers()
 
-		fun postponedInstructionIncludingImplicitMove(
-			synonym: L2Synonym<K>,
-			manifest: L2ValueManifest
-		): L2Instruction?
-		{
-			if (postponedInstruction != null)
-				return postponedInstruction
-			val defined = definedSemanticValues()
-			val undefined = synonym.semanticValues() - defined
-			return when
-			{
-				// No need to create a synthetic move.
-				undefined.isEmpty() -> null
-				// No definition source, so it must constant-valued.
-				defined.isEmpty() ->
-				{
-					assert(restriction.isConstant)
-					undefined.first().kind.moveConstant(
-						restriction.constantOrNull!!, undefined)
-				}
-				// Move from a defined value to the undefined ones.
-				else -> undefined.first().kind.dynamicMove(
-					defined.first(), undefined, manifest, restriction)
-			}
-		}
-
 		override fun toString(): String = buildString {
 			when
 			{
@@ -800,7 +777,7 @@ class L2ValueManifest
 	 * the sharing of [ValueState]s between manifests.
 	 *
 	 * The builder is scoped to the same [RegisterKind] as the [Constraint] it
-	 * was modelled on, so [toValueState] replaces only that kind's
+	 * was modeled on, so [toValueState] replaces only that kind's
 	 * [Representation]; see [ValueState.updated].
 	 *
 	 * @param constraint
@@ -1068,8 +1045,8 @@ class L2ValueManifest
 	 * that fallback exists.
 	 *
 	 * @param original
-	 *   The manifest to copy.  It is left unchanged: the maps are cloned, and the
-	 *   [ValueState]s within them are immutable and safely shared.
+	 *   The manifest to copy.  It is left unchanged: the maps are cloned, and
+	 *   the [ValueState]s within them are immutable and safely shared.
 	 */
 	private fun adoptEverythingFrom(original: L2ValueManifest)
 	{
@@ -1087,6 +1064,20 @@ class L2ValueManifest
 		// collide with one inherited from it.
 		nextValueClassId = original.nextValueClassId
 	}
+
+	/**
+	 * Produce a manifest based on the reciver, but without any information
+	 * about registers or postponed instructions.  This will be plugged into a
+	 * block's [L2BasicBlock.postPhiMap].
+	 *
+	 * Leave out constants that have no other semantic value.
+	 */
+	fun extractPostPhiMap(): Map<L2Synonym<BOXED_KIND>, TypeRestriction> =
+		states.values
+			.filterNot {
+				it.members.singleOrNull().notNullAnd { isConstant }
+			}
+			.associate { L2Synonym(it.members) to it.restriction }
 
 	/**
 	 * Record an [L2Instruction] suitable for subsequent emission, if necessary,
@@ -2607,22 +2598,6 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Ensure all the given [L2SemanticValue]s are placed in the same synonym if
-	 * they're not already.  Merge any existing synonyms that include any of the
-	 * mentioned semantic values.
-	 *
-	 * Additionally, ensure the restriction for the new synonym is built from
-	 * the intersection of the existing restrictions, if any, otherwise using
-	 * the [topRestriction].
-	 *
-	 * @param semanticValues
-	 *   The [L2SemanticValue]s to ensure are in the same synonym.
-	 * @param baseRestriction
-	 *   The [TypeRestriction] to use for the new synonym, if it needs to be
-	 *   created.  It may be further strengthened by the restrictions present
-	 *   for existing synonyms.
-	 */
-	/**
 	 * Combine what several [ValueState]s know about one [RegisterKind] into the
 	 * single [Representation] that the merged value has in that kind.
 	 *
@@ -4100,6 +4075,20 @@ class L2ValueManifest
 					oldInstructions[0].key.pickSemanticValue(),
 					newInstruction)
 			}
+		}
+	}
+
+	/**
+	 * Given a map from synonyms to restrictions, add this information to this
+	 * manifest.  That may entail merging synonyms and narrowing restrictions.
+	 *
+	 * @param map
+	 *   The [L2Synonym]s and associated [TypeRestriction]s to apply.
+	 */
+	fun applyPostPhiMap(map: Map<L2Synonym<BOXED_KIND>, TypeRestriction>)
+	{
+		map.forEach { synonym, restriction ->
+			agglomerateSynonym(synonym.semanticValues(), restriction)
 		}
 	}
 

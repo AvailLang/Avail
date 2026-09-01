@@ -32,9 +32,12 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2ValueManifest
+import avail.utility.mapToSet
 
 /**
  * An [L2Instruction] that alters control flow, and therefore does not fall
@@ -62,4 +65,88 @@ abstract class L2ControlFlowInstruction : L2Instruction()
 	 *   reification and later resumption of a continuation.
 	 */
 	override val targetEdges: List<L2PcOperand> get() = layout.pcOperands(this)
+
+	/**
+	 * This instruction was just added to its [L2BasicBlock].
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] that is active where this instruction was just
+	 *   added to its [L2BasicBlock].
+	 */
+	override fun justAdded(manifest: L2ValueManifest)
+	{
+		operands.forEach { it.setInstruction(this) }
+		if (manifest.hasEliminatedPhis)
+		{
+			// Remove register definitions for any registers that are about to
+			// be overwritten by this instruction.
+			val registersToBeOverwritten =
+				writeOperands.mapToSet { it.register() }
+			manifest.removeRegisters(registersToBeOverwritten)
+		}
+		instructionWasAdded(manifest)
+		// The instruction may have restrictions set on its reads and writes
+		// that are stronger than what's in the manifest.  Force the manifest to
+		// be as accurate as possible.
+		readOperands.forEach { read ->
+			manifest.updateRestriction(read.semanticValue()) {
+				read.restriction()
+			}
+		}
+		val manifestByPurpose = mutableMapOf<Purpose?, L2ValueManifest>()
+		edgesAndPurposesDo { edge, purpose ->
+			manifestByPurpose[purpose] = edge.manifest()
+		}
+		writesAndPurposesDo { write, purpose ->
+			purpose?.let {
+				manifestByPurpose[purpose]!!
+					.updateRestriction(write.pickSemanticValue()) {
+						write.restriction()
+					}
+			}
+		}
+		basicBlock().postPhiMap = manifest.extractPostPhiMap()
+		writeOperands.forEach { write ->
+			manifest.updateRestriction(write.pickSemanticValue()) {
+				write.restriction()
+			}
+		}
+		// All manifests have now been updated, including propagation for
+		// related semantic values.  Narrow the restrictions for my reads and
+		// writes.  Phi instructions are excluded: their read operands each
+		// belong to a specific incoming edge's manifest (not the merged
+		// currentManifest), and their write restriction was already set
+		// correctly by populateOneSynonym as the union of incoming restrictions.
+		// Using the (stale, pre-merge) currentManifest here would incorrectly
+		// intersect those restrictions down to bottom.
+		val allManifests = manifestByPurpose.values + manifest
+		readOperands.forEach { read ->
+			// The outbound edges may vary in how they've deduced a stronger
+			// restriction for the semantic value being read here, so only
+			// strengthen the read up to the *union* of what the manifests
+			// have recorded.
+			val union = allManifests
+				.map { it.restrictionFor(read) }
+				.reduce(TypeRestriction::union)
+			read.restrict { union }
+		}
+		writesAndPurposesDo { write, purpose ->
+			if (purpose == null)
+			{
+				val intersection = allManifests
+					.map { it.restrictionFor(write.pickSemanticValue()) }
+					.reduce(TypeRestriction::intersection)
+				write.restrict { intersection }
+			}
+			else
+			{
+				// The write is associated with only one edge, so use the
+				// manifest that was just updated on that edge.
+				write.restrict {
+					manifestByPurpose[purpose]!!
+						.restrictionFor(write.pickSemanticValue())
+				}
+			}
+		}
+	}
 }

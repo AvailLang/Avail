@@ -622,17 +622,13 @@ constructor() :
 	 *   The [L2ValueManifest] that is active where this instruction was just
 	 *   added to its [L2BasicBlock].
 	 */
-	fun justAdded(manifest: L2ValueManifest)
+	open fun justAdded(manifest: L2ValueManifest)
 	{
+		// This should be overridden in L2ControlFlowInstruction.
+		assert(!altersControlFlow)
 		if (isEntryPoint)
 		{
-			assert(
-				basicBlock().instructions().all {
-					it is L2_PHI<*> || it == this
-				}
-			) {
-				"Entry point instruction must be after phis"
-			}
+			assert(basicBlock().instructions().single() == this)
 		}
 		operands.forEach { it.setInstruction(this) }
 		if (manifest.hasEliminatedPhis)
@@ -644,79 +640,27 @@ constructor() :
 			manifest.removeRegisters(registersToBeOverwritten)
 		}
 		instructionWasAdded(manifest)
-		// The instruction may have restrictions set on its reads and writes
-		// that are stronger than what's in the manifest.  Force the manifest to
-		// be as accurate as possible.
-		val manifestByPurpose = mutableMapOf<Purpose?, L2ValueManifest>()
-		if (altersControlFlow)
-		{
-			edgesAndPurposesDo { edge, purpose ->
-				manifestByPurpose[purpose] = edge.manifest()
-			}
-			writesAndPurposesDo { write, purpose ->
-				purpose?.let {
-					manifestByPurpose[purpose]!!
-						.updateRestriction(write.pickSemanticValue()) {
-							write.restriction()
-						}
-				}
-			}
-		}
-		// Phi instructions shouldn't attempt to strengthen restrictions in the
-		// manifest for reads, since those reads are actually in the context of
-		// the corresponding incoming edge's manifest.
-		if (this !is L2_PHI<*>)
-		{
-			readOperands.forEach { read ->
+		readOperands.forEach { read ->
+			// Phi instructions shouldn't attempt to strengthen restrictions in the
+			// manifest for reads, since those reads are actually in the context of
+			// the corresponding incoming edge's manifest.
+			if (this !is L2_PHI<*>)
+			{
+				// It's not a phi, so narrow the restriction in the read if
+				// necessary.  Phis mustn't do this, since their reads are in
+				// the context of an incoming edge's manifest.
 				manifest.updateRestriction(read.semanticValue()) {
 					read.restriction()
 				}
 			}
+			read.restrict { manifest.restrictionFor(read) }
 		}
 		writeOperands.forEach { write ->
 			manifest.updateRestriction(write.pickSemanticValue()) {
 				write.restriction()
 			}
-		}
-		// All manifests have now been updated, including propagation for
-		// related semantic values.  Narrow the restrictions for my reads and
-		// writes.  Phi instructions are excluded: their read operands each
-		// belong to a specific incoming edge's manifest (not the merged
-		// currentManifest), and their write restriction was already set
-		// correctly by populateOneSynonym as the union of incoming restrictions.
-		// Using the (stale, pre-merge) currentManifest here would incorrectly
-		// intersect those restrictions down to bottom.
-		if (this !is L2_PHI<*>)
-		{
-			val allManifests = manifestByPurpose.values + manifest
-			readOperands.forEach { read ->
-				// The outbound edges may vary in how they've deduced a stronger
-				// restriction for the semantic value being read here, so only
-				// strengthen the read up to the *union* of what the manifests
-				// have recorded.
-				val union = allManifests
-					.map { it.restrictionFor(read) }
-					.reduce(TypeRestriction::union)
-				read.restrict { union }
-			}
-			writesAndPurposesDo { write, purpose ->
-				if (purpose == null)
-				{
-					val intersection = allManifests
-						.map { it.restrictionFor(write.pickSemanticValue()) }
-						.reduce(TypeRestriction::intersection)
-					write.restrict { intersection }
-				}
-				else
-				{
-					// The write is associated with only one edge, so use the
-					// manifest that was just updated on that edge.
-					write.restrict {
-						manifestByPurpose[purpose]!!
-							.restrictionFor(write.pickSemanticValue())
-					}
-				}
-			}
+			// Narrow the restriction in the write if necessary.
+			write.restrict { manifest.restrictionFor(write) }
 		}
 	}
 
@@ -748,31 +692,33 @@ constructor() :
 		// non-edge operand, applying their effects.
 		val manifestByPurposeOrdinal =
 			arrayOfNulls<L2ValueManifest>(Purpose.entries.size)
-		operandsWithNamedTypesDo nextOperand@{ operand, namedOperandType ->
+		operandsWithNamedTypesDo { operand, namedOperandType ->
 			val purpose = namedOperandType.purpose
-			purpose ?: return@nextOperand
-			if (operand is L2PcOperand) return@nextOperand
-			if (operand is L2PcVectorOperand) return@nextOperand
-			var manifestCopy = manifestByPurposeOrdinal[purpose.ordinal]
-			if (manifestCopy === null)
+			if (purpose != null
+				&& operand !is L2PcOperand
+				&& operand !is L2PcVectorOperand)
 			{
-				manifestCopy = L2ValueManifest(manifest)
-				manifestByPurposeOrdinal[purpose.ordinal] = manifestCopy
+				var manifestCopy = manifestByPurposeOrdinal[purpose.ordinal]
+				if (manifestCopy === null)
+				{
+					manifestCopy = L2ValueManifest(manifest)
+					manifestByPurposeOrdinal[purpose.ordinal] = manifestCopy
+				}
+				operand.instructionWasAdded(manifestCopy)
 			}
-			operand.instructionWasAdded(manifestCopy)
 		}
 		// Now plug the suitably-purposed manifest copies into each edge.
-		operandsWithNamedTypesDo nextOperand@{ operand, namedOperandType ->
+		operandsWithNamedTypesDo { operand, namedOperandType ->
 			val purpose = namedOperandType.purpose
-			purpose ?: return@nextOperand
-			when (operand)
+			when
 			{
-				is L2PcOperand ->
+				purpose == null -> { }
+				operand is L2PcOperand ->
 				{
 					operand.instructionWasAdded(
 						manifestByPurposeOrdinal[purpose.ordinal] ?: manifest)
 				}
-				is L2PcVectorOperand ->
+				operand is L2PcVectorOperand ->
 				{
 					val manifestCopy =
 						manifestByPurposeOrdinal[purpose.ordinal] ?: manifest
@@ -1105,7 +1051,7 @@ constructor() :
 		val manifest = generator.currentManifest
 		// See if there's already an existing equivalent value.
 		val existing = originalWrite.semanticValues()
-			.firstNotNullOfOrNull { manifest.equivalentSemanticValue(it) }
+			.firstNotNullOfOrNull(manifest::equivalentPopulatedSemanticValue)
 		if (existing != null)
 		{
 			// Just augment the existing synonym.

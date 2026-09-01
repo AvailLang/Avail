@@ -693,6 +693,7 @@ constructor(
 					assert(targetBlock.predecessorEdges().isNotEmpty()
 						|| targetBlock.isIrremovable)
 					startBlock(targetBlock)
+					currentManifest.applyPostPhiMap(originalBlock.postPhiMap!!)
 					processBlock(
 						originalBlock,
 						originalBlock in impossibleBlocks)
