@@ -52,7 +52,7 @@ import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACE
 import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
@@ -124,7 +124,7 @@ object P_GetClearing : Primitive1(CanInline, HasSideEffect)
 		val failure = createBasicBlock("get clearing failure/observe")
 		val extractedValue = boxedWriteTemp(
 			"extracted",
-			boxedRestrictionForType(varInnerType))
+			restrictionForType(varInnerType))
 
 		// DO NOT try to generate a L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE
 		// here.  We can recognize the circumstance just fine by examining the

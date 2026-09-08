@@ -51,7 +51,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator

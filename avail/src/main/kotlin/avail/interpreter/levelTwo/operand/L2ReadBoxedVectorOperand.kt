@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.utility.cast
 
 /**
- * An `L2ReadBoxedVectorOperand` is an operand of type
+ * An [L2ReadBoxedVectorOperand] is an operand of type
  * [L2OperandType.READ_BOXED_VECTOR]. It holds a [List] of
  * [L2ReadBoxedOperand]s.
  *

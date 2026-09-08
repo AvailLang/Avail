@@ -70,8 +70,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.interpreter.levelTwo.operation.NumericComparator.LessOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
@@ -276,7 +275,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 				intB,
 				intWrite(
 					intWrite.semanticValues(),
-					intRestrictionForType(strongerType)))
+					restrictionForType(strongerType)))
 		},
 		ifOutputIsPossiblyInt = {
 			+L2_DIVIDE_INT_BY_INT(
@@ -300,14 +299,14 @@ object P_Division : Primitive2(CanFold, CanInline)
 			addAll(
 				typeRestrictionConditions(
 					setOf(aRead.register()),
-					boxedRestrictionForType(i31)))
+					restrictionForType(i31)))
 		}
 		if (!bRead.restriction().containedByType(positiveI31))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(bRead.register()),
-					boxedRestrictionForType(positiveI31)))
+					restrictionForType(positiveI31)))
 		}
 		// Since we've already excluded the case that the values are always
 		// out of range, we can still wish for the values to be in int

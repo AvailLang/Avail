@@ -56,7 +56,7 @@ import avail.exceptions.SignatureException
 import java.util.Collections
 
 /**
- * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a
+ * An [Optional] is a [Sequence] wrapped in guillemets («»), and followed by a
  * question mark (?).  It may not contain [Argument]s or subgroups, and since it
  * is not a group it may not contain a
  * [double&#32;dagger][DOUBLE_DAGGER] (‡).

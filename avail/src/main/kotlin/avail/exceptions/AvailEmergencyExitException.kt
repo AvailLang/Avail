@@ -39,7 +39,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import java.lang.String.format
 
 /**
- * An `AvailEmergencyExitException` is thrown when a primitive fails during
+ * An [AvailEmergencyExitException] is thrown when a primitive fails during
  * system bootstrapping.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

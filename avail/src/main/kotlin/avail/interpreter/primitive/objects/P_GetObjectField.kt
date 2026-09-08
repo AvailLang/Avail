@@ -61,16 +61,16 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Extract the specified [field][AtomDescriptor] from the
@@ -159,9 +159,7 @@ object P_GetObjectField : Primitive2(CanFold, CanInline)
 		}
 		objectRead.constantOrNull?.let { exactObject ->
 			val fieldValue = exactObject.fieldAt(fieldAtom)
-			moveBoxedRegister(
-				boxedConstant(fieldValue).semanticValue(),
-				result.semanticValues())
+			move(constant(fieldValue), result.semanticValues())
 			return
 		}
 		val objectType = objectRead.type()
@@ -173,7 +171,7 @@ object P_GetObjectField : Primitive2(CanFold, CanInline)
 	}
 
 	override fun propagateManifestRestrictions(
-		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)
 	{

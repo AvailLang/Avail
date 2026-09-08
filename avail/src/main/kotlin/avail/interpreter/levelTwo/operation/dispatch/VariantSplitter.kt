@@ -42,12 +42,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Used for splitting control flow based on some object or object type's
@@ -101,12 +101,12 @@ class VariantSplitter(
 			addAll(
 				typeRestrictionConditions(
 					listOf(intVariantRegister),
-					intRestrictionForConstant(variant.variantId)))
+					restrictionForConstant(variant.variantId)))
 			// Split if this variant id is excluded upstream.
 			addAll(
 				typeRestrictionConditions(
 					listOf(intVariantRegister),
-					intRestrictionForType(i31)
+					restrictionForType(i31)
 						.minusValue(fromInt(variant.variantId))))
 		}
 		when (sourceInstructionOfInt)
@@ -118,7 +118,7 @@ class VariantSplitter(
 				val originalSourceRegister =
 					sourceInstructionOfInt.sourceObject.register()
 				val baseRestriction =
-					boxedRestrictionForType(mostGeneralObjectType)
+					restrictionForType(mostGeneralObjectType)
 				edgeVariants.filterNotNull().forEach { variant ->
 					// It would be profitable to know that this
 					// variant's most general object type is always
@@ -148,7 +148,7 @@ class VariantSplitter(
 				val originalSourceRegister =
 					sourceInstructionOfInt.objectType.register()
 				val baseRestriction =
-					boxedRestrictionForType(mostGeneralObjectMeta)
+					restrictionForType(mostGeneralObjectMeta)
 				edgeVariants.filterNotNull().forEach { variant ->
 					// It would be profitable to know that this variant's most
 					// general object meta is always satisfied somewhere

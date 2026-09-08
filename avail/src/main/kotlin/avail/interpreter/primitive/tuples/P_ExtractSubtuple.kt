@@ -68,12 +68,12 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
@@ -86,7 +86,6 @@ import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import kotlin.math.max
@@ -318,8 +317,8 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val outOfRange =
 			createBasicBlock("out of range for ExtractSubtuple")
 		val (lowInt, highInt) = readTwoInts(
-			low.semanticValue().unboxedInt,
-			high.semanticValue().unboxedInt,
+			low.semanticValue(),
+			high.semanticValue(),
 			outOfRange)
 		{
 			return false
@@ -330,25 +329,25 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		assert(highType.isSubtypeOf(wholeNumbers))
 
 		val sizeRange = tuple.type().sizeRange
-		val sizeBoxed = primitiveInvocation(
+		val size = primitiveInvocation(
 			P_TupleSize,
 			listOf(tuple.semanticValue()))
-		val sizeInt = sizeBoxed.unboxedInt
-		val equivalentSize = currentManifest.intFormOf(sizeBoxed)
+		val equivalentSize = currentManifest
+			.equivalentPopulatedSemanticValue(size, INTEGER_KIND)
 		if (equivalentSize !== null)
 		{
 			// It already exists, so reuse it.
-			if (equivalentSize != sizeInt)
+			if (equivalentSize != size)
 			{
-				moveIntRegister(equivalentSize, setOf(sizeInt))
+				move(equivalentSize, setOf(size))
 			}
 		}
 		else
 		{
 			// It's not yet available, so compute it.
 			val writer = intWrite(
-				setOf(sizeInt),
-				intRestrictionForType(sizeRange))
+				setOf(size),
+				restrictionForType(sizeRange))
 			+L2_TUPLE_SIZE(tuple, writer)
 		}
 
@@ -361,7 +360,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 			compareAndBranchInt(
 				NumericComparator.LessOrEqual,
 				highInt,
-				readIntNoFail(sizeInt),
+				readIntNoFail(size),
 				edgeTo(inRange),
 				edgeTo(outOfRange))
 			startBlock(inRange)
@@ -379,8 +378,8 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 				lowInt,
 				unboxedIntConstant(1),
 				intWrite(
-					setOf(lowMinusOne.unboxedInt),
-					intRestrictionForType(
+					setOf(lowMinusOne),
+					restrictionForType(
 						integerRangeType(
 							lowInt.type().lowerBound
 								.noFailMinusCanDestroy(one, true),
@@ -390,7 +389,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 			val inRange = createBasicBlock("low - 1 <= high")
 			compareAndBranchInt(
 				NumericComparator.LessOrEqual,
-				readIntNoFail(lowMinusOne.unboxedInt),
+				readIntNoFail(lowMinusOne),
 				highInt,
 				edgeTo(inRange),
 				edgeTo(outOfRange))
@@ -404,7 +403,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 			highInt,
 			boxedWrite(
 				temp,
-				boxedRestrictionForType(
+				restrictionForType(
 					computeSliceType(
 						tuple.type(),
 						lowInt.type(),
@@ -432,8 +431,8 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val (inputTuple, low, high) = arguments.elements
 		+L2_TUPLE_SUBRANGE_NO_FAIL(
 			inputTuple,
-			readIntNoFail(low.semanticValue().unboxedInt),
-			readIntNoFail(high.semanticValue().unboxedInt),
+			readIntNoFail(low.semanticValue()),
+			readIntNoFail(high.semanticValue()),
 			result)
 	}
 }

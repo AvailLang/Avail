@@ -41,7 +41,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
@@ -50,10 +50,9 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticExtractedTag
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.utility.cast
 
 /**
@@ -102,7 +101,7 @@ constructor(
 		}
 		warmConstantInts.forEach { constant ->
 			val include =
-				intRestrictionForConstant(constant.extractInt)
+				restrictionForConstant(constant.extractInt)
 			conditions.addAll(
 				typeRestrictionConditions(
 					setOf(register),
@@ -259,10 +258,9 @@ constructor(
 
 	fun originalValueSource(
 		readInt: L2ReadIntOperand
-	): L2SemanticBoxedValue?
+	): L2SemanticValue?
 	{
-		val intTagValue = readInt.semanticValue()
-		val tagValue = intTagValue.boxed
+		val tagValue = readInt.semanticValue()
 		if (tagValue !is L2SemanticExtractedTag) return null
 		return tagValue.base.cast()
 	}

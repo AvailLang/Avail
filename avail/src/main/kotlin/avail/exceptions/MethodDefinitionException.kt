@@ -47,7 +47,7 @@ import avail.exceptions.AvailErrorCode.E_NO_METHOD
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 
 /**
- * A `MethodDefinitionException` is raised whenever an error condition is
+ * A [MethodDefinitionException] is raised whenever an error condition is
  * discovered that pertains to failed resolution of a [method][MethodDescriptor]
  * or [method][MethodDefinitionDescriptor] or failed invocation of a method
  * definition.

@@ -33,9 +33,7 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 
 /**
  * A semantic value which represents a numbered outer variable in the function
@@ -62,25 +60,23 @@ constructor(
 ) : L2FrameSpecificSemanticValue(frame, outerIndex xor -0x22fc3786)
 {
 	// Ignore the optionalName.
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		(other is L2SemanticOuter
 			&& super.equalsSemanticValue(other)
 			&& outerIndex == other.outerIndex)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		frameTransformer(frame).let { newFrame ->
 			if (newFrame == frame) this
 			else L2SemanticOuter(newFrame, outerIndex, optionalName)
 		}
 
 	override val defaultRestriction: TypeRestriction
-		get() = boxedRestrictionForType(frame.code.outerTypeAt(outerIndex))
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
+		get() = restrictionForType(frame.code.outerTypeAt(outerIndex))
 
 	override val primaryVisualSortKey get() = PrimaryVisualSortKey.OUTER
 

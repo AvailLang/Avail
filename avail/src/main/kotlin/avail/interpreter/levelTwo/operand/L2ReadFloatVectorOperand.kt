@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT_VECTOR
 import avail.utility.cast
 
 /**
- * An `L2ReadFloatVectorOperand` is an operand of type
+ * An [L2ReadFloatVectorOperand] is an operand of type
  * [L2OperandType.READ_FLOAT_VECTOR]. It holds a [List] of
  * [L2ReadFloatOperand]s.
  *

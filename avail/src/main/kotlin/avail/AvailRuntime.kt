@@ -217,7 +217,7 @@ import kotlin.concurrent.read
 import kotlin.math.min
 
 /**
- * An `AvailRuntime` comprises the [modules][ModuleDescriptor],
+ * An [AvailRuntime] comprises the [modules][ModuleDescriptor],
  * [methods][MethodDescriptor], [SpecialObject]s, and [HookType]s that define an
  * Avail system.  It also manages global resources, such as file connections.
  *

@@ -35,7 +35,7 @@ import avail.annotations.EnumField
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 
 /**
- * A `BitField` is constructed at class loading time and contains any cached
+ * A [BitField] is constructed at class loading time and contains any cached
  * information needed to efficiently access a range of up to 32 contiguous bits
  * from an [integer&#32;slot][IntegerSlotsEnum].
  *

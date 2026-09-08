@@ -34,9 +34,6 @@ package avail.optimizer.values
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.optimizer.L2Entity
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.utility.ifZero
 
 /**
@@ -83,7 +80,7 @@ internal class L2SemanticSlot constructor(
 	}
 
 	// Note: Ignore the optionalName.
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		(other is L2SemanticSlot
 			&& super.equalsSemanticValue(other)
 			&& slotIndex == other.slotIndex
@@ -91,7 +88,7 @@ internal class L2SemanticSlot constructor(
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticSlot =
 		frameTransformer(frame).let { newFrame ->
@@ -106,7 +103,7 @@ internal class L2SemanticSlot constructor(
 		if (optionalName == null) PrimaryVisualSortKey.SLOT
 		else PrimaryVisualSortKey.NAMED_SLOT
 
-	override fun secondaryCompare(other: L2Entity<*>): Int
+	override fun secondaryCompare(other: L2SemanticValue): Int
 	{
 		if (other !is L2SemanticSlot)
 			return super.secondaryCompare(other)

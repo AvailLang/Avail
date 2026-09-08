@@ -52,7 +52,7 @@ import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 
 /**
- * An `AboutAction` presents the "About Avail" dialog.
+ * An [AboutAction] presents the "About Avail" dialog.
  *
  * @constructor
  * Construct a new `AboutAction`.

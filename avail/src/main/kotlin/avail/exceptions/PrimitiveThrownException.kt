@@ -36,7 +36,7 @@ import avail.descriptor.representation.A_Fiber
 import avail.descriptor.representation.A_Fiber.Companion.failureContinuation
 
 /**
- * A `PrimitiveThrownException` may be thrown from a primitive as a way to
+ * A [PrimitiveThrownException] may be thrown from a primitive as a way to
  * terminate an [A_Fiber], causing its
  * [failure&#32;continuation][A_Fiber.failureContinuation] to be executed.
  *

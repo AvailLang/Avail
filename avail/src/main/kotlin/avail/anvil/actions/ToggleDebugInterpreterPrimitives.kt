@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ToggleDebugInterpreterPrimitives` toggles the flag that indicates whether
+ * A [ToggleDebugInterpreterPrimitives] toggles the flag that indicates whether
  * to write debug information about primitive execution to the transcript.
  *
  * @constructor

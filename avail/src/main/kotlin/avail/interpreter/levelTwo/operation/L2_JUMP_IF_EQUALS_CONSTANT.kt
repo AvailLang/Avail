@@ -46,15 +46,14 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
 
 /**
@@ -83,7 +82,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		val oldRestriction = value.restriction()
 		ifEqual.manifest().setRestriction(
 			value.semanticValue(),
-			boxedRestrictionForConstant(constant.constant))
+			restrictionForConstant(constant.constant))
 		ifNotEqual.manifest().setRestriction(
 			value.semanticValue(),
 			oldRestriction.minusValue(constant.constant))
@@ -139,17 +138,13 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		if (constant.constant.isInt)
 		{
 			// Do the comparison as ints, if possible.
-			if (valueRestriction.isUnboxedInt)
-			{
-				// Otherwise, compare as ints.
-				compareAndBranchInt(
-					NumericComparator.Equal,
-					readIntNoFail(value.semanticValue().unboxedInt),
-					unboxedIntConstant(constant.constant.extractInt),
-					ifEqual,
-					ifNotEqual)
-				return
-			}
+			compareAndBranchInt(
+				NumericComparator.Equal,
+				readIntNoFail(value.semanticValue()),
+				unboxedIntConstant(constant.constant.extractInt),
+				ifEqual,
+				ifNotEqual)
+			return
 		}
 		// Fall back to the object equality check.
 		+this@L2_JUMP_IF_EQUALS_CONSTANT
@@ -167,7 +162,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			addAll(
 				typeRestrictionConditions(
 					setOf(value.register()),
-					boxedRestrictionForConstant(constant.constant)))
+					restrictionForConstant(constant.constant)))
 		}
 		if (!ifNotEqual.targetBlock().isCold)
 		{
@@ -176,7 +171,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			addAll(
 				typeRestrictionConditions(
 					setOf(value.register()),
-					boxedRestrictionForType(ANY())
+					restrictionForType(ANY())
 						.minusValue(constant.constant)))
 		}
 	}

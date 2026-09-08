@@ -43,7 +43,7 @@ import avail.descriptor.representation.AvailObject.Companion.error
 import java.lang.String.format
 
 /**
- * A `LookupTree` representing a solution.
+ * A [LookupTree] representing a solution.
  *
  * @param Element
  *   The kind of elements in the lookup tree, such as method definitions.

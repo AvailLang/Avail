@@ -44,12 +44,11 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -79,9 +78,9 @@ class L2_APPEND_TO_TUPLE(
 	}
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>)
+		destinationSemanticValues: Set<L2SemanticValue>)
 	{
 		// If the index is between 1 and the lower bound of the inputTuple's
 		// size, we can just extract the element from the inputTuple.  If the
@@ -103,7 +102,7 @@ class L2_APPEND_TO_TUPLE(
 				&& index == lowerBoundInt + 1)
 			{
 				// It's definitely the elementToAppend.
-				moveBoxedRegister(
+				move(
 					elementToAppend.semanticValue(),
 					destinationSemanticValues)
 				return
@@ -115,7 +114,7 @@ class L2_APPEND_TO_TUPLE(
 			L2IntImmediateOperand(index),
 			boxedWrite(
 				destinationSemanticValues,
-				boxedRestrictionForType(
+				restrictionForType(
 					outputTuple.restriction().type.typeAtIndex(index))))
 	}
 

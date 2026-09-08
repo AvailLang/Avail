@@ -43,7 +43,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * An `OptionProcessor` serves primarily to support command-line argument
+ * An [OptionProcessor] serves primarily to support command-line argument
  * processing, but may occasionally prove useful in other circumstances.
  *
  * An option processor is parametric on the type of its option keys. The

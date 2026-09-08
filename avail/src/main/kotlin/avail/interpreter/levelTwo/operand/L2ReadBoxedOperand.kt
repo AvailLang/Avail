@@ -44,14 +44,13 @@ import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
- * An `L2ReadBoxedOperand` is an operand of type [L2OperandType.READ_BOXED]. It
+ * An [L2ReadBoxedOperand] is an operand of type [L2OperandType.READ_BOXED]. It
  * holds the actual [L2BoxedRegister] that is to be accessed.
  *
  * @constructor
@@ -72,19 +71,12 @@ import avail.utility.cast
  */
 class L2ReadBoxedOperand
 constructor(
-	semanticValue: L2SemanticValue<BOXED_KIND>,
+	semanticValue: L2SemanticValue,
 	restriction: TypeRestriction,
 	register: L2Register<BOXED_KIND>? = null
 ) : L2ReadOperand<BOXED_KIND>(semanticValue, restriction, register)
 {
-	init {
-		assert(restriction.isBoxed)
-	}
-
 	override val operandType: L2OperandType get() = READ_BOXED
-
-	override fun semanticValue(): L2SemanticBoxedValue =
-		super.semanticValue().cast()
 
 	override fun register(): L2BoxedRegister = super.register().cast()
 

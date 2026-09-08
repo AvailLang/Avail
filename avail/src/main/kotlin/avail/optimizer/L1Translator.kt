@@ -136,9 +136,8 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
@@ -179,7 +178,6 @@ import avail.interpreter.levelTwo.operation.variables.L2_GET_AND_CLEAR_IF_MUTABL
 import avail.interpreter.levelTwo.operation.variables.L2_GET_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
@@ -207,13 +205,14 @@ import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIV
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.START
 import avail.optimizer.L2Optimizer.GenerationMode
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
+import avail.utility.mapToSet
 import java.util.IdentityHashMap
 import java.util.logging.Level
 
@@ -311,7 +310,7 @@ class L1Translator private constructor(
 	 * continuation.  These indices are zero-based, but the slot numbering is
 	 * one-based.
 	 */
-	private val semanticSlots: Array<L2SemanticBoxedValue> =
+	private val semanticSlots: Array<L2SemanticValue> =
 		Array(numSlots) { createSemanticSlot(1 + it, 1) }
 
 	/**
@@ -352,7 +351,7 @@ class L1Translator private constructor(
 	 * Create a semantic slot for the given one-based [index], representing the
 	 * state just before reaching the specified [afterPc].
 	 */
-	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticBoxedValue =
+	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticValue =
 		topFrame.semanticSlot(
 			index,
 			afterPc,
@@ -367,7 +366,7 @@ class L1Translator private constructor(
 	 * @return
 	 *   The [L2SemanticValue] for that slot.
 	 */
-	private fun semanticSlot(index: Int): L2SemanticBoxedValue =
+	private fun semanticSlot(index: Int): L2SemanticValue =
 		semanticSlots[index - 1]
 
 	/**
@@ -459,14 +458,14 @@ class L1Translator private constructor(
 	private fun forceSlotRegister(
 		slotIndex: Int,
 		effectivePc: Int,
-		sourceSemanticValue: L2SemanticBoxedValue,
+		sourceSemanticValue: L2SemanticValue,
 		restriction: TypeRestriction)
 	{
 		// Create a new L2SemanticSlot at the effective pc, representing this
 		// newly written value.
 		val slotSemanticValue = createSemanticSlot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = slotSemanticValue
-		moveBoxedRegister(
+		move(
 			sourceSemanticValue,
 			setOf(slotSemanticValue))
 		currentManifest.setRestriction(slotSemanticValue, restriction)
@@ -484,7 +483,7 @@ class L1Translator private constructor(
 	 */
 	private fun forceSlot(
 		slotIndex: Int,
-		semanticValue: L2SemanticBoxedValue)
+		semanticValue: L2SemanticValue)
 	{
 		semanticSlots[slotIndex - 1] = semanticValue
 	}
@@ -503,7 +502,9 @@ class L1Translator private constructor(
 		val semanticConstant = constant(constant)
 		if (!currentManifest.hasSemanticValue(semanticConstant))
 		{
-			+BOXED_KIND.moveConstant(constant, setOf(semanticConstant))
+			currentManifest.introduceSynonym(
+				setOf(semanticConstant),
+				semanticConstant.defaultRestriction)
 		}
 		forceSlot(slotIndex, semanticConstant)
 	}
@@ -561,7 +562,7 @@ class L1Translator private constructor(
 			return boxedConstant(outerType.instance)
 		}
 		val functionRead = currentFunction
-		var restriction = boxedRestrictionForType(outerType)
+		var restriction = restrictionForType(outerType)
 		if (functionRead.restriction().isImmutable)
 		{
 			// An immutable function has immutable captured outers.
@@ -595,7 +596,7 @@ class L1Translator private constructor(
 	{
 		val writer = boxedWriteTemp(
 			name,
-			boxedRestrictionForType(guaranteedType))
+			restrictionForType(guaranteedType))
 		+L2_GET_LATEST_RETURN_VALUE(writer)
 		return readBoxed(writer)
 	}
@@ -639,7 +640,7 @@ class L1Translator private constructor(
 					localIndices.map { slotIndex ->
 						boxedWrite(
 							createSemanticSlot(slotIndex, pc),
-							boxedRestrictionForType(
+							restrictionForType(
 								code.localTypeAt(slotIndex - numArgs)))
 					}),
 				edgeTo(ifSafe),
@@ -659,7 +660,7 @@ class L1Translator private constructor(
 			// Move the locals into new semantic slots, as part of the mechanism
 			// that prevents reordering reads and writes.
 			localIndices.forEach { slotIndex ->
-				moveBoxedRegister(
+				move(
 					semanticSlot(slotIndex),
 					listOf(createSemanticSlot(slotIndex, pc)))
 			}
@@ -742,10 +743,10 @@ class L1Translator private constructor(
 		// returning into the resulting continuation it will enter a block where
 		// the slot registers are the new ones we just created.
 		val writeOffset = intWriteTemp(
-			"resumption offset", intRestrictionForType(i32))
+			"resumption offset", restrictionForType(i32))
 		val writeRegisterDump = boxedWriteTemp(
 			"register dump",
-			boxedRestrictionForType(Types.OTHER_NONTYPE()))
+			restrictionForType(Types.OTHER_NONTYPE()))
 		val fallThrough = createBasicBlock("Off-ramp", zone)
 		+L2_SAVE_ALL_AND_PC_TO_INT(
 			ifFallThrough = edgeTo(fallThrough),
@@ -760,11 +761,11 @@ class L1Translator private constructor(
 		// contain the reified caller.
 		val writeReifiedCaller = boxedWrite(
 			topFrame.reifiedCaller(),
-			boxedRestrictionForType(mostGeneralContinuationType))
+			restrictionForType(mostGeneralContinuationType))
 		+L2_GET_CURRENT_CONTINUATION(writeReifiedCaller)
 		val newContinuationWrite = boxedWriteTemp(
 			"new continuation",
-			boxedRestrictionForType(mostGeneralContinuationType))
+			restrictionForType(mostGeneralContinuationType))
 		if (defaultEntryPoint === DefaultEntryPoint.TRANSIENT)
 		{
 			// L1 can never see this continuation, so it can be minimal.
@@ -778,7 +779,7 @@ class L1Translator private constructor(
 				destination = newContinuationWrite,
 				labelAddress = L2ReadIntOperand(
 					writeOffset.onlySemanticValue(),
-					intRestrictionForType(i32)),
+					restrictionForType(i32)),
 				registerDump = readBoxed(writeRegisterDump),
 				comment = L2CommentOperand(
 					"Create a dummy reification continuation."))
@@ -798,7 +799,7 @@ class L1Translator private constructor(
 				destination = newContinuationWrite,
 				labelAddress = L2ReadIntOperand(
 					writeOffset.onlySemanticValue(),
-					intRestrictionForType(i32)),
+					restrictionForType(i32)),
 				registerDump = readBoxed(writeRegisterDump),
 				comment = L2CommentOperand(
 					"Create a reification continuation."))
@@ -851,18 +852,14 @@ class L1Translator private constructor(
 		+L2_STRIP_MANIFEST(
 			L2ReadBoxedVectorOperand(tempWrites.map(::readBoxed)),
 			L2WriteBoxedVectorOperand(finalWrites))
-		val liveEntities = mutableSetOf<L2Entity<*>>()
-		liveEntities.addAll(finalSlots)
-//		finalSlots.mapTo(liveEntities) { sv ->
-//			currentManifest.getDefinition(sv)
-//		}
 
 		// Jump back to the RESTART_LOOP_HEAD, where only the n@1 semantic slots
 		// and registers will be live and added to the phis.
 		+L2_JUMP_BACK(
 			backEdgeTo(
 				specialBlocks[RESTART_LOOP_HEAD]!!,
-				liveEntities),
+				finalWrites.mapToSet { it.register() },
+				finalSlots.toSet()),
 			L2ReadBoxedVectorOperand(finalSlots.map(::readBoxed)))
 	}
 
@@ -1033,7 +1030,7 @@ class L1Translator private constructor(
 				Triple(
 					null as L2BasicBlock?,
 					tree,
-					emptyList<L2SemanticBoxedValue>()))
+					emptyList<L2SemanticValue>()))
 			while (edges.isNotEmpty())
 			{
 				val (block, node, extraSemanticArguments) = edges.removeLast()
@@ -1249,7 +1246,7 @@ class L1Translator private constructor(
 						arguments.map(L2ReadBoxedOperand::semanticValue))
 					manifest.equivalentSemanticValue(semanticPrimitive)?.let {
 							equivalent ->
-						moveRegister(equivalent, listOf(semanticPrimitive))
+						move(equivalent, listOf(semanticPrimitive))
 						callSiteHelper.useAnswer(
 							readBoxed(semanticPrimitive),
 							false)
@@ -1292,7 +1289,7 @@ class L1Translator private constructor(
 					val writer = boxedWrite(
 						primitive.semanticInvocation(
 							arguments.map(L2ReadBoxedOperand::semanticValue)),
-						boxedRestrictionForType(resultType))
+						restrictionForType(resultType))
 					val invoke = L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 						L2ConstantOperand(rawFunction),
 						primitive,
@@ -1368,7 +1365,7 @@ class L1Translator private constructor(
 		val writeResult = writeSlot(
 			stackp,
 			if (skipCheck) pc else pc - 1,
-			boxedRestrictionForType(
+			restrictionForType(
 				if (guaranteedResultType.isBottom) Types.ANY() // unreachable
 				else guaranteedResultType))
 		val unreachable = L2BasicBlock("unreachable", isCold = true)
@@ -1503,7 +1500,7 @@ class L1Translator private constructor(
 				pc,
 				uncheckedValueRead.semanticValue(),
 				uncheckedValueRead.restriction().intersection(
-					boxedRestrictionForType(expectedType)))
+					restrictionForType(expectedType)))
 		}
 	}
 
@@ -1658,7 +1655,7 @@ class L1Translator private constructor(
 			isCold = true)
 		val argumentRestrictions =
 			callSiteHelper.semanticArguments.mapIndexed { i, arg ->
-				boxedRestrictionForType(
+				restrictionForType(
 					callSiteHelper.superUnionType.typeAtIndex(i + 1)
 				).union(currentManifest.restrictionFor(arg))
 		}
@@ -1687,7 +1684,7 @@ class L1Translator private constructor(
 		// It doesn't necessarily always fail, so try a lookup.
 		val functionWrite = boxedWriteTemp(
 			"looked-up function",
-			boxedRestrictionForType(functionTypeUnion))
+			restrictionForType(functionTypeUnion))
 		if (!callSiteHelper.isSuper)
 		{
 			// Not a super-call.
@@ -1723,7 +1720,7 @@ class L1Translator private constructor(
 							argStaticType.typeUnion(superUnionElementType)
 						val argTypeWrite = boxedWriteTemp(
 							"lookup arg type",
-							boxedRestrictionForType(instanceMeta(typeBound)))
+							restrictionForType(instanceMeta(typeBound)))
 						if (superUnionElementType.isBottom)
 						{
 							// Only this argument's actual type matters.
@@ -1739,7 +1736,7 @@ class L1Translator private constructor(
 							val originalArgTypeWrite =
 								boxedWriteTemp(
 									"original arg type",
-									boxedRestrictionForType(
+									restrictionForType(
 										instanceMeta(typeBound)))
 							+L2_GET_TYPE(argReg, originalArgTypeWrite)
 							+L2_TYPE_UNION(
@@ -1888,7 +1885,7 @@ class L1Translator private constructor(
 	 * @param type
 	 *   The type of value that is to be read.
 	 * @param destination
-	 *   The optional [L2SemanticBoxedValue] into which to write the result.
+	 *   The optional [L2SemanticValue] into which to write the result.
 	 *   If omitted or null, write to the top of stack at the current pc, and
 	 *   update the current semantic slot at that stack pointer.
 	 */
@@ -1896,10 +1893,10 @@ class L1Translator private constructor(
 		clearMode: GetClearMode,
 		variable: L2ReadBoxedOperand,
 		type: A_Type,
-		destination: L2SemanticBoxedValue? = null)
+		destination: L2SemanticValue? = null)
 	{
 		val value = destination ?: createSemanticSlot(stackp, pc)
-		val write = boxedWrite(value, boxedRestrictionForType(type))
+		val write = boxedWrite(value, restrictionForType(type))
 
 		val success = createBasicBlock("successfully read variable")
 		val rw = when (clearMode)
@@ -1966,7 +1963,7 @@ class L1Translator private constructor(
 				variableOut = boxedWrite(variableOut, variableRestriction),
 				extractedValue = boxedWrite(
 					extractedValue,
-					boxedRestrictionForType(variableRestriction.type.readType)),
+					restrictionForType(variableRestriction.type.readType)),
 				ifReadSucceeded = edgeTo(success),
 				ifReadFailed = edgeTo(failure))
 		}
@@ -1978,7 +1975,7 @@ class L1Translator private constructor(
 				variableOut = boxedWrite(variableOut, variableRestriction),
 				extractedValue = boxedWrite(
 					extractedValue,
-					boxedRestrictionForType(variableRestriction.type.readType)),
+					restrictionForType(variableRestriction.type.readType)),
 				ifReadSucceeded = edgeTo(success),
 				ifReadFailed = edgeTo(failure))
 		}
@@ -2032,11 +2029,11 @@ class L1Translator private constructor(
 		startBlock(failure)
 		val observeFunction = boxedWriteTemp(
 			"observeFun",
-			boxedRestrictionForType(HookType.IMPLICIT_OBSERVE.functionType))
+			restrictionForType(HookType.IMPLICIT_OBSERVE.functionType))
 		+L2_GET_IMPLICIT_OBSERVE_FUNCTION(observeFunction)
 		val variableAndValueTupleReg = boxedWriteTemp(
 			"var/val pair",
-			boxedRestrictionForType(
+			restrictionForType(
 				tupleTypeForTypes(variable.type(), newValue.type())))
 		+L2_CREATE_TUPLE(
 			L2ReadBoxedVectorOperand(listOf(variable, newValue)),
@@ -2120,7 +2117,7 @@ class L1Translator private constructor(
 				(1..numArgs).map { i ->
 					boxedWrite(
 						semanticSlot(i),
-						boxedRestrictionForType(tupleType.typeAtIndex(i)))
+						restrictionForType(tupleType.typeAtIndex(i)))
 				}))
 		// Insulate the jump to the loop head, so that the original registers
 		// won't be used.  Note that the same semantic values are being written,
@@ -2131,7 +2128,7 @@ class L1Translator private constructor(
 			L2WriteBoxedVectorOperand((1..numArgs).map { i ->
 				boxedWrite(
 					semanticSlot(i),
-					boxedRestrictionForType(tupleType.typeAtIndex(i)))
+					restrictionForType(tupleType.typeAtIndex(i)))
 			}))
 
 		// Do any reoptimization before capturing arguments.
@@ -2173,13 +2170,13 @@ class L1Translator private constructor(
 			// Capture the primitive failure value in the first local constant.
 			assert(!primitive.hasFlag(Flag.CannotFail))
 			val failureType = primitive.failureVariableType
-			moveBoxedRegister(
+			move(
 				getLatestReturnValue(
 					"failure code", failureType).semanticValue(),
 				writeSlot(
 					startOfConstantsToClear++,
 					pc,
-					boxedRestrictionForType(failureType)
+					restrictionForType(failureType)
 				).semanticValues())
 		}
 
@@ -2205,7 +2202,7 @@ class L1Translator private constructor(
 				variable = writeSlot(
 					numArgs + localIndex,
 					pc,
-					boxedRestrictionForType(localType)),
+					restrictionForType(localType)),
 				initialValueOrNil = boxedConstant(nil),
 				constantVariableIfElided =
 					L2ConstantOperand(elidedLocalPlaceholders[localIndex - 1]))
@@ -2325,8 +2322,7 @@ class L1Translator private constructor(
 			// ensure the variable continues to be accessed causally.  Any L1
 			// instructions after this point will use the new semantic value.
 			val newSlot = createSemanticSlot(slotIndex, pc)
-			moveBoxedRegister(
-				semanticSlot(slotIndex), listOf(newSlot))
+			move(semanticSlot(slotIndex), listOf(newSlot))
 			forceSlot(slotIndex, newSlot)
 		}
 	}
@@ -2358,7 +2354,7 @@ class L1Translator private constructor(
 			writeSlot(
 				stackp,
 				pc,
-				boxedRestrictionForType(codeLiteral.functionType())))
+				restrictionForType(codeLiteral.functionType())))
 
 		// Now that the function has been constructed, clear the slots that
 		// were used for outer values -- except the destination slot, which
@@ -2379,7 +2375,7 @@ class L1Translator private constructor(
 			writeSlot(
 				slotIndex,
 				pc,
-				boxedRestrictionForType(
+				restrictionForType(
 					code.localTypeAt(slotIndex - numArgs))))
 		nilSlot(stackp)
 		stackp++
@@ -2571,7 +2567,7 @@ class L1Translator private constructor(
 		val permutation: A_Tuple =
 			code.literalAt(instructionDecoder.getOperand())
 		val size = permutation.tupleSize
-		val temps = arrayOfNulls<L2SemanticBoxedValue>(size)
+		val temps = arrayOfNulls<L2SemanticValue>(size)
 		// Read each semantic slot to be permuted.
 		permutation.forEachIndexed { i, value ->
 			temps[value.extractInt - 1] =

@@ -63,6 +63,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -86,11 +87,20 @@ import java.util.IdentityHashMap
 import java.util.regex.Pattern
 
 /**
- * An _atom_ is an object that has identity by fiat, i.e., it is distinguished
+ * An [A_Atom] is an object that has identity by fiat, i.e., it is distinguished
  * from all other objects by the fact of its creation event and the history of
  * what happens to its references.  Not all objects in Avail have that property
  * (hence the acronym Advanced Value And Identity Language), unlike most
  * object-oriented programming languages.
+ *
+ * At any time an atom can have properties associated with it.  A property is an
+ * association between another atom, known as the property key, and the value of
+ * that property, any Avail object.  Atoms without properties have a
+ * [representation][AtomDescriptor] that does not include a slot for the
+ * properties information, but adding a property causes it to transform (via
+ * [AvailObjectRepresentation.becomeIndirectionTo] into an
+ * [AtomWithPropertiesDescriptor] representation that has a slot which contains
+ * a map from property keys to property values.
  *
  * When an atom is created, a [string][A_String] is supplied to act as the
  * atom's name. This name does not have to be unique among atoms, and is simply

@@ -57,12 +57,8 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticUnboxedFloat
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.increaseIndentation
@@ -101,8 +97,8 @@ protected constructor(
 	 */
 	abstract fun destination(): L2WriteOperand<K>
 
-	/** Extract an [L2SemanticValue] with a kind that matches [K]. */
-	abstract fun getConstantSemanticValue(): L2SemanticValue<K>
+	/** Extract a constant [L2SemanticValue]. */
+	abstract fun getConstantSemanticValue(): L2SemanticValue
 
 	/**
 	 * Emit JVM code that causes the constant value of the appropriate type to
@@ -131,13 +127,15 @@ protected constructor(
 		// synonym.
 		val semanticConstant = getConstantSemanticValue()
 		if (currentManifest.hasSemanticValue(semanticConstant)
-			&& currentManifest.getDefinitions(semanticConstant).isNotEmpty())
+			&& currentManifest
+				.getDefinitions(semanticConstant, kind)
+				.isNotEmpty())
 		{
 			val newValues = destination().semanticValues()
 				.filterNot(currentManifest::hasSemanticValue)
 			if (newValues.isNotEmpty())
 			{
-				moveRegister(semanticConstant, newValues)
+				move(semanticConstant, newValues)
 			}
 			return
 		}
@@ -197,11 +195,11 @@ constructor(
 	}
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
-	): Unit = moveBoxedRegister(
-		boxedConstant(constant().constant.tupleAt(index)).semanticValue(),
+		destinationSemanticValues: Set<L2SemanticValue>
+	): Unit = move(
+		constant(constant().constant.tupleAt(index)),
 		destinationSemanticValues)
 
 	override fun propagateMutability(
@@ -227,8 +225,7 @@ constructor(
 
 	override fun destination(): L2WriteIntOperand = destination
 
-	override fun getConstantSemanticValue() =
-		constant(source.value).unboxedInt
+	override fun getConstantSemanticValue() = constant(source.value)
 
 	override fun JVMTranslator.pushConstant() =
 		intConstant(constant().value)
@@ -246,8 +243,7 @@ constructor(
 
 	override fun destination(): L2WriteFloatOperand = destination
 
-	override fun getConstantSemanticValue(): L2SemanticUnboxedFloat =
-		constant(fromDouble(source.value)).unboxedFloat
+	override fun getConstantSemanticValue() = constant(fromDouble(source.value))
 
 	override fun JVMTranslator.pushConstant() =
 		doubleConstant(constant().value)

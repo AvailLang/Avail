@@ -124,7 +124,7 @@ import avail.dispatch.TypeComparison.Companion.compareForParsing
 import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.performance.Statistic
 import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.utility.Strings.newlineTab
@@ -690,7 +690,7 @@ class MessageBundleTreeDescriptor private constructor(
 				lazyTypeFilterTree = ParserTypeChecker.createRoot(
 					toList(lazyTypeFilterPairsTuple),
 					listOf(
-						boxedRestrictionForType(PARSE_PHRASE.mostGeneralType)),
+						restrictionForType(PARSE_PHRASE.mostGeneralType)),
 					latestBack)
 			}
 			// Do this volatile write last for correctness.

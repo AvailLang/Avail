@@ -36,18 +36,14 @@ import avail.descriptor.representation.A_Type.Companion.instanceTag
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.optimizer.L2ValueManifest
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.ValueClass
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
- * A semantic value which represents the [TypeTag] extracted from some [base]
- * semantic value.  To keep unboxed ints homogenous, this will always be wrapped
- * inside an [L2SemanticUnboxedInt], even though the boxed value generally will
- * not occur in any [L2BoxedRegister].
+ * A semantic value which represents the ordinal of the [TypeTag] extracted from
+ * some [base] semantic value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -58,22 +54,20 @@ import avail.optimizer.ValueClass
  *   The semantic value holding the value for which a [TypeTag] has been
  *   extracted.
  */
-class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
-	: L2SemanticBoxedValue(base.hash + 0x53408C24)
+class L2SemanticExtractedTag constructor(val base: L2SemanticValue)
+	: L2SemanticValue(base.hash + 0x53408C24)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		other is L2SemanticExtractedTag && base.equalsSemanticValue(other.base)
 
 	override val defaultRestriction: TypeRestriction
 		get() = base.defaultRestriction.let { baseRestriction ->
 			baseRestriction.constantOrNull?.let { constant ->
-				return boxedRestrictionForConstant(
+				return restrictionForConstant(
 					fromInt(constant.typeTag.ordinal))
 			}
 			return restrictionForTag(baseRestriction.type.instanceTag)
 		}
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override fun recordDerivationIn(
 		manifest: L2ValueManifest,
@@ -82,9 +76,9 @@ class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		semanticValueTransformer(base).let { newFrame ->
 			if (newFrame == base) this else L2SemanticExtractedTag(newFrame)
 		}
@@ -98,6 +92,6 @@ class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
 		 * [TypeTag].
 		 */
 		private fun restrictionForTag(tag: TypeTag) =
-			boxedRestrictionForType(inclusive(tag.ordinal, tag.highOrdinal))
+			restrictionForType(inclusive(tag.ordinal, tag.highOrdinal))
 	}
 }

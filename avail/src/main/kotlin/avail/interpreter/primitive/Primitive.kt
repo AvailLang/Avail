@@ -34,6 +34,7 @@ package avail.interpreter.primitive
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.AvailRuntimeSupport.captureNanos
+import avail.annotations.DSLHelper
 import avail.compiler.PragmaKind
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.specialPrimitivePatterns
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -78,10 +79,10 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_RunInfalliblePrimitiveNoCheck
@@ -89,7 +90,6 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
-import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
@@ -102,7 +102,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
@@ -110,8 +109,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -187,7 +185,7 @@ import java.util.regex.Pattern
  *
  * Note that it's essential that this method, invoked during static
  * initialization of each Primitive subclass, install this new instance into
- * this primitive's [PrimitiveHolder] in [holdersByClassName].
+ * this primitive's [PrimitiveHolder.holdersByClassName].
  *
  * @param argCount
  *   The number of arguments the primitive expects.  The value -1 is used by
@@ -953,9 +951,9 @@ constructor(
 		// type as possible.
 		val guaranteedType =
 			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val restriction = boxedRestrictionForType(
+		val restriction = restrictionForType(
 			if (guaranteedType.isBottom) TOP() else guaranteedType)
-		val semanticValue: L2SemanticBoxedValue
+		val semanticValue: L2SemanticValue
 		if (hasFlag(Flag.CanFold) && !guaranteedType.isBottom)
 		{
 			semanticValue = primitiveInvocation(
@@ -963,7 +961,8 @@ constructor(
 				arguments.map(L2ReadBoxedOperand::semanticValue))
 			// See if we already have a value for an equivalent invocation.
 			currentManifest.equivalentPopulatedSemanticValue(
-				semanticValue
+				semanticValue,
+				BOXED_KIND
 			)?.let { equivalent ->
 				// Reuse the previously computed result.
 				currentManifest.updateRestriction(equivalent) {
@@ -1148,7 +1147,7 @@ constructor(
 					rawFunction = rawFunction,
 					arguments = arguments,
 					answer = answer)
-				return true // boxedRestrictionForType(guaranteedType)
+				return true // restrictionForType(guaranteedType)
 			}
 			else ->
 			{
@@ -1262,6 +1261,7 @@ constructor(
 	 *
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
+	@DSLHelper
 	class BinaryIntGeneratorHelper(
 		val intA: L2ReadIntOperand,
 		val intB: L2ReadIntOperand,
@@ -1279,6 +1279,7 @@ constructor(
 	 *
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
+	@DSLHelper
 	class BinaryNonIntGeneratorHelper(
 		@Suppress("unused")
 		val boxedA: L2ReadBoxedOperand,
@@ -1351,10 +1352,7 @@ constructor(
 		val valueB = boxedB.semanticValue()
 		val intSuccess = translator.createBasicBlock("output is i32")
 		val intFallback = translator.createBasicBlock("fall back to boxed")
-		val (intA, intB) = translator.readTwoInts(
-			valueA.unboxedInt,
-			valueB.unboxedInt,
-			intFallback)
+		val (intA, intB) = translator.readTwoInts(valueA, valueB, intFallback)
 		{
 			return false
 		}
@@ -1364,13 +1362,12 @@ constructor(
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction, listOf(aIntersectInt32.type, bIntersectInt32.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
-		val intSemanticPrimitive = semanticPrimitive.unboxedInt
 		val intWriter = translator.intWrite(
-			setOf(intSemanticPrimitive),
-			intRestrictionForType(returnTypeIfInts.typeIntersection(i32)))
+			setOf(semanticPrimitive),
+			restrictionForType(returnTypeIfInts.typeIntersection(i32)))
 		val boxedWrite = translator.boxedWrite(
 			setOf(semanticPrimitive),
-			boxedRestrictionForType(returnTypeIfInts))
+			restrictionForType(returnTypeIfInts))
 		val helper = BinaryIntGeneratorHelper(
 			intA = intA,
 			intB = intB,
@@ -1388,16 +1385,17 @@ constructor(
 			// depending whether an unboxed value is desired.
 
 			// Check if there's already an equivalent int value available.
-			val equivalent = helper.currentManifest.populatedIntFormOf(
-				primitiveInvocation(
-					this,
-					arguments.map(L2ReadBoxedOperand::semanticValue)))
+			val equivalent = helper.currentManifest
+				.equivalentPopulatedSemanticValue(
+					primitiveInvocation(
+						this,
+						arguments.map(L2ReadBoxedOperand::semanticValue)),
+					INTEGER_KIND)
 			when (equivalent)
 			{
 				null -> helper.ifOutputIsInt()
-				else ->  callSiteHelper.translator.moveRegister(
-					equivalent,
-					intWriter.semanticValues())
+				else -> callSiteHelper.translator.move(
+					equivalent, intWriter.semanticValues())
 			}
 		}
 		else
@@ -1413,8 +1411,7 @@ constructor(
 		// int-specific generation blocks are allowed to have simply emitted a
 		// jump to the fallback, so only use the int/boxed value if it exists.
 		val manifest = translator.currentManifest
-		if (manifest.hasSemanticValue(semanticPrimitive) ||
-			manifest.hasSemanticValue(semanticPrimitive.unboxedInt))
+		if (manifest.hasSemanticValue(semanticPrimitive))
 		{
 			callSiteHelper.useAnswer(
 				translator.readBoxed(semanticPrimitive), false)
@@ -1620,12 +1617,12 @@ constructor(
 	 * primitive with the provided list of boxed semantic values.
 	 *
 	 * @param arguments
-	 *   [L2SemanticBoxedValue]s that supplied the arguments to the primitive.
+	 *   [L2SemanticValue]s that supplied the arguments to the primitive.
 	 * @return
-	 *   The [L2SemanticBoxedValue] representing the primitive result.
+	 *   The [L2SemanticValue] representing the primitive result.
 	 */
 	fun semanticInvocation(
-		arguments: List<L2SemanticBoxedValue>
+		arguments: List<L2SemanticValue>
 	): L2SemanticPrimitiveInvocation = primitiveInvocation(this, arguments)
 
 	/**
@@ -1633,12 +1630,12 @@ constructor(
 	 * primitive with the provided varargs array of boxed semantic values.
 	 *
 	 * @param arguments
-	 *   [L2SemanticBoxedValue]s that supplied the arguments to the primitive.
+	 *   [L2SemanticValue]s that supplied the arguments to the primitive.
 	 * @return
-	 *   The [L2SemanticBoxedValue] representing the primitive result.
+	 *   The [L2SemanticValue] representing the primitive result.
 	 */
 	fun semanticInvocation(
-		vararg arguments: L2SemanticBoxedValue
+		vararg arguments: L2SemanticValue
 	): L2SemanticPrimitiveInvocation
 	{
 		assert(argCount == -1 || arguments.size == argCount)
@@ -1652,14 +1649,14 @@ constructor(
 	 * any related [L2SemanticValue]s.
 	 *
 	 * @param arguments
-	 *   The argument [L2SemanticBoxedValue]s of the primitive invocation.
+	 *   The argument [L2SemanticValue]s of the primitive invocation.
 	 * @param manifest
 	 *   The [L2ValueManifest] to update.
 	 * @param restriction
 	 *   The current boxed [TypeRestriction] of the primitive invocation.
 	 */
 	open fun propagateManifestRestrictions(
-		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)
 	{

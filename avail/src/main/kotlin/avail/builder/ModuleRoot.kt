@@ -41,7 +41,7 @@ import org.availlang.persistence.IndexedFileException
 import java.io.File
 
 /**
- * A `ModuleRoot` represents a vendor of Avail modules and/or the vended modules
+ * A [ModuleRoot] represents a vendor of Avail modules and/or the vended modules
  * themselves.
  *
  * @property name

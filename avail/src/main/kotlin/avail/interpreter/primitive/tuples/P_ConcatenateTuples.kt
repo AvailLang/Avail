@@ -67,7 +67,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.levelTwo.operation.tuples.L2_CONCATENATE_TUPLES
@@ -217,7 +217,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 			val (inputTuple, newElementTuple) = adjustedSources
 			val resultWrite = boxedWriteTemp(
 				"left tuple",
-				boxedRestrictionForType(
+				restrictionForType(
 					concatenatingAnd(
 						inputTuple.type(),
 						newElementTuple.type())))

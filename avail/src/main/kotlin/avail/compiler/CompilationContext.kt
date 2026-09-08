@@ -176,8 +176,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
- * A `CompilationContext` lasts for a module's entire compilation
- * activity.
+ * A [CompilationContext] lasts for a module's entire compilation activity.
  *
  * @property moduleHeader
  *   The header information for the current module being parsed.

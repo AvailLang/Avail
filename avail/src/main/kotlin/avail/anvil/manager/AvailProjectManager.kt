@@ -86,15 +86,10 @@ class AvailProjectManager constructor(
 	private var initialOpenComplete = false
 
 	/**
-	 * The set of [AvailWorkbench]s opened by this [AvailProjectManager].
-	 */
-	private val openWorkbenches = mutableSetOf<AvailWorkbench>()
-
-	/**
 	 * The immutable set of [AvailWorkbench]s opened by this
 	 * [AvailProjectManager].
 	 */
-	val workbenches: Set<AvailWorkbench> get() = openWorkbenches
+	val workbenches: Set<AvailWorkbench> field = mutableSetOf()
 
 	/**
 	 * The opened [OpenKnownProjectDialog] or `null` if dialog not open.
@@ -124,7 +119,7 @@ class AvailProjectManager constructor(
 	 *   [AvailWorkbench].
 	 */
 	private fun openedWorkbench (projectId: String): AvailWorkbench? =
-		openWorkbenches.firstOrNull { it.availProject.id == projectId }
+		workbenches.firstOrNull { it.availProject.id == projectId }
 
 	/**
 	 * The action to perform when an [AvailWorkbench] is launched from this
@@ -135,7 +130,7 @@ class AvailProjectManager constructor(
 	 */
 	fun onWorkbenchOpen (workbench: AvailWorkbench)
 	{
-		openWorkbenches.add(workbench)
+		workbenches.add(workbench)
 		hideProjectManager()
 	}
 
@@ -148,8 +143,8 @@ class AvailProjectManager constructor(
 	 */
 	fun onWorkbenchClose (workbench: AvailWorkbench)
 	{
-		openWorkbenches.remove(workbench)
-		if (openWorkbenches.isEmpty())
+		workbenches.remove(workbench)
+		if (workbenches.isEmpty())
 		{
 			showProjectManager()
 		}
@@ -210,7 +205,7 @@ class AvailProjectManager constructor(
 				// Abort the explicit quit request.
 				response.cancelQuit()
 				// Now find the workbench that is currently in focus, if any are.
-				openWorkbenches.firstOrNull(
+				workbenches.firstOrNull(
 					AvailWorkbench::workbenchWindowIsFocused
 				)?.let {
 					// Send the WINDOW_CLOSING event to the workbench, to trigger
@@ -218,7 +213,7 @@ class AvailProjectManager constructor(
 					it.dispatchEvent(
 						WindowEvent(it, WindowEvent.WINDOW_CLOSING))
 				}
-				if (openWorkbenches.isEmpty())
+				if (workbenches.isEmpty())
 				{
 					// No workbenches are open, so send the project manager a
 					// WINDOW_CLOSING event to trigger nice cleanup.
@@ -317,7 +312,7 @@ class AvailProjectManager constructor(
 		{
 			initialOpenComplete = true
 			openFavorites()
-			isVisible = openWorkbenches.isEmpty()
+			isVisible = workbenches.isEmpty()
 		}
 		else
 		{

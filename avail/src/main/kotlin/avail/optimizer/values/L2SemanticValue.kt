@@ -36,21 +36,18 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.TypeTag
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
-import avail.optimizer.L2Entity
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2Synonym
 import avail.optimizer.ValueClass
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 import avail.utility.ifZero
 import avail.utility.notNullAnd
 
 /**
- * An `L2SemanticValue` represents a value stably computed from constants,
+ * An [L2SemanticValue] represents a value stably computed from constants,
  * arguments, and potentially unstable values acquired by specific previous
  * instructions – e.g., fetching the current time at a specific position in a
  * sequence of L2 instructions, or the result of a non-primitive call to another
@@ -65,17 +62,17 @@ import avail.utility.notNullAnd
  * @param hash
  *   The pre-computed hash value to use for this semantic value.
  */
-abstract class L2SemanticValue<K: RegisterKind<K>>
+abstract class L2SemanticValue
 protected constructor(
 	val hash: Int
-) : L2Entity<K>
+): Comparable<L2SemanticValue>
 {
 	override fun hashCode(): Int = hash
 
 	override fun equals(other: Any?): Boolean =
-		other is L2SemanticValue<*> && equalsSemanticValue(other)
+		other is L2SemanticValue && equalsSemanticValue(other)
 
-	open fun equalsSemanticValue(other: L2SemanticValue<*>) = this === other
+	open fun equalsSemanticValue(other: L2SemanticValue) = this === other
 
 	/**
 	 * Answer whether this semantic value corresponds with the notion of a
@@ -107,8 +104,6 @@ protected constructor(
 	val constant: AvailObject?
 		get() = constantRestrictionOrNull?.constantOrNull
 
-	abstract val toBoxed: L2SemanticBoxedValue
-
 	/**
 	 * If this semantic value represents a constant, answer the constant-valued
 	 * [TypeRestriction], otherwise `null`.  The restriction will have the
@@ -122,13 +117,6 @@ protected constructor(
 	 * else is known about it.
 	 */
 	abstract val defaultRestriction: TypeRestriction
-
-	/**
-	 * Answer whether a move that adds this to a synonym should be kept around
-	 * just to make the synonym visible for reuse, even though the register
-	 * written by the move is dead.
-	 */
-	open val isUsefulForGlobalValueNumbering: Boolean get() = false
 
 	/**
 	 * This semantic value has just been bound to the given [ValueClass] in the
@@ -169,23 +157,17 @@ protected constructor(
 	 *   of the transformation would have been an equal value.
 	 */
 	abstract fun transform(
-		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticValue<K>
+	): L2SemanticValue
 
-	override fun compareTo(other: L2Entity<*>) =
-		primaryVisualSortKey.ordinal.compareTo(
-				other.primaryVisualSortKey.ordinal)
-			.ifZero {
-				// Order them within the primary category.
-				secondaryCompare(other as L2SemanticValue<*>)
-			}
+	override fun compareTo(other: L2SemanticValue) =
+		primaryVisualSortKey.ordinal
+			.compareTo(other.primaryVisualSortKey.ordinal)
+			.ifZero { secondaryCompare(other) }
 
-	override fun secondaryCompare(other: L2Entity<*>): Int
+	open fun secondaryCompare(other: L2SemanticValue): Int
 	{
-		if (other !is L2SemanticValue)
-			return super.secondaryCompare(other)
 		return toStringForSynonym().compareTo(other.toStringForSynonym())
 	}
 
@@ -193,7 +175,7 @@ protected constructor(
 	 * The primary criterion by which to sort (ascending) the semantic values in
 	 * a synonym when presenting them visually.
 	 */
-	override val primaryVisualSortKey get() = PrimaryVisualSortKey.OTHER
+	open val primaryVisualSortKey get() = PrimaryVisualSortKey.OTHER
 
 	/**
 	 * Produce a compact textual representation suitable for displaying within
@@ -212,17 +194,23 @@ protected constructor(
 	open fun requiresParentheses(): Boolean = false
 
 	/**
-	 * A helper function to assist Kotlin's type deduction.  Create an
-	 * [L2ReadOperand] that produces the value of this semantic value.
-	 *
-	 * @param manifest
-	 *   The active [L2ValueManifest] at the current code generation site.
-	 * @return
-	 *   The new [L2ReadOperand], parameterized with [K].
+	 * The major ordering of semantic values when printing an [L2Synonym].
+	 * Synonyms and value manifests' contents sort by the ordinal, so rearrange
+	 * the enum values to change this order.
 	 */
-	fun createRead(manifest: L2ValueManifest): L2ReadOperand<K>
+	enum class PrimaryVisualSortKey
 	{
-		return kind.createRead(this, manifest)
+		CONSTANT_NIL,
+		CONSTANT,
+		CALLER,
+		LABEL,
+		OUTER,
+		PRIMITIVE_INVOCATION,
+		NAMED_TEMP,
+		TEMP,
+		OTHER,
+		NAMED_SLOT,
+		SLOT;
 	}
 
 	companion object
@@ -235,7 +223,7 @@ protected constructor(
 		 * @return
 		 *   A [L2SemanticConstant] representing the constant.
 		 */
-		fun constant(value: A_BasicObject): L2SemanticBoxedValue =
+		fun constant(value: A_BasicObject): L2SemanticValue =
 			L2SemanticConstant(value.makeImmutable())
 
 		/**
@@ -248,9 +236,8 @@ protected constructor(
 		 * @return
 		 *   A [L2SemanticConstant] representing the constant.
 		 */
-		fun constant(value: Int): L2SemanticBoxedValue =
+		fun constant(value: Int): L2SemanticValue =
 			L2SemanticConstant(fromInt(value))
-
 		/**
 		 * Answer a semantic value representing the result of invoking a
 		 * foldable primitive.
@@ -264,7 +251,7 @@ protected constructor(
 		 */
 		fun primitiveInvocation(
 			primitive: Primitive,
-			argumentSemanticValues: List<L2SemanticValue<BOXED_KIND>>
+			argumentSemanticValues: List<L2SemanticValue>
 		) = L2SemanticPrimitiveInvocation(
 			primitive, argumentSemanticValues.cast())
 	}

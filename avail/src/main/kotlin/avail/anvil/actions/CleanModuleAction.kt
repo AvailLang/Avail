@@ -40,7 +40,7 @@ import java.lang.String.format
 import javax.swing.Action
 
 /**
- * A `CleanModuleAction` removes from the repository file all compiled versions
+ * A [CleanModuleAction] removes from the repository file all compiled versions
  * of the selected module.  If a package or root is selected, this is done for
  * all modules within it.
  *

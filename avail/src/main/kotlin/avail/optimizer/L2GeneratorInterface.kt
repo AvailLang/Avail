@@ -50,7 +50,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
@@ -61,7 +61,6 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
@@ -73,12 +72,9 @@ import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticUnboxedFloat
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.structures.EnumMap
 
@@ -186,7 +182,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 * Answer the restriction for the given [L2SemanticValue] at the current
 	 * code generation position.
 	 */
-	fun restrictionFor(semanticValue: L2SemanticValue<*>): TypeRestriction
+	fun restrictionFor(semanticValue: L2SemanticValue): TypeRestriction
 
 	/**
 	 * Add an [L2Instruction].
@@ -216,65 +212,25 @@ interface L2GeneratorInterface : L2Visualizable
 	fun addUnreachableCode()
 
 	/**
-	 * Create a new [L2SemanticBoxedValue] to use as a temporary value.
+	 * Create a new [L2SemanticValue] to use as a temporary value.
 	 *
 	 * @param name
 	 *   The optional name to describe the purpose of the temp.
 	 */
-	fun newTemp(name: String?): L2SemanticBoxedValue
+	fun newTemp(name: String?): L2SemanticValue
 
 	/**
-	 * Generate instructions to arrange for the value in the given
-	 * [L2ReadOperand] to end up in an [L2Register] associated in the
-	 * [L2ValueManifest] with the new [L2SemanticValue].  After the move, the
-	 * synonyms for the source and destination are effectively merged, which is
-	 * justified by virtue of SSA (static-single-assignment) being in effect.
+	 * Place the source and targets in the same synonym if they're not already.
 	 *
-	 * @param <K>
-	 *   The [RegisterKind] of [L2Register] to move.
 	 * @param sourceSemanticValue
 	 *   Which [L2SemanticValue] to read.
 	 * @param targetSemanticValues
 	 *   Which [L2SemanticValue]s will have the same value as the source
 	 *   semantic value.
 	 */
-	fun <K : RegisterKind<K>> moveRegister(
-		sourceSemanticValue: L2SemanticValue<K>,
-		targetSemanticValues: Iterable<L2SemanticValue<K>>)
-
-	/**
-	 * Generate instructions to arrange for the boxed value in the given
-	 * [L2ReadBoxedOperand] to end up in an [L2BoxedRegister] associated in the
-	 * [L2ValueManifest] with the new [L2SemanticBoxedValue].  After the move,
-	 * the synonyms for the source and destination are effectively merged, which
-	 * is justified by virtue of SSA (static-single-assignment) being in effect.
-	 *
-	 * @param sourceSemanticValue
-	 *   Which [L2SemanticBoxedValue] to read.
-	 * @param targetSemanticValues
-	 *   Which [L2SemanticBoxedValue]s will have the same value as the source
-	 *   semantic value.
-	 */
-	fun moveBoxedRegister(
-		sourceSemanticValue: L2SemanticBoxedValue,
-		targetSemanticValues: Iterable<L2SemanticBoxedValue>)
-
-	/**
-	 * Generate instructions to arrange for the unboxed [Int] value in the given
-	 * [L2ReadIntOperand] to end up in an [L2IntRegister] associated in the
-	 * [L2ValueManifest] with the new [L2SemanticUnboxedInt].  After the move,
-	 * the synonyms for the source and destination are effectively merged, which
-	 * is justified by virtue of SSA (static-single-assignment) being in effect.
-	 *
-	 * @param sourceSemanticValue
-	 *   Which [L2SemanticUnboxedInt] to read.
-	 * @param targetSemanticValues
-	 *   Which [L2SemanticUnboxedInt]s will have the same value as the source
-	 *   semantic value.
-	 */
-	fun moveIntRegister(
-		sourceSemanticValue: L2SemanticValue<INTEGER_KIND>,
-		targetSemanticValues: Iterable<L2SemanticValue<INTEGER_KIND>>)
+	fun move(
+		sourceSemanticValue: L2SemanticValue,
+		targetSemanticValues: Iterable<L2SemanticValue>)
 
 	/**
 	 * Write instructions to extract the current function, and answer an
@@ -302,7 +258,7 @@ interface L2GeneratorInterface : L2Visualizable
 		}
 		// The exact function isn't known, but we know the raw function, so
 		// we statically know the function type.
-		val restriction = boxedRestrictionForType(functionType)
+		val restriction = restrictionForType(functionType)
 		val functionWrite = boxedWrite(semanticFunction, restriction)
 		+L2_GET_CURRENT_FUNCTION(functionWrite)
 		return readBoxed(functionWrite)
@@ -324,14 +280,14 @@ interface L2GeneratorInterface : L2Visualizable
 	 * [TypeRestriction].
 	 *
 	 * @param semanticValues
-	 *   The [L2SemanticUnboxedInt]s to write.
+	 *   The [L2SemanticValue]s to write.
 	 * @param restriction
 	 *   The initial [TypeRestriction] for the new write.
 	 * @return
 	 *   The new unboxed int write operand.
 	 */
 	fun intWrite(
-		semanticValues: Set<L2SemanticValue<INTEGER_KIND>>,
+		semanticValues: Set<L2SemanticValue>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<INTEGER_KIND>? = null
 	): L2WriteIntOperand
@@ -389,6 +345,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @return
 	 *   The [L2ReadBoxedOperand] that retrieves the value.
 	 */
+	@Deprecated("")
 	fun boxedConstant(value: A_BasicObject): L2ReadBoxedOperand
 
 	/**
@@ -401,6 +358,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @return
 	 *   The [L2ReadIntOperand] that retrieves the value.
 	 */
+	@Deprecated("")
 	fun unboxedIntConstant(value: Int): L2ReadIntOperand
 
 	/**
@@ -413,6 +371,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @return
 	 *   The [L2ReadFloatOperand] that retrieves the value.
 	 */
+	@Deprecated("")
 	fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 
 	/**
@@ -427,7 +386,8 @@ interface L2GeneratorInterface : L2Visualizable
 	 *   The [L2SemanticValue] to ensure is populated.
 	 */
 	fun <K: RegisterKind<K>> ensureDefinedOrEmitMove(
-		semanticValue: L2SemanticValue<K>
+		semanticValue: L2SemanticValue,
+		kind: K
 	): Unit
 
 	/**
@@ -441,11 +401,11 @@ interface L2GeneratorInterface : L2Visualizable
 	 *   [TypeRestriction] for the semantic value.
 	 */
 	fun readBoxed(
-		semanticBoxed: L2SemanticValue<BOXED_KIND>
+		semanticBoxed: L2SemanticValue
 	): L2ReadBoxedOperand
 
 	/**
-	 * Return an [L2ReadIntOperand] for the given [L2SemanticUnboxedInt]. The
+	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
 	 * [TypeRestriction] must have been proven by the VM.  If the semantic value
 	 * only has a boxed form, generate code to unbox it.
 	 *
@@ -459,8 +419,8 @@ interface L2GeneratorInterface : L2Visualizable
 	 * success path.  This may itself be unreachable in the event that the
 	 * unboxing will *always* fail.
 	 *
-	 * @param semanticUnboxed
-	 *   The [L2SemanticUnboxedInt] to read as an unboxed int.
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to read as an unboxed int.
 	 * @param onFailure
 	 *   Where to jump in the event that a dynamic type test against [i32]
 	 *   fails. The manifest at this location will not contain bindings for
@@ -470,25 +430,25 @@ interface L2GeneratorInterface : L2Visualizable
 	 *   path if possible, otherwise answer `null` with no current block.
 	 */
 	fun readIntInternal(
-		semanticUnboxed: L2SemanticUnboxedInt,
+		semanticValue: L2SemanticValue,
 		onFailure: L2BasicBlock
 	): L2ReadIntOperand?
 
 	/**
-	 * Return an [L2ReadIntOperand] for the given [L2SemanticUnboxedInt]. The
+	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
 	 * [TypeRestriction] must have been proven by the VM.  If the semantic value
 	 * only has a boxed form, generate code to unbox it.
 	 *
 	 * If the unboxing could fail due to the [TypeRestriction] not guaranteeing
-	 * an [i32], use the [readInt] generation method instead.
+	 * an [i32], please use the [readInt] generation method instead.
 	 *
-	 * @param semanticUnboxed
-	 *   The [L2SemanticUnboxedInt] to read as an unboxed int.
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to read as an unboxed int.
 	 * @return
 	 *   The unboxed [L2ReadIntOperand].
 	 */
 	fun readIntNoFail(
-		semanticUnboxed: L2SemanticValue<INTEGER_KIND>
+		semanticValue: L2SemanticValue
 	): L2ReadIntOperand
 
 	/**
@@ -504,7 +464,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 *   The new boxed write operand.
 	 */
 	fun boxedWrite(
-		semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
+		semanticValues: Set<L2SemanticValue>,
 		restriction: TypeRestriction
 	): L2WriteBoxedOperand
 
@@ -521,7 +481,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 *   The new boxed write operand.
 	 */
 	fun boxedWrite(
-		semanticValue: L2SemanticBoxedValue,
+		semanticValue: L2SemanticValue,
 		restriction: TypeRestriction
 	): L2WriteBoxedOperand
 
@@ -558,35 +518,38 @@ interface L2GeneratorInterface : L2Visualizable
 	): L2WriteBoxedOperand
 
 	/**
-	 * Return an [L2ReadFloatOperand] for the given [L2SemanticUnboxedFloat].
+	 * Return an [L2ReadFloatOperand] for the given [L2SemanticValue].
 	 * The [TypeRestriction] *must* have been proven by the VM.  If the semantic
 	 * value only has a boxed form, generate code to unbox it.
 	 *
-	 * @param semanticUnboxed
-	 *   The [L2SemanticUnboxedFloat] to read as an unboxed double.
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to read as an unboxed double.
 	 * @return
 	 *   The unboxed [L2ReadFloatOperand].
 	 */
 	fun readFloatNoFail(
-		semanticUnboxed: L2SemanticValue<FLOAT_KIND>
+		semanticValue: L2SemanticValue
 	): L2ReadFloatOperand
 
 	/**
 	 * Attempt to read the given [L2SemanticValue], answering a suitable
-	 * [L2ReadOperand] for with the same [RegisterKind].  If the requested
-	 * [semanticValue] is not present in the [currentManifest], but an
-	 * equivalent semantic value is present, [L2_MOVE] it into the specified
-	 * [semanticValue].  If no equivalent semantic value is present, answer
-	 * `null`.
+	 * [L2ReadOperand] with the given [RegisterKind].  If the requested
+	 * [semanticValue] is not present in the [currentManifest] for that kind,
+	 * but an equivalent semantic value is present, [L2_MOVE] it into the
+	 * specified [semanticValue].  If no equivalent semantic value is present,
+	 * answer `null`.
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to ensure is populated, if possible.
+	 * @param kind
+	 *   The [RegisterKind] for the value to be read.
 	 * @return
 	 *   An [L2ReadOperand] that reads the request [semanticValue], or `null` if
 	 *   it cannot be arronged to be present with only a move.
 	 */
 	fun <K: RegisterKind<K>> readIfAvailable(
-		semanticValue: L2SemanticValue<K>
+		semanticValue: L2SemanticValue,
+		kind: K
 	): L2ReadOperand<K>?
 
 	/**
@@ -808,7 +771,7 @@ interface L2GeneratorInterface : L2Visualizable
 	/**
 	 * Given an [L2ReadBoxedOperand] that will hold a tuple and a fixed index
 	 * that is known to be in range, generate code to populate the given
-	 * [L2SemanticBoxedValue]s with that element.
+	 * [L2SemanticValue]s with that element.
 	 *
 	 * Depending on the source of the tuple, this may cause the creation of the
 	 * tuple to be entirely elided.
@@ -823,12 +786,12 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @param index
 	 *   The one-based subscript into the tuple.
 	 * @param destinationSemanticValues
-	 *   The [L2SemanticBoxedValue]s that will containing the element.
+	 *   The [L2SemanticValue]s that will containing the element.
 	 */
 	fun extractTupleElement(
 		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>)
+		destinationSemanticValues: Set<L2SemanticValue>)
 
 	/**
 	 * Given a register that will hold a tuple, check that the tuple has the
@@ -857,10 +820,11 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * Force all postponed instructions for any semantic value synonymous with
-	 * the given one.
+	 * the given [semanticValue], and having the specified [kind].
 	 */
 	fun <K: RegisterKind<K>> forceTranslationForRead(
-		semanticValue: L2SemanticValue<K>)
+		semanticValue: L2SemanticValue,
+		kind: K)
 
 	/**
 	 * Force all postponed instructions to be generated now.  Some of these may
@@ -888,11 +852,12 @@ interface L2GeneratorInterface : L2Visualizable
 	 * jump, so we ensure the instruction plays its effect against that jump's
 	 * sole edge's manifest.
 	 *
-	 * Do this for each semantic value in the iterable.
+	 * Do this for each (semantic value, kind) pair in the iterable.
 	 */
 	fun forcePostponedTranslationsBeforeEdge(
 		edge: L2PcOperand,
-		semanticValues: Iterable<L2SemanticValue<*>>)
+		semanticValuesAndKinds:
+			Iterable<Pair<L2SemanticValue, RegisterKind<*>>>)
 
 	/**
 	 * Split the given edge into two, with a new block in the middle.  Given the
@@ -945,7 +910,7 @@ interface L2GeneratorInterface : L2Visualizable
 	 */
 	abstract override fun visualize(
 		generator: L2Generator?,
-		focusValue: L2SemanticValue<*>?)
+		focusValue: L2SemanticValue?)
 
 	/**
 	 * Pass-through to [L2ControlFlowGraph].  This can be used in the debugger
@@ -954,12 +919,12 @@ interface L2GeneratorInterface : L2Visualizable
 	 */
 	abstract override fun simplyVisualize(
 		generator: L2Generator?,
-		focusValue: L2SemanticValue<*>?)
+		focusValue: L2SemanticValue?)
 
 	companion object
 	{
 		/**
-		 * Return an [L2ReadIntOperand] for the given [L2SemanticUnboxedInt].
+		 * Return an [L2ReadIntOperand] for the given [L2SemanticValue].
 		 * The [TypeRestriction] must have been proven by the VM.  If the
 		 * semantic value only has a boxed form, generate code to unbox it.
 		 *
@@ -976,8 +941,8 @@ interface L2GeneratorInterface : L2Visualizable
 		 * yields [Nothing] (does not return), allowing an enforced escape
 		 * without having to construct a dummy [L2ReadIntOperand].
 		 *
-		 * @param semanticUnboxed
-		 *   The [L2SemanticUnboxedInt] to read as an unboxed int.
+		 * @param semanticValue
+		 *   The [L2SemanticValue] to read as an unboxed int.
 		 * @param onFailure
 		 *   Where to jump in the event that a dynamic type test against [i32]
 		 *   fails. The manifest at this location will not contain bindings for
@@ -990,13 +955,13 @@ interface L2GeneratorInterface : L2Visualizable
 		 *   success path.
 		 */
 		inline fun L2GeneratorInterface.readInt(
-			semanticUnboxed: L2SemanticUnboxedInt,
+			semanticValue: L2SemanticValue,
 			onFailure: L2BasicBlock,
 			ifCannotSucceed: ()->Nothing
 		): L2ReadIntOperand
 		{
 			if (!currentlyReachable()) ifCannotSucceed()
-			return readIntInternal(semanticUnboxed, onFailure) ?: run {
+			return readIntInternal(semanticValue, onFailure) ?: run {
 				assert(!currentlyReachable())
 				ifCannotSucceed()
 			}
@@ -1013,10 +978,10 @@ interface L2GeneratorInterface : L2Visualizable
 		 * invoked with control flow unaffected.  Since the lambda has a return
 		 * type of [Nothing], the invocation should escape in some way.
 		 *
-		 * @param semanticUnboxed1
-		 *   The first [L2SemanticUnboxedInt] to read as an unboxed int.
-		 * @param semanticUnboxed2
-		 *   The second [L2SemanticUnboxedInt] to read as an unboxed int.
+		 * @param semanticValue1
+		 *   The first [L2SemanticValue] to read as an unboxed int.
+		 * @param semanticValue2
+		 *   The second [L2SemanticValue] to read as an unboxed int.
 		 * @param onFailure
 		 *   Where to jump in the event that a dynamic type test against [i32]
 		 *   fails. The manifest at this location will not contain bindings for
@@ -1029,21 +994,21 @@ interface L2GeneratorInterface : L2Visualizable
 		 *   set to the success path.
 		 */
 		inline fun L2GeneratorInterface.readTwoInts(
-			semanticUnboxed1: L2SemanticUnboxedInt,
-			semanticUnboxed2: L2SemanticUnboxedInt,
+			semanticValue1: L2SemanticValue,
+			semanticValue2: L2SemanticValue,
 			onFailure: L2BasicBlock,
 			ifCannotSucceed: ()->Nothing
 		): Pair<L2ReadIntOperand, L2ReadIntOperand>
 		{
-			if (!currentManifest.canUnboxInt(semanticUnboxed1)
-				|| !currentManifest.canUnboxInt(semanticUnboxed2))
+			if (!currentManifest.canUnboxInt(semanticValue1)
+				|| !currentManifest.canUnboxInt(semanticValue2))
 			{
 				ifCannotSucceed()
 			}
-			val firstInt = readInt(semanticUnboxed1, onFailure) {
+			val firstInt = readInt(semanticValue1, onFailure) {
 				error("First unboxing should have been possible")
 			}
-			val secondInt = readInt(semanticUnboxed2, onFailure) {
+			val secondInt = readInt(semanticValue2, onFailure) {
 				error("Second unboxing should have been possible")
 			}
 			return Pair(firstInt, secondInt)
@@ -1056,28 +1021,20 @@ interface L2GeneratorInterface : L2Visualizable
 	 *
 	 * @receiver
 	 *   The [L2ValueManifest] to use for checking unboxing possibility.
-	 * @param semanticUnboxed
-	 *   The target [L2SemanticUnboxedInt] to check for unboxability.
+	 * @param semanticValue
+	 *   The target [L2SemanticValue] to check for unboxability.
 	 * @return
 	 *   Whether unboxing the given semantic value is possible.
 	 */
 	fun L2ValueManifest.canUnboxInt(
-		semanticUnboxed: L2SemanticUnboxedInt
-	): Boolean = when
+		semanticValue: L2SemanticValue
+	): Boolean
 	{
-		hasSemanticValue(semanticUnboxed) ->
-			restrictionFor(semanticUnboxed).intersectsType(i32)
-		hasSemanticValue(semanticUnboxed.boxed) ->
-			restrictionFor(semanticUnboxed.boxed).intersectsType(i32)
-		else ->
-		{
-			equivalentSemanticValue(semanticUnboxed)?.let {
-				return restrictionFor(it).intersectsType(i32)
-			}
-			boxedFormOfInt(semanticUnboxed)?.let {
-				return restrictionFor(it).intersectsType(i32)
-			}
-			return false
+		if (hasSemanticValue(semanticValue))
+			return restrictionFor(semanticValue).intersectsType(i32)
+		equivalentSemanticValue(semanticValue)?.let {
+			return restrictionFor(it).intersectsType(i32)
 		}
+		return false
 	}
 }

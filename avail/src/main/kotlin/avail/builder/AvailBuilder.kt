@@ -104,7 +104,7 @@ import java.util.stream.Collectors.joining
 import kotlin.concurrent.read
 
 /**
- * An `AvailBuilder` [compiles][AvailCompiler] and installs into an
+ * An [AvailBuilder] [compiles][AvailCompiler] and installs into an
  * [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and
  * each of its dependencies.
  *

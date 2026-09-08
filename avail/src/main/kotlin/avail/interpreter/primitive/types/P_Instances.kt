@@ -56,7 +56,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
@@ -67,6 +67,7 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Obtain the instances of the specified [type][topMeta].
@@ -102,7 +103,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 		addAll(
 			typeRestrictionConditions(
 				setOf(typeRegister),
-				boxedRestrictionForConstant(bottom)))
+				restrictionForConstant(bottom)))
 		// Knowing the instance count can help constrain the set size.
 		add(
 			existsCondition(
@@ -127,8 +128,8 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			if (countRange.isSubtypeOf(inclusive(zero, zero)))
 			{
 				// The input must be bottom, so the output should be ∅.
-				moveBoxedRegister(
-					boxedConstant(emptySet).semanticValue(),
+				move(
+					constant(emptySet),
 					result.semanticValues())
 				return
 			}

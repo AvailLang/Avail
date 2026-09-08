@@ -36,7 +36,7 @@ import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
 
 /**
- * An `ArithmeticException` is thrown by arithmetic operations.
+ * An [ArithmeticException] is thrown by arithmetic operations.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see InfinityDescriptor

@@ -42,7 +42,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 
 /**
- * A `LoadingEffectToAddMacro` summarizes the addition of one [macro][A_Macro]
+ * A [LoadingEffectToAddMacro] summarizes the addition of one [macro][A_Macro]
  * to a [method&#32;bundle][A_Bundle].
  *
  * @property bundle

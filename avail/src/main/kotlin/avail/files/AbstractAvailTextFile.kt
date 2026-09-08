@@ -35,7 +35,7 @@ package avail.files
 import java.nio.charset.Charset
 
 /**
- * A `AbstractAvailTextFile` is an abstract [AvailFile] that is has text in a
+ * A [AbstractAvailTextFile] is an abstract [AvailFile] that is has text in a
  * provided [Charset].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

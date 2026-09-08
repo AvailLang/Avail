@@ -33,10 +33,8 @@ package avail.optimizer.values
 
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which represents a label continuation created for the
@@ -59,22 +57,20 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
 internal class L2SemanticLabel constructor(frame: Frame)
 	: L2FrameSpecificSemanticValue(frame, 0x36B34F3D)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		other is L2SemanticLabel && super.equalsSemanticValue(other)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		frameTransformer(frame).let { newFrame ->
 			return if (newFrame == frame) this else L2SemanticLabel(newFrame)
 		}
 
 	override val defaultRestriction: TypeRestriction
 		get() = continuationRestriction
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override val primaryVisualSortKey get() = PrimaryVisualSortKey.LABEL
 
@@ -84,6 +80,6 @@ internal class L2SemanticLabel constructor(frame: Frame)
 	{
 		/** The default restriction for continuations. */
 		private val continuationRestriction =
-			boxedRestrictionForType(mostGeneralContinuationType)
+			restrictionForType(mostGeneralContinuationType)
 	}
 }

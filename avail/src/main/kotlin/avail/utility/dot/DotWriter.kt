@@ -34,8 +34,8 @@
 
 package avail.utility.dot
 
+import avail.annotations.DSLHelper
 import avail.utility.Strings.tabs
-import avail.utility.dot.DotWriter.Companion.label
 import avail.utility.dot.DotWriter.JustificationAttributeName.Justification
 import avail.utility.dot.DotWriter.RankDirectionAttribuuteName.RankDirection
 import java.io.IOException
@@ -102,6 +102,7 @@ import kotlin.math.min
  * @param copyrightOwner
  *   This name is embedded in a copyright claim within the document.
  */
+@DSLHelper
 class DotWriter constructor(
 	private val name: String,
 	internal val isDirected: Boolean,
@@ -124,12 +125,12 @@ class DotWriter constructor(
 	/**
 	 * The prebuilt [AttributeWriter] for dependency injection.
 	 */
-	internal val attributeWriter = AttributeWriter()
+	internal val attributeWriter = AttributeWriter(this)
 
 	/**
 	 * The prebuilt [GraphWriter] for dependency injection.
 	 */
-	internal val graphWriter = GraphWriter()
+	internal val graphWriter = GraphWriter(this)
 
 	/**
 	 * An enumeration of names that can be used as though they're declarative
@@ -141,6 +142,7 @@ class DotWriter constructor(
 	 * actual strings emitted in a graph attribute declaration, so don't rename
 	 * them.
 	 */
+	@DSLHelper
 	interface TypedAttributeName<T>
 	{
 		open val attributeName: String get() = (this as Enum<*>).name
@@ -252,13 +254,16 @@ class DotWriter constructor(
 	}
 
 	/**
-	 * An `AttributeWriter` provides the ability to write generally
-	 * available `dot` elements, e.g., indentation, comments, identifiers,
+	 * An [AttributeWriter] provides the ability to write generally available
+	 * GraphViz `dot` elements, e.g., indentation, comments, identifiers,
 	 * attributes, etc.
 	 *
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 * @property dotWriter
+	 *   The [DotWriter] on whose behalf this [AttributeWriter] is running.
 	 */
-	open inner class AttributeWriter
+	@DSLHelper
+	open class AttributeWriter(
+		val dotWriter: DotWriter)
 	{
 		/**
 		 * Increase the indentation during application of the supplied lambda.
@@ -273,14 +278,14 @@ class DotWriter constructor(
 			writer: T,
 			block: (T) -> Unit)
 		{
-			indentationLevel++
+			dotWriter.indentationLevel++
 			try
 			{
 				block(writer)
 			}
 			finally
 			{
-				indentationLevel--
+				dotWriter.indentationLevel--
 			}
 		}
 
@@ -294,14 +299,14 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun indent()
 		{
-			assert(indentationLevel >= 0) {
+			assert(dotWriter.indentationLevel >= 0) {
 				"indentation level must not be negative"
 			}
-			assert(justEmittedLinefeed) {
+			assert(dotWriter.justEmittedLinefeed) {
 				"indentation must only be emitted after a linefeed"
 			}
-			accumulator.append(tabs(indentationLevel))
-			justEmittedLinefeed = false
+			dotWriter.accumulator.append(tabs(dotWriter.indentationLevel))
+			dotWriter.justEmittedLinefeed = false
 		}
 
 		/**
@@ -317,8 +322,8 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun emit(text: String)
 		{
-			accumulator.append(text)
-			justEmittedLinefeed = text.endsWith("\n")
+			dotWriter.accumulator.append(text)
+			dotWriter.justEmittedLinefeed = text.endsWith("\n")
 		}
 
 		/**
@@ -330,8 +335,8 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		internal fun linefeed()
 		{
-			accumulator.append('\n')
-			justEmittedLinefeed = true
+			dotWriter.accumulator.append('\n')
+			dotWriter.justEmittedLinefeed = true
 		}
 
 		/**
@@ -345,11 +350,11 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun endOfLineComment(comment: String)
 		{
-			accumulator.append("//")
+			dotWriter.accumulator.append("//")
 			if (comment.isNotEmpty())
 			{
-				accumulator.append(' ')
-				accumulator.append(comment)
+				dotWriter.accumulator.append(' ')
+				dotWriter.accumulator.append(comment)
 			}
 			linefeed()
 		}
@@ -468,7 +473,11 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun blockComment(comment: String)
 		{
-			val limit = max(1, charactersPerLine - 4 * indentationLevel - 3)
+			val limit = max(
+				1,
+				dotWriter.charactersPerLine -
+					4 * dotWriter.indentationLevel -
+					3)
 			var residue = comment
 			while (residue.isNotEmpty())
 			{
@@ -568,13 +577,13 @@ class DotWriter constructor(
 		 * @throws IOException
 		 *   If emission fails.
 		 */
-		operator fun <T> TypedAttributeName<T>.invoke(value: T): Unit
-		{
-			indent()
-			identifier(attributeName)
-			emit(" = ")
-			identifier(getString(value, this@AttributeWriter))
-			linefeed()
+		operator fun <T> TypedAttributeName<T>.invoke(value: T): Unit =
+		this@AttributeWriter.let { writer ->
+			writer.indent()
+			writer.identifier(attributeName)
+			writer.emit(" = ")
+			writer.identifier(getString(value, writer))
+			writer.linefeed()
 		}
 
 		/**
@@ -586,9 +595,9 @@ class DotWriter constructor(
 			// Look for #xxxxxx/xxxxxx (light/dark) notation first.
 			val multiMatcher = multicolorPattern.matcher(rhs)
 			if (multiMatcher.find()) {
-				return "#" + multiMatcher.group(if (darkMode) 2 else 1)
+				return "#" + multiMatcher.group(if (dotWriter.darkMode) 2 else 1)
 			}
-			if (!darkMode) {
+			if (!dotWriter.darkMode) {
 				return rhs
 			}
 			val uniMatcher = unicolorPattern.matcher(rhs)
@@ -715,7 +724,7 @@ class DotWriter constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	inner class GraphWriter : AttributeWriter()
+	inner class GraphWriter(dotWriter: DotWriter) : AttributeWriter(dotWriter)
 	{
 		/**
 		 * Emit an appropriately indented attribute block.
@@ -730,7 +739,7 @@ class DotWriter constructor(
 		{
 			indent()
 			emit("[\n")
-			increaseIndent(attributeWriter, block)
+			increaseIndent(this@DotWriter.attributeWriter, block)
 			indent()
 			emit("]\n")
 		}
@@ -769,7 +778,7 @@ class DotWriter constructor(
 		{
 			indent()
 			emit("{\n")
-			increaseIndent(graphWriter, block)
+			increaseIndent(this@DotWriter.graphWriter, block)
 			indent()
 			emit("}\n")
 		}
@@ -822,7 +831,10 @@ class DotWriter constructor(
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		private fun edgeOperator() = emit(if (isDirected) " -> " else " -- ")
+		private fun edgeOperator() =
+			emit(
+				if (this@DotWriter.isDirected) " -> "
+				else " -- ")
 
 		/**
 		 * Emit an edge with attributes.

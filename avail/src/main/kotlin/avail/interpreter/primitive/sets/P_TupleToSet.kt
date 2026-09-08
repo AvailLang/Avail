@@ -58,7 +58,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -149,7 +149,7 @@ object P_TupleToSet : Primitive1(CannotFail, CanFold, CanInline)
 		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val semanticResult = semanticInvocation(tupleReg.semanticValue())
 		val write = boxedWrite(
-			semanticResult, boxedRestrictionForType(restriction))
+			semanticResult, restrictionForType(restriction))
 		+L2_CREATE_SET(L2ReadBoxedVectorOperand(elementRegs), write)
 		callSiteHelper.useAnswer(readBoxed(write), false)
 		return true

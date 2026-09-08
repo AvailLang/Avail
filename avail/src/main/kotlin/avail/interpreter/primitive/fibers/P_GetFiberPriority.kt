@@ -46,7 +46,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
@@ -54,7 +54,6 @@ import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
  * **Primitive:** Get the priority of a fiber.
@@ -85,12 +84,12 @@ object P_GetFiberPriority : Primitive1(
 		val fiberRead = arguments[0]
 		val priorityIntWrite = intWriteTemp(
 			"priority",
-			intRestrictionForType(u8))
+			restrictionForType(u8))
 		+L2_GET_FIBER_PRIORITY_INT(fiberRead, priorityIntWrite)
 		// Now box it in case someone needs it.  If nobody does, this will
 		// evaporate later.
 		val prioritySemanticIntValue = priorityIntWrite.pickSemanticValue()
-		val boxedPriority = readBoxed(prioritySemanticIntValue.boxed)
+		val boxedPriority = readBoxed(prioritySemanticIntValue)
 		callSiteHelper.useAnswer(boxedPriority, false)
 		return true
 	}

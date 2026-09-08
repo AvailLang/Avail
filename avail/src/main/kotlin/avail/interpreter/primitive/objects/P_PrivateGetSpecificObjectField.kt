@@ -46,7 +46,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -128,8 +128,8 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 			// which is not available during folding.
 			constant !== null ->
 			{
-				moveBoxedRegister(
-					boxedConstant(constant.fieldAt(fieldAtom)).semanticValue(),
+				move(
+					constant(constant.fieldAt(fieldAtom)),
 					setOf(semanticFieldValue))
 			}
 
@@ -137,8 +137,8 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 				&& !fieldType.isInstanceMeta
 				&& fieldType.instanceCount.equalsInt(1) ->
 			{
-				moveBoxedRegister(
-					boxedConstant(fieldType.instance).semanticValue(),
+				move(
+					constant(fieldType.instance),
 					setOf(semanticFieldValue))
 			}
 
@@ -148,7 +148,7 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 					objectReg,
 					L2ConstantOperand(fieldAtom),
 					boxedWrite(
-						semanticFieldValue, boxedRestrictionForType(fieldType)))
+						semanticFieldValue, restrictionForType(fieldType)))
 				//TODO - Generate L2 code to collect statistics on the variants
 				// that are encountered, then at the next reoptimization, inline
 				// L2 instructions that access the field by index.

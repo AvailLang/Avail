@@ -53,18 +53,14 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticObjectVariantId
 import avail.optimizer.values.L2SemanticSlot
-import avail.optimizer.values.L2SemanticUnboxedInt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -81,7 +77,7 @@ class TypeRestrictionTest
 	@Test
 	fun testSimpleSelfUnion()
 	{
-		val t1 = restrictionForType(mostGeneralTupleType, BOXED_FLAG)
+		val t1 = restrictionForType(mostGeneralTupleType)
 		val union = t1.union(t1)
 		assertEquals(t1, union)
 	}
@@ -92,11 +88,11 @@ class TypeRestrictionTest
 	@Test
 	fun testSimpleDisjointUnion()
 	{
-		val t1 = restrictionForType(mostGeneralTupleType, BOXED_FLAG)
-		val t2 = restrictionForType(Types.TOKEN(), BOXED_FLAG)
+		val t1 = restrictionForType(mostGeneralTupleType)
+		val t2 = restrictionForType(Types.TOKEN())
 		val union = t1.union(t2)
 		// The union has to be conservative to fit inside the type lattice.
-		val expectedUnion = restrictionForType(Types.NONTYPE(), BOXED_FLAG)
+		val expectedUnion = restrictionForType(Types.NONTYPE())
 		assertEquals(expectedUnion, union)
 	}
 
@@ -107,11 +103,11 @@ class TypeRestrictionTest
 	@Test
 	fun testUnionWithExcludedTypes()
 	{
-		val t1 = restrictionForType(Types.ANY(), BOXED_FLAG)
+		val t1 = restrictionForType(Types.ANY())
 			.minusType(Types.TOKEN())
-		val t2 = restrictionForType(Types.TOKEN(), BOXED_FLAG)
+		val t2 = restrictionForType(Types.TOKEN())
 		val union = t1.union(t2)
-		val expectedUnion = restrictionForType(Types.ANY(), BOXED_FLAG)
+		val expectedUnion = restrictionForType(Types.ANY())
 		assertEquals(expectedUnion, union)
 	}
 
@@ -163,15 +159,15 @@ class TypeRestrictionTest
 	@Test
 	fun testComplexRegression()
 	{
-		var t1 = boxedRestrictionForType(instanceMeta(Types.ANY()))
+		var t1 = restrictionForType(instanceMeta(Types.ANY()))
 			.minusType(instanceMeta(Types.ATOM()))
 			.minusType(instanceMeta(mostGeneralSetType()))
 			.minusType(instanceMeta(Types.TOKEN()))
 			// Other exclusions elided for brevity.
 			.withCanBeBottom(false)
-		var t2 = boxedRestrictionForType(instanceMeta(Types.TOKEN()))
+		var t2 = restrictionForType(instanceMeta(Types.TOKEN()))
 		val union = t1.union(t2)
-		val expectedUnion = boxedRestrictionForType(instanceMeta(Types.ANY()))
+		val expectedUnion = restrictionForType(instanceMeta(Types.ANY()))
 			.minusType(instanceMeta(Types.ATOM()))
 			.minusType(instanceMeta(mostGeneralSetType()))
 			.withCanBeBottom(true)
@@ -185,8 +181,8 @@ class TypeRestrictionTest
 	@Test
 	fun testAccurateIntegerRangeUnion()
 	{
-		var t1 = boxedRestrictionForType(inclusive(-5, -1))
-		var t2 = boxedRestrictionForType(inclusive(1, 5))
+		var t1 = restrictionForType(inclusive(-5, -1))
+		var t2 = restrictionForType(inclusive(1, 5))
 		var union = t1.union(t2)
 		assert(!union.containsValue(zero))
 	}
@@ -198,8 +194,8 @@ class TypeRestrictionTest
 	@Test
 	fun testWholeNumbersUnionInfinity()
 	{
-		var t1 = boxedRestrictionForType(wholeNumbers)
-		var t2 = boxedRestrictionForType(
+		var t1 = restrictionForType(wholeNumbers)
+		var t2 = restrictionForType(
 			inclusive(positiveInfinity, positiveInfinity))
 		var union = t1.union(t2)
 		assertEquals(union.type, inclusive(zero, positiveInfinity))
@@ -207,7 +203,7 @@ class TypeRestrictionTest
 
 		// Also verify that it works if the second restriction is to the
 		// constant ∞, not the technically broader [∞..∞].
-		var t2Constant = boxedRestrictionForConstant(positiveInfinity)
+		var t2Constant = restrictionForConstant(positiveInfinity)
 		var union2 = t1.union(t2Constant)
 		assertEquals(union.type, inclusive(zero, positiveInfinity))
 		assertEquals(union2.type, t2Constant.union(t1).type)
@@ -220,9 +216,9 @@ class TypeRestrictionTest
 	@Test
 	fun testNegativeWholeNumbersUnionNegativeInfinity()
 	{
-		var t1 = boxedRestrictionForType(
+		var t1 = restrictionForType(
 			integerRangeType(negativeInfinity, false, zero, true))
-		var t2 = boxedRestrictionForType(
+		var t2 = restrictionForType(
 			inclusive(negativeInfinity, negativeInfinity))
 		var union = t1.union(t2)
 		assertEquals(union.type, inclusive(negativeInfinity, zero))
@@ -230,7 +226,7 @@ class TypeRestrictionTest
 
 		// Also verify that it works if the second restriction is to the
 		// constant -∞, not the technically broader [-∞..-∞].
-		var t2Constant = boxedRestrictionForConstant(negativeInfinity)
+		var t2Constant = restrictionForConstant(negativeInfinity)
 		var union2 = t1.union(t2Constant)
 		assertEquals(union.type, inclusive(negativeInfinity, zero))
 		assertEquals(union2.type, t2Constant.union(t1).type)
@@ -247,7 +243,7 @@ class TypeRestrictionTest
 	@Test
 	fun testIntersectionExcludesBottom()
 	{
-		val t1 = boxedRestrictionForType(extendedIntegersMeta)
+		val t1 = restrictionForType(extendedIntegersMeta)
 		val t2 = t1.minusType(bottomMeta)
 		assert(t1.canBeBottom)
 		assert(!t2.canBeBottom)
@@ -290,21 +286,19 @@ class TypeRestrictionTest
 		}.makeShared()
 		val variantA = variantForFields(SetDescriptor.singletonSet(atomA))
 		val variantB = variantForFields(SetDescriptor.singletonSet(atomB))
-		val semanticVariantA =
-			L2SemanticUnboxedInt(L2SemanticObjectVariantId(boxedA))
-		val semanticVariantB =
-			L2SemanticUnboxedInt(L2SemanticObjectVariantId(boxedB))
+		val semanticVariantA = L2SemanticObjectVariantId(boxedA)
+		val semanticVariantB = L2SemanticObjectVariantId(boxedB)
 		val manifest = L2ValueManifest(BySemanticValue)
 		manifest.agglomerateSynonym(
 			listOf(boxedA, boxedB),
-			boxedRestrictionForType(mostGeneralObjectType))
+			restrictionForType(mostGeneralObjectType))
 		manifest.setRestriction(
 			semanticVariantA,
-			intRestrictionForConstant(variantA.variantId))
+			restrictionForConstant(variantA.variantId))
 		assert(!manifest.hasImpossibleRestriction)
 		manifest.setRestriction(
 			semanticVariantB,
-			intRestrictionForConstant(variantB.variantId))
+			restrictionForConstant(variantB.variantId))
 		assert(manifest.hasImpossibleRestriction)
 	}
 }

@@ -43,10 +43,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Answer the [hash][A_BasicObject.hash] of the specified value.
@@ -63,8 +64,8 @@ class L2_HASH(
 	{
 		value.constantOrNull?.let { constant ->
 			// Hash the constant now.
-			moveIntRegister(
-				unboxedIntConstant(constant.hash()).semanticValue(),
+			move(
+				constant(constant.hash()),
 				hash.semanticValues())
 			return null
 		}
@@ -78,7 +79,6 @@ class L2_HASH(
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
 		assert(writeOperand == hash)
-		assert(restriction.isUnboxedInt)
 		if (!tracer.traceArithmetic) return
 		// Obviously we can't "unhash" an int.  However, if the source value is
 		// an enuumeration, we can transform the restriction on the hash into a
@@ -104,7 +104,7 @@ class L2_HASH(
 			// Nothing was disqualified by the hash's restriction.  Give up.
 			return
 		}
-		val valueRestriction = boxedRestrictionForType(
+		val valueRestriction = restrictionForType(
 			enumerationWith(setFromCollection(satisfiedValues)))
 		tracer.continueTracing(value.register(), valueRestriction)
 	}

@@ -185,7 +185,7 @@ import javax.annotation.Nullable
 import kotlin.io.path.writeText
 
 /**
- * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
+ * A [JVMTranslator] converts a single [L2Chunk] into a [JVMChunk] in a naive
  * fashion. Instruction selection is optimized, but no other optimizations are
  * attempted; all significant optimizations should occur on the `L2Chunk`'s
  * [control&#32;flow&#32;graph][L2ControlFlowGraph] and be reflected in the

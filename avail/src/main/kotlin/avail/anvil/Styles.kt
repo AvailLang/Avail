@@ -202,7 +202,8 @@ class Stylesheet constructor(
 	}
 
 	/** The [style&#32;rules][StyleRule]. */
-	val rules: Set<StyleRule> = originalRules.toMutableSet()
+	val rules: Set<StyleRule>
+		field = originalRules.toMutableSet()
 
 	/**
 	 * The [pattern][StylePattern] `"!"` handles renditions of classified
@@ -212,7 +213,6 @@ class Stylesheet constructor(
 
 	init
 	{
-		val rules = this.rules as MutableSet
 		// The stylesheet might not contain exact match rules for the system
 		// classifiers, so insert them here if necessary. None of the
 		// compilations here should ever fail, and it should nuke the system if

@@ -34,9 +34,7 @@ package avail.optimizer.values
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 
 /**
  * A semantic value which represents the fully reified caller of the current
@@ -54,14 +52,14 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
 internal class L2SemanticCaller constructor(frame: Frame)
 	: L2FrameSpecificSemanticValue(frame, 0x5A9556AA)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		other is L2SemanticCaller && super.equalsSemanticValue(other)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		frameTransformer(frame).let { newFrame ->
 			if (newFrame == frame) this else L2SemanticCaller(newFrame)
 		}
@@ -74,8 +72,6 @@ internal class L2SemanticCaller constructor(frame: Frame)
 	override val defaultRestriction: TypeRestriction
 		get() = continuationRestriction
 
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
-
 	override val primaryVisualSortKey get() = PrimaryVisualSortKey.CALLER
 
 	override fun toString(): String =
@@ -85,6 +81,6 @@ internal class L2SemanticCaller constructor(frame: Frame)
 	{
 		/** The default restriction for continuations. */
 		private val continuationRestriction =
-			boxedRestrictionForType(mostGeneralContinuationType)
+			restrictionForType(mostGeneralContinuationType)
 	}
 }

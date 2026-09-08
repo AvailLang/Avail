@@ -75,6 +75,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.notNullAnd
 
 /**
@@ -223,10 +224,8 @@ object P_BitShiftRight : Primitive2(CanFold, CanInline)
 				outputType.lowerBound.equals(outputType.upperBound) ->
 				{
 					// The resulting value is known precisely.
-					moveIntRegister(
-						unboxedIntConstant(
-							outputType.lowerBound.extractInt
-						).semanticValue(),
+					move(
+						constant(outputType.lowerBound.extractInt),
 						intWrite.semanticValues())
 				}
 				intA.type().isSubtypeOf(inclusive(-1, 0)) ||
@@ -236,8 +235,7 @@ object P_BitShiftRight : Primitive2(CanFold, CanInline)
 					//   1. The base is always in [-1, 0], so the shift, whether
 					//      left or right, has no effect, or
 					//   2. The shift is always zero, likewise having no effect.
-					moveIntRegister(
-						intA.semanticValue(), intWrite.semanticValues())
+					move(intA.semanticValue(), intWrite.semanticValues())
 				}
 				intB.type().isSubtypeOf(inclusive(0, 31)) ->
 				{

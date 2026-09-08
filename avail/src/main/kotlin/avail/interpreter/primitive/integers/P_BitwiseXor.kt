@@ -59,7 +59,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -68,6 +67,7 @@ import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.notNullAnd
 import kotlin.math.min
 
@@ -154,16 +154,14 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 		{
 			// x ⊕ 0 = x
 			(y.constantOrNull.notNullAnd { equalsInt(0) }) ->
-				moveBoxedRegister(
-					x.semanticValue(), result.semanticValues())
+				move(x.semanticValue(), result.semanticValues())
 			// 0 ⊕ y = y
 			(x.constantOrNull.notNullAnd { equalsInt(0) }) ->
-				moveBoxedRegister(
-					y.semanticValue(), result.semanticValues())
+				move(y.semanticValue(), result.semanticValues())
 			// x ⊕ x = 0
 			currentManifest.isEquivalentSemanticValue(
 				x.semanticValue(), y.semanticValue()
-			) -> +L2_MOVE_BOXED(boxedConstant(zero), result)
+			) -> move(constant(zero), result.semanticValues())
 			else -> emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 		}
 	}

@@ -257,7 +257,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 
 /**
- * An `AvailLoader` is responsible for orchestrating module-level side-effects,
+ * An [AvailLoader] is responsible for orchestrating module-level side-effects,
  * such as those caused by adding [method][MethodDefinitionDescriptor],
  * [abstract][AbstractDefinitionDescriptor], and
  * [forward][ForwardDefinitionDescriptor] definitions.  Also

@@ -49,14 +49,14 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.PublicCloneable
 import avail.utility.Strings
 import avail.utility.Strings.increaseIndentation
 import javax.annotation.OverridingMethodsMustInvokeSuper
 
 /**
- * An `L2Operand` knows its [L2OperandType] and any specific value that needs to
+ * An [L2Operand] knows its [L2OperandType] and any specific value that needs to
  * be captured for that type of operand.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

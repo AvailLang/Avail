@@ -53,10 +53,10 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.characterRestriction
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 
 /**
@@ -94,7 +94,7 @@ class L2_CODEPOINT_TO_CHARACTER(
 			val charSet =
 				codepoints.instances.map { fromCodePoint(it.extractInt) }
 			destination.restrict {
-				boxedRestrictionForType(
+				restrictionForType(
 					enumerationWith(setFromCollection(charSet)))
 			}
 		}
@@ -144,7 +144,7 @@ class L2_CODEPOINT_TO_CHARACTER(
 					.flatMap(IntRange::toList)
 					.map(CharacterDescriptor::fromCodePoint)
 				destination.restrict {
-					boxedRestrictionForType(
+					restrictionForType(
 						enumerationWith(setFromCollection(characters)))
 				}
 			}
@@ -166,7 +166,7 @@ class L2_CODEPOINT_TO_CHARACTER(
 		restriction: TypeRestriction,
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
-		tracer.continueTracing(source.register(), restriction.forUnboxedInt())
+		tracer.continueTracing(source.register(), restriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()

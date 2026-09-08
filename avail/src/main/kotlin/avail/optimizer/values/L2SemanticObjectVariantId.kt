@@ -37,19 +37,14 @@ import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.optimizer.L2ValueManifest
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.ValueClass
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * A semantic value which represents the variantId of the [ObjectLayoutVariant]
  * extracted from some [object][ObjectDescriptor] or object
- * [type][ObjectTypeDescriptor] in the [base] semantic value. To keep unboxed
- * ints homogenous, this will always be wrapped inside an
- * [L2SemanticUnboxedInt], even though the boxed value generally will not occur
- * in any [L2BoxedRegister].
+ * [type][ObjectTypeDescriptor] in the [base] semantic value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -62,26 +57,24 @@ import avail.optimizer.ValueClass
  */
 class L2SemanticObjectVariantId
 constructor(
-	val base: L2SemanticValue<BOXED_KIND>
-) : L2SemanticBoxedValue(base.hash xor 0x788919B8)
+	val base: L2SemanticValue
+) : L2SemanticValue(base.hash xor 0x788919B8)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		other is L2SemanticObjectVariantId
 			&& base.equalsSemanticValue(other.base)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		semanticValueTransformer(base).let { newFrame ->
 			if (newFrame == base) this else L2SemanticObjectVariantId(newFrame)
 		}
 
 	override val defaultRestriction: TypeRestriction
 		get() = variantsRestriction
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override fun recordDerivationIn(
 		manifest: L2ValueManifest,
@@ -96,6 +89,6 @@ constructor(
 		 * The default restriction for semantic values that hold the variant id
 		 * of some object.  Note that they're non-negative.
 		 */
-		private val variantsRestriction = boxedRestrictionForType(i31)
+		private val variantsRestriction = restrictionForType(i31)
 	}
 }

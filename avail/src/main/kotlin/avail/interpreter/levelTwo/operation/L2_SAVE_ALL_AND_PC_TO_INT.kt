@@ -46,15 +46,18 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 
@@ -177,8 +180,7 @@ constructor(
 		}
 		// Look for L2_CREATE_VARIABLE instructions that can stay postponed.
 		val creations = generator.currentManifest.allPostponedInstructions()
-			.filterValues { it is L2_CREATE_VARIABLE }
-			.mapValues { it.value as L2_CREATE_VARIABLE }
+			.filter { it.instruction is L2_CREATE_VARIABLE }
 		if (creations.isEmpty())
 		{
 			// There's nothing new to elide here.
@@ -187,7 +189,7 @@ constructor(
 		// There's at least one elision to add.
 		val elidedVariables = dirtyLocals.elements.toMutableList()
 		val elidedVariableIndices = dirtyLocalIndices.constant.toMutableList()
-		creations.values.forEach { postponedCreation ->
+		creations.forEach { instructionEquivalence ->
 			// We can postpone the creation of this local along the reference
 			// edge, but also record the source of the value for creating the
 			// register dump that will be used by the continuation creation
@@ -196,13 +198,23 @@ constructor(
 			// along the ifFallThrough path, to indicate the continuation can
 			// keep it elided unless the continuation is made immutable or
 			// shared (in which case it will exit to L1).
+			val postponedCreation =
+				instructionEquivalence.instruction as L2_CREATE_VARIABLE
 			val manifest = generator.currentManifest
 			val valueRead = postponedCreation.initialValueOrNil
 			val semanticValue = valueRead.semanticValue()
-			val semanticInt = manifest.intFormOf(semanticValue)
-			val semanticFloat = manifest.floatFormOf(semanticValue)
-			val source = semanticInt ?: semanticFloat ?: semanticValue
-			val newElidedVariable = source.createRead(manifest)
+			val sourceKind = when
+			{
+				manifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND) ->
+					INTEGER_KIND
+				manifest.hasLiveSemanticValue(semanticValue, FLOAT_KIND) ->
+					FLOAT_KIND
+				manifest.hasLiveSemanticValue(semanticValue, BOXED_KIND) ->
+					BOXED_KIND
+				else -> error("Expected value in at least one RegisterKind")
+			}
+			val newElidedVariable =
+				sourceKind.createRead(semanticValue, manifest)
 			elidedVariables.add(newElidedVariable)
 			newElidedVariable.adjustCloneForInstruction(this, generator)
 			elidedVariableIndices.add(postponedCreation.localIndex.value)
@@ -227,7 +239,8 @@ constructor(
 				retainRegisters(emptySet())
 				// Indicate on the edge that these values are all that should be
 				// visible.
-				reference.forcedClampedEntities = emptySet()
+				reference.forcedClampedRegisters = emptySet()
+				reference.forcedClampedSemanticValues = emptySet()
 			}
 		}
 		val fallThroughManifest = L2ValueManifest(manifest).apply {
@@ -236,15 +249,19 @@ constructor(
 			// variable placeholders.
 			if (reference.isBackward) return@apply
 			manifest.allPostponedInstructions()
-				.filterValues { it is L2_CREATE_VARIABLE }
-				.mapValues { it.value as L2_CREATE_VARIABLE }
-				.forEach { (synonym, postponedCreation) ->
+				.filter { it.instruction is L2_CREATE_VARIABLE }
+				.forEach { instructionEquivalence ->
+					val postponedCreation =
+						instructionEquivalence.instruction as L2_CREATE_VARIABLE
+					val synonym = instructionEquivalence.synonym
 					val elidedVariable =
 						postponedCreation.constantVariableIfElided.constant
-					removePostponedInstructionFor(synonym.pickSemanticValue())
+					removePostponedInstructionFor(
+						synonym.pickSemanticValue(),
+						BOXED_KIND)
 					agglomerateSynonym(
 						synonym.semanticValues(),
-						boxedRestrictionForConstant(elidedVariable))
+						restrictionForConstant(elidedVariable))
 				}
 		}
 
@@ -257,7 +274,7 @@ constructor(
 
 	override fun replaceConstantReads(
 		generator: L2GeneratorInterface,
-		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue>)
 	{
 		// Don't replace any saved registers with constants, since there would
 		// be nowhere to restore them to (they don't occupy JVM locals).  This
@@ -266,10 +283,10 @@ constructor(
 	}
 
 	/**
-	 * Use the [reference] edge's [L2PcOperand.sometimesLiveInEntities] to
-	 * populate this instruction's [finalSavedBoxedRegisters].  This happens
-	 * very late during optimization, as part of insertion of the
-	 * [L2_MAKE_IMMUTABLE] instructions.
+	 * Use the [reference] edge's [L2PcOperand.liveness] to populate this
+	 * instruction's [finalSavedBoxedRegisters].  This happens very late during
+	 * optimization, as part of insertion of the [L2_MAKE_IMMUTABLE]
+	 * instructions.
 	 */
 	override fun processForMakeImmutable(
 		firstUses: MutableMap<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>,
@@ -278,7 +295,7 @@ constructor(
 		uniqueGenerator: ()->Int)
 	{
 		assert(finalSavedBoxedRegisters.elements.isEmpty())
-		val boxedRegisters = reference.sometimesLiveInEntities!!
+		val boxedRegisters = reference.liveness!!.sometimesLiveInRegisters
 			.filterIsInstance<L2BoxedRegister>()
 		if (boxedRegisters.isEmpty()) return
 		val reads = boxedRegisters.map { register ->

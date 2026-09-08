@@ -51,18 +51,17 @@ import avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.dispatch.TagSplitter
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticExtractedTag
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import avail.utility.isNullOr
@@ -213,7 +212,7 @@ constructor(
 		val subtree: LookupTree<A_Definition, A_Tuple>?,
 		val tag: TypeTag?,
 		var restriction: TypeRestriction? = tag?.run {
-			boxedRestrictionForType(supremum)
+			restrictionForType(supremum)
 		})
 
 	/**
@@ -251,14 +250,14 @@ constructor(
 	}
 
 	override fun L2GeneratorInterface.generateEdgesFor(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 	{
 		// For simplicity, let super-lookups via type tags always fall back.
 		// They're *very* difficult to reason about.
@@ -337,7 +336,7 @@ constructor(
 			// contain impossible (e.g., abstract) tags.
 			val (low, high, existing, oldTag, oldRestriction) = runs[index]
 			runs.removeAt(index)
-			val newRestriction = boxedRestrictionForType(tag.supremum)
+			val newRestriction = restrictionForType(tag.supremum)
 			runs.addAll(
 				index,
 				listOf(
@@ -377,12 +376,12 @@ constructor(
 			val bottomOrdinal = BOTTOM_TYPE_TAG.ordinal
 			if (couldBeBottom && high != bottomOrdinal)
 			{
-				intRestrictionForType(inclusive(low, bottomOrdinal))
+				restrictionForType(inclusive(low, bottomOrdinal))
 					.minusType(inclusive(high + 1, bottomOrdinal - 1))
 			}
 			else
 			{
-				intRestrictionForType(inclusive(low, high))
+				restrictionForType(inclusive(low, high))
 			}
 		}
 		// Exclude all abstract type tags from the ordinalRestriction, since
@@ -459,19 +458,19 @@ constructor(
 		}
 		// Generate a multi-way branch.
 		val splits = reducedSpans.drop(1).map(Span::low)
-		val semanticTag = L2SemanticExtractedTag(semanticSource).unboxedInt
-		if (!currentManifest.hasLiveSemanticValue(semanticTag))
+		val semanticTag = L2SemanticExtractedTag(semanticSource)
+		if (!currentManifest.hasLiveSemanticValue(semanticTag, INTEGER_KIND))
 		{
 			// Assume the base type is sufficient to limit the possible tag
 			// ordinals.
-			val equivalentTag =
-				currentManifest.equivalentPopulatedSemanticValue(semanticTag)
+			val equivalentTag = currentManifest
+				.equivalentPopulatedSemanticValue(semanticTag, INTEGER_KIND)
 			when (equivalentTag)
 			{
 				null -> +L2_EXTRACT_TAG_ORDINAL(
 					readBoxed(semanticSource),
 					intWrite(setOf(semanticTag), ordinalRestriction))
-				else -> moveIntRegister(equivalentTag, setOf(semanticTag))
+				else -> move(equivalentTag, setOf(semanticTag))
 			}
 		}
 		val edges = reducedSpans.map {

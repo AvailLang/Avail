@@ -39,7 +39,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 
 /**
- * A `BloomFilter` is a conservative, probabilistic set.  It can report that an
+ * A [BloomFilter] is a conservative, probabilistic set.  It can report that an
  * element is *probably* in the set, or *definitely* not in the set.  This can
  * be a useful, fast prefilter to avoid computing or fetching authoritative data
  * in a large majority of cases, effectively reducing the number of spurious

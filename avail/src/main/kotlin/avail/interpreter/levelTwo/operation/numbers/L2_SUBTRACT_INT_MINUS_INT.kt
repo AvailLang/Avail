@@ -43,12 +43,12 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
@@ -91,7 +91,7 @@ class L2_SUBTRACT_INT_MINUS_INT(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		difference.restrict { intRestrictionForType(i32) }
+		difference.restrict { restrictionForType(i32) }
 		super.instructionWasAdded(manifest)
 		minuend.constantOrNull?.let { minuendValue ->
 			// By virtue of the overflow and the fact that the minuend is

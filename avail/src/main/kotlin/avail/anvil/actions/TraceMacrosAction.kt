@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `TraceMacrosAction` toggles the flag that indicates whether to show macro
+ * A [TraceMacrosAction] toggles the flag that indicates whether to show macro
  * expansions as they happen during compilation.
  *
  * @constructor

@@ -43,7 +43,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
 /**
- * A `CompletelyOptional` is a special [expression][Expression] indicated by a
+ * A [CompletelyOptional] is a special [expression][Expression] indicated by a
  * [double&#32;question&#32;mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇)
  * following a [simple][Simple] or [simple&#32;group][Group]. It may not contain
  * [arguments][Argument] or non-simple subgroups and it may not contain a

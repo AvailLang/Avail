@@ -48,7 +48,7 @@ import java.io.DataInputStream
 import java.lang.String.format
 
 /**
- * An `RepositoryDescriber` provides a textual representation of
+ * An [RepositoryDescriber] provides a textual representation of
  * a [Repository], showing the contained [modules][A_Module],
  * [versions][ModuleVersion], and [compilations][ModuleCompilation].
  *

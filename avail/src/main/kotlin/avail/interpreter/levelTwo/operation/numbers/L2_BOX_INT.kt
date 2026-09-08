@@ -41,7 +41,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 
 /**
@@ -68,7 +68,7 @@ class L2_BOX_INT(
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
-		destination.restrict { source.restriction().forBoxed() }
+		destination.restrict { source.restriction() }
 		super.instructionWasAdded(manifest)
 	}
 
@@ -77,7 +77,7 @@ class L2_BOX_INT(
 		restriction: TypeRestriction,
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
-		tracer.continueTracing(source.register(), restriction.forUnboxedInt())
+		tracer.continueTracing(source.register(), restriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()

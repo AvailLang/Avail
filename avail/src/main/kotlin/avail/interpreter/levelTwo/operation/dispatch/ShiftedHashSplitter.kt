@@ -41,14 +41,14 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 
 /**
@@ -111,14 +111,14 @@ class ShiftedHashSplitter constructor(
 					addAll(
 						typeRestrictionConditions(
 							listOf(sourceRead.register()),
-							boxedRestrictionForConstant(instance)))
+							restrictionForConstant(instance)))
 					// Split if there's a point upstream that knows that
 					// one or more of the constants will not be possible
 					// here.
 					addAll(
 						typeRestrictionConditions(
 							listOf(sourceRead.register()),
-							boxedRestrictionForType(Types.ANY())
+							restrictionForType(Types.ANY())
 								.minusValue(instance)))
 				}
 			}

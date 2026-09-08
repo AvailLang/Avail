@@ -35,7 +35,7 @@ package avail.interpreter.effects
 import avail.interpreter.levelOne.L1InstructionWriter
 
 /**
- * A `LoadingEffect` is a summarized activity that took place during execution
+ * A [LoadingEffect] is a summarized activity that took place during execution
  * of a top-level statement during module compilation.  If certain criteria are
  * met, what gets recorded for replay is not a zero-argument function containing
  * that top-level statement, but instead is a summarized function that has an

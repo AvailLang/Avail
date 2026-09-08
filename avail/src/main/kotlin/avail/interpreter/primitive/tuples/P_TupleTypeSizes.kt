@@ -51,8 +51,8 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -61,6 +61,7 @@ import avail.interpreter.primitive.Primitive1
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Answer the allowed size [ranges][IntegerRangeTypeDescriptor]
@@ -90,14 +91,14 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		{
 			// The tuple type is necessrily bottom, so the size range is also
 			// bottom.
-			moveBoxedRegister(
-				boxedConstant(bottom).semanticValue(),
+			move(
+				constant(bottom),
 				result.semanticValues())
 			return
 		}
 		val sizeRange = tupleMetaRestriction.type.instance.sizeRange
 		var strongSizeRestriction =
-			boxedRestrictionForType(instanceMeta(sizeRange))
+			restrictionForType(instanceMeta(sizeRange))
 		if (tupleMetaRestriction.canBeBottom)
 		{
 			// The tuple type can be bottom, which means the output size range
@@ -107,10 +108,8 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		if (tupleMetaRestriction.isConstant)
 		{
 			// For this invocation, only one size happens to be possible.
-			moveBoxedRegister(
-				boxedConstant(
-					tupleMetaRestriction.constantOrNull!!.sizeRange
-				).semanticValue(),
+			move(
+				constant(tupleMetaRestriction.constantOrNull!!.sizeRange),
 				result.semanticValues())
 			return
 		}
@@ -129,7 +128,7 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		addAll(
 			typeRestrictionConditions(
 				setOf(tupleTypeRegister),
-				boxedRestrictionForConstant(bottom)))
+				restrictionForConstant(bottom)))
 		addAll(
 			typeRestrictionConditions(
 				setOf(tupleTypeRegister),

@@ -38,7 +38,7 @@ import avail.descriptor.representation.A_Fiber
 import java.nio.charset.StandardCharsets
 
 /**
- * A `TextInterface` represents an interface between an external process,
+ * A [TextInterface] represents an interface between an external process,
  * device, or user and an Avail agent (e.g., an [AvailBuilder] or
  * [fiber][A_Fiber]). As such, it combines [input][TextInputChannel],
  * [output][TextOutputChannel], and error channels, corresponding to the usual

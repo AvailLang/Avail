@@ -107,15 +107,15 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 			basicRegenerateForPostponement()
 			return
 		}
-		val postponed =
-			currentManifest.postponedInstructionFor(semanticVariable)!!
+		val postponed = currentManifest
+			.postponedInstructionFor(semanticVariable, BOXED_KIND)!!
 		val originValue = when (postponed)
 		{
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite
 			is L2_CREATE_VARIABLE -> postponed.initialValueOrNil
 			is L2_GET_UNESCAPED_LOCAL_VARIABLE ->
 				currentManifest.read(
-					postponed.extractedValue.pickSemanticValue())
+					postponed.extractedValue.pickSemanticValue(), BOXED_KIND)
 			else ->
 			{
 				basicRegenerateForPostponement()
@@ -124,7 +124,7 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 		}
 		// The move from variable to variableOut is unconditional.
 		currentManifest.removePostponedInstructionFor(
-			variableOut.pickSemanticValue())
+			variableOut.pickSemanticValue(), BOXED_KIND)
 		currentManifest.recordPostponedInstruction(
 			variableOut.pickSemanticValue(),
 			L2_MOVE_BOXED(variable, variableOut))

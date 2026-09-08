@@ -36,7 +36,7 @@ import avail.descriptor.maps.MapBinDescriptor
 import avail.descriptor.maps.MapDescriptor
 
 /**
- * A `MapException` is thrown by map operations.
+ * A [MapException] is thrown by map operations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @see MapDescriptor

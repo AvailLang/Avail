@@ -56,8 +56,8 @@ import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * A `VariableTypeDescriptor variable type` is the [type][TypeDescriptor] of any
- * [variable][VariableDescriptor] that can only hold objects having the
+ * A [VariableTypeDescriptor] (variable type) is the [type][TypeDescriptor] of
+ * any [variable][VariableDescriptor] that can only hold objects having the
  * specified [inner&amp;#32;type][ObjectSlots.INNER_TYPE]. The read and write
  * capabilities of the object instances are equivalent, therefore the inner type
  * is invariant.

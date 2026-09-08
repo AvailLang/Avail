@@ -45,9 +45,8 @@ import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.sameSynonymCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
 
 /**
@@ -126,8 +125,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
 		val (int1Read, int2Read) = readTwoInts(
-			first.semanticValue().unboxedInt,
-			second.semanticValue().unboxedInt,
+			first.semanticValue(),
+			second.semanticValue(),
 			unreachable)
 		{
 			+this@L2_JUMP_IF_OBJECTS_EQUAL

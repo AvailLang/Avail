@@ -32,10 +32,11 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2ReadOperand
-import avail.interpreter.levelTwo.operand.L2WriteOperand
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.intersects
 
 /**
  * Whether [L2SemanticValue]s or the underlying [L2Register]s should be
@@ -57,23 +58,7 @@ enum class DataCouplingMode constructor(
 	 * The liveness analyses should consider the flows through
 	 * [L2SemanticValue]s.
 	 */
-	@Suppress("unused")
-	FOLLOW_SEMANTIC_VALUES(false, true)
-	{
-		override fun addEntitiesFromRead(
-			readOperand: L2ReadOperand<*>,
-			accumulatingSet: MutableSet<L2Entity<*>>)
-		{
-			accumulatingSet.add(readOperand.semanticValue())
-		}
-
-		override fun addEntitiesFromWrite(
-			writeOperand: L2WriteOperand<*>,
-			accumulatingSet: MutableSet<L2Entity<*>>)
-		{
-			accumulatingSet.addAll(writeOperand.semanticValues())
-		}
-	},
+	FOLLOW_SEMANTIC_VALUES(false, true),
 
 	/**
 	 * [L2SemanticValue]s can be ignored, and only [L2Register]s should be
@@ -83,143 +68,116 @@ enum class DataCouplingMode constructor(
 	 * exclude any registers that are constant reads (which will have no
 	 * definitions anyhow).
 	 */
-	FOLLOW_REGISTERS(true, false)
-	{
-		override fun addEntitiesFromRead(
-			readOperand: L2ReadOperand<*>,
-			accumulatingSet: MutableSet<L2Entity<*>>)
-		{
-			if (!readOperand.isConstantRead)
-			{
-				accumulatingSet.add(readOperand.register())
-			}
-		}
-
-		override fun addEntitiesFromWrite(
-			writeOperand: L2WriteOperand<*>,
-			accumulatingSet: MutableSet<L2Entity<*>>)
-		{
-			accumulatingSet.add(writeOperand.register())
-		}
-	},
+	FOLLOW_REGISTERS(true, false),
 
 	/**
 	 * Both [L2SemanticValue]s and [L2Register]s should be traced for liveness.
 	 */
 	FOLLOW_SEMANTIC_VALUES_AND_REGISTERS(true, true)
-	{
-		override fun addEntitiesFromRead(
-			readOperand: L2ReadOperand<*>,
-			accumulatingSet: MutableSet<L2Entity<*>>)
-		{
-			if (!readOperand.isConstantRead)
-			{
-				accumulatingSet.add(readOperand.semanticValue())
-				accumulatingSet.add(readOperand.register())
-			}
-		}
-
-		override fun addEntitiesFromWrite(
-			writeOperand: L2WriteOperand<*>,
-			accumulatingSet: MutableSet<L2Entity<*>>)
-		{
-			accumulatingSet.addAll(writeOperand.semanticValues())
-			accumulatingSet.add(writeOperand.register())
-		}
-	}
 
 	;
 
 	/**
-	 * Extract each [L2Entity] that this policy is concerned with from
-	 * the given [L2ReadOperand].
+	 * The current state of [liveness] reflects the registers and/or semantic
+	 * values that are live after the given instruction.  If the instruction has
+	 * a side effect or if it produces any of the live values, remove the
+	 * produced values from liveness, add any values consumed by the
+	 * instruction, and answer `true` (to keep the instruction).  Otherwise
+	 * answer `false`.
 	 *
-	 * @param readOperand
-	 *   The [L2ReadOperand] to examine.
-	 * @param accumulatingSet
-	 *   A [Set] into which to accumulate the read entities.
-	 */
-	abstract fun addEntitiesFromRead(
-		readOperand: L2ReadOperand<*>,
-		accumulatingSet: MutableSet<L2Entity<*>>)
-
-	/**
-	 * Extract each [L2Entity] that this policy is concerned with from the given
-	 * [L2WriteOperand].
-	 *
-	 * @param writeOperand
-	 *   The [L2WriteOperand] to examine.
-	 * @param accumulatingSet
-	 *   A [Set] into which to accumulate the written entities.
-	 */
-	abstract fun addEntitiesFromWrite(
-		writeOperand: L2WriteOperand<*>,
-		accumulatingSet: MutableSet<L2Entity<*>>)
-
-	/**
-	 * Extract each relevant [L2Entity] consumed by the given [L2ReadOperand].
-	 *
-	 * @param readOperand
-	 *   The [L2ReadOperand] to examine.
-	 * @return
-	 *   Each [L2Entity] read by the [L2ReadOperand], and which the policy deems
-	 *   relevant.
-	 */
-	fun readEntitiesOf(readOperand: L2ReadOperand<*>): Set<L2Entity<*>>
-	{
-		val entitiesRead = mutableSetOf<L2Entity<*>>()
-		addEntitiesFromRead(readOperand, entitiesRead)
-		return entitiesRead
-	}
-
-	/**
-	 * Extract each relevant [L2Entity] produced by the given [L2WriteOperand].
-	 *
-	 * @param writeOperand
-	 *   The [L2WriteOperand] to examine.
-	 * @return
-	 *   Each [L2Entity] written by the [L2WriteOperand], and which the policy
-	 *   deems relevant.
-	 */
-	@Suppress("unused")
-	fun writeEntitiesOf(writeOperand: L2WriteOperand<*>): Set<L2Entity<*>>
-	{
-		val entitiesWritten = mutableSetOf<L2Entity<*>>()
-		addEntitiesFromWrite(writeOperand, entitiesWritten)
-		return entitiesWritten
-	}
-
-	/**
-	 * Extract each relevant [L2Entity] consumed by the given [L2Instruction].
+	 * As a simplifying assumption, pretend an altersControlFlow instruction at
+	 * the end of the block populates *all* of the entities that are visible
+	 * along any of its successor edges.  This is true of semantic values in
+	 * SSA, and after phi move substitution.  It's also true of registers before
+	 * coloring.
 	 *
 	 * @param instruction
-	 *   The [L2Instruction] to examine.
+	 *   The [L2Instruction] to analyze.
 	 * @return
-	 *   Each [L2Entity] read by the instruction, and which the policy deems
-	 *   relevant.
+	 *   Whether the instruction should be kept, having already propagated
+	 *   liveness changes if `true`.
 	 */
-	fun readEntitiesOf(instruction: L2Instruction): Set<L2Entity<*>>
+	fun visitInstruction(
+		instruction: L2Instruction,
+		liveness: L2Liveness
+	): Boolean
 	{
-		val entitiesRead = mutableSetOf<L2Entity<*>>()
-		instruction.readOperands.forEach {
-			addEntitiesFromRead(it, entitiesRead) }
-		return entitiesRead
+		assert(instruction !is L2_PHI<*>)
+		var keep = instruction.hasSideEffect
+		if (!keep && considersRegisters)
+		{
+			keep = instruction.writeOperands.any { write ->
+				val reg = write.register()
+				reg in liveness.sometimesLiveInRegisters
+					|| reg in liveness.alwaysLiveInRegisters
+			}
+		}
+		if (!keep && considersSemanticValues)
+		{
+			keep = instruction.writeOperands.any { write ->
+				val values = write.semanticValues()
+				values.intersects(liveness.sometimesLiveInSemanticValues)
+					|| values.intersects(liveness.alwaysLiveInSemanticValues)
+			}
+		}
+		if (!keep) return false
+
+		// The instruction should be kept, so apply its writes and reads.
+		instruction.writeOperands.forEach { write ->
+			if (considersRegisters)
+			{
+				val reg = write.register()
+				liveness.remove(reg)
+			}
+			if (considersSemanticValues)
+			{
+				val values = write.semanticValues()
+				liveness.removeAll(values)
+			}
+		}
+		instruction.readOperands.forEach { read ->
+			if (!read.register().isConstant)
+			{
+				if (considersRegisters)
+				{
+					liveness.add(read.register())
+				}
+				if (considersSemanticValues)
+				{
+					liveness.add(read.semanticValue())
+				}
+			}
+		}
+		return true
 	}
 
 	/**
-	 * Extract each relevant [L2Entity] produced by the given [L2Instruction].
+	 * The current state of [livenesses] reflect the registers and/or semantic
+	 * values that are live after the given phi instruction, with subsequent
+	 * phi instructions' effects applied.  Update each liveness with information
+	 * specific to the corresponding incoming edge for the phi.
 	 *
-	 * @param instruction
-	 *   The [L2Instruction] to examine.
-	 * @return
-	 *   Each [L2Entity] written by the instruction, and which the policy deems
-	 *   relevant.
+	 * @param phi
+	 *   The [L2_PHI] instruction to analyze.
+	 * @param livenesses
+	 *   A [List] of [L2Liveness]es corresponding to the [L2_PHI.sources].
 	 */
-	fun writeEntitiesOf(instruction: L2Instruction): Set<L2Entity<*>>
+	fun visitPhi(
+		phi: L2_PHI<*>,
+		livenesses: List<L2Liveness>)
 	{
-		val entitiesWritten = mutableSetOf<L2Entity<*>>()
-		instruction.writeOperands
-			.forEach { addEntitiesFromWrite(it, entitiesWritten) }
-		return entitiesWritten
+		assert(considersRegisters && considersSemanticValues)
+		val destinationReg = phi.destination.register()
+		val destinationValues = phi.destination.semanticValues()
+		phi.sources.elements.zip(livenesses).forEach { (source, liveness) ->
+			liveness.remove(destinationReg)
+			liveness.removeAll(destinationValues)
+
+			if (!source.isConstantRead)
+			{
+				liveness.add(source.register())
+				liveness.add(source.semanticValue())
+			}
+		}
 	}
 }

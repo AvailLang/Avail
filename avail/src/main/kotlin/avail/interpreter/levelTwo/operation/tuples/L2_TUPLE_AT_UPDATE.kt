@@ -41,13 +41,12 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 
 /**
  * Given a tuple, an immediate index, and a new value to write, create the tuple
@@ -120,7 +119,7 @@ class L2_TUPLE_AT_UPDATE(
 			typesList[index] = elementRead.type()
 			val newWrite = boxedWriteTemp(
 				"with update @$index",
-				boxedRestrictionForType(tupleTypeForTypesList(typesList)))
+				restrictionForType(tupleTypeForTypesList(typesList)))
 			+L2_TUPLE_AT_UPDATE(
 				tupleTemp,
 				L2IntImmediateOperand(index),
@@ -130,19 +129,19 @@ class L2_TUPLE_AT_UPDATE(
 		}
 		// Finally, answer a move into the same semantic values that the
 		// receiver was writing to.
-		moveBoxedRegister(
+		move(
 			tupleTemp.semanticValue(),
 			outputTuple.semanticValues())
 	}
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit = when (index)
 	{
 		// Use the value that was used to update that element.
-		updateIndex.value -> moveBoxedRegister(
+		updateIndex.value -> move(
 			newElement.semanticValue(),
 			destinationSemanticValues)
 		// It wasn't affected by this tuple update.

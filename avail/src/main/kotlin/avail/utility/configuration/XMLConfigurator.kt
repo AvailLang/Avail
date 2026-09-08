@@ -36,7 +36,7 @@ import java.io.InputStream
 import javax.xml.parsers.SAXParserFactory
 
 /**
- * An `XMLConfigurator` obtains a [configuration][Configuration] by processing
+ * An [XMLConfigurator] obtains a [configuration][Configuration] by processing
  * an XML document.
  *
  * In order to use an `XMLConfigurator` to obtain a configuration, a client must

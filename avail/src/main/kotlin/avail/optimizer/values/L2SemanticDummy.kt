@@ -32,18 +32,13 @@
 package avail.optimizer.values
 
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * An [L2SemanticValue] which should only be present after the control flow
  * graph has been transformed to only respect the connections of [L2Register]s.
  * There should be no writes of a dummy semantic value, and each read should be
  * of a distinct one, although that's not important.
- *
- * For unboxed registers, use the usual technique of wrapping it in an
- * [L2SemanticUnboxedInt] or [L2SemanticUnboxedFloat].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -58,9 +53,9 @@ class L2SemanticDummy
 internal constructor(
 	val index: Int,
 	val comment: String? = null
-) : L2SemanticBoxedValue(index.hashCode())
+) : L2SemanticValue(index.hashCode())
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		other === this
 
 	override fun toString(): String = when (comment)
@@ -71,14 +66,12 @@ internal constructor(
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue = this
+	): L2SemanticValue = this
 
 	override val defaultRestriction: TypeRestriction
 		get() = TypeRestriction.topRestriction
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	/**
 	 * It shouldn't mix in the same graph with anything else, but for safety

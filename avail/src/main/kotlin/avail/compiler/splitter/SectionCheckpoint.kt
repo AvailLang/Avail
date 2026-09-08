@@ -39,7 +39,7 @@ import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Type
 
 /**
- * An `SectionCheckpoint` expression is an occurrence of the
+ * An [SectionCheckpoint] expression is an occurrence of the
  * [section&#32;sign][Metacharacter.SECTION_SIGN] (§) in a message name.  It
  * indicates a position at which to save the argument expressions for the
  * message *up to this point*.  This value is captured in the [ParserState] for

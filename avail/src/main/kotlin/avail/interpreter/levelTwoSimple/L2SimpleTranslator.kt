@@ -86,8 +86,8 @@ import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
@@ -347,13 +347,13 @@ constructor(
 		for (i in 1..numArgs)
 		{
 			restrictions[readSlot(i)] =
-				boxedRestrictionForType(paramTypes.typeAtIndex(i))
+				restrictionForType(paramTypes.typeAtIndex(i))
 		}
 		// Also set up the local variables (but not constants).
 		for (i in 1..code.numLocals)
 		{
 			restrictions[readSlot(i + numArgs)] =
-				boxedRestrictionForType(code.localTypeAt(i))
+				restrictionForType(code.localTypeAt(i))
 		}
 		code.setUpInstructionDecoder(instructionDecoder, 1)
 		val numLocals = code.numLocals
@@ -362,7 +362,7 @@ constructor(
 			// The first constant slot gets the failure code.
 			writeSlot(
 				numArgs + numLocals + 1,
-				boxedRestrictionForType(code.constantTypeAt(1)))
+				restrictionForType(code.constantTypeAt(1)))
 		}
 		+L2Simple_SetUpFrame(
 			rawFunction = code,
@@ -370,13 +370,13 @@ constructor(
 				(1 .. numArgs).map {
 					writeSlot(
 						it,
-						boxedRestrictionForType(paramTypes.typeAtIndex(it)))
+						restrictionForType(paramTypes.typeAtIndex(it)))
 				}),
 			localsToPopulate = WriteArray(
 				(1 .. numLocals).map {
 					writeSlot(
 						numArgs + it,
-						boxedRestrictionForType(code.localTypeAt(it)))
+						restrictionForType(code.localTypeAt(it)))
 				}),
 			primitiveFailureCode = failureCode)
 		+L2Simple_CheckForInterrupt(
@@ -942,7 +942,7 @@ constructor(
 					+L2Simple_MoveConstant(
 						value = guaranteedType.instance.makeShared(),
 						to = answer)
-					return boxedRestrictionForType(guaranteedType)
+					return restrictionForType(guaranteedType)
 						.withFlag(IMMUTABLE_FLAG)
 				}
 				guaranteedType
@@ -981,7 +981,7 @@ constructor(
 			answer = answer,
 			expectedType = expectedType,
 			mustCheck = mustCheck)
-		return boxedRestrictionForType(
+		return restrictionForType(
 			guaranteedReturnType.typeIntersection(expectedType))
 	}
 
@@ -1182,7 +1182,7 @@ constructor(
 	 */
 	fun constant(value: A_BasicObject): Read
 	{
-		val temp = newRegister(boxedRestrictionForConstant(value))
+		val temp = newRegister(restrictionForConstant(value))
 		+L2Simple_MoveConstant(value = value as AvailObject, to = temp)
 		return temp.read
 	}
@@ -1203,7 +1203,7 @@ constructor(
 		val arguments = readSlots(stackp, stackp - numArgs + 1)
 		val argTypes = argRestrictions.map(TypeRestriction::type)
 		(stackp - numArgs  + 1.. stackp).forEach(::nilSlot)
-		val answer = writeSlot(stackp, boxedRestrictionForType(expectedType))
+		val answer = writeSlot(stackp, restrictionForType(expectedType))
 		val possible = method.definitionsAtOrBelow(argRestrictions)
 		val only = possible.singleOrNull()
 		val stateOfL1 = StateOfL1(
@@ -1272,7 +1272,7 @@ constructor(
 		val value = code.literalAt(instructionDecoder.getOperand())
 		+L2Simple_MoveConstant(
 			value = value,
-			to = writeSlot(--stackp, boxedRestrictionForConstant(value)))
+			to = writeSlot(--stackp, restrictionForConstant(value)))
 	}
 
 	override fun L1_doPushLastLocal()
@@ -1298,7 +1298,7 @@ constructor(
 			outerNumber = outer,
 			to = writeSlot(
 				--stackp,
-				boxedRestrictionForType(code.outerTypeAt(outer))))
+				restrictionForType(code.outerTypeAt(outer))))
 	}
 
 	override fun L1_doClose()
@@ -1312,7 +1312,7 @@ constructor(
 		(oldStackp..stackp).forEach(::nilSlot)
 		val functionWrite = writeSlot(
 			stackp,
-			boxedRestrictionForType(rawFunction.functionType))
+			restrictionForType(rawFunction.functionType))
 		createCloseFunction(
 			code = rawFunction,
 			outers = outers,
@@ -1349,7 +1349,7 @@ constructor(
 		--stackp
 		val variable = readSlot(local)
 		val variableRestriction = slotRestriction(local)
-		val valueRestriction = boxedRestrictionForType(
+		val valueRestriction = restrictionForType(
 			variableRestriction.type.readType)
 		val answer = writeSlot(stackp, valueRestriction)
 		+L2Simple_GetVariableClearing(
@@ -1372,7 +1372,7 @@ constructor(
 	override fun L1_doPushOuter()
 	{
 		val outer = instructionDecoder.getOperand()
-		val restriction = boxedRestrictionForType(code.outerTypeAt(outer))
+		val restriction = restrictionForType(code.outerTypeAt(outer))
 		+L2Simple_PushOuter(
 			outerNumber = outer,
 			to = writeSlot(--stackp, restriction))
@@ -1391,7 +1391,7 @@ constructor(
 	{
 		val outer = instructionDecoder.getOperand()
 		val valueRestriction =
-			boxedRestrictionForType(code.outerTypeAt(outer).readType)
+			restrictionForType(code.outerTypeAt(outer).readType)
 		--stackp
 		+L2Simple_GetOuter(
 			nextOffset = SKIP,
@@ -1448,7 +1448,7 @@ constructor(
 			fromVariable = readSlot(local),
 			answer = writeSlot(
 				stackp,
-				boxedRestrictionForType(localType.readType)
+				restrictionForType(localType.readType)
 					.withFlag(IMMUTABLE_FLAG)))
 		+L2Simple_ReenterToResume(
 			nextOffset = NEXT,
@@ -1475,7 +1475,7 @@ constructor(
 		val elementTypes = elementRestrictions.map(TypeRestriction::type)
 		val answer = writeSlot(
 			stackp,
-			boxedRestrictionForType(tupleTypeForTypesList(elementTypes)))
+			restrictionForType(tupleTypeForTypesList(elementTypes)))
 		createMakeTuple(
 			elements = elements,
 			elementRestrictions = elementRestrictions,
@@ -1499,7 +1499,7 @@ constructor(
 			outerNumber = outer,
 			answer = writeSlot(
 				stackp,
-				boxedRestrictionForType(outerType.readType)
+				restrictionForType(outerType.readType)
 					.withFlag(IMMUTABLE_FLAG)))
 		+L2Simple_ReenterToResume(
 			nextOffset = NEXT,
@@ -1543,7 +1543,7 @@ constructor(
 		--stackp
 		val answer = writeSlot(
 			stackp,
-			boxedRestrictionForType(
+			restrictionForType(
 				continuationTypeForFunctionType(code.functionType())))
 		+L2Simple_PushLabel(
 			nextOffset = NEXT,
@@ -1572,7 +1572,7 @@ constructor(
 			variable = variable,
 			answer = writeSlot(
 				stackp,
-				boxedRestrictionForType(variable.kind().readType)
+				restrictionForType(variable.kind().readType)
 					.withFlag(IMMUTABLE_FLAG)))
 		+L2Simple_ReenterToResume(
 			nextOffset = NEXT,
@@ -1645,7 +1645,7 @@ constructor(
 		(stackp - numArgs  + 1.. stackp).forEach(::nilSlot)
 		val answer = writeSlot(
 			stackp,
-			boxedRestrictionForType(expectedType))
+			restrictionForType(expectedType))
 		val registerIndices = liveIndices(stackp - numArgs + 1 .. stackp)
 		val stateOfL1 = StateOfL1(
 			pc = pc,

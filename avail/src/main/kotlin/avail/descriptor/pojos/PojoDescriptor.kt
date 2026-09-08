@@ -50,7 +50,7 @@ import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * A `PojoDescriptor` describes a plain-old Java object (pojo) that is
+ * A [PojoDescriptor] describes a plain-old Java object (pojo) that is
  * accessible to an Avail programmer as an [AvailObject]. An Avail pojo
  * comprises a [raw&#32;pojo][RawPojoDescriptor] and a
  * [pojo&#32;type][PojoTypeDescriptor] that describes the pojo contextually.

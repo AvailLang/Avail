@@ -42,7 +42,7 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Synonym.Companion.appendSemanticValues
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
@@ -70,7 +70,7 @@ import avail.utility.cast
  */
 abstract class L2WriteOperand<K : RegisterKind<K>>
 constructor(
-	private var semanticValues: Set<L2SemanticValue<K>>,
+	private var semanticValues: Set<L2SemanticValue>,
 	private var restriction: TypeRestriction,
 	protected var registerOrNull: L2Register<K>? = null
 ) : L2Operand()
@@ -90,7 +90,7 @@ constructor(
 	 * @return
 	 *   The semantic value being written.
 	 */
-	open fun semanticValues(): Set<L2SemanticValue<K>> = semanticValues
+	open fun semanticValues(): Set<L2SemanticValue> = semanticValues
 
 	/**
 	 * Answer this write's sole [L2SemanticValue], failing if there isn't
@@ -99,9 +99,8 @@ constructor(
 	 * @return
 	 *   The write operand's [L2SemanticValue].
 	 */
-	open fun onlySemanticValue(): L2SemanticValue<K>
+	open fun onlySemanticValue(): L2SemanticValue
 	{
-		assert(semanticValues.size == 1)
 		return semanticValues.single()
 	}
 
@@ -112,7 +111,7 @@ constructor(
 	 * @return
 	 *   The write operand's [L2SemanticValue].
 	 */
-	open fun pickSemanticValue(): L2SemanticValue<K> = semanticValues.first()
+	open fun pickSemanticValue(): L2SemanticValue = semanticValues.first()
 
 	/**
 	 * Answer this write's [TypeRestriction].
@@ -205,8 +204,8 @@ constructor(
 		if (manifest.caresAboutSemanticValues)
 		{
 			// Directly overwriting a semantic value is not allowed.
-			val alreadyLive =
-				semanticValues.filter(manifest::hasLiveSemanticValue)
+			val alreadyLive = semanticValues
+				.filter { manifest.hasLiveSemanticValue(it, kind) }
 			assert(alreadyLive.isEmpty())
 			{
 				// Create more detail for debugging.
@@ -216,7 +215,9 @@ constructor(
 		}
 		super.instructionWasAdded(manifest)
 		register().addDefinition(this)
-		manifest.removePostponedInstructionFor(pickSemanticValue())
+		manifest.removePostponedInstructionFor(
+			pickSemanticValue(),
+			kind)
 		manifest.recordDefinition(this)
 	}
 
@@ -247,12 +248,12 @@ constructor(
 	 * [L2ValueManifest] to reflect that change.
 	 *
 	 * @param semanticConstant
-	 *   The semanticc constant that was moved.
+	 *   The semantic constant that was moved.
 	 * @param manifest
 	 *   The [L2ValueManifest] to update with the fact of this move.
 	 */
 	fun instructionWasAddedForMoveConstant(
-		semanticConstant: L2SemanticValue<K>,
+		semanticConstant: L2SemanticValue,
 		restriction: TypeRestriction,
 		manifest: L2ValueManifest)
 	{
@@ -297,7 +298,8 @@ constructor(
 	 *   The new [L2SemanticValue] to add to the write operand's set of semantic
 	 *   values.
 	 */
-	fun retroactivelyIncludeSemanticValue(newSemanticValue: L2SemanticValue<K>)
+	fun retroactivelyIncludeSemanticValue(
+		newSemanticValue: L2SemanticValue)
 	{
 		// If we allowed phis to be retroactively updated, it wouldn't get
 		// rebuilt properly (i.e., to include the targetSemanticValues) on the
@@ -315,12 +317,12 @@ constructor(
 	 *   The new [L2SemanticValue]s to replace the existing ones.
 	 */
 	fun retroactivelySetSemanticValues(
-		newSemanticValues: Iterable<L2SemanticValue<*>>)
+		newSemanticValues: Iterable<L2SemanticValue>)
 	{
 		// The caller should ensure the instruction isn't an L2_PHI.  We can't
 		// check here, since the instruction isn't set yet for postponed
 		// instructions.
-		semanticValues = newSemanticValues.toSet().cast()
+		semanticValues = newSemanticValues.toSet()
 	}
 
 	override fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)
@@ -352,8 +354,8 @@ constructor(
 				read,
 				kind.createWrite(
 					new.toSet(),
-					restrictionForConstant(
-						constant, kind.restrictionFlag)))
+					restrictionForConstant(constant)))
+
 		}
 		// Ensure already-populated semantic values end up in the same synonym
 		// as the semantic constant.
@@ -383,7 +385,7 @@ constructor(
 			&& semanticValues == other.semanticValues
 
 	override val equivalentHash: Int get() =
-		semanticValues.sumOf(L2SemanticValue<K>::hashCode)
+		semanticValues.sumOf(L2SemanticValue::hashCode)
 
 	override fun mergeFromOperands(operands: List<L2Operand>)
 	{
@@ -392,7 +394,7 @@ constructor(
 		operands as List<L2WriteOperand<K>>
 		semanticValues = operands
 			.map { it.semanticValues }
-			.reduce(Set<L2SemanticValue<K>>::intersect)
+			.reduce(Set<L2SemanticValue>::intersect)
 		restriction = operands
 			.map { it.restriction }
 			.reduce(TypeRestriction::union)

@@ -54,22 +54,20 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
-import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
-import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.RuleEvaluationContext
-import avail.interpreter.levelTwo.operation.numbers.Pattern.BinaryOp
-import avail.interpreter.levelTwo.operation.numbers.Pattern.C
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Constant
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Constant.K1
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Constant.K2
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Constant.K3
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Constant.K4
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.W
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.X
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.Y
-import avail.interpreter.levelTwo.operation.numbers.Pattern.Variable.Z
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.BinaryOp
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.C
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Constant
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Constant.K1
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Constant.K2
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Constant.K3
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Constant.K4
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable.W
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable.X
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable.Y
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable.Z
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.integers.P_BitShiftLeft
@@ -87,9 +85,7 @@ import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
-import avail.utility.cast
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import org.objectweb.asm.Opcodes
 import kotlin.math.max
 import kotlin.math.min
@@ -565,8 +561,8 @@ constructor(
 			try
 			{
 				val (intA, intB) = readTwoInts(
-					a.semanticValue().unboxedInt,
-					b.semanticValue().unboxedInt,
+					a.semanticValue(),
+					b.semanticValue(),
 					fallback)
 				{
 					return false
@@ -577,7 +573,6 @@ constructor(
 					// is guaranteed to be an Int.
 					val semanticPrimitive = primitive.semanticInvocation(
 						a.semanticValue(), b.semanticValue())
-					val intSemanticPrimitive = semanticPrimitive.unboxedInt
 					val typeGuarantee = typeGuaranteeFunction(
 						listOf(
 							aType.typeIntersection(i32),
@@ -587,7 +582,7 @@ constructor(
 					currentManifest.equivalentSemanticValue(
 						semanticPrimitive
 					)?.let {
-						moveRegister(it, listOf(semanticPrimitive))
+						move(it, listOf(semanticPrimitive))
 						currentManifest.updateRestriction(semanticPrimitive) {
 							intersectionWithType(typeGuarantee)
 						}
@@ -596,13 +591,15 @@ constructor(
 							false)
 						return true
 					}
-					currentManifest.intFormOf(semanticPrimitive)?.let {
-						moveRegister(it, listOf(intSemanticPrimitive))
-						currentManifest.updateRestriction(intSemanticPrimitive) {
+					if (currentManifest
+						.hasLiveSemanticValue(semanticPrimitive, INTEGER_KIND))
+					{
+						move(semanticPrimitive, listOf(semanticPrimitive))
+						currentManifest.updateRestriction(semanticPrimitive) {
 							intersectionWithType(typeGuarantee)
 						}
 						callSiteHelper.useAnswer(
-							readBoxed(intSemanticPrimitive.boxed),
+							readBoxed(semanticPrimitive),
 							false)
 						return true
 					}
@@ -613,16 +610,15 @@ constructor(
 						{
 							+INTEGER_KIND.moveConstant(
 								lower,
-								setOf(
-									intSemanticPrimitive,
-									INTEGER_KIND.createSemanticConstant(lower.cast())))
+								setOf(semanticPrimitive, constant(lower)))
 						}
 						else ->
 						{
 							val tempWriter = intWrite(
-								setOf(intSemanticPrimitive),
-								intRestrictionForType(typeGuarantee))
-							+L2_BIT_LOGIC_OP(this@BitOperation, intA, intB, tempWriter)
+								setOf(semanticPrimitive),
+								restrictionForType(typeGuarantee))
+							+L2_BIT_LOGIC_OP(
+								this@BitOperation, intA, intB, tempWriter)
 						}
 					}
 					// Even though we're just using the boxed value again, the
@@ -740,64 +736,64 @@ constructor(
 			return inclusive(min(aLow, bLow), min(aHigh, bHigh))
 		}
 	}
-}
-class Rule(
-	val pattern: Pattern,
-	val producer: RuleEvaluationContext.()->Pattern)
+	class Rule(
+		val pattern: Pattern,
+		val producer: RuleEvaluationContext.()->Pattern)
 
-sealed class Pattern
-{
-	open fun subString(): String = toString()
-
-	open val allVariables: List<Variable> get() = emptyList()
-
-	open val allConstants: List<Constant> get() = emptyList()
-
-	abstract class Constant(): Pattern()
+	sealed class Pattern
 	{
-		override fun toString(): String = this::class.simpleName!!
+		open fun subString(): String = toString()
 
-		override val allConstants get() = listOf(this)
+		open val allVariables: List<Variable> get() = emptyList()
 
-		object K1 : Constant()
-		object K2 : Constant()
-		object K3 : Constant()
-		object K4 : Constant()
-	}
+		open val allConstants: List<Constant> get() = emptyList()
 
-	/** A *specific* constant value. */
-	class C(val n: Int): Pattern()
-	{
-		override fun toString() = n.toString()
-	}
+		abstract class Constant(): Pattern()
+		{
+			override fun toString(): String = this::class.simpleName!!
 
-	abstract class Variable(): Pattern()
-	{
-		override fun toString(): String = this::class.simpleName!!
+			override val allConstants get() = listOf(this)
 
-		override val allVariables get() = listOf(this)
+			object K1 : Constant()
+			object K2 : Constant()
+			object K3 : Constant()
+			object K4 : Constant()
+		}
 
-		object W : Variable()
-		object X : Variable()
-		object Y : Variable()
-		object Z : Variable()
-	}
+		/** A *specific* constant value. */
+		class C(val n: Int): Pattern()
+		{
+			override fun toString() = n.toString()
+		}
 
-	class BinaryOp(
-		val operation: BitOperation,
-		val arg1: Pattern,
-		val arg2: Pattern
-	): Pattern()
-	{
-		override fun subString(): String = "(${toString()})"
+		abstract class Variable(): Pattern()
+		{
+			override fun toString(): String = this::class.simpleName!!
 
-		override fun toString() =
-			"${arg1.subString()} $operation ${arg2.subString()}"
+			override val allVariables get() = listOf(this)
 
-		override val allVariables
-			get() = arg1.allVariables + arg2.allVariables
+			object W : Variable()
+			object X : Variable()
+			object Y : Variable()
+			object Z : Variable()
+		}
 
-		override val allConstants
-			get() = arg1.allConstants + arg2.allConstants
+		class BinaryOp(
+			val operation: BitOperation,
+			val arg1: Pattern,
+			val arg2: Pattern
+		): Pattern()
+		{
+			override fun subString(): String = "(${toString()})"
+
+			override fun toString() =
+				"${arg1.subString()} $operation ${arg2.subString()}"
+
+			override val allVariables
+				get() = arg1.allVariables + arg2.allVariables
+
+			override val allConstants
+				get() = arg1.allConstants + arg2.allConstants
+		}
 	}
 }

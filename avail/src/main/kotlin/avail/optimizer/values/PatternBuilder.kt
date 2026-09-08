@@ -32,10 +32,8 @@
 package avail.optimizer.values
 
 import avail.descriptor.representation.A_Number.Companion.equalsLong
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.Primitive
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.PatternBuilder.Companion.pattern
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.PatternBuilder.L2PatternDsl
 import avail.utility.cast
 
@@ -138,7 +136,7 @@ internal class PatternBuilder
 		 * Given an [L2SemanticPattern], match it recursively against the
 		 * provided [value].  For each way that it's successful, if any, invoke
 		 * the [withCaptures] function with an [Array] of matched
-		 * [L2SemanticBoxedValue]s organized by each [L2CapturePattern]'s
+		 * [L2SemanticValue]s organized by each [L2CapturePattern]'s
 		 * [index][L2CapturePattern.index].
 		 *
 		 * @param value
@@ -151,20 +149,17 @@ internal class PatternBuilder
 		 *   each way that the pattern matches.
 		 */
 		fun matchForEach(
-			value: L2SemanticValue<BOXED_KIND>,
+			value: L2SemanticValue,
 			manifest: L2ValueManifest? = null,
-			withCaptures: (List<L2SemanticBoxedValue>)->Unit
+			withCaptures: (List<L2SemanticValue>)->Unit
 		): Unit
 		{
 			this as L2SemanticPatternImpl
-			val captures =
-				arrayOfNulls<L2SemanticValue<BOXED_KIND>>(maxCapture + 1)
+			val captures = arrayOfNulls<L2SemanticValue>(maxCapture + 1)
 			val equivalents = buildSet {
 				add(value)
-				manifest?.equivalentSemanticValue(value)?.let { equivalent ->
-					addAll(
-						manifest.semanticValueToSynonym(equivalent)
-							.semanticValues())
+				manifest?.equivalentSemanticValue(value)?.let {
+					addAll(manifest.semanticValueToSynonym(it).semanticValues())
 				}
 			}
 			equivalents.forEach { equivalent ->
@@ -198,9 +193,9 @@ internal class PatternBuilder
 		 * pattern matches the [L2SemanticValue].
 		 */
 		abstract fun privateMatchForEach(
-			value: L2SemanticValue<BOXED_KIND>,
+			value: L2SemanticValue,
 			manifest: L2ValueManifest?,
-			captures: Array<L2SemanticValue<BOXED_KIND>?>,
+			captures: Array<L2SemanticValue?>,
 			body: ()->Unit)
 	}
 
@@ -228,9 +223,9 @@ internal class PatternBuilder
 			this.argumentPatterns.maxOfOrNull { it.maxCapture } ?: -1
 
 		override fun privateMatchForEach(
-			value: L2SemanticValue<BOXED_KIND>,
+			value: L2SemanticValue,
 			manifest: L2ValueManifest?,
-			captures: Array<L2SemanticValue<BOXED_KIND>?>,
+			captures: Array<L2SemanticValue?>,
 			body: ()->Unit)
 		{
 			if (value !is L2SemanticPrimitiveInvocation) return
@@ -241,9 +236,9 @@ internal class PatternBuilder
 
 		private fun privateMoreMatches(
 			argumentIndex: Int,
-			arguments: List<L2SemanticValue<BOXED_KIND>>,
+			arguments: List<L2SemanticValue>,
 			manifest: L2ValueManifest?,
-			captures: Array<L2SemanticValue<BOXED_KIND>?>,
+			captures: Array<L2SemanticValue?>,
 			body: ()->Unit)
 		{
 			if (argumentIndex >= argumentPatterns.size)
@@ -281,9 +276,9 @@ internal class PatternBuilder
 		override val maxCapture get() = index
 
 		override fun privateMatchForEach(
-			value: L2SemanticValue<BOXED_KIND>,
+			value: L2SemanticValue,
 			manifest: L2ValueManifest?,
-			captures: Array<L2SemanticValue<BOXED_KIND>?>,
+			captures: Array<L2SemanticValue?>,
 			body: ()->Unit)
 		{
 			when (captures[index])
@@ -309,9 +304,9 @@ internal class PatternBuilder
 	constructor(index: Int) : L2CapturePattern(index)
 	{
 		override fun privateMatchForEach(
-			value: L2SemanticValue<BOXED_KIND>,
+			value: L2SemanticValue,
 			manifest: L2ValueManifest?,
-			captures: Array<L2SemanticValue<BOXED_KIND>?>,
+			captures: Array<L2SemanticValue?>,
 			body: ()->Unit)
 		{
 			if (value.isConstant)
@@ -331,9 +326,9 @@ internal class PatternBuilder
 		override val maxCapture: Int get() = -1
 
 		override fun privateMatchForEach(
-			value: L2SemanticValue<BOXED_KIND>,
+			value: L2SemanticValue,
 			manifest: L2ValueManifest?,
-			captures: Array<L2SemanticValue<BOXED_KIND>?>,
+			captures: Array<L2SemanticValue?>,
 			body: ()->Unit)
 		{
 			if (value.isConstant && value.constant!!.equalsLong(longValue))

@@ -44,8 +44,8 @@ import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
 import avail.interpreter.levelTwo.operation.dispatch.VariantSplitter
@@ -53,9 +53,8 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticObjectVariantId
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -255,14 +254,14 @@ constructor(
 	}
 
 	override fun L2GeneratorInterface.generateEdgesFor(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 	{
 		// For simplicity, let super-lookups via object type layout variant
 		// always fall back.  They're *very* difficult to reason about.
@@ -297,8 +296,7 @@ constructor(
 			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
-		val semanticVariantId =
-			L2SemanticObjectVariantId(semanticSource).unboxedInt
+		val semanticVariantId = L2SemanticObjectVariantId(semanticSource)
 
 		when (val exactVariantId = currentRestriction
 			.positiveGroup.objectTypeVariants?.single()?.variantId)
@@ -308,7 +306,7 @@ constructor(
 					readBoxed(semanticSource),
 					intWrite(
 						setOf(semanticVariantId),
-						intRestrictionForType(i31)))
+						restrictionForType(i31)))
 			// The exact variant is known, which can make dispatching
 			// particularly fast.
 			else ->
@@ -316,7 +314,7 @@ constructor(
 					unboxedIntConstant(exactVariantId),
 					intWrite(
 						setOf(semanticVariantId),
-						intRestrictionForConstant(exactVariantId)))
+						restrictionForConstant(exactVariantId)))
 		}
 		// There are at least two variants that can lead to valid solutions,
 		// so create a multi-way branch.
@@ -361,7 +359,7 @@ constructor(
 			val edgeManifest = L2ValueManifest(currentManifest)
 			pair?.let { (edgeVariant, _) ->
 				edgeManifest.updateRestriction(semanticVariantId) {
-					intRestrictionForConstant(edgeVariant.variantId)
+					restrictionForConstant(edgeVariant.variantId)
 				}
 				edgeManifest.updateRestriction(semanticSource) {
 					intersectionWithObjectTypeVariant(edgeVariant)

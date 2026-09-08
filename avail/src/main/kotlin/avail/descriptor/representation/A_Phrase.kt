@@ -69,7 +69,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * An `A_Phrase` is generally produced when the [AvailCompiler] parses source
+ * An [A_Phrase] is generally produced when the [AvailCompiler] parses source
  * code of an [A_Module].  Avail defines a variety of phrases, which are
  * implemented by the subclasses of [PhraseDescriptor].  [A_Phrase] is a
  * sub-interface of [A_BasicObject], and defines the operations that phrases

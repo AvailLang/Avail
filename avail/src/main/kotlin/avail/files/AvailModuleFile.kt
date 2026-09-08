@@ -45,7 +45,7 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 /**
- * An `AvailModuleFile` is an [AvailFile] that is a text file that represents
+ * An [AvailModuleFile] is an [AvailFile] that is a text file that represents
  * the source of an Avail module file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

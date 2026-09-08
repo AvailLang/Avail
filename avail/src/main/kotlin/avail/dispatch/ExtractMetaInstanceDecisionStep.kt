@@ -40,13 +40,13 @@ import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
 import avail.interpreter.primitive.types.P_InstanceOfMeta
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -230,8 +230,8 @@ constructor(
 	}
 
 	private fun newSemanticValue(
-		semanticValues: List<L2SemanticBoxedValue>,
-		extraSemanticValues: List<L2SemanticBoxedValue>
+		semanticValues: List<L2SemanticValue>,
+		extraSemanticValues: List<L2SemanticValue>
 	) = P_InstanceOfMeta.semanticInvocation(
 		sourceSemanticValue(semanticValues, extraSemanticValues))
 
@@ -242,14 +242,14 @@ constructor(
 	}
 
 	override fun L2GeneratorInterface.generateEdgesFor(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 	{
 		val baseSemanticValue =
 			sourceSemanticValue(
@@ -261,7 +261,7 @@ constructor(
 				semanticArguments,
 				extraSemanticArguments)
 		val instanceRestriction =
-			boxedRestrictionForType(baseRestriction.type.instance)
+			restrictionForType(baseRestriction.type.instance)
 		+L2_INSTANCE_OF_META(
 			readBoxed(baseSemanticValue),
 			boxedWrite(instanceSemanticValue, instanceRestriction))

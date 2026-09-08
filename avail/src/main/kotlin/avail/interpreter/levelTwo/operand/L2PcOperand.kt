@@ -58,11 +58,11 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.L2Entity
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2Liveness
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import org.objectweb.asm.Opcodes
@@ -103,34 +103,28 @@ constructor (
 ) : L2Operand()
 {
 	/**
-	 * The [Set] of every [L2Entity] that is written in all pasts, and is
-	 * consumed along all future paths after the start of this block.  This is
-	 * only populated during optimization, while the control flow graph is still
-	 * in SSA form.  A null value should be replaced with a fresh [MutableSet]
-	 * when adding the first element.
-	 *
-	 * This is a subset of [sometimesLiveInEntities].
+	 * A data structure that stores liveness information about registers while
+	 * the graph is in SSA form and it's requested to be computed.
 	 */
-	var alwaysLiveInEntities: MutableSet<L2Entity<*>>? = null
+	var liveness: L2Liveness? = null
 
 	/**
-	 * The [Set] of every [L2Entity] that is written in all pasts, and is
-	 * consumed along at least one future after the start of this block. This is
-	 * only populated during optimization, while the control flow graph is still
-	 * in SSA form.  A null value should be replaced with a fresh [MutableSet]
-	 * when adding the first element.
-	 *
-	 * This is a superset of [alwaysLiveInEntities].
-	 */
-	var sometimesLiveInEntities: MutableSet<L2Entity<*>>? = null
-
-	/**
-	 * Either `null`, the normal case, or a set with each [L2Entity] that is
+	 * Either `null`, the normal case, or a set with each [L2Register] that is
 	 * allowed to pass along this edge.  This mechanism is used to break control
 	 * flow cycles, allowing a simple liveness algorithm to be used, instead of
 	 * iterating (backward) through loops until the live set has converged.
 	 */
-	var forcedClampedEntities: Set<L2Entity<*>>? = null
+	var forcedClampedRegisters: Set<L2Register<*>>? = null
+
+
+	/**
+	 * Either `null`, the normal case, or a set with each [L2SemanticValue] that
+	 * is allowed to pass along this edge.  This mechanism is used to break
+	 * control flow cycles, allowing a simple liveness algorithm to be used,
+	 * instead of iterating (backward) through loops until the live set has
+	 * converged.
+	 */
+	var forcedClampedSemanticValues: Set<L2SemanticValue>? = null
 
 	/**
 	 * A counter of how many times this edge has been traversed.  This will be
@@ -353,8 +347,7 @@ constructor (
 		val liveMap =
 			RegisterKind.all.associateWith { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
-			sometimesLiveInEntities!!
-				.filterIsInstance<L2Register<*>>()
+			liveness!!.sometimesLiveInRegisters
 				.sortedBy(L2Register<*>::finalIndex)
 				.distinct()
 		liveRegistersList.forEach {
@@ -500,10 +493,7 @@ constructor (
 	override fun postOptimizationCleanup()
 	{
 		manifest = null
-		alwaysLiveInEntities = null
-		sometimesLiveInEntities = null
-		forcedClampedEntities = forcedClampedEntities
-			?.filterIsInstance<L2Register<*>>()
-			?.toSet()
+		liveness = null
+		forcedClampedSemanticValues = null
 	}
 }

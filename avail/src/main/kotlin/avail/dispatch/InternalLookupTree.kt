@@ -71,8 +71,8 @@ import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
 import avail.descriptor.types.TypeTag.PHRASE_TAG
 import avail.descriptor.types.TypeTag.TOP_TYPE_TAG
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.iterableWith
@@ -1091,7 +1091,7 @@ internal constructor(
 		// Note: We can't reapply the source's restrictions in any way here,
 		// because it's a restriction on which metatypes could occur, not which
 		// types could be instances of them.
-		val newRestriction = boxedRestrictionForType(typeOfInstance)
+		val newRestriction = restrictionForType(typeOfInstance)
 		val child = InternalLookupTree<Element, Result>(
 			positiveElements,
 			undecidedElements,
@@ -1136,7 +1136,7 @@ internal constructor(
 			positiveElements,
 			undecidedElements,
 			knownArgumentRestrictions.append(
-				boxedRestrictionForType(expressionType)),
+				restrictionForType(expressionType)),
 			alreadyTagTestedArguments,
 			// Phrases don't have variants, but set this for good measure.
 			alreadyVariantTestedArguments,
@@ -1189,7 +1189,7 @@ internal constructor(
 			positiveElements,
 			undecidedElements,
 			knownArgumentRestrictions.append(
-				boxedRestrictionForType(fieldType)),
+				restrictionForType(fieldType)),
 			alreadyTagTestedArguments,
 			alreadyVariantTestedArguments,
 			alreadyMetaInstanceExtractArguments,
@@ -1243,7 +1243,7 @@ internal constructor(
 			positiveElements,
 			undecidedElements,
 			knownArgumentRestrictions.append(
-				boxedRestrictionForType(fieldMeta)),
+				restrictionForType(fieldMeta)),
 			alreadyTagTestedArguments,
 			alreadyVariantTestedArguments,
 			alreadyMetaInstanceExtractArguments,
@@ -1318,7 +1318,7 @@ internal constructor(
 				assert(constant.descriptor.isShared)
 				val newRestrictions = knownArgumentRestrictions.toMutableList()
 				newRestrictions[argumentIndex - 1] =
-					boxedRestrictionForConstant(constant)
+					restrictionForConstant(constant)
 				val newBound = adaptor.extractBoundingType(newRestrictions)
 				// The positive elements were processed along with the undecided
 				// elements, so they're already represented in the tag-specific

@@ -58,6 +58,7 @@ import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
@@ -140,10 +141,11 @@ object P_ParamTypeAt : Primitive2(CanFold, CanInline)
 		val (functionMeta, indexType) = argumentTypes
 
 		val functionTypeDefinition = currentManifest
-			.getDefinitionOrNull(functionTypeRead.semanticValue())
+			.getDefinitionOrNull(functionTypeRead.semanticValue(), BOXED_KIND)
 			?.run { definition().instruction }
 			?: currentManifest.postponedInstructionFor(
-				functionTypeRead.semanticValue())
+				functionTypeRead.semanticValue(),
+				BOXED_KIND)
 		val exactIndex = indexType.lowerBound
 		if (!indexType.upperBound.equals(exactIndex)) return false
 		// The exact index is known.

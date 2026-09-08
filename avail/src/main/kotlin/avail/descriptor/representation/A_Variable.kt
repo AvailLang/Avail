@@ -536,19 +536,6 @@ interface A_Variable : A_ChunkDependable
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun staticClearValue(variable: A_Variable) =
-			variable.dispatch { o_ClearValue(it) }
-
-		/** The [CheckedMethod] for [staticClearValue]. */
-		val clearVariableMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticClearValue.name,
-			returnClass = Void.TYPE,
-			A_Variable::class.java)
-
-
-		@ReferencedInGeneratedCode
-		@JvmStatic
 		fun staticSetValueNoCheck(
 			variable: A_Variable,
 			newValue: A_BasicObject

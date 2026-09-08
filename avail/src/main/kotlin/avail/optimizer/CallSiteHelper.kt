@@ -51,7 +51,6 @@ import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckNoEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckTestEscapes
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.structures.EnumMap.Companion.enumMap
 
@@ -97,7 +96,7 @@ import avail.utility.structures.EnumMap.Companion.enumMap
 class CallSiteHelper internal constructor(
 	val translator: L1Translator,
 	val bundle: A_Bundle,
-	val semanticArguments: List<L2SemanticBoxedValue>,
+	val semanticArguments: List<L2SemanticValue>,
 	val superUnionType: A_Type,
 	val expectedType: A_Type,
 	val unionOfPossibleResults: A_Type)

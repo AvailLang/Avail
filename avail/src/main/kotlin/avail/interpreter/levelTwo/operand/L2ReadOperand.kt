@@ -42,7 +42,7 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.mapToSet
@@ -81,7 +81,7 @@ import avail.utility.notNullAnd
  */
 abstract class L2ReadOperand<K : RegisterKind<K>>
 protected constructor(
-	private var semanticValue: L2SemanticValue<K>,
+	private var semanticValue: L2SemanticValue,
 	private var restriction: TypeRestriction,
 	private var registerOrNull: L2Register<K>? = null
 ) : L2Operand()
@@ -117,7 +117,7 @@ protected constructor(
 	 * @return
 	 *   The [L2SemanticValue].
 	 */
-	open fun semanticValue(): L2SemanticValue<K> = semanticValue
+	open fun semanticValue(): L2SemanticValue = semanticValue
 
 	/**
 	 * Answer whether this [L2ReadOperand] supplies a constant directly, rather
@@ -231,7 +231,7 @@ protected constructor(
 		}
 		if (manifest.caresAboutSemanticValues && instruction !is L2_PHI<*>)
 		{
-			setRegister(manifest.getDefinition(semanticValue))
+			setRegister(manifest.getDefinition(semanticValue, kind))
 		}
 		register().addUse(this)
 	}
@@ -321,25 +321,30 @@ protected constructor(
 	 */
 	fun definitionSkippingMoves(manifest: L2ValueManifest?): L2Instruction
 	{
-		val sourceInstruction: L2Instruction =
-			registerOrNull?.definition()?.instruction
-				?: (manifest!!.getDefinitionOrNull(semanticValue)?.definition()
-					?.instruction)
-				?: (manifest!!.postponedInstructionFor(semanticValue)!!)
-		return when (sourceInstruction)
+		var sourceInstruction = registerOrNull?.definition()?.instruction
+		if (sourceInstruction == null)
 		{
-			// Recurse.  Iteration wouldn't be worth it here.
-			is L2_MOVE<*> ->
-				sourceInstruction.source.definitionSkippingMoves(manifest)
-			else -> sourceInstruction
+			sourceInstruction = manifest!!
+				.getDefinitionOrNull(semanticValue, kind)
+				?.definition()
+				?.instruction
 		}
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest!!
+				.postponedInstructionFor(semanticValue, kind)!!
+		}
+		if (sourceInstruction !is L2_MOVE<*>)
+			return sourceInstruction
+		// Recurse through the move.  Iteration wouldn't be worth it here.
+		return sourceInstruction.source.definitionSkippingMoves(manifest)
 	}
 
 	/**
-	 * Find the set of [L2SemanticValue]s and [TypeRestriction] leading to this
-	 * read operand.  The control flow graph is not necessarily in SSA form, so
-	 * the underlying register may have multiple definitions to choose from,
-	 * some of which are not in this read's history.
+	 * Find the set of [L2SemanticValue]s and [TypeRestriction] leading to
+	 * this read operand.  The control flow graph is not necessarily in SSA
+	 * form, so the underlying register may have multiple definitions to choose
+	 * from, some of which are not in this read's history.
 	 *
 	 * If there is a write of the register in the same block as the read,
 	 * extract the information from that.
@@ -354,7 +359,8 @@ protected constructor(
 	 *   A [Pair] consisting of a [Set] of synonymous [L2SemanticValue]s, and
 	 *   the [TypeRestriction] guaranteed at this read.
 	 */
-	fun findSourceInformation(): Pair<Set<L2SemanticValue<K>>, TypeRestriction>
+	fun findSourceInformation(
+	): Pair<Set<L2SemanticValue>, TypeRestriction>
 	{
 		// Either the write must happen inside the block we're moving from, or
 		// it must have come in along the edges, and is therefore in each
@@ -377,7 +383,7 @@ protected constructor(
 		val incoming = thisBlock.predecessorEdges().iterator()
 		assert(incoming.hasNext())
 		val firstManifest = incoming.next().manifest()
-		val semanticValues = mutableSetOf<L2SemanticValue<K>>()
+		val semanticValues = mutableSetOf<L2SemanticValue>()
 		var typeRestriction: TypeRestriction? = null
 		for (syn in firstManifest.synonymsForRegister(register()))
 		{
@@ -392,7 +398,7 @@ protected constructor(
 		}
 		incoming.forEachRemaining {
 			val nextManifest = it.manifest()
-			val newSemanticValues = mutableSetOf<L2SemanticValue<K>>()
+			val newSemanticValues = mutableSetOf<L2SemanticValue>()
 			for (syn in nextManifest.synonymsForRegister(register()))
 			{
 				newSemanticValues.addAll(syn.semanticValues())
@@ -415,7 +421,7 @@ protected constructor(
 	 * Create a new *consstant* pseudo-register, using the restriction to
 	 * determine the constant value.
 	 */
-	abstract fun createSemanticConstant(): L2SemanticValue<K>
+	abstract fun createSemanticConstant(): L2SemanticValue
 
 	/**
 	 * If this [L2ReadOperand] produces a constant value, replace its register

@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `TraceLoadedStatementsAction` toggles the flag that indicates whether to
+ * A [TraceLoadedStatementsAction] toggles the flag that indicates whether to
  * show each top-level statement prior to running it, whether during compilation
  * or when loading a pre-compiled module.
  *

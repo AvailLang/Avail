@@ -40,7 +40,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * An `InsertEntryPointAction` inserts a string based on the currently
+ * An [InsertEntryPointAction] inserts a string based on the currently
  * selected entry point into the user input field.
  *
  * @constructor

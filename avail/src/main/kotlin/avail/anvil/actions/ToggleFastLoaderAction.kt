@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ToggleFastLoaderAction` toggles the flag that indicates whether to attempt
+ * A [ToggleFastLoaderAction] toggles the flag that indicates whether to attempt
  * to rewrite some top-level statements into a faster form during module
  * compilation.
  *

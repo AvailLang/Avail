@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `TraceCompilerAction` toggles the flag that indicates whether to show
+ * A [TraceCompilerAction] toggles the flag that indicates whether to show
  * detailed compiler traces.
  *
  * Construct a new `TraceCompilerAction`.

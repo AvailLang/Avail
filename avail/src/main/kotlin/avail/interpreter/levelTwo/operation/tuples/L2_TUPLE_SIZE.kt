@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.primitive.tuples.P_TupleSize
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Answer the [size][tupleSize] of the specified [tuple][A_Tuple].
@@ -88,9 +89,8 @@ class L2_TUPLE_SIZE(
 		val sizeType = tupleSize.restriction().type
 		if (sizeType.lowerBound.equals(sizeType.upperBound))
 		{
-			moveIntRegister(
-				unboxedIntConstant(sizeType.lowerBound.extractInt)
-					.semanticValue(),
+			move(
+				constant(sizeType.lowerBound.extractInt),
 				tupleSize.semanticValues())
 			return null
 		}

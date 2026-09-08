@@ -33,9 +33,7 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 
 /**
  * A semantic value which is a particular actual constant value.
@@ -49,19 +47,19 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
  *   The actual value of the constant.
  */
 internal class L2SemanticConstant constructor(value: A_BasicObject) :
-	L2SemanticBoxedValue(value.hashCode())
+	L2SemanticValue(value.hashCode())
 {
 	/** The constant Avail value represented by this semantic value. */
 	val value: A_BasicObject = value.makeImmutable()
 
-	override fun equalsSemanticValue(other: L2SemanticValue<*>): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		other is L2SemanticConstant && value.equals(other.value)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue = this
+	): L2SemanticValue = this
 
 	override val primaryVisualSortKey get() = when
 	{
@@ -73,12 +71,10 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 		get() = true
 
 	override val constantRestrictionOrNull: TypeRestriction
-		get() = boxedRestrictionForConstant(value)
+		get() = restrictionForConstant(value)
 
 	override val defaultRestriction: TypeRestriction
-		get() = boxedRestrictionForConstant(value)
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
+		get() = restrictionForConstant(value)
 
 	override fun toString(): String
 	{

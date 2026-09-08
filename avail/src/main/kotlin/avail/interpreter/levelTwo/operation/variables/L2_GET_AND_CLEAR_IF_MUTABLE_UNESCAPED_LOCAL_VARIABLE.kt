@@ -43,6 +43,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.JVMTranslator
@@ -112,8 +113,8 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 			basicRegenerateForPostponement()
 			return
 		}
-		val postponed =
-			currentManifest.postponedInstructionFor(semanticVariable)!!
+		val postponed = currentManifest
+			.postponedInstructionFor(semanticVariable, BOXED_KIND)!!
 		val originOfValue: L2ReadBoxedOperand = when (postponed)
 		{
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite

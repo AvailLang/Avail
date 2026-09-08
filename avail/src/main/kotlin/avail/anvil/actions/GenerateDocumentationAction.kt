@@ -43,7 +43,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `GenerateDocumentationAction` instructs the
+ * A [GenerateDocumentationAction] instructs the
  * [Avail&#32;builder][AvailBuilder] to recursively
  * [generate&#32;Stacks&#32;documentation][StacksGenerator].
  *

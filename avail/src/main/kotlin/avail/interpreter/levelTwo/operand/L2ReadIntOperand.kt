@@ -37,8 +37,6 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
@@ -65,27 +63,19 @@ import avail.utility.cast
  */
 class L2ReadIntOperand
 constructor(
-	semanticValue: L2SemanticValue<INTEGER_KIND>,
+	semanticValue: L2SemanticValue,
 	restriction: TypeRestriction,
 	register: L2Register<INTEGER_KIND>? = null
 ) : L2ReadOperand<INTEGER_KIND>(semanticValue, restriction, register)
 {
-	init {
-		assert(restriction.isUnboxedInt)
-	}
-
 	override val operandType get() = READ_INT
-
-	override fun semanticValue(): L2SemanticUnboxedInt =
-		super.semanticValue().cast()
 
 	override fun register(): L2IntRegister = super.register().cast()
 
 	override fun createConstantRegister() =
 		L2IntRegister(-999, constantOrNull!!)
 
-	override fun createSemanticConstant(): L2SemanticUnboxedInt =
-		constant(register().constant!!).unboxedInt
+	override fun createSemanticConstant() = constant(register().constant!!)
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

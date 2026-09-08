@@ -36,7 +36,7 @@ import avail.tools.options.OptionProcessorFactory.Cardinality
 import avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 
 /**
- * A `DefaultOption` is the [option][Option] that an
+ * A [DefaultOption] is the [option][Option] that an
  * [option&#32;processor][OptionProcessor] recognizes bare arguments as being
  * implicitly associated with.
  *

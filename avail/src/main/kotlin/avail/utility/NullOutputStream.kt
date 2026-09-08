@@ -34,7 +34,7 @@ package avail.utility
 import java.io.OutputStream
 
 /**
- * A `NullOutputStream` discards everything written to it.
+ * A [NullOutputStream] discards everything written to it.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */

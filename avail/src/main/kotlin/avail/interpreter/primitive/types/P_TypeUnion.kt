@@ -46,8 +46,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -99,11 +99,11 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		addAll(
 			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),
-				boxedRestrictionForConstant(bottom)))
+				restrictionForConstant(bottom)))
 		addAll(
 			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),
-				boxedRestrictionForType(topMeta).minusValue(bottom)))
+				restrictionForType(topMeta).minusValue(bottom)))
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
@@ -155,7 +155,7 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		// bound for the resulting type (arg1 ∪ arg2), due to metacovariance.
 		// As a potential performance nicety, exclude bottom if neither argument
 		// could be bottom.
-		var restriction = boxedRestrictionForType(argType1.typeUnion(argType2))
+		var restriction = restrictionForType(argType1.typeUnion(argType2))
 		if (!resultCanBeBottom)
 		{
 			restriction = restriction.minusValue(bottom)

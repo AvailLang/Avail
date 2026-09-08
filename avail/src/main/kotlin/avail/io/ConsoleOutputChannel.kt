@@ -43,7 +43,7 @@ import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 /**
- * A `ConsoleOutputChannel` provides a faux
+ * A [ConsoleOutputChannel] provides a faux
  * [asynchronous&#32;interface][TextOutputChannel] to a synchronous
  * [output&#32;stream][PrintStream].
  *

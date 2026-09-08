@@ -45,7 +45,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import java.util.IdentityHashMap
 
 /**
- * A `ArgumentInModuleScope` is an occurrence of an
+ * A [ArgumentInModuleScope] is an occurrence of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
  * immediately by a [single&#32;dagger][Metacharacter.SINGLE_DAGGER] (†). It
  * indicates where an argument is expected, but the argument must not make use

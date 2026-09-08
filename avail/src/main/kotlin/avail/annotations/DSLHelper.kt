@@ -1,6 +1,6 @@
 /*
- * L2_CLEAR_VARIABLE.kt
- * Copyright © 1993-2024, The Avail Foundation, LLC.
+ * DSLHelper.kt
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.levelTwo.operation.variables
-import avail.descriptor.representation.A_Variable.Companion.clearVariableMethod
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.jvm.JVMTranslator
+package avail.annotations
 
 /**
- * Clear a variable; i.e., make it have no assigned value.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * This tag can be applied to helper classes that define DSL syntaxes within the
+ * Avail VM.
  */
-class L2_CLEAR_VARIABLE(
-	var variable: L2ReadBoxedOperand
-): L2Instruction()
-{
-	override val hasSideEffect get() = true
-
-	override fun StringBuilder.appendToWithWarnings(
-		desiredOperandTypes: Set<L2OperandType>,
-		ignoreMisconnections: Boolean,
-		warningStyleChange: (Boolean)->Unit)
-	{
-		renderPreamble()
-		append(' ')
-		append(variable)
-	}
-
-	override fun JVMTranslator.translateToJVM()
-	{
-		// TODO: [MvG] clearValue() can throw VariableSetException. Deal.
-		// :: variable.clearValue();
-		load(variable)
-		generateCall(clearVariableMethod)
-	}
-}
+@DslMarker
+@Target(AnnotationTarget.CLASS)
+annotation class DSLHelper()

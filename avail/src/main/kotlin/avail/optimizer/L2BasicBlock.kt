@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.manifest.L2ValueManifest
 import java.lang.Integer.toHexString
 
 /**
@@ -153,7 +153,7 @@ constructor(
 	 * synonym and output restriction information prior to the eventual emission
 	 * point of the instruction.
 	 */
-	var postPhiMap: Map<L2Synonym<BOXED_KIND>, TypeRestriction>? = null
+	var postPhiMap: Map<L2Synonym, TypeRestriction>? = null
 
 	/**
 	 * Answer the descriptive name of this basic block.

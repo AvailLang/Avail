@@ -65,7 +65,7 @@ import java.lang.reflect.Modifier
 import java.util.IdentityHashMap
 
 /**
- * A `PojoFieldDescriptor` is an Avail [variable][VariableDescriptor] that
+ * A [PojoFieldDescriptor] is an Avail [variable][VariableDescriptor] that
  * facilitates access to the instance [Java&#32;field][Field] of a particular
  * [pojo][PojoDescriptor] or the static field of a particular
  * [pojo&#32;type][PojoTypeDescriptor]. It supports the same protocol as any

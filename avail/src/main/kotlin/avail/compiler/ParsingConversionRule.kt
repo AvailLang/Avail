@@ -52,7 +52,7 @@ import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 
 /**
- * A `ParsingConversionRule` describes how to convert the argument at the
+ * A [ParsingConversionRule] describes how to convert the argument at the
  * top of the parsing stack from one [phrase][PhraseDescriptor] to
  * another.
  *

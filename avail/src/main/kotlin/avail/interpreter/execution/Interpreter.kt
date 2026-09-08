@@ -38,6 +38,7 @@ import avail.AvailRuntimeConfiguration.maxInterpreters
 import avail.AvailRuntimeSupport.captureNanos
 import avail.AvailTask
 import avail.AvailThread
+import avail.annotations.DSLHelper
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
@@ -942,8 +943,6 @@ final class Interpreter(
 	 * used for statistics collection and reporting errors when returning a
 	 * value that disagrees with semantic restrictions.
 	 */
-	@ReferencedInGeneratedCode
-	@JvmField
 	var returningFunction: A_Function? = null
 
 	/**
@@ -1057,6 +1056,7 @@ final class Interpreter(
 	 * A variation of [SuspendedPrimitiveHelper] that also allows a [suspend]
 	 * function to be invoked.  The semantics are caller-specific.
 	 */
+	@DSLHelper
 	class SuspensionHelper constructor (
 		toSucceed: (A_BasicObject)->Unit,
 		toFail: (A_BasicObject)->Unit,
@@ -3138,12 +3138,6 @@ final class Interpreter(
 			Interpreter::class.java,
 			Interpreter::currentReifier.name,
 			StackReifier::class.java)
-
-		/** The [CheckedField] for the field argsBuffer. */
-		val interpreterReturningFunctionField: CheckedField = instanceField(
-			Interpreter::class.java,
-			Interpreter::returningFunction.name,
-			A_Function::class.java)
 
 		/** The method [beforeAttemptPrimitive]. */
 		val beforeAttemptPrimitiveMethod = instanceMethod(

@@ -41,12 +41,10 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticUnboxedInt
 
 /**
  * Unbox an [Int] from an [AvailObject].
@@ -72,19 +70,13 @@ class L2_UNBOX_INT(
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
-		destination.restrict { source.restriction().forUnboxedInt() }
-		super.instructionWasAdded(manifest)
-		// The [translateToJVM] below emits an unguarded extractInt, so the
-		// source must already have been proven to be an i32, normally by an
-		// L2_JUMP_IF_KIND_OF_OBJECT on the edge leading here.  Check this only
-		// after the super call, which is what re-restricts the read operands
-		// from the manifest; the restriction captured when the operand was
-		// built can predate the very type test that establishes the guarantee.
 		assert(source.restriction().containedByType(i32))
 		{
 			"L2_UNBOX_INT source was not proven to be an i32: " +
 				source.restriction()
 		}
+		destination.restrict { source.restriction() }
+		super.instructionWasAdded(manifest)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
@@ -107,40 +99,6 @@ class L2_UNBOX_INT(
 		restriction: TypeRestriction,
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
-		tracer.continueTracing(source.register(), restriction.forBoxed())
-	}
-
-	override fun L2GeneratorInterface.emitTransformedInstruction()
-	{
-		// Synonyms of ints are tricky, so check if there's an int version of
-		// a synonym of the source available.
-		val otherUnboxeds = currentManifest
-			.semanticValueToSynonym(source.semanticValue())
-			.semanticValues()
-			.map(::L2SemanticUnboxedInt)
-		val existingUnboxed = otherUnboxeds
-			.filter(currentManifest::hasSemanticValue)
-			.filter { currentManifest.getDefinitions(it).isNotEmpty() }
-		if (existingUnboxed.isNotEmpty())
-		{
-			// There's already an int semantic value with the needed value.  Do
-			// a move into all the remaining int semantic values.
-			val existing = existingUnboxed.first()
-			val unpopulated = (otherUnboxeds + destination.semanticValues())
-				.filterNot(currentManifest::hasSemanticValue)
-			if (unpopulated.isNotEmpty())
-			{
-				moveIntRegister(existing, unpopulated)
-			}
-		}
-		else
-		{
-			// We have to unbox it.
-			+L2_UNBOX_INT(
-				source,
-				intWrite(
-					(destination.semanticValues() + otherUnboxeds).toSet(),
-					currentManifest.restrictionFor(source).forUnboxedInt()))
-		}
+		tracer.continueTracing(source.register(), restriction)
 	}
 }

@@ -44,10 +44,10 @@ import avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import kotlin.math.max
 import kotlin.math.min
 
@@ -97,9 +97,9 @@ class TagSplitter(
 			val originalSourceRegister = originalSource.register()
 			val intSemanticValue = read.semanticValue()
 			edges.forEach { edge ->
-				val intRestriction =
+				val restriction =
 					edge.manifest().restrictionFor(intSemanticValue)
-				intRestriction.constantOrNull?.let { tagOrdinal ->
+				restriction.constantOrNull?.let { tagOrdinal ->
 					val tag = tagFromOrdinal(tagOrdinal.extractInt)
 					val supremum = tag.supremum
 					if (!supremum.equals(Types.TOP()))
@@ -109,13 +109,13 @@ class TagSplitter(
 						addAll(
 							typeRestrictionConditions(
 								listOf(originalSourceRegister),
-								boxedRestrictionForType(supremum)))
+								restrictionForType(supremum)))
 						// Allow splitting if there's an upstream point that can
 						// guarantee that the supremum is *not* satisfied.
 						addAll(
 							typeRestrictionConditions(
 								listOf(originalSourceRegister),
-								boxedRestrictionForType(Types.ANY())
+								restrictionForType(Types.ANY())
 									.minusType(supremum)))
 					}
 				}

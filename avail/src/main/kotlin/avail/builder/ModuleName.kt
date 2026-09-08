@@ -35,7 +35,7 @@ package avail.builder
 import avail.descriptor.module.ModuleDescriptor
 
 /**
- * A `ModuleName` represents the canonical name of an Avail
+ * A [ModuleName] represents the canonical name of an Avail
  * [module][ModuleDescriptor]. A canonical name is specified relative to an
  * Avail [module&#32;root][ModuleRoots] and has the form **R/X/Y/Z**, where
  * **R** is a module root on the Avail module path, **X** is a package within

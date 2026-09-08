@@ -38,7 +38,7 @@ import java.lang.Double.POSITIVE_INFINITY
 import java.lang.String.format
 
 /**
- * A `PerInterpreterStatistic` is an incremental, summarized recording of
+ * A [PerInterpreterStatistic] is an incremental, summarized recording of
  * a set of integral values and times.  It is synchronized, although the typical
  * usage is that it will only be written by a single [Thread] at a time,
  * and read by another [Thread] only rarely.

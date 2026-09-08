@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L1Translator
@@ -106,7 +107,7 @@ class L2_CHECK_ESCAPED_LOCALS(
 		localsToCheck.elements.zip(localsOutput.elements).forEach { pair ->
 			val (read, write) = pair
 			val postponed = generator.currentManifest
-				.postponedInstructionFor(read.semanticValue())
+				.postponedInstructionFor(read.semanticValue(), BOXED_KIND)
 			when (postponed)
 			{
 				is L2_CREATE_VARIABLE ->
@@ -123,7 +124,8 @@ class L2_CHECK_ESCAPED_LOCALS(
 					// besides a variable creation that produced the variable.
 					// The second case probably shouldn't happen, but play it
 					// safe and force it to generate.
-					generator.forceTranslationForRead(read.semanticValue())
+					generator.forceTranslationForRead(
+						read.semanticValue(), read.kind)
 					keptLocals.add(read)
 					keptWrites.add(write)
 				}

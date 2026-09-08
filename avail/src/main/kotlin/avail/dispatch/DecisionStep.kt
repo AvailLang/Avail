@@ -45,13 +45,14 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_HASH
 import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.general.P_Hash
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
@@ -59,10 +60,7 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
@@ -335,9 +333,9 @@ constructor(
 	 *   The [L2SemanticValue] that this step examines.
 	 */
 	fun sourceSemanticValue(
-		semanticValues: List<L2SemanticBoxedValue>,
-		extraSemanticValues: List<L2SemanticBoxedValue>
-	): L2SemanticBoxedValue
+		semanticValues: List<L2SemanticValue>,
+		extraSemanticValues: List<L2SemanticValue>
+	): L2SemanticValue
 	{
 		val inExtras = argumentPositionToTest - semanticValues.size
 		return when
@@ -364,14 +362,14 @@ constructor(
 	 * the list of extra [L2SemanticValue]s that will be present at that block.
 	 */
 	abstract fun L2GeneratorInterface.generateEdgesFor(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 
 	/**
 	 * Output a description of this step on the given [builder].  Do not expand
@@ -404,15 +402,15 @@ constructor(
 	 *   [valueToSubtree] was supplied at runtime.
 	 */
 	fun L2GeneratorInterface.generateDispatchTriples(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		valueToSubtree: Map<A_BasicObject, LookupTree<Element, Result>>,
 		noMatchSubtree: LookupTree<Element, Result>
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 	{
 		val semanticSource =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
@@ -493,58 +491,55 @@ constructor(
 			}
 		val noMatchBlock = L2BasicBlock("None matched by equality")
 		// First, extract the hash value.
-		val int32Restriction = intRestrictionForType(i32)
+		val int32Restriction = restrictionForType(i32)
 		val semanticHash = P_Hash.semanticInvocation(semanticSource)
-		val semanticHashInt = semanticHash.unboxedInt
-		if (!currentManifest.hasSemanticValue(semanticHashInt))
+		if (!currentManifest.hasLiveSemanticValue(semanticHash, INTEGER_KIND))
 		{
 			+L2_HASH(
 				readBoxed(semanticSource),
-				intWrite(setOf(semanticHashInt), int32Restriction))
+				intWrite(setOf(semanticHash), int32Restriction))
 		}
 		// Now extract the relevant bits.  Pretend the hash was masked with the
 		// value 0xFFFF_FFFFL, so that we can right shift it in a way that's
 		// equivalent to unsigned.
-		val indexRestriction = intRestrictionForType(inclusive(0, mask))
-		val preMaskRestriction = intRestrictionForType(
+		val indexRestriction = restrictionForType(inclusive(0, mask))
+		val preMaskRestriction = restrictionForType(
 			inclusive(0L, 0xFFFF_FFFFL ushr bestShift))
 		val inputForMasking = if (bestShift == 0)
 		{
-			semanticHashInt
+			semanticHash
 		}
 		else
 		{
-			val semanticShiftedInt =
+			val semanticShifted =
 				P_BitShiftRight.semanticInvocation(
 					P_BitwiseAnd.semanticInvocation(
 						semanticHash,
 						constant(fromLong(0xFFFF_FFFFL))),
-					constant(bestShift)
-				).unboxedInt
-			manifest.equivalentPopulatedSemanticValue(semanticShiftedInt) ?:
-				run {
+					constant(bestShift))
+			manifest
+				.equivalentPopulatedSemanticValue(
+					semanticShifted, INTEGER_KIND
+				) ?: run {
 					// Neither the semantic value representing the shifted hash
 					// nor an equivalent semantic value exist.  Do the shift.
 					+L2_BIT_LOGIC_OP(
 						Ushr,
-						L2ReadIntOperand(semanticHashInt, int32Restriction),
+						L2ReadIntOperand(semanticHash, int32Restriction),
 						unboxedIntConstant(bestShift),
-						intWrite(setOf(semanticShiftedInt), preMaskRestriction))
-					semanticShiftedInt
+						intWrite(setOf(semanticShifted), preMaskRestriction))
+					semanticShifted
 				}
 		}
-		val semanticMaskedInt =
+		val semanticMasked =
 			P_BitwiseAnd.semanticInvocation(
-				inputForMasking.boxed,
-				constant(mask)
-			).unboxedInt
+				inputForMasking,
+				constant(mask))
 		+L2_BIT_LOGIC_OP(
 			And,
-			L2ReadIntOperand(
-				inputForMasking,
-				preMaskRestriction),
+			L2ReadIntOperand(inputForMasking, preMaskRestriction),
 			unboxedIntConstant(mask),
-			intWrite(setOf(semanticMaskedInt), indexRestriction))
+			intWrite(setOf(semanticMasked), indexRestriction))
 		// semanticMaskedInt now contains the shifted, masked value with which
 		// to dispatch.
 		val triples = mutableListOf(
@@ -567,7 +562,7 @@ constructor(
 		}
 		splitter.run {
 			emitSplitterInstruction(
-				L2ReadIntOperand(semanticMaskedInt, indexRestriction),
+				L2ReadIntOperand(semanticMasked, indexRestriction),
 				newEdges)
 		}
 		// At each of the targets of the multi-way jump, we still have to test

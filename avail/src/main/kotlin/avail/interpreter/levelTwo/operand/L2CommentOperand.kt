@@ -36,7 +36,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 
 /**
- * An `L2CommentOperand` holds a descriptive string during level two
+ * An [L2CommentOperand] holds a descriptive string during level two
  * translation, but this operand emits no actual data into the wordcode stream.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

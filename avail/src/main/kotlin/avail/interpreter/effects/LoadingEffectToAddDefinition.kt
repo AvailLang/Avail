@@ -50,7 +50,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 
 /**
- * A `LoadingEffectToAddDefinition` summarizes the addition of one
+ * A [LoadingEffectToAddDefinition] summarizes the addition of one
  * [definition][DefinitionDescriptor] to a [method][A_Method].
  *
  * @property definition

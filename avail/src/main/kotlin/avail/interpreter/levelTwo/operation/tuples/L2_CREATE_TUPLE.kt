@@ -70,11 +70,10 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -107,11 +106,11 @@ class L2_CREATE_TUPLE(
 	}
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit =
-		moveBoxedRegister(
+		move(
 			elements.elements[index - 1].semanticValue(),
 			destinationSemanticValues)
 

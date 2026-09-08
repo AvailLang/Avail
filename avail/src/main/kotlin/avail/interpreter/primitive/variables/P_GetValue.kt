@@ -50,7 +50,7 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
@@ -128,7 +128,7 @@ object P_GetValue : Primitive1(CanInline, HasSideEffect)
 		val failure = createBasicBlock("get value failure/observe")
 		val extractedValue = boxedWriteTemp(
 			"extracted",
-			boxedRestrictionForType(varInnerType))
+			restrictionForType(varInnerType))
 		// Emit the get-variable instruction.
 		+L2_GET_VARIABLE(
 			varReg,

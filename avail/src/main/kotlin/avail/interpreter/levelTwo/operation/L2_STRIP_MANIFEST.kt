@@ -40,7 +40,7 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
 

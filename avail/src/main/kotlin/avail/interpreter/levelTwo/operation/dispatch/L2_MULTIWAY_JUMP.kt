@@ -47,7 +47,7 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.mapToSet
 import org.objectweb.asm.Label

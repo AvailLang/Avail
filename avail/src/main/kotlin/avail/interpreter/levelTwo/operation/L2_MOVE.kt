@@ -56,10 +56,11 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.notNullAnd
@@ -120,26 +121,25 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 	override fun postponeInstruction(generator: L2GeneratorInterface)
 	{
 		val manifest = generator.currentManifest
-		manifest.dynamicAgglomerateSynonym(
+		manifest.agglomerateSynonym(
 			destination.semanticValues() + source.semanticValue(),
 			destination.restriction())
 		manifest.restrictionFor(source).constantOrNull?.let { c ->
-			val semanticConstant = source.kind.createSemanticConstant(c)
+			val semanticConstant = constant(c)
 			if (semanticConstant !in
 				manifest
 					.semanticValueToSynonym(source.semanticValue())
-					.semanticValues()
-			)
+					.semanticValues())
 			{
 				// The restriction is now constant, but there isn't a
 				// semantic constant in the synonym.  Add it.
-				manifest.dynamicAgglomerateSynonym(
+				manifest.agglomerateSynonym(
 					setOf(source.semanticValue(), semanticConstant),
 					semanticConstant.defaultRestriction)
 			}
 		}
 		val existingPostponed = manifest.postponedInstructionFor(
-			destination.pickSemanticValue())
+			destination.pickSemanticValue(), kind)
 		// If there's already a postponed instruction, we're done, because
 		// it will populate the whole synonym when needed.
 		if (existingPostponed == null)
@@ -207,8 +207,8 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			// coupled by semantic values, we can look for a write to the source
 			// register within the current block, and if present we can simply
 			// augment the write to include one more semantic value.
-			val postponed =
-				currentManifest.postponedInstructionFor(source.semanticValue())
+			val postponed = currentManifest
+				.postponedInstructionFor(source.semanticValue(), kind)
 			if (postponed != null)
 			{
 				// The source of the move is still postponed, so we can just
@@ -220,7 +220,7 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			}
 			// The instruction providing the source has already been written.
 			val sourceRegister =
-				currentManifest.getDefinition(source.semanticValue())
+				currentManifest.getDefinition(source.semanticValue(), kind)
 			val definingWrite = sourceRegister.definition()
 			val definingInstruction = definingWrite.instruction
 			if (definingInstruction.basicBlock() == currentBlock()
@@ -231,7 +231,8 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 				// Note that phis don't count, since regeneration ignores them
 				// in BySemanticValue mode, regenerating them afresh.
 				destination.semanticValues().forEach { newSemanticValue ->
-					if (!currentManifest.hasLiveSemanticValue(newSemanticValue))
+					if (!currentManifest
+						.hasLiveSemanticValue(newSemanticValue, kind))
 					{
 						definingWrite.retroactivelyIncludeSemanticValue(
 							newSemanticValue)
@@ -267,7 +268,7 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 	 * synonyms, there's nothing to do here.
 	 */
 	override fun L2ValueManifest.rewritePostponed(
-		synonym: L2Synonym<*>
+		synonym: L2Synonym
 	): Boolean = false
 
 	override fun sourceOfMoveToRegister(
@@ -314,9 +315,9 @@ constructor(
 			.getConstantCode(manifest)
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit = extractTupleElement(source, index, destinationSemanticValues)
 
 	override fun processForMakeImmutable(

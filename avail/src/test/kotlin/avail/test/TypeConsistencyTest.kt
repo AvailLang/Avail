@@ -1401,8 +1401,7 @@ class TypeConsistencyTest
 			for (y in Node.values)
 			{
 				assertT(
-					x.intersect(y).isInstanceOf(
-						topMeta),
+					x.intersect(y).isInstanceOf(topMeta),
 					"intersection closure: %s, %s",
 					x,
 					y)

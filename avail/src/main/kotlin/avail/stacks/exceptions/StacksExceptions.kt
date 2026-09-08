@@ -37,7 +37,7 @@ import avail.stacks.scanner.AbstractStacksScanner
 import avail.stacks.scanner.StacksScanner
 
 /**
- * A `StacksException` is an abstract [RuntimeException] that defines common
+ * A [StacksException] is an abstract [RuntimeException] that defines common
  * state amongst exceptions in Stacks.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

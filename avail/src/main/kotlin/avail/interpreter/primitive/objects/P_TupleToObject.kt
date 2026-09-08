@@ -83,7 +83,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
@@ -286,7 +286,7 @@ object P_TupleToObject : Primitive1(CanFold, CanInline)
 		val typeGuarantee = objectTypeFromTuple(tupleFromList(fieldTypePairs))
 		val write = boxedWriteTemp(
 			"new object",
-			boxedRestrictionForType(typeGuarantee)
+			restrictionForType(typeGuarantee)
 				.intersectionWithObjectVariant(variant))
 		+L2_CREATE_OBJECT(
 			L2ArbitraryConstantOperand(variant),

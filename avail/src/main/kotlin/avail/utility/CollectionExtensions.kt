@@ -304,6 +304,23 @@ fun <T> Collection<T>.ifNotEmpty(body: (Collection<T>)->Unit)
 		body(this)
 }
 
+/**
+ * Answer whether there are any elements in common between the receiver and
+ * [other].
+ *
+ * @receiver
+ *   One of the collections.
+ * @param
+ *   The other collection.
+ * @return
+ *   Whether there's at least one element in common in the two collections.
+ */
+fun <T> Collection<T>.intersects(other: Collection<T>): Boolean = when
+{
+	size < other.size -> any(other::contains)
+	else -> other.any(::contains)
+}
+
 interface Tuple
 
 /** Tuple of length 1. */

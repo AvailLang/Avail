@@ -75,8 +75,8 @@ internal class FontSetting constructor(
 				}
 		}
 
-	private val combo =
-		ComboWithLabel<String>(
+	override val component: JComponent
+		field = ComboWithLabel<String>(
 			"Font: ",
 			monospaceFonts.map { it.name }.toTypedArray(),
 			emptySpaceRight = 7.0
@@ -90,20 +90,18 @@ internal class FontSetting constructor(
 			combo.selectedItem = original
 		}
 
-	private val selection get() = combo.combo.selectedItem as? String
-
-	override val component: JComponent get() = combo
+	private val selection get() = component.combo.selectedItem as? String
 
 	override fun reset()
 	{
-		combo.combo.selectedItem = original
+		component.combo.selectedItem = original
 	}
 
 	override fun update()
 	{
 		val selected = selection ?: return
 		editorSettings.config.font = selected
-		original = combo.combo.selectedItem as String
+		original = component.combo.selectedItem as String
 	}
 
 	override fun changeReady(): Boolean =

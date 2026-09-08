@@ -40,7 +40,7 @@ import java.lang.reflect.InvocationTargetException
 import java.util.logging.Level
 
 /**
- * A `JVMChunkClassLoader` is created for each generated [JVMChunk], permitted
+ * A [JVMChunkClassLoader] is created for each generated [JVMChunk], permitted
  * dynamic loading and unloading of each `JVMChunk` independently. The class
  * loader holds onto zero or many [objects][Object] for usage during static
  * initialization of the generated `JVMChunk`; these values are accessed from an

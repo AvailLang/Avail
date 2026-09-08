@@ -48,7 +48,7 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -62,7 +62,6 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -75,14 +74,14 @@ import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.PublicCloneable
 import avail.utility.Strings.increaseIndentation
 import avail.utility.cast
+import avail.utility.intersects
 import avail.utility.mapToSet
 import javax.annotation.CheckReturnValue
 import kotlin.reflect.KMutableProperty0
@@ -423,19 +422,19 @@ constructor() :
 	 * @param index
 	 *   The one-based index of the tuple element to extract.
 	 * @param destinationSemanticValues
-	 *   The [L2SemanticBoxedValue]s that will containing the element.
+	 *   The [L2SemanticValue]s that will containing the element.
 	 */
 	open fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit =
 		+L2_TUPLE_AT_CONSTANT(
 			readBoxed(synonym.pickSemanticValue()),
 			L2IntImmediateOperand(index),
 			boxedWrite(
 				destinationSemanticValues,
-				boxedRestrictionForType(
+				restrictionForType(
 					currentManifest.restrictionFor(synonym.pickSemanticValue())
 						.type
 						.typeAtIndex(index))))
@@ -544,8 +543,7 @@ constructor() :
 	fun canCommuteWith(another: L2Instruction): Boolean = when
 	{
 		!canBePostponed && !another.canBePostponed -> false
-		destinationRegisters.intersect(another.sourceRegisters).isNotEmpty() ->
-			false
+		destinationRegisters.intersects(another.sourceRegisters) -> false
 		another is L2_SAVE_ALL_AND_PC_TO_INT
 			&& this !is L2_MOVE_CONSTANT<*, *>
 			-> false
@@ -586,10 +584,10 @@ constructor() :
 			val targets = write.semanticValues()
 			val (sources, allTargets) = targets
 				.mapNotNull {
-					manifest.equivalentPopulatedSemanticValue(it)
+					manifest.equivalentPopulatedSemanticValue(it, write.kind)
 				}
 				.plus(targets)
-				.partition(manifest::hasLiveSemanticValue)
+				.partition { manifest.hasLiveSemanticValue(it, write.kind) }
 			if (allTargets.isEmpty())
 			{
 				// All targets are already populated.  Emit nothing.
@@ -603,7 +601,7 @@ constructor() :
 				val source = sources.first()
 				val restriction = manifest.restrictionFor(source)
 					.intersection(write.restriction())
-				val move = source.kind.dynamicMove(
+				val move = write.kind.dynamicMove(
 					source,
 					allTargets.toSet(),
 					manifest,
@@ -851,7 +849,8 @@ constructor() :
 		}
 		else
 		{
-			append("${instruction.name}:\n\t")
+			append("${instruction.name}")
+			if (pairs.isNotEmpty()) append(":\n\t")
 			pairs.joinTo(this, ",\n\t") { (name, operand) ->
 				val operandString =
 					increaseIndentation(operand.toString(ignoreMisconnections), 2)
@@ -1048,10 +1047,13 @@ constructor() :
 		assert(canBePostponed)
 		val originalWrite = writeOperands.single()
 		assert(originalWrite.semanticValues().isNotEmpty())
+		val kind = originalWrite.kind
 		val manifest = generator.currentManifest
 		// See if there's already an existing equivalent value.
 		val existing = originalWrite.semanticValues()
-			.firstNotNullOfOrNull(manifest::equivalentPopulatedSemanticValue)
+			.firstNotNullOfOrNull {
+				manifest.equivalentPopulatedSemanticValue(it, kind.cast())
+			}
 		if (existing != null)
 		{
 			// Just augment the existing synonym.
@@ -1063,7 +1065,7 @@ constructor() :
 				// path.
 				generator.addInstruction(generator.impossibleCodeInstruction())
 			}
-			manifest.dynamicAgglomerateSynonym(
+			manifest.agglomerateSynonym(
 				originalWrite.semanticValues() + existing,
 				newRestriction)
 			return
@@ -1139,7 +1141,7 @@ constructor() :
 		if (targetEdges.size > 1 &&
 			destinationRegisters.all { writeReg ->
 				targetEdges.all { edge ->
-					writeReg in edge.alwaysLiveInEntities!!
+					writeReg in edge.liveness!!.alwaysLiveInRegisters
 				}
 			})
 		{
@@ -1188,8 +1190,10 @@ constructor() :
 		// move it to that write's destinations, eliding the sourceInstruction.
 		val semanticValues = write.semanticValues()
 		val unpopulated = semanticValues
-			.filterNotTo(mutableSetOf(), currentManifest::isPopulated)
-		val constantSource = semanticValues.find(L2SemanticValue<*>::isConstant)
+			.filterNotTo(mutableSetOf()) {
+				currentManifest.isPopulated(it, write.kind)
+			}
+		val constantSource = semanticValues.find(L2SemanticValue::isConstant)
 		val constant =
 			constantSource?.constant ?: write.restriction().constantOrNull
 		if (constant != null)
@@ -1203,7 +1207,7 @@ constructor() :
 			return true
 		}
 		val possibleSources = semanticValues.mapNotNull {
-			currentManifest.equivalentPopulatedSemanticValue(it)
+			currentManifest.equivalentPopulatedSemanticValue(it, write.kind)
 		}
 		if (possibleSources.isEmpty()) return false
 		if (unpopulated.isEmpty())
@@ -1222,7 +1226,7 @@ constructor() :
 			}.toList()
 			for (i in 1 ..< synonymRepresentatives.size)
 			{
-				currentManifest.dynamicMergeExistingSemanticValues(
+				currentManifest.mergeExistingSemanticValues(
 					synonymRepresentatives[0],
 					synonymRepresentatives[i])
 			}
@@ -1239,9 +1243,9 @@ constructor() :
 					currentManifest,
 					write.restriction())
 
-			else -> +constantSource.kind.moveConstant(
+			else -> +write.kind.moveConstant(
 				constantSource.constant!!,
-				currentManifest.getDefinitionOrNull(constantSource)
+				currentManifest.getDefinitionOrNull(constantSource, write.kind)
 					?.let { unpopulated }
 					?: (unpopulated + constantSource))
 		}
@@ -1310,7 +1314,7 @@ constructor() :
 	 */
 	open fun replaceConstantReads(
 		generator: L2GeneratorInterface,
-		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue>)
 	{
 		// Note: We have to run this against all readOperands, so don't replace
 		// the count{} with any{}, which short-circuits.
@@ -1423,7 +1427,7 @@ constructor() :
 	 *   `true` if a replacement was made, otherwise `false`.
 	 */
 	open fun L2ValueManifest.rewritePostponed(
-		synonym: L2Synonym<*>
+		synonym: L2Synonym
 	): Boolean = false
 
 	/**
@@ -1462,21 +1466,9 @@ constructor() :
 			// If we already have a live value for each of the *writes* of this
 			// instruction, we can elide the instruction and write extending
 			// moves instead.
-			val liveWriteRepresentatives = writeOperands.map { write ->
-				write to
-					write.semanticValues()
-						.filter(currentManifest::hasLiveSemanticValue)
-			}
-			if (liveWriteRepresentatives.all { (_, reps) -> reps.isNotEmpty() })
-			{
-				// We have an assigned semantic value from each of the write
-				// operands.  Generate extending moves as needed, and omit the
-				// redundant postponed instruction.
-				liveWriteRepresentatives.forEach { (write, reps) ->
-					val notYetAssigned = write.semanticValues() - reps
-					moveRegister(reps.first(), notYetAssigned.cast())
-				}
-				return
+			writeOperands.forEach { write ->
+				currentManifest.agglomerateSynonym(
+					write.semanticValues(), write.restriction())
 			}
 		}
 		// At least one write didn't have a semantic value already populated (or
@@ -1484,7 +1476,7 @@ constructor() :
 		// instruction.  Emit any necessary predecessors first.
 		readOperands.forEach { read ->
 			currentManifest.check() //TODO Remove
-			forceTranslationForRead(read.semanticValue())
+			forceTranslationForRead(read.semanticValue(), read.kind)
 			currentManifest.check() //TODO Remove
 		}
 		cloneFor(this).run {
@@ -1814,7 +1806,7 @@ constructor() :
 	 */
 	class InstructionEquivalence(
 		val instruction: L2Instruction,
-		val synonym: L2Synonym<*>)
+		val synonym: L2Synonym)
 	{
 		/** Cache the instruction's [equivalentHash] upon creation. */
 		private val cachedHash =
@@ -1829,5 +1821,12 @@ constructor() :
 		override fun hashCode(): Int = cachedHash
 
 		override fun toString(): String = "EQ($instruction for $synonym)"
+
+		/**
+		 * The instruction must write only one value, so we can ask its write
+		 * operand to tell us the kind of value it produces.
+		 */
+		val kind: RegisterKind<*> get() =
+			instruction.writeOperands.single().kind
 	}
 }

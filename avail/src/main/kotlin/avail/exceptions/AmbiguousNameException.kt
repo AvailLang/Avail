@@ -35,7 +35,7 @@ package avail.exceptions
 import avail.descriptor.atoms.AtomDescriptor
 
 /**
- * An `AmbiguousNameException` is thrown when a simple string name could
+ * An [AmbiguousNameException] is thrown when a simple string name could
  * represent multiple [true&#32;names][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

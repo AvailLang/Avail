@@ -51,9 +51,9 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
@@ -63,9 +63,6 @@ import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
-import avail.utility.mapToSet
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -123,7 +120,7 @@ class L2_MULTIPLY_INT_BY_INT(
 					L2IntImmediateOperand(constantInt),
 					L2WriteIntOperand(
 						product.semanticValues(),
-						intRestrictionForConstant(constantInt),
+						restrictionForConstant(constantInt),
 						product.register()))
 				jumpTo(inRange.targetBlock())
 				return
@@ -143,14 +140,12 @@ class L2_MULTIPLY_INT_BY_INT(
 			val divisions = currentManifest
 				.semanticValueToSynonym(a.semanticValue())
 				.semanticValues()
-				.filterIsInstance<L2SemanticUnboxedInt>()
-				.map { it.boxed }
 				.filterIsInstance<L2SemanticPrimitiveInvocation>()
 				.filter { div ->
 					div.primitive == P_Division &&
 						currentManifest.isEquivalentSemanticValue(
 							div.argumentSemanticValues[1], // denominator
-							b.semanticValue().boxed)
+							b.semanticValue())
 				}
 			for (div in divisions)
 			{
@@ -219,8 +214,10 @@ class L2_MULTIPLY_INT_BY_INT(
 					+L2_MOVE_CONSTANT_BOXED(
 						L2ConstantOperand(range.upperBound),
 						boxedWrite(
-							product.semanticValues().mapToSet { it.boxed },
-							boxedRestrictionForType(range)))
+							product.semanticValues(),
+							restrictionForType(range)))
+					// The boxed multiplication that happened along the
+					// outOfRange path will defer to this constant.
 					jumpTo(outOfRange.targetBlock())
 				}
 			}
@@ -233,7 +230,7 @@ class L2_MULTIPLY_INT_BY_INT(
 					multiplier,
 					intWrite(
 						product.semanticValues(),
-						intRestrictionForType(range)))
+						restrictionForType(range)))
 				jumpTo(inRange.targetBlock())
 			}
 			range.typeIntersection(i32).isVacuousType ->
@@ -244,6 +241,8 @@ class L2_MULTIPLY_INT_BY_INT(
 			else ->
 			{
 				// It's still unknown whether the result will fit in an int.
+				// But at least we can narrow the restriction.
+				product.restrict { restrictionForType(range) }
 				+this@L2_MULTIPLY_INT_BY_INT
 			}
 		}

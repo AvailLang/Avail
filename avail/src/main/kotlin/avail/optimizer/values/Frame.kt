@@ -98,7 +98,7 @@ class Frame constructor(
 	 * @return
 	 *   This frame's [L2SemanticFunction].
 	 */
-	fun function(): L2SemanticBoxedValue = L2SemanticFunction(this)
+	fun function(): L2SemanticValue = L2SemanticFunction(this)
 
 	/**
 	 * Answer the [L2SemanticValue] representing this frame's label.
@@ -106,7 +106,7 @@ class Frame constructor(
 	 * @return
 	 *   This frame's [L2SemanticLabel].
 	 */
-	fun label(): L2SemanticBoxedValue = L2SemanticLabel(this)
+	fun label(): L2SemanticValue = L2SemanticLabel(this)
 
 	/**
 	 * Answer the [L2SemanticValue] representing one of this frame's
@@ -120,7 +120,7 @@ class Frame constructor(
 	 * @return
 	 *   The [L2SemanticValue] representing the specified outer.
 	 */
-	fun outer(outerIndex: Int, optionalName: String?): L2SemanticBoxedValue =
+	fun outer(outerIndex: Int, optionalName: String?): L2SemanticValue =
 		L2SemanticOuter(this, outerIndex, optionalName)
 
 	/**
@@ -142,7 +142,7 @@ class Frame constructor(
 		slotIndex: Int,
 		afterPc: Int,
 		optionalName: String?
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		L2SemanticSlot(this, slotIndex, afterPc, optionalName)
 
 	/**
@@ -152,7 +152,7 @@ class Frame constructor(
 	 * @return
 	 *   The [L2SemanticValue] representing the return result.
 	 */
-	fun result(): L2SemanticBoxedValue = L2SemanticResult(this)
+	fun result(): L2SemanticValue = L2SemanticResult(this)
 
 	/**
 	 * Answer the semantic value representing a new temporary value.
@@ -167,7 +167,7 @@ class Frame constructor(
 	 *   An [L2SemanticTemp] representing the temporary value, generalized to an
 	 *   [L2SemanticValue].
 	 */
-	fun temp(name: String?, uniqueId: Int): L2SemanticBoxedValue =
+	fun temp(name: String?, uniqueId: Int): L2SemanticValue =
 		L2SemanticTemp(this, name, uniqueId)
 
 	/**
@@ -177,7 +177,7 @@ class Frame constructor(
 	 * @return
 	 *   The reified caller (an [A_Continuation] at runtime) of this  frame.
 	 */
-	fun reifiedCaller(): L2SemanticBoxedValue = L2SemanticCaller(this)
+	fun reifiedCaller(): L2SemanticValue = L2SemanticCaller(this)
 
 	/**
 	 * Transform the receiver via the given [Function].

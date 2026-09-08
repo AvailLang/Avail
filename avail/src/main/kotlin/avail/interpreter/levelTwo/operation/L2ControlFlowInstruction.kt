@@ -36,7 +36,7 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.mapToSet
 
 /**

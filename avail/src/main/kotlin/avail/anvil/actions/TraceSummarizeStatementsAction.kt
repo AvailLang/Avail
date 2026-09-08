@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `TraceSummarizeStatementsAction` toggles the flag that indicates whether to
+ * A [TraceSummarizeStatementsAction] toggles the flag that indicates whether to
  * show information about how statements are rewritten as fast-load summaries.
  *
  * @constructor

@@ -33,10 +33,10 @@ package avail.optimizer
 
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.floatRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -47,11 +47,11 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Synonym.Companion.appendSemanticValues
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticUnboxedFloat.Companion.floatRestriction
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.i32Restriction
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.truncateTo
+import avail.utility.intersects
 import avail.utility.mapToSet
 
 /**
@@ -99,7 +99,7 @@ sealed class L2SplitCondition
 	 */
 	private class L2ExistsCondition
 	constructor (
-		private val semanticValues: Set<L2SemanticValue<*>>
+		private val semanticValues: Set<L2SemanticValue>
 	): L2SplitCondition()
 	{
 		override fun equals(other: Any?): Boolean =
@@ -125,7 +125,7 @@ sealed class L2SplitCondition
 	 */
 	private class L2MeetsRestrictionCondition
 	constructor (
-		val semanticValues: Set<L2SemanticValue<*>>,
+		val semanticValues: Set<L2SemanticValue>,
 		requiredRestrictionRaw: TypeRestriction
 	) : L2SplitCondition()
 	{
@@ -193,7 +193,7 @@ sealed class L2SplitCondition
 		val visitedRegisters = mutableSetOf<L2Register<*>>()
 
 		private val restrictionToSemanticValue =
-			mutableMapOf<TypeRestriction, MutableSet<L2SemanticValue<*>>>()
+			mutableMapOf<TypeRestriction, MutableSet<L2SemanticValue>>()
 
 		fun traceAll(): Set<L2SplitCondition?>
 		{
@@ -203,7 +203,7 @@ sealed class L2SplitCondition
 				if (!visitedRegisters.add(register)) continue
 				val write = register.definition()
 				val values = write.semanticValues()
-					.filterNot(L2SemanticValue<*>::isConstant)
+					.filterNot(L2SemanticValue::isConstant)
 				if (values.isEmpty())
 				{
 					// Ignore if only constants were written.
@@ -249,8 +249,8 @@ sealed class L2SplitCondition
 	 * [L2Synonym] as a value from the second set.
 	 */
 	private class L2SameSynonymCondition constructor (
-		private val semanticValues1: Set<L2SemanticValue<*>>,
-		private val semanticValues2: Set<L2SemanticValue<*>>
+		private val semanticValues1: Set<L2SemanticValue>,
+		private val semanticValues2: Set<L2SemanticValue>
 	) : L2SplitCondition()
 	{
 		override fun equals(other: Any?): Boolean =
@@ -271,7 +271,7 @@ sealed class L2SplitCondition
 			val synonyms2 = semanticValues2
 				.filter(manifest::hasSemanticValue)
 				.mapToSet { manifest.semanticValueToSynonym(it) }
-			return synonyms1.intersect(synonyms2).isNotEmpty()
+			return synonyms1.intersects(synonyms2)
 		}
 
 		override fun toString(): String =
@@ -326,9 +326,8 @@ sealed class L2SplitCondition
 		): Set<L2SplitCondition?> = buildSet {
 			// First do a trace to collect relevant ancestors.
 			val tracer = RestrictionTracer(
-				startingRegisters,
-				restrictionForType(
-					i32, startingRegisters[0].kind.restrictionFlag),
+				initialRegisters = startingRegisters,
+				initialRestriction = i32Restriction,
 				traceVariants = false,
 				traceTags = false,
 				traceArithmetic = false)
@@ -356,11 +355,11 @@ sealed class L2SplitCondition
 		 *   provided.
 		 */
 		fun existsCondition(
-			semanticValues: Collection<L2SemanticValue<*>>
+			semanticValues: Collection<L2SemanticValue>
 		): L2SplitCondition?
 		{
 			val nonConstants =
-				semanticValues.filterNot(L2SemanticValue<*>::isConstant)
+				semanticValues.filterNot(L2SemanticValue::isConstant)
 			if (nonConstants.isEmpty()) return null
 			return L2ExistsCondition(nonConstants.toSet())
 		}
@@ -435,8 +434,6 @@ sealed class L2SplitCondition
 			requiredRestriction: TypeRestriction
 		): Set<L2SplitCondition?>
 		{
-			assert(requiredRestriction.kinds() ==
-				startingRegisters.mapToSet(transform = L2Register<*>::kind))
 			val tracer =
 				RestrictionTracer(startingRegisters, requiredRestriction)
 			return tracer.traceAll()

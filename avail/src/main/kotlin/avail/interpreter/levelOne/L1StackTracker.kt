@@ -39,7 +39,7 @@ import avail.descriptor.representation.AvailObject.Companion.error
 import kotlin.math.max
 
 /**
- * An `L1StackTracker` verifies the integrity of a sequence of
+ * An [L1StackTracker] verifies the integrity of a sequence of
  * [operations][L1Operation] and [operands][L1OperandType], and calculates how
  * big a stack will be necessary.
  *

@@ -32,8 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
@@ -48,7 +48,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.Primitive.Flag.CanFold
@@ -57,8 +57,9 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -191,7 +192,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	{
 		foldedResultOrNull(argumentRestrictions)?.let { folded ->
 			return result.restriction().intersection(
-				boxedRestrictionForConstant(folded))
+				restrictionForConstant(folded))
 		}
 		return result.restriction().intersectionWithType(
 			primitive.constant.returnTypeGuaranteedByVM(
@@ -266,8 +267,8 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 			{
 				// This invocation is now known to produce a constant that can
 				// be folded.  Generate a constant move instead.
-				moveBoxedRegister(
-					boxedConstant(constant).semanticValue(),
+				move(
+					constant(constant),
 					strongerResult.semanticValues())
 				return
 			}

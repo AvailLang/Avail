@@ -45,7 +45,7 @@ import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
 
 /**
- * A `SubmitInputAction` sends a line of text from the input field to standard
+ * A [SubmitInputAction] sends a line of text from the input field to standard
  * input.
  *
  * @constructor

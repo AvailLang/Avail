@@ -40,13 +40,13 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
 
@@ -133,8 +133,8 @@ class L2_JUMP_IF_COMPARE_BOXED(
 				// Use the broadest range (extendedIntegers), to get the
 				// broadest type that can be used to split the code as early as
 				// possible.
-				val restriction1 = boxedRestrictionForType(extendedIntegers)
-				val restriction2 = boxedRestrictionForConstant(constant2)
+				val restriction1 = restrictionForType(extendedIntegers)
+				val restriction2 = restrictionForConstant(constant2)
 				val (rest1, _, rest3, _) =
 					numericComparator.constant.computeRestrictions(
 						restriction1, restriction2)

@@ -55,8 +55,8 @@ import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * A `ReadWriteVariableTypeDescriptor read-write variable type` is parametric on
- * the types of values that may be [read][ObjectSlots.READ_TYPE] from and
+ * A [ReadWriteVariableTypeDescriptor] (read-write variable type) is parametric
+ * on the types of values that may be [read][ObjectSlots.READ_TYPE] from and
  * [written][ObjectSlots.WRITE_TYPE] to object instance
  * [variables][VariableDescriptor]. Reading a variable is a covariant
  * capability, while writing a variable is a contravariant capability.

@@ -46,13 +46,13 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.primitive.numbers.P_Division
 import avail.interpreter.primitive.numbers.P_Division.positiveI31
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
 
@@ -116,7 +116,7 @@ class L2_DIVIDE_INT_BY_INT(
 				denominatorRange.lowerBound.extractInt
 			setRestriction(
 				quotient.pickSemanticValue(),
-				intRestrictionForType(inclusive(lowQuotient, highQuotient)))
+				restrictionForType(inclusive(lowQuotient, highQuotient)))
 		}
 	}
 

@@ -46,12 +46,12 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.notNullAnd
 import org.objectweb.asm.Opcodes
@@ -126,7 +126,7 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			addAll(
 				typeRestrictionConditions(
 					listOf(value.register()),
-					boxedRestrictionForType(constantType)))
+					restrictionForType(constantType)))
 		}
 		if (!ifNotKind.targetBlock().isCold)
 		{
@@ -135,7 +135,7 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			addAll(
 				typeRestrictionConditions(
 					listOf(value.register()),
-					boxedRestrictionForType(ANY()).minusType(constantType)))
+					restrictionForType(ANY()).minusType(constantType)))
 		}
 	}
 

@@ -87,14 +87,6 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSi
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
 import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
-import avail.descriptor.tuples.TupleDescriptor.Companion.preToggle
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticAppendToTuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticConcatenateTuples
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleAt
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCodepointAt
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCopyFromTo
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleIntAt
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleSize
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
@@ -1526,7 +1518,7 @@ protected constructor(
 		 *   The Java type of the elements.
 		 */
 		fun <X : A_BasicObject?> toList(tuple: A_Tuple): MutableList<X> =
-			tuple.toMutableList() as MutableList<X>
+			tuple.toMutableList().cast()
 
 		/**
 		 * Construct an [array][AvailObject] from the specified [A_Tuple]. The

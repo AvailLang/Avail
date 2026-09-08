@@ -322,13 +322,15 @@ class StylingGroup constructor(): JSONFriendly
 	 * The default stylesheet for this root. Symbolic names are resolved against
 	 * the accompanying [Palette]s.
 	 */
-	val stylesheet: Map<String, StyleAttributes> = mutableMapOf()
+	val stylesheet: Map<String, StyleAttributes>
+		field = mutableMapOf()
 
 	/**
 	 * The map from the palette name to a [Palette] for the accompanying
 	 * [stylesheet].
 	 */
-	val palettes = mutableMapOf<String, Palette>()
+	val palettes: Map<String, Palette>
+		field = mutableMapOf()
 
 	/**
 	 * Update this [StylingGroup] using the provided [StylingGroup]. The
@@ -339,8 +341,7 @@ class StylingGroup constructor(): JSONFriendly
 	 */
 	fun updateFrom (other: StylingGroup)
 	{
-		(stylesheet as MutableMap<String, StyleAttributes>)
-			.putAll(other.stylesheet)
+		stylesheet.putAll(other.stylesheet)
 		palettes.putAll(other.palettes)
 	}
 
@@ -424,7 +425,7 @@ class StylingGroup constructor(): JSONFriendly
 	constructor(obj: JSONObject): this()
 	{
 		obj.getObjectOrNull(::stylesheet.name)?.let {
-			it.associateTo(stylesheet as MutableMap<String, StyleAttributes>)
+			it.associateTo(stylesheet)
 			{ (rule, attributes) ->
 				rule to StyleAttributes(attributes as JSONObject)
 			}

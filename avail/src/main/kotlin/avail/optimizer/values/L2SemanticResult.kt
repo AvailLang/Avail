@@ -33,8 +33,7 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 
 /**
  * A semantic value which represents the return value produced by the invocation
@@ -53,20 +52,20 @@ constructor(
 	frame: Frame
 ) : L2FrameSpecificSemanticValue(frame, 0x6ABDC9DB)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		other is L2SemanticResult && super.equalsSemanticValue(other)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		frameTransformer(frame).let { newFrame ->
 			if (newFrame == frame) this else L2SemanticResult(newFrame)
 		}
 
 	override val defaultRestriction: TypeRestriction
-		get() = boxedRestrictionForType(frame.code.functionType().returnType)
+		get() = restrictionForType(frame.code.functionType().returnType)
 
 	override fun toString(): String = "Result of $frame"
 }

@@ -37,7 +37,7 @@ import java.util.ArrayDeque
 import java.util.Deque
 
 /**
- * An `XMLConfiguratorState` encapsulates the state of an [XMLConfigurator].
+ * An [XMLConfiguratorState] encapsulates the state of an [XMLConfigurator].
  *
  * @param ConfigurationType
  *   A concrete [Configuration] class.

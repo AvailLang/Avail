@@ -36,7 +36,7 @@ import avail.builder.ModuleRootErrorCodeRange
 import avail.files.FileErrorCodeRange
 
 /**
- * An `ErrorCodeRangeRegistry` is the source for all known [ErrorCodeRange]s
+ * An [ErrorCodeRangeRegistry] is the source for all known [ErrorCodeRange]s
  * that Avail is aware of. Modules (e.g. avail-server) can register
  * `ErrorCodeRange`s with the `ErrorCodeRangeRegistry`.
  *

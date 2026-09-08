@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 

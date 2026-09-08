@@ -43,10 +43,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Extract the [ObjectLayoutVariant] of the given object type, then extract its
@@ -81,9 +82,8 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectTypeVariant
-			moveIntRegister(
-				unboxedIntConstant(variant.variantId)
-					.semanticValue(),
+			move(
+				constant(variant.variantId),
 				variantId.semanticValues())
 			return
 		}
@@ -97,7 +97,6 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		restriction: TypeRestriction,
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
-		assert(restriction.isUnboxedInt)
 		assert(writeOperand == variantId)
 		if (!tracer.traceVariants) return
 		// If only one or a few variant ids are present in the variant's
@@ -128,7 +127,7 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		variants.forEach { variant ->
 			tracer.continueTracing(
 				objectType.register(),
-				boxedRestrictionForType(variant.mostGeneralObjectMeta)
+				restrictionForType(variant.mostGeneralObjectMeta)
 					.intersectionWithObjectTypeVariant(variant)
 			)
 		}

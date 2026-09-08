@@ -34,10 +34,8 @@ package avail.optimizer.values
 import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.utility.cast
 
 /**
@@ -55,7 +53,7 @@ import avail.utility.cast
  * @property primitive
  *   The [Primitive] whose invocation is being represented.
  * @property argumentSemanticValues
- *   The [List] of [L2SemanticBoxedValue]s that represent the arguments to the
+ *   The [List] of [L2SemanticValue]s that represent the arguments to the
  *   invocation of the primitive.
  * @param primitive
  *   The primitive whose invocation is being represented.
@@ -65,15 +63,15 @@ import avail.utility.cast
 class L2SemanticPrimitiveInvocation
 internal constructor(
 	val primitive: Primitive,
-	val argumentSemanticValues: List<L2SemanticBoxedValue>
-) : L2SemanticBoxedValue(computeHash(primitive, argumentSemanticValues))
+	val argumentSemanticValues: List<L2SemanticValue>
+) : L2SemanticValue(computeHash(primitive, argumentSemanticValues))
 {
 	init
 	{
 		assert(primitive.hasFlag(Primitive.Flag.CanFold))
 	}
 
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		(other is L2SemanticPrimitiveInvocation
 			&& primitive === other.primitive
 			&& argumentSemanticValues == other.argumentSemanticValues)
@@ -82,9 +80,9 @@ internal constructor(
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue
+	): L2SemanticValue
 	{
 		val numArgs = argumentSemanticValues.size
 		val newArguments = argumentSemanticValues.mapTo(mutableListOf()) {
@@ -99,10 +97,8 @@ internal constructor(
 	}
 
 	override val defaultRestriction: TypeRestriction
-		get() = boxedRestrictionForType(
+		get() = restrictionForType(
 			primitive.blockTypeRestriction().returnType)
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
 
 	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.PRIMITIVE_INVOCATION
@@ -125,7 +121,7 @@ internal constructor(
 		 */
 		private fun computeHash(
 			primitive: Primitive,
-			argumentSemanticValues: List<L2SemanticValue<BOXED_KIND>>): Int
+			argumentSemanticValues: List<L2SemanticValue>): Int
 		{
 			var h = primitive.name.hashCode() xor 0x72C5FD8B
 			for (argument in argumentSemanticValues)

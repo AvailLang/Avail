@@ -54,8 +54,8 @@ internal class FontSizeSetting constructor(
 	private var original: String =
 		"%.${1}f".format(editorSettings.config.codePaneFontSize)
 
-	private val textField =
-		TextFieldWithLabelButtonValidationText("Font Size: ", 12.0)
+	override val component: JComponent
+		field = TextFieldWithLabelButtonValidationText("Font Size: ", 12.0)
 		{
 			if (hasValidContent()) null
 			else "Invalid Entry: Must be numeric value ≥ 4.0"
@@ -78,13 +78,11 @@ internal class FontSizeSetting constructor(
 			}
 		}
 
-	override val component: JComponent get() = textField
-
 	/** The parsed guide lines */
 	internal val parsed: Float? get() =
 		try
 		{
-			textField.input.trim().toFloat()
+			component.input.trim().toFloat()
 		}
 		catch (e: Throwable)
 		{
@@ -93,20 +91,20 @@ internal class FontSizeSetting constructor(
 
 	override fun reset()
 	{
-		textField.textField.text = original
-		textField.checkInput()
+		component.textField.text = original
+		component.checkInput()
 	}
 
 	override fun update()
 	{
 		val size = parsed ?: return
 		editorSettings.config.codePaneFontSize = size
-		original = textField.input
+		original = component.input
 	}
 
 	override fun changeReady(): Boolean =
-		textField.input.isNotBlank()
-			&& textField.input != original
+		component.input.isNotBlank()
+			&& component.input != original
 			&& parsed != null
 
 	override fun hasValidContent(): Boolean =
@@ -114,6 +112,6 @@ internal class FontSizeSetting constructor(
 
 	init
 	{
-		textField.checkInput()
+		component.checkInput()
 	}
 }

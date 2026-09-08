@@ -37,12 +37,12 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 import java.util.Collections.unmodifiableList
 
 /**
- * An `L2ReadVectorOperand` is an operand of type
+ * An [L2ReadVectorOperand] is an operand of type
  * [L2OperandType.READ_BOXED_VECTOR], or the int or float variants. It holds a
  * [List] of [L2ReadOperand]s.
  *

@@ -46,7 +46,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -93,11 +93,11 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 			addAll(
 				typeRestrictionConditions(
 					listOf(read.register()),
-					boxedRestrictionForConstant(bottom)))
+					restrictionForConstant(bottom)))
 			addAll(
 				typeRestrictionConditions(
 					listOf(read.register()),
-					boxedRestrictionForConstant(TOP())))
+					restrictionForConstant(TOP())))
 		}
 	}
 
@@ -128,8 +128,7 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 			}
 		}
 		moveSource?.let { source ->
-			moveBoxedRegister(
-				source.semanticValue(), result.semanticValues())
+			move(source.semanticValue(), result.semanticValues())
 		}
 		emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 	}

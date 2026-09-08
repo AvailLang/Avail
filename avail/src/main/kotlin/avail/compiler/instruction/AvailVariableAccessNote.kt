@@ -35,7 +35,7 @@ package avail.compiler.instruction
 import avail.descriptor.phrases.BlockPhraseDescriptor
 
 /**
- * An `AvailVariableAccessNote` is a helper class used during data flow
+ * An [AvailVariableAccessNote] is a helper class used during data flow
  * analysis.  As it progresses forward through a
  * [block][BlockPhraseDescriptor]'s [AvailInstruction]s, it tracks, for a
  * particular variable, the most recent instruction which pushes that variable

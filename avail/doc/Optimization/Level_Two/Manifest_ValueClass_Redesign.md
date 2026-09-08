@@ -234,10 +234,7 @@ Recursion is safe here because propagation **damps**:
   chain to follow.
 
 So the depth is bounded by the size of the neighbourhood, not by the size of the
-manifest, and no explicit depth cap is needed. The `maxRenarrowDepth` bound
-currently guarding `renarrowPostponedConsumersOf` exists only because the search
-based propagation could not be trusted to converge cheaply; **delete it** when
-propagation becomes immediate.
+manifest, and no explicit depth cap is needed.
 
 On narrowing a class, in order:
 
@@ -371,8 +368,9 @@ accessors.
 
 The payoff is larger than the map key. With every `L2SemanticValue` boxed,
 the class loses its `<K: RegisterKind<K>>` parameter, which is currently
-forced through `L2Synonym<K>`, `Constraint<K>`, `ConstraintBuilder<K>` and
-most of the manifest API. That deletes `dynamicAgglomerateSynonym` and a pile
+forced through `L2Synonym`, `Constraint<K>`, `ConstraintBuilder<K>` and
+most of the manifest API. That deletes `dynamicAgglomerateSynonym` [Note from human: done]
+and a pile
 of `.cast()` calls, and the compiler finds nearly all the sites for you.
 
 It also means there is no such thing as an int-specific *name*, so `members`
@@ -477,13 +475,7 @@ is what remains.
 `constantOf`; delete the two `L2SemanticConstant` cases from
 `isEquivalentSemanticValue`.
 
-**Keep `L2SemanticConstant` as the canonical member; do not delete the class.**
-`retainSemanticValuesInSynonym` explicitly re-adds `createSemanticConstant`
-after intersecting member sets, so a constant class survives cross-edge
-intersection even when every other member is dropped; the same
-intersect-across-edges pattern appears in the merge code. Deleting the class
-would mean adding a new special case to the hairiest code in the file to
-replace one just removed.
+**Keep `L2SemanticConstant` as the canonical member; do not delete the class.**  [ Edit by user: The latest changes start to strip out non-boxed semantic values]. 
 
 ### Step 8 — variant consistency
 
@@ -759,7 +751,7 @@ is the evidence that the rebuild sites are complete.
 `L2ValueManifest` now holds:
 
 ```
-classOf : MutableMap<L2SemanticValue<*>, ValueClass>?
+classOf : MutableMap<L2SemanticValue, ValueClass>?
 forward : MutableMap<ValueClass, ValueClass>
 states  : MutableMap<ValueClass, Constraint<*>>
 ```
@@ -971,7 +963,7 @@ The decision to always retain the base is made and implemented. What remains:
    missing.
 2. **Immediate recursive propagation** (section 4), which becomes possible in the
    same change, because neighbours are then reached by following a field or an
-   edge rather than by searching. Delete `maxRenarrowDepth` with it.
+   edge rather than by searching.
 3. **Only boxed `L2SemanticValue`s participate in synonyms and appear in
    read/write operands**, even when an unboxed representation is the one being
    accessed. A read of `Tag(x)` through an int read operand finds its definition
@@ -1004,7 +996,7 @@ spelling can reconstruct it. Operand storage stops depending on the manifest's
 internal shape.
 
 **`toBoxed` already dispatches the strip-to-base step.** It is abstract on
-`L2SemanticValue`, answers `this` on `L2SemanticBoxedValue`, and answers
+`L2SemanticValue`, answers `this` on `L2SemanticValue`, and answers
 `privateBoxed` on both unboxed forms. Keying the manifest by
 `semanticValue.toBoxed` needs no new API and no type tests. It currently has a
 single caller, so it is effectively an unused-but-correct hook for exactly this.
@@ -1014,7 +1006,7 @@ single caller, so it is effectively an unused-but-correct hook for exactly this.
 **C — `Constraint` holds representations per `RegisterKind`.** The prerequisite,
 and the one real design step. After B a class has no single kind, so
 `Constraint`'s `<K>` parameter becomes meaningless and goes; `members` narrows to
-`Set<L2SemanticBoxedValue>`; the register-level facts move into a per-kind map of
+`Set<L2SemanticValue>`; the register-level facts move into a per-kind map of
 `Representation`s; and the single `restriction` is the boxed one, with int and
 float obtained by projection (`forUnboxedInt`) rather than stored — see section 3
 for why the unboxed forms carry no information of their own.
@@ -1134,9 +1126,7 @@ the manifest never chooses them by inspecting a value:
 
 - `projectRestriction` — `forBoxed` / `forUnboxedInt` / `forUnboxedFloat`. Each
   answers its argument unchanged when the flags already match, so for a
-  single-kinded value the view's restriction is *identically* the stored one.
-- `spellingOf` — identity / `unboxedInt` / `unboxedFloat`, over the canonical
-  boxed members.
+  single-kinded value the view's restriction is *identically* the stored one.  [Edit from user: projectRestriction is no longer used, and the `for*` methods/state are also on their way out]
 
 Three further things landed with it, none of them required by C but all of them
 required by B:

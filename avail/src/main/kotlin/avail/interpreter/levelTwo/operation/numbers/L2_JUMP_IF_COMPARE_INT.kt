@@ -40,15 +40,14 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 
 /**
@@ -81,10 +80,8 @@ class L2_JUMP_IF_COMPARE_INT(
 			manifest.restrictionFor(int2.semanticValue()))
 
 		// Restrict both values along both branches.
-		val (rest1, rest2, rest3, rest4) =
-			numericComparator.constant.computeRestrictions(
-				restriction1.forBoxed(), restriction2.forBoxed()
-			).map(TypeRestriction::forUnboxedInt)
+		val (rest1, rest2, rest3, rest4) = numericComparator.constant
+			.computeRestrictions(restriction1, restriction2)
 		ifTrue.manifest().setRestriction(int1.semanticValue(), rest1)
 		ifTrue.manifest().setRestriction(int2.semanticValue(), rest2)
 		ifFalse.manifest().setRestriction(int1.semanticValue(), rest3)
@@ -139,12 +136,11 @@ class L2_JUMP_IF_COMPARE_INT(
 			// Note that even though we know the value is an i32 here, we wish
 			// for [11..∞] instead of [11..MAX_INT], in case there was a point
 			// before the unboxing that detected, say, [11..10^100].
-			val restriction1 = boxedRestrictionForType(extendedIntegers)
-			val restriction2 = boxedRestrictionForConstant(constant)
+			val restriction1 = restrictionForType(extendedIntegers)
+			val restriction2 = restrictionForConstant(constant)
 			val (rest1, _, rest3, _) =
 				numericComparator.constant
 					.computeRestrictions(restriction1, restriction2)
-					.map(TypeRestriction::forUnboxedInt)
 			// Wish it was statically true or statically false.  But only if
 			// that situation would lead to a block that isn't cold.
 			if (!ifTrue.targetBlock().isCold)

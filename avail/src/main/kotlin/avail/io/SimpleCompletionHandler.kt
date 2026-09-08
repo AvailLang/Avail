@@ -32,6 +32,7 @@
 
 package avail.io
 
+import avail.annotations.DSLHelper
 import java.nio.channels.CompletionHandler
 
 /**
@@ -47,6 +48,7 @@ import java.nio.channels.CompletionHandler
  * @param V
  *   The kind of values produced on success.
  */
+@DSLHelper
 class SimpleCompletionHandler<V> constructor (
 	private val completed: SuccessHelper<V>.() -> Unit,
 	private val failed: FailureHelper<V>.() -> Unit
@@ -86,6 +88,7 @@ class SimpleCompletionHandler<V> constructor (
 		 * @property handler
 		 *   The current completion handler itself.
 		 */
+		@DSLHelper
 		class SuccessHelper<V>(
 			val value: V,
 			val handler: SimpleCompletionHandler<V>)
@@ -99,6 +102,7 @@ class SimpleCompletionHandler<V> constructor (
 		 * @property
 		 *   The current [SimpleCompletionHandler] itself.
 		 */
+		@DSLHelper
 		class FailureHelper<V>(
 			val throwable: Throwable,
 			val handler: SimpleCompletionHandler<V>)
@@ -110,6 +114,7 @@ class SimpleCompletionHandler<V> constructor (
 		 * @property handler
 		 *   The current [SimpleCompletionHandler] itself.
 		 */
+		@DSLHelper
 		class GuardHelper<V>(
 			val handler: SimpleCompletionHandler<V>)
 	}

@@ -36,7 +36,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 
 /**
- * A `SerializerInstruction` combines an [AvailObject] and a
+ * A [SerializerInstruction] combines an [AvailObject] and a
  * [SerializerOperation] suitable for serializing it.
  *
  * @property operation

@@ -48,7 +48,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 
 /**
- * An `AvailTask` extends [Runnable] with a priority. Instances are intended to
+ * An [AvailTask] extends [Runnable] with a priority. Instances are intended to
  * be executed only by [Avail&#32;threads][AvailThread].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

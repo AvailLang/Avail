@@ -32,15 +32,14 @@
 package avail.optimizer
 
 import avail.descriptor.representation.AvailObject.Companion.combine2
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.values.Frame
-import avail.optimizer.values.L2SemanticSlot
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticSlot
 
 /**
- * An `L2Synonym` is a set of [L2SemanticValue]s known to represent the same
- * value in some [L2ValueManifest].  The manifest at each instruction includes a
- * set of synonyms which partition the semantic values.
+ * An [L2Synonym] is a set of [L2SemanticValue]s known to represent the
+ * same value in some [L2ValueManifest].  The manifest at each instruction
+ * includes a set of synonyms which partition the semantic values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -51,22 +50,17 @@ import avail.optimizer.values.L2SemanticValue
  * @param semanticValues
  *   The non-empty collection of [L2SemanticValue]s bound to this synonym.
  */
-class L2Synonym<K: RegisterKind<K>>
+class L2Synonym
 constructor(
-	semanticValues: Collection<L2SemanticValue<K>>
-) : Comparable<L2Synonym<K>>
+	semanticValues: Set<L2SemanticValue>
+) : Comparable<L2Synonym>
 {
 	/**
-	 * The [L2SemanticValue]s for which this synonym's registers hold the (same)
-	 * value.
+	 * The [L2SemanticValue]s for which this synonym's registers hold the
+	 * (same) value.
 	 */
-	private val semanticValues: Set<L2SemanticValue<K>> =
+	private val semanticValues: Set<L2SemanticValue> =
 		semanticValues.toSet().also { assert(semanticValues.isNotEmpty()) }
-
-	/**
-	 * Answer this synonym's [RegisterKind] ([K]).
-	 */
-	val kind: K get() = semanticValues.first().kind
 
 	/**
 	 * The eagerly computed, permanent hash value of this synonym.  Note that it
@@ -84,10 +78,9 @@ constructor(
 		{
 			other === null -> false
 			this === other -> true
-			other !is L2Synonym<*> -> false
+			other !is L2Synonym -> false
 			other.hash != hash -> false
-			other.semanticValues == semanticValues -> true
-			else -> false
+			else -> other.semanticValues == semanticValues
 		}
 
 	/**
@@ -96,7 +89,7 @@ constructor(
 	 * @return
 	 *   The [L2SemanticValue]s in this synonym.
 	 */
-	fun semanticValues(): Set<L2SemanticValue<K>> = semanticValues
+	fun semanticValues(): Set<L2SemanticValue> = semanticValues
 
 	/**
 	 * Choose one of the [L2SemanticValue]s from this `L2Synonym`.
@@ -104,7 +97,7 @@ constructor(
 	 * @return
 	 *   An arbitrary [L2SemanticValue] of this synonym.
 	 */
-	fun pickSemanticValue(): L2SemanticValue<K> = semanticValues.first()
+	fun pickSemanticValue(): L2SemanticValue = semanticValues.first()
 
 	/**
 	 * Transform the [Frame]s and [L2SemanticValue]s within this synonym to
@@ -116,10 +109,10 @@ constructor(
 	 *   The transformed synonym, or the original if there was no change.
 	 */
 	fun transform(
-		semanticValueTransformer: (L2SemanticValue<K>) -> L2SemanticValue<K>
-	): L2Synonym<K>
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue
+	): L2Synonym
 	{
-		val newSemanticValues = mutableSetOf<L2SemanticValue<K>>()
+		val newSemanticValues = mutableSetOf< L2SemanticValue>()
 		var changed = false
 		for (semanticValue in semanticValues)
 		{
@@ -138,7 +131,7 @@ constructor(
 
 
 	fun toString(
-		valuesHavingDefinitions: Set<L2SemanticValue<*>>
+		valuesHavingDefinitions: Set<L2SemanticValue>
 	): String = buildString {
 		append('〖')
 		val defined = semanticValues.intersect(valuesHavingDefinitions)
@@ -149,20 +142,23 @@ constructor(
 		append('〗')
 	}
 
-	override fun compareTo(other: L2Synonym<K>) =
+	/**
+	 * Order two synonyms by their min semantic value.
+	 */
+	override fun compareTo(other: L2Synonym) =
 		semanticValues.minOrNull()!!.compareTo(
 			other.semanticValues.minOrNull()!!)
 
 	companion object
 	{
 		fun StringBuilder.appendSemanticValues(
-			semanticValues: Iterable<L2SemanticValue<*>>,
+			semanticValues: Iterable<L2SemanticValue>,
 			canWrap: Boolean,
 			prefix: String = "")
 		{
 			val sortedValues = semanticValues.sorted()
 			var column = 1
-			var previous: L2SemanticValue<*>? = null
+			var previous: L2SemanticValue? = null
 			for (value in sortedValues)
 			{
 				if (canWrap && column > 75)

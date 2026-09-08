@@ -47,7 +47,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_HASH
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -55,7 +55,6 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
  * **Primitive:** Answer the [hash&#32;value][A_BasicObject.hash] of the
@@ -99,11 +98,10 @@ object P_Hash : Primitive1(CannotFail, CanFold, CanInline)
 	{
 		val valueReg = arguments[0]
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val restriction = intRestrictionForType(returnType)
+		val restriction = restrictionForType(returnType)
 		val writer = intWriteTemp("hash", restriction)
 		+L2_HASH(valueReg, writer)
-		callSiteHelper.useAnswer(
-			readBoxed(writer.onlySemanticValue().boxed), false)
+		callSiteHelper.useAnswer(readBoxed(writer.onlySemanticValue()), false)
 		return true
 	}
 

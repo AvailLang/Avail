@@ -37,8 +37,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 
 /**
@@ -61,7 +61,7 @@ class L2_JUMP_BACK(
 	{
 		// Play the reads against the old manifest, which is then filtered.
 		registersToKeep.instructionWasAdded(manifest)
-		val semanticValuesToKeep = mutableSetOf<L2SemanticValue<*>>()
+		val semanticValuesToKeep = mutableSetOf<L2SemanticValue>()
 		val registersToKeep = mutableSetOf<L2Register<*>>()
 		this.registersToKeep.elements.forEach { read: L2ReadBoxedOperand ->
 			semanticValuesToKeep.add(read.semanticValue())
@@ -78,13 +78,13 @@ class L2_JUMP_BACK(
 		manifest.retainSemanticValues(semanticValuesToKeep)
 		manifest.retainRegisters(registersToKeep)
 		target.instructionWasAdded(manifest)
-		target.forcedClampedEntities =
-			(semanticValuesToKeep + registersToKeep).toSet()
+		target.forcedClampedRegisters = registersToKeep
+		target.forcedClampedSemanticValues = semanticValuesToKeep
 	}
 
 	override fun replaceConstantReads(
 		generator: L2GeneratorInterface,
-		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue>)
 	{
 		// Don't replace my registersToKeep with constants, since that makes it
 		// too confusing to process backward jumps and doesn't add any value.

@@ -47,7 +47,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2GeneratorInterface
@@ -83,14 +83,14 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 	): L2Instruction?
 	{
 		variantId.semanticValues()
-			.firstOrNull { readIfAvailable(it) != null }
+			.firstOrNull { readIfAvailable(it, INTEGER_KIND) != null }
 			?.let { existingValue ->
 				// Found one. Populate the rest.
 				val others = variantId.semanticValues()
 					.filterNot(currentManifest::hasSemanticValue)
 				if (others.isNotEmpty())
 				{
-					moveIntRegister(existingValue, others)
+					move(existingValue, others)
 					return null
 				}
 			}
@@ -153,7 +153,6 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		restriction: TypeRestriction,
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
-		assert(restriction.isUnboxedInt)
 		assert(writeOperand == variantId)
 		if (!tracer.traceVariants) return
 		// If only one or a few variant ids are present in the variant's
@@ -183,7 +182,7 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		variants.forEach { variant ->
 			tracer.continueTracing(
 				sourceObject.register(),
-				boxedRestrictionForType(variant.mostGeneralObjectType)
+				restrictionForType(variant.mostGeneralObjectType)
 					.intersectionWithObjectVariant(variant)
 			)
 		}

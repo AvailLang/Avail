@@ -43,6 +43,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
+import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.equalsInfinity
 import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.extractInt
@@ -92,24 +93,15 @@ import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.OBJECT_TAG
 import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2FloatRegister
-import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.RegisterKind
-import avail.optimizer.L2Synonym
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.ifNotEmpty
 import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
-import java.util.EnumSet
 import java.util.Objects.hashCode
 
 /**
@@ -157,27 +149,12 @@ class TypeRestriction private constructor(
 			assert(!type.isSubtypeOf(NONTYPE()))
 			assert(negativeGroup.constants.isNullOr { !contains(bottom) })
 			assert(negativeGroup.types.isNullOr { !contains(bottomMeta)})
-			assert(flags and UNBOXED_INT_FLAG.mask == 0)
-			assert(flags and UNBOXED_FLOAT_FLAG.mask == 0)
 		}
 		else
 		{
 			assert(!type.equals(bottomMeta))
-//TODO Remove.  Too strong.
-//			assert(
-//				constantOrNull.notNullAnd { !equals(bottom) }
-//					|| type.isSubtypeOf(NONTYPE())
-//					|| negativeGroup.constants.notNullAnd { contains(bottom) }
-//					|| negativeGroup.types.notNullAnd {
-//						any { bottomMeta.isSubtypeOf(it) } })
 		}
 		assert(negativeGroup.constants != null)
-		// Mixing boxed/unboxed in a restriction is now forbidden (Feb 2021).
-		assert(flags == BOXED_FLAG.mask
-			|| flags == (BOXED_FLAG.mask + IMMUTABLE_FLAG.mask)
-			|| flags == UNBOXED_INT_FLAG.mask
-			|| flags == UNBOXED_FLOAT_FLAG.mask
-			|| type.isBottom)
 		positiveGroup.constants?.run { assert(size == 1) }
 		assert(positiveGroup.types.size == 1)
 		// Ensure all referenced objects are immutable.  When a CFG is used for
@@ -289,66 +266,17 @@ class TypeRestriction private constructor(
 	enum class RestrictionFlagEncoding
 	{
 		/** Whether the value is known to be immutable. */
-		IMMUTABLE_FLAG,
+		IMMUTABLE_FLAG
 
-		/**
-		 * Whether the value is available in a boxed form in some
-		 * [L2BoxedRegister].
-		 */
-		BOXED_FLAG,
-
-		/**
-		 * Whether the value is available in an unboxed form in some
-		 * [L2IntRegister].
-		 */
-		UNBOXED_INT_FLAG,
-
-		/**
-		 * Whether the value is available in an unboxed form in some
-		 * [L2FloatRegister].
-		 */
-		UNBOXED_FLOAT_FLAG;
+		;
 
 		/** A pre-computed bit mask for this flag. */
 		val mask = 1 shl ordinal
-
-		companion object
-		{
-			/**
-			 * A pre-computed bit mask for just the [RegisterKind]-related
-			 * flags.
-			 */
-			val allKindsMask = (
-				BOXED_FLAG.mask
-					or UNBOXED_INT_FLAG.mask
-					or UNBOXED_FLOAT_FLAG.mask)
-		}
 	}
 
 	/** Answer whether the restricted value is known to be immutable. */
 	val isImmutable: Boolean
 		get() = flags and IMMUTABLE_FLAG.mask != 0
-
-	/**
-	 * Answer whether the restricted value is known to be boxed in an
-	 * [L2BoxedRegister].
-	 */
-	val isBoxed: Boolean
-		get() = flags and BOXED_FLAG.mask != 0
-
-	/**
-	 * Answer whether the restricted value is known to be unboxed in an
-	 * [L2IntRegister].
-	 */
-	val isUnboxedInt: Boolean
-		get() = flags and UNBOXED_INT_FLAG.mask != 0
-
-	/**
-	 * Answer whether the restricted value is known to be unboxed in an
-	 * [L2FloatRegister].
-	 */
-	val isUnboxedFloat: Boolean
-		get() = flags and UNBOXED_FLOAT_FLAG.mask != 0
 
 	/**
 	 * Answer `true` iff this restriction is impossible to satisfy with any
@@ -382,29 +310,17 @@ class TypeRestriction private constructor(
 	 *   [bottom] type.  This is an awkward special case.
 	 * @param isImmutable
 	 *   Whether the value is known to be immutable.
-	 * @param isBoxed
-	 *   Whether this value is known to already reside in an [L2BoxedRegister].
-	 * @param isUnboxedInt
-	 *   Whether this value is known to already reside in an [L2IntRegister].
-	 * @param isUnboxedFloat
-	 *   Whether this value is known to already reside in an [L2FloatRegister].
 	 */
 	private constructor(
 		positiveGroup: RestrictionGroup,
 		negativeGroup: RestrictionGroup,
 		canBeBottom: Boolean,
-		isImmutable: Boolean,
-		isBoxed: Boolean,
-		isUnboxedInt: Boolean,
-		isUnboxedFloat: Boolean
+		isImmutable: Boolean
 	) : this(
 		positiveGroup,
 		negativeGroup,
 		canBeBottom,
-		(if (isImmutable) IMMUTABLE_FLAG.mask else 0)
-			or (if (isBoxed) BOXED_FLAG.mask else 0)
-			or (if (isUnboxedInt) UNBOXED_INT_FLAG.mask else 0)
-			or if (isUnboxedFloat) UNBOXED_FLOAT_FLAG.mask else 0)
+		if (isImmutable) IMMUTABLE_FLAG.mask else 0)
 
 	/**
 	 * Answer either the exact value, if known, or null.
@@ -462,7 +378,7 @@ class TypeRestriction private constructor(
 		if (constantOrNull !== null)
 		{
 			// We're a constant, so the metaRestriction is also a constant type.
-			return boxedRestrictionForConstant(type)
+			return restrictionForConstant(type)
 		}
 		// No object has exact type ⊥ or ⊤.
 		val resultExcludedValues = mutableSetOf<A_BasicObject>(TOP(), bottom)
@@ -487,7 +403,7 @@ class TypeRestriction private constructor(
 			givenTag = null,
 			excludedTags = null,
 			canBeBottom = false,
-			flags = BOXED_FLAG.mask)
+			flags = 0)
 	}
 
 	/**
@@ -1198,83 +1114,6 @@ class TypeRestriction private constructor(
 	}
 
 	/**
-	 * Answer a restriction like the receiver, but for a boxed, mutable object.
-	 * If the restriction is already for boxed objects, return the receiver,
-	 * whether it's also marked with the immutable flag or not.
-	 *
-	 * @return
-	 *   The new `TypeRestriction`, or the receiver.
-	 */
-	fun forBoxed(): TypeRestriction = when
-	{
-		hasFlag(BOXED_FLAG) -> this
-		else -> restriction(
-			givenType = type,
-			constantOrNull = constantOrNull,
-			givenExcludedTypes = excludedTypes,
-			givenExcludedValues = excludedValues,
-			possibleVariants = positiveGroup.objectVariants,
-			excludedVariants = negativeGroup.objectVariants,
-			possibleTypeVariants = positiveGroup.objectTypeVariants,
-			excludedTypeVariants = negativeGroup.objectTypeVariants,
-			givenTag = tag,
-			excludedTags = excludedTags,
-			canBeBottom = canBeBottom,
-			flags = BOXED_FLAG.mask)
-	}
-
-	/**
-	 * Answer a restriction like the receiver, but for unboxed ints.  If the
-	 * restriction is already for unboxed ints, return the receiver.
-	 *
-	 * @return
-	 *   The new `TypeRestriction`, or the receiver.
-	 */
-	fun forUnboxedInt(): TypeRestriction = when
-	{
-		hasFlag(UNBOXED_INT_FLAG) -> this
-		else -> restriction(
-			givenType = type.typeIntersection(i32),
-			constantOrNull = constantOrNull,
-			givenExcludedTypes = excludedTypes,
-			givenExcludedValues = excludedValues,
-			possibleVariants = null,
-			excludedVariants = null,
-			possibleTypeVariants = null,
-			excludedTypeVariants = null,
-			givenTag = null,
-			excludedTags = null,
-			canBeBottom = false,
-			flags = UNBOXED_INT_FLAG.mask
-		)
-	}
-
-	/**
-	 * Answer a restriction like the receiver, but for unboxed floats.  If the
-	 * restriction is already for unboxed floats, return the receiver.
-	 *
-	 * @return
-	 *   The new `TypeRestriction`, or the receiver.
-	 */
-	fun forUnboxedFloat(): TypeRestriction = when
-	{
-		hasFlag(UNBOXED_FLOAT_FLAG) -> this
-		else -> restriction(
-			givenType = type.typeIntersection(DOUBLE()),
-			constantOrNull = constantOrNull,
-			givenExcludedTypes = excludedTypes,
-			givenExcludedValues = excludedValues,
-			possibleVariants = null,
-			excludedVariants = null,
-			possibleTypeVariants = null,
-			excludedTypeVariants = null,
-			givenTag = null,
-			excludedTags = null,
-			canBeBottom = false,
-			flags = UNBOXED_FLOAT_FLAG.mask)
-	}
-
-	/**
 	 * Answer a restriction like the receiver, but with a flag cleared.
 	 * If the flag is already clear, answer the receiver.
 	 *
@@ -1307,44 +1146,6 @@ class TypeRestriction private constructor(
 		}
 
 	/**
-	 * Answer a restriction like the receiver, but excluding
-	 * [RegisterKind]-related flags that aren't set in the given
-	 * `kindFlagEncoding`.
-	 *
-	 * @param kindFlagEncoding
-	 *   The [RestrictionFlagEncoding] to clear.
-	 * @return
-	 *   The new `TypeRestriction`, or the receiver.
-	 */
-	fun restrictingKindsTo(kindFlagEncoding: Int): TypeRestriction
-	{
-		assert(kindFlagEncoding and RestrictionFlagEncoding.allKindsMask.inv()
-			== 0)
-		var newFlags = (flags and RestrictionFlagEncoding.allKindsMask.inv()) or
-			kindFlagEncoding
-		if (newFlags and IMMUTABLE_FLAG.mask != 0
-			&& newFlags and BOXED_FLAG.mask == 0)
-		{
-			// It can't stay immutable if it's not also boxed.
-			newFlags = newFlags and IMMUTABLE_FLAG.mask.inv()
-		}
-		if (newFlags == flags) return this
-		return restriction(
-			givenType = type,
-			constantOrNull = constantOrNull,
-			givenExcludedTypes = excludedTypes,
-			givenExcludedValues = excludedValues,
-			possibleVariants = positiveGroup.objectVariants,
-			excludedVariants = negativeGroup.objectVariants,
-			possibleTypeVariants = positiveGroup.objectTypeVariants,
-			excludedTypeVariants = negativeGroup.objectTypeVariants,
-			givenTag = tag,
-			excludedTags = excludedTags,
-			canBeBottom = canBeBottom,
-			flags = newFlags)
-	}
-
-	/**
 	 * If this restriction has only a finite set of possible values, and the
 	 * number of such values is no more than the given maximum, answer an
 	 * [A_Set] of them, otherwise `null`.
@@ -1364,19 +1165,6 @@ class TypeRestriction private constructor(
 				type.instances
 		else -> null
 	}
-
-	/**
-	 * Answer an [EnumSet] indicating which [RegisterKind]s are present in this
-	 * restriction.
-	 *
-	 * @return
-	 *   The [EnumSet] of [RegisterKind]s known to be available at some place
-	 *   when an [L2Synonym] has this restriction.
-	 */
-	fun kinds(): Set<RegisterKind<*>> =
-		RegisterKind.all.filterTo(mutableSetOf()) {
-			(flags and it.restrictionFlag.mask) != 0
-		}
 
 	override fun equals(other: Any?): Boolean = when
 	{
@@ -1489,9 +1277,6 @@ class TypeRestriction private constructor(
 			var flags = buildList {
 				if (canBeBottom) add("⊥")
 				if (isImmutable) add("imm")
-				if (isBoxed) add("box")
-				if (isUnboxedInt) add("int")
-				if (isUnboxedFloat) add("float")
 			}
 			if (flags.size > 1) flags = listOf(flags.joinToString("+"))
 			put("flags", flags)
@@ -1570,10 +1355,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = false,
-			isImmutable = true,
-			isBoxed = true,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = true)
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
@@ -1593,10 +1375,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = true,
-			isImmutable = false,
-			isBoxed = true,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = false)
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
@@ -1616,10 +1395,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = true,
-			isImmutable = true,
-			isBoxed = true,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = true)
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
@@ -1639,10 +1415,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = true,
-			isImmutable = false,
-			isBoxed = true,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = false)
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
@@ -1662,10 +1435,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = true,
-			isImmutable = true,
-			isBoxed = true,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = true)
 
 		/**
 		 * The [TypeRestriction] for a register that cannot hold any value.
@@ -1688,10 +1458,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = false, //The *value* can't be bottom (or anything).
-			isImmutable = true,
-			isBoxed = false,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = true)
 
 		/**
 		 * The [TypeRestriction] for a register that can only hold the value
@@ -1718,10 +1485,16 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			canBeBottom = true,
-			isImmutable = true,
-			isBoxed = true,
-			isUnboxedInt = false,
-			isUnboxedFloat = false)
+			isImmutable = true)
+
+		/** The default restriction for int semantic values. */
+		val i32Restriction = restrictionForType(i32)
+
+		/** Default resstriction for float semantic values. */
+		val floatRestriction = restrictionForType(Types.DOUBLE())
+
+		/** The restriction that [Int] registers holding a code point have. */
+		val codePointIntRestriction = restrictionForType(characterCodePoints)
 
 		/**
 		 * Create or reuse an immutable `TypeRestriction` from the already
@@ -1988,15 +1761,6 @@ class TypeRestriction private constructor(
 		 *   [bottom] type.  This is an awkward special case.
 		 * @param isImmutable
 		 *   Whether the value is known to be immutable.
-		 * @param isBoxed
-		 *   Whether this value is known to already reside in an
-		 *   [L2BoxedRegister].
-		 * @param isUnboxedInt
-		 *   Whether this value is known to already reside in an
-		 *   [L2IntRegister].
-		 * @param isUnboxedFloat
-		 *   Whether this value is known to already reside in an
-		 *   [L2FloatRegister].
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
@@ -2012,16 +1776,10 @@ class TypeRestriction private constructor(
 			givenTag: TypeTag? = null,
 			excludedTags: Set<TypeTag>? = null,
 			canBeBottom: Boolean = type.equals(bottomMeta),
-			isImmutable: Boolean = false,
-			isBoxed: Boolean = true,
-			isUnboxedInt: Boolean = false,
-			isUnboxedFloat: Boolean = false
+			isImmutable: Boolean = false
 		): TypeRestriction
 		{
-			val flags = ((if (isImmutable) IMMUTABLE_FLAG.mask else 0)
-				or (if (isBoxed) BOXED_FLAG.mask else 0)
-				or (if (isUnboxedInt) UNBOXED_INT_FLAG.mask else 0)
-				or if (isUnboxedFloat) UNBOXED_FLOAT_FLAG.mask else 0)
+			val flags = (if (isImmutable) IMMUTABLE_FLAG.mask else 0)
 			return restriction(
 				givenType = type,
 				constantOrNull = constantOrNull,
@@ -2115,14 +1873,6 @@ class TypeRestriction private constructor(
 					givenType.lowerBound.equals(givenType.upperBound)
 				-> instanceType(givenType.lowerBound)
 				else -> givenType
-			}
-			if (flags and UNBOXED_INT_FLAG.mask != 0)
-			{
-				type = type.typeIntersection(i32)
-			}
-			if (flags and UNBOXED_FLOAT_FLAG.mask != 0)
-			{
-				type = type.typeIntersection(DOUBLE())
 			}
 			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance.isBottom))
@@ -2300,16 +2050,11 @@ class TypeRestriction private constructor(
 		 *
 		 * @param type
 		 *   The Avail type that constrains some value somewhere.
-		 * @param encoding
-		 *   A [RestrictionFlagEncoding] indicating the type of register that
-		 *   will hold this value ([BOXED_FLAG], [UNBOXED_INT_FLAG], or
-		 *   [UNBOXED_FLOAT_FLAG]).
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
 		fun restrictionForType(
-			type: A_Type,
-			encoding: RestrictionFlagEncoding
+			type: A_Type
 		): TypeRestriction = restriction(
 			givenType = type,
 			constantOrNull = null,
@@ -2322,63 +2067,24 @@ class TypeRestriction private constructor(
 			givenTag = null,
 			excludedTags = null,
 			canBeBottom = !type.isSubtypeOf(NONTYPE()),
-			flags = encoding.mask)
+			flags = 0)
 
 		/**
-		 * Create or reuse a `TypeRestriction`, for which no constant
-		 * information is provided (but might be deduced from the type).  The
-		 * register kind is boxed.
-		 *
-		 * @param type
-		 *   The Avail type that constrains some value somewhere.
-		 * @return
-		 *   The new or existing canonical TypeRestriction.
-		 */
-		fun boxedRestrictionForType(type: A_Type): TypeRestriction =
-			restrictionForType(type, BOXED_FLAG)
-
-		/**
-		 * Create or reuse a `TypeRestriction`, for which no constant
-		 * information is provided (but might be deduced from the type).  The
-		 * register kind is unboxed int.
-		 *
-		 * @param type
-		 *   The Avail type that constrains some value somewhere.
-		 * @return
-		 *   The new or existing canonical TypeRestriction.
-		 */
-		fun intRestrictionForType(type: A_Type): TypeRestriction =
-			restrictionForType(type, UNBOXED_INT_FLAG)
-
-		/**
-		 * The basic restriction that [Int] registers holding a code point have.
-		 */
-		val codePointIntRestriction = intRestrictionForType(characterCodePoints)
-
-		/**
-		 * Create or reuse a `TypeRestriction`, for which a constant is
+		 * Create or reuse a [TypeRestriction] for which a constant is
 		 * specified.
 		 *
-		 * If the requested register encoding is [BOXED_FLAG], also flag the
-		 * restriction as [IMMUTABLE_FLAG].
+		 * Since this is a constant, flag it with [IMMUTABLE_FLAG] and force the
+		 * actual value to be immutable.
 		 *
 		 * @param constant
 		 *   The sole Avail value that this restriction permits.
-		 * @param encoding
-		 *   A [RestrictionFlagEncoding] indicating the type of register that
-		 *   will hold this value ([BOXED_FLAG], [UNBOXED_INT_FLAG], or
-		 *   [UNBOXED_FLOAT_FLAG]).
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
 		fun restrictionForConstant(
-			constant: A_BasicObject,
-			encoding: RestrictionFlagEncoding
+			constant: A_BasicObject
 		): TypeRestriction
 		{
-			assert(encoding == BOXED_FLAG
-					|| encoding == UNBOXED_INT_FLAG
-					|| encoding == UNBOXED_FLOAT_FLAG)
 			val strongConstant = constant.makeImmutable()
 			return restriction(
 				givenType = when
@@ -2407,49 +2113,33 @@ class TypeRestriction private constructor(
 				givenTag = strongConstant.typeTag,
 				excludedTags = null,
 				canBeBottom = constant.equals(bottom),
-				flags = when (encoding)
-				{
-					BOXED_FLAG -> encoding.mask or IMMUTABLE_FLAG.mask
-					else -> encoding.mask
-				}
+				flags = IMMUTABLE_FLAG.mask
 			)
 		}
 
 		/**
-		 * Create or reuse a [TypeRestriction], for which a constant is
-		 * specified.  The register kind will be [BOXED_FLAG], and the
-		 * [IMMUTABLE_FLAG] will also be set.
+		 * Create or reuse a [TypeRestriction] for which an [Int] constant is
+		 * specified.
 		 *
-		 * @param constant
-		 *   The sole Avail value that this restriction permits.
+		 * Since this is a constant, flag it with [IMMUTABLE_FLAG], convert the
+		 * [Int] to an [A_Number], and force that object to be immutable.
+		 *
+		 * @param constantInt
+		 *   The [Int] that this
 		 * @return
-		 *   The new or existing canonical [TypeRestriction].
+		 *   The new or existing canonical TypeRestriction.
 		 */
-		fun boxedRestrictionForConstant(
-			constant: A_BasicObject
+		fun restrictionForConstant(
+			constantInt: Int
 		): TypeRestriction =
-			restrictionForConstant(constant, BOXED_FLAG)
+			restrictionForConstant(fromInt(constantInt))
 
-		/**
-		 * Create or reuse a [TypeRestriction], for which an [i32] constant is
-		 * specified (as a Kotlin [Int]).  The register kind will be
-		 * [UNBOXED_INT_FLAG].
-		 *
-		 * @param constant
-		 *   The sole [Int] value that this restriction permits.
-		 * @return
-		 *   The new or existing canonical [TypeRestriction].
-		 */
-		fun intRestrictionForConstant(
-			constant: Int
-		): TypeRestriction =
-			restrictionForConstant(fromInt(constant), UNBOXED_INT_FLAG)
 
 		/**
 		 * The restriction that includes all boxed
 		 * [characters][Types.CHARACTER].
 		 */
-		val characterRestriction = boxedRestrictionForType(Types.CHARACTER())
+		val characterRestriction = restrictionForType(Types.CHARACTER())
 
 		/**
 		 * Render this value as a string.

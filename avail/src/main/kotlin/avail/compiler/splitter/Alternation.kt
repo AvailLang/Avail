@@ -42,7 +42,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
 /**
- * An `Alternation` is a special [expression][Expression] indicated by
+ * An [Alternation] is a special [expression][Expression] indicated by
  * interleaved [vertical&#32;bars][Metacharacter.VERTICAL_BAR] between
  * [simples][Simple] and [simple&#32;groups][Group]. It may not contain
  * [arguments][Argument].

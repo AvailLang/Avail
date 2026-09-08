@@ -42,7 +42,7 @@ import java.lang.String.format
 import java.util.function.Supplier
 
 /**
- * An `AvailRejectedParseException` is thrown by primitive [P_RejectParsing] to
+ * An [AvailRejectedParseException] is thrown by primitive [P_RejectParsing] to
  * indicate the fiber running a semantic restriction (or macro body or prefix
  * function) has rejected the argument types or phrases for the reason specified
  * in the exception's constructor.

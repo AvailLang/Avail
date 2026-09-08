@@ -37,7 +37,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor
 
 /**
- * An `AvailUnsupportedOperationException` is thrown whenever an
+ * An [AvailUnsupportedOperationException] is thrown whenever an
  * [Avail&#32;object][AvailObject]'s [descriptor][Descriptor] is asked to
  * perform an unsupported operation.
  *

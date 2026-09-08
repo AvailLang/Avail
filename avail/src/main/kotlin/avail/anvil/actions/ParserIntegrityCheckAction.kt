@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ParserIntegrityCheckAction` checks critical data structures used by
+ * A [ParserIntegrityCheckAction] checks critical data structures used by
  * the [AvailCompiler].
  *
  * @constructor

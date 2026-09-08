@@ -32,7 +32,6 @@
 package avail.interpreter.levelTwo.register
 
 import avail.descriptor.representation.AvailObject
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * `L2IntRegister` models the conceptual usage of a register that can store a
@@ -57,7 +56,4 @@ constructor(
 ) : L2Register<INTEGER_KIND>(debugValue, constant)
 {
 	override val kind get() = INTEGER_KIND
-
-	override val primaryVisualSortKey
-		get() = PrimaryVisualSortKey.UNBOXED_INT_REGISTER
 }

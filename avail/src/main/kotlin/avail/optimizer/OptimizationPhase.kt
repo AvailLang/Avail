@@ -251,7 +251,8 @@ internal enum class OptimizationPhase constructor(
 	 * [L2ControlFlowGraph], since this information is not preserved across such
 	 * a regeneration.
 	 */
-	COMPUTE_LIVENESS_AT_EDGES_2(L2Optimizer::computeLivenessAtEachEdge),
+	COMPUTE_LIVENESS_AT_EDGES_2(
+		{ computeLivenessAtEachEdge(FOLLOW_REGISTERS) }),
 
 	/**
 	 * Insert an [L2_MAKE_IMMUTABLE] instruction just prior to any use of a

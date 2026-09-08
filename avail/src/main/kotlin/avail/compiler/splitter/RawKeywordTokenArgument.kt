@@ -38,7 +38,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 
 /**
- * A `RawKeywordTokenArgument` is an occurrence of
+ * A [RawKeywordTokenArgument] is an occurrence of
  * [ellipsis][Metacharacter.ELLIPSIS] (…) in a message name. It indicates where
  * a raw keyword token argument is expected. Like its superclass, the
  * [RawTokenArgument], the token is captured after being placed in a literal

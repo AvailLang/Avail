@@ -37,7 +37,6 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.optimizer.L2ControlFlowGraph
-import avail.optimizer.L2Entity
 import avail.optimizer.L2Generator
 import avail.utility.ifZero
 
@@ -64,8 +63,17 @@ abstract class L2Register<K: RegisterKind<K>>
 constructor (
 	val uniqueValue: Int,
 	val constant: AvailObject? = null
-) : L2Entity<K>
+) : Comparable<L2Register<*>>
 {
+	/**
+	 * Answer the kind of register that this entity operates on. Different
+	 * register kinds are allocated from different virtual banks, and do not
+	 * interfere in terms of register liveness computation.
+	 *
+	 * @return The [RegisterKind].
+	 */
+	abstract val kind: K
+
 	/**
 	 * A coloring number to be used by the [interpreter][Interpreter] at runtime
 	 * to identify the storage location of a [register][L2Register].
@@ -197,12 +205,9 @@ constructor (
 		}
 	}
 
-	override fun compareTo(other: L2Entity<*>) =
-		primaryVisualSortKey.ordinal.compareTo(
-			other.primaryVisualSortKey.ordinal)
-			.ifZero {
-				// Sort by register number within the category.
-				val otherStrong = other as L2Register<*>
-				uniqueValue.compareTo(otherStrong.uniqueValue)
-			}
+	override fun compareTo(other: L2Register<*>) =
+		kind.ordinal.compareTo(other.kind.ordinal).ifZero {
+			// Sort by register number within the category.
+			uniqueValue.compareTo(other.uniqueValue)
+		}
 }

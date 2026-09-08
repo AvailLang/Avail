@@ -296,7 +296,7 @@ import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.AvailLoader.Phase.STYLING_HEADER
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.primitive.compiler.P_RejectParsing
@@ -2408,7 +2408,7 @@ class AvailCompiler constructor(
 				// Some macro definitions are not visible.  Search the hard (but
 				// hopefully infrequent) way.
 				val phraseRestrictions = argumentsListNode.expressionsTuple
-					.map(::boxedRestrictionForConstant)
+					.map(::restrictionForConstant)
 				val filtered = visibleDefinitions.filter { macroDefinition ->
 					macroDefinition.bodySignature()
 						.couldEverBeInvokedWith(phraseRestrictions)

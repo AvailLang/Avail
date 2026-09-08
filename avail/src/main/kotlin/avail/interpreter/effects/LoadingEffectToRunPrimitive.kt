@@ -42,7 +42,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 
 /**
- * A `LoadingEffectToRunPrimitive` summarizes the execution of some
+ * A [LoadingEffectToRunPrimitive] summarizes the execution of some
  * primitive, with literal arguments.
  *
  * @property specialMethodAtom

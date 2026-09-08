@@ -57,7 +57,7 @@ import java.util.LinkedList
 import java.util.UUID
 
 /**
- * A `ResolverReference` is a reference to a [module][ModuleName] or a module
+ * A [ResolverReference] is a reference to a [module][ModuleName] or a module
  * resource within a [ModuleRoot] produced by a [ModuleRootResolver].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

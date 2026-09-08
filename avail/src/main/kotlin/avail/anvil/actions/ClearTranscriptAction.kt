@@ -37,7 +37,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ClearTranscriptAction` clears the [AvailWorkbench]'s transcript.
+ * A [ClearTranscriptAction] clears the [AvailWorkbench]'s transcript.
  *
  * @constructor
  * Construct a new [ClearTranscriptAction].

@@ -32,21 +32,17 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.cast
-import avail.utility.notNullAnd
-import java.util.Collections
+import avail.utility.deepForEach
 
 /**
  * A mechanism for determining which instructions are dead versus live.
  *
  * @property dataCouplingMode
- *   The policy about which kinds of [L2Entity] to consider.
+ *   The policy about which kinds of entity to consider for liveness.
  * @property controlFlowGraph
  *   The [L2ControlFlowGraph] to analyze.
  *
@@ -54,7 +50,8 @@ import java.util.Collections
  * Construct a `DeadCodeAnalyzer`.
  *
  * @param dataCouplingMode
- *   The policy about what kinds of [L2Entity] should be traced.
+ *   The policy about whether [L2Register]s, [L2SemanticValue]s, or both, should
+ *   be the basis for liveness.
  * @param controlFlowGraph
  *   The [L2ControlFlowGraph] being analyzed.
  */
@@ -62,16 +59,9 @@ internal class DeadCodeAnalyzer constructor(
 	private val dataCouplingMode: DataCouplingMode,
 	private val controlFlowGraph: L2ControlFlowGraph)
 {
-	/**
-	 * A [Map] from each [L2PcOperand] to the [Set] of
-	 * [entities][L2Entity]/[RegisterKind] pairs that might be consumed after
-	 * this edge.
-	 */
-	private val edgeNeeds =
-		mutableMapOf<L2PcOperand, MutableSet<L2Entity<*>>>()
-
 	/** The [L2Instruction]s that have been marked as live so far. */
-	private val liveInstructions = mutableSetOf<L2Instruction>()
+	val liveInstructions: Set<L2Instruction>
+		field = mutableSetOf<L2Instruction>()
 
 	/**
 	 * Calculate which operations are live, either because they have a side
@@ -85,166 +75,80 @@ internal class DeadCodeAnalyzer constructor(
 		// could do better by determining liveness by iterating, but since the
 		// clamped entities are pretty minimal, we're not likely to eliminate a
 		// lot of dead code.
-		controlFlowGraph.forwardVisit { block ->
-			block.predecessorEdges().forEach { edge ->
-				edge.forcedClampedEntities?.let { clamped ->
-					val needs = mutableSetOf<L2Entity<*>>()
-					if (dataCouplingMode.considersSemanticValues)
-					{
-						clamped.filterIsInstance<L2SemanticValue<*>>()
-							.toCollection(needs)
-					}
-					if (dataCouplingMode.considersRegisters)
-					{
-						clamped.filterIsInstance<L2Register<*>>()
-							.toCollection(needs)
-					}
-					edgeNeeds[edge] = needs
+		controlFlowGraph.basicBlockOrder.deepForEach(
+			L2BasicBlock::predecessorEdges
+		) { edge ->
+			assert(edge.liveness == null)
+			var liveness: L2Liveness? = null
+			if (dataCouplingMode.considersRegisters)
+			{
+				edge.forcedClampedRegisters?.let { clamped ->
+					/*if (liveness == null)*/ liveness = L2Liveness()
+					clamped.forEach(liveness::add)
 				}
 			}
+			if (dataCouplingMode.considersSemanticValues)
+			{
+				edge.forcedClampedSemanticValues?.let { clamped ->
+					if (liveness == null) liveness = L2Liveness()
+					clamped.forEach(liveness::add)
+				}
+			}
+			edge.liveness = liveness
 		}
 
 		// Visit the blocks in reverse dependency order, ignoring back-edges.
 		// Collect all instructions that have side effects or produce values
 		// consumed by a later non-dead instruction.
 		controlFlowGraph.backwardVisit { block ->
-			// All of its successors have already been processed.
-			val neededEntities = mutableSetOf<L2Entity<*>>()
-			block.successorEdges().forEach {
-				neededEntities.addAll(edgeNeeds[it]!!)
-			}
+			// All of its successors must have already been processed, either
+			// because it's a back-edge and therefore had clamped information,
+			// or because it was a forward edge that was visited before this
+			// block (possibly with clamped information as well).
+			val liveness = L2Liveness(
+				block.successorEdges().map { it.liveness!! })
+			var livenessByPredecessor: List<L2Liveness>? = null
 			val predecessorCount = block.predecessorEdges().size
-			val instructions = block.instructions()
-			var index = instructions.size
-			while (--index >= 0)
+			for (instruction in block.instructions().asReversed())
 			{
-				val instruction = instructions[index]
 				if (instruction is L2_PHI<*>)
 				{
-					break
-				}
-				// As a simplifying assumption, pretend an altersControlFlow
-				// instruction at the end of the block populates *all* of the
-				// entities that are visible along any of its successor edges.
-				var dropInstruction = false
-				if (instruction is L2_MOVE<*>
-					&& dataCouplingMode.considersSemanticValues
-					&& instruction.destination.register() !in neededEntities)
-				{
-					// The register being written by this move isn't consumed.
-					// However, it may augment the manifest's synonym or
-					// restriction in a way that we care about.  We want to keep
-					// augmentations like semantic primitives because they can
-					// be reused by the global value number scheme that semantic
-					// values are about.  Things like stack slots don't add that
-					// same value (when they're not read later).
-					val writtenValues = instruction.destination.semanticValues()
-					val readValues = instruction.source.register().definition()
-						.semanticValues()
-					val newValues = writtenValues - readValues
-					if (newValues.none { it.isUsefulForGlobalValueNumbering })
+					if (livenessByPredecessor == null)
 					{
-						dropInstruction = true
-					}
-				}
-				if (neededEntities.removeAll(
-						dataCouplingMode.writeEntitiesOf(instruction))
-					|| instruction.hasSideEffect)
-				{
-					if (!dropInstruction)
-					{
-						liveInstructions.add(instruction)
-						neededEntities.addAll(
-							dataCouplingMode.readEntitiesOf(instruction))
-					}
-				}
-			}
-			assert(block.predecessorEdges().isNotEmpty()
-				|| neededEntities.isEmpty())
-			{
-				("Instruction consumes $neededEntities but a preceding "
-					+ "definition was not found")
-			}
-			// Make a copy per predecessor (reusing the original for #0).
-			val entitiesByPredecessor = (0..predecessorCount).map {
-				if (it == 0) neededEntities
-				else neededEntities.toMutableSet()
-			}
-			// Customize
-			while (index >= 0)
-			{
-				val phiInstruction = instructions[index] as L2_PHI<*>
-				for (predecessorIndex in 0 until predecessorCount)
-				{
-					val entities = entitiesByPredecessor[predecessorIndex]
-					if (entities.removeAll(
-							dataCouplingMode.writeEntitiesOf(phiInstruction))
-						|| phiInstruction.hasSideEffect)
-					{
-						liveInstructions.add(phiInstruction)
-						val readOperand = phiInstruction.sources
-							.elements[predecessorIndex]
-						dataCouplingMode.addEntitiesFromRead(
-							readOperand, entities)
-						entities.addAll(
-							dataCouplingMode.readEntitiesOf(readOperand))
-					}
-				}
-				index--
-			}
-			block.predecessorEdges()
-				.zip(entitiesByPredecessor)
-				.forEach { (edge, needed) ->
-					// Some semantic constants get added to synonyms along edges
-					// with no instruction being the apparent cause.  That's due
-					// to a branching type test upstream.  If the downstream
-					// needs a semantic value but it has no definition, check if
-					// any equivalent (synonymous) semantic value has a
-					// definition. If so, replace the needed value with an
-					// equivalent that has a definition.
-					val manifest = edge.manifest()
-					needed
-						.filterIsInstance<L2SemanticValue<*>>()
-						.toList()  // Copy to avoid concurrent modification
-						.forEach { semanticValue ->
-							val equivalent = manifest
-								.equivalentPopulatedSemanticValue(semanticValue)
-							if (equivalent.notNullAnd { this != semanticValue })
-							{
-								needed.remove(semanticValue)
-								needed.add(equivalent.cast())
+						// Copy per predecessor (reusing the original for #0).
+						livenessByPredecessor =
+							block.predecessorEdges().indices.map {
+								if (it == 0) liveness
+								else L2Liveness(listOf(liveness))
 							}
-							else if (semanticValue.isConstant)
-							{
-								// The semantic constant has no equivalent
-								// with a definition. Remove it from needed.
-								needed.remove(semanticValue)
-							}
-						}
-				}
-			block.predecessorEdges()
-				.zip(entitiesByPredecessor)
-				.forEach { (edge, needed) ->
-					assert(edgeNeeds.containsKey(edge) == edge.isBackward)
-					if (!edge.isBackward)
-					{
-						// No need to copy it, as it won't be modified again.
-						edgeNeeds[edge] = needed
 					}
+					dataCouplingMode.visitPhi(
+						instruction,
+						livenessByPredecessor)
 				}
+				else
+				{
+					assert(livenessByPredecessor == null) {
+						"Encountered a non-phi before a phi"
+					}
+					var keep =
+						dataCouplingMode.visitInstruction(instruction, liveness)
+					if (keep) liveInstructions.add(instruction)
+				}
+			}
+			assert(predecessorCount > 0 || liveness.isEmpty())
+			{
+				"Instructions consume ${liveness.shortSummary()} but " +
+					"preceding definitions were not found"
+			}
+			// Now write the liveness information to the predecessor edges.
+			block.predecessorEdges().forEachIndexed { index, edge ->
+				edge.liveness = when (livenessByPredecessor)
+				{
+					null -> L2Liveness(listOf(liveness))  // safety
+					else -> livenessByPredecessor[index]
+				}
+			}
 		}
-	}
-
-	/**
-	 * Answer the [L2Instruction]s that were found to be live by a prior call to
-	 * [analyzeReads].
-	 *
-	 * @return
-	 *   An immutable [Set] of live [L2Instruction]s.
-	 */
-	fun liveInstructions(): Set<L2Instruction>
-	{
-		assert(liveInstructions.isNotEmpty())
-		return Collections.unmodifiableSet(liveInstructions)
 	}
 }

@@ -41,7 +41,7 @@ import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 
 /**
- * A `Simple` is an [expression][Expression] that
+ * A [Simple] is an [expression][Expression] that
  * represents a single token, except for the double-dagger character.
  *
  * @property token

@@ -38,7 +38,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 import java.util.Collections.unmodifiableList
 

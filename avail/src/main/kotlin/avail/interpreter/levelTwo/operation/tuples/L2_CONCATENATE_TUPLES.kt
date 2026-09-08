@@ -44,12 +44,11 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -78,9 +77,9 @@ class L2_CONCATENATE_TUPLES(
 	}
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>)
+		destinationSemanticValues: Set<L2SemanticValue>)
 	{
 		// If we can tell (1) which subtuple we're getting the value from, and
 		// (2) the index within that subtuple, then extract the value from the
@@ -119,7 +118,7 @@ class L2_CONCATENATE_TUPLES(
 			L2IntImmediateOperand(index),
 			boxedWrite(
 				destinationSemanticValues,
-				boxedRestrictionForType(
+				restrictionForType(
 					concatenatedTuple.restriction().type.typeAtIndex(index))))
 	}
 

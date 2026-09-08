@@ -53,11 +53,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -84,15 +80,12 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.fakeCondition
 import avail.optimizer.L2SplitCondition.Companion.reducedConditions
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
-import avail.optimizer.values.L2SemanticUnboxedFloat
-import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
+import avail.utility.intersects
 import avail.utility.mapToSet
 
 /**
@@ -164,12 +157,15 @@ constructor(
 		 *
 		 * @param oldSemanticValue
 		 *   The original [L2SemanticValue] from the source graph.
+		 * @param kind
+		 *   The [RegisterKind] with which to interpret the semantic value.
 		 * @return
 		 *   The replacement [L2SemanticValue].
 		 */
 		open fun <K: RegisterKind<K>> mapReadSemanticValue(
-			oldSemanticValue: L2SemanticValue<K>
-		): L2SemanticValue<K> = oldSemanticValue
+			oldSemanticValue: L2SemanticValue,
+			kind: K
+		): L2SemanticValue = oldSemanticValue
 
 		/**
 		 * Transform the given [L2SemanticValue] into another, to write to it.
@@ -179,12 +175,15 @@ constructor(
 		 *
 		 * @param oldSemanticValue
 		 *   The original [L2SemanticValue] from the source graph.
+		 * @param kind
+		 *   The [RegisterKind] with which to interpret the semantic value.
 		 * @return
 		 *   The replacement [L2SemanticValue].
 		 */
 		open fun <K: RegisterKind<K>> mapWriteSemanticValue(
-			oldSemanticValue: L2SemanticValue<K>
-		): L2SemanticValue<K> = oldSemanticValue
+			oldSemanticValue: L2SemanticValue,
+			kind: K
+		): L2SemanticValue = oldSemanticValue
 
 		override fun doOperand(operand: L2CommentOperand) = Unit
 
@@ -292,18 +291,20 @@ constructor(
 	inner class OperandSemanticTransformer : AbstractOperandTransformer()
 	{
 		override fun <K: RegisterKind<K>> mapReadSemanticValue(
-			oldSemanticValue: L2SemanticValue<K>
-		): L2SemanticValue<K>
+			oldSemanticValue: L2SemanticValue,
+			kind: K
+		): L2SemanticValue
 		{
 			val equivalent = currentManifest
-				.equivalentPopulatedSemanticValue(oldSemanticValue)
+				.equivalentPopulatedSemanticValue(oldSemanticValue, kind)
 			if (equivalent !== null) return equivalent
 			return oldSemanticValue
 		}
 
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
-			val equivalent = mapReadSemanticValue(operand.semanticValue())
+			val equivalent =
+				mapReadSemanticValue(operand.semanticValue(), INTEGER_KIND)
 			currentOperand = L2ReadIntOperand(
 				equivalent,
 				currentManifest
@@ -313,7 +314,8 @@ constructor(
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
-			val equivalent = mapReadSemanticValue(operand.semanticValue())
+			val equivalent =
+				mapReadSemanticValue(operand.semanticValue(), FLOAT_KIND)
 			currentOperand = L2ReadFloatOperand(
 				equivalent,
 				currentManifest
@@ -323,7 +325,8 @@ constructor(
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
-			val equivalent = mapReadSemanticValue(operand.semanticValue())
+			val equivalent =
+				mapReadSemanticValue(operand.semanticValue(), BOXED_KIND)
 			currentOperand = L2ReadBoxedOperand(
 				equivalent,
 				currentManifest
@@ -335,26 +338,27 @@ constructor(
 		{
 			currentOperand = L2WriteIntOperand(
 				operand.semanticValues().mapToSet {
-					mapWriteSemanticValue(it) as L2SemanticUnboxedInt
+					mapWriteSemanticValue(it, INTEGER_KIND)
 				},
-				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask))
+				operand.restriction())
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
 		{
 			currentOperand = L2WriteFloatOperand(
 				operand.semanticValues().mapToSet {
-					mapWriteSemanticValue(it) as L2SemanticUnboxedFloat
+					mapWriteSemanticValue(it, FLOAT_KIND)
 				},
-				operand.restriction()
-					.restrictingKindsTo(UNBOXED_FLOAT_FLAG.mask))
+				operand.restriction())
 		}
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
 			currentOperand = L2WriteBoxedOperand(
-				operand.semanticValues().mapToSet { mapWriteSemanticValue(it) },
-				operand.restriction().restrictingKindsTo(BOXED_FLAG.mask))
+				operand.semanticValues().mapToSet {
+					mapWriteSemanticValue(it, BOXED_KIND)
+				},
+				operand.restriction())
 		}
 	}
 
@@ -384,7 +388,7 @@ constructor(
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
 					currentOperand = INTEGER_KIND.readOperand(
-						constant(operand.constantOrNull!!).unboxedInt,
+						constant(operand.constantOrNull!!),
 						operand.restriction(),
 						operand.register())
 				}
@@ -407,7 +411,7 @@ constructor(
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
 					currentOperand = FLOAT_KIND.readOperand(
-						constant(operand.constantOrNull!!).unboxedFloat,
+						constant(operand.constantOrNull!!),
 						operand.restriction(),
 						operand.register())
 				}
@@ -451,7 +455,7 @@ constructor(
 			}
 			currentOperand = L2WriteIntOperand(
 				operand.semanticValues(),
-				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask),
+				operand.restriction(),
 				newRegister as L2IntRegister)
 		}
 
@@ -462,8 +466,7 @@ constructor(
 			}
 			currentOperand = L2WriteFloatOperand(
 				operand.semanticValues(),
-				operand.restriction().restrictingKindsTo(
-					UNBOXED_FLOAT_FLAG.mask),
+				operand.restriction(),
 				newRegister as L2FloatRegister)
 		}
 
@@ -474,7 +477,7 @@ constructor(
 			}
 			currentOperand = L2WriteBoxedOperand(
 				operand.semanticValues(),
-				operand.restriction().restrictingKindsTo(BOXED_FLAG.mask),
+				operand.restriction(),
 				newRegister as L2BoxedRegister)
 		}
 	}
@@ -724,12 +727,14 @@ constructor(
 			// of the sets of semantic values that were present along these
 			// edges.  And in case we're removing dead code, narrow this to the
 			// semantic values that are live here.
-			val commonSemanticValues = currentManifest.synonymsArray()
-				.flatMapTo(mutableSetOf(), L2Synonym<*>::semanticValues)
 			val manifests = currentBlock().predecessorEdges()
 				.map(L2PcOperand::manifest)
+			val commonSemanticValues = currentManifest.synonymsArray()
+				.flatMapTo(mutableSetOf(), L2Synonym::semanticValues)
 			manifests.forEach { m ->
-				commonSemanticValues.retainAll(m::hasLiveSemanticValue)
+				commonSemanticValues.retainAll {
+					m.hasAnyLiveSemanticValue(it)
+				}
 			}
 			// For each semantic value, determine all other semantic values that
 			// are in the same synonym with it in all predecessors.  We'll use
@@ -741,7 +746,7 @@ constructor(
 						val synonym = m.semanticValueToSynonymOrNull(sv)
 						when (synonym)
 						{
-							null -> emptySet<L2SemanticValue<*>>()
+							null -> emptySet<L2SemanticValue>()
 							else -> synonym.semanticValues()
 								.filter(m::hasSemanticValue)
 								.filterTo(
@@ -749,9 +754,9 @@ constructor(
 									currentManifest::hasSemanticValue)
 						}
 					}
-					.reduceOrNull(Set<L2SemanticValue<*>>::intersect)
+					.reduceOrNull(Set<L2SemanticValue>::intersect)
 					?.intersect(commonSemanticValues)
-					?: emptySet<L2SemanticValue<*>>()
+					?: emptySet<L2SemanticValue>()
 			}
 			// Compute the union of the restrictions for each semantic value.
 			// We'll use that to narrow the restrictions in the new manifest.
@@ -765,16 +770,15 @@ constructor(
 			// synonymous set.  The sets are disjoint, and their members were
 			// synonymous in each predecessor, so that will cover all current
 			// synonyms.
-			val synonymRepresentatives =
-				mutableSetOf<L2SemanticValue<*>>()
+			val synonymRepresentatives = mutableSetOf<L2SemanticValue>()
 			commonSynonyms.forEach { sv, set ->
-				if (set.intersect(synonymRepresentatives).isEmpty())
+				if (!set.intersects(synonymRepresentatives))
 				{
 					// Only keep a candidate if it's in the current manifest,
 					// since we might be stripping dead code.  Either at least
 					// one will be alive, or we don't need to preserve the
 					// synonym's information.
-					if (currentManifest.hasLiveSemanticValue(sv))
+					if (currentManifest.hasAnyLiveSemanticValue(sv))
 					{
 						synonymRepresentatives.add(sv)
 					}
@@ -784,10 +788,9 @@ constructor(
 			// synonym.  We can iterate over them to process the synonym merges
 			// and restrictions.
 			synonymRepresentatives.forEach { sv ->
-				assert(currentManifest.hasLiveSemanticValue(sv))
+				assert(currentManifest.hasAnyLiveSemanticValue(sv))
 				commonSynonyms[sv]!!.forEach { otherSv ->
-					currentManifest.dynamicMergeExistingSemanticValues(
-						sv, otherSv)
+					currentManifest.mergeExistingSemanticValues(sv, otherSv)
 				}
 				currentManifest.updateRestriction(sv) {
 					commonRestrictions[sv]!!
@@ -829,29 +832,19 @@ constructor(
 		val transformed = basicTransformInstruction(sourceInstruction)
 		if (transformed.canBePostponed)
 		{
-			// No side-effect, and it only produces one value.  See if there is
-			// already an extant equivalent value that we can just move.  This
-			// embedded inline function is parametric on RegisterKind to allow
-			// parameterization by correlated RegisterKind.
-			fun <K: RegisterKind<K>> tryPopulate(
-				write: L2WriteOperand<K>
-			): Boolean
-			{
-				write.semanticValues()
-					.firstOrNull { readIfAvailable(it) != null }
-					?.let { existing ->
-						// Found one. Populate the rest.
-						val others = write.semanticValues()
-							.filterNot(currentManifest::hasSemanticValue)
-						if (others.isNotEmpty())
-						{
-							moveRegister(existing, others)
-							return true
-						}
+			val write = sourceInstruction.writeOperands.single()
+			write.semanticValues()
+				.firstOrNull { readIfAvailable(it, write.kind) != null }
+				?.let { existing ->
+					// Found one. Populate the rest.
+					val others = write.semanticValues()
+						.filterNot(currentManifest::hasSemanticValue)
+					if (others.isNotEmpty())
+					{
+						move(existing, others)
+						return
 					}
-				return false
-			}
-			if (tryPopulate(sourceInstruction.writeOperands.single())) return
+				}
 			// There wasn't an equivalent register handy.  Fall back to emitting
 			// a copy of this instruction.
 		}
@@ -885,7 +878,9 @@ constructor(
 					assert(
 						currentManifest.hasSemanticValue(semanticValue) ||
 							currentManifest
-								.postponedInstructionFor(semanticValue) != null)
+								.postponedInstructionFor(
+									semanticValue, read.kind
+								) != null)
 				}
 			}
 		}

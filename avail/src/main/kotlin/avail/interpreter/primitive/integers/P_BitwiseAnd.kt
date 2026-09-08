@@ -70,7 +70,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -78,9 +78,7 @@ import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.general.P_Hash
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.optimizer.values.PatternBuilder.Companion.pattern
@@ -236,10 +234,10 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 	 * expected value(s) that hashed to that entry.
 	 *
 	 * @param arguments
-	 *   The two [L2SemanticBoxedValue]s fed to this [P_BitwiseAnd] primitive.
+	 *   The two [L2SemanticValue]s fed to this [P_BitwiseAnd] primitive.
 	 */
 	override fun propagateManifestRestrictions(
-		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)
 	{
@@ -247,8 +245,6 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 		val regular = primitiveInvocation(this, arguments)
 		val commuted = primitiveInvocation(this, arguments.reversed())
 		manifest.mergeSemanticValueEquivalentsIfPresent(commuted, regular)
-		manifest.mergeSemanticValueEquivalentsIfPresent(
-			commuted.unboxedInt, regular.unboxedInt)
 
 		// Only attempt to do the propagation if the value is an enumeration,
 		// so that some entries might be eliminated by their hash.
@@ -266,8 +262,11 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 		pattern {
 			P_Hash(capture(0))
 		}.matchForEach(premask, manifest) { (valueToHash) ->
-			val equivalentIntValueToHash =
-				manifest.intFormOf(valueToHash) ?: return@matchForEach
+			val equivalentIntValueToHash = manifest
+				.equivalentPopulatedSemanticValue(
+					valueToHash,
+					INTEGER_KIND
+				) ?: return@matchForEach
 			val type = manifest.restrictionFor(equivalentIntValueToHash).type
 			if (type.isEnumeration)
 			{

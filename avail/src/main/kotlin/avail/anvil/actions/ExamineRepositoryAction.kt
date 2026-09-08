@@ -42,7 +42,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ExamineRepositoryAction` presents information about the content of the
+ * A [ExamineRepositoryAction] presents information about the content of the
  * [Repository] of the currently selected module root.
  *
  * @constructor

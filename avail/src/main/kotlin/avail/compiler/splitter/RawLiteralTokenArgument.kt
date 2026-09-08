@@ -38,7 +38,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 
 /**
- * A `RawLiteralTokenArgument` is an occurrence of
+ * A [RawLiteralTokenArgument] is an occurrence of
  * [ellipsis][Metacharacter.ELLIPSIS] (…) in a message name, followed by an
  * [octothorp][Metacharacter.OCTOTHORP] (#). It indicates where a raw
  * literal token argument is expected. Like its superclass, the

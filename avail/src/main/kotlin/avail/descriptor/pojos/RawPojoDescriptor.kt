@@ -51,7 +51,7 @@ import java.util.IdentityHashMap
 import java.util.WeakHashMap
 
 /**
- * A `RawPojoDescriptor` is a thin veneer over a plain-old Java object (pojo).
+ * A [RawPojoDescriptor] is a thin veneer over a plain-old Java object (pojo).
  * Avail programs will use [typed&#32;pojos][PojoDescriptor] universally, but
  * the implementation mechanisms frequently require raw pojos (especially for
  * defining [pojo&#32;types][PojoTypeDescriptor]).

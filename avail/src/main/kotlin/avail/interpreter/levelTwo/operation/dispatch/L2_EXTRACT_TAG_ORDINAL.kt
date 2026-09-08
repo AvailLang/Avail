@@ -44,13 +44,13 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Extract the [TypeTag] of the given object, then extract its
@@ -89,7 +89,6 @@ constructor (
 		restriction: TypeRestriction,
 		tracer: L2SplitCondition.RestrictionTracer)
 	{
-		assert(restriction.isUnboxedInt)
 		assert(writeOperand == tagOrdinal)
 		if (!tracer.traceTags) return
 		// Examine the tag restriction to determine a corresponding (or
@@ -121,16 +120,13 @@ constructor (
 				.firstOrNull(currentManifest::hasSemanticValue)
 			when (existingValue)
 			{
-				null -> moveIntRegister(
-					unboxedIntConstant(exactTag.ordinal).semanticValue(),
-					intWrite(
-						tagOrdinal.semanticValues(),
-						intRestrictionForConstant(exactTag.ordinal)
-					).semanticValues())
+				null -> move(
+					constant(exactTag.ordinal),
+					tagOrdinal.semanticValues())
 				else -> tagOrdinal.semanticValues().forEach { otherValue ->
 					if (!currentManifest.hasSemanticValue(otherValue))
 					{
-						moveIntRegister(existingValue, setOf(otherValue))
+						move(existingValue, setOf(otherValue))
 					}
 				}
 			}
@@ -149,7 +145,7 @@ constructor (
 			{
 				newTags += TypeTag.BOTTOM_TYPE_TAG.ordinal
 			}
-			intRestrictionForType(
+			restrictionForType(
 				enumerationWith(setFromCollection(newTags.map(::fromInt))))
 		}
 		return this@L2_EXTRACT_TAG_ORDINAL
