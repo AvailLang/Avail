@@ -236,7 +236,8 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 	 * @param arguments
 	 *   The two [L2SemanticValue]s fed to this [P_BitwiseAnd] primitive.
 	 */
-	override fun propagateManifestRestrictions(
+	override fun
+		propagateManifestRestrictions(
 		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)

@@ -347,7 +347,7 @@ constructor (
 		val liveMap =
 			RegisterKind.all.associateWith { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
-			liveness!!.sometimesLiveInRegisters
+			liveness!!.registers
 				.sortedBy(L2Register<*>::finalIndex)
 				.distinct()
 		liveRegistersList.forEach {

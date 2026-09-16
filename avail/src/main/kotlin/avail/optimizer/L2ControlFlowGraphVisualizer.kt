@@ -453,10 +453,13 @@ class L2ControlFlowGraphVisualizer constructor(
 						}
 					}
 				}
-				basicBlock.postPhiMap?.let { map ->
-					if (map.isNotEmpty())
-					{
-						postPhiMap(gridcolor, map, this@basicBlock)
+				if (visualizeManifest)
+				{
+					basicBlock.postPhiMap?.let { map ->
+						if (map.isNotEmpty())
+						{
+							postPhiMap(gridcolor, map, this@basicBlock)
+						}
 					}
 				}
 				if (instructions.isNotEmpty())
@@ -1123,38 +1126,35 @@ class L2ControlFlowGraphVisualizer constructor(
 				allDefinitions.joinTo(this, ", ", "in {", "}")
 			}
 		}
-		val allPostponed =
-			valueState.representations.mapNotNull { it.postponedInstruction }
-		if (allPostponed.isNotEmpty())
-		{
-			allPostponed.forEach { postponed ->
-				append("<br/>")
-				append(indent2String)
-				font(color = writer.adjust(
-					if (postponed.writeOperands.single().kind == BOXED_KIND)
-						postponementsColor
-					else unboxedSynonymColor))
+		valueState.forEachRepresentation { representation, _ ->
+			val postponed = representation.postponedInstruction
+				?: return@forEachRepresentation
+			append("<br/>")
+			append(indent2String)
+			font(color = writer.adjust(
+				if (postponed.writeOperands.single().kind == BOXED_KIND)
+					postponementsColor
+				else unboxedSynonymColor))
+			{
+				append(
+					escape(
+						increaseIndentation(
+							postponed.toString(
+								ignoreMisconnections = true,
+								omitEmptyWrite = true),
+							2)))
+				val badReads = postponed.readOperands
+					.filter { it.restriction().isImpossible }
+				val badWrites = postponed.writeOperands
+					.filter { it.restriction().isImpossible }
+				if (badReads.isNotEmpty() || badWrites.isNotEmpty())
 				{
-					append(
-						escape(
-							increaseIndentation(
-								postponed.toString(
-									ignoreMisconnections = true,
-									omitEmptyWrite = true),
-								2)))
-					val badReads = postponed.readOperands
-						.filter { it.restriction().isImpossible }
-					val badWrites = postponed.writeOperands
-						.filter { it.restriction().isImpossible }
-					if (badReads.isNotEmpty() || badWrites.isNotEmpty())
+					font(color = writer.adjust(errorTextColor))
 					{
-						font(color = writer.adjust(errorTextColor))
-						{
-							append("\n")
-							append(indent2String)
-							val allBad = badReads + badWrites
-							append(escape("IMPOSSIBLE RESTRICTION: $allBad\n"))
-						}
+						append("\n")
+						append(indent2String)
+						val allBad = badReads + badWrites
+						append(escape("IMPOSSIBLE RESTRICTION: $allBad\n"))
 					}
 				}
 			}

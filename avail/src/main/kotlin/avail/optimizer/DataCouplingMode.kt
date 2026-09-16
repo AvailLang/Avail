@@ -107,9 +107,7 @@ enum class DataCouplingMode constructor(
 		if (!keep && considersRegisters)
 		{
 			keep = instruction.writeOperands.any { write ->
-				val reg = write.register()
-				reg in liveness.sometimesLiveInRegisters
-					|| reg in liveness.alwaysLiveInRegisters
+				write.register() in liveness.registers
 			}
 		}
 		if (!keep && considersSemanticValues)

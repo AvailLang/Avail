@@ -43,6 +43,7 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest.Representation
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.mapToSet
@@ -319,25 +320,59 @@ protected constructor(
 	 *   The requested [L2Instruction], which could still be postponed or
 	 *   already emitted.
 	 */
-	fun definitionSkippingMoves(manifest: L2ValueManifest?): L2Instruction
+	fun definitionSkippingMoves(manifest: L2ValueManifest): L2Instruction
 	{
 		var sourceInstruction = registerOrNull?.definition()?.instruction
 		if (sourceInstruction == null)
 		{
-			sourceInstruction = manifest!!
+			sourceInstruction = manifest
 				.getDefinitionOrNull(semanticValue, kind)
 				?.definition()
 				?.instruction
 		}
+		// Check if it's already computed for a different kind.
 		if (sourceInstruction == null)
 		{
-			sourceInstruction = manifest!!
-				.postponedInstructionFor(semanticValue, kind)!!
+			sourceInstruction = manifest
+				.stateOrNull(semanticValue)!!
+				.allDefinitions
+				.firstOrNull()
+				?.definition()
+				?.instruction
+		}
+		// Look for a postponed instruction of the requested kind.
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest
+				.postponedInstructionFor(semanticValue, kind)
+		}
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest.stateOrNull(semanticValue)!!
+				.representations
+				.firstNotNullOf(Representation<*>::postponedInstruction)
 		}
 		if (sourceInstruction !is L2_MOVE<*>)
 			return sourceInstruction
 		// Recurse through the move.  Iteration wouldn't be worth it here.
 		return sourceInstruction.source.definitionSkippingMoves(manifest)
+	}
+
+	/**
+	 * Answer the [L2Instruction] which generates the value that will populate
+	 * this register. Skip over move instructions. The containing graph must be
+	 * in SSA form.  Assume the chain of instructions are already emitted.
+	 *
+	 * @return
+	 *   The requested [L2Instruction], which must be already emitted.
+	 */
+	fun definitionSkippingMoves(): L2Instruction
+	{
+		var sourceInstruction = registerOrNull!!.definition().instruction
+		if (sourceInstruction !is L2_MOVE<*>)
+			return sourceInstruction
+		// Recurse through the move.  Iteration wouldn't be worth it here.
+		return sourceInstruction.source.definitionSkippingMoves()
 	}
 
 	/**

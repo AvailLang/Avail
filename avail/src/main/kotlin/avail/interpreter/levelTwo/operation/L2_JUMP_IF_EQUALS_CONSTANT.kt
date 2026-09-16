@@ -52,8 +52,8 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Opcodes
 
 /**
@@ -135,7 +135,8 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			jumpTo(ifNotEqual.targetBlock())
 			return
 		}
-		if (constant.constant.isInt)
+		if (constant.constant.isInt
+			&& value.restriction().containedByType(i32))
 		{
 			// Do the comparison as ints, if possible.
 			compareAndBranchInt(

@@ -428,12 +428,12 @@ class L1Translator private constructor(
 	 *   The [L2ReadBoxedOperand] that should now be considered the current
 	 *   register-read representing that slot.
 	 */
-	fun forceSlotRegister(
+	fun forceSlotMove(
 		slotIndex: Int,
 		effectivePc: Int,
 		registerRead: L2ReadBoxedOperand)
 	{
-		forceSlotRegister(
+		forceSlotMove(
 			slotIndex,
 			effectivePc,
 			registerRead.semanticValue(),
@@ -455,7 +455,7 @@ class L1Translator private constructor(
 	 *   The [TypeRestriction] that currently bounds the synonym's possible
 	 *   values.
 	 */
-	private fun forceSlotRegister(
+	private fun forceSlotMove(
 		slotIndex: Int,
 		effectivePc: Int,
 		sourceSemanticValue: L2SemanticValue,
@@ -679,7 +679,7 @@ class L1Translator private constructor(
 	 */
 	private fun moveConstantToSlot(value: A_BasicObject, slotIndex: Int)
 	{
-		forceSlotRegister(slotIndex, pc, boxedConstant(value))
+		forceSlot(slotIndex, constant(value))
 	}
 
 	/**
@@ -691,7 +691,6 @@ class L1Translator private constructor(
 	 * correct caller) and push ito onto the call chain, then
 	 * [L2_RETURN_FROM_REIFICATION_HANDLER].
 	 *
-
 	 * After reification, the interpreter's next activity depends on the flags
 	 * set in the [StackReifier] (which was created via code generated prior to
 	 * this clause).  If it was for interrupt processing, the continuation will
@@ -1495,7 +1494,7 @@ class L1Translator private constructor(
 		startBlock(passedCheck)
 		if (currentlyReachable())
 		{
-			forceSlotRegister(
+			forceSlotMove(
 				stackp,
 				pc,
 				uncheckedValueRead.semanticValue(),
@@ -2304,7 +2303,7 @@ class L1Translator private constructor(
 	{
 		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		forceSlotRegister(stackp, pc, readSlot(slotIndex))
+		forceSlot(stackp, readSlot(slotIndex).semanticValue())
 		// Even if this is a local variable, we don't have to worry about slot
 		// versioning to maintain causality, because no L1 code after here will
 		// access that slot.
@@ -2315,7 +2314,7 @@ class L1Translator private constructor(
 	{
 		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		forceSlotRegister(stackp, pc, readSlot(slotIndex))
+		forceSlot(stackp, readSlot(slotIndex).semanticValue())
 		if (slotIndex in numArgs + 1 .. numArgs + numLocals)
 		{
 			// We're pushing a local variable.  Update the slot versioning to
@@ -2334,10 +2333,9 @@ class L1Translator private constructor(
 		stackp--
 		// For now, simplify the logic related to L1's nilling of mutable outers
 		// upon their final use.  Just make it immutable instead.
-		forceSlotRegister(
+		forceSlot(
 			stackp,
-			pc,
-			getOuterRegister(outerIndex, outerType))
+			getOuterRegister(outerIndex, outerType).semanticValue())
 	}
 
 	override fun L1_doClose()
@@ -2393,10 +2391,9 @@ class L1Translator private constructor(
 		val outerIndex = instructionDecoder.getOperand()
 		val outerType = code.outerTypeAt(outerIndex)
 		stackp--
-		forceSlotRegister(
+		forceSlot(
 			stackp,
-			pc,
-			getOuterRegister(outerIndex, outerType))
+			getOuterRegister(outerIndex, outerType).semanticValue())
 	}
 
 	override fun L1_doPop()
@@ -2448,7 +2445,7 @@ class L1Translator private constructor(
 		stackp += count - 1
 		// Fold into a constant tuple if possible.
 		val tupleRead = createTuple(elements)
-		forceSlotRegister(stackp, pc, tupleRead)
+		forceSlot(stackp, tupleRead.semanticValue())
 	}
 
 	override fun L1_doGetOuter()
@@ -2505,10 +2502,7 @@ class L1Translator private constructor(
 		}
 		// Now push the label.
 		stackp--
-		forceSlotRegister(
-			stackp,
-			pc,
-			readBoxed(semanticLabel))
+		forceSlot(stackp, semanticLabel)
 	}
 
 	override fun L1Ext_doGetLiteral()
@@ -2527,7 +2521,7 @@ class L1Translator private constructor(
 			// constant might not notice that its value was actually computed
 			// from unstable values, and accidentally mark itself as stably
 			// computed.  That would break the fast-loader optimization.
-			moveConstantToSlot(literalVariable.value(), stackp)
+			forceSlot(stackp, constant(literalVariable.value()))
 		}
 		else
 		{
@@ -2559,7 +2553,7 @@ class L1Translator private constructor(
 	{
 		val source = readSlot(stackp)
 		stackp--
-		forceSlotRegister(stackp, pc, source)
+		forceSlot(stackp, source.semanticValue())
 	}
 
 	override fun L1Ext_doPermute()
@@ -2576,10 +2570,9 @@ class L1Translator private constructor(
 		// Replace them with the permuted semantic values that were just read.
 		for (i in 1..size)
 		{
-			forceSlotRegister(
+			forceSlot(
 				stackp + size - i,
-				pc,
-				readBoxed(temps[i - 1]!!))
+				readBoxed(temps[i - 1]!!).semanticValue())
 		}
 	}
 
@@ -2605,7 +2598,7 @@ class L1Translator private constructor(
 	{
 		val destinationIndex = instructionDecoder.getOperand()
 		val source = readSlot(stackp)
-		forceSlotRegister(destinationIndex, pc, source)
+		forceSlot(destinationIndex, source.semanticValue())
 		nilSlot(stackp)
 		stackp++
 	}

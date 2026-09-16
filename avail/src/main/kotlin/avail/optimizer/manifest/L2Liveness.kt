@@ -149,11 +149,10 @@ class L2Liveness()
 	 */
 	fun shortSummary(): String
 	{
-		val regs =
-			(alwaysLiveInRegisters + sometimesLiveInRegisters).joinToString("&")
+		val regs = registers.joinToString("&")
 		val values = buildString {
 			appendSemanticValues(
-				alwaysLiveInSemanticValues + sometimesLiveInSemanticValues,
+				semanticvalues,
 				canWrap = false)
 		}
 		return when

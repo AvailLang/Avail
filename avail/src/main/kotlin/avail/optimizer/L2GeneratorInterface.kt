@@ -55,12 +55,14 @@ import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
@@ -69,6 +71,7 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.optimizer.L2ControlFlowGraph.Zone
+import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
@@ -76,6 +79,7 @@ import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
 import avail.utility.structures.EnumMap
 
 /**
@@ -377,10 +381,12 @@ interface L2GeneratorInterface : L2Visualizable
 	/**
 	 * Populate the [L2SemanticValue] if it isn't already.  Handle it already
 	 * being populated, being a postponed value in a synonym that has at least
-	 * one value with a definition, being a constant, and being output from a
-	 * postponed instruction.
+	 * one value with a definition, being a constant, being output from a
+	 * postponed instruction, or being a [BOXED_KIND] where an [INTEGER_KIND] or
+	 * [FLOAT_KIND] is available.
 	 *
-	 * This method *must* populate the semantic value before returning.
+	 * This method *must* populate the semantic value into a register (if it's
+	 * not already available in one) before returning.
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to ensure is populated.
@@ -394,45 +400,34 @@ interface L2GeneratorInterface : L2Visualizable
 	 * Answer an [L2ReadBoxedOperand] for the given [L2SemanticValue],
 	 * generating code to transform it as necessary.
 	 *
-	 * @param semanticBoxed
+	 * @param semanticValue
 	 *   The [L2SemanticValue] to read.
 	 * @return
 	 *   A suitable [L2ReadBoxedOperand] that captures the current
 	 *   [TypeRestriction] for the semantic value.
 	 */
 	fun readBoxed(
-		semanticBoxed: L2SemanticValue
+		semanticValue: L2SemanticValue
 	): L2ReadBoxedOperand
 
 	/**
 	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
-	 * [TypeRestriction] must have been proven by the VM.  If the semantic value
-	 * only has a boxed form, generate code to unbox it.
-	 *
-	 * In the case that unboxing may fail, a branch to the supplied onFailure
-	 * [L2BasicBlock] will be generated. If the unboxing cannot fail (or if a
-	 * corresponding [L2IntRegister] already exists), no branch will lead to
-	 * onFailure, which can be determined by the client by testing
-	 * [L2BasicBlock.currentlyReachable].
-	 *
+	 * [TypeRestriction] to an [i32] must have been proven by the VM.  If the
+	 * semantic value only has a boxed form, generate code to unbox it.
+]	 *
 	 * In any case, the generation position after this call is along the
 	 * success path.  This may itself be unreachable in the event that the
 	 * unboxing will *always* fail.
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to read as an unboxed int.
-	 * @param onFailure
-	 *   Where to jump in the event that a dynamic type test against [i32]
-	 *   fails. The manifest at this location will not contain bindings for
-	 *   the unboxed `int` (since unboxing was not possible).
 	 * @return
 	 *   The unboxed [L2ReadIntOperand], with this generator set to the success
-	 *   path if possible, otherwise answer `null` with no current block.
+	 *   path.
 	 */
 	fun readIntInternal(
-		semanticValue: L2SemanticValue,
-		onFailure: L2BasicBlock
-	): L2ReadIntOperand?
+		semanticValue: L2SemanticValue
+	): L2ReadOperand<INTEGER_KIND>
 
 	/**
 	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
@@ -961,10 +956,23 @@ interface L2GeneratorInterface : L2Visualizable
 		): L2ReadIntOperand
 		{
 			if (!currentlyReachable()) ifCannotSucceed()
-			return readIntInternal(semanticValue, onFailure) ?: run {
-				assert(!currentlyReachable())
+			val restriction = currentManifest.restrictionFor(semanticValue)
+			if (!restriction.intersectsType(i32))
+			{
 				ifCannotSucceed()
 			}
+			if (!restriction.containedByType(i32))
+			{
+				// It interects i32, but isn't a subtype.  Use a dynamic test.
+				val isI32 = createBasicBlock("Is i32")
+				+L2_JUMP_IF_KIND_OF_OBJECT(
+					readBoxed(semanticValue),
+					boxedConstant(i32),
+					ifKind = edgeTo(isI32),
+					ifNotKind = edgeTo(onFailure))
+				startBlock(isI32)
+			}
+			return readIntInternal(semanticValue).cast()
 		}
 
 		/**

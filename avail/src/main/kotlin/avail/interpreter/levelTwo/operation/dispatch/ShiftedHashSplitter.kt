@@ -142,21 +142,21 @@ class ShiftedHashSplitter constructor(
 		read: L2ReadIntOperand
 	): L2ReadBoxedOperand?
 	{
-		val sourceInstructionOfMasked = read.definitionSkippingMoves(null)
+		val sourceInstructionOfMasked = read.definitionSkippingMoves()
 		if (sourceInstructionOfMasked.isBitLogicOperation(And))
 		{
 			return null
 		}
 		val sourceInstructionOfShifted = sourceInstructionOfMasked
 			.readOperands.first()  // value & mask
-			.definitionSkippingMoves(null)
+			.register().definition().instruction
 		val sourceInstructionOfHash: L2Instruction = when
 		{
 			sourceInstructionOfShifted.isBitLogicOperation(Ushr) ->
 			{
 				sourceInstructionOfShifted
 					.readOperands.first() // value >>> shift
-					.definitionSkippingMoves(null)
+					.definitionSkippingMoves()
 			}
 			// No shift was needed in this case.
 			else -> sourceInstructionOfShifted

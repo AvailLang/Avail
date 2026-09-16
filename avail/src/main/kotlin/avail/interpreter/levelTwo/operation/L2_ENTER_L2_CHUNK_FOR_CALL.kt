@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
@@ -45,7 +44,6 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_PRIMITIV
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
@@ -122,9 +120,6 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 				// [... argsBuffer, i]
 				generateCall(listGetMethod)
 				// [... argsBuffer[i]]
-				method.visitTypeInsn(
-					Opcodes.CHECKCAST,
-					Type.getInternalName(AvailObject::class.java))
 				store(write.register())
 				// [...]
 			}

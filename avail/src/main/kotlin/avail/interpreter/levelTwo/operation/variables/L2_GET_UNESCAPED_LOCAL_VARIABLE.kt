@@ -114,8 +114,8 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite
 			is L2_CREATE_VARIABLE -> postponed.initialValueOrNil
 			is L2_GET_UNESCAPED_LOCAL_VARIABLE ->
-				currentManifest.read(
-					postponed.extractedValue.pickSemanticValue(), BOXED_KIND)
+				currentManifest.readBoxed(
+					postponed.extractedValue.pickSemanticValue())
 			else ->
 			{
 				basicRegenerateForPostponement()

@@ -2033,7 +2033,7 @@ class L2Optimizer internal constructor(
 		 * a CFG invariant violation.  Only takes effect when
 		 * [JVMTranslator.debugJVM] is also `true`.
 		 */
-		var perPassL2 = false
+		var perPassL2 = true //TODO false
 
 		/** Statistic for tracking the cost of sanity checks. */
 		private val sanityCheckStat = Statistic(

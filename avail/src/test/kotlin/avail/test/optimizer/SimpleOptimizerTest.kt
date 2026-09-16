@@ -1142,7 +1142,7 @@ class SimpleOptimizerTest
 			close(
 				outers = listOf(
 					"tempExpected4" to inclusive(one, twoToMaxM1),
-					"tempOctual4" to inclusive(zero, twoToMaxM1)),
+					"tempActual4" to inclusive(zero, twoToMaxM1)),
 				returnType = bottom)
 			call("Unless_then_", TOP())
 			L1_doPop()
@@ -2951,7 +2951,8 @@ class SimpleOptimizerTest
 			restrictionForType(i32),
 			null)
 		val both = boxedOnly.withRepresentation(
-			Representation(INTEGER_KIND, listOf(intRegister), null))
+			Representation(listOf(intRegister), null),
+			INTEGER_KIND)
 
 		// Each view reports only its own kind's registers, and the aggregate
 		// reports both.
@@ -2987,7 +2988,8 @@ class SimpleOptimizerTest
 		val emptiedBoxed = both.updated(
 			setOf(shared),
 			restrictionForType(inclusive(0, 5)),
-			Representation(BOXED_KIND, emptyList(), null))
+			Representation(emptyList(), null),
+			BOXED_KIND)
 		assertEquals(
 			listOf(intRegister), emptiedBoxed.viewFor(INTEGER_KIND).definitions)
 		assertEquals(

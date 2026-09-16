@@ -46,6 +46,7 @@ import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.extractDouble
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isDouble
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_RawFunction
@@ -130,6 +131,8 @@ import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.operation.numbers.L2_BOX_FLOAT
+import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_CREATE_TUPLE
@@ -329,11 +332,18 @@ constructor(
 		kind: K
 	): Unit
 	{
-		// Happy path – there's already a definition/register backing it.
-		if (currentManifest.hasLiveSemanticValue(semanticValue, kind)) return
-		val synonym = currentManifest.semanticValueToSynonym(semanticValue)
-		var restriction = currentManifest.restrictionFor(semanticValue)
-		val defined = currentManifest.getAllDefinitions(semanticValue, kind)
+		val valueClass = currentManifest.stateOrNull(semanticValue)!!
+		val representation = kind.representationIn(valueClass)
+		if (representation.definitions.any { reg ->
+			reg.definitions().any { semanticValue in it.semanticValues() }
+		})
+		{
+			// Happy path – there's already a definition/register backing it.
+			return
+		}
+		val synonym = valueClass.synonym
+		var restriction = valueClass.restriction
+		val defined = representation.definitions
 			.flatMap(L2Register<K>::definitions)
 			.flatMap(L2WriteOperand<K>::semanticValues)
 			.toSet()
@@ -375,6 +385,28 @@ constructor(
 			restriction.isConstant -> kind.moveConstant(
 				restriction.constantOrNull!!,
 				notDefined)
+			// See if we can box a value of another kind.
+			postponed === null && kind == BOXED_KIND ->
+			{
+				if (!valueClass.intRepresentation.isAbsent)
+				{
+					L2_BOX_INT(
+						// Ensure the int form is generated.
+						readIntNoFail(semanticValue),
+						boxedWrite(semanticValue, restriction))
+				}
+				else if (!valueClass.floatRepresentation.isAbsent)
+				{
+					L2_BOX_FLOAT(
+						// Ensure the float form is generated.
+						readFloatNoFail(semanticValue),
+						boxedWrite(semanticValue, restriction))
+				}
+				else
+				{
+					error("Expecting boxable value to be available")
+				}
+			}
 			// Otherwise there must be a postponed instruction to emit.  Its
 			// operands were captured when it was postponed, which may have been
 			// well above branches that have since narrowed what it reads, so
@@ -382,18 +414,38 @@ constructor(
 			// the clone is essential: the postponed instruction itself is
 			// shared with every other manifest descended from the one that
 			// recorded it, including the opposite edge of any branch.
-			else -> postponed!!.clone().apply {
-				refreshReadRestrictionsFrom(currentManifest)
-				writeOperands.single().restrict {
-					impliedWriteRestriction(
-						readOperands.map { it.restriction() })
-				}
-				writeOperands.single()
-					.retroactivelySetSemanticValues(notDefined)
-			}
+			else -> adjustedPostponedInstruction(postponed!!, notDefined)
 		}
 		addInstruction(newInstruction)
 	}
+
+	/**
+	 * Given an [L2Instruction] that was directly stored as a postponed
+	 * instruction in the manifest, create an adjusted clone that takes into
+	 * account the current manifest's narrowing of values it reads, and updating
+	 * the set of [L2SemanticValue]s (and restriction) ]that it writes.
+	 *
+	 * @param postponed
+	 *   The previously postponed [L2Instruction] to create an adjust version
+	 *   of.
+	 * @param writeTargets
+	 *   The [L2SemanticValue]s to be written by the adjusted instruction.
+	 * @return
+	 *   An [L2Instruction], suitably adjusted, ready to be emitted.
+	 */
+	private fun adjustedPostponedInstruction(
+		postponed: L2Instruction,
+		writeTargets: Set<L2SemanticValue>
+	): L2Instruction =
+		postponed.clone().apply {
+			refreshReadRestrictionsFrom(currentManifest)
+			writeOperands.single().restrict {
+				impliedWriteRestriction(
+					readOperands.map { it.restriction() })
+			}
+			writeOperands.single()
+				.retroactivelySetSemanticValues(writeTargets)
+		}
 
 	override fun readBoxed(
 		write: L2WriteOperand<BOXED_KIND>
@@ -403,73 +455,139 @@ constructor(
 		}
 
 	override fun readBoxed(
-		semanticBoxed: L2SemanticValue
-	): L2ReadBoxedOperand =
-		currentManifest.read(semanticBoxed, BOXED_KIND).cast()
+		semanticValue: L2SemanticValue
+	): L2ReadBoxedOperand = currentManifest.run {
+		assert(currentlyReachable())
+		val single = setOf(semanticValue)
+		val state = stateOrNull(semanticValue)
+		val restriction = state?.restriction
+		when
+		{
+			// Not yet defined.  Use the semantic constant.
+			state == null || restriction == null ->
+				addInstruction(
+					BOXED_KIND.moveConstant(
+						semanticValue.constant!!, single))
+			// Use boxed register.
+			state.boxedRepresentation.definitions.isNotEmpty() -> { }
+			// Use a boxed constant.
+			state.restriction.isConstant ->
+				addInstruction(
+					BOXED_KIND.moveConstant(
+						state.restriction.constantOrNull!!,
+						single))
+			// Box an int.
+			state.intRepresentation.definitions.isNotEmpty() ->
+				addInstruction(
+					L2_BOX_INT(
+						L2ReadIntOperand(semanticValue, restriction),
+						L2WriteBoxedOperand(single, restriction)))
+			// Box a float.
+			state.floatRepresentation.definitions.isNotEmpty() ->
+				addInstruction(
+					L2_BOX_FLOAT(
+						L2ReadFloatOperand(semanticValue, restriction),
+						L2WriteBoxedOperand(single, restriction)))
+			// Compute it.
+			state.boxedRepresentation.postponedInstruction != null ->
+				addInstruction(
+					adjustedPostponedInstruction(
+						removePostponedInstructionFor(
+							semanticValue, BOXED_KIND)!!,
+						single))
+			// Compute int and box it.
+			state.intRepresentation.postponedInstruction != null ->
+			{
+				addInstruction(
+					adjustedPostponedInstruction(
+						removePostponedInstructionFor(
+							semanticValue, INTEGER_KIND)!!,
+						single))
+				addInstruction(
+					L2_BOX_INT(
+						L2ReadIntOperand(semanticValue, restriction),
+						L2WriteBoxedOperand(single, restriction)))
+			}
+			// Compute float and box it.
+			state.floatRepresentation.postponedInstruction != null ->
+			{
+				addInstruction(
+					adjustedPostponedInstruction(
+						removePostponedInstructionFor(
+							semanticValue, FLOAT_KIND)!!,
+						single))
+				addInstruction(
+					L2_BOX_FLOAT(
+						L2ReadFloatOperand(semanticValue, restriction),
+						L2WriteBoxedOperand(single, restriction)))
+			}
+			// It's present, but not defined or postponed.  It must be constant.
+			else ->
+				addInstruction(
+					BOXED_KIND.moveConstant(semanticValue.constant!!, single))
+		}
+		return currentManifest.readBoxed(semanticValue)
+	}
 
 	override fun readIntInternal(
-		semanticValue: L2SemanticValue,
-		onFailure: L2BasicBlock
-	): L2ReadIntOperand?
+		semanticValue: L2SemanticValue
+	): L2ReadOperand<INTEGER_KIND>
 	{
-		if (!currentlyReachable()) return null
+		assert(currentlyReachable())
+		val state = currentManifest.stateOrNull(semanticValue)!!
+		val restriction = state.restriction
+		// The current design (2026.09) is supposed to ensure this value
+		// definitely fits in an i32, performing explicit tests if necessary.
+		assert(restriction.containedByType(i32)) {
+			"Value should have been constrained to an i32"
+		}
+		// There must be a postponed instruction.  Check for an int-producing
+		// instruction first.
+		val values = state.members
 		if (currentManifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		{
 			// It already exists in an unboxed int register.
-			return currentManifest.read(semanticValue, INTEGER_KIND).cast()
+			return currentManifest.readInt(semanticValue)
 		}
-		// See if we can use an equivalent int value
-		val synonym = currentManifest.semanticValueToSynonym(semanticValue)
-		val values = synonym.semanticValues()
-		values.forEach { value ->
-			val equivalentUnboxed = currentManifest
-				.equivalentPopulatedSemanticValue(value, INTEGER_KIND)
-			if (equivalentUnboxed != null)
-			{
-				move(equivalentUnboxed, synonym.semanticValues())
-				return currentManifest.read(semanticValue, INTEGER_KIND).cast()
-			}
-		}
-
-		// It's not available as an unboxed int, so generate code to unbox it.
-		val restriction = currentManifest.restrictionFor(semanticValue)
-		if (!restriction.intersectsType(i32))
+		if (currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
 		{
-			// It's not an unboxed int, and the boxed form can never be an
-			// int32, so it must always fail.
-			jumpTo(onFailure)
-			return null
+			// It already exists in a boxed register, so unbox it, *even if*
+			// there's a postponed int-producing instruction.
+			val readBoxed = currentManifest.readBoxed(semanticValue)
+			addInstruction(
+				L2_UNBOX_INT(readBoxed.cast(), intWrite(values, restriction)))
+			return currentManifest.readInt(semanticValue)
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
 			// Make it available as a constant in an int register.
 			return unboxedIntConstant(constant.extractInt)
 		}
-		// Extract it to a new int register.
-		val intWrite = L2WriteIntOperand(
-			values,
-			restriction,
-			L2IntRegister(nextUnique()))
-		val readBoxed =
-			currentManifest.read(semanticValue, BOXED_KIND) as L2ReadBoxedOperand
-		if (!restriction.containedByType(i32))
-		{
-			// Conversion may succeed or fail at runtime.
-			val onSuccess = createBasicBlock("isInt $semanticValue")
-			jumpIfKindOfConstant(
-				readBoxed,
-				i32,
-				onSuccess,
-				onFailure)
-			startBlock(onSuccess)
-			if (!currentlyReachable())
+		// See if we can use an equivalent int value.
+		values.forEach { value ->
+			val equivalentUnboxed = currentManifest
+				.equivalentPopulatedSemanticValue(value, INTEGER_KIND)
+			if (equivalentUnboxed !== null)
 			{
-				// The success path might have ended up being impossible.
-				return null
+				move(equivalentUnboxed, values)
+				return currentManifest.readInt(semanticValue)
 			}
 		}
-		+L2_UNBOX_INT(readBoxed, intWrite)
-		return currentManifest.read(semanticValue, INTEGER_KIND).cast()
+		when {
+			!state.intRepresentation.isAbsent ->
+				ensureDefinedOrEmitMove(semanticValue, INTEGER_KIND)
+			!state.boxedRepresentation.isAbsent ->
+			{
+				ensureDefinedOrEmitMove(semanticValue, BOXED_KIND)
+				addInstruction(
+					L2_UNBOX_INT(
+						readBoxed(semanticValue),
+						intWrite(values, restriction)))
+			}
+			else ->
+				error("Unable to read int value")
+		}
+		return currentManifest.readInt(semanticValue)
 	}
 
 	/**
@@ -488,26 +606,40 @@ constructor(
 	{
 		val restriction = currentManifest.restrictionFor(semanticValue)
 		assert(restriction.containedByType(i32))
-
 		if (currentManifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		{
 			// It already exists in an unboxed int register.
-			return currentManifest.read(semanticValue, INTEGER_KIND).cast()
+			return currentManifest.readInt(semanticValue)
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
 			// Make it available as a constant in an int register.
 			return unboxedIntConstant(constant.extractInt)
 		}
-		// It's not available as an unboxed int, so generate code to unbox it.
-		// Extract it to a new int register.
-		+L2_UNBOX_INT(
-			currentManifest.read(semanticValue, INTEGER_KIND).cast(),
-			L2WriteIntOperand(
-				setOf(semanticValue),
-				restriction,
-				L2IntRegister(nextUnique())))
-		return currentManifest.read(semanticValue, INTEGER_KIND).cast()
+		currentManifest.removePostponedInstructionFor(
+			semanticValue, INTEGER_KIND
+		)?.let { postponedInt ->
+			addInstruction(
+				adjustedPostponedInstruction(
+					postponedInt,
+					currentManifest.semanticValueToSynonym(semanticValue)
+					.semanticValues()))
+			assert(currentManifest
+				.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
+		}
+		// Re-check for boxed kind, in case the postponed int-producing
+		// instruction generated a boxed form somehow.
+		if (!currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
+		{
+			// Simply unbox it.
+			+L2_UNBOX_INT(
+				currentManifest.readBoxed(semanticValue),
+				L2WriteIntOperand(
+					setOf(semanticValue),
+					restriction,
+					L2IntRegister(nextUnique())))
+		}
+		return currentManifest.readInt(semanticValue)
 	}
 
 	/**
@@ -542,7 +674,7 @@ constructor(
 		if (currentManifest.hasSemanticValue(semanticValue))
 		{
 			// It already exists in an unboxed float register.
-			return currentManifest.read(semanticValue, FLOAT_KIND).cast()
+			return currentManifest.readFloat(semanticValue)
 		}
 		// It's not available as an unboxed float, so generate code to unbox it.
 		val restriction = currentManifest.restrictionFor(semanticValue)
@@ -568,7 +700,7 @@ constructor(
 			},
 			restriction,
 			L2FloatRegister(nextUnique()))
-		val readBoxed = currentManifest.read(semanticValue, FLOAT_KIND)
+		val readBoxed = currentManifest.readBoxed(semanticValue)
 		if (!restriction.containedByType(Types.DOUBLE()))
 		{
 			// Conversion may succeed or fail at runtime.
@@ -586,8 +718,8 @@ constructor(
 				return unboxedFloatConstant(-999.999)
 			}
 		}
-		+L2_UNBOX_FLOAT(readBoxed.cast(), floatWrite)
-		return currentManifest.read(semanticValue, FLOAT_KIND).cast()
+		+L2_UNBOX_FLOAT(readBoxed, floatWrite)
+		return currentManifest.readFloat(semanticValue)
 	}
 
 	override fun readFloatNoFail(

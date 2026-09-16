@@ -90,7 +90,7 @@ class TagSplitter(
 		edges: List<L2PcOperand>
 	): List<L2SplitCondition?> = buildList {
 		addAll(super.interestingConditions(read, edges))
-		val sourceInstructionOfInt = read.definitionSkippingMoves(null)
+		val sourceInstructionOfInt = read.definitionSkippingMoves()
 		if (sourceInstructionOfInt is L2_EXTRACT_TAG_ORDINAL)
 		{
 			val originalSource = sourceInstructionOfInt.value

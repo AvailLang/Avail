@@ -170,7 +170,7 @@ class CallSiteHelper internal constructor(
 					}
 					else
 					{
-						translator.forceSlotRegister(
+						translator.forceSlotMove(
 							translator.stackp,
 							translator.pc - 1,
 							translator.getLatestReturnValue(
@@ -204,7 +204,7 @@ class CallSiteHelper internal constructor(
 					}
 					else
 					{
-						translator.forceSlotRegister(
+						translator.forceSlotMove(
 							translator.stackp,
 							translator.pc,
 							translator.getLatestReturnValue(
@@ -405,7 +405,7 @@ class CallSiteHelper internal constructor(
 			answerType.isSubtypeOf(expectedType) ->
 			{
 				// Capture it as the checked value L2SemanticSlot.
-				translator.forceSlotRegister(
+				translator.forceSlotMove(
 					translator.stackp, translator.pc, answerReg)
 				generator.jumpTo(
 					when (mightEndangerEscapedLocals)
@@ -418,7 +418,7 @@ class CallSiteHelper internal constructor(
 			{
 				// Capture it as the unchecked return value SemanticSlot by
 				// using pc - 1.
-				translator.forceSlotRegister(
+				translator.forceSlotMove(
 					translator.stackp, translator.pc - 1, answerReg)
 				generator.jumpTo(
 					when (mightEndangerEscapedLocals)

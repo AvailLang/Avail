@@ -60,6 +60,7 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
 
 /**
  * Extract the given "reference" edge's target level two offset as an [Int],
@@ -214,7 +215,7 @@ constructor(
 				else -> error("Expected value in at least one RegisterKind")
 			}
 			val newElidedVariable =
-				sourceKind.createRead(semanticValue, manifest)
+				manifest.read(semanticValue, sourceKind.cast())
 			elidedVariables.add(newElidedVariable)
 			newElidedVariable.adjustCloneForInstruction(this, generator)
 			elidedVariableIndices.add(postponedCreation.localIndex.value)
@@ -295,7 +296,7 @@ constructor(
 		uniqueGenerator: ()->Int)
 	{
 		assert(finalSavedBoxedRegisters.elements.isEmpty())
-		val boxedRegisters = reference.liveness!!.sometimesLiveInRegisters
+		val boxedRegisters = reference.liveness!!.registers
 			.filterIsInstance<L2BoxedRegister>()
 		if (boxedRegisters.isEmpty()) return
 		val reads = boxedRegisters.map { register ->

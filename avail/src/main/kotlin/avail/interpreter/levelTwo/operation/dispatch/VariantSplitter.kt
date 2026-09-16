@@ -42,7 +42,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2SplitCondition
@@ -94,7 +93,7 @@ class VariantSplitter(
 		edges: List<L2PcOperand>
 	): List<L2SplitCondition?> = buildList {
 		addAll(super.interestingConditions(read, edges))
-		val sourceInstructionOfInt = read.definitionSkippingMoves(null)
+		val sourceInstructionOfInt = read.definitionSkippingMoves()
 		val intVariantRegister = read.register()
 		edgeVariants.filterNotNull().forEach { variant ->
 			// Split if this variant id is a match upstream.

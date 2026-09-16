@@ -68,9 +68,7 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.manifest.L2ValueManifest.Representation
-import avail.optimizer.manifest.L2ValueManifest.Representation.Companion.emptyBoxedRepresentation
-import avail.optimizer.manifest.L2ValueManifest.Representation.Companion.emptyFloatRepresentation
-import avail.optimizer.manifest.L2ValueManifest.Representation.Companion.emptyIntRepresentation
+import avail.optimizer.manifest.L2ValueManifest.Representation.Companion.emptyRepresentation
 import avail.optimizer.manifest.L2ValueManifest.ValueState
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -136,20 +134,6 @@ constructor (
 		semanticValue: L2SemanticValue,
 		restriction: TypeRestriction,
 		register: L2Register<Self>? = null
-	): L2ReadOperand<Self>
-
-	/**
-	 * Synthesize an [L2ReadOperand] of the appropriately strengthened [Self]
-	 * kind of register.
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] being read.2
-	 * @param manifest
-	 *   The [L2ValueManifest] from which to extract the semantic value.
-	 */
-	abstract fun createRead(
-		semanticValue: L2SemanticValue,
-		manifest: L2ValueManifest
 	): L2ReadOperand<Self>
 
 	/**
@@ -224,7 +208,7 @@ constructor (
 	): L2_MOVE<Self>
 	{
 		return move(
-			createRead(source, manifest),
+			manifest.read(source, this.cast<RegisterKind<*>, Self>()),
 			createWrite(destinations, restriction))
 	}
 
@@ -262,21 +246,9 @@ constructor (
 	): L2_PHI<Self>
 
 	/**
-	 * The [Representation] that stands for a value not being held in a register
-	 * of this kind at all.
-	 *
-	 * Absence is a value rather than a `null`, so that asking a [ValueState]
-	 * what it knows about a kind always answers something usable.  It is a
-	 * getter rather than a stored property to keep this object's initialization
-	 * from depending on [Representation]'s, which depends on this object in
-	 * turn.
-	 */
-	abstract val emptyRepresentation: Representation<Self>
-
-	/**
 	 * Answer the given [ValueState]'s [Representation] for this kind, which is
-	 * [RegisterKind.emptyRepresentation] if the value is not held in a register
-	 * of this kind.
+	 * [emptyRepresentation] if the value is not held in a register of this
+	 * kind.
 	 *
 	 * A [ValueState] keeps a separate slot per kind, so reaching the right one
 	 * is a three-way choice.  Making it here rather than in the [ValueState]
@@ -319,6 +291,8 @@ constructor (
 	abstract fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 
+	override fun toString(): String = kindName
+
 	companion object
 	{
 		/** Don't modify this array. */
@@ -351,15 +325,6 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		restriction: TypeRestriction,
 		register: L2Register<BOXED_KIND>?
 	) = L2ReadBoxedOperand(semanticValue, restriction, register)
-
-	override fun createRead(
-		semanticValue: L2SemanticValue,
-		manifest: L2ValueManifest
-	): L2ReadBoxedOperand
-	{
-		val restriction = manifest.restrictionFor(semanticValue)
-		return L2ReadBoxedOperand(semanticValue, restriction)
-	}
 
 	override fun createWrite(
 		semanticValues: Set<L2SemanticValue>,
@@ -397,8 +362,6 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		destination: L2WriteOperand<BOXED_KIND>
 	) = L2_PHI_BOXED(sources.cast(), destination.cast())
 
-	override val emptyRepresentation get() = emptyBoxedRepresentation
-
 	override fun representationIn(
 		state: ValueState
 	): Representation<BOXED_KIND> = state.boxedRepresentation
@@ -412,8 +375,8 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		members,
 		restriction,
 		representation,
-		otherKinds?.intRepresentation ?: emptyIntRepresentation,
-		otherKinds?.floatRepresentation ?: emptyFloatRepresentation)
+		otherKinds?.intRepresentation ?: emptyRepresentation(),
+		otherKinds?.floatRepresentation ?: emptyRepresentation())
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -438,15 +401,6 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		restriction: TypeRestriction,
 		register: L2Register<INTEGER_KIND>?
 	) = L2ReadIntOperand(semanticValue, restriction, register)
-
-	override fun createRead(
-		semanticValue: L2SemanticValue,
-		manifest: L2ValueManifest
-	): L2ReadIntOperand
-	{
-		val restriction = manifest.restrictionFor(semanticValue)
-		return L2ReadIntOperand(semanticValue, restriction)
-	}
 
 	override fun createWrite(
 		semanticValues: Set<L2SemanticValue>,
@@ -487,8 +441,6 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		destination: L2WriteOperand<INTEGER_KIND>
 	) = L2_PHI_INT(sources.cast(), destination.cast())
 
-	override val emptyRepresentation get() = emptyIntRepresentation
-
 	override fun representationIn(
 		state: ValueState
 	): Representation<INTEGER_KIND> = state.intRepresentation
@@ -501,9 +453,9 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	) = ValueState(
 		members,
 		restriction,
-		otherKinds?.boxedRepresentation ?: emptyBoxedRepresentation,
+		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
 		representation,
-		otherKinds?.floatRepresentation ?: emptyFloatRepresentation)
+		otherKinds?.floatRepresentation ?: emptyRepresentation())
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -528,15 +480,6 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		restriction: TypeRestriction,
 		register: L2Register<FLOAT_KIND>?
 	) = L2ReadFloatOperand(semanticValue, restriction, register)
-
-	override fun createRead(
-		semanticValue: L2SemanticValue,
-		manifest: L2ValueManifest
-	): L2ReadFloatOperand
-	{
-		val restriction = manifest.restrictionFor(semanticValue)
-		return L2ReadFloatOperand(semanticValue, restriction)
-	}
 
 	override fun createWrite(
 		semanticValues: Set<L2SemanticValue>,
@@ -578,8 +521,6 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		destination: L2WriteOperand<FLOAT_KIND>
 	) = L2_PHI_FLOAT(sources.cast(), destination.cast())
 
-	override val emptyRepresentation get() = emptyFloatRepresentation
-
 	override fun representationIn(
 		state: ValueState
 	): Representation<FLOAT_KIND> = state.floatRepresentation
@@ -592,8 +533,8 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 	) = ValueState(
 		members,
 		restriction,
-		otherKinds?.boxedRepresentation ?: emptyBoxedRepresentation,
-		otherKinds?.intRepresentation ?: emptyIntRepresentation,
+		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
+		otherKinds?.intRepresentation ?: emptyRepresentation(),
 		representation)
 
 	override fun JVMTranslator.jvmLoadConstant(

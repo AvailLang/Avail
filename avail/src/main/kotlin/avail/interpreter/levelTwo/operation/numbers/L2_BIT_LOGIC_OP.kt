@@ -50,12 +50,11 @@ import avail.interpreter.JavaLibrary.intMinMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.BinaryOp
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.C
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Constant
@@ -148,7 +147,9 @@ constructor(
 				val folded = bitOperation.constant.folder(
 					constant1.extractInt,
 					constant2.extractInt)
-				+L2_MOVE_CONSTANT_INT(L2IntImmediateOperand(folded), output)
+				currentManifest.agglomerateSynonym(
+					output.semanticValues(),
+					restrictionForConstant(folded))
 				return
 			}
 		}
