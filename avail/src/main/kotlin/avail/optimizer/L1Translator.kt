@@ -212,7 +212,6 @@ import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
-import avail.utility.mapToSet
 import java.util.IdentityHashMap
 import java.util.logging.Level
 
@@ -857,7 +856,8 @@ class L1Translator private constructor(
 		+L2_JUMP_BACK(
 			backEdgeTo(
 				specialBlocks[RESTART_LOOP_HEAD]!!,
-				finalWrites.mapToSet { it.register() },
+				// Registers will be (re)generated from finalSlots reads.
+				emptySet(),
 				finalSlots.toSet()),
 			L2ReadBoxedVectorOperand(finalSlots.map(::readBoxed)))
 	}

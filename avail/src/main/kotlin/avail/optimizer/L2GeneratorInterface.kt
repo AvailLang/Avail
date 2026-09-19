@@ -349,7 +349,6 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @return
 	 *   The [L2ReadBoxedOperand] that retrieves the value.
 	 */
-	@Deprecated("")
 	fun boxedConstant(value: A_BasicObject): L2ReadBoxedOperand
 
 	/**
@@ -362,7 +361,6 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @return
 	 *   The [L2ReadIntOperand] that retrieves the value.
 	 */
-	@Deprecated("")
 	fun unboxedIntConstant(value: Int): L2ReadIntOperand
 
 	/**
@@ -375,7 +373,6 @@ interface L2GeneratorInterface : L2Visualizable
 	 * @return
 	 *   The [L2ReadFloatOperand] that retrieves the value.
 	 */
-	@Deprecated("")
 	fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 
 	/**
