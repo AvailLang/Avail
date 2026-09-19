@@ -36,6 +36,7 @@ import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.AvailRuntimeSupport.captureNanos
 import avail.annotations.DSLHelper
 import avail.compiler.PragmaKind
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.specialPrimitivePatterns
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Function
@@ -54,6 +55,7 @@ import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
@@ -287,9 +289,30 @@ constructor(
 		PRIMITIVE_RETURNER_TYPE_CHECKS,
 		"$simpleName (checking result)")
 
+	/**
+	 * The [Int] mask of the ways in which this primitive might be reading from
+	 * [HiddenVariable]s.
+	 */
 	val l2ReadInterferenceMask: Int
 
+	/**
+	 * The [Int] mask of the ways in which this primitive might be writing to
+	 * [HiddenVariable]s.
+	 */
 	val l2WriteInterferenceMask: Int
+
+	/**
+	 * A cached decision about whether this primitive is considered to have a
+	 * side-effect when used in an [L2_RUN_INFALLIBLE_PRIMITIVE].
+	 */
+	val l2HasSideEffect: Boolean =
+		(hasFlag(Flag.HasSideEffect)
+			|| hasFlag(Flag.CatchException)
+			|| hasFlag(Flag.Invokes)
+			|| hasFlag(Flag.CanSwitchContinuations)
+			|| hasFlag(Flag.ReadsFromHiddenGlobalState)
+			|| hasFlag(Flag.WritesToHiddenGlobalState)
+			|| hasFlag(Flag.Unknown))
 
 	init
 	{
@@ -331,7 +354,7 @@ constructor(
 		val writes = rw || hasFlag(Flag.WritesToHiddenGlobalState)
 		l2ReadInterferenceMask = when
 		{
-			reads -> HiddenVariable.GLOBAL_STATE.mask
+			reads -> GLOBAL_STATE.mask
 			else -> 0
 		}
 		var writeHidden = buildSet {

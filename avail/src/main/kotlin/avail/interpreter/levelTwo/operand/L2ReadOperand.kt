@@ -345,6 +345,12 @@ protected constructor(
 		{
 			sourceInstruction = manifest
 				.postponedInstructionFor(semanticValue, kind)
+			// Synchesize an instruction if the restriction is constant.
+			if (sourceInstruction == null && restriction.isConstant)
+			{
+				sourceInstruction = kind.moveConstant(
+					restriction.constantOrNull!!, emptyList())
+			}
 		}
 		if (sourceInstruction == null)
 		{

@@ -46,7 +46,6 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Primitive
-import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
@@ -102,15 +101,8 @@ private constructor(
 		get() = primitive.constant.l2WriteInterferenceMask
 
 	/** It depends on the primitive. */
-	override val hasSideEffect: Boolean = primitive.constant.run {
-		(hasFlag(Flag.HasSideEffect)
-			|| hasFlag(Flag.CatchException)
-			|| hasFlag(Flag.Invokes)
-			|| hasFlag(Flag.CanSwitchContinuations)
-			|| hasFlag(Flag.ReadsFromHiddenGlobalState)
-			|| hasFlag(Flag.WritesToHiddenGlobalState)
-			|| hasFlag(Flag.Unknown))
-	}
+	override val hasSideEffect: Boolean
+		get() = primitive.constant.l2HasSideEffect
 
 	/** Defer to the primitive. */
 	override fun mightMakeEscapedVariableShared(
