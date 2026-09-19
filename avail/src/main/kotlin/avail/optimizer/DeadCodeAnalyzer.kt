@@ -87,13 +87,6 @@ internal class DeadCodeAnalyzer constructor(
 					clamped.forEach(liveness::add)
 				}
 			}
-			if (dataCouplingMode.considersSemanticValues)
-			{
-				edge.forcedClampedSemanticValues?.let { clamped ->
-					if (liveness == null) liveness = L2Liveness()
-					clamped.forEach(liveness::add)
-				}
-			}
 			edge.liveness = liveness
 		}
 

@@ -32,7 +32,6 @@
 package avail.optimizer.values
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.TypeTag
@@ -120,14 +119,18 @@ protected constructor(
 
 	/**
 	 * This semantic value has just been bound to the given [ValueClass] in the
-	 * given [L2ValueManifest].  If it describes some *other* value – as a
-	 * [TypeTag] or an [ObjectLayoutVariant] id does – tell the manifest how the
-	 * two classes are related.
+	 * given [L2ValueManifest].  If it is computed *from* other values – as an
+	 * [L2SemanticPrimitiveInvocation] is from its arguments – tell the manifest,
+	 * so that narrowing one of those values can find its way here.
 	 *
-	 * Subclasses that are derived from another value override this and call the
-	 * manifest operation appropriate to the kind of derivation.  Deciding that
-	 * by type-testing the semantic value at the manifest end would put knowledge
-	 * of every subclass into the manifest; dispatching here keeps each semantic
+	 * The other direction needs no help: a value that names its own computation
+	 * already holds the values it reads, so narrowing this one can reach them
+	 * structurally.  Only the reverse, from an argument to the things computed
+	 * from it, needs an index, and this is what maintains it.
+	 *
+	 * Subclasses that read other values override this.  Deciding that by
+	 * type-testing the semantic value at the manifest end would put knowledge of
+	 * every subclass into the manifest; dispatching here keeps each semantic
 	 * value responsible for describing itself, and leaves the manifest holding
 	 * only the narrow operations it is asked to perform.
 	 *
@@ -136,12 +139,24 @@ protected constructor(
 	 * @param valueClass
 	 *   The [ValueClass] this semantic value was just bound to.
 	 */
-	open fun recordDerivationIn(
+	open fun recordUsesIn(
 		manifest: L2ValueManifest,
 		valueClass: ValueClass)
 	{
-		// By default a semantic value is not derived from anything.
+		// By default a semantic value is not computed from anything.
 	}
+
+	/**
+	 * Whether this semantic value names the [TypeTag] ordinal extracted from
+	 * some other value.
+	 *
+	 * Used where a tag has to be recognized as such – rendering a manifest, and
+	 * recovering the value a multi-way tag branch is dispatching on.  It is a
+	 * question about one particular primitive rather than about a class of
+	 * them, so it is answered by a test rather than by dispatching to
+	 * [Primitive].
+	 */
+	open val isExtractTag: Boolean get() = false
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with

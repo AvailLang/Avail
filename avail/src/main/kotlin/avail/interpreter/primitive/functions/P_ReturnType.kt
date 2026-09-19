@@ -66,6 +66,7 @@ object P_ReturnType : Primitive1(CannotFail, CanFold, CanInline)
 		functionType(tuple(functionMeta()), topMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type =
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type =
 			instanceMeta(argumentTypes[0].instance.returnType)
 }

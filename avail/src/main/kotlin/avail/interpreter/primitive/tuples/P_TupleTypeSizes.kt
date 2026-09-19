@@ -47,7 +47,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -113,16 +112,15 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 				result.semanticValues())
 			return
 		}
-		+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-			L2ConstantOperand(rawFunction),
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			rawFunction,
 			this@P_TupleTypeSizes,
 			arguments,
 			boxedWrite(result.semanticValues(), strongSizeRestriction))
 	}
 
 	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val tupleTypeRegister = readBoxedOperands[0].register()
 		addAll(

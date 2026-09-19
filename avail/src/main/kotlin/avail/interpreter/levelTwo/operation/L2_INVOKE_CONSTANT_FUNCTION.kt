@@ -57,9 +57,9 @@ import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.Strings.increaseIndentation
 
@@ -165,7 +165,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 				// to produce any interesting conditions that might make it
 				// entirely infalllible along some split paths.
 				return primitive.interestingSplitConditions(
-					arguments.elements, rawFunction)
+					arguments.elements)
 			}
 		}
 		return emptyList()
@@ -190,8 +190,8 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			{
 				val resultType = primitive.returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
-				+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-					L2ConstantOperand(rawFunction),
+				+L2_RUN_INFALLIBLE_PRIMITIVE(
+					rawFunction,
 					primitive,
 					arguments,
 					boxedWrite(

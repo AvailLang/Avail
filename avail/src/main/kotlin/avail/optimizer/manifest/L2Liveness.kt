@@ -34,8 +34,6 @@ package avail.optimizer.manifest
 
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph
-import avail.optimizer.L2Synonym.Companion.appendSemanticValues
-import avail.optimizer.values.L2SemanticValue
 
 /**
  * An [L2Liveness] tracks liveness information at one edge of the
@@ -68,17 +66,6 @@ class L2Liveness()
 			sometimesLiveInRegisters.addAll(it.alwaysLiveInRegisters)
 		}
 		sometimesLiveInRegisters.removeAll(alwaysLiveInRegisters)
-
-		successorLivenesses
-			.map(L2Liveness::alwaysLiveInSemanticValues)
-			.reduceOrNull(Set<L2SemanticValue>::intersect)
-			?.toCollection(alwaysLiveInSemanticValues)
-		successorLivenesses.forEach {
-			sometimesLiveInSemanticValues.addAll(
-				it.sometimesLiveInSemanticValues)
-			sometimesLiveInSemanticValues.addAll(it.alwaysLiveInSemanticValues)
-		}
-		sometimesLiveInSemanticValues.removeAll(alwaysLiveInSemanticValues)
 	}
 
 	/**
@@ -106,31 +93,6 @@ class L2Liveness()
 		get() = alwaysLiveInRegisters + sometimesLiveInRegisters
 
 	/**
-	 * The [Set] of every [L2SemanticValue] that is written in all pasts, and is
-	 * consumed along all future paths after the start of this block.
-	 *
-	 * This should be disjoint from [sometimesLiveInSemanticValues].
-	 */
-	val alwaysLiveInSemanticValues: Set<L2SemanticValue>
-		field = mutableSetOf()
-
-	/**
-	 * The [Set] of every [L2SemanticValue] that is written in all pasts, and is
-	 * consumed along *some but not all* future paths.
-	 *
-	 * This should be disjoint from [alwaysLiveInSemanticValues].
-	 */
-	val sometimesLiveInSemanticValues: Set<L2SemanticValue>
-		field = mutableSetOf()
-
-	/**
-	 * An immutable set containing the always-in-and sometimes-in semontic
-	 * values.
-	 */
-	val semanticvalues: Set<L2SemanticValue>
-		get() = alwaysLiveInSemanticValues + sometimesLiveInSemanticValues
-
-	/**
 	 * Answer `true` if this contains no live registers or semantic values,
 	 * otherwise `false`.
 	 *
@@ -141,26 +103,17 @@ class L2Liveness()
 	fun isEmpty(): Boolean =
 		sometimesLiveInRegisters.isEmpty()
 			&& alwaysLiveInRegisters.isEmpty()
-			&& sometimesLiveInSemanticValues.isEmpty()
-			&& alwaysLiveInSemanticValues.isEmpty()
 
 	/**
 	 * Produce a very brief summary of my content.
 	 */
 	fun shortSummary(): String
 	{
-		val regs = registers.joinToString("&")
-		val values = buildString {
-			appendSemanticValues(
-				semanticvalues,
-				canWrap = false)
-		}
+		val regs = registers
 		return when
 		{
-			regs.isEmpty() && values.isEmpty() -> "(nothing live)"
-			regs.isEmpty() -> values
-			values.isEmpty() -> regs
-			else -> "$regs + $values"
+			regs.isEmpty() -> "(nothing live)"
+			else -> regs.joinToString("&")
 		}
 	}
 
@@ -175,30 +128,11 @@ class L2Liveness()
 	}
 
 	/**
-	 * Add the semantic value as always-live, ensuring it's also removed from
-	 * the sometimes-live.
-	 */
-	fun add(value: L2SemanticValue)
-	{
-		alwaysLiveInSemanticValues.add(value)
-		sometimesLiveInSemanticValues.remove(value)
-	}
-
-	/**
 	 * Remove the register from always-live or sometimes-live if present.
 	 */
 	fun remove(register: L2Register<*>)
 	{
 		alwaysLiveInRegisters.remove(register)
 		sometimesLiveInRegisters.remove(register)
-	}
-
-	/**
-	 * Remove the semantic values from always-live or sometimes-live if present.
-	 */
-	fun removeAll(values: Iterable<L2SemanticValue>)
-	{
-		alwaysLiveInSemanticValues.removeAll(values)
-		sometimesLiveInSemanticValues.removeAll(values)
 	}
 }

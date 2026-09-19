@@ -122,7 +122,6 @@ import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -3022,9 +3021,8 @@ class SimpleOptimizerTest
 		manifest.introduceSynonym(setOf(argA), wide)
 		manifest.introduceSynonym(setOf(argB), wide)
 
-		val instruction = L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-			L2ConstantOperand(
-				helper.createDummyRawFunction(returnType = NUMBER())),
+		val instruction = L2_RUN_INFALLIBLE_PRIMITIVE(
+			helper.createDummyRawFunction(returnType = NUMBER()),
 			P_Addition,
 			L2ReadBoxedVectorOperand(
 				listOf(

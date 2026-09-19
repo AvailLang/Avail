@@ -287,8 +287,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 		})
 
 	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (aRead, bRead) = readBoxedOperands
 		if (!aRead.restriction().intersectsType(i31)) return emptyList()

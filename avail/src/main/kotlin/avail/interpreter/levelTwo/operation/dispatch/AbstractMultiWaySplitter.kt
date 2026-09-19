@@ -52,7 +52,7 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticExtractedTag
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.utility.cast
 
 /**
@@ -261,8 +261,9 @@ constructor(
 	): L2SemanticValue?
 	{
 		val tagValue = readInt.semanticValue()
-		if (tagValue !is L2SemanticExtractedTag) return null
-		return tagValue.base.cast()
+		if (!tagValue.isExtractTag) return null
+		return (tagValue as L2SemanticPrimitiveInvocation)
+			.argumentSemanticValues[0]
 	}
 
 	/** Provide meaningful names for the target blocks of a branch. */

@@ -86,8 +86,7 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 	}
 
 	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		readBoxedOperands.forEach { read ->
 			addAll(

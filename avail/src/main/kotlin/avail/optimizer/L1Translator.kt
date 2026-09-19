@@ -1289,8 +1289,8 @@ class L1Translator private constructor(
 						primitive.semanticInvocation(
 							arguments.map(L2ReadBoxedOperand::semanticValue)),
 						restrictionForType(resultType))
-					val invoke = L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-						L2ConstantOperand(rawFunction),
+					val invoke = L2_RUN_INFALLIBLE_PRIMITIVE(
+						rawFunction,
 						primitive,
 						L2ReadBoxedVectorOperand(arguments),
 						writer)

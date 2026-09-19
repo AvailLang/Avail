@@ -84,6 +84,13 @@ object P_TupleTypeAt : Primitive2(CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (tupleMeta, indexType) = argumentTypes
+		// The optimizer can ask this about a call site whose argument it has
+		// lost track of, or narrowed to ⊥, in which case there is no instance to
+		// ask for and nothing better to say than the declared return type.
+		if (!tupleMeta.isInstanceMeta)
+		{
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		}
 		val tupleType = tupleMeta.instance
 		val minIndex = indexType.lowerBound
 		val maxIndex = indexType.upperBound

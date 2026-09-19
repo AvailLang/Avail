@@ -57,7 +57,7 @@ import avail.optimizer.values.L2SemanticValue
  * with the rest of a manifest's state when a manifest is cloned or inherited.
  * They are meaningless across unrelated manifests, and since a `ValueClass`
  * never escapes the manifest that made it – the only operation that passes one
- * outward, [L2SemanticValue.recordDerivationIn], hands it straight back – there
+ * outward, [L2SemanticValue.recordUsesIn], hands it straight back – there
  * is nothing to be gained from numbering them globally, and a shared atomic
  * counter to be avoided.
  *

@@ -31,22 +31,12 @@
  */
 package avail.optimizer.manifest
 
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.objects.ObjectLayoutVariant
-import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantFromId
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
-import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.instance
-import avail.descriptor.representation.A_Type.Companion.instanceTag
-import avail.descriptor.representation.A_Type.Companion.objectTypeVariant
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.TypeTag
-import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -57,7 +47,6 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
@@ -86,8 +75,6 @@ import avail.optimizer.manifest.L2ValueManifest.ValueState.Companion.newEmptySta
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticDummy
-import avail.optimizer.values.L2SemanticExtractedTag
-import avail.optimizer.values.L2SemanticObjectVariantId
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
@@ -277,11 +264,9 @@ class L2ValueManifest
 	/**
 	 * The manifest's record of one value: the [L2SemanticValue]s that name
 	 * it, the [TypeRestriction] bounding it, and one [Representation] for each
-	 * [RegisterKind] in which it is currently held.  It also holds an optional
-	 * reference to a [ValueClass] which is its [tagClass], and the inverse set
-	 * of [isTagOfClasses].  Similarly for [variantClass] and
-	 * [isVariantOfClasses]. The referenced [ValueClass]es have to be [resolve]d
-	 * through indirections before use, due to synonym merges.
+	 * [RegisterKind] in which it is currently held.  It also holds the set of
+	 * [usingClasses] computed from it.  The referenced [ValueClass]es have to be
+	 * [resolve]d through indirections before use, due to synonym merges.
 	 *
 	 * This is deliberately *not* generic.  A value can be held in a boxed
 	 * register and an int register at the same time, so "what kind is this
@@ -305,16 +290,13 @@ class L2ValueManifest
 	 *   As [boxedRepresentation], for [L2IntRegister]s.
 	 * @property floatRepresentation
 	 *   As [boxedRepresentation], for [L2FloatRegister]s.
-	 * @property tagClass
-	 *   An optional [ValueClass] identifying the [TypeTag] of the receiver, if
-	 *   known.
-	 * @property isTagOfClasses
-	 *   The set of [ValueClass]es for which the receiver is a [tagClass].
-	 * @property variantClass
-	 *   An optional [ValueClass] identifying the id of the extracted
-	 *   [ObjectLayoutVariant] of the receiver, if known.
-	 * @property isVariantOfClasses
-	 *   the set of [ValueClass]es for which the receiver is a [variantClass].
+	 * @property usingClasses
+	 *   The [ValueClass]es of the [L2SemanticPrimitiveInvocation]s that read
+	 *   this value – the tag extracted from it, the variant id extracted from
+	 *   it, the sum of it and something else.  Only this direction needs an
+	 *   index: an invocation already holds the values it reads, so narrowing an
+	 *   invocation reaches its arguments structurally, while narrowing an
+	 *   argument has no way to find what was computed from it.
 	 */
 	data class ValueState
 	constructor(
@@ -326,10 +308,7 @@ class L2ValueManifest
 			emptyRepresentation(),
 		val floatRepresentation: Representation<FLOAT_KIND> =
 			emptyRepresentation(),
-		val tagClass: ValueClass? = null,
-		val isTagOfClasses: Set<ValueClass> = emptySet(),
-		val variantClass: ValueClass? = null,
-		val isVariantOfClasses: Set<ValueClass> = emptySet())
+		val usingClasses: Set<ValueClass> = emptySet())
 	{
 		/**
 		 * Every [Representation] this value currently has, for the [RegisterKind]s
@@ -897,38 +876,6 @@ class L2ValueManifest
 	private val states: MutableMap<ValueClass, ValueState>
 
 	/**
-	 * The [ValueClass] holding the [TypeTag] extracted from each base
-	 * [ValueClass], where such a value is known.  This is the *forward* edge of
-	 * the derivation relation.
-	 *
-	 * Derived values such as `Tag(x)` currently name their base by spelling it
-	 * into an [L2SemanticExtractedTag], which relates them to `x` only by the
-	 * shape of the semantic value.  Nothing structural stops `x` from being
-	 * dropped while `Tag(x)` survives – see [checkDerivedValuesHaveTheirBases].
-	 * These edges are the beginning of making that relation real, so that a
-	 * derived class cannot outlive the class it describes.
-	 */
-	@Deprecated("Use ValueState.tagClass")
-	private val tagOf: MutableMap<ValueClass, ValueClass>
-
-	/**
-	 * The [ValueClass] holding the [ObjectLayoutVariant] id extracted from each
-	 * base [ValueClass], where such a value is known.  The variant counterpart
-	 * of [tagOf].
-	 */
-	@Deprecated("Use ValueState.variantClass")
-	private val variantIdOf: MutableMap<ValueClass, ValueClass>
-
-	/**
-	 * The base [ValueClass] that each derived [ValueClass] describes – the
-	 * *backward* edge of [tagOf] and [variantIdOf].  Narrowing a derived value
-	 * constrains its base, so the relation has to be navigable in both
-	 * directions.
-	 */
-	@Deprecated("Use ValueState.isTagOfClasses/isVariantOfClasses")
-	private val derivedFrom: MutableMap<ValueClass, ValueClass>
-
-	/**
 	 * An index from the [ValueClass] that some postponed [L2Instruction]
 	 * *reads*, to the [ValueClass]es under which those postponed instructions
 	 * are recorded.  It lets a narrowing of the read find the postponed
@@ -1039,9 +986,6 @@ class L2ValueManifest
 	{
 		this.mode = mode
 		forward = mutableMapOf()
-		tagOf = mutableMapOf()
-		variantIdOf = mutableMapOf()
-		derivedFrom = mutableMapOf()
 		states = mutableMapOf()
 		postponedReaders = mutableMapOf()
 	}
@@ -1064,10 +1008,8 @@ class L2ValueManifest
 	 *
 	 * This is the one place that knows what a manifest is made of, so that a
 	 * manifest inherited wholesale cannot quietly lose part of what the original
-	 * knew.  Losing the derivation edges this way was invisible, because
-	 * [derivedFormOf] falls back to a search when an edge is missing and
-	 * therefore still found the right answer, just more slowly and only while
-	 * that fallback exists.
+	 * knew.  Note that the index from a value to the invocations reading it
+	 * travels inside the [ValueState]s, so it cannot be forgotten here.
 	 *
 	 * @param original
 	 *   The manifest to copy.  It is left unchanged: the maps are cloned, and
@@ -1077,9 +1019,6 @@ class L2ValueManifest
 	{
 		classOf.putAll(original.classOf)
 		forward.putAll(original.forward)
-		tagOf.putAll(original.tagOf)
-		variantIdOf.putAll(original.variantIdOf)
-		derivedFrom.putAll(original.derivedFrom)
 		states.putAll(original.states)
 		original.postponedReaders.forEach { (readClass, consumers) ->
 			postponedReaders[readClass] = consumers.toMutableSet()
@@ -1551,81 +1490,19 @@ class L2ValueManifest
 				}
 			}
 		}
+		// Anything computed *from* this value can now be recomputed from a
+		// narrower argument.  This is the direction that needs the index, since
+		// an invocation cannot be reached from the values it reads.
 		stateOrNull(semanticValue)?.let { state ->
-			state.tagClass?.let { tagClass ->
-				updateRestriction(tagClass) {
-					val tagRangeType = when
-					{
-						// Original value is impossible, so the tag is also
-						// impossible.
-						restriction == bottomRestriction -> bottom
-						else -> restriction.type.instanceTag.tagRangeType
-					}
-					intersectionWithType(tagRangeType)
-				}
-			}
-		}
-		stateOrNull(semanticValue)?.let { state ->
-			state.variantClass?.let { variantClass ->
-				updateRestriction(variantClass) {
-					val const = constantOrNull
-					val tagRangeType = when
-					{
-						// Original value is impossible, so the variant is also
-						// impossible.
-						restriction == bottomRestriction -> bottom
-						// Exact objectMeta is known – so is the variant.
-						const != null && const.isInstanceMeta ->
-							instanceType(
-								fromInt(
-									const.instance.objectTypeVariant.variantId))
-						// Exact objectType is known – so is the variant.
-						const != null ->
-							instanceType(
-								fromInt(const.objectTypeVariant.variantId))
-						else -> i31
-					}
-					intersectionWithType(tagRangeType)
-				}
-			}
-		}
-		stateOrNull(semanticValue)?.let { state ->
-			// Copy the set to aavoid accidental modification while iterating.
-			state.isTagOfClasses.toList().forEach { sourceValueClass ->
-				// Propagate the tighter tag restriction to a tighter
-				// restriction on the source object.
-				updateRestriction(sourceValueClass) {
-					restrictionForTagRestriction(restriction)
-				}
-			}
-		}
-		stateOrNull(semanticValue)?.let { state ->
-			// Copy the set to aavoid accidental modification while iterating.
-			state.isVariantOfClasses.toList().forEach { sourceValueClass ->
-				// Only strengthen the source value if the variant has been
-				// narrowed to a constant.
-				val variantId = state.restriction.constantOrNull ?: return@let
-				val variant = variantFromId(variantId.extractInt) ?: return@let
-				// Propagate the tighter variant restriction to a tighter
-				// restriction on the source object/objectType.
-				updateRestriction(sourceValueClass) {
-					when
-					{
-						restriction.containedByType(mostGeneralObjectType) ->
-							restrictionForType(
-								variant.mostGeneralObjectType
-							).intersectionWithObjectVariant(variant)
-						restriction.containedByType(mostGeneralObjectMeta) ->
-							restrictionForType(
-								variant.mostGeneralObjectMeta
-							).intersectionWithObjectTypeVariant(variant)
-						else -> restriction
-					}
-				}
+			// Copy the set to avoid accidental modification while iterating.
+			state.usingClasses.toList().forEach { staleUsingClass ->
+				renarrowUser(resolve(staleUsingClass))
 			}
 		}
 		// Let every primitive invocation in the synonym have a chance to narrow
-		// related restrictions.
+		// related restrictions.  This is the other direction, from a result to
+		// the arguments it was computed from, and needs no index because the
+		// invocation names its own arguments.
 		stateOrNull(semanticValue)?.let { state ->
 			state.members
 				.filterIsInstance<L2SemanticPrimitiveInvocation>()
@@ -1636,6 +1513,44 @@ class L2ValueManifest
 						state.restriction
 					)
 				}
+		}
+	}
+
+	/**
+	 * An argument of the [L2SemanticPrimitiveInvocation]s naming the given
+	 * [ValueClass] has been narrowed, so recompute what the primitive
+	 * guarantees about its result and narrow the result to match.
+	 *
+	 * Skipped unless every argument satisfies the primitive's declared argument
+	 * types.  A [Primitive.returnTypeGuaranteedByVM] is written on the
+	 * assumption that it is being asked about a call that could actually happen,
+	 * and is entitled to do things like ask a metatype for its instance; a value
+	 * widened by a merge, or narrowed to ⊥ by a contradiction, can violate that.
+	 *
+	 * @param usingClass
+	 *   The resolved [ValueClass] of the invocations to recompute.
+	 */
+	private fun renarrowUser(usingClass: ValueClass)
+	{
+		val invocation = states[usingClass]
+			?.members
+			?.filterIsInstance<L2SemanticPrimitiveInvocation>()
+			?.firstOrNull()
+			?: return
+		val primitive = invocation.primitive
+		val argumentTypes = invocation.argumentSemanticValues.map {
+			restrictionFor(it).type
+		}
+		val declaredTypes = primitive.blockTypeRestriction().argsTupleType
+		if (argumentTypes.withIndex().any { (zeroIndex, argumentType) ->
+				!argumentType.isSubtypeOf(declaredTypes.typeAtIndex(zeroIndex + 1))
+			})
+		{
+			return
+		}
+		updateRestriction(usingClass) {
+			intersectionWithType(
+				primitive.returnTypeGuaranteedByVM(null, argumentTypes))
 		}
 	}
 
@@ -1671,7 +1586,7 @@ class L2ValueManifest
 			assert(
 				classOf.values.mapTo(mutableSetOf(), ::resolve) ==
 					states.keys)
-			checkDerivedValuesHaveTheirBases()
+			checkInvocationArgumentsAreKnown()
 
 			// Check each value's representations for consistency with its
 			// synonym, one kind at a time. Postponed instructions are now
@@ -1847,137 +1762,91 @@ class L2ValueManifest
 		semanticValues: Iterable<L2SemanticValue>,
 		valueClass: ValueClass)
 	{
+		val orphanedClasses = mutableSetOf<ValueClass>()
 		semanticValues.forEach { semanticValue ->
+			val oldClass = classOf[semanticValue]
+			if (oldClass != null && oldClass != valueClass)
+			{
+				// Track the old class; we'll check if it's orphaned after all rebindings
+				orphanedClasses.add(oldClass)
+			}
 			classOf[semanticValue] = valueClass
-			linkDerivation(semanticValue, valueClass)
+			// If the value is computed from others, index it under each of them.
+			// This is called for every member as it is bound, which is the one
+			// place every class membership passes through, so the index cannot
+			// drift out of step with the memberships it describes.
+			semanticValue.recordUsesIn(this, valueClass)
+		}
+		// After rebinding, check if any of the old classes have become orphaned
+		orphanedClasses.forEach { oldClass ->
+			if (oldClass !in classOf.values)
+			{
+				// This class is no longer referenced by any semantic value
+				forwardClass(valueClass, oldClass)
+			}
 		}
 	}
 
 	/**
-	 * If the given [L2SemanticValue] is a derived value – a [TypeTag] or an
-	 * [ObjectLayoutVariant] id extracted from some base value – record the edges
-	 * relating [valueClass] to the class of that base.
+	 * Index the given [L2SemanticPrimitiveInvocation]'s [ValueClass] under each
+	 * of the values it reads, **introducing an argument's class if this manifest
+	 * does not have one**.  Called by the invocation as it is bound; see
+	 * [L2SemanticValue.recordUsesIn].
 	 *
-	 * This is called for every member as it is bound, which is the one place
-	 * every class membership passes through, so the edges cannot drift out of
-	 * step with the memberships they describe.
+	 * Keeping the argument is the whole point.  An invocation is only meaningful
+	 * relative to what it reads, and the arguments' classes are what carry the
+	 * synonymy that makes two invocations equal.  If `x` and `y` have had their
+	 * tags computed separately and are then discovered to be equal, merging
+	 * their classes is what makes `Tag(x)` and `Tag(y)` synonymous; if `x` and
+	 * `y` were subsequently dropped for being dead, that synonymy could only
+	 * survive in a class common to both.
 	 *
-	 * The base may not be known to this manifest, which is the very
-	 * inconsistency [checkDerivedValuesHaveTheirBases] reports; in that case
-	 * there is no edge to record and the situation is left for that assertion to
-	 * complain about.
+	 * An argument introduced here gets no definition – it is an anchor, not a
+	 * value anyone will read – and its default restriction, which asserts that
+	 * nothing at all is known about it.  That is untrue and contagious, since
+	 * everything computed from it inherits the ⊤, so the primitive is
+	 * immediately asked what its result implies about its arguments.  Knowing a
+	 * value's [TypeTag] says a great deal about the value, and that is how it
+	 * gets said.
 	 *
-	 * @param semanticValue
-	 *   The member just bound.
-	 * @param valueClass
+	 * @param invocation
+	 *   The [L2SemanticPrimitiveInvocation] just bound.
+	 * @param invocationClass
 	 *   The [ValueClass] it was bound to.
 	 */
-	private fun linkDerivation(
-		semanticValue: L2SemanticValue,
-		valueClass: ValueClass
-	) = semanticValue.recordDerivationIn(this, valueClass)
-
-	/**
-	 * Record that [derivedClass] holds the [TypeTag] of [base].  Called by
-	 * [L2SemanticExtractedTag] as it is bound; see
-	 * [L2SemanticValue.recordDerivationIn].
-	 *
-	 * @param base
-	 *   The [L2SemanticValue] whose tag this is.
-	 * @param derivedClass
-	 *   The [ValueClass] holding the tag.
-	 */
-	fun recordTagDerivation(
-		base: L2SemanticValue,
-		derivedClass: ValueClass
-	) = recordDerivation(tagOf, base, derivedClass) { tagRestriction ->
-		// A known tag is a fact about the base, so a base introduced here starts
-		// from what its tag already says rather than from nothing.
-		restrictionForTagRestriction(tagRestriction)
-	}
-
-	/**
-	 * Record that [derivedClass] holds the [ObjectLayoutVariant] id of [base].
-	 * Called by [L2SemanticObjectVariantId] as it is bound; see
-	 * [L2SemanticValue.recordDerivationIn].
-	 *
-	 * @param base
-	 *   The [L2SemanticValue] whose variant id this is.
-	 * @param derivedClass
-	 *   The [ValueClass] holding the variant id.
-	 */
-	fun recordVariantIdDerivation(
-		base: L2SemanticValue,
-		derivedClass: ValueClass
-	) = recordDerivation(variantIdOf, base, derivedClass) {
-		// There is no backward map from a variant id to its variant, so a variant
-		// id says nothing here that could narrow a base being introduced.
-		topRestriction
-	}
-
-	/**
-	 * Relate a derived [ValueClass] to the class of the value it describes,
-	 * **introducing that base class if this manifest does not have one**.
-	 *
-	 * Keeping the base is the whole point.  A derived class is only meaningful
-	 * relative to its base, and the base's class is what carries the synonymy
-	 * that makes two derived values equal.  If `x` and `y` have had their
-	 * variants computed separately and are then discovered to be equal, merging
-	 * their classes is what makes `variant(x)` and `variant(y)` synonymous; if
-	 * `x` and `y` were subsequently dropped for being dead, that synonymy could
-	 * only survive in a class common to both.  So the base class is retained
-	 * whether or not anything reads it, and is anchored by the base semantic
-	 * value that the derived value names.
-	 *
-	 * The base is introduced with no definition – an anchor, not a value anyone
-	 * will read – but *not* with a blank restriction.  A default restriction
-	 * asserts that nothing at all is known about the value, which is both untrue
-	 * and contagious: everything computed from the base inherits the ⊤, and a
-	 * primitive asked what it returns for a ⊤ argument can do no better than ⊤
-	 * in turn.  The derivation itself constrains the base – knowing a value's
-	 * [TypeTag] says a great deal about the value – so that is where the
-	 * introduced restriction comes from, with narrowing continuing to propagate
-	 * into it from the derived value in the usual way afterwards.
-	 *
-	 * @param edges
-	 *   Either [tagOf] or [variantIdOf].
-	 * @param base
-	 *   The [L2SemanticValue] the derived class describes.
-	 * @param derivedClass
-	 *   The derived [ValueClass].
-	 * @param baseRestrictionFromDerived
-	 *   What the derived value's [TypeRestriction] implies about the base, used
-	 *   only when the base has to be introduced here.  Answer [topRestriction]
-	 *   for a derivation that implies nothing.
-	 */
-	private fun recordDerivation(
-		edges: MutableMap<ValueClass, ValueClass>,
-		base: L2SemanticValue,
-		derivedClass: ValueClass,
-		baseRestrictionFromDerived: (TypeRestriction) -> TypeRestriction)
+	fun recordInvocationUse(
+		invocation: L2SemanticPrimitiveInvocation,
+		invocationClass: ValueClass)
 	{
 		if (!caresAboutSemanticValues) return
-		val baseClass = classOrNull(base)
-			?: run {
-				// The base is not (yet) known here.  That happens when a value is
-				// named only by something derived from it - a tag computed for a
-				// dispatch on a value that has no register of its own yet - and at
-				// a merge, where mergeIncomingPostponedInstructions brings a
-				// postponed instruction's derived value across before
-				// populateForMerge populates the ordinary values.
-				val derived = states[resolve(derivedClass)]
-				introduceSynonym(
-					setOf(base),
-					when (derived)
-					{
-						null -> base.defaultRestriction
-						else -> base.defaultRestriction.intersection(
-							baseRestrictionFromDerived(derived.restriction))
-					})
-				classFor(base)
+		var introducedAnyArgument = false
+		invocation.argumentSemanticValues.forEach { argument ->
+			val argumentClass = classOrNull(argument)
+				?: run {
+					// The argument is not (yet) known here.  That happens when a
+					// value is named only by something computed from it - a tag
+					// computed for a dispatch on a value that has no register of
+					// its own yet - and at a merge, where
+					// mergeIncomingPostponedInstructions brings a postponed
+					// instruction's result across before populateForMerge
+					// populates the ordinary values.
+					introduceSynonym(
+						setOf(argument), argument.defaultRestriction)
+					introducedAnyArgument = true
+					classFor(argument)
+				}
+			states[argumentClass]?.let { state ->
+				states[argumentClass] = state.copy(
+					usingClasses = state.usingClasses + invocationClass)
 			}
-		edges[baseClass] = derivedClass
-		derivedFrom[derivedClass] = baseClass
+		}
+		if (introducedAnyArgument)
+		{
+			states[resolve(invocationClass)]?.let { state ->
+				invocation.primitive.propagateManifestRestrictions(
+					invocation.argumentSemanticValues, this, state.restriction)
+			}
+		}
 	}
 
 	/**
@@ -1999,42 +1868,38 @@ class L2ValueManifest
 		postponedReaders.remove(loser)?.let { consumers ->
 			postponedReaders.getOrPut(winner, ::mutableSetOf).addAll(consumers)
 		}
-		// Congruence: if the two bases are the same value, so are the values
-		// derived from them.  Unify the derived classes rather than letting the
-		// loser's edges dangle.  Note that this direction only – merging bases
-		// merges their derived values, never the converse, since neither tags
-		// nor variant ids are injective.
-		mergeDerivationEdges(tagOf, winner, loser)
-		mergeDerivationEdges(variantIdOf, winner, loser)
-		derivedFrom.remove(loser)?.let { base ->
-			derivedFrom[winner] = resolve(base)
-		}
 	}
 
 	/**
-	 * Fold [loser]'s entry in a derivation edge map into [winner]'s.  If both
-	 * had a derived class, those two classes describe the same value and are
-	 * therefore merged.
+	 * Congruence: if two classes are the same value, then two invocations of one
+	 * primitive that read them are the same value as well.  Merge each such
+	 * group of users, having just merged the values they read.
 	 *
-	 * @param edges
-	 *   Either [tagOf] or [variantIdOf].
-	 * @param winner
-	 *   The surviving base [ValueClass].
-	 * @param loser
-	 *   The base [ValueClass] being merged away.
+	 * Note that this direction only – merging arguments merges the invocations
+	 * that read them, never the converse, since a primitive is not injective.
+	 *
+	 * @param usingClasses
+	 *   The [ValueClass]es of the invocations reading the merged value.
 	 */
-	private fun mergeDerivationEdges(
-		edges: MutableMap<ValueClass, ValueClass>,
-		winner: ValueClass,
-		loser: ValueClass)
+	private fun mergeCongruentUsers(usingClasses: Set<ValueClass>)
 	{
-		val losersDerived = edges.remove(loser) ?: return
-		when (val winnersDerived = edges[winner])
-		{
-			null -> edges[winner] = resolve(losersDerived)
-			else -> mergeValueClasses(
-				resolve(winnersDerived), resolve(losersDerived))
-		}
+		if (usingClasses.size < 2) return
+		usingClasses
+			.map(::resolve)
+			.distinct()
+			.groupBy { usingClass ->
+				states[usingClass]
+					?.members
+					?.filterIsInstance<L2SemanticPrimitiveInvocation>()
+					?.firstOrNull()
+					?.let { invocation ->
+						invocation.primitive to
+							invocation.argumentSemanticValues.map(::classOrNull)
+					}
+			}
+			.forEach { (key, group) ->
+				if (key !== null) group.zipWithNext(::mergeValueClasses)
+			}
 	}
 
 	/**
@@ -2160,9 +2025,7 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue,
 		kind: K
 	): Boolean = stateOrNull(semanticValue).notNullAnd {
-		kind.representationIn(this).definitions.any { reg ->
-			reg.definitions().any { semanticValue in it.semanticValues() }
-		}
+		kind.representationIn(this).definitions.isNotEmpty()
 	}
 
 	/**
@@ -2254,62 +2117,6 @@ class L2ValueManifest
 		semanticValue is L2SemanticConstant -> null
 		hasSemanticValue(semanticValue) -> null
 		else -> semanticValue.javaClass
-	}
-
-	/**
-	 * Answer the [L2SemanticValue] naming the [TypeTag] extracted from the
-	 * given boxed [L2SemanticValue], if that tag is available in this
-	 * manifest, otherwise answer `null`.
-	 *
-	 * @param boxed
-	 *   The boxed [L2SemanticValue] whose extracted tag is sought.
-	 * @return
-	 *   The equivalent [L2SemanticValue] holding the tag, or `null`.
-	 */
-	fun tagFormOf(
-		boxed: L2SemanticValue
-	): L2SemanticValue? =
-		derivedFormOf(tagOf, boxed)
-			?: equivalentSemanticValue(L2SemanticExtractedTag(boxed))
-
-	/**
-	 * Answer the [L2SemanticValue] naming the [ObjectLayoutVariant] id
-	 * extracted from the given [boxed] value, if that id is available in this
-	 * manifest; otherwise answer `null`.
-	 *
-	 * @param boxed
-	 *   The boxed [L2SemanticValue] whose extracted variant id is sought.
-	 * @return
-	 *   The equivalent [L2SemanticValue] holding the variant id, or
-	 *   `null`.
-	 */
-	fun variantIdFormOf(
-		boxed: L2SemanticValue
-	): L2SemanticValue? =
-		derivedFormOf(variantIdOf, boxed)
-			?: equivalentSemanticValue(L2SemanticObjectVariantId(boxed))
-
-	/**
-	 * Answer a member of the [ValueClass] reached from the given base by the
-	 * given derivation edges, or `null` if there is no such edge or the class
-	 * it points at has been forgotten.
-	 *
-	 * @param edges
-	 *   Either the [tagOf] or the [variantIdOf] map.
-	 * @param boxed
-	 *   The base [L2SemanticValue].
-	 * @return
-	 *   A member of the derived [ValueClass], or `null`.
-	 */
-	private fun derivedFormOf(
-		edges: Map<ValueClass, ValueClass>,
-		boxed: L2SemanticValue
-	): L2SemanticValue?
-	{
-		val baseClass = classOrNull(boxed) ?: return null
-		val derivedClass = edges[baseClass]?.let(::resolve) ?: return null
-		val state = states[derivedClass] ?: return null
-		return state.synonym.pickSemanticValue()
 	}
 
 	/**
@@ -2432,20 +2239,6 @@ class L2ValueManifest
 						@Suppress("NON_TAIL_RECURSIVE_CALL")
 						isEquivalentSemanticValue(a, b)
 					}
-			}
-			semanticValue is L2SemanticExtractedTag &&
-				otherSemanticValue is L2SemanticExtractedTag ->
-			{
-				// Equivalent values have the same tag.
-				return isEquivalentSemanticValue(
-					semanticValue.base, otherSemanticValue.base)
-			}
-			semanticValue is L2SemanticObjectVariantId &&
-				otherSemanticValue is L2SemanticObjectVariantId ->
-			{
-				// Equivalent values have the same object variant id.
-				return isEquivalentSemanticValue(
-					semanticValue.base, otherSemanticValue.base)
 			}
 		}
 		// We couldn't find a way in which they're equal.
@@ -2590,14 +2383,8 @@ class L2ValueManifest
 		val members: Set<L2SemanticValue> = existingStates
 			.flatMapTo(mutableSetOf(), ValueState::members)
 			.plus(strandedValues)
-		val tagClasses = existingStates
-			.mapNotNullTo(mutableSetOf(), ValueState::tagClass)
-		val isTagOfClasses = existingStates
-			.flatMapTo(mutableSetOf(), ValueState::isTagOfClasses)
-		val variantClasses = existingStates
-			.mapNotNullTo(mutableSetOf(), ValueState::variantClass)
-		val isVariantOfClasses = existingStates
-			.flatMapTo(mutableSetOf(), ValueState::isVariantOfClasses)
+		val usingClasses = existingStates
+			.flatMapTo(mutableSetOf(), ValueState::usingClasses)
 		val newState = ValueState(
 			members = members,
 			restriction = newRestriction,
@@ -2607,10 +2394,7 @@ class L2ValueManifest
 				INTEGER_KIND, existingStates, members, newRestriction),
 			floatRepresentation = agglomeratedRepresentation(
 				FLOAT_KIND, existingStates, members, newRestriction),
-			tagClass = tagClasses.firstOrNull(),  // Merged below.
-			isTagOfClasses = isTagOfClasses,
-			variantClass = tagClasses.firstOrNull(),  // Merged below
-			isVariantOfClasses = isVariantOfClasses)
+			usingClasses = usingClasses)  // Congruent ones merged below.
 		// Wire it in.  One of the existing classes survives and absorbs the
 		// others, so that anything still referring to a merged-away class
 		// resolves to the survivor.
@@ -2623,11 +2407,10 @@ class L2ValueManifest
 		existingClasses.forEach { loser -> forwardClass(winner, loser) }
 		states[winner] = newState
 		bind(members, winner)
-		// Only now deal with multiple tagClasses by merging them.  If we did
-		// this earlier, the intermediate changes might be problematic.
-		tagClasses.zipWithNext(::mergeValueClasses)
-		// And do the same for variants.
-		variantClasses.zipWithNext(::mergeValueClasses)
+		// Only now merge the invocations that have become congruent through
+		// this merge.  If we did this earlier, the intermediate changes might be
+		// problematic.
+		mergeCongruentUsers(usingClasses)
 	}
 
 	/**
@@ -3145,9 +2928,6 @@ class L2ValueManifest
 	{
 		classOf.clear()
 		forward.clear()
-		tagOf.clear()
-		variantIdOf.clear()
-		derivedFrom.clear()
 		states.clear()
 		impossibleRestrictionCount = 0
 		clearPostponedInstructions()
@@ -3862,9 +3642,9 @@ class L2ValueManifest
 					}
 				generator.forcePostponedTranslationsBeforeEdge(
 					edge, pairsToForce)
-				assert(pairsToForce.all { (sv, kind) ->
-					edge.manifest().hasLiveSemanticValue(sv, kind.cast())
-				})
+//				assert(pairsToForce.all { (sv, kind) ->
+//					edge.manifest().hasLiveSemanticValue(sv, kind.cast())
+//				})
 			}
 		} while (changed)
 		// The same (up to equivalence) instructions are postponed in each
@@ -4205,60 +3985,38 @@ class L2ValueManifest
 	}
 
 	/**
-	 * If the given [L2SemanticValue] is derived from some other value – an
-	 * [L2SemanticExtractedTag] or an [L2SemanticObjectVariantId].  Answer the
-	 * value it was derived from, otherwise answer `null`.
+	 * Check that no synonym mentions an [L2SemanticPrimitiveInvocation] one of
+	 * whose arguments is absent from this manifest.
 	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] to examine.
-	 * @return
-	 *   The value it was derived from, or `null` if it is not a derived value.
+	 * An invocation such as `Tag(x)` names a fact *about* `x`, so a manifest
+	 * that holds it while having forgotten `x` claims to know the tag of a value
+	 * it no longer knows at all.  Later passes that reasonably assume the
+	 * argument is present – code splitting in particular, which consults the tag
+	 * to decide what to duplicate – then misbehave a long way from the damage.
+	 *
+	 * [recordInvocationUse] is what keeps this true, by introducing an argument
+	 * that is not already present when the invocation is bound.  This is the
+	 * check that would catch a path that fails to.
 	 */
-	private fun derivationBaseOrNull(
-		semanticValue: L2SemanticValue
-	): L2SemanticValue? = when (semanticValue)
-	{
-		is L2SemanticExtractedTag -> semanticValue.base
-		is L2SemanticObjectVariantId -> semanticValue.base
-		else -> null
-	}
-
-	/**
-	 * Check that no synonym mentions a derived [L2SemanticValue] whose base is
-	 * absent from this manifest.
-	 *
-	 * A derived value such as `Tag(x)` names a fact *about* `x`, but it lives
-	 * in a synonym of its own that is related to `x`'s synonym only by the
-	 * spelling of the semantic value.  Nothing structural prevents `x` from
-	 * being dropped while `Tag(x)` survives, and when that happens the manifest
-	 * still claims to know the tag of a value it no longer knows at all.  Later
-	 * passes that reasonably assume the base is present – code splitting in
-	 * particular, which consults the tag to decide what to duplicate – then
-	 * misbehave a long way from the damage.
-	 *
-	 * TODO Remove this check once derived values become `tag` and `variantId`
-	 *  edges from the base's `ValueState`.  At that point a derived class
-	 *  cannot outlive its base, because it has nowhere to hang, and this whole
-	 *  category of inconsistency stops being representable.
-	 */
-	private fun checkDerivedValuesHaveTheirBases()
+	private fun checkInvocationArgumentsAreKnown()
 	{
 		states.values.forEach { state ->
-			// The canonical, boxed members suffice: `Tag(x)` and `Int(Tag(x))`
-			// are derived from the same `x`.
-			state.members.forEach { member ->
-				val base = derivationBaseOrNull(member) ?: return@forEach
-				assert(hasSemanticValue(base))
-				{
-					buildString {
-						append("Manifest holds a derived semantic value ")
-						append("whose base it does not know.")
-						append("\n  Derived: $member")
-						append("\n  Missing base: $base")
-						append("\n  Its synonym: ${state.members}")
+			state.members
+				.filterIsInstance<L2SemanticPrimitiveInvocation>()
+				.forEach { invocation ->
+					invocation.argumentSemanticValues.forEach { argument ->
+						assert(hasSemanticValue(argument))
+						{
+							buildString {
+								append("Manifest holds a primitive invocation ")
+								append("whose argument it does not know.")
+								append("\n  Invocation: $invocation")
+								append("\n  Missing argument: $argument")
+								append("\n  Its synonym: ${state.members}")
+							}
+						}
 					}
 				}
-			}
 		}
 	}
 

@@ -50,12 +50,13 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.operation.dispatch.VariantSplitter
+import avail.interpreter.primitive.general.P_ExtractObjectVariantId
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.values.L2SemanticObjectVariantId
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -299,11 +300,12 @@ constructor(
 			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
-		var semanticVariantId: L2SemanticValue =
-			L2SemanticObjectVariantId(semanticSource)
-		currentManifest.variantIdFormOf(semanticSource)?.let {
-			semanticVariantId = it
-		}
+		val extraction = L2SemanticPrimitiveInvocation(
+			P_ExtractObjectVariantId, listOf(semanticSource))
+		// Prefer one already present, which may be spelled in terms of a
+		// different but equivalent source.
+		val semanticVariantId: L2SemanticValue =
+			currentManifest.equivalentSemanticValue(extraction) ?: extraction
 
 		val exactVariantId =
 			currentRestriction.positiveGroup.objectVariants?.single()?.variantId

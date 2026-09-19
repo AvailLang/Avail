@@ -90,7 +90,8 @@ object P_GetObjectTypeField : Primitive2(CanFold, CanInline)
 		functionType(tuple(mostGeneralObjectMeta, ATOM()), anyMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (objectMeta, fieldType) = argumentTypes
 		if (objectMeta.isBottom)

@@ -87,7 +87,8 @@ object P_MapReplacingKey : Primitive3(CannotFail, CanFold, CanInline)
 			mapTypeForSizesKeyTypeValueType(naturalNumbers, ANY(), ANY()))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (mapType, addedKeyType, addedValueType) = argumentTypes
 

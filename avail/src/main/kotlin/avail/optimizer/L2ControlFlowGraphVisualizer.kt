@@ -56,7 +56,6 @@ import avail.optimizer.L2Synonym.Companion.appendSemanticValues
 import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.manifest.L2ValueManifest.ValueState
-import avail.optimizer.values.L2SemanticExtractedTag
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.repeated
@@ -921,8 +920,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		liveness: L2Liveness,
 		builder: StringBuilder)
 	{
-		val always = liveness.alwaysLiveInRegisters.sorted() +
-			liveness.alwaysLiveInSemanticValues.sorted()
+		val always = liveness.alwaysLiveInRegisters.sorted()
 		if (always.isNotEmpty())
 		{
 			val alwaysEscaped = always.map(::escape)
@@ -941,8 +939,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			builder.append("<br/>")
 		}
 
-		val some = liveness.sometimesLiveInRegisters.sorted() +
-			liveness.sometimesLiveInSemanticValues.sorted()
+		val some = liveness.sometimesLiveInRegisters.sorted()
 		if (some.isNotEmpty())
 		{
 			val someEscaped = some.map(::escape)
@@ -1111,7 +1108,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			append(indent2String)
 			append(":&nbsp;")
 			val anyIntTags = synonym.semanticValues()
-				.any { it is L2SemanticExtractedTag }
+				.any(L2SemanticValue::isExtractTag)
 			append(
 				escape(
 					increaseIndentation(

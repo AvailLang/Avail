@@ -106,8 +106,7 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 	}
 
 	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		// If we can separate knowledge of whether the argument is bottomMeta,
 		// we can produce 0 along that path.
@@ -121,9 +120,7 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 		}
 		else
 		{
-			addAll(
-				super.interestingSplitConditions(
-					readBoxedOperands, rawFunction))
+			addAll(super.interestingSplitConditions(readBoxedOperands))
 		}
 	}
 

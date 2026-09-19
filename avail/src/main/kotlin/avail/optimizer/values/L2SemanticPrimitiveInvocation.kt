@@ -36,6 +36,9 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.general.P_ExtractTagOrdinal
+import avail.optimizer.ValueClass
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 
 /**
@@ -102,6 +105,14 @@ internal constructor(
 
 	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.PRIMITIVE_INVOCATION
+
+	override fun recordUsesIn(
+		manifest: L2ValueManifest,
+		valueClass: ValueClass
+	) = manifest.recordInvocationUse(this, valueClass)
+
+	override val isExtractTag: Boolean
+		get() = primitive == P_ExtractTagOrdinal
 
 	override fun requiresParentheses(): Boolean =
 		primitive.semanticInfixOperatorString !== null

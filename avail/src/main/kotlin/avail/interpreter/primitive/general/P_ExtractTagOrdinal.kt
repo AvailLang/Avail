@@ -1,6 +1,6 @@
 /*
- * P_MapTypeKeyType.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * P_ExtractTagOrdinal.kt
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,56 +29,81 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.primitive.maps
+package avail.interpreter.primitive.general
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.instance
-import avail.descriptor.representation.A_Type.Companion.keyType
+import avail.descriptor.representation.A_Type.Companion.instanceTag
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.MapTypeDescriptor
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
-import avail.descriptor.types.TypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.TypeTag
+import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
+import avail.optimizer.values.L2SemanticValue
 
 /**
- * **Primitive:** Answer the key [type][TypeDescriptor] of a
- * [map&#32;type][MapTypeDescriptor].
+ * **Primitive:** Answer the [ordinal][Enum.ordinal] of the [TypeTag] of the
+ * argument.
+ *
+ * This primitive is [Private], and is never made available to Avail code.  It
+ * exists so that an extracted tag can be named by an ordinary
+ * [L2SemanticPrimitiveInvocation], which relates it to the value it was
+ * extracted from structurally, rather than through a relationship that the
+ * [L2ValueManifest] has to maintain by hand.  The instruction that actually
+ * computes it is [L2_EXTRACT_TAG_ORDINAL].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MapTypeKeyType : Primitive1(CannotFail, CanFold, CanInline)
+object P_ExtractTagOrdinal
+	: Primitive1(Private, CannotFail, CanFold, CanInline)
 {
 	override fun Interpreter.attempt1(
 		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val mapType = arg1
-		return mapType.keyType
-	}
+	): A_BasicObject = fromInt(arg1.typeTag.ordinal)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		val mapMetaType = argumentTypes[0]
-		if (mapMetaType.isInstanceMeta)
+		argumentTypes: List<A_Type>
+	): A_Type = argumentTypes[0].run {
+		when
 		{
-			// The argument is exactly one known map type, so the answer is
-			// exactly its key type.
-			return instanceMeta(mapMetaType.instance.keyType)
+			// There is no value to have a tag, so there is no ordinal.
+			isBottom -> bottom
+			else -> instanceTag.tagRangeType
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+	}
+
+	override fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		// Knowing the tag says a great deal about the value it came from.
+		manifest.equivalentSemanticValue(arguments[0])?.let { taggedValue ->
+			manifest.updateRestriction(taggedValue) {
+				restrictionForTagRestriction(restriction)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mapMeta()), anyMeta)
+		functionType(tuple(ANY()), i31)
+
+	override val canDestroyArguments get() = false
 }

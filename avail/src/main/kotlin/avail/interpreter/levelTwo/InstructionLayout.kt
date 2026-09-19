@@ -186,12 +186,6 @@ internal constructor(
 	/** The list of [OperandField]s, in declaration order. */
 	private val operandFields: List<OperandField<out L2Operand>>
 
-	/**
-	 * Whether this instruction has exactly one scalar write operand and no
-	 * vector write operands.
-	 */
-	val hasSingleWriteOperand: Boolean
-
 	init
 	{
 		// Make sure there aren't any accidental val fields, since that won't
@@ -373,51 +367,32 @@ internal constructor(
 	 * [L2Instruction]s using this operation.  Note that all reads are
 	 * considered to happen before all writes.
 	 */
-	val readsHiddenVariablesMask: Int
+	val readsHiddenVariablesMask: Int = instructionClass
+		.findAnnotation<ReadsHiddenVariable>()
+		?.value
+		.orEmpty()
+		.map { it.objectInstance!!.mask }
+		.fold(0, Int::or)
 
 	/**
 	 * The bitwise-or of the masks of [HiddenVariable]s that are overwritten by
 	 * [L2Instruction]s using this operation.  Note that all reads are
 	 * considered to happen before all writes.
 	 */
-	val writesHiddenVariablesMask: Int
+	val writesHiddenVariablesMask: Int = instructionClass
+		.findAnnotation<WritesHiddenVariable>()
+		?.value
+		.orEmpty()
+		.map { it.objectInstance!!.mask }
+		.fold(0, Int::or)
 
-	// Do some more initialization for the primary constructor.
-	init
-	{
-		val readsAnnotation =
-			instructionClass.findAnnotation<ReadsHiddenVariable>()
-		var readMask = 0
-		if (readsAnnotation !== null)
-		{
-			for (hiddenVariableSubclass in readsAnnotation.value)
-			{
-				val shiftAnnotation =
-					hiddenVariableSubclass.java.getAnnotation(
-						HiddenVariableShift::class.java)
-				readMask = readMask or (1 shl shiftAnnotation.value)
-			}
-		}
-		readsHiddenVariablesMask = readMask
-
-		val writesAnnotation =
-			instructionClass.findAnnotation<WritesHiddenVariable>()
-		var writeMask = 0
-		if (writesAnnotation !== null)
-		{
-			for (hiddenVariableSubclass in writesAnnotation.value)
-			{
-				val shiftAnnotation =
-					hiddenVariableSubclass.java.getAnnotation(
-						HiddenVariableShift::class.java)
-				writeMask = writeMask or (1 shl shiftAnnotation.value)
-			}
-		}
-		writesHiddenVariablesMask = writeMask
-
-		hasSingleWriteOperand = scalarWriteOperandFields.size == 1
+	/**
+	 * Whether this instruction has exactly one scalar write operand and no
+	 * vector write operands.
+	 */
+	val hasSingleWriteOperand: Boolean =
+		scalarWriteOperandFields.size == 1
 			&& vectorWriteOperandFields.isEmpty()
-	}
 
 	companion object
 	{

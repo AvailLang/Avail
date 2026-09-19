@@ -52,7 +52,6 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -93,8 +92,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			mostGeneralSetType())
 
 	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		// It would be nice to know the number of instances.  For now, split on
 		// whether the given type is bottom – and therefore has ∅ as its
@@ -137,8 +135,8 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			{
 				// We've deduced the possible sizes of the set of instances.  We
 				// also proved it's finite, so the primitive won't fail.
-				+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-					L2ConstantOperand(rawFunction),
+				+L2_RUN_INFALLIBLE_PRIMITIVE(
+					rawFunction,
 					this@P_Instances,
 					arguments,
 					boxedWrite(

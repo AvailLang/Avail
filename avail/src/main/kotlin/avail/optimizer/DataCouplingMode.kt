@@ -36,7 +36,6 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.intersects
 
 /**
  * Whether [L2SemanticValue]s or the underlying [L2Register]s should be
@@ -110,39 +109,18 @@ enum class DataCouplingMode constructor(
 				write.register() in liveness.registers
 			}
 		}
-		if (!keep && considersSemanticValues)
-		{
-			keep = instruction.writeOperands.any { write ->
-				val values = write.semanticValues()
-				values.intersects(liveness.sometimesLiveInSemanticValues)
-					|| values.intersects(liveness.alwaysLiveInSemanticValues)
-			}
-		}
 		if (!keep) return false
 
 		// The instruction should be kept, so apply its writes and reads.
-		instruction.writeOperands.forEach { write ->
-			if (considersRegisters)
-			{
-				val reg = write.register()
-				liveness.remove(reg)
+		if (considersRegisters)
+		{
+			instruction.writeOperands.forEach { write ->
+				liveness.remove(write.register())
 			}
-			if (considersSemanticValues)
-			{
-				val values = write.semanticValues()
-				liveness.removeAll(values)
-			}
-		}
-		instruction.readOperands.forEach { read ->
-			if (!read.register().isConstant)
-			{
-				if (considersRegisters)
+			instruction.readOperands.forEach { read ->
+				if (!read.register().isConstant)
 				{
 					liveness.add(read.register())
-				}
-				if (considersSemanticValues)
-				{
-					liveness.add(read.semanticValue())
 				}
 			}
 		}
@@ -166,15 +144,11 @@ enum class DataCouplingMode constructor(
 	{
 		assert(considersRegisters && considersSemanticValues)
 		val destinationReg = phi.destination.register()
-		val destinationValues = phi.destination.semanticValues()
 		phi.sources.elements.zip(livenesses).forEach { (source, liveness) ->
 			liveness.remove(destinationReg)
-			liveness.removeAll(destinationValues)
-
 			if (!source.isConstantRead)
 			{
 				liveness.add(source.register())
-				liveness.add(source.semanticValue())
 			}
 		}
 	}

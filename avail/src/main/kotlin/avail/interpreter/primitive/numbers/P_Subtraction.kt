@@ -100,7 +100,8 @@ object P_Subtraction : Primitive2(CanFold, CanInline)
 		enumerationWith(set(E_CANNOT_SUBTRACT_LIKE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (aType, bType) = argumentTypes
 		try

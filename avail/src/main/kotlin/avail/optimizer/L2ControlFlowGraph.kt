@@ -396,10 +396,9 @@ class L2ControlFlowGraph : L2Visualizable
 				edge.liveness?.run {
 					append("\n\t\t\t[")
 					append("always live-in: ")
-					append(alwaysLiveInRegisters + alwaysLiveInSemanticValues)
+					append(alwaysLiveInRegisters)
 					append(", sometimes live-in: ")
-					append(sometimesLiveInRegisters +
-						sometimesLiveInSemanticValues)
+					append(sometimesLiveInRegisters)
 					append("]")
 				}
 				append("\n")

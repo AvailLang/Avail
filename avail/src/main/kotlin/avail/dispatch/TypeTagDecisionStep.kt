@@ -55,12 +55,13 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.dispatch.TagSplitter
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.primitive.general.P_ExtractTagOrdinal
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.values.L2SemanticExtractedTag
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -458,7 +459,8 @@ constructor(
 		}
 		// Generate a multi-way branch.
 		val splits = reducedSpans.drop(1).map(Span::low)
-		val semanticTag = L2SemanticExtractedTag(semanticSource)
+		val semanticTag = L2SemanticPrimitiveInvocation(
+			P_ExtractTagOrdinal, listOf(semanticSource))
 		if (!currentManifest.hasLiveSemanticValue(semanticTag, INTEGER_KIND))
 		{
 			// Assume the base type is sufficient to limit the possible tag

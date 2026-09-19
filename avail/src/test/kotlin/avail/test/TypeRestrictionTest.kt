@@ -56,10 +56,11 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.general.P_ExtractObjectVariantId
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
-import avail.optimizer.values.L2SemanticObjectVariantId
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticSlot
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -286,8 +287,10 @@ class TypeRestrictionTest
 		}.makeShared()
 		val variantA = variantForFields(SetDescriptor.singletonSet(atomA))
 		val variantB = variantForFields(SetDescriptor.singletonSet(atomB))
-		val semanticVariantA = L2SemanticObjectVariantId(boxedA)
-		val semanticVariantB = L2SemanticObjectVariantId(boxedB)
+		val semanticVariantA = L2SemanticPrimitiveInvocation(
+			P_ExtractObjectVariantId, listOf(boxedA))
+		val semanticVariantB = L2SemanticPrimitiveInvocation(
+			P_ExtractObjectVariantId, listOf(boxedB))
 		val manifest = L2ValueManifest(BySemanticValue)
 		manifest.agglomerateSynonym(
 			listOf(boxedA, boxedB),

@@ -49,13 +49,14 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
 import avail.interpreter.levelTwo.operation.dispatch.VariantSplitter
+import avail.interpreter.primitive.general.P_ExtractObjectTypeVariantId
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticObjectVariantId
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import java.lang.String.format
@@ -296,7 +297,8 @@ constructor(
 			jumpTo(callSiteHelper[FallBackToSlowLookup])
 			return emptyList()
 		}
-		val semanticVariantId = L2SemanticObjectVariantId(semanticSource)
+		val semanticVariantId = L2SemanticPrimitiveInvocation(
+			P_ExtractObjectTypeVariantId, listOf(semanticSource))
 
 		when (val exactVariantId = currentRestriction
 			.positiveGroup.objectTypeVariants?.single()?.variantId)

@@ -64,6 +64,7 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_PHI_BOXED
 import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT
 import avail.interpreter.levelTwo.operation.L2_PHI_INT
+import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -288,6 +289,14 @@ constructor (
 		otherKinds: ValueState?
 	): ValueState
 
+	/**
+	 * Gonorate code to popuulate the given semantic value for this kind, in the
+	 * generator.
+	 */
+	abstract fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+
 	abstract fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 
@@ -378,6 +387,13 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		otherKinds?.intRepresentation ?: emptyRepresentation(),
 		otherKinds?.floatRepresentation ?: emptyRepresentation())
 
+	override fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+	{
+		generator.ensureDefinedOrEmitMoveBoxed(semanticValue)
+	}
+
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 	{
@@ -456,6 +472,13 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
 		representation,
 		otherKinds?.floatRepresentation ?: emptyRepresentation())
+
+	override fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+	{
+		generator.ensureDefinedOrEmitMoveInt(semanticValue)
+	}
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -536,6 +559,13 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
 		otherKinds?.intRepresentation ?: emptyRepresentation(),
 		representation)
+
+	override fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+	{
+		generator.ensureDefinedOrEmitMoveFloat(semanticValue)
+	}
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)

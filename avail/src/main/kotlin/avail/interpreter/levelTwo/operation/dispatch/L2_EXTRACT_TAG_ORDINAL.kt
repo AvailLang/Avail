@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
@@ -123,12 +124,18 @@ constructor (
 				null -> move(
 					constant(exactTag.ordinal),
 					tagOrdinal.semanticValues())
-				else -> tagOrdinal.semanticValues().forEach { otherValue ->
-					if (!currentManifest.hasSemanticValue(otherValue))
+				else ->
+				{
+					val others = tagOrdinal.semanticValues()
+						.filter { currentManifest.hasSemanticValue(it) }
+					if (others.isNotEmpty())
 					{
-						move(existingValue, setOf(otherValue))
+						move(existingValue, others)
 					}
 				}
+			}
+			currentManifest.updateRestriction(tagOrdinal.pickSemanticValue()) {
+				restrictionForConstant(exactTag.ordinalInteger)
 			}
 			return null
 		}

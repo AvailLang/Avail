@@ -36,7 +36,6 @@ import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.AvailRuntimeSupport.captureNanos
 import avail.annotations.DSLHelper
 import avail.compiler.PragmaKind
-import avail.descriptor.functions.CompiledCodeDescriptor.Companion.specialPrimitivePatterns
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Function
@@ -55,7 +54,6 @@ import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
@@ -69,10 +67,14 @@ import avail.interpreter.execution.Interpreter.Companion.argsBufferField
 import avail.interpreter.execution.Interpreter.Companion.beforeAttemptPrimitiveMethod
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
+import avail.interpreter.levelTwo.HiddenVariable
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2SimpleChunk
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -102,6 +104,7 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.StackReifier
 import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
@@ -284,6 +287,10 @@ constructor(
 		PRIMITIVE_RETURNER_TYPE_CHECKS,
 		"$simpleName (checking result)")
 
+	val l2ReadInterferenceMask: Int
+
+	val l2WriteInterferenceMask: Int
+
 	init
 	{
 		assert(primitiveFlags.isEmpty())
@@ -316,6 +323,47 @@ constructor(
 			reificationForNoninlineStat = Statistic(
 				REIFICATIONS, "Reification for $name")
 		}
+
+		// Set up interference flags for when this primitive is used in an
+		// L2_RUN_INFALLIBLE_PRIMITIVE.
+		val rw = hasFlag(Flag.HasSideEffect) || hasFlag(Flag.Unknown)
+		val reads = rw || hasFlag(Flag.ReadsFromHiddenGlobalState)
+		val writes = rw || hasFlag(Flag.WritesToHiddenGlobalState)
+		l2ReadInterferenceMask = when
+		{
+			reads -> HiddenVariable.GLOBAL_STATE.mask
+			else -> 0
+		}
+		var writeHidden = buildSet {
+			when
+			{
+				reads && writes ->
+				{
+					add(CURRENT_CONTINUATION)
+					add(CURRENT_FUNCTION)
+					add(LATEST_RETURN_VALUE)
+					add(GLOBAL_STATE)
+				}
+				writes ->
+				{
+					add(CURRENT_CONTINUATION)
+					add(CURRENT_FUNCTION)
+					add(LATEST_RETURN_VALUE)
+					add(GLOBAL_STATE)
+				}
+				reads ->
+				{
+					add(CURRENT_CONTINUATION)
+					add(CURRENT_FUNCTION)
+					add(LATEST_RETURN_VALUE)
+				}
+				else ->
+				{
+					add(LATEST_RETURN_VALUE)
+				}
+			}
+		}
+		l2WriteInterferenceMask = writeHidden.map { it.mask }.fold(0, Int::or)
 	}
 
 	/**
@@ -979,8 +1027,8 @@ constructor(
 			semanticValue = newTemp("$name result")
 		}
 		val writer = boxedWrite(semanticValue, restriction)
-		+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-			L2ConstantOperand(rawFunction),
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			rawFunction,
 			this@Primitive,
 			L2ReadBoxedVectorOperand(arguments),
 			writer)
@@ -1227,6 +1275,24 @@ constructor(
 		result: L2WriteBoxedOperand
 	) = emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 
+	open fun analyzeAndOptionallyRewriteInstruction(
+		generator: L2GeneratorInterface,
+		instruction: L2_RUN_INFALLIBLE_PRIMITIVE
+	): L2Instruction? = instruction
+
+	/**
+	 * A [L2_RUN_INFALLIBLE_PRIMITIVE] instruction, a secondary receiver, is
+	 * being traceed to determine how to propagate its origins by the [tracer].
+	 * The [restriction] is an interesting condition for the instruction's
+	 * result to satisfy.
+	 */
+	open fun L2_RUN_INFALLIBLE_PRIMITIVE.traceCandidateSplitConditions(
+		restriction: TypeRestriction,
+		tracer: RestrictionTracer)
+	{
+		// Do nothing by default.
+	}
+
 	/**
 	 * Generate an [L2_RUN_INFALLIBLE_PRIMITIVE] for this primitive.  This
 	 * would normally be in the body of [emitTransformedInfalliblePrimitive],
@@ -1247,12 +1313,14 @@ constructor(
 	open fun L2GeneratorInterface.emitBasicInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand
-	) = +L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-		L2ConstantOperand(rawFunction),
-		this@Primitive,
-		arguments,
-		result)
+		result: L2WriteBoxedOperand)
+	{
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			rawFunction,
+			this@Primitive,
+			arguments,
+			result)
+	}
 
 	/**
 	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to
@@ -1551,11 +1619,10 @@ constructor(
 	}
 
 	/**
-	 * Write a JVM invocation of this primitive, *under the assumption that the
-	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
-	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls
-	 * [Interpreter.afterAttemptPrimitive], and records statistics as needed. It
-	 * also deals with primitive failures, and reifications.
+	 * Write a JVM invocation of this primitive, under the assumption that the
+	 * primitive *cannot fail or reify*.  It *does not* measure the primitive's
+	 * performance with [Interpreter.beforeAttemptPrimitive] and
+	 * [Interpreter.afterAttemptPrimitive], nor record an invocation occurrence.
 	 *
 	 * Subclasses may do something more specific and efficient, and should be
 	 * free to neglect the statistics.  However, the [result] register must be
@@ -1569,7 +1636,7 @@ constructor(
 	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
 	 *   the primitive.
 	 */
-	fun JVMTranslator.generateJvmCodeWithoutTracking(
+	open fun JVMTranslator.generateJvmCodeWithoutTracking(
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
@@ -1608,8 +1675,7 @@ constructor(
 	 *   upstream.
 	 */
 	open fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = emptyList()
 
 	/**

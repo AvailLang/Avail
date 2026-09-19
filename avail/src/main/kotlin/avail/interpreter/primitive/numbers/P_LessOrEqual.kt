@@ -85,7 +85,8 @@ object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
 		functionType(tuple(NUMBER(), NUMBER()), booleanType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (type1, type2) = argumentTypes
 		val possible = possibleOrdersWhenComparingInstancesOf(type1, type2)
@@ -104,8 +105,7 @@ object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
 	}
 
 	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
 		if (arg1.restriction().intersectsType(i32)
