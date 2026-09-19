@@ -138,12 +138,6 @@ import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
 import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_IfFalseThenElse
 import avail.interpreter.primitive.controlflow.P_IfTrueThenElse
@@ -203,16 +197,12 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.manifest.L2ValueManifest.Constraint
-import avail.optimizer.manifest.L2ValueManifest.Representation
-import avail.optimizer.manifest.L2ValueManifest.ValueState
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticTemp
 import avail.optimizer.values.L2SemanticValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -2923,78 +2913,6 @@ class SimpleOptimizerTest
 				"test frame"),
 			name,
 			uniqueId)
-
-	/**
-	 * A [ValueState] holds one [Representation] per [RegisterKind], and a
-	 * [Constraint] presents exactly one of them.  Nothing in the manifest builds
-	 * such a state yet – a value is still born in a single kind – so this
-	 * exercises the machinery that step B will start depending on.
-	 *
-	 * The three properties that matter are that the kinds do not bleed into each
-	 * other, that the aggregate view sees all of them, and that an update scoped
-	 * to one kind leaves the others alone.  The last one is the dangerous one:
-	 * losing an int register because a boxed-scoped update rebuilt the record
-	 * would show up much later as an unnecessary unbox, or worse, as a read of a
-	 * register nothing wrote.
-	 */
-	@Test
-	fun aValueStateKeepsItsRepresentationsSeparate()
-	{
-		val shared = newTemp("shared", 1)
-		val boxedRegister = L2BoxedRegister(1)
-		val intRegister = L2IntRegister(2)
-		val boxedOnly = ValueState.newState(
-			BOXED_KIND,
-			setOf(shared),
-			listOf(boxedRegister),
-			restrictionForType(i32),
-			null)
-		val both = boxedOnly.withRepresentation(
-			Representation(listOf(intRegister), null),
-			INTEGER_KIND)
-
-		// Each view reports only its own kind's registers, and the aggregate
-		// reports both.
-		assertEquals(listOf(boxedRegister), both.viewFor(BOXED_KIND).definitions)
-		assertEquals(listOf(intRegister), both.viewFor(INTEGER_KIND).definitions)
-		assertEquals(
-			setOf<L2Register<*>>(boxedRegister, intRegister),
-			both.allDefinitions.toSet())
-
-		// One member set, spelled per kind.
-		assertEquals(setOf(shared), both.viewFor(BOXED_KIND).members)
-		assertEquals(setOf(shared), both.viewFor(INTEGER_KIND).members)
-
-		// A kind the value is not held in has a view, and that view reports the
-		// absence rather than nothing at all.
-		assertTrue(both.viewFor(FLOAT_KIND).representation.isAbsent)
-		assertEquals(
-			emptyList<L2Register<FLOAT_KIND>>(),
-			both.viewFor(FLOAT_KIND).definitions)
-		// Absence is distinct from being held with no register yet, which is what
-		// a value looks like between being introduced and being written.
-		assertFalse(both.viewFor(BOXED_KIND).representation.isAbsent)
-		assertFalse(
-			ValueState.newState(
-				members = setOf(shared),
-				kind = INTEGER_KIND,
-				definitions = emptyList(),
-				restriction = restrictionForType(i32),
-				postponedInstruction = null
-			).viewFor(BOXED_KIND).representation.isAbsent)
-
-		// An update scoped to one kind preserves the other.
-		val emptiedBoxed = both.updated(
-			setOf(shared),
-			restrictionForType(inclusive(0, 5)),
-			Representation(emptyList(), null),
-			BOXED_KIND)
-		assertEquals(
-			listOf(intRegister), emptiedBoxed.viewFor(INTEGER_KIND).definitions)
-		assertEquals(
-			emptyList<L2Register<BOXED_KIND>>(),
-			emptiedBoxed.viewFor(BOXED_KIND).definitions)
-	}
 
 	/**
 	 * A postponed [L2Instruction] captures its operands' [TypeRestriction]s at

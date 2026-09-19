@@ -46,6 +46,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.descriptor.representation.A_Type.Companion.unionOfTypesAtThrough
 import avail.descriptor.representation.A_Type.Companion.upperBound
@@ -58,6 +59,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -328,7 +330,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val highType = highInt.restriction().type
 		assert(highType.isSubtypeOf(wholeNumbers))
 
-		val sizeRange = tuple.type().sizeRange
+		val sizeRange = tuple.type().sizeRange.typeIntersection(i31)
 		val size = primitiveInvocation(
 			P_TupleSize,
 			listOf(tuple.semanticValue()))

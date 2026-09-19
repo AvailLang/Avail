@@ -62,6 +62,7 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
@@ -162,12 +163,12 @@ class L2ValueManifest
 	 * @param K
 	 *   The [RegisterKind] that this representation describes.
 	 * @property definitions
-	 *   An immutable [List] of [L2Register]s of this [kind] that hold the value.
+	 *   An immutable [List] of [L2Register]s of kind [K] that hold the value.
 	 *   The list may be replaced, but not internally modified, and the caller
 	 *   must not modify the list after passing it to this constructor.
 	 * @property postponedInstruction
 	 *   The optional [L2Instruction] that is responsible for populating members
-	 *   that do not yet have definitions in this [kind].  It has *not* yet been
+	 *   that do not yet have definitions of kind [K].  It has *not* yet been
 	 *   emitted, and might never be, if the values it populates are never read.
 	 */
 	class Representation<K: RegisterKind<K>>(
@@ -219,7 +220,7 @@ class L2ValueManifest
 				.toSet()
 
 		/**
-		 * Whether this is the [RegisterKind.emptyRepresentation] standing for a
+		 * Whether this is the [emptyRepresentation] standing for a
 		 * value that is *not held in this kind at all*.
 		 *
 		 * Distinct from having no definitions, which a real representation has
@@ -284,7 +285,7 @@ class L2ValueManifest
 	 * @property boxedRepresentation
 	 *   The [L2BoxedRegister]s holding this value and the postponed
 	 *   [L2Instruction] that would populate them.  A value not held boxed at
-	 *   all has [Representation.emptyRepresentation] here rather than nothing,
+	 *   all has [emptyRepresentation] here rather than nothing,
 	 *   so that every kind can be asked about and answer.
 	 * @property intRepresentation
 	 *   As [boxedRepresentation], for [L2IntRegister]s.
@@ -655,8 +656,12 @@ class L2ValueManifest
 				else ->
 				{
 					// Just concatenate the two lists, as this essentially
-					// preserves earliest definition order.
-					val definitions = first.definitions + second.definitions
+					// preserves earliest definition order.  Make them distinct
+					// in casee we've already colored the registers and have
+					// duplicates that are alive at the same time (scratch
+					// writes).
+					val definitions =
+						(first.definitions + second.definitions).distinct()
 					Representation(
 						definitions = definitions,
 						postponedInstruction = when
@@ -2193,7 +2198,7 @@ class L2ValueManifest
 	 *   True iff the two semantic values represent the same value in this
 	 *   manifest.
 	 */
-	tailrec fun isEquivalentSemanticValue(
+	fun isEquivalentSemanticValue(
 		semanticValue: L2SemanticValue,
 		otherSemanticValue: L2SemanticValue
 	): Boolean
@@ -2236,7 +2241,6 @@ class L2ValueManifest
 				return semanticValue.argumentSemanticValues
 					.zip(otherSemanticValue.argumentSemanticValues)
 					.all { (a, b) ->
-						@Suppress("NON_TAIL_RECURSIVE_CALL")
 						isEquivalentSemanticValue(a, b)
 					}
 			}
@@ -2276,7 +2280,11 @@ class L2ValueManifest
 		val present = sources
 			.map(kind::representationIn)
 			.filterNot(Representation<K>::isAbsent)
-		val definitions = present.flatMap(Representation<K>::definitions)
+		var definitions = present.flatMap(Representation<K>::definitions)
+		// AFter coloring, the same register might otherwise appear multiple
+		// times.
+		if (mode != BySemanticValue)
+			definitions = definitions.distinct()
 		// Reuse any of the existing postponed instructions, since they all will
 		// populate the entire synonym.
 		val postponedInstructions =

@@ -64,9 +64,9 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.codePointIntRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
-import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
@@ -167,20 +167,18 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 				ZoneType.DEAD_END.createZone("failed bounds check"))
 			val semanticSize =
 				P_TupleSize.semanticInvocation(tupleReg.semanticValue())
-			val sizeRestriction = restrictionForType(
+			var sizeRestriction = restrictionForType(
 				tupleReg.type().sizeRange.typeIntersection(i31))
 			val sizeType = sizeRestriction.type
-			val sizeWriter = intWrite(setOf(semanticSize), sizeRestriction)
 			if (sizeType.lowerBound.equals(sizeType.upperBound))
 			{
-				+L2_MOVE_INT(
-					unboxedIntConstant(sizeType.lowerBound.extractInt),
-					sizeWriter)
+				sizeRestriction = restrictionForConstant(sizeType.lowerBound)
 			}
-			else
+			val sizeWriter = intWrite(setOf(semanticSize), sizeRestriction)
+			if (!sizeRestriction.isConstant)
 			{
-				val equivalent = currentManifest
-					.equivalentPopulatedSemanticValue(
+				val equivalent =
+					currentManifest.equivalentPopulatedSemanticValue(
 						semanticSize, INTEGER_KIND)
 				if (equivalent != null)
 					move(equivalent, setOf(semanticSize))
