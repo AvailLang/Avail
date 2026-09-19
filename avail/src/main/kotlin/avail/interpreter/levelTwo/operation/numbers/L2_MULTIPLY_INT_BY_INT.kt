@@ -46,7 +46,6 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -54,7 +53,6 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.primitive.numbers.P_Division
@@ -198,25 +196,18 @@ class L2_MULTIPLY_INT_BY_INT(
 		{
 			range.upperBound.equals(range.lowerBound) ->
 			{
+				currentManifest.updateRestriction(product.pickSemanticValue()) {
+					restrictionForConstant(range.upperBound)
+				}
 				// The result is a constant.
 				if (range.isSubtypeOf(i32))
 				{
 					// The result is an int constant.
-					+L2_MOVE_CONSTANT_INT(
-						L2IntImmediateOperand(range.upperBound.extractInt),
-						product)
 					jumpTo(inRange.targetBlock())
 				}
 				else
 				{
 					// The result is an integer constant outside i32.
-					+L2_MOVE_CONSTANT_BOXED(
-						L2ConstantOperand(range.upperBound),
-						boxedWrite(
-							product.semanticValues(),
-							restrictionForType(range)))
-					// The boxed multiplication that happened along the
-					// outOfRange path will defer to this constant.
 					jumpTo(outOfRange.targetBlock())
 				}
 			}
