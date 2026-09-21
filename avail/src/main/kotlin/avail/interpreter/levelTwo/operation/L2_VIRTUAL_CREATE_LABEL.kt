@@ -59,7 +59,6 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface.SpecialBlock
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
@@ -124,12 +123,6 @@ class L2_VIRTUAL_CREATE_LABEL(
 ): L2Instruction()
 {
 	override val isPlaceholder get() = true
-
-	//TODO Remove method
-	override fun instructionWasAdded(manifest: L2ValueManifest)
-	{
-		super.instructionWasAdded(manifest)
-	}
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,

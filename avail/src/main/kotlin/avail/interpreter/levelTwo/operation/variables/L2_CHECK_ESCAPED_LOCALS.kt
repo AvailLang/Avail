@@ -54,6 +54,7 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
 
@@ -102,6 +103,10 @@ class L2_CHECK_ESCAPED_LOCALS(
 
 	override fun aboutToAdd(generator: L2GeneratorInterface): Boolean
 	{
+		// In ByRegister mode (INSERT_PHI_MOVES phase), semantic values are not
+		// available and we can't force translation. Just keep the instruction.
+		if (generator.mode != BySemanticValue) return true
+
 		val keptLocals = mutableListOf<L2ReadBoxedOperand>()
 		val keptWrites = mutableListOf<L2WriteBoxedOperand>()
 		localsToCheck.elements.zip(localsOutput.elements).forEach { pair ->

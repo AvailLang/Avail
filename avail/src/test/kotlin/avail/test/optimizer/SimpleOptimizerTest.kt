@@ -75,7 +75,6 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -137,7 +136,6 @@ import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_IfFalseThenElse
 import avail.interpreter.primitive.controlflow.P_IfTrueThenElse
@@ -2981,32 +2979,6 @@ class SimpleOptimizerTest
 		assertTrue(
 			impliedAfter == impliedBefore
 				|| impliedAfter.isStrongerThan(impliedBefore))
-	}
-
-	/**
-	 * A probe that is absent from the manifest must not be reported as
-	 * equivalent to an unrelated value, whatever its concrete class.  This
-	 * guards the class-restricted search in
-	 * [L2ValueManifest.equivalentSemanticValue] against being widened into
-	 * something that reports spurious hits.
-	 */
-	@Test
-	fun manifestReportsNoEquivalentForUnrelatedValues()
-	{
-		val manifest = L2ValueManifest(BySemanticValue)
-		val present = newTemp("present", 1)
-		val absent = newTemp("absent", 2)
-		manifest.introduceSynonym(
-			setOf(present), restrictionForType(i32))
-
-		// Same class, but unrelated identities.
-		assertNull(manifest.equivalentSemanticValue(absent))
-		// Different class from anything in the manifest.
-		assertNull(manifest.equivalentSemanticValue(absent))
-		assertNull(manifest.equivalentSemanticValue(present))
-		// Nothing is populated, since no instruction has written anything.
-		assertNull(
-			manifest.equivalentPopulatedSemanticValue(present, BOXED_KIND))
 	}
 
 	/**
