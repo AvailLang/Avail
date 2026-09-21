@@ -1546,8 +1546,7 @@ class L1Translator private constructor(
 			val constants = mutableListOf<AvailObject>()
 			for (regRead in arguments)
 			{
-				val constant = regRead.constantOrNull ?: break
-				constants.add(constant)
+				regRead.constantOrNull?.let(constants::add)
 			}
 			if (constants.size == argumentCount)
 			{

@@ -74,7 +74,6 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_CODEPOINT_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_INT_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -174,17 +173,9 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			{
 				sizeRestriction = restrictionForConstant(sizeType.lowerBound)
 			}
-			val sizeWriter = intWrite(setOf(semanticSize), sizeRestriction)
-			if (!sizeRestriction.isConstant)
-			{
-				val equivalent =
-					currentManifest.equivalentPopulatedSemanticValue(
-						semanticSize, INTEGER_KIND)
-				if (equivalent != null)
-					move(equivalent, setOf(semanticSize))
-				else
-					+L2_TUPLE_SIZE(tupleReg, sizeWriter)
-			}
+			+L2_TUPLE_SIZE(
+				tupleReg,
+				intWrite(setOf(semanticSize), sizeRestriction))
 			val readSubscript = readInt(
 				subscriptReg.semanticValue(),
 				outOfBounds

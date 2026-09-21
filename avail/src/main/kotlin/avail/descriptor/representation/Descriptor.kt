@@ -58,7 +58,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.representation.A_Set.Companion.hasElement
 import avail.descriptor.representation.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
-import avail.descriptor.representation.Descriptor.Companion.maxBrief
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetDescriptor.SetIterator
@@ -2907,7 +2906,7 @@ protected constructor (
 	{
 		/**
 		 * The regular expression for printing more concise values when the
-		 * [limit][maxBrief] is respected by a primitive string representation.
+		 * [maxBrief] limit is respected by a primitive string representation.
 		 *
 		 * @see printObjectOnAvoidingIndent
 		 */

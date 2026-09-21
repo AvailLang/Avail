@@ -37,11 +37,8 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfIntegerObject
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashesOfSmallIntegers
-import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
 import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegerLimit
 import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegers
 import avail.descriptor.numbers.IntegerDescriptor.Companion.squaresOfQuintillionLock

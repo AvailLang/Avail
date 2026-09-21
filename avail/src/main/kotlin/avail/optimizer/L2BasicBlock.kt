@@ -37,7 +37,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.optimizer.L2BasicBlock.BlockFlag
 import avail.optimizer.manifest.L2ValueManifest
+import avail.utility.bitfield.BitFlag
+import avail.utility.bitfield.PackedBits
 import java.lang.Integer.toHexString
 
 /**
@@ -68,24 +71,65 @@ import java.lang.Integer.toHexString
  * @param isCold
  *   A flag indiccating that this reaching this block at runtime is relatively
  *   rare and not worth optimizing with code splitting.
- *
- *   Any block that only leads to cold blocks (and doesn't itself return) should
- *   be considered cold as well, since it can't be reached more often than its
- *   successors, and is equally unworthy of code splitting effort.
- *
- *   Also, a branching instruction (at the end of this block) that leads to a
- *   mix of hot and cold targets should not propose split conditions whose only
- *   purpose is to allow a cold target block to be reached unconditionally in a
- *   split version of this block.  Split conditions that allow an unconditional
- *   jump to a *hot* target should still be proposed.
  */
 class L2BasicBlock
 constructor(
 	private val name: String,
 	var zone: L2ControlFlowGraph.Zone? = null,
-	var isLoopHead: Boolean = false,
-	var isCold: Boolean = false)
+	isLoopHead: Boolean = false,
+	isCold: Boolean = false
+): PackedBits<BlockFlag>(
+	if (isLoopHead) BlockFlag.LoopHead else null,
+	if (isCold) BlockFlag.Cold else null)
 {
+	enum class BlockFlag: BitFlag<BlockFlag>
+	{
+		LoopHead,
+		Cold,
+		Irremovable,
+		StartedGeneration,
+		ControlFlowAtEnd
+	}
+
+	/** Whether this block is the head of a loop. */
+	var isLoopHead by BlockFlag.LoopHead
+
+	/**
+	 * A flag indiccating that this reaching this block at runtime is relatively
+	 * rare and not worth optimizing with code splitting.
+	 *
+	 * Any block that only leads to cold blocks (and doesn't itself return)
+	 * should be considered cold as well, since it can't be reached more often
+	 * than its successors, and is equally unworthy of code splitting effort.
+	 *
+	 * Also, a branching instruction (at the end of this block) that leads to a
+	 * mix of hot and cold targets should not propose split conditions whose
+	 * only purpose is to allow a cold target block to be reached
+	 * unconditionally in a split version of this block.  Split conditions that
+	 * allow an unconditional jump to a *hot* target should still be proposed.
+	 */
+	var isCold by BlockFlag.Cold
+
+	/**
+	 * Whether this block must be tracked until final code generation. Set for
+	 * blocks that must not be removed. Such a block may be referenced for
+	 * tracking entry points, and must therefore exist through final code
+	 * generation.
+	 */
+	var isIrremovable by BlockFlag.Irremovable
+		private set
+
+	/** Whether we've started adding instructions to this basic block. */
+	var hasStartedCodeGeneration by BlockFlag.StartedGeneration
+		private set
+
+	/**
+	 * Keeps track whether a control-flow altering instruction has been added
+	 * yet.  There must be one, and it must be the last instruction in the
+	 * block.
+	 */
+	var hasControlFlowAtEnd by BlockFlag.ControlFlowAtEnd
+
 	/** A place to write notes for marking up a graph. */
 	val debugNote = StringBuilder()
 
@@ -112,26 +156,6 @@ constructor(
 	 * easily get to the originating basic block.
 	 */
 	private val predecessorEdges = mutableListOf<L2PcOperand>()
-
-	/**
-	 * Whether this block must be tracked until final code generation. Set for
-	 * blocks that must not be removed. Such a block may be referenced for
-	 * tracking entry points, and must therefore exist through final code
-	 * generation.
-	 */
-	var isIrremovable = false
-		private set
-
-	/** Whether we've started adding instructions to this basic block. */
-	var hasStartedCodeGeneration = false
-		private set
-
-	/**
-	 * Keeps track whether a control-flow altering instruction has been added
-	 * yet.  There must be one, and it must be the last instruction in the
-	 * block.
-	 */
-	var hasControlFlowAtEnd = false
 
 	/**
 	 * During code generation, this field holds the synonym and restriction
