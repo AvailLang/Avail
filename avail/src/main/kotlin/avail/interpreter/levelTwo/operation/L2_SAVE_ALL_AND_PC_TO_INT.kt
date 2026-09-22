@@ -33,7 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Number.Companion.isFloat
+import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.variables.VariablePlaceholderDescriptor
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -61,6 +64,7 @@ import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
+import avail.utility.notNullAnd
 
 /**
  * Extract the given "reference" edge's target level two offset as an [Int],
@@ -99,9 +103,10 @@ import avail.utility.cast
  *   variables if/when the continuation becomes immutable or shared.
  * @property dirtyLocalIndices
  *   The one-based local variable indices for which to get initialization values
- *   from the boxed, unboxed int, and unboxed float vectors, in that order, when
+ *   from the unboxed int, unboxed float, and boxed, in that priority, when
  *   creating local variables due to the continuation becoming immutable or
- *   shared.  Unmentioned local variables are initialized to nil (unassigned).
+ *   shared (or returned into after invalidation).  Unmentioned local variables
+ *   are initialized to nil (unassigned).
  */
 class L2_SAVE_ALL_AND_PC_TO_INT
 constructor(
@@ -203,19 +208,44 @@ constructor(
 				instructionEquivalence.instruction as L2_CREATE_VARIABLE
 			val manifest = generator.currentManifest
 			val valueRead = postponedCreation.initialValueOrNil
-			val semanticValue = valueRead.semanticValue()
+			val sv = valueRead.semanticValue()
+
+			// Skip nil values - they don't need to be in the dump.
+			// The continuation will create them uninitialized (nil).
+			if (sv.constant.notNullAnd { equals(nil) })
+			{
+				return@forEach
+			}
+
+			// For non-nil: determine which kind of register to materialize
 			val sourceKind = when
 			{
-				manifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND) ->
-					INTEGER_KIND
-				manifest.hasLiveSemanticValue(semanticValue, FLOAT_KIND) ->
-					FLOAT_KIND
-				manifest.hasLiveSemanticValue(semanticValue, BOXED_KIND) ->
-					BOXED_KIND
+				// Priority 1-3: Already-live registers
+				manifest.hasLiveSemanticValue(sv, INTEGER_KIND) -> INTEGER_KIND
+				manifest.hasLiveSemanticValue(sv, FLOAT_KIND) -> FLOAT_KIND
+				manifest.hasLiveSemanticValue(sv, BOXED_KIND) -> BOXED_KIND
+				// Priority 4-6: Constants
+				sv.isConstant -> sv.constant!!.run {
+					when
+					{
+						isInt -> INTEGER_KIND
+						isFloat -> FLOAT_KIND
+						else -> BOXED_KIND
+					}
+				}
+				// Priority 7-9: Postponed instructions.
+				manifest.postponedInstructionFor(sv, INTEGER_KIND) != null
+					-> INTEGER_KIND
+				manifest.postponedInstructionFor(sv, FLOAT_KIND) != null
+					-> FLOAT_KIND
+				manifest.postponedInstructionFor(sv, BOXED_KIND) != null
+					-> BOXED_KIND
 				else -> error("Expected value in at least one RegisterKind")
 			}
-			val newElidedVariable =
-				manifest.read(semanticValue, sourceKind.cast())
+
+			// Materialize unconditionally, then read the register
+			generator.ensureDefinedOrEmitMove(sv, sourceKind.cast())
+			val newElidedVariable = manifest.read(sv, sourceKind.cast())
 			elidedVariables.add(newElidedVariable)
 			newElidedVariable.adjustCloneForInstruction(this, generator)
 			elidedVariableIndices.add(postponedCreation.localIndex.value)
