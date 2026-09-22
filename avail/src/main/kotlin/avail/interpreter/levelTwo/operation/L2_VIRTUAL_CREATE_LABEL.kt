@@ -33,11 +33,14 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.levelTwo.HideInAllVisualizations
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -98,28 +101,27 @@ import avail.optimizer.reoptimizer.L2Regenerator
  * are recorded – for level one.  For level two, it also captures the register
  * dump and the level two offset of the entry point above.
  *
- * @property outputLabel
- *   Where to write the new continuation.
- * @property function
- *   The [A_Function] to use for the continuation.
  * @property code
  *   The [A_RawFunction] that is known statically to be referenced by the
  *   [function].
+ * @property function
+ *   The [A_Function] to use for the continuation.
  * @property arguments
  *   The [vector][L2ReadBoxedVectorOperand] of arguments that the [function]
  *   received when it was invoked.
- * @property frameSize
- *   The number of slots to allocate in the continuation, where only the
- *   [arguments] will be populated.  The rest will be [nil].
+ * @property outputLabel
+ *   Where to write the new continuation.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_VIRTUAL_CREATE_LABEL(
-	var outputLabel: L2WriteBoxedOperand,
-	var function: L2ReadBoxedOperand,
+class L2_VIRTUAL_CREATE_LABEL
+constructor(
+	@HideInAllVisualizations
 	var code: L2ConstantOperand,
+	@HideInAllVisualizations
+	var function: L2ReadBoxedOperand,
 	var arguments: L2ReadBoxedVectorOperand,
-	var frameSize: L2IntImmediateOperand
+	var outputLabel: L2WriteBoxedOperand
 ): L2Instruction()
 {
 	override val isPlaceholder get() = true
@@ -131,9 +133,13 @@ class L2_VIRTUAL_CREATE_LABEL(
 	{
 		renderPreamble()
 		append(" ").append(outputLabel)
-		append("\n\tfunction = ").append(function)
+		append("\n\tfunction = ").append(
+			when (val f = function.constantOrNull)
+			{
+				null -> function.toString()
+				else -> f.code().methodName
+			})
 		append("\n\targuments = ").append(arguments)
-		append("\n\tframeSize = ").append(frameSize)
 	}
 
 	override fun L2Regenerator.generateReplacement(
@@ -267,7 +273,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 
 		startBlock(fallThrough)
-		val frameSizeInt = frameSize.value
+		val frameSizeInt = code.constant.numSlots
 		val slots = arguments.elements.toMutableList()
 		val nilRead = boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }

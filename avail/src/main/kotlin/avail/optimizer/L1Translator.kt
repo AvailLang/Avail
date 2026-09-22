@@ -2493,11 +2493,10 @@ class L1Translator private constructor(
 			val destinationRegister = boxedWrite(
 				semanticLabel, restriction(continuationType, null))
 			+L2_VIRTUAL_CREATE_LABEL(
-				destinationRegister,
-				currentFunction,
 				L2ConstantOperand(code),
+				currentFunction,
 				L2ReadBoxedVectorOperand(argumentsForLabel),
-				L2IntImmediateOperand(code.numSlots))
+				destinationRegister)
 		}
 		// Now push the label.
 		stackp--

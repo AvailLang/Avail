@@ -2903,8 +2903,7 @@ class L2ValueManifest
 	 */
 	fun synonymsArray(): Array<L2Synonym> =
 		states.values
-			.flatMap(ValueState::views)
-			.map(Constraint<*>::synonym)
+			.mapToSet(mutableSetOf(), ValueState::synonym)
 			.toTypedArray()
 
 	/**
@@ -3881,7 +3880,8 @@ class L2ValueManifest
 		var changed = false
 		synonymsArray().forEach { synonym ->
 			RegisterKind.all.forEach { kind ->
-				changed = changed ||
+				// Warning; don't switch to short-circuit "||".
+				changed = changed or
 					retainRegistersHelper(
 						registersToRetain, synonym, kind.cast())
 			}
@@ -3907,13 +3907,6 @@ class L2ValueManifest
 		if (changed)
 		{
 			definitions = definitionList
-			if (definitionList.isEmpty())
-			{
-				// Remove this synonym and any semantic values within it.
-				states.remove(classFor(synonym.pickSemanticValue()))
-				classOf.keys.removeAll(
-					synonym.semanticValues())
-			}
 		}
 		changed
 	}

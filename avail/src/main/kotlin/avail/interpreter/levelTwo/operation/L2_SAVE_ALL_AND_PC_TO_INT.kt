@@ -175,7 +175,7 @@ constructor(
 			// It's preparing to create a label or transient continuation.
 			// Either way, the reference is to (near) the top of the graph, so
 			// we can just let the postponed instructions go both ways and the
-			// instructionwasAdded() that happens later will clear them from the
+			// instructionWasAdded() that happens later will clear them from the
 			// reference edge.
 			return super.aboutToAdd(generator)
 		}

@@ -150,7 +150,7 @@ constructor(
 	override fun appendTo(builder: StringBuilder): Unit = with(builder)
 	{
 		append("@<")
-		val big = elements.size > 4
+		val big = elements.size > 3
 		var first = true
 		for (read in elements)
 		{

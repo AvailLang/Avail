@@ -36,10 +36,12 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.mapToSet
 
 /**
  * Unconditionally jump to the level two offset in my [L2PcOperand], while also
@@ -74,12 +76,36 @@ class L2_JUMP_BACK(
 			}
 			registersToKeep.add(read.register())
 		}
-		manifest.clearPostponedInstructions()
-		manifest.retainSemanticValues(semanticValuesToKeep)
-		manifest.retainRegisters(registersToKeep)
-		target.instructionWasAdded(manifest)
+		val edgeManifest = L2ValueManifest(manifest)
+		edgeManifest.clearPostponedInstructions()
+		edgeManifest.retainSemanticValues(semanticValuesToKeep)
+		edgeManifest.retainRegisters(registersToKeep)
+		target.instructionWasAdded(edgeManifest)
 		target.forcedClampedRegisters = registersToKeep
 		target.forcedClampedSemanticValues = semanticValuesToKeep
+	}
+
+	/**
+	 * This instruction was just added to its [L2BasicBlock].
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] that is active where this instruction was just
+	 *   added to its [L2BasicBlock].
+	 */
+	override fun justAdded(manifest: L2ValueManifest)
+	{
+		operands.forEach { it.setInstruction(this) }
+		if (manifest.hasEliminatedPhis)
+		{
+			// Remove register definitions for any registers that are about to
+			// be overwritten by this instruction.
+			val registersToBeOverwritten =
+				writeOperands.mapToSet { it.register() }
+			manifest.removeRegisters(registersToBeOverwritten)
+		}
+		basicBlock().postPhiMap = manifest.extractPostPhiMap()
+		instructionWasAdded(manifest)
+		// Don't do any other post-adjustment of the manifest.
 	}
 
 	override fun replaceConstantReads(

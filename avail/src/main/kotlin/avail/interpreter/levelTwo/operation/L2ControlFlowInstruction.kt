@@ -113,12 +113,7 @@ abstract class L2ControlFlowInstruction : L2Instruction()
 		}
 		// All manifests have now been updated, including propagation for
 		// related semantic values.  Narrow the restrictions for my reads and
-		// writes.  Phi instructions are excluded: their read operands each
-		// belong to a specific incoming edge's manifest (not the merged
-		// currentManifest), and their write restriction was already set
-		// correctly by populateOneSynonym as the union of incoming restrictions.
-		// Using the (stale, pre-merge) currentManifest here would incorrectly
-		// intersect those restrictions down to bottom.
+		// writes.
 		val allManifests = manifestByPurpose.values + manifest
 		readOperands.forEach { read ->
 			// The outbound edges may vary in how they've deduced a stronger

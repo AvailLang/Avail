@@ -46,6 +46,7 @@ import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.extractDouble
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isDouble
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_RawFunction
@@ -942,8 +943,12 @@ constructor(
 			val writeValue = P_TupleAt.semanticInvocation(
 				tupleRead.semanticValue(),
 				constant(i))
-			val write = boxedWrite(
-				writeValue, restrictionForType(tupleType.typeAtIndex(i)))
+			val elementRestriction =
+				restrictionForType(tupleType.typeAtIndex(i))
+			currentManifest.agglomerateSynonym(
+				setOfNotNull(writeValue),
+				elementRestriction)
+			val write = boxedWrite(writeValue, elementRestriction)
 			extractTupleElement(tupleRead, i, write.semanticValues())
 			readBoxed(write)
 		}
@@ -1066,6 +1071,7 @@ constructor(
 					jump.justRemoved()
 					assert(predecessorBlock.successorEdges().isEmpty())
 					assert(!predecessorBlock.hasControlFlowAtEnd)
+					predecessorBlock.postPhiMap = null
 					currentBlock = predecessorBlock
 					return
 				}

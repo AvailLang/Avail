@@ -1243,11 +1243,11 @@ class TypeRestriction private constructor(
 		val constant = constantOrNull
 		if (constant !== null)
 		{
-			return "=" + constant.typeTag.shorterName
+			return "=" + constant.typeTag.shorterTypeName
 		}
 		return if (!type.equals(TOP()))
 		{
-			":" + (type as AvailObject).typeTag.shorterName
+			":" + (type as AvailObject).typeTag.shorterTypeName
 		}
 		else ""
 	}

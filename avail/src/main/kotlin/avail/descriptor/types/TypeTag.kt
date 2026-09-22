@@ -560,6 +560,16 @@ constructor(
 		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
 
 	/**
+	 * Precompute the name without the "_TYPE_TAG" suffix, and mapped to
+	 * CamelCase.
+	 */
+	val shorterTypeName = name
+		.removeSuffix("_TAG")
+		.removeSuffix("_TYPE")
+		.split("_")
+		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
+
+	/**
 	 * Capture the ordinal as an Avail integer.
 	 */
 	lateinit var ordinalInteger: A_Number private set

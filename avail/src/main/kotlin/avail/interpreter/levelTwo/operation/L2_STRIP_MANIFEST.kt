@@ -40,8 +40,8 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 
 /**
@@ -76,7 +76,8 @@ import avail.optimizer.values.L2SemanticValue
  *   An [L2WriteBoxedVectorOperand] that correspond to the [inputs].
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_STRIP_MANIFEST(
+class L2_STRIP_MANIFEST
+constructor(
 	var inputs: L2ReadBoxedVectorOperand,
 	var outputs: L2WriteBoxedVectorOperand
 ): L2Instruction()
@@ -107,8 +108,7 @@ class L2_STRIP_MANIFEST(
 		// Clear the manifest, other than the semantic values and registers that
 		// are written by this instruction.
 		inputs.instructionWasAdded(manifest)
-		manifest.clear()
-		manifest.clearPostponedInstructions()
+		manifest.retainRegisters(emptySet())
 		outputs.instructionWasAdded(manifest)
 	}
 
