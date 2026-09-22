@@ -36,8 +36,6 @@ import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
@@ -1776,12 +1774,11 @@ class L2ValueManifest
 	 */
 	fun canProduceValue(semanticValue: L2SemanticValue): Boolean {
 		if (semanticValue.isConstant) return true
-		return stateOrNull(semanticValue).notNullAnd {
-			boxedRepresentation.canProduceValue() ||
-			intRepresentation.canProduceValue() ||
-			floatRepresentation.canProduceValue() ||
-			restriction.constantOrNull != null
-		} ?: false
+		val state = stateOrNull(semanticValue) ?: return false
+		return state.boxedRepresentation.canProduceValue() ||
+			state.intRepresentation.canProduceValue() ||
+			state.floatRepresentation.canProduceValue() ||
+			state.restriction.isConstant
 	}
 
 	/**
@@ -3245,6 +3242,12 @@ class L2ValueManifest
 			var liveSemanticValues = manifests
 				.map(L2ValueManifest::liveOrPostponedSemanticValues)
 				.reduce(Set<L2SemanticValue>::intersect)
+				// Filter out phantom values: those that appear in the intersection
+				// but can't actually be produced on all edges. These can occur when
+				// a value has a restriction but no registers, postponed instructions,
+				// or constant backing.
+				.filter { sv -> manifests.all { it.canProduceValue(sv) } }
+				.toList()
 
 			// 2. Force any postponed instructions in the predecessors, if they
 			// don't have an equivalent in each edge.  If equivalent postponed
@@ -3262,6 +3265,9 @@ class L2ValueManifest
 				liveSemanticValues = manifests
 					.map(L2ValueManifest::liveOrPostponedSemanticValues)
 					.reduce(Set<L2SemanticValue>::intersect)
+					// Filter out phantom values again, since the manifests changed.
+					.filter { sv -> manifests.all { it.canProduceValue(sv) } }
+					.toList()
 			}
 
 			// 3. Build phiMap - chop synonyms into maximal consistent groups.
@@ -3292,12 +3298,6 @@ class L2ValueManifest
 					return@forEach
 				}
 				val pick = relatedSemanticValues[0]
-				// Filter out phi groups where at least one edge cannot produce
-				// the value (e.g., "shadow" variables postponed past the merge).
-				if (!manifests.all { it.canProduceValue(pick) })
-				{
-					return@forEach
-				}
 				// Create a boxed phi if *any* boxed values are available, or if
 				// not every edge is constrained to the same constant.  Box
 				// (retroactively) from other representations as needed.
