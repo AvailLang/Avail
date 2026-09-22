@@ -36,6 +36,8 @@ import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
@@ -218,6 +220,14 @@ class L2ValueManifest
 				.flatMap(L2Register<K>::definitions)
 				.flatMap(L2WriteOperand<K>::semanticValues)
 				.toSet()
+
+		/**
+		 * Whether this representation can produce a value: either it has
+		 * live [definitions] (registers), or a [postponedInstruction] to
+		 * populate them.
+		 */
+		fun canProduceValue(): Boolean =
+			definitions.isNotEmpty() || postponedInstruction != null
 
 		/**
 		 * Whether this is the [emptyRepresentation] standing for a
@@ -1755,6 +1765,26 @@ class L2ValueManifest
 	): ValueState? = classOrNull(semanticValue)?.let(states::get)
 
 	/**
+	 * Whether the given [L2SemanticValue] can be produced on this edge:
+	 * it is a constant, or has a live register in some kind, or a postponed
+	 * instruction.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to check.
+	 * @return
+	 *   `true` if the value can be produced.
+	 */
+	fun canProduceValue(semanticValue: L2SemanticValue): Boolean {
+		if (semanticValue.isConstant) return true
+		return stateOrNull(semanticValue).notNullAnd {
+			boxedRepresentation.canProduceValue() ||
+			intRepresentation.canProduceValue() ||
+			floatRepresentation.canProduceValue() ||
+			restriction.constantOrNull != null
+		} ?: false
+	}
+
+	/**
 	 * Bind the given [L2SemanticValue]s to the given [ValueClass],
 	 * replacing any prior binding.
 	 *
@@ -3262,6 +3292,12 @@ class L2ValueManifest
 					return@forEach
 				}
 				val pick = relatedSemanticValues[0]
+				// Filter out phi groups where at least one edge cannot produce
+				// the value (e.g., "shadow" variables postponed past the merge).
+				if (!manifests.all { it.canProduceValue(pick) })
+				{
+					return@forEach
+				}
 				// Create a boxed phi if *any* boxed values are available, or if
 				// not every edge is constrained to the same constant.  Box
 				// (retroactively) from other representations as needed.
