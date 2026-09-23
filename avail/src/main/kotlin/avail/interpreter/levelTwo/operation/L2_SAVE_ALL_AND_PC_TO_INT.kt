@@ -216,7 +216,7 @@ constructor(
 			{
 				return@forEach
 			}
-
+			val restriction = manifest.restrictionFor(sv)
 			// For non-nil: determine which kind of register to materialize
 			val sourceKind = when
 			{
@@ -225,7 +225,7 @@ constructor(
 				manifest.hasLiveSemanticValue(sv, FLOAT_KIND) -> FLOAT_KIND
 				manifest.hasLiveSemanticValue(sv, BOXED_KIND) -> BOXED_KIND
 				// Priority 4-6: Constants
-				sv.isConstant -> sv.constant!!.run {
+				restriction.isConstant -> restriction.constantOrNull!!.run {
 					when
 					{
 						isInt -> INTEGER_KIND

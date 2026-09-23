@@ -228,6 +228,29 @@ class L2ValueManifest
 			definitions.isNotEmpty() || postponedInstruction != null
 
 		/**
+		 * Merge this representation with another, producing a new
+		 * representation that combines their definitions and selects one
+		 * postponed instruction. Returns the featherweight
+		 * [emptyRepresentation] if the result would be empty.
+		 *
+		 * @param other
+		 *   The other [Representation] to merge with.
+		 * @return
+		 *   A new representation containing the concatenated definitions and a
+		 *   selected postponed instruction, or the empty representation if
+		 *   empty.
+		 */
+		fun mergeWith(other: Representation<K>): Representation<K> {
+			val mergedDefinitions = (definitions + other.definitions).distinct()
+			val mergedPostponed =
+				postponedInstruction ?: other.postponedInstruction
+			return if (mergedDefinitions.isEmpty() && mergedPostponed == null)
+				emptyRepresentation<K>()
+			else
+				Representation(mergedDefinitions, mergedPostponed)
+		}
+
+		/**
 		 * Whether this is the [emptyRepresentation] standing for a
 		 * value that is *not held in this kind at all*.
 		 *
@@ -526,25 +549,6 @@ class L2ValueManifest
 			representation: Representation<*>,
 			kind: K
 		): Constraint<K> = viewFor(kind)
-
-		val views: List<Constraint<*>>
-			get() = buildList {
-				forEachRepresentation { _, kind ->
-					viewFor(kind.cast())
-				}
-			}
-
-		/**
-		 * The [Constraint] presenting this record in the [RegisterKind] of its
-		 * one and only [Representation].
-		 *
-		 * Scaffolding, and it fails outright if a value is held in more than
-		 * one kind.  Reaching for it means the calling code has no kind in
-		 * hand, and is therefore still assuming that a value has exactly one –
-		 * which is what makes these the sites to revisit when a value's
-		 * spellings come to share a [ValueClass].
-		 */
-		val soleView: Constraint<*> get() = views.single()
 
 		init
 		{
@@ -1257,7 +1261,8 @@ class L2ValueManifest
 	fun <K: RegisterKind<K>> postponedInstructionFor(
 		semanticValue: L2SemanticValue,
 		kind: K
-	): L2Instruction? = constraint(semanticValue, kind).postponedInstruction
+	): L2Instruction? =
+		constraintOrNull(semanticValue, kind)?.postponedInstruction
 
 	/**
 	 * If there's a postponed instruction for the synonym containing the given
@@ -1607,7 +1612,12 @@ class L2ValueManifest
 			// contextually from the synonym's not-defined semantic values. There
 			// is no special case for constant restrictions - they require an
 			// explicit postponed constant move instruction.
-			for (constraint in states.values.flatMap(ValueState::views))
+			for ((_, state) in states)
+			{
+				for (constraint in listOfNotNull(
+					state.viewFor(BOXED_KIND),
+					state.viewFor(INTEGER_KIND),
+					state.viewFor(FLOAT_KIND)))
 			{
 				val synonym = constraint.synonym
 				// Collect the semantic values that have been defined.
@@ -1654,6 +1664,7 @@ class L2ValueManifest
 					postponed == null -> Unit
 					else -> assert(postponed !is L2_MOVE<*>)
 				}
+			}
 			}
 		}
 		// Aggregate: every register in the manifest, of every kind.
@@ -1952,18 +1963,28 @@ class L2ValueManifest
 		// derived values of their own, which terminates because every merge
 		// strictly reduces the number of classes.
 		//
-		// The members are taken in the spelling of each record's sole
-		// representation, which is what a derived value has: a tag or a variant
-		// id is reached as an int.  Once a value's spellings share a class this
-		// must become the canonical boxed members instead.
-		agglomerateSynonym(
-			winnerState.soleView.members + loserState.soleView.members,
-			// The stored restrictions, which are boxed, rather than the views'
-			// projections of them.  A tag or variant class is a boxed value
-			// with only its int aspect in play, so projecting to int here and
-			// boxing again on the way back into storage would discard what the
-			// boxed restriction knows.
-			winnerState.restriction.intersection(loserState.restriction))
+		// Merge the members (union of all semantic values from both classes)
+		// and the restrictions. Update each representation independently.
+		val mergedMembers = winnerState.members + loserState.members
+		val mergedRestriction = winnerState.restriction.intersection(
+			loserState.restriction)
+		val mergedBoxedRep = winnerState.boxedRepresentation.mergeWith(
+			loserState.boxedRepresentation)
+		val mergedIntRep = winnerState.intRepresentation.mergeWith(
+			loserState.intRepresentation)
+		val mergedFloatRep = winnerState.floatRepresentation.mergeWith(
+			loserState.floatRepresentation)
+
+		val mergedState = ValueState(
+			mergedMembers,
+			mergedRestriction,
+			mergedBoxedRep,
+			mergedIntRep,
+			mergedFloatRep,
+			winnerState.usingClasses + loserState.usingClasses)
+
+		states[winner] = mergedState
+		forwardClass(loser, winner)
 	}
 
 	/**
@@ -2900,11 +2921,10 @@ class L2ValueManifest
 	private fun <K: RegisterKind<K>> constraintOrNull(
 		semanticValue: L2SemanticValue,
 		kind: K
-	): Constraint<K>?
-	{
-		val equivalent = equivalentSemanticValue(semanticValue)!!
-		return stateOrNull(equivalent)?.viewFor(kind)
-	}
+	): Constraint<K>? =
+		equivalentSemanticValue(semanticValue)?.let { equivalent ->
+			stateOrNull(equivalent)?.viewFor(kind)
+		}
 
 	/**
 	 * Answer the [Constraint] associated with the [L2Synonym] containing the
@@ -3361,7 +3381,12 @@ class L2ValueManifest
 				>()
 				// One view per (value, kind), since a register belongs to
 				// exactly one kind's representation.
-				val views = manifest.states.values.flatMap(ValueState::views)
+				val views = manifest.states.values.flatMap { state ->
+					listOfNotNull(
+						state.viewFor(BOXED_KIND),
+						state.viewFor(INTEGER_KIND),
+						state.viewFor(FLOAT_KIND))
+				}
 				views.forEach { constraint ->
 					constraint.definitions.forEach { register ->
 						when (val pair = registerMap[register])

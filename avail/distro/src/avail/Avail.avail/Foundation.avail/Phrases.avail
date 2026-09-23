@@ -1102,6 +1102,7 @@ Macro "⟦§_!⟧" is
 	 */
 	scope map := empty map;
 ],
+
 [
 	originalPhrase : literal phrase ⇒ phrase ⇒ ⊤
 |

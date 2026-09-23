@@ -146,6 +146,8 @@ private constructor(
 			return result.restriction().intersection(
 				restrictionForConstant(folded))
 		}
+		if (argumentRestrictions.any { it.isImpossible })
+			return TypeRestriction.bottomRestriction
 		return result.restriction().intersectionWithType(
 			primitive.constant.returnTypeGuaranteedByVM(
 				rawFunction.constant,

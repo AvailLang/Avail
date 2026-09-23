@@ -56,7 +56,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -132,13 +131,17 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 		val instanceTypeRead = arguments.elements[0]
 		val restriction = instanceTypeRead.restriction()
 		restriction.constantOrNull?.let { constant ->
-			+L2_MOVE_BOXED(boxedConstant(constant.instanceCount), result)
+			currentManifest.agglomerateSynonym(
+				result.semanticValues(),
+				restrictionForConstant(constant.instanceCount))
 			return
 		}
 		val instanceType = restriction.type
 		if (instanceType.equals(bottomMeta))
 		{
-			+L2_MOVE_BOXED(boxedConstant(zero), result)
+			currentManifest.agglomerateSynonym(
+				result.semanticValues(),
+				restrictionForConstant(zero))
 			return
 		}
 		val minCount = if (restriction.canBeBottom) zero else one
@@ -162,7 +165,9 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 			.equals(rangeRestriction.type.upperBound))
 		{
 			// There's only one value it can be.
-			+L2_MOVE_BOXED(boxedConstant(rangeRestriction.type.lowerBound), result)
+			currentManifest.agglomerateSynonym(
+				result.semanticValues(),
+				restrictionForConstant(rangeRestriction.type.lowerBound))
 			return
 		}
 		emitBasicInfalliblePrimitive(
