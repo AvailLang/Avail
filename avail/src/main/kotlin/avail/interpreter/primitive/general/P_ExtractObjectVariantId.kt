@@ -87,6 +87,10 @@ object P_ExtractObjectVariantId
 		arg1: AvailObject
 	): A_BasicObject = fromInt(arg1.objectVariant.variantId)
 
+	override fun printSemanticInvocation(
+		invocation: L2SemanticPrimitiveInvocation
+	) = "Variant(" + invocation.argumentSemanticValues.single() + ")"
+
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

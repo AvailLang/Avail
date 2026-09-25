@@ -254,6 +254,7 @@ class L2ControlFlowGraph : L2Visualizable
 		assert(!basicBlockOrder.contains(block))
 		if (block.isIrremovable || block.predecessorEdges().isNotEmpty())
 		{
+			block.blockNumber = basicBlockOrder.size
 			basicBlockOrder.add(block)
 		}
 	}

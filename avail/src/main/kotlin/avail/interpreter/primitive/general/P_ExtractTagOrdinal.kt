@@ -77,6 +77,10 @@ object P_ExtractTagOrdinal
 		arg1: AvailObject
 	): A_BasicObject = fromInt(arg1.typeTag.ordinal)
 
+	override fun printSemanticInvocation(
+		invocation: L2SemanticPrimitiveInvocation
+	) = "Tag(" + invocation.argumentSemanticValues.single() + ")"
+
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

@@ -33,12 +33,16 @@
 package avail.dispatch
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Sendable.Companion.bodySignature
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.representation.AvailObject.Companion.error
 import java.lang.String.format
 
@@ -98,9 +102,12 @@ internal constructor(private val finalResult: Result)
 			return if (tupleSize == 1)
 			{
 				// Assume for now that it's a tuple of definitions.
-				format(
-					"Success: %s",
-					finalTuple.tupleAt(1).bodySignature().argsTupleType)
+				val argsType =
+					finalTuple.tupleAt(1).bodySignature().argsTupleType
+				argsType
+					.tupleOfTypesFromTo(
+						1, argsType.sizeRange.lowerBound.extractInt)
+					.joinToString(", ", "Success: [", "]")
 			}
 			else format(
 				"Failure: (%d solutions)",

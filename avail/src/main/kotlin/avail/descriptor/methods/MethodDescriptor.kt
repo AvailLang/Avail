@@ -188,6 +188,8 @@ import avail.optimizer.L2Generator
 import avail.performance.Statistic
 import avail.performance.StatisticReport.DYNAMIC_LOOKUP_BY_TARGET
 import avail.serialization.SerializerOperation
+import avail.utility.atomicUpdater
+import avail.utility.update
 import org.availlang.json.JSONWriter
 import java.util.Collections.emptyList
 import java.util.Collections.nCopies
@@ -195,8 +197,6 @@ import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
-import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
 import kotlin.concurrent.withLock
 
 /**
@@ -237,7 +237,7 @@ class MethodDescriptor private constructor(
 	 * on the module scope of the bundles' [atomic&#32;names][AtomDescriptor]).
 	 */
 	@Volatile
-	var owningBundles = AtomicReference(emptySet)
+	var owningBundles = emptySet
 
 	/**
 	 * A [LookupTree] used to determine the most specific method definition that
@@ -268,7 +268,7 @@ class MethodDescriptor private constructor(
 		{
 			// Double-check the volatile field.
 			dynamicLookupStats?.let { return it }
-			val bundles = owningBundles.get()
+			val bundles = owningBundles
 			val name = when (bundles.setSize)
 			{
 				0 -> "(no name)"
@@ -499,13 +499,13 @@ class MethodDescriptor private constructor(
 		self[SEMANTIC_RESTRICTIONS_SET] = set.makeShared()
 	}
 
-	override fun o_Bundles(self: AvailObject): A_Set = owningBundles.get()
+	override fun o_Bundles(self: AvailObject): A_Set = owningBundles
 
 	override fun o_ChooseBundle(
 		self: AvailObject,
 		currentModule: A_Module
 	): A_Bundle {
-		val bundles: A_Set = owningBundles.get()
+		val bundles = owningBundles
 		return bundles.find {
 			currentModule.hasAncestor(it.message.issuingModule)
 		} ?: bundles.first() // Fall back to any bundle.
@@ -553,14 +553,14 @@ class MethodDescriptor private constructor(
 				DUMMY_DEBUGGER_SLOT,
 				-1,
 				owningBundles,
-				slotName = "owningBundles"))
+				slotName = "owningBundles: $owningBundles"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
 				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(methodTestingTree),
-				slotName = "methodTestingTree"))
+				methodTestingTree,
+				slotName = "methodTestingTree: $methodTestingTree"))
 		dependentChunksWeakSet?.let {
 			fields.add(
 				AvailObjectFieldHelper(
@@ -568,7 +568,7 @@ class MethodDescriptor private constructor(
 					DUMMY_DEBUGGER_SLOT,
 					-1,
 					it.toTypedArray(),
-					slotName = "dependentChunks"))
+					slotName = "dependentChunks (${it.size})"))
 		}
 		return fields.toTypedArray()
 	}
@@ -611,7 +611,7 @@ class MethodDescriptor private constructor(
 		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize == 0
 			&& self[SEMANTIC_RESTRICTIONS_SET].setSize == 0
 			&& self[SEALED_ARGUMENTS_TYPES_TUPLE].tupleSize == 0
-			&& owningBundles.get().all { it.macrosTuple.tupleSize == 0 }
+			&& owningBundles.all { it.macrosTuple.tupleSize == 0 }
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.METHOD()
@@ -656,8 +656,8 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		bundle: A_Bundle)
 	{
-		owningBundles.updateAndGet {
-			it.setWithElementCanDestroy(bundle, false).makeShared()
+		owningBundlesUpdater.update(this) {
+			setWithElementCanDestroy(bundle, false).makeShared()
 		}
 	}
 
@@ -665,8 +665,8 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		bundle: A_Bundle)
 	{
-		owningBundles.updateAndGet {
-			it.setWithoutElementCanDestroy(bundle, false).makeShared()
+		owningBundlesUpdater.update(this) {
+			setWithoutElementCanDestroy(bundle, false).makeShared()
 		}
 	}
 
@@ -704,7 +704,7 @@ class MethodDescriptor private constructor(
 		//  anyhow, because they're not dependently related.  However, internal
 		//  accounting might end up not quite right when the definitions or
 		//  bundles need to be removed during unloading.
-		owningBundles.get().forEach {
+		owningBundles.forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 		}
 		self.membershipChanged()
@@ -731,7 +731,7 @@ class MethodDescriptor private constructor(
 		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
 			tupleWithout(this, definition)
 		}
-		owningBundles.get().forEach { bundle ->
+		owningBundles.forEach { bundle ->
 			bundle.removePlanForSendable(definition)
 		}
 		self.membershipChanged()
@@ -802,14 +802,14 @@ class MethodDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { owningBundles.get().writeTo(writer) }
+			at("aliases") { owningBundles.writeTo(writer) }
 			at("definitions") { self.volatileSlot(DEFINITIONS_TUPLE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { owningBundles.get().writeSummaryTo(writer) }
+			at("aliases") { owningBundles.writeSummaryTo(writer) }
 			at("definitions") {
 				self.volatileSlot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
 			}
@@ -1074,8 +1074,11 @@ class MethodDescriptor private constructor(
 		{
 			init
 			{
-				val stylerPrim = (bundle.bundleMethod.definitionsTuple +
+				val stylerPrim =
+					listOf(
+						bundle.bundleMethod.definitionsTuple,
 						bundle.macrosTuple)
+					.flatten()
 					.map { it.bodyBlock().code().codePrimitive()!! }
 					.mapNotNull { it.bootstrapStyler() }
 					.singleOrNull()
@@ -1176,10 +1179,12 @@ class MethodDescriptor private constructor(
 
 	companion object {
 		/** Atomic access to [methodTestingTree]. */
-		private val methodTestingTreeUpdater = newUpdater(
-			MethodDescriptor::class.java,
-			LookupTree::class.java,
-			"methodTestingTree")
+		private val methodTestingTreeUpdater =
+			atomicUpdater(MethodDescriptor::methodTestingTree)
+
+		/** Atomic access to [owningBundles]. */
+		private val owningBundlesUpdater =
+			atomicUpdater(MethodDescriptor::owningBundles)
 
 		/**
 		 * A [LookupTreeAdaptor] used for building and navigating the

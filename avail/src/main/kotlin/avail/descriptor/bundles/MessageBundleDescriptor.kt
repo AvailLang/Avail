@@ -110,10 +110,10 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.serialization.SerializerOperation
+import avail.utility.atomicUpdater
 import org.availlang.json.JSONWriter
 import java.util.Collections.nCopies
 import java.util.IdentityHashMap
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 import kotlin.concurrent.withLock
 
 /**
@@ -311,7 +311,7 @@ class MessageBundleDescriptor private constructor(
 				self,
 				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(messageSplitter),
+				messageSplitter,
 				slotName = "messageSplitter",
 				forcedName = "messageSplitter"))
 		fields.add(
@@ -319,7 +319,7 @@ class MessageBundleDescriptor private constructor(
 				self,
 				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(privateMacroTestingTree),
+				privateMacroTestingTree,
 				slotName = "macroTestingTree",
 				forcedName = "macroTestingTree"))
 		return fields.toTypedArray()
@@ -446,10 +446,7 @@ class MessageBundleDescriptor private constructor(
 	companion object {
 		/** Atomic access to [privateMacroTestingTree]. */
 		private val macroTestingTreeUpdater =
-			AtomicReferenceFieldUpdater.newUpdater(
-				MessageBundleDescriptor::class.java,
-				LookupTree::class.java,
-				MessageBundleDescriptor::privateMacroTestingTree.name)
+			atomicUpdater(MessageBundleDescriptor::privateMacroTestingTree)
 
 		/**
 		 * Add an [A_DefinitionParsingPlan] to this bundle.  This is performed
