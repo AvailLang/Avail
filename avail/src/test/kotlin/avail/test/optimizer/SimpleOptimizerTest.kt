@@ -104,6 +104,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.dispatch.TypeTagDecisionStep
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
 import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
@@ -179,6 +180,8 @@ import avail.interpreter.primitive.tuples.P_TupleAt
 import avail.interpreter.primitive.tuples.P_TupleReplaceAt
 import avail.interpreter.primitive.tuples.P_TupleSize
 import avail.interpreter.primitive.tuples.P_TupleTypeAt
+import avail.interpreter.primitive.tuples.P_TupleTypeAtThrough
+import avail.interpreter.primitive.tuples.P_TupleTypeLeadingTypes
 import avail.interpreter.primitive.types.P_CastIntoElse
 import avail.interpreter.primitive.types.P_CreateEnumeration
 import avail.interpreter.primitive.types.P_InstanceCount
@@ -254,6 +257,8 @@ class SimpleOptimizerTest
 			"_∈_" to P_KeyInMap,
 			"_∈_" to P_ElementInSet,
 			"_∈_" to P_IsInstanceOf,
+			"_'s⁇leading types" to P_TupleTypeLeadingTypes,
+			"∪_[_.._]" to P_TupleTypeAtThrough,
 			"_'s⁇type" to P_Type,
 			"_'s⁇key type" to P_MapTypeKeyType,
 			// Two definitions, so that a call must dispatch.  Their argument
@@ -380,6 +385,11 @@ class SimpleOptimizerTest
 			L1_doPushLocal(1)
 			call("_'s⁇genuine lower bound", extendedIntegers)
 		}
+		helper.defineMethod("⌊_⌋", wholeNumbers) {
+			argumentTypes(tupleMeta)
+			pushLiteral(stringFrom("\"⌊_⌋\" for tupleMeta is a stub."))
+			call("Crash:_", bottom)
+		}
 		helper.defineMethod("⌊_⌋", bottom) {
 			argumentTypes(bottomMeta)
 			L1_doPushLocal(1)
@@ -394,6 +404,16 @@ class SimpleOptimizerTest
 		helper.defineMethod("⌈_⌉", extendedIntegers) {
 			argumentTypes(extendedIntegersMeta)
 			pushLiteral(stringFrom("\"⌈_⌉\" is a stub."))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("⌈_⌉", inclusive(zero, positiveInfinity)) {
+			argumentTypes(tupleMeta)
+			pushLiteral(stringFrom("\"⌈_⌉\" for tupleMeta is a stub."))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("⌈_⌉", bottom) {
+			argumentTypes(bottomMeta)
+			L1_doPushLocal(1)
 			call("Crash:_", bottom)
 		}
 		helper.defineMethod("⌈_⌉is inclusive", booleanType) {
@@ -523,7 +543,23 @@ class SimpleOptimizerTest
 			L1_doPushLastLocal(varArgument)
 			call("↓_", NUMBER())
 		}
-
+		helper.defineMethod("«_‡max»", NUMBER()) {
+			argumentTypes(oneOrMoreOf(NUMBER()))
+			declareName("values")
+			pushLiteral(stringFrom("«_‡max» is a stub"))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("<«_‡,»`…`|_.._>", tupleMeta) {
+			argumentTypes(
+				oneOrMoreOf(anyMeta),
+				wholeNumbers,
+				inclusive(zero, positiveInfinity))
+			declareName("elementTypes")
+			declareName("lowerBound")
+			declareName("upperBound")
+			pushLiteral(stringFrom("<«_‡,»`…`|_.._> is a stub"))
+			call("Crash:_", bottom)
+		}
 
 		// Force lookup by value, otherwise only the bypassForTypeLookup will
 		// get warmed up.  Specifically, we want the tree to dispatch by
@@ -3040,6 +3076,65 @@ class SimpleOptimizerTest
 					emptyTuple))
 			// :: If _ = 1 then [...elements ... index...] else [...]
 			call("If_then_else_", TOP())
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * This was a block inside the semantic restriction for `"_-_"`, for calls
+	 * taking a tuple and element to exclude.
+	 *
+	 * The proximal problem was an attempt to send [extractInt] to
+	 * [positiveInfinity].  It was expecting the value to be a tag ordinal,
+	 * inside the tag calculations for [TypeTagDecisionStep].  This was traced
+	 * down to block#20 (may drift as the optimizer changes), where a merge of
+	 * control flow combined two not-bottom restrictions and somehow ended up
+	 * with a may-be-bottom restriction (for the tupleType outer).  This led to
+	 * exposing a different bug in [TypeTagDecisionStep], where an edge that had
+	 * an impossible restriction wasn't being eliminated.
+	 *
+	 * Resolutions:
+	 *   TBD – fix the edge-building loop in [TypeTagDecisionStep].
+	 *   TBD - fix the control flow merge code to keep bottom out.
+	 */
+	@Test
+	fun testSemanticRestrictionOfTupleSubtraction_4()
+	{
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			// Constants
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			// Outers
+			val tupleTypeOuter = createOuter(tupleMeta)
+			declareName("tupleType")
+
+			// :: union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+			L1_doPushOuter(tupleTypeOuter)
+			pushLiteral(one)
+			L1_doPushOuter(tupleTypeOuter)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			// :: <union… | 0 max (⌊tupleType⌋-1).. ⌈tupleType⌉>
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushOuter(tupleTypeOuter)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastOuter(tupleTypeOuter)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
 		}
 
 		helper.testOptimize(rawFunction)

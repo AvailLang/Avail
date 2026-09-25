@@ -549,8 +549,8 @@ class L2ValueManifest
 		override fun toString(): String = buildString {
 			when
 			{
-				allDefinitions.isEmpty() -> append("⌛️️POSTPONED")
 				restriction.isImpossible -> append("⛔️Impossible")
+				allDefinitions.isEmpty() -> append("⌛️️Postponed")
 				else -> allDefinitions.joinTo(this)
 			}
 			append(": ")
@@ -3492,6 +3492,21 @@ class L2ValueManifest
 			updateDefinitions(firstSemanticValue, kind) {
 				plus(commonRegisters - this)
 			}
+			// Update the restriction to the union of incoming restrictions,
+			// since the registers are the same but the restrictions may differ.
+			val restriction = manifests
+				.map { it.restrictionFor(firstSemanticValue) }
+				.reduce(TypeRestriction::union)
+			val constant = restriction.constantOrNull
+			val semanticValuesToInclude = when
+			{
+				constant == null -> relatedSemanticValues
+				relatedSemanticValues.any {
+					it.constant.notNullAnd { equals(constant) }
+				} -> relatedSemanticValues
+				else -> relatedSemanticValues + constant(constant)
+			}
+			agglomerateSynonym(semanticValuesToInclude, restriction)
 			return
 		}
 		// There were no common registers, but we might be able to construct
@@ -3631,11 +3646,11 @@ class L2ValueManifest
 				equivalence.synonym.semanticValues(),
 				newInstruction.writeOperands.single().restriction())
 			val pick = equivalence.synonym.pickSemanticValue()
-			val commonDefinitios = manifests
+			val commonDefinitions = manifests
 				.map { it.getAllDefinitions(pick, kind.cast()).toSet() }
 				.reduce(Set<L2Register<*>>::intersect)
 			updateDefinitions(pick, kind.cast()) {
-				plus(commonDefinitios).cast()
+				plus(commonDefinitions).cast()
 			}
 			if (newInstruction !is L2_MOVE<*>)
 			{
