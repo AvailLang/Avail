@@ -1,5 +1,5 @@
 /*
- * Primitive0.kt
+ * PrimitiveN.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,55 +33,48 @@
 package avail.interpreter.primitive
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
 import avail.optimizer.StackReifier
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * A [Primitive] taking exactly zero arguments.
+ * A [Primitive] taking an unknown number of arguments in an [Array].
  *
  * @param flags
  *   The flags that describe how the [Interpreter] and [L2Generator] should deal
  *   with this primitive.
  */
-abstract class Primitive0
+abstract class PrimitiveN
 constructor(
+	argCount: Int,
 	vararg flags: Flag
-): Primitive(0, *flags)
+): Primitive(argCount, *flags)
 {
 	/**
-	 * Attempt to run a primitive taking zero arguments, answering either an
-	 * AvailObject if successful, or null if the primitive could not complete
-	 * for some reason.  If the primitive reifies, the
+	 * Attempt to run a primitive taking the [Array] of arguments, answering
+	 * either an AvailObject if successful, or null if the primitive could not
+	 * complete for some reason.  If the primitive reifies, the
 	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
 	 * primitive fails, its failure code will be stored in the
 	 * [Interpreter.latestResult].
 	 *
 	 * @receiver
 	 *   The [Interpreter] performing the primitive attempt.
+	 * @param args
+	 *   The [Array] of arguments to the primitive.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun Interpreter.attempt0(): A_BasicObject?
+	abstract fun Interpreter.attemptN(
+		args: Array<AvailObject>
+	): A_BasicObject?
 
 	final override fun attempt(interpreter: Interpreter): A_BasicObject?
 	{
 		val args = interpreter.argsBuffer
-		assert(args.isEmpty())
-		return interpreter.attempt0()
+		return interpreter.attemptN(args.toTypedArray())
 	}
-
-	companion object
-	{
-		/** The method [attempt0]. */
-		val attempt0Method = instanceMethod(
-			Primitive0::class.java,
-			"attempt0",
-			A_BasicObject::class.java,
-			Interpreter::class.java)
-	}
-
 }

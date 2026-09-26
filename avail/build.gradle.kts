@@ -548,8 +548,11 @@ tasks {
 		relocateGeneratedPropertyFiles(this)
 	}
 
-	// Update the dependencies of "classes".
+	// Update the dependencies of "classes" and "compileJava".
 	classes { dependsOn(relocateGeneratedPropertyFiles) }
+	withType<JavaCompile> {
+		dependsOn(relocateGeneratedPropertyFiles)
+	}
 
 	/** Bootstrap Primitive_<lang>.properties for the current locale. */
 	val generatePrimitiveNames = register<JavaExec>("generatePrimitiveNames") {

@@ -1,5 +1,5 @@
 /*
- * Primitive4.kt
+ * Primitive1.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,23 +37,22 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
 import avail.optimizer.StackReifier
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * A [Primitive] taking exactly four arguments.
+ * A [Primitive] taking exactly one argument.
  *
  * @param flags
  *   The flags that describe how the [Interpreter] and [L2Generator] should deal
  *   with this primitive.
  */
-abstract class Primitive4
+abstract class Primitive1
 constructor(
 	vararg flags: Flag
-): Primitive(4, *flags)
+): Primitive(1, *flags)
 {
 	/**
-	 * Attempt to run a primitive taking four arguments, answering either an
+	 * Attempt to run a primitive taking one argument, answering either an
 	 * AvailObject if successful, or null if the primitive could not complete
 	 * for some reason.  If the primitive reifies, the
 	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
@@ -64,41 +63,18 @@ constructor(
 	 *   The [Interpreter] performing the primitive attempt.
 	 * @param arg1
 	 *   The first argument to the primitive.
-	 * @param arg2
-	 *   The second argument to the primitive.
-	 * @param arg3
-	 *   The third argument to the primitive.
-	 * @param arg4
-	 *   The fourth argument to the primitive.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
+	abstract fun Interpreter.attempt1(
+		arg1: AvailObject
 	): A_BasicObject?
 
 	final override fun attempt(interpreter: Interpreter): A_BasicObject?
 	{
 		val args = interpreter.argsBuffer
-		assert(args.size == 4)
-		return interpreter.attempt4(args[0], args[1], args[2], args[3])
-	}
-
-	companion object
-	{
-		/** The method [attempt4]. */
-		val attempt4Method = instanceMethod(
-			Primitive4::class.java,
-			"attempt4",
-			A_BasicObject::class.java,
-			Interpreter::class.java,
-			AvailObject::class.java,
-			AvailObject::class.java,
-			AvailObject::class.java,
-			AvailObject::class.java)
+		assert(args.size == 1)
+		return interpreter.attempt1(args[0])
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Primitive3.kt
+ * Primitive4.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,23 +37,22 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
 import avail.optimizer.StackReifier
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * A [Primitive] taking exactly three arguments.
+ * A [Primitive] taking exactly four arguments.
  *
  * @param flags
  *   The flags that describe how the [Interpreter] and [L2Generator] should deal
  *   with this primitive.
  */
-abstract class Primitive3
+abstract class Primitive4
 constructor(
 	vararg flags: Flag
-): Primitive(3, *flags)
+): Primitive(4, *flags)
 {
 	/**
-	 * Attempt to run a primitive taking three arguments, answering either an
+	 * Attempt to run a primitive taking four arguments, answering either an
 	 * AvailObject if successful, or null if the primitive could not complete
 	 * for some reason.  If the primitive reifies, the
 	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
@@ -68,33 +67,23 @@ constructor(
 	 *   The second argument to the primitive.
 	 * @param arg3
 	 *   The third argument to the primitive.
+	 * @param arg4
+	 *   The fourth argument to the primitive.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun Interpreter.attempt3(
+	abstract fun Interpreter.attempt4(
 		arg1: AvailObject,
 		arg2: AvailObject,
-		arg3: AvailObject
+		arg3: AvailObject,
+		arg4: AvailObject
 	): A_BasicObject?
 
 	final override fun attempt(interpreter: Interpreter): A_BasicObject?
 	{
 		val args = interpreter.argsBuffer
-		assert(args.size == 3)
-		return interpreter.attempt3(args[0], args[1], args[2])
-	}
-
-	companion object
-	{
-		/** The method [attempt3]. */
-		val attempt3Method = instanceMethod(
-			Primitive3::class.java,
-			"attempt3",
-			A_BasicObject::class.java,
-			Interpreter::class.java,
-			AvailObject::class.java,
-			AvailObject::class.java,
-			AvailObject::class.java)
+		assert(args.size == 4)
+		return interpreter.attempt4(args[0], args[1], args[2], args[3])
 	}
 }

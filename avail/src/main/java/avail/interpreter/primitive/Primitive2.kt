@@ -1,5 +1,5 @@
 /*
- * Primitive1.kt
+ * Primitive2.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,23 +37,22 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.L2Generator
 import avail.optimizer.StackReifier
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * A [Primitive] taking exactly one argument.
+ * A [Primitive] taking exactly two arguments.
  *
  * @param flags
  *   The flags that describe how the [Interpreter] and [L2Generator] should deal
  *   with this primitive.
  */
-abstract class Primitive1
+abstract class Primitive2
 constructor(
 	vararg flags: Flag
-): Primitive(1, *flags)
+): Primitive(2, *flags)
 {
 	/**
-	 * Attempt to run a primitive taking one argument, answering either an
+	 * Attempt to run a primitive taking two arguments, answering either an
 	 * AvailObject if successful, or null if the primitive could not complete
 	 * for some reason.  If the primitive reifies, the
 	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
@@ -64,29 +63,21 @@ constructor(
 	 *   The [Interpreter] performing the primitive attempt.
 	 * @param arg1
 	 *   The first argument to the primitive.
+	 * @param arg2
+	 *   The second argument to the primitive.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun Interpreter.attempt1(
-		arg1: AvailObject
+	abstract fun Interpreter.attempt2(
+		arg1: AvailObject,
+		arg2: AvailObject
 	): A_BasicObject?
 
 	final override fun attempt(interpreter: Interpreter): A_BasicObject?
 	{
 		val args = interpreter.argsBuffer
-		assert(args.size == 1)
-		return interpreter.attempt1(args[0])
-	}
-
-	companion object
-	{
-		/** The method [attempt1]. */
-		val attempt1Method = instanceMethod(
-			Primitive1::class.java,
-			"attempt1",
-			A_BasicObject::class.java,
-			Interpreter::class.java,
-			AvailObject::class.java)
+		assert(args.size == 2)
+		return interpreter.attempt2(args[0], args[1])
 	}
 }
