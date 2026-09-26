@@ -70,11 +70,11 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline, CanFold)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val targetTuple = args[0]
 		val pathTuple = args[1]
 		val sliceStartIndex = args[2]

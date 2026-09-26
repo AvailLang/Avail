@@ -61,11 +61,10 @@ import avail.interpreter.primitive.Primitive1
 object P_FirstOfSequenceStatements : Primitive1(
 	CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val seq = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		seq: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return seq.statements
 	}
 

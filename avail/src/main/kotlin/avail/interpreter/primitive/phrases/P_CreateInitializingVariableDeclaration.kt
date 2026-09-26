@@ -63,15 +63,12 @@ import avail.interpreter.primitive.Primitive3
 object P_CreateInitializingVariableDeclaration : Primitive3(
 	CanInline, CannotFail)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val token = arg1
-		val type = arg2
-		val initializer = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		token: AvailObject,
+		type: AvailObject,
+		initializer: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newVariable(token, type, nil, initializer)
 	}
 

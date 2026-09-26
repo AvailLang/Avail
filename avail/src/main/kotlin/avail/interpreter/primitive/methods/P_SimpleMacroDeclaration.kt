@@ -43,7 +43,6 @@ import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
@@ -97,18 +96,13 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_SimpleMacroDeclaration : Primitive4(CanSuspend, HasSideEffect)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val string = arg1
-		val prefixFunctions = arg2
-		val function = arg3
-		val optionalStylerFunction: A_Tuple = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		string: AvailObject,
+		prefixFunctions: AvailObject,
+		function: AvailObject,
+		optionalStylerFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		val loader = fiber.availLoader ?:
 			return fail(E_LOADING_IS_OVER)

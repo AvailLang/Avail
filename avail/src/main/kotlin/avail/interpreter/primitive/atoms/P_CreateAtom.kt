@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateAtom : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val name = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		name: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		return when (val loader = availLoaderOrNull())
 		{

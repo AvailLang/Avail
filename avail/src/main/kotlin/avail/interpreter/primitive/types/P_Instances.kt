@@ -74,11 +74,10 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 @Suppress("unused")
 object P_Instances : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return if (!type.isEnumeration)
 		{
 			fail(E_NOT_AN_ENUMERATION)

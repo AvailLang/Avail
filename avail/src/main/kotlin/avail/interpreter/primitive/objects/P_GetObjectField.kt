@@ -79,14 +79,11 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 @Suppress("unused")
 object P_GetObjectField : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val obj = arg1
-		val field = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		obj: AvailObject,
+		field: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return when (val fieldValue = obj.fieldAtOrNull(field))
 		{
 			null -> fail(E_NO_SUCH_FIELD)

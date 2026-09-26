@@ -61,10 +61,10 @@ import avail.optimizer.L1Translator
 object P_PushArgument2 : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val argument = args[1]
 		return argument
 	}

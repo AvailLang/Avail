@@ -59,13 +59,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateArgumentDeclaration : Primitive2(CanInline, CannotFail)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val token = arg1
-		val type = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		token: AvailObject,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newArgument(token, type, nil)
 	}
 

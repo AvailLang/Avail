@@ -57,11 +57,10 @@ import java.util.Enumeration
 @Suppress("unused")
 object P_CreateEnumeration : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val instanceSet = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		instanceSet: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return enumerationWith(instanceSet)
 	}
 

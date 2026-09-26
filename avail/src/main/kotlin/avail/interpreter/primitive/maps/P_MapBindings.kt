@@ -58,11 +58,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MapBindings : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val map = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		map: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val iterator = map.mapIterable.iterator()
 		return generateObjectTupleFrom(map.mapSize) {
 			val (k, v) = iterator.next()

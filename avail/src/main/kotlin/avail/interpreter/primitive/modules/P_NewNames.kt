@@ -64,11 +64,10 @@ import avail.interpreter.primitive.Primitive1
 object P_NewNames : Primitive1(
 	CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val module = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		module: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return module.newNames
 	}
 

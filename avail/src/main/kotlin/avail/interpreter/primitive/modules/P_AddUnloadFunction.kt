@@ -64,11 +64,10 @@ import avail.interpreter.primitive.Primitive1
 object P_AddUnloadFunction : Primitive1(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val unloadFunction = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		unloadFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		val module = loader.module
 		module.addUnloadFunction(unloadFunction)

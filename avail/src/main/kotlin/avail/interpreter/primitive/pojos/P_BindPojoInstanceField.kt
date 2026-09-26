@@ -67,14 +67,11 @@ import java.lang.reflect.Modifier
 @Suppress("unused")
 object P_BindPojoInstanceField : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val pojo = arg1
-		val fieldName = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		pojo: AvailObject,
+		fieldName: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Use the actual Java runtime type of the pojo to perform the

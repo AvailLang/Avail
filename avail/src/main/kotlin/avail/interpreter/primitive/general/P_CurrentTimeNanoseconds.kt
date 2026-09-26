@@ -56,8 +56,9 @@ import java.lang.System.nanoTime
 object P_CurrentTimeNanoseconds
 	: Primitive0(CannotFail, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		return fromLong(nanoTime())
 	}
 

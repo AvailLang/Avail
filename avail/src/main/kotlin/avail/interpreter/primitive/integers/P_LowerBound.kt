@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_LowerBound : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val range = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		range: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return range.lowerBound
 	}
 

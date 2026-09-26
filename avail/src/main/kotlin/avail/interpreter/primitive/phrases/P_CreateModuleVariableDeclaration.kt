@@ -60,13 +60,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateModuleVariableDeclaration : Primitive2(CanInline, CannotFail)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val token = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		token: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newModuleVariable(token, variable, nil, nil)
 	}
 

@@ -60,14 +60,11 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_ShortCircuitHelper : Primitive2(Invokes, CanInline, CannotFail)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		// val ignoreBool = arg1
-		val function = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		ignoreBool: AvailObject,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Function takes no arguments.
 		argsBuffer.clear()
 		return invokeInPrimitive(function)

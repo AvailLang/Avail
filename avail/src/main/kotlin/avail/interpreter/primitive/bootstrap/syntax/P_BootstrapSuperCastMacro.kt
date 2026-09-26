@@ -67,14 +67,11 @@ import avail.interpreter.primitive.Primitive2
 object P_BootstrapSuperCastMacro
 	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val expressionNode = arg1
-		val typeLiteral = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		expressionNode: AvailObject,
+		typeLiteral: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val type = typeLiteral.token.literal()
 		if (type.isTop || type.isBottom)
 		{

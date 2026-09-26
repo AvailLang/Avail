@@ -38,7 +38,6 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.except
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
@@ -83,16 +82,12 @@ import avail.interpreter.primitive.Primitive3
 object P_CatchException : Primitive3(
 	CatchException, PreserveGuardVariable, PreserveArguments, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		//val bodyBlock: A_Function = arg1
-		val handlerBlocks: A_Tuple = arg2
-		//val ensureBlock: A_Function = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		bodyBlock: AvailObject,
+		handlerBlocks: AvailObject,
+		ensureBlock: AvailObject
+	): A_BasicObject? = interpreter.run {
 		for (block in handlerBlocks)
 		{
 			if (!block.kind().argsTupleType.typeAtIndex(1).isSubtypeOf(

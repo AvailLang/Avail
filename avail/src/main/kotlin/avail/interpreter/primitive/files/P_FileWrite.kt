@@ -108,12 +108,10 @@ import kotlin.math.min
 @Suppress("unused")
 object P_FileWrite : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 6)
-
+	): A_BasicObject? = interpreter.run {
 		checkArgumentCount(6)
 		val positionObject = args[0]
 		val bytes = args[1]

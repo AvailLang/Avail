@@ -126,16 +126,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 @Suppress("unused")
 object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val messageName = arg1
-		val argsListPhrase = arg2
-		val returnType = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		messageName: AvailObject,
+		argsListPhrase: AvailObject,
+		returnType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader ?:
 			return fail(E_LOADING_IS_OVER)

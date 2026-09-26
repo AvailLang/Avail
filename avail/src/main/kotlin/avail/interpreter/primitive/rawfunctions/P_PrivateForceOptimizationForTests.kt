@@ -60,11 +60,10 @@ import avail.optimizer.OptimizationLevel
 @WritesHiddenVariable(GLOBAL_STATE::class)
 object P_PrivateForceOptimizationForTests : Primitive1(Private, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val code = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		code: AvailObject
+	): A_BasicObject? = interpreter.run {
 		try
 		{
 			L1Translator.`🌼translateToLevelTwo`(

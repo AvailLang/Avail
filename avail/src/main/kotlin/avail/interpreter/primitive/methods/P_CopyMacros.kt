@@ -74,14 +74,11 @@ import avail.interpreter.primitive.Primitive2
  */
 object P_CopyMacros : Primitive2(CanSuspend, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val oldAtom: A_Atom = arg1
-		val newAtom: A_Atom = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		oldAtom: AvailObject,
+		newAtom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = availLoaderOrNull()
 		loader ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)

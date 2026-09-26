@@ -68,11 +68,10 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive1(
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE] = function
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return nil

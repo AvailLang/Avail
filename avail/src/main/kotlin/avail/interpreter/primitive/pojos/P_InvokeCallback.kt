@@ -64,10 +64,10 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_InvokeCallback : PrimitiveN(-1, Private, CanSuspend, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		val primitiveFunction = function!!
 		assert(primitiveFunction.code().codePrimitive() === P_InvokeCallback)

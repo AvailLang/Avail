@@ -94,14 +94,11 @@ import kotlin.math.min
 @Suppress("unused")
 object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val bInt = when
 		{
 			b.isInt -> b.extractInt

@@ -75,15 +75,12 @@ import java.nio.file.StandardCopyOption
 @Suppress("unused")
 object P_FileMove : Primitive3(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val source = arg1
-		val destination = arg2
-		val overwrite = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		source: AvailObject,
+		destination: AvailObject,
+		overwrite: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val sourcePath: Path
 		val destinationPath: Path =
 			try

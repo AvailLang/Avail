@@ -100,11 +100,11 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_SocketIPv6Connect : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 6)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(6)
 		val handle = args[0]
 		val addressTuple = args[1]
 		val port = args[2]

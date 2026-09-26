@@ -71,13 +71,11 @@ import avail.interpreter.primitive.Primitive2
 object P_DisableTraceVariableReadsBeforeWrites : Primitive2(
 	 HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
-		val reactorFunction = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		key: AvailObject,
+		reactorFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!traceVariableReadsBeforeWrites())
 		{
 			return fail(E_ILLEGAL_TRACE_MODE)

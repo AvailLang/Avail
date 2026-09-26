@@ -65,13 +65,11 @@ import java.security.NoSuchAlgorithmException
 @Suppress("unused")
 object P_ComputeDigest : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val algorithm = arg1
-		val bytes = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		algorithm: AvailObject,
+		bytes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val digest: MessageDigest
 		try
 		{

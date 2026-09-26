@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SetTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val setType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		setType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return setType.sizeRange
 	}
 

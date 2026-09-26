@@ -72,11 +72,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateTokenType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return tokenType(
 			TokenDescriptor.TokenType.lookupTokenType(
 				type.getAtomProperty(tokenTypeOrdinalKey).extractInt))

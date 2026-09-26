@@ -60,13 +60,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateLocalConstantDeclaration : Primitive2(CanInline, CannotFail)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val token = arg1
-		val initializer = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		token: AvailObject,
+		initializer: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newConstant(token, initializer)
 	}
 

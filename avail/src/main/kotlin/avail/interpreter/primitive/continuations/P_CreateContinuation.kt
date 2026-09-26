@@ -70,11 +70,11 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 @Suppress("unused")
 object P_CreateContinuation : PrimitiveN(5, CanFold, CanInline)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val (function, pc, stack, stackp, callerHolder) = args
 
 		val rawFunction = function.code()

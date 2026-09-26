@@ -65,11 +65,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SetToTuple : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val set = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		set: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return set.asTuple
 	}
 

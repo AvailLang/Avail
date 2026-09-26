@@ -66,11 +66,10 @@ object P_DeclareStringifierFunction : Primitive1(
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val newFunction = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		newFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		// Set the stringification function.
 		val oldFunction = runtime[STRINGIFICATION]

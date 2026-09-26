@@ -63,13 +63,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RemoveWriteReactor : Primitive2(HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val key = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		key: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{

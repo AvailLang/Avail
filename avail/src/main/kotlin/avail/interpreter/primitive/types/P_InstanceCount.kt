@@ -70,11 +70,10 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return type.instanceCount
 	}
 

@@ -73,11 +73,10 @@ import java.nio.channels.ClosedChannelException
 @Suppress("unused")
 object P_ServerSocketAddress : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val handle = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		handle: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{

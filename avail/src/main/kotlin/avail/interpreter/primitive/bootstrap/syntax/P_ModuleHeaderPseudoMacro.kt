@@ -76,11 +76,11 @@ import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
 object P_ModuleHeaderPseudoMacro
 	: PrimitiveN(6, Private, Bootstrap, CannotFail, CanInline)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 6)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(6)
 		val moduleNameLiteral = args[0]
 		val optionalVersions = args[1]
 		val allImports = args[2]

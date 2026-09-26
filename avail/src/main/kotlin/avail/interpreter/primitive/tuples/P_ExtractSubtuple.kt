@@ -100,15 +100,12 @@ import kotlin.math.min
 @Suppress("unused")
 object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
-		val start = arg2
-		val end = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		tuple: AvailObject,
+		start: AvailObject,
+		end: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!start.isInt || !end.isInt)
 		{
 			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)

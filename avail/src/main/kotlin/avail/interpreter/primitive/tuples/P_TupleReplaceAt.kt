@@ -73,15 +73,12 @@ import kotlin.math.min
 @Suppress("unused")
 object P_TupleReplaceAt : Primitive3(CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
-		val indexObject = arg2
-		val value = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		tuple: AvailObject,
+		indexObject: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!indexObject.isInt)
 		{
 			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)

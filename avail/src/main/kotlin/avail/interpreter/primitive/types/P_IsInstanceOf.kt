@@ -63,14 +63,11 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_IsInstanceOf : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
-		val type = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		value: AvailObject,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(value.isInstanceOf(type))
 	}
 

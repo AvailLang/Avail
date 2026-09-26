@@ -69,11 +69,10 @@ import avail.interpreter.primitive.Primitive1
 object P_RemoveFiberVariable : Primitive1(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		key: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (key.isAtomSpecial)
 		{
 			return fail(E_SPECIAL_ATOM)

@@ -71,13 +71,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_DefinitionForArgumentTypes : Primitive2(CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
-		val argTypes = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		argTypes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val bundle = atom.bundleOrNil
 		try
 		{

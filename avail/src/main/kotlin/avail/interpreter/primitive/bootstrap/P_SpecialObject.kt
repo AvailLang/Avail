@@ -60,11 +60,10 @@ import avail.interpreter.primitive.style.P_SpecialObjectStyler
 @Suppress("unused")
 object P_SpecialObject : Primitive1(CanInline, CanFold, Bootstrap)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val ordinalLiteral = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		ordinalLiteral: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val ordinal = ordinalLiteral.token.literal()
 		if (!ordinal.isInt)
 		{

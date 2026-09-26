@@ -85,11 +85,11 @@ import java.nio.channels.AsynchronousFileChannel
 @Suppress("unused")
 object P_FileTruncate : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val atom = args[0]
 		val sizeObject = args[1]
 		val succeed = args[2]

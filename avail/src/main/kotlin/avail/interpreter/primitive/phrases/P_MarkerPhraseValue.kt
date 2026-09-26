@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MarkerPhraseValue : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val marker = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		marker: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return marker.markerValue
 	}
 

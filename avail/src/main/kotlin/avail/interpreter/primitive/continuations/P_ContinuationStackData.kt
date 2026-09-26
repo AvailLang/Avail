@@ -62,11 +62,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ContinuationStackData : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val con = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		con: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val tuple = generateObjectTupleFrom(con.function().code().numSlots) {
 			con.frameAt(it).let { entry ->
 				if (entry.isNil) nilSubstitute

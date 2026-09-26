@@ -67,16 +67,12 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
-		val castFunction = arg2
-		val elseFunction = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		value: AvailObject,
+		castFunction: AvailObject,
+		elseFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		argsBuffer.clear()
 		val expectedType =
 			castFunction.code().functionType().argsTupleType.typeAtIndex(1)

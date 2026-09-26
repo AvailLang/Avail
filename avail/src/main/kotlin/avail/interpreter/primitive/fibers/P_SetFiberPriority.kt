@@ -53,13 +53,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetFiberPriority : Primitive2(CannotFail, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val fiber = arg1
-		val priority = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		fiber: AvailObject,
+		priority: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val priorityInt = priority.extractInt
 		fiber.priority = priorityInt
 		return nil

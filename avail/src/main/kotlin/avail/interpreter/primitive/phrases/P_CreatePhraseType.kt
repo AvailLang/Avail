@@ -56,13 +56,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreatePhraseType : Primitive2(CanFold, CanInline, CannotFail)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val baseType = arg1
-		val expressionType = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		baseType: AvailObject,
+		expressionType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (baseType.isBottom) return baseType
 		val kind = baseType.phraseKind
 		val intersected =

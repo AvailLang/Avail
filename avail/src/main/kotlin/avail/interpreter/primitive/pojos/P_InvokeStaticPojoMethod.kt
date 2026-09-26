@@ -72,10 +72,10 @@ import java.lang.reflect.Method
 @Suppress("unused")
 object P_InvokeStaticPojoMethod : PrimitiveN(-1, Private, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val methodArgs = tupleFromArray(*args)
 		val primitiveFunction = function!!
 		val primitiveRawFunction = primitiveFunction.code()

@@ -85,11 +85,11 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_BootstrapPrefixEndOfBlockBody : PrimitiveN(5, CanInline, Bootstrap)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		//	val optionalArgumentDeclarations: A_Phrase = interpreter.argument(0);
 		//	val optionalPrimitive: A_Phrase = interpreter.argument(1);
 		//	val A_Phrase optionalLabel: A_Phrase = interpreter.argument(2);

@@ -57,8 +57,9 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_CurrentWorkingDirectory : Primitive0(CannotFail, CanInline, CanFold)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		return currentWorkingDirectory
 	}
 

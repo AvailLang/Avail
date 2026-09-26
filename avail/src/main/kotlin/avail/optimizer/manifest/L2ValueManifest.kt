@@ -3162,7 +3162,7 @@ class L2ValueManifest
 		}
 		if (generator.mode == BySemanticValue)
 		{
-			// 1. Compute live semantic values (intersection across all edges).
+			// Compute live semantic values (intersection across all edges).
 			var liveSemanticValues = manifests
 				.map(L2ValueManifest::liveOrPostponedSemanticValues)
 				.reduce(Set<L2SemanticValue>::intersect)
@@ -3173,10 +3173,10 @@ class L2ValueManifest
 				.filter { sv -> manifests.all { it.canProduceValue(sv) } }
 				.toList()
 
-			// 2. Force any postponed instructions in the predecessors, if they
+			// Force any postponed instructions in the predecessors, if they
 			// don't have an equivalent in each edge.  If equivalent postponed
-			// instructions are found in each edge, just propagate it to the
-			// new manifest.
+			// instructions are found in each edge, just propagate it to the new
+			// manifest.
 			if (manifests.any { it.allPostponedInstructions().isNotEmpty() })
 			{
 				mergeIncomingPostponedInstructions(generator)
@@ -3194,9 +3194,9 @@ class L2ValueManifest
 					.toList()
 			}
 
-			// 3. Build phiMap - chop synonyms into maximal consistent groups.
-			// The map is from a list of synonyms, one per manifest, to the
-			// semantic values that were present in all the synonyms.
+			// Build phiMap - chop synonyms into maximal consistent groups.  The
+			// map is from a list of synonyms, one per manifest, to the semantic
+			// values that were present in all the synonyms.
 			val phiMap = mutableMapOf<
 				List<L2Synonym>,
 				MutableList<L2SemanticValue>>()
@@ -3208,7 +3208,7 @@ class L2ValueManifest
 				}
 			}
 
-			// 4. Create and populate each output synonym group.
+			// Create and populate each output synonym group.
 			phiMap.values.forEach { relatedSemanticValues ->
 				if (relatedSemanticValues.any(L2SemanticValue::isConstant))
 				{
@@ -3637,11 +3637,27 @@ class L2ValueManifest
 		val selfMaps = manifests.map { manifest ->
 			manifest.allPostponedInstructions().associateWith { it.instruction }
 		}
-		selfMaps[0].forEach { equivalence, instruction ->
+		selfMaps[0].keys.forEach { equivalence ->
 			val kind = equivalence.kind
 			val oldInstructions = selfMaps.map { it[equivalence]!! }
-			val newInstruction =
-				instruction.mergeInstructions(oldInstructions)
+			// Strengthen read operand restrictions by intersecting with each
+			// edge's manifest, to avoid propagating overly-broad restrictions
+			// upward.
+			val strengthenedInstructions = oldInstructions.zip(manifests)
+				.map { (instr, edgeManifest) ->
+					instr.clone().apply {
+						readOperands.forEach { readOp ->
+							val manifestRestriction =
+								edgeManifest.restrictionFor(readOp.semanticValue())
+							readOp.restrict {
+								println("DEBUG: Restricting ${readOp.semanticValue()} from $this by $manifestRestriction")
+								manifestRestriction
+							}
+						}
+					}
+				}
+			val newInstruction = strengthenedInstructions[0]
+				.mergeInstructions(strengthenedInstructions)
 			agglomerateSynonym(
 				equivalence.synonym.semanticValues(),
 				newInstruction.writeOperands.single().restriction())

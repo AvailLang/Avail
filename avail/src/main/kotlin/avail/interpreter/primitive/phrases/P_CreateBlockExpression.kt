@@ -75,11 +75,11 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_CreateBlockExpression : PrimitiveN(5, CanInline)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val (argDecls, primitiveName, statements, resultType, exceptions) =
 			args
 		// Verify that each element of "statements" is actually a statement,

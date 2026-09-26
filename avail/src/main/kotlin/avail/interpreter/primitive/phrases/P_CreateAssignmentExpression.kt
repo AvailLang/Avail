@@ -64,14 +64,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateAssignmentExpression : Primitive2(CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val expression = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		expression: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val declaration = variable.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))

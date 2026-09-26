@@ -66,11 +66,10 @@ import avail.io.TextOutputChannel
 @Suppress("unused")
 object P_PrintToErrorConsole : Primitive1(CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val string = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		string: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val loader = availLoaderOrNull()
 		loader?.statementCanBeSummarized(false)

@@ -59,14 +59,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RemoveTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val name = arg1
-		val userType = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		name: AvailObject,
+		userType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		name.makeImmutable()
 		userType.makeImmutable()
 		removeNameFromType(name, userType)

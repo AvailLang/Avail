@@ -67,10 +67,10 @@ import avail.optimizer.L1Translator
 object P_PushLastOuter : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val function = function!!
 		assert(function.code().codePrimitive() === P_PushLastOuter)
 		return function.outerVarAt(1)

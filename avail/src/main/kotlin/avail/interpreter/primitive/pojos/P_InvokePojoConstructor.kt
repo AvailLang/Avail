@@ -72,10 +72,10 @@ import java.lang.reflect.InvocationTargetException
 @Suppress("unused")
 object P_InvokePojoConstructor : PrimitiveN(-1, Private, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val constructorArgs = tupleFromArray(*args)
 
 		val primitiveFunction = function!!

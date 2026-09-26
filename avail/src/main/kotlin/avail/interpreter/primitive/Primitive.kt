@@ -1667,15 +1667,15 @@ constructor(
 		loadInterpreter()
 		val method: CheckedMethod = when (this@Primitive)
 		{
-			is Primitive0 -> Primitive0.attempt0Method
-			is Primitive1 -> Primitive1.attempt1Method
-			is Primitive2 -> Primitive2.attempt2Method
-			is Primitive3 -> Primitive3.attempt3Method
-			is Primitive4 -> Primitive4.attempt4Method
+			is Primitive0 -> Primitive.attempt0Method
+			is Primitive1 -> Primitive.attempt1Method
+			is Primitive2 -> Primitive.attempt2Method
+			is Primitive3 -> Primitive.attempt3Method
+			is Primitive4 -> Primitive.attempt4Method
 			is PrimitiveN ->
 			{
 				objectArray(arguments.elements, AvailObject::class.java)
-				generateCall(PrimitiveN.attemptNMethod)
+				generateCall(Primitive.attemptNMethod)
 				store(result.register())
 				return
 			}
@@ -1854,5 +1854,58 @@ constructor(
 			Primitive::attempt.name,
 			A_BasicObject::class.java,
 			Interpreter::class.java)
+
+		/** The method [Primitive0.attempt0]. */
+		val attempt0Method = instanceMethod(
+			Primitive0::class.java,
+			"attempt0",
+			A_BasicObject::class.java,
+			Interpreter::class.java)
+
+		/** The method [Primitive1.attempt1]. */
+		val attempt1Method = instanceMethod(
+			Primitive1::class.java,
+			"attempt1",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			AvailObject::class.java)
+
+		/** The method [Primitive2.attempt2]. */
+		val attempt2Method = instanceMethod(
+			Primitive2::class.java,
+			"attempt2",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [Primitive3.attempt3]. */
+		val attempt3Method = instanceMethod(
+			Primitive3::class.java,
+			"attempt3",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [Primitive4.attempt4]. */
+		val attempt4Method = instanceMethod(
+			Primitive4::class.java,
+			"attempt4",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [PrimitiveN.attemptN]. */
+		val attemptNMethod = instanceMethod(
+			PrimitiveN::class.java,
+			"attemptN",
+			A_BasicObject::class.java,
+			Interpreter::class.java,
+			Array<AvailObject>::class.java)
 	}
 }

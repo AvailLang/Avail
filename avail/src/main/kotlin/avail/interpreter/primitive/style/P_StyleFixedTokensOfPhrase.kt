@@ -36,9 +36,7 @@ import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Fiber.Companion.availLoader
 import avail.descriptor.representation.A_Fiber.Companion.canStyle
-import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Phrase.Companion.tokens
-import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
@@ -73,16 +71,13 @@ import avail.interpreter.primitive.Primitive3
 object P_StyleFixedTokensOfPhrase : Primitive3(
 	CanInline, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val phrase: A_Phrase = arg1
-		val styleName: A_String = arg2
-		val overwrite = arg3.extractBoolean
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		phrase: AvailObject,
+		styleName: AvailObject,
+		overwriteBoolean: AvailObject
+	): A_BasicObject? = interpreter.run {
+		val overwrite = overwriteBoolean.extractBoolean
 		val fiber = fiber()
 		if (!fiber.canStyle)
 			return fail(E_CANNOT_STYLE)

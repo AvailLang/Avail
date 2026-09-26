@@ -62,11 +62,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MethodFromName : Primitive1(CanInline, CanFold)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			atom.bundleOrCreate().bundleMethod

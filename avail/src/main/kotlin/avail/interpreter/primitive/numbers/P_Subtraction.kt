@@ -76,13 +76,11 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_Subtraction : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			a.minusCanDestroy(b, true)

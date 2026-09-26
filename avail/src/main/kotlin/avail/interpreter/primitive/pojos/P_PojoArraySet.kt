@@ -66,16 +66,12 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val pojo = arg1
-		val subscript = arg2
-		val value = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		pojo: AvailObject,
+		subscript: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()

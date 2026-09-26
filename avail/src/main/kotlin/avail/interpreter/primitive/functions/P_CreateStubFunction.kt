@@ -54,13 +54,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateStubFunction : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val newFunctionType = arg1
-		val function = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		newFunctionType: AvailObject,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return createStubWithSignature(newFunctionType, function)
 	}
 

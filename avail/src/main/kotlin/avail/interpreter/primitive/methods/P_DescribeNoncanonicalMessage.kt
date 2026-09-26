@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 object P_DescribeNoncanonicalMessage
 	: Primitive1(CanInline, CanFold, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val messageName = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		messageName: AvailObject
+	): A_BasicObject? = interpreter.run {
 		try
 		{
 			// Run for exceptions side-effect.

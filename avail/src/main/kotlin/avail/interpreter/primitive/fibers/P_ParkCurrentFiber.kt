@@ -65,8 +65,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_ParkCurrentFiber : Primitive0(CannotFail, CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		// Mirror the approach used by P_AttemptJoinFiber: always go through
 		// the reification path so that the parking behavior is exercised in

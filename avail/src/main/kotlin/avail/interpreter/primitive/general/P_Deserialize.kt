@@ -67,14 +67,11 @@ import java.nio.ByteBuffer
 @Suppress("unused")
 object P_Deserialize : Primitive2(CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val bytes = arg1
-		val module = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		bytes: AvailObject,
+		module: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val byteArray: ByteArray
 		if (bytes.isByteArrayTuple)
 		{

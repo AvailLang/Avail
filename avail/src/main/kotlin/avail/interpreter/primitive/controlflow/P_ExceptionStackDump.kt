@@ -66,11 +66,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ExceptionStackDump : Primitive1(CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val exception = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		exception: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val runtime = runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
 		val continuation: A_Continuation =

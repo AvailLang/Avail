@@ -86,17 +86,13 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_TupleReplaceRange : Primitive4(CanInline, CanFold)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val originalTuple = arg1
-		val firstIndex = arg2
-		val lastIndex = arg3
-		val replacementSubtuple = arg4
+	override fun attempt4(
+		interpreter: Interpreter,
+		originalTuple: AvailObject,
+		firstIndex: AvailObject,
+		lastIndex: AvailObject,
+		replacementSubtuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!firstIndex.isInt || !lastIndex.isInt)
 		{
 			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)

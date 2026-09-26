@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ExistsMethodWithName : Primitive1(CannotFail, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val trueName = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		trueName: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val bundle = trueName.bundleOrNil
 		return objectFromBoolean(bundle.notNil)
 	}

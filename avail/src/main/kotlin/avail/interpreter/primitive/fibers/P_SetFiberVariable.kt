@@ -63,13 +63,11 @@ import avail.interpreter.primitive.Primitive2
 object P_SetFiberVariable : Primitive2(
 	CannotFail, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
-		val value = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		key: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
 		{

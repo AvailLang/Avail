@@ -69,11 +69,11 @@ import java.io.IOException
 object P_ExecuteDetachedExternalProcess : PrimitiveN(
 	6, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 6)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(6)
 		val processArgsTuple = args[0]
 		val optDir = args[1]
 		val optIn = args[2]

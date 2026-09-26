@@ -92,18 +92,13 @@ import java.util.TimerTask
 object P_DelayedForkOrphan : Primitive4(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val sleepMillis = arg1
-		val function = arg2
-		val argTuple = arg3
-		val priority = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		sleepMillis: AvailObject,
+		function: AvailObject,
+		argTuple: AvailObject,
+		priority: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize
 		val code = function.code()

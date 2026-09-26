@@ -62,11 +62,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CharacterFromCodePoint : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val codePoint = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		codePoint: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromCodePoint(codePoint.extractInt)
 	}
 

@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ContinuationCaller : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val con = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		con: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newVariableWithContentType(
 			mostGeneralContinuationType,
 			con.caller)

@@ -34,7 +34,6 @@ package avail.interpreter.primitive.modules
 
 import avail.builder.ModuleName
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
@@ -62,12 +61,11 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_LookupModule : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val pathString: A_String = arg1
-		return try
+	override fun attempt1(
+		interpreter: Interpreter,
+		pathString: AvailObject
+	): A_BasicObject? = interpreter.run {
+		try
 		{
 			val qualifiedName = ModuleName(pathString.asNativeString())
 			val resolvedName = runtime.moduleNameResolver.resolve(qualifiedName)

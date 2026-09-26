@@ -67,12 +67,11 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_AtomicRemoveFromMap : Primitive2(CanInline, HasSideEffect) {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject? {
-		val variable = arg1
-		val key = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		key: AvailObject
+	): A_BasicObject? = interpreter.run {
 		try
 		{
 			variable.atomicRemoveFromMap(key)

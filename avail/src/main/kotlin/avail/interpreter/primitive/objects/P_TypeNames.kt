@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_TypeNames : Primitive1(CanInline, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val userType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		userType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return namesForType(userType)
 	}
 

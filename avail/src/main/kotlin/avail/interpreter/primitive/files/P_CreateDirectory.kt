@@ -90,11 +90,11 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_CreateDirectory : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val directoryName = args[0]
 		val ordinals = args[1]
 		val succeed = args[2]

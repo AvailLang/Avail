@@ -55,11 +55,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_DefinitionBodySignature : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val definition = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		definition: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return definition.bodySignature().makeImmutable()
 	}
 

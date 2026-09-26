@@ -62,13 +62,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_GetValueElse : Primitive2(CannotFail, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val defaultValue = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		defaultValue: AvailObject
+	): A_BasicObject? = interpreter.run {
 		var value = variable.value()
 		if (value.isNil) value = defaultValue
 		return value

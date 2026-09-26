@@ -53,11 +53,10 @@ import kotlin.math.ln
 @Suppress("unused")
 object P_FloatLn : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		a: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromFloatRecycling(
 			ln(a.extractFloat.toDouble()).toFloat(), a, true)
 	}

@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ClearValue : Primitive1(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		variable: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try {
 			variable.clearValue()
 			nil

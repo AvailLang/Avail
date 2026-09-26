@@ -119,10 +119,10 @@ import kotlin.math.min
 @Suppress("unused")
 object P_SimpleMethodStabilityHelper : PrimitiveN(-1, Private, CanSuspend)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val originalFiber = fiber()
 		val loader = originalFiber.availLoader
 		if (loader === null || loader.module.isNil)

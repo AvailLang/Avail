@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive1
 object P_BootstrapLiteral :
 	Primitive1(CanInline, CannotFail, Bootstrap)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tokenLiteral = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tokenLiteral: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return literalNodeFromToken(tokenLiteral.token.literal())
 	}
 

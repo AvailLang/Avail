@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 object P_ExpressionAsStatementExpression : Primitive1(
 	CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val stmt = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		stmt: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return stmt.expression
 	}
 

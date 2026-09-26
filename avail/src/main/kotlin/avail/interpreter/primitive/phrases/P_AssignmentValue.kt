@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_AssignmentValue : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val assignment = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		assignment: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return assignment.expression
 	}
 

@@ -83,7 +83,8 @@ import avail.optimizer.values.L2SemanticValue
 object P_ExtractObjectVariantId
 	: Primitive1(Private, CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
+	override fun attempt1(
+		interpreter: Interpreter,
 		arg1: AvailObject
 	): A_BasicObject = fromInt(arg1.objectVariant.variantId)
 

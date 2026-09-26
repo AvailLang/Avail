@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateMap : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tupleOfBindings = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tupleOfBindings: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return mapWithBindings(tupleOfBindings)
 	}
 

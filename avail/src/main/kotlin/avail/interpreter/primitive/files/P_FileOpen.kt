@@ -91,18 +91,13 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileOpen : Primitive4(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val filename = arg1
-		val alignment = arg2
-		val options = arg3
-		val permissions = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		filename: AvailObject,
+		alignment: AvailObject,
+		options: AvailObject,
+		permissions: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!alignment.isInt)
 		{
 			return fail(E_EXCEEDS_VM_LIMIT)

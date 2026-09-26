@@ -60,11 +60,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_Hash : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromInt(value.hash())
 	}
 

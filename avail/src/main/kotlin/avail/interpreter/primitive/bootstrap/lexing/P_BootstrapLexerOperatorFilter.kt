@@ -65,11 +65,10 @@ import avail.interpreter.primitive.Primitive1
 object P_BootstrapLexerOperatorFilter
 	: Primitive1(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val character = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		character: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		// Note that the slash character is a potential operator, as far as
 		// initial filtering is concerned.  The body will immediately reject it

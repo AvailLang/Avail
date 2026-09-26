@@ -78,15 +78,12 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileSetPermissions : Primitive3(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val filename = arg1
-		val ordinals = arg2
-		val followSymlinks = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		filename: AvailObject,
+		ordinals: AvailObject,
+		followSymlinks: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val path: Path =
 			try
 			{

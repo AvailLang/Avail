@@ -74,11 +74,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SealMethodsAtExistingDefinitions : Primitive1(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val methodNames = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		methodNames: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{

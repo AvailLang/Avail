@@ -87,15 +87,12 @@ import avail.performance.StatisticReport.PRIMITIVES
 @Suppress("unused")
 object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val reference = arg2
-		val newValue = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		reference: AvailObject,
+		newValue: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val before = AvailRuntimeSupport.captureNanos(this)
 		val replaced: Boolean = try
 		{

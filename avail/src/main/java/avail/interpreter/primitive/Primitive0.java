@@ -1,5 +1,5 @@
 /*
- * Primitive3.kt
+ * Primitive0.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,57 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.primitive
+package avail.interpreter.primitive;
 
-import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AvailObject
-import avail.interpreter.execution.Interpreter
-import avail.optimizer.L2Generator
-import avail.optimizer.StackReifier
-import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.descriptor.representation.A_BasicObject;
+import avail.descriptor.representation.AvailObject;
+import avail.interpreter.execution.Interpreter;
+import avail.optimizer.L2Generator;
+import avail.optimizer.StackReifier;
+import avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import java.util.List;
 
 /**
- * A [Primitive] taking exactly three arguments.
- *
- * @param flags
- *   The flags that describe how the [Interpreter] and [L2Generator] should deal
- *   with this primitive.
+ * A {@link Primitive} taking exactly zero arguments.
  */
-abstract class Primitive3
-constructor(
-	vararg flags: Flag
-): Primitive(3, *flags)
+public abstract class Primitive0 extends Primitive
 {
 	/**
-	 * Attempt to run a primitive taking three arguments, answering either an
-	 * AvailObject if successful, or null if the primitive could not complete
-	 * for some reason.  If the primitive reifies, the
-	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
-	 * primitive fails, its failure code will be stored in the
-	 * [Interpreter.latestResult].
+	 * Initialize the primitive.
 	 *
-	 * @receiver
-	 *   The [Interpreter] performing the primitive attempt.
-	 * @param arg1
-	 *   The first argument to the primitive.
-	 * @param arg2
-	 *   The second argument to the primitive.
-	 * @param arg3
-	 *   The third argument to the primitive.
+	 * @param flags
+	 *   The {@link Flag flags} that describe how the {@link Interpreter} and
+	 *   {@link L2Generator} should deal with this primitive.
+	 */
+	public Primitive0(Primitive.Flag... flags)
+	{
+		super(0, flags);
+	}
+
+	/**
+	 * Attempt to run a primitive taking zero arguments, answering either an
+	 * {@link AvailObject} if successful, or `null` if the primitive could not
+	 * complete for some reason.  If the primitive reifies, the {@link
+	 * Interpreter#currentReifier} will capture the {@link StackReifier}.  If
+	 * the primitive fails, its failure code will be stored in the {@link
+	 * Interpreter#latestResult}.
+	 *
+	 * @param interpreter
+	 *   The {@link Interpreter} performing the primitive attempt.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
+	public abstract A_BasicObject attempt0(Interpreter interpreter);
 
-	final override fun attempt(interpreter: Interpreter): A_BasicObject?
+	@Override
+	public final A_BasicObject attempt(Interpreter interpreter)
 	{
-		val args = interpreter.argsBuffer
-		assert(args.size == 3)
-		return interpreter.attempt3(args[0], args[1], args[2])
+		List<AvailObject> args = interpreter.argsBuffer;
+		assert(args.isEmpty());
+		return attempt0(interpreter);
 	}
 }

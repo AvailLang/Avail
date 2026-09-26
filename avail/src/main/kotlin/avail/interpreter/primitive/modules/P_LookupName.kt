@@ -62,11 +62,10 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_LookupName : Primitive1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val name = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		name: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		return try
 		{

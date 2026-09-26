@@ -68,16 +68,12 @@ import avail.interpreter.primitive.Primitive3
 object P_BootstrapLexerWholeNumberBody
 	: Primitive3(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val source = arg1
-		val sourcePositionInteger = arg2
-		val lineNumberInteger = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		source: AvailObject,
+		sourcePositionInteger: AvailObject,
+		lineNumberInteger: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val startPosition = sourcePositionInteger.extractInt
 		val digitCount = countDigits(source, startPosition)
 

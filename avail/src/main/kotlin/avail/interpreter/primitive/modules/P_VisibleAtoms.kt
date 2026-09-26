@@ -60,8 +60,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_VisibleAtoms : Primitive0(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		if (availLoaderOrNull() === null) return fail(E_LOADING_IS_OVER)
 		return module().visibleNames
 	}

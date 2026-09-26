@@ -57,11 +57,10 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_Type : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return instanceTypeOrMetaOn(value)
 	}
 

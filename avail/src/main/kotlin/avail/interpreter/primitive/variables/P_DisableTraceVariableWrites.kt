@@ -73,8 +73,9 @@ import avail.interpreter.primitive.Primitive0
 object P_DisableTraceVariableWrites : Primitive0(
 	HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		if (!fiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES))
 		{

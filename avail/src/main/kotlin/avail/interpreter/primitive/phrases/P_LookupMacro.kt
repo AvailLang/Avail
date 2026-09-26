@@ -81,13 +81,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_LookupMacro : Primitive2(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val atom: A_Atom = arg1
-		val argPhrasesTuple: A_Tuple = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		argPhrasesTuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val bundle = atom.bundleOrNil
 		if (bundle.isNil)
 		{

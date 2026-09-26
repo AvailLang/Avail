@@ -60,8 +60,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_CurrentMacroName : Primitive0(CanInline)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		if (!fiber().generalFlag(IS_EVALUATING_MACRO))
 		{
 			return fail(E_NOT_EVALUATING_MACRO)

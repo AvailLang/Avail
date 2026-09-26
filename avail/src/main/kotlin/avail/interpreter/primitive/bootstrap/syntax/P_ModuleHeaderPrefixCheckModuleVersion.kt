@@ -66,12 +66,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_ModuleHeaderPrefixCheckModuleVersion : Primitive2(Private, Bootstrap)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val versionsOptionalList = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		unused: AvailObject,
+		versionsOptionalList: AvailObject
+	): A_BasicObject? = interpreter.run {
 		assert(versionsOptionalList.expressionsSize == 1)
 		val versions = versionsOptionalList.expressionAt(1)
 		val versionsCount = versions.expressionsSize

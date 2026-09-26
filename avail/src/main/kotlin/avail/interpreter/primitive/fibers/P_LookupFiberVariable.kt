@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_LookupFiberVariable : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		key: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		// Choose the correct map based on the heritability of the key.
 		val globals = when

@@ -71,13 +71,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetStylerFunction : Primitive2(CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val atom: A_Atom = arg1
-		val function: A_Function = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = fiber().availLoader
 			?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)

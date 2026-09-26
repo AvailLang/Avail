@@ -64,11 +64,10 @@ object P_SetRaiseJavaExceptionInAvailFunction : Primitive1(
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		runtime[RAISE_JAVA_EXCEPTION_IN_AVAIL] = function
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return nil

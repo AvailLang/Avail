@@ -57,8 +57,9 @@ import java.nio.CharBuffer
 @Suppress("unused")
 object P_ReadFromStandardInput : Primitive0(CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		return suspendThen {
 			runtime.ioSystem.executeFileTask {

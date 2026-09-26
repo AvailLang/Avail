@@ -59,14 +59,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_RecordNewTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val userType = arg1
-		val name = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		userType: AvailObject,
+		name: AvailObject
+	): A_BasicObject? = interpreter.run {
 		userType.makeImmutable()
 		name.makeImmutable()
 		setNameForType(userType, name, false)

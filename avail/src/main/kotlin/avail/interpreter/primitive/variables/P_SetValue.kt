@@ -71,13 +71,11 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_SetValue : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val value = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			variable.setValue(value)

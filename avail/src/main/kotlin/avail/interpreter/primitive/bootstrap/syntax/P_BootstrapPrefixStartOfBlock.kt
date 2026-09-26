@@ -66,8 +66,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_BootstrapPrefixStartOfBlock : Primitive0(CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		val clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom
 		val compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom

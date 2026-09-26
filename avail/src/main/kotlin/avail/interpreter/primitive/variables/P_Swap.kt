@@ -59,13 +59,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_Swap : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val var1 = arg1
-		val var2 = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		var1: AvailObject,
+		var2: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!var1.kind().equals(var2.kind()))
 		{
 			return fail(

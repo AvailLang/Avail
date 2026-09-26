@@ -35,7 +35,6 @@ package avail.interpreter.primitive.style
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Fiber.Companion.availLoader
 import avail.descriptor.representation.A_Fiber.Companion.canStyle
-import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.representation.A_Phrase.Companion.token
 import avail.descriptor.representation.A_Styler
@@ -63,14 +62,11 @@ import avail.interpreter.primitive.Primitive2
 object P_BootstrapLexerStringBodyStyler : Primitive2(
 	CanInline, Bootstrap, ReadsFromHiddenGlobalState, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		//val optionalSendPhrase: A_Tuple = arg1
-		val literalPhrase: A_Phrase = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		optionalSendPhrase: AvailObject,
+		literalPhrase: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		if (!fiber.canStyle)
 			return fail(E_CANNOT_STYLE)

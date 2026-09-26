@@ -83,14 +83,11 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 object P_BootstrapAssignmentStatementMacro
 	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variableNameLiteral = arg1
-		val valueExpression = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		variableNameLiteral: AvailObject,
+		valueExpression: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = fiber().availLoader ?: return fail(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOfKind(

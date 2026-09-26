@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateExpressionAsStatementPhrase : Primitive1(CannotFail, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val expr = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		expr: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newExpressionAsStatement(expr)
 	}
 

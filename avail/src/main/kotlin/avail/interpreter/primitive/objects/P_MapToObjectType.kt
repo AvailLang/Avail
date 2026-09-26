@@ -64,11 +64,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MapToObjectType : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val map = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		map: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			objectTypeFromMap(map)

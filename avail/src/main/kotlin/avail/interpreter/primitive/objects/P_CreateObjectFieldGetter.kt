@@ -85,14 +85,11 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val objectType = arg1
-		val fieldAtom = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		objectType: AvailObject,
+		fieldAtom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fieldType = objectType.fieldTypeAtOrNull(fieldAtom)
 		if (fieldType == null)
 		{

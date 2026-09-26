@@ -81,14 +81,11 @@ import avail.interpreter.primitive.Primitive2
 object P_BootstrapPrefixPrimitiveDeclaration
 	: Primitive2(CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val optionalBlockArgumentsList = arg1
-		val optionalPrimPhrase = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		optionalBlockArgumentsList: AvailObject,
+		optionalPrimPhrase: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 
 		assert(optionalPrimPhrase.expressionsSize == 1)

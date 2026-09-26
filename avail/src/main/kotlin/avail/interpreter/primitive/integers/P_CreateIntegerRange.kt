@@ -57,17 +57,13 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_CreateIntegerRange : Primitive4(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val min = arg1
-		val minInc = arg2
-		val max = arg3
-		val maxInc = arg4
+	override fun attempt4(
+		interpreter: Interpreter,
+		min: AvailObject,
+		minInc: AvailObject,
+		max: AvailObject,
+		maxInc: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return integerRangeType(
 			min, minInc.extractBoolean, max, maxInc.extractBoolean)
 	}

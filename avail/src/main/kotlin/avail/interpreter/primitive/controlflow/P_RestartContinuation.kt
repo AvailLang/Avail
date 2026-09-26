@@ -79,11 +79,10 @@ object P_RestartContinuation : Primitive1(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val originalCon = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		originalCon: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.

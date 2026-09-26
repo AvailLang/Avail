@@ -72,11 +72,11 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_CreateLiteralToken : PrimitiveN(5, CanInline)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val (value, lexeme, start, line, optionalGeneratingPhrase) = argsBuffer
 		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
 		{

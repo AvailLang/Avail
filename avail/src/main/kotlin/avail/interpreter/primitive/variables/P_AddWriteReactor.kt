@@ -65,15 +65,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_AddWriteReactor : Primitive3(HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val key = arg2
-		val reactorFunction = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		key: AvailObject,
+		reactorFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{

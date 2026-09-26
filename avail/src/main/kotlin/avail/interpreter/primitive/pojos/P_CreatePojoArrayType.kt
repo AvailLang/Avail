@@ -58,13 +58,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreatePojoArrayType : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
-		val sizes = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		type: AvailObject,
+		sizes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return pojoArrayType(type, sizes)
 	}
 

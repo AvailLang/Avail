@@ -65,11 +65,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ObjectTypeToTuple : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val objectType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		objectType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return if (objectType.isBottom)
 		{
 			// The correct answer would be a tuple of pairs, where *every* atom

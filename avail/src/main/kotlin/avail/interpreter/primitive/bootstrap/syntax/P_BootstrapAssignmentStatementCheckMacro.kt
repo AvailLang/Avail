@@ -76,11 +76,10 @@ import avail.interpreter.primitive.Primitive1
 object P_BootstrapAssignmentStatementCheckMacro
 	: Primitive1(CannotFail, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val variableNameLiteral = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		variableNameLiteral: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader =
 			fiber().availLoader
 				?: return fail(E_LOADING_IS_OVER)

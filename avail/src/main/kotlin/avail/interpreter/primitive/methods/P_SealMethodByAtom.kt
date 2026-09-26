@@ -70,13 +70,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SealMethodByAtom : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val methodName = arg1
-		val sealSignature = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		methodName: AvailObject,
+		sealSignature: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{

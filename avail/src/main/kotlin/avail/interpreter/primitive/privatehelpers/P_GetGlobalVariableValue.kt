@@ -72,10 +72,10 @@ import avail.optimizer.L1Translator
 object P_GetGlobalVariableValue : Primitive1(
 	SpecialForm, CanInline, Private, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val code = function!!.code()
 		val literalVariable = code.literalAt(1)
 		try

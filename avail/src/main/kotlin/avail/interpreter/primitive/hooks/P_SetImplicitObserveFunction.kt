@@ -79,11 +79,10 @@ object P_SetImplicitObserveFunction : Primitive1(
 	HasSideEffect,
 	WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).

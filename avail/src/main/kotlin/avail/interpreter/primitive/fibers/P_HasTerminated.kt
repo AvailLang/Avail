@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 object P_HasTerminated : Primitive1(
 	CannotFail, CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val fiber = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		fiber: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(fiber.executionState.indicatesTermination)
 	}
 

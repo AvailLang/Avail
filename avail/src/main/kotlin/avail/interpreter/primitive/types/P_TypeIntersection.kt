@@ -62,13 +62,11 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val type1 = arg1
-		val type2 = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		type1: AvailObject,
+		type2: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return type1.typeIntersection(type2).makeImmutable()
 	}
 

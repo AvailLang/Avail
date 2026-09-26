@@ -103,14 +103,11 @@ object P_RestartContinuationWithArguments : Primitive2(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val originalCon = arg1
-		val arguments = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		originalCon: AvailObject,
+		arguments: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
 		assert(originalCon.stackp == code.numSlots + 1)

@@ -88,13 +88,11 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_BitShiftRight : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val baseInteger = arg1
-		val shiftFactor = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		baseInteger: AvailObject,
+		shiftFactor: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			baseInteger.bitShift(

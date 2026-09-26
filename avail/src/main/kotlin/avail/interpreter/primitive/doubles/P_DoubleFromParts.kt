@@ -61,18 +61,13 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_DoubleFromParts : Primitive4(CannotFail, CanInline, CanFold)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val wholePart = arg1
-		val fractionPart = arg2
-		val exponentSign = arg3
-		val exponentPart = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		wholePart: AvailObject,
+		fractionPart: AvailObject,
+		exponentSign: AvailObject,
+		exponentPart: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Since we expect that this primitive will only be used for building
 		// floating-point literals, it doesn't need to be particularly
 		// efficient. We therefore convert the different parts to strings,

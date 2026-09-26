@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ReferenceTarget : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val ref = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		ref: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return ref.variable
 	}
 

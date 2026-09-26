@@ -62,15 +62,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_MapReplacingNAryKey : Primitive3(CanInline, CanFold)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val map = arg1
-		val pathTuple = arg2
-		val newValue = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		map: AvailObject,
+		pathTuple: AvailObject,
+		newValue: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			map.recursivelyUpdate(pathTuple.iterator()) { newValue }

@@ -32,7 +32,6 @@
 package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
@@ -95,16 +94,12 @@ import avail.optimizer.L1Translator
 object P_RestartContinuationWithArgumentsIf : Primitive3(
 	CanInline, CanSwitchContinuations)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val originalCon: A_Continuation = arg1
-		val arguments: A_Tuple = arg2
-		val condition: A_Atom = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		originalCon: AvailObject,
+		arguments: AvailObject,
+		condition: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!condition.extractBoolean)
 		{
 			// The condition is false, so don't restart the continuation.

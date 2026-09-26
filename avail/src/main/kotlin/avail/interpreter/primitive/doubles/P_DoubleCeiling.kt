@@ -55,11 +55,10 @@ import kotlin.math.ceil
 @Suppress("unused")
 object P_DoubleCeiling : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		a: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val d = a.extractDouble
 		val ceil = ceil(d)
 		return fromDoubleRecycling(ceil, a, true)

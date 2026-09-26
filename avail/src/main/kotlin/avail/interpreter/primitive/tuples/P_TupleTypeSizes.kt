@@ -72,11 +72,10 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 @Suppress("unused")
 object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tupleType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tupleType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return tupleType.sizeRange
 	}
 

@@ -62,11 +62,10 @@ import avail.optimizer.jvm.JVMTranslator
 object P_GetFiberPriority : Primitive1(
 	CannotFail, CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val fiber = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		fiber: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val priority = fiber.priority
 		assert(priority in 0 .. 255)
 		return fromUnsignedByte(priority.toShort())

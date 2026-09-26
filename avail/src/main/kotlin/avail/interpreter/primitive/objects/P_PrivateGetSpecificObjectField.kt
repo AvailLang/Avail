@@ -71,11 +71,10 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 object P_PrivateGetSpecificObjectField : Primitive1(
 	Private, CanInline, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val obj = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		obj: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val primitiveFunction = function!!
 		//TODO Comment out these assertions.
 		assert(primitiveFunction.code().codePrimitive() ===

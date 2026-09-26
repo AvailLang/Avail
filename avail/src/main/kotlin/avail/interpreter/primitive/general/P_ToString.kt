@@ -52,11 +52,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ToString : Primitive1(CanInline, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val objectToPrint = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		objectToPrint: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val string = objectToPrint.toString()
 		val availString = stringFrom(string)
 		return availString

@@ -72,11 +72,10 @@ object P_GetContinuationOfOtherFiber : Primitive1(
 	WritesToHiddenGlobalState,
 	ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val otherFiber = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		otherFiber: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		currentReifier = StackReifier(true, reificationForNoninlineStat) {
 			suspendThen {

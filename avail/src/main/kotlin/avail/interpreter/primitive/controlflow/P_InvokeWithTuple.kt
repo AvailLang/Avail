@@ -96,13 +96,11 @@ import java.util.Collections.nCopies
 @Suppress("unused")
 object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
-		val argTuple = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		function: AvailObject,
+		argTuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val functionType = function.kind()
 
 		val numArgs = argTuple.tupleSize

@@ -80,16 +80,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_Fork : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
-		val argTuple = arg2
-		val priority = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		function: AvailObject,
+		argTuple: AvailObject,
+		priority: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize
 		val code = function.code()

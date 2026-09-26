@@ -52,11 +52,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_AtomName : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return atom.atomName
 	}
 

@@ -70,11 +70,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_UnparkFiber : Primitive1(CannotFail, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val fiber = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		fiber: AvailObject
+	): A_BasicObject? = interpreter.run {
 		with(fiber) {
 			lock {
 				// Restore the permit. If the fiber is parked, then unpark it.

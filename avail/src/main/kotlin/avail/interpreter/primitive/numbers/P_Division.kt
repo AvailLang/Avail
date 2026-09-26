@@ -95,13 +95,11 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 @Suppress("unused")
 object P_Division : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (b.equalsInt(0) && a.isInstanceOf(integers))
 		{
 			return fail(E_CANNOT_DIVIDE_BY_ZERO)

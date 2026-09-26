@@ -56,13 +56,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateMarkerPhrase : Primitive2(CannotFail, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
-		val expressionType = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		value: AvailObject,
+		expressionType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newMarkerNode(value, expressionType)
 	}
 

@@ -79,11 +79,10 @@ object P_EmergencyExit : Primitive1(
 	CanSuspend,
 	CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val errorMessageProducer = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		errorMessageProducer: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val killer = AvailEmergencyExitException(
 			"Fiber '${fiber()}' will emergency-exit.")

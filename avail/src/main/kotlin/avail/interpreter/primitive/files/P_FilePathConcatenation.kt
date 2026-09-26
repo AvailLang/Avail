@@ -64,11 +64,10 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_FilePathConcatenation : Primitive1(CanInline, CanFold)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fileSystem = IOSystem.fileSystem
 		var path: Path? = null
 		try

@@ -75,13 +75,11 @@ import avail.interpreter.primitive.Primitive2
 object P_DeclareAllAtomsExportedFromAnotherModule : Primitive2(
 	CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val importedModuleNames = arg1
-		val isPublic = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		importedModuleNames: AvailObject,
+		isPublic: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val module = module()
 		assert(module.notNil)
 		val sets = importedModuleNames.map { importedModuleName ->

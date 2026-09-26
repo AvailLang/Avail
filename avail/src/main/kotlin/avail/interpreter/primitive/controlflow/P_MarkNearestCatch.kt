@@ -75,11 +75,10 @@ import java.util.logging.Level
 @Suppress("unused")
 object P_MarkNearestCatch : Primitive1(Unknown)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val code = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		code: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return reifyForPrimitive(true) {
 			when (val failureCode = markNearestGuard(code))
 			{

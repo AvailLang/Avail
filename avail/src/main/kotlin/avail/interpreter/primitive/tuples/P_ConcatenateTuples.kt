@@ -86,11 +86,10 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tuples = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tuples: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return tuples.concatenateTuplesCanDestroy(true)
 	}
 

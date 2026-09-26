@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CompiledCodeNumOuters : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val code = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		code: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromInt(code.numOuters)
 	}
 

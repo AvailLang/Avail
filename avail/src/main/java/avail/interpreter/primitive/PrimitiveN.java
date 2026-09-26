@@ -30,51 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.primitive
 
-import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AvailObject
-import avail.interpreter.execution.Interpreter
-import avail.optimizer.L2Generator
-import avail.optimizer.StackReifier
-import avail.optimizer.jvm.ReferencedInGeneratedCode
+package avail.interpreter.primitive;
+
+import avail.descriptor.representation.A_BasicObject;
+import avail.descriptor.representation.AvailObject;
+import avail.interpreter.execution.Interpreter;
+import avail.optimizer.L2Generator;
+import avail.optimizer.StackReifier;
+import avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import java.util.List;
 
 /**
- * A [Primitive] taking an unknown number of arguments in an [Array].
- *
- * @param flags
- *   The flags that describe how the [Interpreter] and [L2Generator] should deal
- *   with this primitive.
+ * A {@link Primitive} taking an unknown number of arguments in an array.
  */
-abstract class PrimitiveN
-constructor(
-	argCount: Int,
-	vararg flags: Flag
-): Primitive(argCount, *flags)
+public abstract class PrimitiveN extends Primitive
 {
 	/**
-	 * Attempt to run a primitive taking the [Array] of arguments, answering
-	 * either an AvailObject if successful, or null if the primitive could not
-	 * complete for some reason.  If the primitive reifies, the
-	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
-	 * primitive fails, its failure code will be stored in the
-	 * [Interpreter.latestResult].
+	 * Initialize the primitive.
 	 *
-	 * @receiver
-	 *   The [Interpreter] performing the primitive attempt.
+	 * @param argCount
+	 *   The number of arguments to expect in an array when the primitive is
+	 *   later invoked.
+	 * @param flags
+	 *   The {@link Flag flags} that describe how the {@link Interpreter} and
+	 *   {@link L2Generator} should deal with this primitive.
+	 */
+	public PrimitiveN(int argCount, Primitive.Flag... flags)
+	{
+		super(argCount, flags);
+	}
+
+	/**
+	 * Attempt to run a primitive taking the {@link Array} of arguments,
+	 * answering either an {@link AvailObject} if successful, or `null` if the
+	 * primitive could not complete for some reason.  If the primitive reifies,
+	 * the {@link Interpreter#currentReifier} will capture the {@link
+	 * StackReifier}.  If the primitive fails, its failure code will be stored
+	 * in the {@link Interpreter#latestResult}.
+	 *
+	 * @param interpreter
+	 *   The {@link Interpreter} performing the primitive attempt.
 	 * @param args
-	 *   The [Array] of arguments to the primitive.
+	 *   The {@link Array} of arguments to the primitive.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
 	@ReferencedInGeneratedCode
-	abstract fun Interpreter.attemptN(
-		args: Array<AvailObject>
-	): A_BasicObject?
+	public abstract A_BasicObject attemptN(
+		Interpreter interpreter,
+		AvailObject[] args);
 
-	final override fun attempt(interpreter: Interpreter): A_BasicObject?
+	@Override
+	public final A_BasicObject attempt(Interpreter interpreter)
 	{
-		val args = interpreter.argsBuffer
-		return interpreter.attemptN(args.toTypedArray())
+		List<AvailObject> args = interpreter.argsBuffer;
+		return attemptN(
+			interpreter,
+			args.toArray(new AvailObject[args.size()]));
 	}
 }
