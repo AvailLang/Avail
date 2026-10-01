@@ -475,13 +475,15 @@ constructor(
 				else -> move(equivalentTag, setOf(semanticTag))
 			}
 		}
-		val edges = reducedSpans.map {
-				(givenLow, givenHigh, subtree, _, restriction) ->
+		val edges = reducedSpans.map { (givenLow, givenHigh, subtree, _, restriction) ->
 			val edgeManifest = L2ValueManifest(currentManifest)
 			edgeManifest.updateRestriction(semanticTag) {
 				intersectionWithType(inclusive(givenLow, givenHigh))
 			}
 			val narrowedRestriction = edgeManifest.restrictionFor(semanticTag)
+			// For impossible restrictions, return null to indicate don't-care;
+			// can be merged with neighbors to reduce >= tests.
+			if (narrowedRestriction.isImpossible) return@map null
 			val lowOrd = narrowedRestriction.type.lowerBound.extractInt
 			val highOrd = narrowedRestriction.type.upperBound.extractInt
 			val lowName = tagFromOrdinal(lowOrd).shorterName
@@ -512,20 +514,40 @@ constructor(
 				}
 			}
 		}
+		// Merge null edges (impossible restrictions) with neighbors to reduce
+		// the number of distinct edges in the splitter.
+		val mergedEdges = edges.toMutableList()
+		for (i in mergedEdges.indices)
+		{
+			if (mergedEdges[i] == null)
+			{
+				// Try previous neighbor first, then next.
+				val neighbor = if (i > 0 && mergedEdges[i - 1] != null)
+					mergedEdges[i - 1]
+				else
+					mergedEdges.drop(i + 1).firstOrNull { it != null }
+
+				if (neighbor != null)
+					mergedEdges[i] = neighbor
+			}
+		}
 		val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
 		splitter.run {
 			emitSplitterInstruction(
 				readIntNoFail(semanticTag),
-				edges)
+				mergedEdges.filterNotNull())
 		}
 		return reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
-			subtree?.let {
+			val edge = edges[index]
+			if (edge != null && subtree != null)
+			{
 				// No need to further restrict the type.
 				Triple(
-					edges[index].targetBlock(),
+					edge.targetBlock(),
 					subtree,
 					extraSemanticArguments)
 			}
+			else null
 		}
 	}
 }
