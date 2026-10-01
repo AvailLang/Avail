@@ -1079,9 +1079,11 @@ class L2ValueManifest
 				val synonym = state.synonym
 				val narrowedClone = postponed.narrowedForManifest(this, synonym)
 				if (narrowedClone === null) return@inner
+				val write = narrowedClone.writeOperands.single()
+				// Compute what the write restriction should be based on narrowed reads,
+				// but don't restrict the operand (to avoid staleness issues).
 				val implied = narrowedClone.impliedWriteRestriction(
 					narrowedClone.readOperands.map { read -> this.restrictionFor(read) })
-				narrowedClone.writeOperands.single().restrict { implied }
 				val target = synonym.pickSemanticValue()
 				updateRepresentation(synonym, kind.cast()) {
 					postponedInstruction = narrowedClone
