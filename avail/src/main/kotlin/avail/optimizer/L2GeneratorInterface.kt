@@ -50,6 +50,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
@@ -187,6 +188,36 @@ interface L2GeneratorInterface : L2Visualizable
 	 * code generation position.
 	 */
 	fun restrictionFor(semanticValue: L2SemanticValue): TypeRestriction
+
+	/**
+	 * Answer this read's restriction in the current manifest.
+	 *
+	 * @return
+	 *   The [TypeRestriction] of the [L2ReadOperand] in this manifest.
+	 */
+	val L2ReadOperand<*>.restriction: TypeRestriction
+		get() = currentManifest.restrictionFor(this)
+
+	/**
+	 * Answer this read's restriction's bounding type in the current manifest.
+	 *
+	 * @return
+	 *   The [A_Type] that constrains this read.
+	 */
+	val L2ReadOperand<*>.type: A_Type
+		get() = currentManifest.restrictionFor(this).type
+
+	/**
+	 * Answer this read's restriction's constant value (i.e., the exact value
+	 * that this read is guaranteed to produce), within this manifest, or `null`
+	 * if such a constraint is not available.
+	 *
+	 * @return
+	 *   The exact [AvailObject] that's known to be in this register, or else
+	 *   `null`.
+	 */
+	val L2ReadOperand<*>.constantOrNull: AvailObject?
+		get() = semanticValue().constant ?: restriction.constantOrNull
 
 	/**
 	 * Add an [L2Instruction].
@@ -436,11 +467,14 @@ interface L2GeneratorInterface : L2Visualizable
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to read as an unboxed int.
+	 * @param optionalRestriction
+	 *   A [TypeRestriction] which is guaranteed for this read.
 	 * @return
 	 *   The unboxed [L2ReadIntOperand].
 	 */
 	fun readIntNoFail(
-		semanticValue: L2SemanticValue
+		semanticValue: L2SemanticValue,
+		optionalRestriction: TypeRestriction = i32Restriction
 	): L2ReadIntOperand
 
 	/**

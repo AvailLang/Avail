@@ -47,6 +47,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -56,7 +57,11 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLiteralExpression : Primitive1(CannotFail, CanInline)
+object P_CreateLiteralExpression : Primitive1(
+	CannotFail,
+	CanInline,
+	// The token might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -64,13 +69,6 @@ object P_CreateLiteralExpression : Primitive1(CannotFail, CanInline)
 	): A_BasicObject? = interpreter.run {
 		return literalNodeFromToken(token)
 	}
-
-	/**
-	 * The token might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,

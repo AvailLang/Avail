@@ -116,7 +116,7 @@ class L2_TUPLE_AT_UPDATE(
 			tupleTemplate.mapTo(mutableListOf(), ::instanceTypeOrMetaOn)
 		// Generate the updates for the non-constant parts (if any).
 		updates.forEach { (index, elementRead) ->
-			typesList[index] = elementRead.type()
+			typesList[index] = elementRead.type
 			val newWrite = boxedWriteTemp(
 				"with update @$index",
 				restrictionForType(tupleTypeForTypesList(typesList)))

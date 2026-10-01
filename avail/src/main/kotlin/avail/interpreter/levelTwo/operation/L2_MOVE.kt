@@ -54,13 +54,12 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.notNullAnd
@@ -120,33 +119,9 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 
 	override fun postponeInstruction(generator: L2GeneratorInterface)
 	{
-		val manifest = generator.currentManifest
-		manifest.agglomerateSynonym(
+		generator.currentManifest.agglomerateSynonym(
 			destination.semanticValues() + source.semanticValue(),
 			destination.restriction())
-		manifest.restrictionFor(source).constantOrNull?.let { c ->
-			val semanticConstant = constant(c)
-			if (semanticConstant !in
-				manifest
-					.semanticValueToSynonym(source.semanticValue())
-					.semanticValues())
-			{
-				// The restriction is now constant, but there isn't a
-				// semantic constant in the synonym.  Add it.
-				manifest.agglomerateSynonym(
-					setOf(source.semanticValue(), semanticConstant),
-					semanticConstant.defaultRestriction)
-			}
-		}
-		val existingPostponed = manifest.postponedInstructionFor(
-			destination.pickSemanticValue(), kind)
-		// If there's already a postponed instruction, we're done, because
-		// it will populate the whole synonym when needed.
-		if (existingPostponed == null)
-		{
-			// Add a move that ensures the new destinations will get populated.
-			super.postponeInstruction(generator)
-		}
 	}
 
 	/**
@@ -259,18 +234,6 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		currentManifest.agglomerateSynonym(values, destination.restriction())
 	}
 
-	/**
-	 * If the instruction providing the source of this move is also postponed,
-	 * replace both with a copy of that instruction that also populates the
-	 * move's destination semantic values.
-	 *
-	 * Since a postponed move has already merged the source and destination
-	 * synonyms, there's nothing to do here.
-	 */
-	override fun L2ValueManifest.rewritePostponed(
-		synonym: L2Synonym
-	): Boolean = false
-
 	override fun sourceOfMoveToRegister(
 		destinationRegister: L2Register<*>
 	): L2Register<*>?
@@ -279,12 +242,11 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		return source.register()
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
-		tracer.continueTracing(source.register(), restriction)
+		continueTracing(source.register(), restriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()

@@ -45,6 +45,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -54,7 +55,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_BootstrapLiteral :
-	Primitive1(CanInline, CannotFail, Bootstrap)
+	Primitive1(CanInline, CannotFail, Bootstrap, MightMakeEscapedVariableShared)
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -62,10 +63,6 @@ object P_BootstrapLiteral :
 	): A_BasicObject? = interpreter.run {
 		return literalNodeFromToken(tokenLiteral.token.literal())
 	}
-
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

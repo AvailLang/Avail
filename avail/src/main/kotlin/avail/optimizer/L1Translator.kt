@@ -136,7 +136,6 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
@@ -179,7 +178,6 @@ import avail.interpreter.levelTwo.operation.variables.L2_GET_UNESCAPED_LOCAL_VAR
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
@@ -436,7 +434,7 @@ class L1Translator private constructor(
 			slotIndex,
 			effectivePc,
 			registerRead.semanticValue(),
-			registerRead.restriction())
+			registerRead.restriction)
 	}
 
 	/**
@@ -562,7 +560,7 @@ class L1Translator private constructor(
 		}
 		val functionRead = currentFunction
 		var restriction = restrictionForType(outerType)
-		if (functionRead.restriction().isImmutable)
+		if (functionRead.restriction.isImmutable)
 		{
 			// An immutable function has immutable captured outers.
 			restriction = restriction.withFlag(IMMUTABLE_FLAG)
@@ -776,8 +774,7 @@ class L1Translator private constructor(
 				slotValues = L2ReadBoxedVectorOperand(emptyList()),
 				destination = newContinuationWrite,
 				labelAddress = L2ReadIntOperand(
-					writeOffset.onlySemanticValue(),
-					restrictionForType(i32)),
+					writeOffset.onlySemanticValue()),
 				registerDump = readBoxed(writeRegisterDump),
 				comment = L2CommentOperand(
 					"Create a dummy reification continuation."))
@@ -796,8 +793,7 @@ class L1Translator private constructor(
 				slotValues = L2ReadBoxedVectorOperand(readSlotsBefore.toList()),
 				destination = newContinuationWrite,
 				labelAddress = L2ReadIntOperand(
-					writeOffset.onlySemanticValue(),
-					restrictionForType(i32)),
+					writeOffset.onlySemanticValue()),
 				registerDump = readBoxed(writeRegisterDump),
 				comment = L2CommentOperand(
 					"Create a reification continuation."))
@@ -829,7 +825,7 @@ class L1Translator private constructor(
 		restartArguments: List<L2ReadBoxedOperand>)
 	{
 		val indices = 0 ..< numArgs
-		val restrictions = restartArguments.map(L2ReadBoxedOperand::restriction)
+		val restrictions = restartArguments.map { it.restriction }
 		val temps = restartArguments.indices.map { i ->
 			newTemp("arg #${i+1} for restart")
 		}
@@ -1193,7 +1189,7 @@ class L1Translator private constructor(
 		arguments: List<L2ReadBoxedOperand>,
 		willAlwaysFailPrimitive: Boolean = false)
 	{
-		assert(functionToCallRead.type().isSubtypeOf(mostGeneralFunctionType))
+		assert(functionToCallRead.type.isSubtypeOf(mostGeneralFunctionType))
 
 		// Sanity check the number of arguments against the function.  The
 		// function type's acceptable arguments tuple type may be bottom,
@@ -1205,7 +1201,7 @@ class L1Translator private constructor(
 		// as a denormalized uninstantiable type.  For now just treat a spread
 		// of sizes like bottom (i.e., the count is not known).
 		val argumentCount = arguments.size
-		val sizeRange = functionToCallRead.type().argsTupleType.sizeRange
+		val sizeRange = functionToCallRead.type.argsTupleType.sizeRange
 		assert(
 			sizeRange.isBottom
 				|| !sizeRange.lowerBound.equals(sizeRange.upperBound)
@@ -1230,13 +1226,13 @@ class L1Translator private constructor(
 				val strongArguments = (0 until argumentCount).map {
 					val arg = arguments[it]
 					val argSemanticValue = arg.semanticValue()
-					val strongRestriction = arg.restriction()
+					val strongRestriction = arg.restriction
 						.intersection(manifest.restrictionFor(argSemanticValue))
 						.intersectionWithType(argsTupleType.typeAtIndex(it + 1))
 					manifest.setRestriction(argSemanticValue, strongRestriction)
-					L2ReadBoxedOperand(argSemanticValue, strongRestriction)
+					L2ReadBoxedOperand(argSemanticValue)
 				}
-				argumentTypes = strongArguments.map { it.type() }
+				argumentTypes = strongArguments.map { it.type }
 				if (primitive.hasFlag(Flag.CanFold))
 				{
 					// See if there's an equivalent semantic value already in
@@ -1266,7 +1262,7 @@ class L1Translator private constructor(
 				// again; just generate the best invocation possible given what
 				// we know.
 				argumentTypes = arguments.mapIndexed { zeroIndex, argument ->
-					argument.type().typeIntersection(
+					argument.type.typeIntersection(
 						argsTupleType.typeAtIndex(zeroIndex + 1))
 				}
 				if (primitive.fallibilityForArgumentTypes(argumentTypes)
@@ -1305,7 +1301,10 @@ class L1Translator private constructor(
 					}
 					callSiteHelper.useAnswer(
 						readBoxed(writer),
-						invoke.mightMakeEscapedVariableShared(currentManifest))
+						invoke.run {
+							callSiteHelper.generator.currentManifest
+								.mightMakeEscapedVariableShared()
+						})
 					generated = true
 				}
 				else
@@ -1341,7 +1340,7 @@ class L1Translator private constructor(
 		else
 		{
 			// Exact function was unknown, or it wasn't a primitive.
-			guaranteedResultType = functionToCallRead.type().returnType
+			guaranteedResultType = functionToCallRead.type.returnType
 		}
 
 		// The function isn't known to be a particular primitive function, or
@@ -1429,7 +1428,7 @@ class L1Translator private constructor(
 		// the instruction after the call (which takes at least three nybbles).
 		val semanticValue = createSemanticSlot(stackp, pc - 1)
 		val uncheckedValueRead = readBoxed(semanticValue)
-		if (uncheckedValueRead.type().isVacuousType)
+		if (uncheckedValueRead.type.isVacuousType)
 		{
 			// There are no return values possible, so we can't get here.  It
 			// would be wrong to do this based on the expectedType being bottom,
@@ -1447,7 +1446,7 @@ class L1Translator private constructor(
 			"failed return check",
 			ZoneType.DEAD_END.createZone("failed check"),
 			isCold = true)
-		if (!uncheckedValueRead.restriction().intersectsType(expectedType))
+		if (!uncheckedValueRead.restriction.intersectsType(expectedType))
 		{
 			// It's impossible to return a valid value here, since the value's
 			// type bound and the expected type don't intersect.  Always invoke
@@ -1456,7 +1455,7 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			assert(!uncheckedValueRead.type().isSubtypeOf(expectedType))
+			assert(!uncheckedValueRead.type.isSubtypeOf(expectedType))
 				{ "Attempting to create unnecessary type check" }
 			jumpIfKindOfConstant(
 				uncheckedValueRead, expectedType, passedCheck, failedCheck)
@@ -1498,7 +1497,7 @@ class L1Translator private constructor(
 				stackp,
 				pc,
 				uncheckedValueRead.semanticValue(),
-				uncheckedValueRead.restriction().intersection(
+				uncheckedValueRead.restriction.intersection(
 					restrictionForType(expectedType)))
 		}
 	}
@@ -1596,9 +1595,9 @@ class L1Translator private constructor(
 		{
 			val argument = readBoxed(arguments[i].semanticValue())
 			assert(
-				argument.restriction().type.isSubtypeOf(
+				argument.type.isSubtypeOf(
 					signatureTupleType.typeAtIndex(i + 1)))
-			narrowedArgTypes.add(argument.restriction().type)
+			narrowedArgTypes.add(argument.type)
 			narrowedArguments.add(argument)
 		}
 		// Let the primitive generate specialized code if possible.
@@ -1703,7 +1702,7 @@ class L1Translator private constructor(
 			for (i in 1 .. nArgs)
 			{
 				val argReg = argumentReads[i - 1]
-				val argStaticType = argReg.type()
+				val argStaticType = argReg.type
 				val superUnionElementType =
 					callSiteHelper.superUnionType.typeAtIndex(i)
 				val argTypeReg: L2ReadBoxedOperand =
@@ -2032,7 +2031,7 @@ class L1Translator private constructor(
 		val variableAndValueTupleReg = boxedWriteTemp(
 			"var/val pair",
 			restrictionForType(
-				tupleTypeForTypes(variable.type(), newValue.type())))
+				tupleTypeForTypes(variable.type, newValue.type)))
 		+L2_CREATE_TUPLE(
 			L2ReadBoxedVectorOperand(listOf(variable, newValue)),
 			variableAndValueTupleReg)
@@ -2078,7 +2077,7 @@ class L1Translator private constructor(
 		// The [L2BasicBlock] which is the entry point for a function that has
 		// just been invoked.
 		val startBlock = createBasicBlock("START for ${topFrame.codeName}")
-		startBlock.makeIrremovable()
+		startBlock.isIrremovable = true
 		specialBlocks[START] = startBlock
 		startBlock(startBlock)
 		val primitive = code.codePrimitive()
@@ -2093,7 +2092,7 @@ class L1Translator private constructor(
 			}
 		}
 		val afterPrimitive = createLoopHeadBlock("After optional primitive")
-		afterPrimitive.makeIrremovable()
+		afterPrimitive.isIrremovable = true
 		specialBlocks[AFTER_OPTIONAL_PRIMITIVE] = afterPrimitive
 		jumpTo(afterPrimitive)
 		startBlock(afterPrimitive)
@@ -2491,7 +2490,7 @@ class L1Translator private constructor(
 			val continuationType =
 				continuationTypeForFunctionType(code.functionType())
 			val destinationRegister = boxedWrite(
-				semanticLabel, restriction(continuationType, null))
+				semanticLabel, restrictionForType(continuationType))
 			+L2_VIRTUAL_CREATE_LABEL(
 				L2ConstantOperand(code),
 				currentFunction,
@@ -2603,12 +2602,6 @@ class L1Translator private constructor(
 
 	companion object
 	{
-		init
-		{
-			// Be sure class initialization happens in the right order.
-			RegisterKind.let {}
-		}
-
 		/**
 		 * Determine if the given [A_RawFunction]'s instantiations as
 		 * [A_Function]s must be mutually equal.

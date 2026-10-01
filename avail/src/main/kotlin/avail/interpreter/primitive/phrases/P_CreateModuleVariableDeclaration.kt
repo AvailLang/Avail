@@ -48,6 +48,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -58,7 +59,11 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateModuleVariableDeclaration : Primitive2(CanInline, CannotFail)
+object P_CreateModuleVariableDeclaration : Primitive2(
+	CanInline,
+	CannotFail,
+	// The variable might be an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -67,13 +72,6 @@ object P_CreateModuleVariableDeclaration : Primitive2(CanInline, CannotFail)
 	): A_BasicObject? = interpreter.run {
 		return newModuleVariable(token, variable, nil, nil)
 	}
-
-	/**
-	 * The variable might be an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

@@ -48,8 +48,8 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.jvm.JVMTranslator
@@ -74,12 +74,12 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 ): L2ConditionalJump()
 {
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
+		manifest: L2ValueManifest
+	) = manifest.run {
 		super.instructionWasAdded(manifest)
 		// Restrict the value to the constant along the ifEqual branch, and
 		// exclude the constant along the ifNotEqual branch.
-		val oldRestriction = value.restriction()
+		val oldRestriction = value.restriction
 		ifEqual.manifest().setRestriction(
 			value.semanticValue(),
 			restrictionForConstant(constant.constant))
@@ -136,7 +136,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			return
 		}
 		if (constant.constant.isInt
-			&& value.restriction().containedByType(i32))
+			&& value.restriction.containedByType(i32))
 		{
 			// Do the comparison as ints, if possible.
 			compareAndBranchInt(
@@ -151,7 +151,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		+this@L2_JUMP_IF_EQUALS_CONSTANT
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
+	override fun PostPhiData.interestingConditions() = buildList {
 		if (!ifEqual.targetBlock().isCold)
 		{
 			// The ifEqual path is warm, so allow a code split back to a point

@@ -67,6 +67,7 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive3
 
@@ -78,7 +79,11 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Fork : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_Fork : Primitive3(
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -129,11 +134,6 @@ object P_Fork : Primitive3(CanInline, HasSideEffect, WritesToHiddenGlobalState)
 		runtime.runOutermostFunction(newFiber, function, callArgs, false)
 		return newFiber
 	}
-
-	/** The function or its arguments could become shared. */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

@@ -55,6 +55,7 @@ import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.PrimitiveN
 import java.io.File
 import java.io.IOException
@@ -67,7 +68,11 @@ import java.io.IOException
  */
 @Suppress("unused")
 object P_ExecuteDetachedExternalProcess : PrimitiveN(
-	6, CanInline, HasSideEffect)
+	6,
+	CanInline,
+	HasSideEffect,
+	// An argument might capture an escaped variable and make it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attemptN(
 		interpreter: Interpreter,
@@ -123,13 +128,6 @@ object P_ExecuteDetachedExternalProcess : PrimitiveN(
 		}
 		return nil
 	}
-
-	/**
-	 * An argument might capture an escaped variable and make it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

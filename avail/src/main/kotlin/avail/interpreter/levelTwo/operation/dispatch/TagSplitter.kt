@@ -45,6 +45,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.manifest.L2ValueManifest
@@ -87,9 +88,10 @@ class TagSplitter(
 	 */
 	override fun interestingConditions(
 		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
 	): List<L2SplitCondition?> = buildList {
-		addAll(super.interestingConditions(read, edges))
+		addAll(super.interestingConditions(read, edges, postPhiData))
 		val sourceInstructionOfInt = read.definitionSkippingMoves()
 		if (sourceInstructionOfInt is L2_EXTRACT_TAG_ORDINAL)
 		{

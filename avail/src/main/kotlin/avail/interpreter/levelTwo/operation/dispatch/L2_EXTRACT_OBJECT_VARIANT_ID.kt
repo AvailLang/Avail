@@ -51,7 +51,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -101,16 +101,15 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 
 	override fun transformedByRegenerator(
 		regenerator: L2Regenerator
-	): L2Instruction
-	{
+	): L2Instruction = regenerator.run {
 		var idRestriction = variantId.restriction()
-		sourceObject.restriction().positiveGroup.objectVariants
+		sourceObject.restriction.positiveGroup.objectVariants
 			?.map { fromInt(it.variantId) }
 			?.let { ids ->
 				idRestriction = idRestriction.intersectionWithType(
 					enumerationWith(setFromCollection(ids)))
 			}
-		sourceObject.restriction().negativeGroup.objectVariants
+		sourceObject.restriction.negativeGroup.objectVariants
 			?.map { fromInt(it.variantId) }
 			?.let { ids ->
 				idRestriction = idRestriction.minusValues(
@@ -148,13 +147,12 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		assert(writeOperand == variantId)
-		if (!tracer.traceVariants) return
+		if (!traceVariants) return
 		// If only one or a few variant ids are present in the variant's
 		// restriction, we can approximate the constraint on the sourceObject.
 		val variantsType = restriction.type
@@ -180,7 +178,7 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 			return
 		}
 		variants.forEach { variant ->
-			tracer.continueTracing(
+			continueTracing(
 				sourceObject.register(),
 				restrictionForType(variant.mostGeneralObjectType)
 					.intersectionWithObjectVariant(variant)

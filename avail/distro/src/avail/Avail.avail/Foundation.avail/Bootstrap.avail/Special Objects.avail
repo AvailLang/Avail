@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/19/26, 6:26 PM
+ * * Last Generated: 9/26/26, 3:53 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -57,6 +57,7 @@ Names
 	/* 122 */ "argument tuple",
 	/*  52 */ "assignment phrase",
 	/*  11 */ "atom",
+	/* 189 */ "baseFrameDefaultHook",
 	/*  53 */ "block phrase",
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
@@ -68,8 +69,10 @@ Names
 	/*  10 */ "continuation meta",
 	/* 169 */ "continuation returning top",
 	/*  92 */ "continuation variable",
+	/* 190 */ "debuggableBaseFrameDefaultHook",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
+	/* 191 */ "defaultStylerDefaultHook",
 	/*  42 */ "definition",
 	/*  12 */ "double",
 	/*  96 */ "empty map",
@@ -96,9 +99,11 @@ Names
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
 	/*  86 */ "function returning any",
+	/* 187 */ "implicitObserveDefaultHook",
 	/* 146 */ "int32",
 	/* 147 */ "int64",
 	/*  17 */ "integer",
+	/* 186 */ "invalidMessageSendDefaultHook",
 	/*  95 */ "key-value tuple",
 	/* 162 */ "keyword",
 	/*  63 */ "label phrase",
@@ -165,7 +170,11 @@ Names
 	/*  91 */ "predicate function",
 	/*  76 */ "primitive failure function",
 	/*  68 */ "primitive failure reason phrase",
+	/* 182 */ "primitiveFailureDefaualtHook",
+	/* 188 */ "raiseJavaExceptionInAvailDefaultHook",
+	/* 184 */ "readUnassignedVariableDefaultHook",
 	/* 131 */ "readable extended integer variable",
+	/* 185 */ "resultDisagreedWithExpectedTypeDefaultHook",
 	/* 144 */ "scope map key",
 	/* 149 */ "scope stack key",
 	/* 107 */ "semantic restriction function",
@@ -184,6 +193,7 @@ Names
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
 	/* 179 */ "string literal phrase",
+	/* 183 */ "stringificationDefaultHook",
 	/* 172 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -2398,4 +2408,94 @@ Special object "nonempty tuple of string" is special object 180;
  * @alias "set of nonempty strings"
  */
 Special object "set of nonempty strings" is special object 181;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[natural number]→⊥"
+ * @alias "primitiveFailureDefaualtHook"
+ */
+Special object "primitiveFailureDefaualtHook" is special object 182;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[any]→string"
+ * @alias "stringificationDefaultHook"
+ */
+Special object "stringificationDefaultHook" is special object 183;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[]→⊥"
+ * @alias "readUnassignedVariableDefaultHook"
+ */
+Special object "readUnassignedVariableDefaultHook" is special object 184;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[function, {⊤}ᵀ, ↑any]→⊥"
+ * @alias "resultDisagreedWithExpectedTypeDefaultHook"
+ */
+Special object "resultDisagreedWithExpectedTypeDefaultHook" is special object 185;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[{19, 79, 80, 81, 82}ᵀ, method, tuple]→⊥"
+ * @alias "invalidMessageSendDefaultHook"
+ */
+Special object "invalidMessageSendDefaultHook" is special object 186;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[function, tuple]→⊤"
+ * @alias "implicitObserveDefaultHook"
+ */
+Special object "implicitObserveDefaultHook" is special object 187;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[java.lang.Throwable]→⊥"
+ * @alias "raiseJavaExceptionInAvailDefaultHook"
+ */
+Special object "raiseJavaExceptionInAvailDefaultHook" is special object 188;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[function, tuple]→⊤"
+ * @alias "baseFrameDefaultHook"
+ */
+Special object "baseFrameDefaultHook" is special object 189;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[function, tuple]→⊤"
+ * @alias "debuggableBaseFrameDefaultHook"
+ */
+Special object "debuggableBaseFrameDefaultHook" is special object 190;
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "[phrase]→⊤"
+ * @alias "defaultStylerDefaultHook"
+ */
+Special object "defaultStylerDefaultHook" is special object 191;
 

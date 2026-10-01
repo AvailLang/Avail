@@ -44,7 +44,7 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue.Companion.constant
@@ -92,13 +92,12 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		assert(writeOperand == variantId)
-		if (!tracer.traceVariants) return
+		if (!traceVariants) return
 		// If only one or a few variant ids are present in the variant's
 		// restriction, we can approximate the constraint on the source
 		// objectType.
@@ -125,7 +124,7 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 			return
 		}
 		variants.forEach { variant ->
-			tracer.continueTracing(
+			continueTracing(
 				objectType.register(),
 				restrictionForType(variant.mostGeneralObjectMeta)
 					.intersectionWithObjectTypeVariant(variant)

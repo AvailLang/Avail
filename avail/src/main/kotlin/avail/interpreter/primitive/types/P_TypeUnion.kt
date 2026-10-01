@@ -55,6 +55,7 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
@@ -86,7 +87,7 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		return meta1.typeUnion(meta2)  // by metavariance
 	}
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
@@ -142,8 +143,8 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 			const2 !== null && argType1.instance.isSubtypeOf(const2) ->
 				callSiteHelper.useAnswer(arg2, false)
 			// if x≠⊥ ∧ y≠⊥, then (x∪y)≠⊥.
-			!arg1.restriction().containsEntireType(bottomMeta) &&
-				!arg2.restriction().containsEntireType(bottomMeta) ->
+			!arg1.restriction.containsEntireType(bottomMeta) &&
+				!arg2.restriction.containsEntireType(bottomMeta) ->
 			{
 				resultCanBeBottom = false
 			}

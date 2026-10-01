@@ -86,7 +86,7 @@ class L2_APPEND_TO_TUPLE(
 		// size, we can just extract the element from the inputTuple.  If the
 		// inputTuple is fixed size and the index is just beyond the end, just
 		// use the elementToAppend.
-		val sizeRange = inputTuple.type()
+		val sizeRange = inputTuple.type
 		val lowerBound = sizeRange.lowerBound
 		if (lowerBound.isInt)
 		{

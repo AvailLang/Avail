@@ -34,18 +34,15 @@ package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.methods.SemanticRestrictionDescriptor.Companion.newSemanticRestriction
-import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.representation.A_Atom.Companion.bundleOrNil
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Fiber.Companion.availLoader
-import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
@@ -73,6 +70,7 @@ import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
@@ -84,7 +82,12 @@ import avail.utility.notNullAnd
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MethodDeclarationFromAtom : Primitive3(CanSuspend, Unknown)
+object P_MethodDeclarationFromAtom : Primitive3(
+	CanSuspend,
+	Unknown,
+	// The signature might include instance types on variables that are escaped,
+	// and those instance types get added to the definition.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -148,14 +151,6 @@ object P_MethodDeclarationFromAtom : Primitive3(CanSuspend, Unknown)
 			}
 		}
 	}
-
-	/**
-	 * The signature might include instance types on variables that are escaped,
-	 * and those instance types get added to the definition.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

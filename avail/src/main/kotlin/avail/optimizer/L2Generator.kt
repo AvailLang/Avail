@@ -308,7 +308,7 @@ constructor(
 		val constant = constant(value)
 		val restriction = constant.defaultRestriction
 		currentManifest.agglomerateSynonym(setOf(constant), restriction)
-		return L2ReadBoxedOperand(constant, restriction)
+		return L2ReadBoxedOperand(constant)
 	}
 
 	override fun unboxedIntConstant(value: Int): L2ReadIntOperand
@@ -316,7 +316,7 @@ constructor(
 		val constant = constant(fromInt(value))
 		val restriction = constant.defaultRestriction
 		currentManifest.agglomerateSynonym(setOf(constant), restriction)
-		return L2ReadIntOperand(constant, restriction)
+		return L2ReadIntOperand(constant)
 	}
 
 	override fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
@@ -324,7 +324,7 @@ constructor(
 		val constant = constant(fromDouble(value))
 		val restriction = constant.defaultRestriction
 		currentManifest.agglomerateSynonym(setOf(constant), restriction)
-		return L2ReadFloatOperand(constant, restriction)
+		return L2ReadFloatOperand(constant)
 	}
 
 	override fun <K: RegisterKind<K>> ensureDefinedOrEmitMove(
@@ -376,12 +376,12 @@ constructor(
 			// Box an int.
 			state.intRepresentation.definitions.isNotEmpty() ->
 				L2_BOX_INT(
-					L2ReadIntOperand(semanticValue, restriction),
+					L2ReadIntOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
 			// Box a float.
 			state.floatRepresentation.definitions.isNotEmpty() ->
 				L2_BOX_FLOAT(
-					L2ReadFloatOperand(semanticValue, restriction),
+					L2ReadFloatOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
 			// Compute it.
 			state.boxedRepresentation.postponedInstruction != null ->
@@ -398,7 +398,7 @@ constructor(
 							semanticValue, INTEGER_KIND)!!,
 						single))
 				L2_BOX_INT(
-					L2ReadIntOperand(semanticValue, restriction),
+					L2ReadIntOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
 			}
 			// Compute float and box it.
@@ -410,7 +410,7 @@ constructor(
 							semanticValue, FLOAT_KIND)!!,
 						single))
 				L2_BOX_FLOAT(
-					L2ReadFloatOperand(semanticValue, restriction),
+					L2ReadFloatOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
@@ -445,7 +445,7 @@ constructor(
 			// Unbox an int.
 			state.boxedRepresentation.definitions.isNotEmpty() ->
 				L2_UNBOX_INT(
-					L2ReadBoxedOperand(semanticValue, restriction),
+					L2ReadBoxedOperand(semanticValue),
 					L2WriteIntOperand(single, restriction))
 			// Compute it as an int.
 			state.intRepresentation.postponedInstruction != null ->
@@ -462,7 +462,7 @@ constructor(
 							semanticValue, BOXED_KIND)!!,
 						single))
 				L2_UNBOX_INT(
-					L2ReadBoxedOperand(semanticValue, restriction),
+					L2ReadBoxedOperand(semanticValue),
 					L2WriteIntOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
@@ -497,7 +497,7 @@ constructor(
 			// Unbox a float.
 			state.boxedRepresentation.definitions.isNotEmpty() ->
 				L2_UNBOX_FLOAT(
-					L2ReadBoxedOperand(semanticValue, restriction),
+					L2ReadBoxedOperand(semanticValue),
 					L2WriteFloatOperand(single, restriction))
 			// Compute it as a float.
 			state.intRepresentation.postponedInstruction != null ->
@@ -514,7 +514,7 @@ constructor(
 							semanticValue, BOXED_KIND)!!,
 						single))
 				L2_UNBOX_FLOAT(
-					L2ReadBoxedOperand(semanticValue, restriction),
+					L2ReadBoxedOperand(semanticValue),
 					L2WriteFloatOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
@@ -542,13 +542,12 @@ constructor(
 		writeTargets: Set<L2SemanticValue>
 	): L2Instruction =
 		postponed.clone().apply {
-			refreshReadRestrictionsFrom(currentManifest)
-			writeOperands.single().restrict {
-				impliedWriteRestriction(
-					readOperands.map { it.restriction() })
+			val write = writeOperands.single()
+			write.retroactivelySetSemanticValues(writeTargets)
+			refreshRestrictionsFrom(currentManifest)
+			write.restrict {
+				impliedWriteRestriction(readOperands.map { it.restriction })
 			}
-			writeOperands.single()
-				.retroactivelySetSemanticValues(writeTargets)
 		}
 
 	override fun readBoxed(
@@ -634,7 +633,8 @@ constructor(
 	 *   An [L2ReadIntOperand] that produces the looked up value as an int.
 	 */
 	override fun readIntNoFail(
-		semanticValue: L2SemanticValue
+		semanticValue: L2SemanticValue,
+		optionalRestriction: TypeRestriction
 	): L2ReadIntOperand
 	{
 		val restriction = currentManifest.restrictionFor(semanticValue)
@@ -802,7 +802,7 @@ constructor(
 
 		// Special cases for characters and integers
 		val unionType = elements.fold(bottom) { t, read ->
-			t.typeUnion(read.type())
+			t.typeUnion(read.type)
 		}
 		val template = when
 		{
@@ -853,7 +853,7 @@ constructor(
 				val write = boxedWriteTemp(
 					"new tuple",
 					restrictionForType(
-						tupleTypeForTypesList(elements.map { it.type() })))
+						tupleTypeForTypesList(elements.map { it.type })))
 				+L2_CREATE_TUPLE(L2ReadBoxedVectorOperand(elements), write)
 				return readBoxed(write)
 			}
@@ -874,7 +874,7 @@ constructor(
 		elements.forEachIndexed { zeroIndex, read ->
 			if (read.constantOrNull === null)
 			{
-				typesList[zeroIndex] = read.type()
+				typesList[zeroIndex] = read.type
 				val newWrite = boxedWriteTemp(
 					"with update @${zeroIndex + 1}",
 					restrictionForType(tupleTypeForTypesList(typesList)))
@@ -911,7 +911,7 @@ constructor(
 	{
 		// First see if there's enough type information available about the
 		// tuple.
-		val tupleType = tupleRead.type()
+		val tupleType = tupleRead.type
 		val tupleTypeSizes = tupleType.sizeRange
 		if (!tupleTypeSizes.upperBound.isInt
 			|| !tupleTypeSizes.lowerBound.equals(tupleTypeSizes.upperBound))
@@ -1071,7 +1071,7 @@ constructor(
 					jump.justRemoved()
 					assert(predecessorBlock.successorEdges().isEmpty())
 					assert(!predecessorBlock.hasControlFlowAtEnd)
-					predecessorBlock.postPhiMap = null
+					predecessorBlock.postPhiData = null
 					currentBlock = predecessorBlock
 					return
 				}
@@ -1137,7 +1137,6 @@ constructor(
 			ensureDefinedOrEmitMove(value, read.kind)
 			assert(currentManifest.hasLiveSemanticValue(value, read.kind))
 		}
-		read.restrict { restrictionFor(value) }
 	}
 
 	override fun jumpTo(
@@ -1189,7 +1188,7 @@ constructor(
 				unequalBlock)
 			return
 		}
-		if (firstValue.restriction().intersection(secondValue.restriction())
+		if (firstValue.restriction.intersection(secondValue.restriction)
 				.isImpossible)
 		{
 			jumpTo(unequalBlock)
@@ -1212,7 +1211,7 @@ constructor(
 		passBlock: L2BasicBlock,
 		failBlock: L2BasicBlock)
 	{
-		val restriction = readToTest.restriction()
+		val restriction = readToTest.restriction
 		restriction.constantOrNull?.let { constant ->
 			// The value is constant.  Always succeed or always fail.
 			jumpTo(
@@ -1306,7 +1305,7 @@ constructor(
 		val innerPass = L2BasicBlock("strengthen to constant")
 		val constantValueStrong = constantValue as AvailObject
 		if (constantValueStrong.isInt
-			&& readToTest.restriction().containedByType(i32))
+			&& readToTest.restriction.containedByType(i32))
 		{
 			// The constant and the value are both int32s.  Use the quicker int
 			// test, unboxing the int register if needed.
@@ -1323,7 +1322,7 @@ constructor(
 				edgeTo(failBlock))
 		}
 		else if (constantValueStrong.isCharacter
-			&& readToTest.restriction().containedByType(Types.CHARACTER())
+			&& readToTest.restriction.containedByType(Types.CHARACTER())
 			&& valueSource is L2_CODEPOINT_TO_CHARACTER)
 		{
 			// Rather than compare characters, we have access to the codepoint
@@ -1659,7 +1658,7 @@ constructor(
 			"edge-split ${nextUnique()} to ${originalTargetBlock.name()}",
 			originalTargetBlock.zone,
 			isCold = originalTargetBlock.isCold)
-		newBlock.postPhiMap = edge.manifest().extractPostPhiMap()
+		newBlock.postPhiData = edge.manifest().extractPostPhiData()
 		var prototypeJump = L2_JUMP(
 			L2PcOperand(newBlock, false, null, edge.optionalName)
 		).cloneFor(this, newBlock) as L2_JUMP

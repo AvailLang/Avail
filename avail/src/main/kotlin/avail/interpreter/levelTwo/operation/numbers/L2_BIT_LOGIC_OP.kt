@@ -154,7 +154,7 @@ constructor(
 			}
 		}
 		val newBound =
-			bitOperation.constant.bounder(input1.type(), input2.type())
+			bitOperation.constant.bounder(input1.type, input2.type)
 		+L2_BIT_LOGIC_OP(
 			bitOperation.constant,
 			input1,
@@ -214,7 +214,8 @@ constructor(
 	 */
 	class RuleEvaluationContext(
 		private val variablesMap: Map<Variable, L2ReadIntOperand>,
-		private val constantsMap: Map<Constant, Int>)
+		private val constantsMap: Map<Constant, Int>,
+		private val typesMap: Map<L2ReadIntOperand, A_Type>)
 	{
 		val k1: Int get() = constantsMap[K1]!!
 		val k2: Int get() = constantsMap[K2]!!
@@ -224,8 +225,9 @@ constructor(
 		val x: L2ReadIntOperand get() = variablesMap[X]!!
 		val y: L2ReadIntOperand get() = variablesMap[Y]!!
 		val z: L2ReadIntOperand get() = variablesMap[Z]!!
-		val L2ReadIntOperand.low: Int get() = type().lowerBound.extractInt
-		val L2ReadIntOperand.high: Int get() = type().upperBound.extractInt
+		val L2ReadIntOperand.type: A_Type get() = typesMap[this]!!
+		val L2ReadIntOperand.low: Int get() = type.lowerBound.extractInt
+		val L2ReadIntOperand.high: Int get() = type.upperBound.extractInt
 	}
 
 	/**
@@ -400,7 +402,7 @@ constructor(
 		Shr(Opcodes.ISHR, Int::shr, P_BitShiftRight::binaryBound, {
 			rule(X, C(0)) { X }
 			rule(Shr(X, K1), K2, {k1 + k2 <= 31}) { Shr(X, C(k1 + k2)) }
-			rule(X, Y, {x.type().isSubtypeOf(inclusive(-1, 0))}) { X }
+			rule(X, Y, {x.type.isSubtypeOf(inclusive(-1, 0))}) { X }
 		}),
 
 		/**
@@ -413,7 +415,7 @@ constructor(
 			rule(Shl(X, K1), K2, {k1 + k2 <= 31}) { Shl(X, C(k1 + k2)) }
 			rule(Shr(X, K1), K1) { And(X, C(-1 shl k1)) }
 			rule(Ushr(X, K1), K1) { And(X, C(-1 shl k1)) }
-			rule(X, Y, {x.type().isSubtypeOf(inclusive(-1, 0))}) { X }
+			rule(X, Y, {x.type.isSubtypeOf(inclusive(-1, 0))}) { X }
 		}),
 
 		/**

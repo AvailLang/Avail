@@ -55,7 +55,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTyp
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -110,7 +110,7 @@ object P_TupleAppend : Primitive2(CannotFail, CanFold, CanInline)
 			{
 				explodeTupleIfPossible(
 					tupleRead,
-					tupleRead.type().tupleOfTypesFromTo(1, size.extractInt)
+					tupleRead.type.tupleOfTypesFromTo(1, size.extractInt)
 						.toList())
 			}
 			else null
@@ -122,10 +122,10 @@ object P_TupleAppend : Primitive2(CannotFail, CanFold, CanInline)
 			return true
 		}
 		val resultType = concatenatingAnd(
-			tupleType, tupleTypeForTypes(newElementRead.type()))
+			tupleType, tupleTypeForTypes(newElementRead.type))
 		val tempWrite = boxedWriteTemp(
 			"tuple after append",
-			restriction(resultType, null))
+			restrictionForType(resultType))
 		+L2_APPEND_TO_TUPLE(tupleRead, newElementRead, tempWrite)
 		callSiteHelper.useAnswer(readBoxed(tempWrite), false)
 		return true

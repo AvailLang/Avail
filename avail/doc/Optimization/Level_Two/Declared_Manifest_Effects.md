@@ -70,7 +70,7 @@ every register; it may not silently forget that two names denote one value.
 
 ## 4. The post-phi map
 
-Every basic block carries a **`postPhiMap`** from synonym to restriction.
+Every basic block carries a **`postPhiData`** from synonym to restriction.
 Neither registers nor postponed instructions are captured.  Its purpose is to
 preserve this information across regenerations, even when the instructions that
 originally produced it have been postponed out of the block.
@@ -96,7 +96,7 @@ Both halves of that matter.
 ### 4.2 When it is replayed
 
 During regeneration, in passes that track semantic values, the *old* block's
-`postPhiMap` is replayed into the new block's manifest **after phis have
+`postPhiData` is replayed into the new block's manifest **after phis have
 been generated**, ensuring the synonym structure and the narrowed restrictions
 are present before any instruction in the block is processed.
 
@@ -123,7 +123,7 @@ already stale and would become actively misleading.
 
 ## 5. Witnesses, and why postponements need not be captured
 
-Every synonym in a `postPhiMap` needs a **witness**: something that will
+Every synonym in a `postPhiData` needs a **witness**: something that will
 make the value producible again when the information is replayed. A synonym with
 no witness is a value that is known, unproducible, and reachable by anything
 that goes looking — the exact pathology this whole effort has been chasing.
@@ -156,7 +156,7 @@ carried.
 
 **Primitive output re-strengthening** operates on restrictions — the constant
 if it is known, otherwise the type — and restrictions are exactly what the
-`postPhiMap` carries. It never consults a register.
+`postPhiData` carries. It never consults a register.
 
 **Primitive invocation reuse** has two cases, and both are witnessed:
 
@@ -216,7 +216,7 @@ Replay after phi generation has to cope with that, but there is no reason to
 expect it to be hard.
 
 **Jump elision.** Merging a block into its sole predecessor leaves the merged
-*block's `postPhiMap` describing a mid-block point. Since these are re-derived
+*block's `postPhiData` describing a mid-block point. Since these are re-derived
 *every pass, discarding the absorbed block's copy is right; the combined block
 *captures its own at the end.
 
@@ -238,7 +238,7 @@ expect it to be hard.
 - **Dead code elimination gets stronger, not weaker.** Previously the only
   record that `x` and `z` were synonymous might be two overlapping facts,
   `[x,y]` and `[y,z]`, so `y` could not be dropped without losing the
-  relationship. A `postPhiManifest` records the synonym `{x,y,z}` directly, so
+  relationship. A `postPhiData` records the synonym `{x,y,z}` directly, so
   `y` can be dropped outright. Once semantic values and registers that are
   never used or populated have been identified, they can be excluded from every
   manifest in a fresh regeneration pass, and synonyms left empty are dropped.
@@ -262,7 +262,7 @@ expect it to be hard.
 
 ## 10. Suggested order
 
-1. Add `postPhiMap` to `L2BasicBlock` and capture it at the point described
+1. Add `postPhiData` to `L2BasicBlock` and capture it at the point described
    in section 4.1. Render it in the .dot output. Nothing consumes it
    yet, so the graphs should be unchanged and the captures inspectable.
 2. Assert the witness invariant of section 5 over each capture: every synonym

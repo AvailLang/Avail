@@ -226,8 +226,8 @@ object P_BitShiftRight : Primitive2(CanFold, CanInline)
 						constant(outputType.lowerBound.extractInt),
 						intWrite.semanticValues())
 				}
-				intA.type().isSubtypeOf(inclusive(-1, 0)) ||
-					intB.type().isSubtypeOf(inclusive(0, 0)) ->
+				intA.type.isSubtypeOf(inclusive(-1, 0)) ||
+					intB.type.isSubtypeOf(inclusive(0, 0)) ->
 				{
 					// Either:
 					//   1. The base is always in [-1, 0], so the shift, whether
@@ -235,7 +235,7 @@ object P_BitShiftRight : Primitive2(CanFold, CanInline)
 					//   2. The shift is always zero, likewise having no effect.
 					move(intA.semanticValue(), intWrite.semanticValues())
 				}
-				intB.type().isSubtypeOf(inclusive(0, 31)) ->
+				intB.type.isSubtypeOf(inclusive(0, 31)) ->
 				{
 					// The shift is in [0..31], so the JVM can directly handle
 					// it.

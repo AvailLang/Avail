@@ -145,7 +145,7 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 						L2WriteBoxedOperand(
 							extractedValue.semanticValues(),
 							extractedValue.restriction().intersection(
-								originOfValue.restriction()))))
+								originOfValue.restriction))))
 				jumpTo(ifReadSucceeded.targetBlock())
 				return
 			}

@@ -47,6 +47,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -57,7 +58,13 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
+object P_RemoveTypeName : Primitive2(
+	CanInline,
+	CannotFail,
+	HasSideEffect,
+	// The type might contain an instance type on an escaped variables,
+	// making it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -69,14 +76,6 @@ object P_RemoveTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 		removeNameFromType(name, userType)
 		return nil
 	}
-
-	/**
-	 * The type might contain an instance type on an escaped variables,
-	 * making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

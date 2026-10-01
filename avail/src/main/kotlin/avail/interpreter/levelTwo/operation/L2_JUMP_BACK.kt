@@ -67,7 +67,7 @@ class L2_JUMP_BACK(
 		val registersToKeep = mutableSetOf<L2Register<*>>()
 		this.registersToKeep.elements.forEach { read: L2ReadBoxedOperand ->
 			semanticValuesToKeep.add(read.semanticValue())
-			read.constantOrNull?.let { constant ->
+			manifest.constantOrNullFor(read.semanticValue())?.let { constant ->
 				// Also include any associated semantic constant, to ensure the
 				// invariant of the manifest is maintained – i.e., that any
 				// synonym of boxed values constrained to a constant must
@@ -103,7 +103,7 @@ class L2_JUMP_BACK(
 				writeOperands.mapToSet { it.register() }
 			manifest.removeRegisters(registersToBeOverwritten)
 		}
-		basicBlock().postPhiMap = manifest.extractPostPhiMap()
+		basicBlock().postPhiData = manifest.extractPostPhiData()
 		instructionWasAdded(manifest)
 		// Don't do any other post-adjustment of the manifest.
 	}

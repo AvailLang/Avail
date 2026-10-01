@@ -51,9 +51,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
@@ -89,16 +89,13 @@ class L2_INVOKE(
 	override val hasSideEffect get() = true
 
 	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun mightMakeEscapedVariableShared(
-		manifest: L2ValueManifest
-	): Boolean
+	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean
 	{
-		calledFunction.definitionSkippingMoves(manifest)
-			.getConstantCode(manifest)
+		calledFunction.definitionSkippingMoves(this)
+			.getConstantCode(this)
 			?.let { code ->
 				code.codePrimitive()?.let { prim ->
-					return prim.mightMakeEscapedVariableShared(
-						arguments.elements.map(L2ReadBoxedOperand::type))
+					return prim.mightMakeEscapedVariableShared()
 				}
 			}
 		return true
@@ -120,7 +117,9 @@ class L2_INVOKE(
 	override val isCold: Boolean
 		get()
 		{
-			val functionType = calledFunction.restriction().type
+			val functionType = basicBlock().postPhiData!!.run {
+				calledFunction.restriction.type
+			}
 			assert(functionType.isSubtypeOf(mostGeneralFunctionType))
 			return functionType.returnType.isBottom
 		}

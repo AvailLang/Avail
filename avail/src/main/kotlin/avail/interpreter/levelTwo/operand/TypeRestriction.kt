@@ -93,10 +93,16 @@ import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.OBJECT_TAG
 import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.CAN_BE_BOTTOM_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
 import avail.utility.Strings.truncateTo
+import avail.utility.bitfield.BitFlag
+import avail.utility.bitfield.MaskBuilder
+import avail.utility.bitfield.PackedBits
+import avail.utility.bitfield.mask
 import avail.utility.cast
 import avail.utility.ifNotEmpty
 import avail.utility.isNullOr
@@ -134,15 +140,28 @@ import java.util.Objects.hashCode
  *   type.  This has to be a special case, as otherwise the conservative
  *   subtraction can't represent, say, types minus tuple types plus bottom,
  *   which is necessary for type tag restriction propagation around types.
- * @property flags
- *   An [Int] that encodes [RestrictionFlagEncoding]s.
+ * @param initialFlags
+ *   An optional initial [Int] value to update with [setupFlags].
+ * @param setupFlags
+ *   A lambda that can set up initial flag values using [MaskBuilder]'s function
+ *   invocation syntax (`MyFlag(aBoolean)`).
  */
 class TypeRestriction private constructor(
 	val positiveGroup: RestrictionGroup,
 	val negativeGroup: RestrictionGroup,
-	val canBeBottom: Boolean,
-	val flags: Int)
+	initialFlags: Int = 0,
+	setupFlags: MaskBuilder<RestrictionFlagEncoding>.()->Unit = { }
+): PackedBits<RestrictionFlagEncoding>(initialFlags, setupFlags)
 {
+	/** Whether the value is known to be immutable. */
+	val isImmutable by RestrictionFlagEncoding.IMMUTABLE_FLAG
+
+	/** Whether the restriction is impossible to satisfy with any value. */
+	val isImpossible: Boolean get() = this.equals(bottomRestriction)
+
+	/** Whether the restriction allows ⊥ to be a value. */
+	val canBeBottom by CAN_BE_BOTTOM_FLAG
+
 	init {
 		if (canBeBottom)
 		{
@@ -170,10 +189,12 @@ class TypeRestriction private constructor(
 	{
 		if (newCanBeBottom == canBeBottom) return this
 		return TypeRestriction(
-			positiveGroup = positiveGroup,
-			negativeGroup = negativeGroup,
-			canBeBottom = newCanBeBottom,
-			flags = flags)
+			positiveGroup,
+			negativeGroup,
+			packedBits
+		) {
+			CAN_BE_BOTTOM_FLAG(newCanBeBottom)
+		}
 	}
 
 	/**
@@ -260,40 +281,17 @@ class TypeRestriction private constructor(
 	}
 
 	/**
-	 * An enumeration used to interpret the [flags] of a [TypeRestriction].  The
+	 * An enumeration used to interpret the [TypeRestriction.packedBits]  The
 	 * sense of the flags is such that a bit-wise and can be used
 	 */
-	enum class RestrictionFlagEncoding
+	enum class RestrictionFlagEncoding : BitFlag<RestrictionFlagEncoding>
 	{
 		/** Whether the value is known to be immutable. */
-		IMMUTABLE_FLAG
+		IMMUTABLE_FLAG,
 
-		;
-
-		/** A pre-computed bit mask for this flag. */
-		val mask = 1 shl ordinal
+		/** Whether the restriction allows ⊥ to be a value. */
+		CAN_BE_BOTTOM_FLAG
 	}
-
-	/** Answer whether the restricted value is known to be immutable. */
-	val isImmutable: Boolean
-		get() = flags and IMMUTABLE_FLAG.mask != 0
-
-	/**
-	 * Answer `true` iff this restriction is impossible to satisfy with any
-	 * value.
-	 */
-	val isImpossible: Boolean get() = this == bottomRestriction
-
-	/**
-	 * Answer whether the specified flag is set.
-	 *
-	 * @param restrictionFlag
-	 *   The flag to test.
-	 * @return
-	 *   Whether the flag is set.
-	 */
-	fun hasFlag(restrictionFlag: RestrictionFlagEncoding): Boolean =
-		flags and restrictionFlag.mask != 0
 
 	/**
 	 * Create a [TypeRestriction] from the already-canonicalized arguments.
@@ -319,8 +317,10 @@ class TypeRestriction private constructor(
 	) : this(
 		positiveGroup,
 		negativeGroup,
-		canBeBottom,
-		if (isImmutable) IMMUTABLE_FLAG.mask else 0)
+		setupFlags = {
+			CAN_BE_BOTTOM_FLAG(canBeBottom)
+			IMMUTABLE_FLAG(isImmutable)
+		})
 
 	/**
 	 * Answer either the exact value, if known, or null.
@@ -401,9 +401,10 @@ class TypeRestriction private constructor(
 			possibleTypeVariants = null,
 			excludedTypeVariants = null,
 			givenTag = null,
-			excludedTags = null,
-			canBeBottom = false,
-			flags = 0)
+			excludedTags = null
+		) {
+			CAN_BE_BOTTOM_FLAG(false)
+		}
 	}
 
 	/**
@@ -424,8 +425,7 @@ class TypeRestriction private constructor(
 		if (other.type.isBottom) return this
 		if (constantOrNull !== null && other.constantOrNull !== null
 			&& constantOrNull!!.equals(other.constantOrNull!!)
-			&& canBeBottom == other.canBeBottom
-			&& flags == other.flags)
+			&& packedBits == other.packedBits)
 		{
 			// The two restrictions are equivalent, for the same constant value.
 			return this
@@ -583,8 +583,7 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = excludedTypeVariants,
 			givenTag = newTag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom or other.canBeBottom,
-			flags = flags or other.flags)
+			initialFlags = packedBits or other.packedBits)
 	}
 
 	/**
@@ -681,9 +680,7 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = excludedTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom && other.canBeBottom,
-			flags = flags and other.flags
-		)
+			initialFlags = packedBits and other.packedBits)
 	}
 
 	/**
@@ -723,8 +720,8 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = negativeGroup.objectTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom && !newType.isSubtypeOf(NONTYPE()),
-			flags = flags)
+			initialFlags = packedBits
+		) { CAN_BE_BOTTOM_FLAG(canBeBottom && !newType.isSubtypeOf(NONTYPE())) }
 	}
 
 	/**
@@ -754,8 +751,8 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = negativeGroup.objectTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom && !typeToExclude.isInstanceMeta,
-			flags = flags)
+			initialFlags = packedBits
+		) { CAN_BE_BOTTOM_FLAG(canBeBottom && !typeToExclude.isInstanceMeta) }
 	}
 
 	/**
@@ -790,8 +787,10 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = negativeGroup.objectTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom && typesToExclude.none { it.isType },
-			flags = flags)
+			initialFlags = packedBits
+		) {
+			CAN_BE_BOTTOM_FLAG(canBeBottom && typesToExclude.none { it.isType })
+		}
 	}
 
 	/**
@@ -820,8 +819,8 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = negativeGroup.objectTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom && !valueToExclude.equals(bottom),
-			flags = flags)
+			initialFlags = packedBits
+		) { CAN_BE_BOTTOM_FLAG(canBeBottom && !valueToExclude.equals(bottom)) }
 	}
 
 	/**
@@ -850,9 +849,8 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = negativeGroup.objectTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom && bottom !in valuesToExclude,
-			flags = flags
-		)
+			initialFlags = packedBits
+		) { CAN_BE_BOTTOM_FLAG(canBeBottom && bottom !in valuesToExclude) }
 	}
 
 	/**
@@ -881,8 +879,7 @@ class TypeRestriction private constructor(
 					null,
 					setOf(OBJECT_TAG)),
 				RestrictionGroup(emptySet(), emptySet(), null, null, null),
-				canBeBottom = canBeBottom,
-				flags))
+				packedBits))
 	}
 
 	/**
@@ -912,8 +909,7 @@ class TypeRestriction private constructor(
 					setOf(variantToIntersect),
 					setOf(OBJECT_TYPE_TAG)),
 				RestrictionGroup(emptySet(), emptySet(), null, null, null),
-				canBeBottom = canBeBottom,
-				flags))
+				packedBits))
 	}
 
 	/**
@@ -928,7 +924,9 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new [TypeRestriction].
 	 */
-	fun minusObjectVariant(variantToRemove: ObjectLayoutVariant): TypeRestriction = when
+	fun minusObjectVariant(
+		variantToRemove: ObjectLayoutVariant
+	): TypeRestriction = when
 	{
 		isImpossible -> this
 		positiveGroup.objectVariants == null ->
@@ -938,9 +936,7 @@ class TypeRestriction private constructor(
 					objectVariants =
 						(negativeGroup.objectVariants ?: emptySet())
 							+ variantToRemove),
-				canBeBottom = canBeBottom,
-				flags = flags
-			)
+				initialFlags = packedBits)
 		positiveGroup.objectVariants.contains(variantToRemove) ->
 			TypeRestriction(
 				positiveGroup = positiveGroup.copy(
@@ -948,9 +944,7 @@ class TypeRestriction private constructor(
 						(positiveGroup.objectVariants - variantToRemove)
 							.ifEmpty { return bottomRestriction }),
 				negativeGroup = negativeGroup,
-				canBeBottom = canBeBottom,
-				flags = flags
-			)
+				initialFlags = packedBits)
 		else -> this
 	}
 	/**
@@ -965,7 +959,9 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new [TypeRestriction].
 	 */
-	fun minusObjectTypeVariant(variantToRemove: ObjectLayoutVariant): TypeRestriction = when
+	fun minusObjectTypeVariant(
+		variantToRemove: ObjectLayoutVariant
+	): TypeRestriction = when
 	{
 		isImpossible -> this
 		positiveGroup.objectTypeVariants == null ->
@@ -975,9 +971,7 @@ class TypeRestriction private constructor(
 					objectTypeVariants =
 						(negativeGroup.objectTypeVariants ?: emptySet())
 							+ variantToRemove),
-				canBeBottom = canBeBottom,
-				flags = flags
-			)
+				initialFlags = packedBits)
 		positiveGroup.objectTypeVariants.contains(variantToRemove) ->
 			TypeRestriction(
 				positiveGroup = positiveGroup.copy(
@@ -985,9 +979,7 @@ class TypeRestriction private constructor(
 						(positiveGroup.objectTypeVariants - variantToRemove)
 							.ifEmpty { return bottomRestriction }),
 				negativeGroup = negativeGroup,
-				canBeBottom = canBeBottom,
-				flags = flags
-			)
+				initialFlags = packedBits)
 		else -> this
 	}
 
@@ -1095,9 +1087,11 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new `TypeRestriction`, or the receiver.
 	 */
-	fun withFlag(flagEncoding: RestrictionFlagEncoding): TypeRestriction = when
+	fun withFlag(
+		flagEncoding: RestrictionFlagEncoding
+	): TypeRestriction = when
 	{
-		flags and flagEncoding.mask != 0 -> this
+		packedBits and flagEncoding.mask != 0 -> this
 		else -> restriction(
 			givenType = type,
 			constantOrNull = constantOrNull,
@@ -1109,8 +1103,8 @@ class TypeRestriction private constructor(
 			excludedTypeVariants = negativeGroup.objectTypeVariants,
 			givenTag = tag,
 			excludedTags = excludedTags,
-			canBeBottom = canBeBottom,
-			flags = flags or flagEncoding.mask)
+			initialFlags = packedBits
+		) { flagEncoding(true) }
 	}
 
 	/**
@@ -1122,14 +1116,12 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new `TypeRestriction`, or the receiver.
 	 */
-	fun withoutFlag(flagEncoding: RestrictionFlagEncoding): TypeRestriction =
-		if (flags and flagEncoding.mask == 0)
-		{
-			// Flag is already clear.
-			this
-		}
-		else
-		{
+	fun withoutFlag(
+		flagEncoding: RestrictionFlagEncoding
+	): TypeRestriction = when
+	{
+		packedBits and flagEncoding.mask == 0 -> this
+		else ->
 			restriction(
 				givenType = type,
 				constantOrNull = constantOrNull,
@@ -1141,9 +1133,9 @@ class TypeRestriction private constructor(
 				excludedTypeVariants = negativeGroup.objectTypeVariants,
 				givenTag = tag,
 				excludedTags = excludedTags,
-				canBeBottom = canBeBottom,
-				flags = flags and flagEncoding.mask.inv())
-		}
+				initialFlags = packedBits
+			) { flagEncoding(false) }
+	}
 
 	/**
 	 * If this restriction has only a finite set of possible values, and the
@@ -1172,8 +1164,7 @@ class TypeRestriction private constructor(
 		this === other -> true
 		else -> positiveGroup == other.positiveGroup
 			&& negativeGroup == other.negativeGroup
-			&& flags == other.flags
-			&& canBeBottom == other.canBeBottom
+			&& packedBits == other.packedBits
 	}
 
 	override fun hashCode(): Int = combine6(
@@ -1182,7 +1173,7 @@ class TypeRestriction private constructor(
 		hashCode(constantOrNull),
 		excludedTypes.hashCode(),
 		excludedValues.hashCode(),
-		flags)
+		packedBits)
 
 	/**
 	 * Answer whether this `TypeRestriction` is a specialization of the given
@@ -1197,7 +1188,7 @@ class TypeRestriction private constructor(
 	@Suppress("unused")
 	fun isStrongerThan(other: TypeRestriction): Boolean
 	{
-		if (flags.inv() and other.flags != 0)
+		if (packedBits.inv() and other.packedBits != 0)
 		{
 			return false
 		}
@@ -1228,28 +1219,6 @@ class TypeRestriction private constructor(
 		// Any additional receiver exclusions are irrelevant, as they only act
 		// to strengthen the restriction.
 		return true
-	}
-
-	/**
-	 * Answer a [String], possibly empty, suitable for displaying after a
-	 * register, after a read/write of a register, or after any other place that
-	 * this restriction might be applied.
-	 *
-	 * @return
-	 *   The [String] describing this restriction, if interesting.
-	 */
-	fun suffixString(): String
-	{
-		val constant = constantOrNull
-		if (constant !== null)
-		{
-			return "=" + constant.typeTag.shorterTypeName
-		}
-		return if (!type.equals(TOP()))
-		{
-			":" + (type as AvailObject).typeTag.shorterTypeName
-		}
-		else ""
 	}
 
 	override fun toString() = toString(false, false)
@@ -1531,9 +1500,6 @@ class TypeRestriction private constructor(
 		 * @param excludedTags
 		 *   An optional [Set] of [TypeTag]s that the value definitely does not
 		 *   have.  It must not be present if [givenTag] is present.
-		 * @param canBeBottom
-		 *   Whether this restriction allows the corresponding value to be the
-		 *   [bottom] type.  This is an awkward special case.
 		 * @param flags
 		 *   The encoded [flags] [Int].
 		 * @return
@@ -1550,7 +1516,6 @@ class TypeRestriction private constructor(
 			excludedTypeVariants: Set<ObjectLayoutVariant>?,
 			givenTag: TypeTag?,
 			excludedTags: Set<TypeTag>?,
-			canBeBottom: Boolean,
 			flags: Int
 		): TypeRestriction
 		{
@@ -1616,7 +1581,6 @@ class TypeRestriction private constructor(
 					excludedTypeVariants,
 					givenTag,
 					excludedTags,
-					canBeBottom,
 					flags)
 				// A constant was specified.  Use it if it satisfies the
 				// main type constraint and isn't specifically excluded,
@@ -1648,8 +1612,7 @@ class TypeRestriction private constructor(
 							objectVariants = excludedVariants,
 							objectTypeVariants = excludedTypeVariants,
 							tags = excludedTags),
-						canBeBottom = canBeBottom,
-						flags = flags)
+						initialFlags = flags)
 				}
 				// Not a known constant.
 				givenExcludedTypes.isNotEmpty()
@@ -1668,8 +1631,7 @@ class TypeRestriction private constructor(
 							objectVariants = excludedVariants,
 							objectTypeVariants = excludedTypeVariants,
 							tags = excludedTags),
-						canBeBottom = canBeBottom,
-						flags = flags)
+						initialFlags = flags)
 				}
 				!anyVariantsMentioned && type.equals(TOP()) -> when
 				{
@@ -1697,8 +1659,7 @@ class TypeRestriction private constructor(
 							objectVariants = excludedVariants,
 							objectTypeVariants = excludedTypeVariants,
 							tags = excludedTags),
-						canBeBottom = canBeBottom,
-						flags = flags)
+						initialFlags = flags)
 				// Special case: bottom's type has one instance, bottom.
 				type.instance.isBottom -> bottomTypeRestriction
 				// This is a non-meta instance type, which should be treated as
@@ -1716,83 +1677,8 @@ class TypeRestriction private constructor(
 						objectVariants = excludedVariants,
 						objectTypeVariants = excludedTypeVariants,
 						tags = excludedTags),
-					canBeBottom = canBeBottom,
-					flags = flags)
+					initialFlags = flags)
 			}
-		}
-
-		/**
-		 * Create or reuse an immutable `TypeRestriction`, canonicalizing the
-		 * arguments.
-		 *
-		 * @param type
-		 *   The Avail type that constrains some value somewhere.
-		 * @param constantOrNull
-		 *   Either `null` or the exact value that some value somewhere must
-		 *   equal.
-		 * @param givenExcludedTypes
-		 *   A set of [A_Type]s to consider excluded.
-		 * @param givenExcludedValues
-		 *   A set of values to consider excluded.
-		 * @param possibleVariants
-		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
-		 *   restriction may have, or nil if unknown.  This must not be
-		 *   populated if [excludedVariants] is also populated.
-		 * @param excludedVariants
-		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
-		 *   restriction definitely do not have, or nil if unknown.  This must
-		 *   not be populated if [possibleVariants] is also populated.
-		 * @param possibleTypeVariants
-		 *   Either the set of all [ObjectLayoutVariant]s that object types with
-		 *   this restriction may have, or nil if unknown.  This must not be
-		 *   populated if [excludedTypeVariants] is also populated.
-		 * @param excludedTypeVariants
-		 *   Either the set of all [ObjectLayoutVariant]s that object types with
-		 *   this restriction definitely do not have, or nil if unknown.  This
-		 *   must not be populated if [possibleTypeVariants] is also populated.
-		 * @param givenTag
-		 *   Either `null` or a [TypeTag] that is definitely the one that a
-		 *   value matching this restriction would have.
-		 * @param excludedTags
-		 *   An optional [Set] of [TypeTag]s that the value definitely does not
-		 *   have.  It must not be present if [givenTag] is present.
-		 * @param canBeBottom
-		 *   Whether this restriction allows the corresponding value to be the
-		 *   [bottom] type.  This is an awkward special case.
-		 * @param isImmutable
-		 *   Whether the value is known to be immutable.
-		 * @return
-		 *   The new or existing canonical TypeRestriction.
-		 */
-		fun restriction(
-			type: A_Type,
-			constantOrNull: A_BasicObject?,
-			givenExcludedTypes: Set<A_Type> = emptySet(),
-			givenExcludedValues: Set<A_BasicObject> = emptySet(),
-			possibleVariants: Set<ObjectLayoutVariant>? = null,
-			excludedVariants: Set<ObjectLayoutVariant>? = null,
-			possibleTypeVariants: Set<ObjectLayoutVariant>? = null,
-			excludedTypeVariants: Set<ObjectLayoutVariant>? = null,
-			givenTag: TypeTag? = null,
-			excludedTags: Set<TypeTag>? = null,
-			canBeBottom: Boolean = type.equals(bottomMeta),
-			isImmutable: Boolean = false
-		): TypeRestriction
-		{
-			val flags = (if (isImmutable) IMMUTABLE_FLAG.mask else 0)
-			return restriction(
-				givenType = type,
-				constantOrNull = constantOrNull,
-				givenExcludedTypes = givenExcludedTypes,
-				givenExcludedValues = givenExcludedValues,
-				possibleVariants = possibleVariants,
-				excludedVariants = excludedVariants,
-				possibleTypeVariants = possibleTypeVariants,
-				excludedTypeVariants = excludedTypeVariants,
-				canBeBottom = canBeBottom,
-				givenTag = givenTag,
-				excludedTags = excludedTags,
-				flags = flags)
 		}
 
 		/**
@@ -1804,6 +1690,7 @@ class TypeRestriction private constructor(
 		 * @param constantOrNull
 		 *   Either `null` or the exact value that some value somewhere must
 		 *   equal.
+
 		 * @param givenExcludedTypes
 		 *   A set of [A_Type]s to consider excluded.
 		 * @param givenExcludedValues
@@ -1830,11 +1717,11 @@ class TypeRestriction private constructor(
 		 * @param excludedTags
 		 *   An optional [Set] of [TypeTag]s that the value definitely does not
 		 *   have.  It must not be present if [givenTag] is present.
-		 * @param canBeBottom
-		 *   Whether this restriction allows the corresponding value to be the
-		 *   [bottom] type.  This is an awkward special case.
-		 * @param flags
-		 *   The encoded [flags] [Int].
+		 * @param initialFlags
+		 *   The encoded flags [Int], prior to running [setupFlags].
+		 * @param setupFlags
+		 *   A lambda that can set up initial flag values using [MaskBuilder]'s
+		 *   function invocation syntax (`MyFlag(aBoolean)`).
 		 * @return
 		 *   The new or existing canonical `TypeRestriction`.
 		 */
@@ -1849,10 +1736,11 @@ class TypeRestriction private constructor(
 			excludedTypeVariants: Set<ObjectLayoutVariant>?,
 			givenTag: TypeTag?,
 			excludedTags: Set<TypeTag>?,
-			canBeBottom: Boolean,
-			flags: Int
+			initialFlags: Int = 0,
+			setupFlags: MaskBuilder<RestrictionFlagEncoding>.()->Unit = { }
 		): TypeRestriction
 		{
+			val flags = mask(initialFlags, setupFlags)
 			givenTag?.let {
 				excludedTags?.let {
 					if (givenTag in excludedTags)
@@ -1900,7 +1788,6 @@ class TypeRestriction private constructor(
 							excludedTypeVariants,
 							(tag ?: givenTag),
 							excludedTags,
-							canBeBottom,
 							flags)
 					}
 					else ->
@@ -1922,12 +1809,12 @@ class TypeRestriction private constructor(
 								objectVariants = excludedVariants,
 								objectTypeVariants = excludedTypeVariants,
 								tags = excludedTags),
-							canBeBottom,
 							flags)
 					}
 				}
 			}
-			if (constantOrNull is AvailObject)
+			val canBeBottom = flags and CAN_BE_BOTTOM_FLAG.mask != 0
+			if (constantOrNull != null)
 			{
 				// A constant was specified.  Use it if it satisfies the main
 				// type constraint and isn't specifically excluded, otherwise
@@ -1978,8 +1865,7 @@ class TypeRestriction private constructor(
 						objectVariants = null,
 						objectTypeVariants = null,
 						tags = null),
-					canBeBottom,
-					flags)
+					initialFlags = flags)
 			}
 
 			// Are we excluding the base type?
@@ -2038,9 +1924,7 @@ class TypeRestriction private constructor(
 					excludedTypeVariants = excludedTypeVariants,
 					givenTag = givenTag,
 					excludedTags = excludedTags,
-					canBeBottom,
-					flags = flags
-				)
+					flags = flags)
 			}
 		}
 
@@ -2065,9 +1949,8 @@ class TypeRestriction private constructor(
 			possibleTypeVariants = null,
 			excludedTypeVariants = null,
 			givenTag = null,
-			excludedTags = null,
-			canBeBottom = !type.isSubtypeOf(NONTYPE()),
-			flags = 0)
+			excludedTags = null
+		) { CAN_BE_BOTTOM_FLAG(!type.isSubtypeOf(NONTYPE())) }
 
 		/**
 		 * Create or reuse a [TypeRestriction] for which a constant is
@@ -2111,10 +1994,11 @@ class TypeRestriction private constructor(
 				},
 				excludedTypeVariants = null,
 				givenTag = strongConstant.typeTag,
-				excludedTags = null,
-				canBeBottom = constant.equals(bottom),
-				flags = IMMUTABLE_FLAG.mask
-			)
+				excludedTags = null
+			) {
+				CAN_BE_BOTTOM_FLAG(constant.equals(bottom))
+				IMMUTABLE_FLAG(true)
+			}
 		}
 
 		/**

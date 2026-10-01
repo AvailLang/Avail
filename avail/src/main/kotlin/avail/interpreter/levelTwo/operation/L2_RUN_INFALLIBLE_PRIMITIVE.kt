@@ -48,8 +48,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L1Translator
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
@@ -105,11 +105,8 @@ private constructor(
 		get() = primitive.constant.l2HasSideEffect
 
 	/** Defer to the primitive. */
-	override fun mightMakeEscapedVariableShared(
-		manifest: L2ValueManifest
-	): Boolean =
-		primitive.constant.mightMakeEscapedVariableShared(
-			arguments.elements.map(L2ReadBoxedOperand::type))
+	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =
+		primitive.constant.mightMakeEscapedVariableShared()
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
@@ -213,7 +210,7 @@ private constructor(
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val strongerRestriction = resultRestrictionGiven(
-			arguments.elements.map(L2ReadBoxedOperand::restriction))
+			arguments.elements.map { it.restriction })
 		val strongerResult = L2WriteBoxedOperand(
 			result.semanticValues(), strongerRestriction)
 		strongerRestriction.constantOrNull?.let { constant ->
@@ -239,9 +236,7 @@ private constructor(
 			this,
 			this@L2_RUN_INFALLIBLE_PRIMITIVE)
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
-		addAll(
-			primitive.constant.interestingSplitConditions(arguments.elements))
+	override fun PostPhiData.interestingConditions() = buildList {
 		// Split based on whether a value for an equivalent primitive invocation
 		// already exists in some history.
 		add(existsCondition(result.semanticValues()))
@@ -272,14 +267,14 @@ private constructor(
 		}
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		assert(writeOperand === result)
 		primitive.constant.run {
-			traceCandidateSplitConditions(restriction, tracer)
+			traceCandidateSplitConditions(
+				restriction, this@traceCandidateSplitConditions)
 		}
 	}
 

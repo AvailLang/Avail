@@ -201,7 +201,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 			// We're restarting the current frame.  First set up the semantic
 			// arguments for phis at the loop head to converge.
 			val numArgs = code.numArgs()
-			val argsType = argumentsTupleReg.type()
+			val argsType = argumentsTupleReg.type
 			val argsSizeRange = argsType.sizeRange
 
 			if (!argsSizeRange.lowerBound.equalsInt(numArgs)
@@ -238,7 +238,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 		// special invocation if it's not possible.
 
 		// Examine the continuation's function's type.
-		val continuationType = continuationReg.type()
+		val continuationType = continuationReg.type
 		val functionType = continuationType.functionType
 		val functionArgsType = functionType.argsTupleType
 		val functionTypeSizes = functionArgsType.sizeRange

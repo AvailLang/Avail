@@ -47,6 +47,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -57,7 +58,12 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateArgumentDeclaration : Primitive2(CanInline, CannotFail)
+object P_CreateArgumentDeclaration : Primitive2(
+	CanInline,
+	CannotFail,
+	// The type might contain an instance type on escaped variables, making it
+	// shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -66,14 +72,6 @@ object P_CreateArgumentDeclaration : Primitive2(CanInline, CannotFail)
 	): A_BasicObject? = interpreter.run {
 		return newArgument(token, type, nil)
 	}
-
-	/**
-	 * The type might contain an instance type on escaped variables,
-	 * making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

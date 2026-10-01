@@ -84,9 +84,9 @@ object P_ExtractObjectTypeVariantId
 {
 	override fun attempt1(
 		interpreter: Interpreter,
-		arg1: AvailObject
+		objectType: AvailObject
 	): A_BasicObject = interpreter.run {
-		fromInt(arg1.objectTypeVariant.variantId)
+		fromInt(objectType.objectTypeVariant.variantId)
 	}
 
 

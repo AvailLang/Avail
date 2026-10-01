@@ -60,6 +60,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -103,22 +104,18 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		// If we can separate knowledge of whether the argument is bottomMeta,
 		// we can produce 0 along that path.
 		val argument = readBoxedOperands[0]
-		if (argument.restriction().intersectsType(bottomMeta))
+		if (argument.restriction.intersectsType(bottomMeta))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(argument.register()),
 					restrictionForConstant(bottom)))
-		}
-		else
-		{
-			addAll(super.interestingSplitConditions(readBoxedOperands))
 		}
 	}
 
@@ -128,7 +125,7 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 		result: L2WriteBoxedOperand)
 	{
 		val instanceTypeRead = arguments.elements[0]
-		val restriction = instanceTypeRead.restriction()
+		val restriction = instanceTypeRead.restriction
 		restriction.constantOrNull?.let { constant ->
 			currentManifest.agglomerateSynonym(
 				result.semanticValues(),

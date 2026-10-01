@@ -86,9 +86,9 @@ import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwoSimple.instructions.L2SimpleInstruction
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
@@ -536,10 +536,10 @@ constructor(
 	/**
 	 * This function performs register coloring:
 	 *  * Due to the simple way that L2Simple instructions are generated, every
-	 *    [Offset] except to [Offset]`(0)` are *forward* – the target is at a
-	 *    higher numbered [Offset] than the source of the jump.
-	 *  * The [Offset]`(0)` case is special, since there are *no registers* live
-	 *    upon entry or restart – the arguments are passed in
+	 *    [Offset] except to [Offset]`(loopHead)` are *forward* – the target is
+	 *    at a higher numbered [Offset] than the source of the jump.
+	 *  * The [Offset]`(loophead)` case is special, since there are *no
+	 *    registers* live upon entry or restart – the arguments are passed in
 	 *    [Interpreter.argsBuffer] in both cases.
 	 *  * Additionally, most L2Simple code is linear, with only short
 	 *    divergences for polymorphic inlining.  So we approximate the lifetimes
@@ -1149,7 +1149,7 @@ constructor(
 	{
 		val restriction = slotRestriction(sourceSlot)
 		currentSlotReads.values[targetSlot] = currentSlotReads[sourceSlot].value
-		if (makeImmutable && !restriction.hasFlag(IMMUTABLE_FLAG))
+		if (makeImmutable && !restriction.isImpossible)
 		{
 			val newRestriction = restriction.withFlag(IMMUTABLE_FLAG)
 			+L2Simple_MakeImmutable(value = readSlot(sourceSlot))
@@ -1499,8 +1499,7 @@ constructor(
 			outerNumber = outer,
 			answer = writeSlot(
 				stackp,
-				restrictionForType(outerType.readType)
-					.withFlag(IMMUTABLE_FLAG)))
+				restrictionForType(outerType.readType).withFlag(IMMUTABLE_FLAG)))
 		+L2Simple_ReenterToResume(
 			nextOffset = NEXT,
 			stateOfL1 = StateOfL1(

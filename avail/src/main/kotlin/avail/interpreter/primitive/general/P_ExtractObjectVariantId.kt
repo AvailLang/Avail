@@ -85,8 +85,8 @@ object P_ExtractObjectVariantId
 {
 	override fun attempt1(
 		interpreter: Interpreter,
-		arg1: AvailObject
-	): A_BasicObject = fromInt(arg1.objectVariant.variantId)
+		theObject: AvailObject
+	): A_BasicObject = fromInt(theObject.objectVariant.variantId)
 
 	override fun printSemanticInvocation(
 		invocation: L2SemanticPrimitiveInvocation

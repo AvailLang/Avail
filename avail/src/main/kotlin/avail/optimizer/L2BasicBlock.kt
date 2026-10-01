@@ -33,11 +33,12 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.optimizer.L2BasicBlock.BlockFlag
+import avail.optimizer.L2BasicBlock.BlockFlag.Cold
+import avail.optimizer.L2BasicBlock.BlockFlag.LoopHead
 import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.bitfield.BitFlag
 import avail.utility.bitfield.PackedBits
@@ -79,8 +80,11 @@ constructor(
 	isLoopHead: Boolean = false,
 	isCold: Boolean = false
 ): PackedBits<BlockFlag>(
-	if (isLoopHead) BlockFlag.LoopHead else null,
-	if (isCold) BlockFlag.Cold else null)
+	{
+		LoopHead(isLoopHead)
+		Cold(isCold)
+	}
+)
 {
 	enum class BlockFlag: BitFlag<BlockFlag>
 	{
@@ -92,7 +96,7 @@ constructor(
 	}
 
 	/** Whether this block is the head of a loop. */
-	var isLoopHead by BlockFlag.LoopHead
+	var isLoopHead by LoopHead
 
 	/**
 	 * A flag indiccating that this reaching this block at runtime is relatively
@@ -108,7 +112,7 @@ constructor(
 	 * unconditionally in a split version of this block.  Split conditions that
 	 * allow an unconditional jump to a *hot* target should still be proposed.
 	 */
-	var isCold by BlockFlag.Cold
+	var isCold by Cold
 
 	/**
 	 * Whether this block must be tracked until final code generation. Set for
@@ -117,7 +121,6 @@ constructor(
 	 * generation.
 	 */
 	var isIrremovable by BlockFlag.Irremovable
-		private set
 
 	/** Whether we've started adding instructions to this basic block. */
 	var hasStartedCodeGeneration by BlockFlag.StartedGeneration
@@ -162,7 +165,7 @@ constructor(
 	 * state captured just before the final [L2ControlFlowInstruction]
 	 * instruction is emitted.  When this block is used as a source of
 	 * instructions during regeneration, right after any [L2_PHI]s are generated
-	 * in the new block, the original block's [postPhiMap] synonym and
+	 * in the new block, the original block's [postPhiData] synonym and
 	 * restriction information is merged into the current manifest, which may
 	 * force synonyms to be extended or merged, and restrictions to be narrowed.
 	 *
@@ -177,7 +180,7 @@ constructor(
 	 * synonym and output restriction information prior to the eventual emission
 	 * point of the instruction.
 	 */
-	var postPhiMap: Map<L2Synonym, TypeRestriction>? = null
+	var postPhiData: PostPhiData? = null
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -186,15 +189,6 @@ constructor(
 	 *   The basic block's name.
 	 */
 	fun name(): String = name
-
-	/**
-	 * Prevent this block from being removed, so that its position can be
-	 * identified in the final generated code.
-	 */
-	fun makeIrremovable()
-	{
-		isIrremovable = true
-	}
 
 	/**
 	 * Answer the L2 offset at which the block starts.  Only populated after

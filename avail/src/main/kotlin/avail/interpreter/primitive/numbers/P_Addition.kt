@@ -230,7 +230,7 @@ object P_Addition : Primitive2(CanFold, CanInline)
 		val resultRestriction = result.restriction().intersectionWithType(
 			returnTypeGuaranteedByVM(
 				rawFunction,
-				listOf(arg1.type(), arg2.type())))
+				listOf(arg1.type, arg2.type)))
 		val resultType = resultRestriction.type
 		if (resultType.isIntegerRangeType &&
 			resultType.lowerBound.equals(resultType.upperBound))

@@ -48,8 +48,8 @@ import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -70,8 +70,8 @@ class L2_ADD_INT_TO_INT(
 ): L2ControlFlowInstruction()
 {
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
+		manifest: L2ValueManifest
+	): Unit = manifest.run {
 		sum.restrict { restrictionForType(i32) }
 		super.instructionWasAdded(manifest)
 		addend.constantOrNull?.let { addendValue ->
@@ -102,7 +102,7 @@ class L2_ADD_INT_TO_INT(
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val outputRange = P_Addition.returnTypeGuaranteedByVM(
-			null, listOf(augend.type(), addend.type()))
+			null, listOf(augend.type, addend.type))
 		if (outputRange.isSubtypeOf(i32))
 		{
 			+L2_BIT_LOGIC_OP(Add, augend, addend, sum)

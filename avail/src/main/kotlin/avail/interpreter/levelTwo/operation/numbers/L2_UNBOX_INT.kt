@@ -41,10 +41,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Unbox an [Int] from an [AvailObject].
@@ -68,14 +69,15 @@ class L2_UNBOX_INT(
 		append(source.registerString())
 	}
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
-	{
-		assert(source.restriction().containedByType(i32))
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest
+	) = manifest.run {
+		assert(source.restriction.containedByType(i32))
 		{
 			"L2_UNBOX_INT source was not proven to be an i32: " +
-				source.restriction()
+				source.restriction
 		}
-		destination.restrict { source.restriction() }
+		destination.restrict { source.restriction }
 		super.instructionWasAdded(manifest)
 	}
 
@@ -89,16 +91,15 @@ class L2_UNBOX_INT(
 		store(destination.register())
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
+	override fun PostPhiData.interestingConditions() = buildList {
 		addAll(unboxedIntConditions(listOf(source.register())))
 		addAll(unboxedIntConditions(listOf(destination.register())))
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
-		tracer.continueTracing(source.register(), restriction)
+		continueTracing(source.register(), restriction)
 	}
 }

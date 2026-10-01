@@ -192,16 +192,15 @@ constructor (
 	 * @return
 	 *   The new `L2Register`.
 	 */
-	fun copyAfterColoring(): L2Register<K> =
-		kind.createRegister(finalIndex).also { it.finalIndex = finalIndex }
+	fun copyAfterColoring(uniqueValue: Int): L2Register<K> =
+		kind.createRegister(uniqueValue).also { it.finalIndex = finalIndex }
 
 	override fun toString() = buildString {
 		append(kind.prefix)
 		when (finalIndex)
 		{
 			-1 -> append(uniqueValue)
-			uniqueValue -> append(uniqueValue)
-			else -> append("$uniqueValue($finalIndex)")
+			else -> append("$uniqueValue@$finalIndex")
 		}
 	}
 

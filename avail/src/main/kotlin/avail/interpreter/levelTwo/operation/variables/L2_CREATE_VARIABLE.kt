@@ -79,7 +79,7 @@ constructor(
 		append(localIndex.value)
 		append(") ")
 		append(outerType.constant)
-		if (initialValueOrNil.constantOrNull.isNullOr { notNil })
+		if (initialValueOrNil.register().constant.isNullOr { notNil })
 		{
 			append(" := ")
 			append(initialValueOrNil.registerString())

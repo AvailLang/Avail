@@ -33,6 +33,7 @@ package avail.optimizer
 
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.floatRestriction
@@ -186,6 +187,9 @@ sealed class L2SplitCondition
 		val traceTags: Boolean = true,
 		val traceArithmetic: Boolean = true)
 	{
+		val L2ReadOperand<*>.restriction: TypeRestriction
+			get() = instruction.basicBlock().postPhiData!![semanticValue()]
+
 		private val registersToVisit = initialRegisters.mapTo(ArrayDeque()) {
 			it to initialRestriction
 		}
@@ -209,8 +213,9 @@ sealed class L2SplitCondition
 					// Ignore if only constants were written.
 					continue
 				}
-				write.instruction.traceCandidateSplitConditions(
-					write, restriction, this)
+				write.instruction.run {
+					traceCandidateSplitConditions(write, restriction)
+				}
 				restrictionToSemanticValue
 					.getOrPut(restriction, ::mutableSetOf)
 					.addAll(values)

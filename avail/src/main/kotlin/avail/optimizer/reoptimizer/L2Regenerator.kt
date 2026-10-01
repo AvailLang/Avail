@@ -305,33 +305,21 @@ constructor(
 		{
 			val equivalent =
 				mapReadSemanticValue(operand.semanticValue(), INTEGER_KIND)
-			currentOperand = L2ReadIntOperand(
-				equivalent,
-				currentManifest
-					.restrictionFor(equivalent)
-					.intersection(operand.restriction()))
+			currentOperand = L2ReadIntOperand(equivalent)
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
 			val equivalent =
 				mapReadSemanticValue(operand.semanticValue(), FLOAT_KIND)
-			currentOperand = L2ReadFloatOperand(
-				equivalent,
-				currentManifest
-					.restrictionFor(equivalent)
-					.intersection(operand.restriction()))
+			currentOperand = L2ReadFloatOperand(equivalent)
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
 			val equivalent =
 				mapReadSemanticValue(operand.semanticValue(), BOXED_KIND)
-			currentOperand = L2ReadBoxedOperand(
-				equivalent,
-				currentManifest
-					.restrictionFor(equivalent)
-					.intersection(operand.restriction()))
+			currentOperand = L2ReadBoxedOperand(equivalent)
 		}
 
 		override fun doOperand(operand: L2WriteIntOperand)
@@ -389,14 +377,12 @@ constructor(
 					// source of a constant read anyhow.
 					currentOperand = INTEGER_KIND.readOperand(
 						constant(operand.constantOrNull!!),
-						operand.restriction(),
 						operand.register())
 				}
 				else ->
 				{
 					currentOperand = INTEGER_KIND.readOperand(
 						operand.semanticValue(),
-						operand.restriction(),
 						registerMap[operand.register()] as L2IntRegister)
 				}
 			}
@@ -412,14 +398,12 @@ constructor(
 					// source of a constant read anyhow.
 					currentOperand = FLOAT_KIND.readOperand(
 						constant(operand.constantOrNull!!),
-						operand.restriction(),
 						operand.register())
 				}
 				else ->
 				{
 					currentOperand = FLOAT_KIND.readOperand(
 						operand.semanticValue(),
-						operand.restriction(),
 						registerMap[operand.register()] as L2FloatRegister)
 				}
 			}
@@ -435,14 +419,12 @@ constructor(
 					// source of a constant read anyhow.
 					currentOperand = BOXED_KIND.readOperand(
 						constant(operand.constantOrNull!!),
-						operand.restriction(),
 						operand.register())
 				}
 				else ->
 				{
 					currentOperand = BOXED_KIND.readOperand(
 						operand.semanticValue(),
-						operand.restriction(),
 						registerMap[operand.register()] as L2BoxedRegister)
 				}
 			}
@@ -596,7 +578,7 @@ constructor(
 	{
 		val firstSourceBlock = oldGraph.basicBlockOrder[0]
 		val start = L2BasicBlock(firstSourceBlock.name())
-		start.makeIrremovable()
+		start.isIrremovable = true
 		oldGraph.basicBlockOrder.forEach { originalBlock ->
 			val newBlock = L2BasicBlock(
 				name = originalBlock.name(),
@@ -676,8 +658,7 @@ constructor(
 							zone = originalBlock.zone,
 							isLoopHead = originalBlock.isLoopHead,
 							isCold = originalBlock.isCold)
-						if (originalBlock.isIrremovable)
-							newBlock.makeIrremovable()
+						newBlock.isIrremovable = originalBlock.isIrremovable
 						newBlock
 					}
 					if (betterBlock !== incomingEdge.targetBlock())
@@ -696,7 +677,8 @@ constructor(
 					assert(targetBlock.predecessorEdges().isNotEmpty()
 						|| targetBlock.isIrremovable)
 					startBlock(targetBlock)
-					currentManifest.applyPostPhiMap(originalBlock.postPhiMap!!)
+					currentManifest.applyPostPhiData(
+						originalBlock.postPhiData!!)
 					processBlock(
 						originalBlock,
 						originalBlock in impossibleBlocks)

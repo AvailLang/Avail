@@ -54,7 +54,7 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -128,7 +128,7 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		// code splitting or other optimizations.
 		destination.restrict {
 			sources.elements
-				.map(L2ReadOperand<K>::restriction)
+				.map(manifest::restrictionFor)
 				.reduce(TypeRestriction::union)
 		}
 		destination.instructionWasAdded(manifest)
@@ -221,7 +221,6 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 		val semanticValue = sources.elements[0].semanticValue()
 		val readOperand = kind.readOperand(
 			semanticValue,
-			predecessorManifest.restrictionFor(semanticValue),
 			predecessorManifest.getDefinition(semanticValue, kind))
 		updateVectorOperand { it.add(readOperand) }
 	}
@@ -307,13 +306,12 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 			.clone()
 			.cast()
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		sources.elements.forEach { read ->
-			tracer.continueTracing(read.register(), restriction)
+			continueTracing(read.register(), restriction)
 		}
 	}
 }

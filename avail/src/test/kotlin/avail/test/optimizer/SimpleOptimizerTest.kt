@@ -197,6 +197,7 @@ import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
+import avail.optimizer.L2Synonym
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticDummy
@@ -209,6 +210,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
+import org.junit.jupiter.api.assertNotNull
 
 class SimpleOptimizerTest
 {
@@ -1436,7 +1438,6 @@ class SimpleOptimizerTest
 
 			val iVariableType = variableTypeFor(naturalNumbers)
 			val twoOrMore = integerRangeType(two, true, positiveInfinity, false)
-
 
 			createLocal(iVariableType)
 			val i = declareName("i")
@@ -2969,23 +2970,28 @@ class SimpleOptimizerTest
 		// for those unconditionally.
 		val argA: L2SemanticValue = newTemp("a", 1)
 		val argB: L2SemanticValue = newTemp("b", 2)
+		val result: L2SemanticValue = newTemp("result", 3)
 		val wide = restrictionForType(inclusive(0, 100))
 		manifest.introduceSynonym(setOf(argA), wide)
 		manifest.introduceSynonym(setOf(argB), wide)
+		val resultSynonym = L2Synonym(setOf(result))
+		manifest.introduceSynonym(setOf(result), restrictionForType(NUMBER()))
 
 		val instruction = L2_RUN_INFALLIBLE_PRIMITIVE(
 			helper.createDummyRawFunction(returnType = NUMBER()),
 			P_Addition,
 			L2ReadBoxedVectorOperand(
 				listOf(
-					L2ReadBoxedOperand(argA, wide),
-					L2ReadBoxedOperand(argB, wide))),
+					L2ReadBoxedOperand(argA),
+					L2ReadBoxedOperand(argB))),
 			L2WriteBoxedOperand(
 				emptySet(), restrictionForType(NUMBER())))
+		val impliedBefore = instruction.impliedWriteRestriction(
+			instruction.readOperands.map(manifest::restrictionFor))
 
 		// Nothing has narrowed yet, so there is nothing to do.  Answering null
 		// rather than a copy is what lets callers skip work.
-		assertNull(instruction.narrowedForManifest(manifest))
+		assertNull(instruction.narrowedForManifest(manifest, resultSynonym))
 
 		// Narrow both arguments to single values, as a branch would.
 		manifest.updateRestriction(argA) {
@@ -2995,26 +3001,13 @@ class SimpleOptimizerTest
 			restrictionForConstant(fromInt(4))
 		}
 
-		val narrowed = instruction.narrowedForManifest(manifest)!!
-		// The clone sees the narrowed arguments...
-		narrowed.readOperands.forEach { read ->
-			assertEquals(
-				manifest.restrictionFor(read.semanticValue()),
-				read.restriction())
-		}
-		// ...and, crucially, the shared original does not.
-		instruction.readOperands.forEach { read ->
-			assertEquals(wide, read.restriction())
-		}
+		val narrowed = instruction.narrowedForManifest(manifest, resultSynonym)
+		assertNotNull(narrowed)
 		// The implied result is at least as strong as before, computed by the
 		// same helper that emitTransformedInstruction uses.
-		val impliedBefore = instruction.impliedWriteRestriction(
-			instruction.readOperands.map { it.restriction() })
 		val impliedAfter = narrowed.impliedWriteRestriction(
-			narrowed.readOperands.map { it.restriction() })
-		assertTrue(
-			impliedAfter == impliedBefore
-				|| impliedAfter.isStrongerThan(impliedBefore))
+			narrowed.readOperands.map(manifest::restrictionFor))
+		assertTrue(impliedAfter.isStrongerThan(impliedBefore))
 	}
 
 	/**

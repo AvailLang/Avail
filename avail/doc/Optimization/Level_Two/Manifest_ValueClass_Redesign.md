@@ -805,7 +805,7 @@ remains of step 4 is:
 `L2Instruction.generateReplacement`'s default body and the tail of
 `basicForcePostponedTranslationNow` are the same two lines,
 `cloneFor(this).run { emitTransformedInstruction() }`, and only the latter
-gained a `refreshReadRestrictionsFrom`.  That asymmetry is correct.
+gained a `refreshRestrictionsFrom`.  That asymmetry is correct.
 
 **Who drives each.**  `generateReplacement` has exactly one caller:
 `L2Optimizer.replacePlaceholderInstructions`, one of seven
@@ -843,7 +843,7 @@ knowledge.
 `WithFixedRegisterMap`, keeps `operand.restriction()` verbatim.  That is also
 correct: in those late passes the graph is held together by registers, the
 manifest does not track semantic values, and there is nothing to refresh
-against.  `refreshReadRestrictionsFrom` early-returns on exactly that
+against.  `refreshRestrictionsFrom` early-returns on exactly that
 condition, so the two paths agree.
 
 A postponed instruction has no rebuild step - it is stored verbatim in a
@@ -1147,7 +1147,7 @@ required by B:
   counterparts. The manifest no longer reads a value's `RegisterKind` to decide
   which `Representation` to consult — the value names its own. The `.kind` reads
   that remain use a kind as a *factory* (`dynamicMove`, `moveConstant`,
-  `createSemanticConstant`, `readOperand`) or compare two kinds.
+  `readOperand`) or compare two kinds.
 
 `primaryView` is the scaffolding marker: reaching for it means the caller has no
 kind in hand, so grepping it enumerates the sites that still assume one kind.

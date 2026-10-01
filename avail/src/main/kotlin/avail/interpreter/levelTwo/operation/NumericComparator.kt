@@ -241,8 +241,8 @@ enum class NumericComparator(
 			return
 		}
 
-		val restriction1 = number1Read.restriction()
-		val restriction2 = number2Read.restriction()
+		val restriction1 = number1Read.restriction
+		val restriction2 = number2Read.restriction
 
 		val value1 = number1Read.semanticValue()
 		val value2 = number2Read.semanticValue()
@@ -342,8 +342,8 @@ enum class NumericComparator(
 			return
 		}
 
-		val restriction1 = int1Reg.restriction()
-		val restriction2 = int2Reg.restriction()
+		val restriction1 = int1Reg.restriction
+		val restriction2 = int2Reg.restriction
 
 		assert(restriction1.containedByType(i32))
 		assert(restriction2.containedByType(i32))

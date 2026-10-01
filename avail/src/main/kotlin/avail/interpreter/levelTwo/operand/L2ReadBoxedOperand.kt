@@ -35,10 +35,12 @@ import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -46,7 +48,6 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -59,10 +60,6 @@ import avail.utility.cast
  * @param semanticValue
  *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
  *   this [L2Operand].
- * @param restriction
- *   The [TypeRestriction] to constrain this particular read. This restriction
- *   has been guaranteed by the VM at the point where this operand's instruction
- *   occurs.
  * @param register
  *   The optional [L2BoxedRegister] to read from.
  *
@@ -72,18 +69,15 @@ import avail.utility.cast
 class L2ReadBoxedOperand
 constructor(
 	semanticValue: L2SemanticValue,
-	restriction: TypeRestriction,
 	register: L2Register<BOXED_KIND>? = null
-) : L2ReadOperand<BOXED_KIND>(semanticValue, restriction, register)
+) : L2ReadOperand<BOXED_KIND>(semanticValue, register)
 {
 	override val operandType: L2OperandType get() = READ_BOXED
 
 	override fun register(): L2BoxedRegister = super.register().cast()
 
-	override fun createConstantRegister() =
-		L2BoxedRegister(-999, constantOrNull!!)
-
-	override fun createSemanticConstant() = constant(register().constant!!)
+	override fun createConstantRegister(constant: AvailObject) =
+		L2BoxedRegister(-999, constant)
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
@@ -103,7 +97,7 @@ constructor(
 	 */
 	fun exactFunctionType(manifest: L2ValueManifest): A_Type?
 	{
-		val constantFunction: A_Function? = constantOrNull
+		val constantFunction: A_Function? = manifest.run { constantOrNull }
 		if (constantFunction !== null)
 		{
 			// Function is a constant.
@@ -141,5 +135,29 @@ constructor(
 	{
 		val functionType = exactFunctionType(manifest) ?: return null
 		return functionType.argsTupleType.typeAtIndex(1)
+	}
+
+	/**
+	 * This is a boxed read inside an emitted [L2Instruction].  Determine if its
+	 * restriction indicates it's always immutable on each edge for which it's
+	 * defined.
+	 */
+	fun isImmutableForEmittedInstruction(): Boolean = when
+	{
+		instruction is L2ControlFlowInstruction ->
+		{
+			// Check each edge's manifest,
+			instruction.targetEdges.all { edge ->
+				val manifest = edge.manifest()
+				!manifest.hasSemanticValue(semanticValue()) ||
+					manifest.restrictionFor(semanticValue()).isImmutable
+			}
+		}
+		// Semantic constants are always shared, and therefore immutable.
+		semanticValue().isConstant -> true
+		// It's an ordinary instruction whose restriction should be available in
+		// the block's postPhiData.
+		else ->
+			instruction.basicBlock().postPhiData!![semanticValue()].isImmutable
 	}
 }

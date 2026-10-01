@@ -101,6 +101,7 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
@@ -516,6 +517,16 @@ constructor(
 		ReadsFromHiddenGlobalState,
 
 		/**
+		 * This primitive could theoretically cause an escaped local variable to
+		 * become shared, or to have read/write reactors added to it. In either
+		 * case, we must not continue executing L2 code that assumes that any
+		 * local variables that may have escaped can use a register to track
+		 * what value would have been written and read.  Instead, it falls back
+		 * to L1 execution if this happens.
+		 */
+		MightMakeEscapedVariableShared,
+
+		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
 		 * [L2Generator]. The current continuation should be reified prior
 		 * to attempting the primitive. Do not attempt to fold or inline this
@@ -682,13 +693,9 @@ constructor(
 	 * a map from a variable and writing it back into the variable could cause
 	 * this, but only if it was updating or adding an entry, not if it's
 	 * removing one.
-	 *
-	 * @param argumentTypes
-	 *   The types of the arguments at the call site.
 	 */
-	open fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>,
-	) = false
+	fun mightMakeEscapedVariableShared() =
+		hasFlag(Flag.MightMakeEscapedVariableShared)
 
 	/**
 	 * Return an Avail [type][TypeDescriptor] that a failure variable
@@ -1041,7 +1048,7 @@ constructor(
 				}
 				callSiteHelper.useAnswer(
 					readBoxed(equivalent),
-					mightMakeEscapedVariableShared(argumentTypes))
+					mightMakeEscapedVariableShared())
 				return true
 			}
 		}
@@ -1060,7 +1067,7 @@ constructor(
 			guaranteedType.isBottom -> addUnreachableCode()
 			else -> callSiteHelper.useAnswer(
 				readBoxed(writer),
-				mightMakeEscapedVariableShared(argumentTypes))
+				mightMakeEscapedVariableShared())
 		}
 		return true
 	}
@@ -1422,14 +1429,13 @@ constructor(
 				translator.generateGeneralFunctionInvocation(
 					functionToCallReg, false, callSiteHelper, arguments)
 			}
-	): Boolean
-	{
+	): Boolean = callSiteHelper.translator.run {
 		val (boxedA, boxedB) = arguments
 		val (aType, bType) = argumentTypes
 
-		val aIntersectInt32 = boxedA.restriction()
+		val aIntersectInt32 = boxedA.restriction
 			.intersectionWithType(aType.typeIntersection(i32))
-		val bIntersectInt32 = boxedB.restriction()
+		val bIntersectInt32 = boxedB.restriction
 			.intersectionWithType(bType.typeIntersection(i32))
 		if (aIntersectInt32.isImpossible || bIntersectInt32.isImpossible)
 		{
@@ -1438,25 +1444,24 @@ constructor(
 		}
 
 		// Attempt to unbox the arguments.
-		val translator = callSiteHelper.translator
 		val valueA = boxedA.semanticValue()
 		val valueB = boxedB.semanticValue()
-		val intSuccess = translator.createBasicBlock("output is i32")
-		val intFallback = translator.createBasicBlock("fall back to boxed")
-		val (intA, intB) = translator.readTwoInts(valueA, valueB, intFallback)
+		val intSuccess = createBasicBlock("output is i32")
+		val intFallback = createBasicBlock("fall back to boxed")
+		val (intA, intB) = readTwoInts(valueA, valueB, intFallback)
 		{
 			return false
 		}
-		assert(translator.currentlyReachable())
+		assert(currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction, listOf(aIntersectInt32.type, bIntersectInt32.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
-		val intWriter = translator.intWrite(
+		val intWriter = intWrite(
 			setOf(semanticPrimitive),
 			restrictionForType(returnTypeIfInts.typeIntersection(i32)))
-		val boxedWrite = translator.boxedWrite(
+		val boxedWrite = boxedWrite(
 			setOf(semanticPrimitive),
 			restrictionForType(returnTypeIfInts))
 		val helper = BinaryIntGeneratorHelper(
@@ -1466,7 +1471,7 @@ constructor(
 			boxedWrite = boxedWrite,
 			intSuccess = intSuccess,
 			intFailure = intFallback,
-			translator = translator)
+			translator = this)
 		if (returnTypeIfInts.isSubtypeOf(i32))
 		{
 			// The result is guaranteed not to overflow, so emit an instruction
@@ -1479,7 +1484,7 @@ constructor(
 			val equivalent = helper.currentManifest
 				.equivalentPopulatedSemanticValue(
 					primitiveInvocation(
-						this,
+						this@Primitive,
 						arguments.map(L2ReadBoxedOperand::semanticValue)),
 					INTEGER_KIND)
 			when (equivalent)
@@ -1493,7 +1498,7 @@ constructor(
 		{
 			// The result could exceed an int32.
 			helper.ifOutputIsPossiblyInt()
-			translator.startBlock(intSuccess)
+			startBlock(intSuccess)
 		}
 
 		// Even though we're just using the boxed value again, the unboxed form
@@ -1501,20 +1506,18 @@ constructor(
 		// allow the boxing instruction to evaporate.  Note that the prior
 		// int-specific generation blocks are allowed to have simply emitted a
 		// jump to the fallback, so only use the int/boxed value if it exists.
-		val manifest = translator.currentManifest
-		if (manifest.hasSemanticValue(semanticPrimitive))
+		if (currentManifest.hasSemanticValue(semanticPrimitive))
 		{
-			callSiteHelper.useAnswer(
-				translator.readBoxed(semanticPrimitive), false)
+			callSiteHelper.useAnswer(readBoxed(semanticPrimitive), false)
 		}
 		if (intFallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,
 			// or from int32 overflow calculating the product.
-			translator.startBlock(intFallback)
+			startBlock(intFallback)
 			BinaryNonIntGeneratorHelper(
-				boxedA, boxedB, boxedWrite, translator
+				boxedA, boxedB, boxedWrite, this
 			).fallback()
 		}
 		return true
@@ -1697,7 +1700,7 @@ constructor(
 	 *   The [List] of [L2SplitCondition]s which would be profitable to preserve
 	 *   upstream.
 	 */
-	open fun interestingSplitConditions(
+	open fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = emptyList()
 

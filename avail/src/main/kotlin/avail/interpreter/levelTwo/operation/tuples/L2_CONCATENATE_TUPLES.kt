@@ -88,7 +88,7 @@ class L2_CONCATENATE_TUPLES(
 		for (elementRead in tuples.elements)
 		{
 			assert(residualIndex >= 1)
-			val sizeRange = elementRead.type()
+			val sizeRange = elementRead.type
 			val lowerBound = sizeRange.lowerBound
 			if (!lowerBound.isInt)
 			{

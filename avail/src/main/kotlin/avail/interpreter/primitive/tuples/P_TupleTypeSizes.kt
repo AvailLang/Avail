@@ -57,6 +57,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -84,7 +85,7 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
-		val tupleMetaRestriction = arguments.elements[0].restriction()
+		val tupleMetaRestriction = arguments.elements[0].restriction
 		if (tupleMetaRestriction.type.equals(bottomMeta))
 		{
 			// The tuple type is necessrily bottom, so the size range is also
@@ -118,7 +119,7 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 			boxedWrite(result.semanticValues(), strongSizeRestriction))
 	}
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val tupleTypeRegister = readBoxedOperands[0].register()
@@ -129,7 +130,7 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		addAll(
 			typeRestrictionConditions(
 				setOf(tupleTypeRegister),
-				readBoxedOperands[0].restriction().withCanBeBottom(false)))
+				readBoxedOperands[0].restriction.withCanBeBottom(false)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

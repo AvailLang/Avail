@@ -158,13 +158,6 @@ constructor(
 			if (big) append("\n\t\t")
 			else if (!first) append (" ")
 			append(read.registerString())
-			val restriction = read.restriction()
-			if (restriction.constantOrNull === null)
-			{
-				// Don't redundantly print restriction information for
-				// constants.
-				append(restriction.suffixString())
-			}
 			first = false
 		}
 		if (big) append("\n\t")
@@ -202,9 +195,6 @@ constructor(
 				operands.map { it.elements[elementIndex] })
 		}
 	}
-
-	override fun postOptimizationCleanup() =
-		elements.forEach(L2ReadOperand<*>::postOptimizationCleanup)
 
 	/**
 	 * This vector operand is the input to an [L2_PHI]

@@ -45,7 +45,6 @@ import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -454,11 +453,8 @@ class L2ControlFlowGraphVisualizer constructor(
 				}
 				if (visualizeManifest)
 				{
-					basicBlock.postPhiMap?.let { map ->
-						if (map.isNotEmpty())
-						{
-							postPhiMap(gridcolor, map, this@basicBlock)
-						}
+					basicBlock.postPhiData?.let { data ->
+						postPhiData(gridcolor, data, this@basicBlock)
 					}
 				}
 				if (instructions.isNotEmpty())
@@ -528,11 +524,13 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 	}
 
-	private fun StringBuilder.postPhiMap(
+	private fun StringBuilder.postPhiData(
 		gridcolor: String,
-		map: Map<L2Synonym, TypeRestriction>,
+		data: PostPhiData,
 		writer: GraphWriter)
 	{
+		val map = data.restrictionsBySynonym
+		if (map.isEmpty()) return
 		tag("tr") {
 			val cellAttributes = mutableMapOf(
 				"colspan" to "2",
@@ -1140,18 +1138,15 @@ class L2ControlFlowGraphVisualizer constructor(
 								ignoreMisconnections = true,
 								omitEmptyWrite = true),
 							2)))
-				val badReads = postponed.readOperands
-					.filter { it.restriction().isImpossible }
 				val badWrites = postponed.writeOperands
 					.filter { it.restriction().isImpossible }
-				if (badReads.isNotEmpty() || badWrites.isNotEmpty())
+				if (badWrites.isNotEmpty())
 				{
 					font(color = writer.adjust(errorTextColor))
 					{
 						append("\n")
 						append(indent2String)
-						val allBad = badReads + badWrites
-						append(escape("IMPOSSIBLE RESTRICTION: $allBad\n"))
+						append(escape("IMPOSSIBLE RESTRICTION: $badWrites\n"))
 					}
 				}
 			}
@@ -1246,8 +1241,9 @@ class L2ControlFlowGraphVisualizer constructor(
 			// In particular, Courier, Arial, Helvetica, and Times are
 			// supported.
 			writer.graph {
+				writer.hackForDarkMode()
 				fontname("Helvetica")
-				bgcolor("#ffffff/000000")
+				bgcolor("transparent")
 				rankdir(TopBottom)
 				newrank(true)
 				overlap(false)

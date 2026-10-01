@@ -256,7 +256,8 @@ internal enum class OptimizationPhase constructor(
 
 	/**
 	 * Insert an [L2_MAKE_IMMUTABLE] instruction just prior to any use of a
-	 * register is not already provably immutable and may be used again later.
+	 * register that is not already provably immutable and may be used again
+	 * later.
 	 */
 	INSERT_MAKE_IMMUTABLES(L2Optimizer::insertMakeImmutable),
 

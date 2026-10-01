@@ -46,10 +46,11 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 
@@ -78,40 +79,39 @@ constructor (
 		append(")")
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
+	override fun PostPhiData.interestingConditions() = buildList {
 		// Don't merge in the past if one of the paths knew the tag ordinal.
 		addAll(unboxedIntConditions(listOf(tagOrdinal.register())))
 		// Don't merge in the past if the tag ordinal was known exactly.
 		addAll(constantConditions(listOf(tagOrdinal.register())))
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		assert(writeOperand == tagOrdinal)
-		if (!tracer.traceTags) return
+		if (!traceTags) return
 		// Examine the tag restriction to determine a corresponding (or
 		// approximate) restriction with which to split on the value.
 		val valueRestriction = restrictionForTagRestriction(restriction)
-		tracer.continueTracing(value.register(), valueRestriction)
+		continueTracing(value.register(), valueRestriction)
 	}
 
 	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
 	): L2Instruction?
 	{
 		// If the tag is statically deducible at this point, use the constant.
-		val baseTag = value.type().instanceTag
-		var exactTag = value.restriction().tag ?: let {
-			if (baseTag.ordinal == baseTag.highOrdinal
-				&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
-					|| baseTag == TypeTag.BOTTOM_TYPE_TAG
-					|| !value.restriction().canBeBottom))
-			{
-				baseTag
-			}
-			else null
+		val baseTag = value.type.instanceTag
+		val tag = value.restriction.tag
+		val exactTag = when
+		{
+			tag != null -> tag
+			baseTag.ordinal != baseTag.highOrdinal -> null
+			!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG) -> baseTag
+			baseTag == TypeTag.BOTTOM_TYPE_TAG -> baseTag
+			!value.restriction.canBeBottom -> baseTag
+			else -> null
 		}
 		if (exactTag != null)
 		{
@@ -146,9 +146,9 @@ constructor (
 					val tag = TypeTag.tagFromOrdinal(ordinal)
 					!tag.isAbstract
 						&& containsValue(fromInt(ordinal))
-						&& value.restriction().intersectsType(tag.supremum)
+						&& value.restriction.intersectsType(tag.supremum)
 				}
-			if (value.restriction().canBeBottom)
+			if (value.restriction.canBeBottom)
 			{
 				newTags += TypeTag.BOTTOM_TYPE_TAG.ordinal
 			}

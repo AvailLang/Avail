@@ -117,7 +117,7 @@ object P_PushLastOuter : PrimitiveN(
 		// should allow us to skip the creation of the function.
 		val functionCreationInstruction =
 			functionToCallReg.definitionSkippingMoves(currentManifest)
-		val returnType = functionToCallReg.type().returnType
+		val returnType = functionToCallReg.type.returnType
 		val outerReg = functionCreationInstruction.run {
 			extractFunctionOuter(functionToCallReg, 1, returnType)
 		}

@@ -70,24 +70,28 @@ class L2_GET_OBJECT_FIELD(
 		append(sourceObject)
 		append("[")
 		append(fieldAtom)
-		sourceObject.restriction().positiveGroup.objectVariants
-			?.singleOrNull()
-			?.let { variant ->
-				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-				append(" =#$fieldIndex")
-			}
+		basicBlock().postPhiData?.run {
+			sourceObject.restriction.positiveGroup.objectVariants
+				?.singleOrNull()
+				?.let { variant ->
+					val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+					append(" =#$fieldIndex")
+				}
+		}
 		append("]")
 	}
 
 	override fun simpleAppendTo(builder: StringBuilder)
 	{
 		super.simpleAppendTo(builder)
-		sourceObject.restriction().positiveGroup.objectVariants
-			?.singleOrNull()
-			?.let { variant ->
-				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-				builder.append("(#$fieldIndex)")
-			}
+		basicBlock().postPhiData?.run {
+			sourceObject.restriction.positiveGroup.objectVariants
+				?.singleOrNull()
+				?.let { variant ->
+					val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+					builder.append("(#$fieldIndex)")
+				}
+		}
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
@@ -125,8 +129,7 @@ class L2_GET_OBJECT_FIELD(
 		}
 		// Strengthen the field value's type in case the incoming object type is
 		// now stronger, perhaps due to code splitting.
-		val objectRestriction = sourceObject.restriction().intersection(
-			currentManifest.restrictionFor(sourceObject.semanticValue()))
+		val objectRestriction = sourceObject.restriction
 		val objectType = objectRestriction.type
 		val fieldType = objectType.fieldTypeAtOrNull(fieldAtom.constant) ?:
 			fieldAtom.constant.fieldAtomConstraint
@@ -148,7 +151,7 @@ class L2_GET_OBJECT_FIELD(
 	override fun JVMTranslator.translateToJVM()
 	{
 		load(sourceObject)
-		val variants = sourceObject.restriction().positiveGroup.objectVariants
+		val variants = sourceObject.restriction.positiveGroup.objectVariants
 		val indices = variants
 			?.mapToSet { it.fieldToSlotIndex[fieldAtom.constant]!! }
 		if (indices.notNullAnd { size == 1 })

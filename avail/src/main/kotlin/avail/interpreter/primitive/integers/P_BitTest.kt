@@ -64,7 +64,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
@@ -218,7 +217,7 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 		val isOneLabel = createBasicBlock("bit is one")
 		compareAndBranchInt(
 			Equal,
-			L2ReadIntOperand(
+			readIntNoFail(
 				bit.pickSemanticValue(),
 				bit.restriction()),
 			unboxedIntConstant(0),

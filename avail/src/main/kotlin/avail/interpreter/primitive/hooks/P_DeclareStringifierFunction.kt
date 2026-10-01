@@ -43,6 +43,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
@@ -64,7 +65,8 @@ object P_DeclareStringifierFunction : Primitive1(
 	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
-	WritesToHiddenGlobalState)
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -77,14 +79,6 @@ object P_DeclareStringifierFunction : Primitive1(
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return oldFunction
 	}
-
-	/**
-	 * The function outers could contain an escaped variable that becomes
-	 * shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

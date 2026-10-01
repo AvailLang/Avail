@@ -60,6 +60,7 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -69,7 +70,12 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicFetchAndAdd : Primitive2(CanInline, HasSideEffect)
+object P_AtomicFetchAndAdd : Primitive2(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, adjusting it can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -93,14 +99,6 @@ object P_AtomicFetchAndAdd : Primitive2(CanInline, HasSideEffect)
 			return fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * If the variable had a reactor, adjusting it can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

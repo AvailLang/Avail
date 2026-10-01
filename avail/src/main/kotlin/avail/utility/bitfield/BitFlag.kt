@@ -63,4 +63,33 @@ where
 	{
 		thisRef[this.cast()] = value
 	}
+
+	val mask get() = 1 shl (this as Enum<*>).ordinal
+}
+
+inline fun <F> mask(
+	initialValue: Int = 0,
+	body: MaskBuilder<F>.() -> Unit
+): Int
+where
+	F: BitFlag<F>,
+	F: Enum<F>
+{
+	val builder = MaskBuilder<F>(initialValue)
+	builder.body()
+	return builder.value
+}
+
+class MaskBuilder<F>(
+	var value: Int
+)
+where
+	F: BitFlag<F>,
+	F: Enum<F>
+{
+	operator fun F.invoke(condition: Boolean): Unit = when (condition)
+	{
+		true -> value = value or mask
+		else -> value = value and mask.inv()
+	}
 }

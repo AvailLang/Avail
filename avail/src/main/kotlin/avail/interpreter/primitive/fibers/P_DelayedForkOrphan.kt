@@ -75,6 +75,7 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive4
 import java.util.TimerTask
@@ -90,7 +91,10 @@ import java.util.TimerTask
  */
 @Suppress("unused")
 object P_DelayedForkOrphan : Primitive4(
-	CanInline, HasSideEffect, WritesToHiddenGlobalState)
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt4(
 		interpreter: Interpreter,
@@ -167,11 +171,6 @@ object P_DelayedForkOrphan : Primitive4(
 		} // Otherwise, schedule the fiber to start later.
 		return nil
 	}
-
-	/** The function or its arguments could become shared. */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

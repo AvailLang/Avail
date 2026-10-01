@@ -322,12 +322,10 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		{
 			return false
 		}
-		val lowType = lowInt.restriction().type
-		assert(lowType.isSubtypeOf(naturalNumbers))
-		val highType = highInt.restriction().type
-		assert(highType.isSubtypeOf(wholeNumbers))
+		assert(lowInt.type.isSubtypeOf(naturalNumbers))
+		assert(highInt.type.isSubtypeOf(wholeNumbers))
 
-		val sizeRange = tuple.type().sizeRange.typeIntersection(i31)
+		val sizeRange = tuple.type.sizeRange.typeIntersection(i31)
 		val size = primitiveInvocation(
 			P_TupleSize,
 			listOf(tuple.semanticValue()))
@@ -352,7 +350,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 
 		// Now write range checks for the low and high index.
 		// :: if (highInt > sizeInt) goto outOfBounds.
-		if (highInt.type().upperBound.greaterThan(sizeRange.lowerBound))
+		if (highInt.type.upperBound.greaterThan(sizeRange.lowerBound))
 		{
 			// Dynamic check is needed.
 			val inRange = createBasicBlock("high <= size")
@@ -365,8 +363,8 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 			startBlock(inRange)
 		}
 		// :: if (lowInt - 1 > highInt) goto outOfBounds.
-		if (lowInt.type().upperBound.noFailMinusCanDestroy(one, false)
-			.greaterThan(highInt.type().lowerBound))
+		if (lowInt.type.upperBound.noFailMinusCanDestroy(one, false)
+			.greaterThan(highInt.type.lowerBound))
 		{
 			// Dynamic check is needed.
 			val lowMinusOne = primitiveInvocation(
@@ -380,10 +378,10 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 					setOf(lowMinusOne),
 					restrictionForType(
 						integerRangeType(
-							lowInt.type().lowerBound
+							lowInt.type.lowerBound
 								.noFailMinusCanDestroy(one, true),
 							true,
-							lowInt.type().upperBound,
+							lowInt.type.upperBound,
 							false))))
 			val inRange = createBasicBlock("low - 1 <= high")
 			compareAndBranchInt(
@@ -404,9 +402,9 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 				temp,
 				restrictionForType(
 					computeSliceType(
-						tuple.type(),
-						lowInt.type(),
-						highInt.type()))))
+						tuple.type,
+						lowInt.type,
+						highInt.type))))
 		callSiteHelper.useAnswer(readBoxed(temp), false)
 		startBlock(outOfRange)
 		if (currentlyReachable())

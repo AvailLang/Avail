@@ -52,30 +52,41 @@ package avail.utility.bitfield
  *
  * This mechanism currently supports up to 32 enumeration values.
  *
- * The constructor, which must be called by subclasses, supports a vararg of
- * enumeration values from the [BitFlag] type [F], which is especially
- * convenient for initializing val properties.  For even more convenience, some
- * entries of the vararg array can be `null`, which are ignored.
+ * @constructor
+ *   Build an instance using an initial [Int] value, perhaps constructed via the
+ *   [mask] class.
+ * @param setupFlags
+ *   A lambda that can set up initial flag values using [MaskBuilder]'s function
+ *   invocation syntax (`MyFlag(aBoolean)`).
  */
 abstract class PackedBits<F>
 constructor(
-	vararg initiallySet: F?)
+	initialFlags: Int = 0,
+	setupFlags: MaskBuilder<F>.()->Unit
+)
 where
 	F: BitFlag<F>,
 	F: Enum<F>
 {
-	private var packedBits: Int =
-		initiallySet.filterNotNull().sumOf { 1 shl it.ordinal }
+	constructor(
+		setupFlags: MaskBuilder<F>.()->Unit
+	): this(0, setupFlags)
+
+	var packedBits: Int = run {
+		val builder = MaskBuilder<F>(initialFlags)
+		builder.setupFlags()
+		builder.value
+	}
+	private set
 
 	operator fun get(flag: F): Boolean =
-		packedBits and (1 shl flag.ordinal) != 0
+		packedBits and flag.mask != 0
 
 	operator fun set(flag: F, value: Boolean) {
-		val mask = 1 shl flag.ordinal
 		packedBits = when (value)
 		{
-			true -> packedBits or mask
-			else -> packedBits and mask.inv()
+			true -> packedBits or flag.mask
+			else -> packedBits and flag.mask.inv()
 		}
 	}
 }

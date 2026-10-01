@@ -56,6 +56,7 @@ import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -66,7 +67,13 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicRemoveFromMap : Primitive2(CanInline, HasSideEffect) {
+object P_AtomicRemoveFromMap : Primitive2(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, adjusting it can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
+{
 	override fun attempt2(
 		interpreter: Interpreter,
 		variable: AvailObject,
@@ -89,14 +96,6 @@ object P_AtomicRemoveFromMap : Primitive2(CanInline, HasSideEffect) {
 				SpecialMethodAtom.REMOVE_FROM_MAP_VARIABLE, variable, key))
 		return nil
 	}
-
-	/**
-	 * If the variable had a reactor, adjusting it can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

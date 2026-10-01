@@ -49,6 +49,7 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveHelper.marshalValues
 import avail.interpreter.primitive.PrimitiveN
@@ -70,7 +71,12 @@ import java.lang.reflect.Method
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_InvokeStaticPojoMethod : PrimitiveN(-1, Private, HasSideEffect)
+object P_InvokeStaticPojoMethod : PrimitiveN(
+	-1,
+	Private,
+	HasSideEffect,
+	// An argument might capture an escaped variable and make it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attemptN(
 		interpreter: Interpreter,
@@ -134,13 +140,6 @@ object P_InvokeStaticPojoMethod : PrimitiveN(-1, Private, HasSideEffect)
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 	}
-
-	/**
-	 * An argument might capture an escaped variable and make it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,

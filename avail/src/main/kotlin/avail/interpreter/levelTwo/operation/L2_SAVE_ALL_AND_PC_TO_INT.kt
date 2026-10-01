@@ -50,7 +50,6 @@ import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -61,7 +60,6 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_R
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.notNullAnd
@@ -329,10 +327,11 @@ constructor(
 		val boxedRegisters = reference.liveness!!.registers
 			.filterIsInstance<L2BoxedRegister>()
 		if (boxedRegisters.isEmpty()) return
+		val referenceManifest = reference.manifest()
 		val reads = boxedRegisters.map { register ->
+			val synonyms = referenceManifest.synonymsForRegister(register)
 			val read = L2ReadBoxedOperand(
-				L2SemanticDummy(uniqueGenerator(), "before saveAll"),
-				topRestriction,
+				synonyms.first().pickSemanticValue(),
 				register)
 			register.addUse(read)
 			read

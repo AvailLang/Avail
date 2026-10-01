@@ -32,7 +32,6 @@
 
 package avail.interpreter.primitive.variables
 
-import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_Atom
@@ -54,6 +53,7 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive2
 
@@ -69,7 +69,10 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_DisableTraceVariableReadsBeforeWrites : Primitive2(
-	 HasSideEffect, WritesToHiddenGlobalState)
+	 HasSideEffect,
+	WritesToHiddenGlobalState,
+	// If the reactorFunction captured a local variable, it will become shared.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -90,13 +93,6 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive2(
 		}
 		return nil
 	}
-
-	/**
-	 * If the reactorFunction captured a local variable, it will become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

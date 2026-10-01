@@ -139,7 +139,7 @@ class L2_CREATE_FUNCTION(
 		val rawCode: A_RawFunction = code.constant
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
-		var intersection = originalRead.restriction().intersectionWithType(
+		var intersection = originalRead.restriction.intersectionWithType(
 			outerType.typeIntersection(rawCode.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
 		val semanticValue = originalRead.semanticValue()
@@ -151,7 +151,7 @@ class L2_CREATE_FUNCTION(
 		// The registers that supplied the value are no longer live.  Extract
 		// the value from the actual function.  Note that it's still guaranteed
 		// to have the strengthened type.
-		if (functionRegister.restriction().isImmutable)
+		if (functionRegister.restriction.isImmutable)
 		{
 			// An immutable function has immutable captured outers.
 			intersection = intersection.withFlag(IMMUTABLE_FLAG)

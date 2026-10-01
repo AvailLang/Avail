@@ -97,8 +97,8 @@ object P_IsInstanceOf : Primitive2(CannotFail, CanFold, CanInline)
 	{
 		val (xReg, yTypeReg) = arguments
 
-		if (xReg.restriction().metaRestriction().intersection(
-				yTypeReg.restriction()).type.isVacuousType)
+		if (xReg.restriction.metaRestriction().intersection(
+				yTypeReg.restriction).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
 			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
@@ -113,7 +113,7 @@ object P_IsInstanceOf : Primitive2(CannotFail, CanFold, CanInline)
 		{
 			jumpIfKindOfConstant(
 				xReg,
-				constantYType.typeIntersection(xReg.type()),
+				constantYType.typeIntersection(xReg.type),
 				ifInstance,
 				ifNotInstance)
 		}

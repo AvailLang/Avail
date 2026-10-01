@@ -923,6 +923,17 @@ class DotWriter constructor(
 	@Throws(IOException::class)
 	fun blockComment(comment: String) = graphWriter.blockComment(comment)
 
+	fun hackForDarkMode()
+	{
+		// Output a malformred comment that the dot program doesn't notice. It
+		// closes the current html/dot comment, then injects style information
+		// for light/dark mode and background transparency, then re-opens a
+		// comment that will be immediately closed by the dot translation.
+		graphWriter.emit(
+			"""comment="--> <style>:root { color-scheme: light dark; } svg { background-color: transparent !important; }</style> <!--"""");
+		graphWriter.linefeed()
+	}
+
 	/**
 	 * Emit an entire graph.
 	 *

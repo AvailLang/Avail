@@ -55,7 +55,6 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.general.P_ExtractObjectVariantId
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
@@ -267,10 +266,6 @@ class TypeRestrictionTest
 	@Test
 	fun testImpossiblePropagation()
 	{
-		// Tweak initialization order.
-		@Suppress("UnusedExpression")
-		RegisterKind
-
 		val frame = Frame(
 			null,
 			BASE_FRAME.functionSupplier().code(),

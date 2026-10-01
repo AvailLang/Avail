@@ -49,6 +49,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -57,7 +58,13 @@ import avail.interpreter.primitive.Primitive2
  * for debugging.
  */
 @Suppress("unused")
-object P_RecordNewTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
+object P_RecordNewTypeName : Primitive2(
+	CanInline,
+	CannotFail,
+	HasSideEffect,
+	// The type might contain an instance type on an escaped variables,
+	// making it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -72,14 +79,6 @@ object P_RecordNewTypeName : Primitive2(CanInline, CannotFail, HasSideEffect)
 				SpecialMethodAtom.RECORD_TYPE_NAME, userType, name))
 		return nil
 	}
-
-	/**
-	 * The type might contain an instance type on an escaped variables,
-	 * making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

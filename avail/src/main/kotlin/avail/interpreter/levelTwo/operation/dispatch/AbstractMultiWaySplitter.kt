@@ -46,14 +46,14 @@ import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
-import avail.utility.cast
+import avail.optimizer.values.L2SemanticValue
 
 /**
  * An abstraction for factoring out the maintenance of multi-way dispatch logic
@@ -77,9 +77,9 @@ constructor(
 	 */
 	open fun interestingConditions(
 		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>
-	): List<L2SplitCondition?>
-	{
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
+	): List<L2SplitCondition?> = postPhiData.run {
 		val register = read.register()
 		val semanticValue = read.semanticValue()
 		val allConstantInts =
@@ -93,7 +93,7 @@ constructor(
 			}
 		val conditions = mutableListOf<L2SplitCondition?>()
 		allConstantInts.forEach { constant ->
-			val exclude = read.restriction().minusValue(constant)
+			val exclude = read.restriction.minusValue(constant)
 			conditions.addAll(
 				typeRestrictionConditions(
 					setOf(register),
@@ -141,7 +141,7 @@ constructor(
 		val possibleEdges = edges.filterNot { edge ->
 			edge.manifest().hasImpossibleRestriction
 				|| edge.manifest().restrictionFor(readValue.semanticValue())
-					.intersection(readValue.restriction())
+					.intersection(readValue.restriction)
 					.isImpossible
 		}.toSet()
 

@@ -49,7 +49,6 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
@@ -134,7 +133,7 @@ constructor(
 		renderPreamble()
 		append(" ").append(outputLabel)
 		append("\n\tfunction = ").append(
-			when (val f = function.constantOrNull)
+			when (val f = function.register().constant)
 			{
 				null -> function.toString()
 				else -> f.code().methodName
@@ -210,8 +209,8 @@ constructor(
 				restrictionForType(mostGeneralContinuationType))
 			val readCurrentFunction = currentFunction(
 				topFrame,
-				function.restriction().constantOrNull,
-				function.restriction().type)
+				function.restriction.constantOrNull,
+				function.restriction.type)
 			val dummyContinuation = boxedWriteTemp(
 				"dummy continuation",
 				restrictionForType(mostGeneralContinuationType))
@@ -285,9 +284,7 @@ constructor(
 			levelOneStackp = L2IntImmediateOperand(frameSizeInt + 1),  // empty
 			L2ReadBoxedVectorOperand(slots),  // each immutable
 			outputLabel,
-			L2ReadIntOperand(
-				writeOffset.onlySemanticValue(),
-				restrictionForType(i32)),
+			readIntNoFail(writeOffset.onlySemanticValue()),
 			readBoxed(writeRegisterDump),
 			L2CommentOperand("Create label."))
 	}

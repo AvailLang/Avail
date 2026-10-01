@@ -160,7 +160,7 @@ object P_GetObjectField : Primitive2(CanFold, CanInline)
 			move(constant(fieldValue), result.semanticValues())
 			return
 		}
-		val objectType = objectRead.type()
+		val objectType = objectRead.type
 		assert(objectType.fieldTypeAtOrNull(fieldAtom) !== null)
 		+L2_GET_OBJECT_FIELD(
 			objectRead,

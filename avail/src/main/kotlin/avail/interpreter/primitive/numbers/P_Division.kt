@@ -84,6 +84,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -284,21 +285,21 @@ object P_Division : Primitive2(CanFold, CanInline)
 				success = edgeTo(intSuccess))
 		})
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (aRead, bRead) = readBoxedOperands
-		if (!aRead.restriction().intersectsType(i31)) return emptyList()
-		if (!bRead.restriction().intersectsType(positiveI31)) return emptyList()
+		if (!aRead.restriction.intersectsType(i31)) return emptyList()
+		if (!bRead.restriction.intersectsType(positiveI31)) return emptyList()
 		// The division is possible in 32-bit math.
-		if (!aRead.restriction().containedByType(i31))
+		if (!aRead.restriction.containedByType(i31))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(aRead.register()),
 					restrictionForType(i31)))
 		}
-		if (!bRead.restriction().containedByType(positiveI31))
+		if (!bRead.restriction.containedByType(positiveI31))
 		{
 			addAll(
 				typeRestrictionConditions(

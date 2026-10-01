@@ -159,8 +159,8 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 			when
 			{
 				constantValue !== null -> constantValue.isInstanceOf(typeTest)
-				valueRead.type().isSubtypeOf(typeTest) -> true
-				valueRead.type().typeIntersection(typeTest).isBottom -> false
+				valueRead.type.isSubtypeOf(typeTest) -> true
+				valueRead.type.typeIntersection(typeTest).isBottom -> false
 				else -> null
 			}
 		}

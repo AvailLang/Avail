@@ -45,6 +45,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -54,7 +55,12 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateMarkerPhrase : Primitive2(CannotFail, CanInline)
+object P_CreateMarkerPhrase : Primitive2(
+	CannotFail,
+	CanInline,
+	// The value or type might contain an escaped variable, making it shared
+	// here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -63,14 +69,6 @@ object P_CreateMarkerPhrase : Primitive2(CannotFail, CanInline)
 	): A_BasicObject? = interpreter.run {
 		return newMarkerNode(value, expressionType)
 	}
-
-	/**
-	 * The value or type might contain an escaped variable, making it shared
-	 * here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

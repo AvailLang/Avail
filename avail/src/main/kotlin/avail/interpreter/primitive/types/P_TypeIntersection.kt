@@ -51,6 +51,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -83,7 +84,7 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 		return meta1.typeIntersection(meta2)  // by metavariance
 	}
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		readBoxedOperands.forEach { read ->
@@ -105,8 +106,8 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 	{
 		// Take advantage of identities exposed by the split conditions.
 		val (arg1, arg2) = arguments.elements
-		val (restriction1, restriction2) =
-			arguments.elements.map(L2ReadBoxedOperand::restriction)
+		val restriction1 = arg1.restriction
+		val restriction2 = arg2.restriction
 		var moveSource: L2ReadBoxedOperand? = null
 		restriction1.constantOrNull?.let { const1 ->
 			moveSource = when

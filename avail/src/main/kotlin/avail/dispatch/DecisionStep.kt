@@ -44,7 +44,6 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instan
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_HASH
 import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
@@ -525,7 +524,7 @@ constructor(
 					// nor an equivalent semantic value exist.  Do the shift.
 					+L2_BIT_LOGIC_OP(
 						Ushr,
-						L2ReadIntOperand(semanticHash, int32Restriction),
+						readIntNoFail(semanticHash),
 						unboxedIntConstant(bestShift),
 						intWrite(setOf(semanticShifted), preMaskRestriction))
 					semanticShifted
@@ -537,7 +536,7 @@ constructor(
 				constant(mask))
 		+L2_BIT_LOGIC_OP(
 			And,
-			L2ReadIntOperand(inputForMasking, preMaskRestriction),
+			readIntNoFail(inputForMasking, preMaskRestriction),
 			unboxedIntConstant(mask),
 			intWrite(setOf(semanticMasked), indexRestriction))
 		// semanticMaskedInt now contains the shifted, masked value with which
@@ -562,7 +561,7 @@ constructor(
 		}
 		splitter.run {
 			emitSplitterInstruction(
-				L2ReadIntOperand(semanticMasked, indexRestriction),
+				readIntNoFail(semanticMasked, indexRestriction),
 				newEdges)
 		}
 		// At each of the targets of the multi-way jump, we still have to test

@@ -75,8 +75,8 @@ object P_ExtractTagOrdinal
 {
 	override fun attempt1(
 		interpreter: Interpreter,
-		arg1: AvailObject
-	): A_BasicObject = fromInt(arg1.typeTag.ordinal)
+		value: AvailObject
+	): A_BasicObject = fromInt(value.typeTag.ordinal)
 
 	override fun printSemanticInvocation(
 		invocation: L2SemanticPrimitiveInvocation

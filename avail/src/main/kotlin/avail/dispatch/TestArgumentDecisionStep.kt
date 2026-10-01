@@ -207,7 +207,7 @@ constructor(
 		val semanticArgument =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val argRead = readBoxed(semanticArgument)
-		val argRestriction = argRead.restriction()
+		val argRestriction = argRead.restriction
 
 		// Tricky here.  We have the type we want to test for, and we have
 		// the argument for which we want to test the type, but we also have
@@ -295,7 +295,7 @@ constructor(
 		val superUnionReg = boxedConstant(superUnionElementType)
 		val unionReg = boxedWriteTemp(
 			"supercast arg type",
-			restrictionForType(argMeta.typeUnion(superUnionReg.type())))
+			restrictionForType(argMeta.typeUnion(superUnionReg.type)))
 		+L2_TYPE_UNION(
 			readBoxed(argTypeWrite),
 			superUnionReg,

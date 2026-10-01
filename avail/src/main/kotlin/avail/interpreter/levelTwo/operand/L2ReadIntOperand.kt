@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
@@ -38,7 +39,6 @@ import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -51,10 +51,6 @@ import avail.utility.cast
  * @param semanticValue
  *   The [L2SemanticValue] that is being read when an [L2Instruction] uses this
  *   [L2Operand].
- * @param restriction
- *   The [TypeRestriction] to constrain this particular read. This restriction
- *   has been guaranteed by the VM at the point where this operand's instruction
- *   occurs.
  * @param register
  *   The optional [L2IntRegister] to read from.
  *
@@ -64,18 +60,15 @@ import avail.utility.cast
 class L2ReadIntOperand
 constructor(
 	semanticValue: L2SemanticValue,
-	restriction: TypeRestriction,
 	register: L2Register<INTEGER_KIND>? = null
-) : L2ReadOperand<INTEGER_KIND>(semanticValue, restriction, register)
+) : L2ReadOperand<INTEGER_KIND>(semanticValue, register)
 {
 	override val operandType get() = READ_INT
 
 	override fun register(): L2IntRegister = super.register().cast()
 
-	override fun createConstantRegister() =
-		L2IntRegister(-999, constantOrNull!!)
-
-	override fun createSemanticConstant() = constant(register().constant!!)
+	override fun createConstantRegister(constant: AvailObject) =
+		L2IntRegister(-999, constant)
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

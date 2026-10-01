@@ -47,6 +47,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -60,7 +61,13 @@ import avail.interpreter.primitive.Primitive2
  * If the variable is unassigned, answer the default value instead.
  */
 @Suppress("unused")
-object P_GetValueElse : Primitive2(CannotFail, CanInline, HasSideEffect)
+object P_GetValueElse : Primitive2(
+	CannotFail,
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, reading it can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -71,14 +78,6 @@ object P_GetValueElse : Primitive2(CannotFail, CanInline, HasSideEffect)
 		if (value.isNil) value = defaultValue
 		return value
 	}
-
-	/**
-	 * If the variable had a reactor, reading it can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

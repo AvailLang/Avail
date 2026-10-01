@@ -45,6 +45,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -96,13 +97,14 @@ class ShiftedHashSplitter constructor(
 	 */
 	override fun interestingConditions(
 		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
 	): List<L2SplitCondition?> = buildList {
-		addAll(super.interestingConditions(read, edges))
+		addAll(super.interestingConditions(read, edges, postPhiData))
 		// It would be nice to have already extracted the variant.
 		add(existsCondition(listOf(read.semanticValue())))
 		originalValueRead(read)?.let { sourceRead ->
-			val sourceType = sourceRead.restriction().type
+			val sourceType = postPhiData.run { sourceRead.type }
 			if (sourceType.isEnumeration && !sourceType.isInstanceMeta)
 			{
 				sourceType.instances.forEach { instance ->

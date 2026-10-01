@@ -97,8 +97,8 @@ object P_IsSubtypeOf : Primitive2(CannotFail, CanFold, CanInline)
 	): Boolean
 	{
 		val (xTypeReg, yTypeReg) = arguments
-		val xType = xTypeReg.type().instance
-		val yType = yTypeReg.type().instance
+		val xType = xTypeReg.type.instance
+		val yType = yTypeReg.type.instance
 
 		val constantYType = yTypeReg.constantOrNull
 		if (constantYType !== null)

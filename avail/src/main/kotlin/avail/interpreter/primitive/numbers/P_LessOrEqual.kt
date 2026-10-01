@@ -60,6 +60,7 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
@@ -102,12 +103,12 @@ object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
 		}
 	}
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
-		if (arg1.restriction().intersectsType(i32)
-			&& arg2.restriction().intersectsType(i32))
+		if (arg1.restriction.intersectsType(i32)
+			&& arg2.restriction.intersectsType(i32))
 		{
 			addAll(unboxedIntConditions(listOf(arg1.register())))
 			addAll(unboxedIntConditions(listOf(arg2.register())))
@@ -123,8 +124,8 @@ object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
 	): Boolean
 	{
 		val (firstReg, secondReg) = arguments
-		val firstType = firstReg.type()
-		val secondType = secondReg.type()
+		val firstType = firstReg.type
+		val secondType = secondReg.type
 
 		val possible =
 			possibleOrdersWhenComparingInstancesOf(firstType, secondType)

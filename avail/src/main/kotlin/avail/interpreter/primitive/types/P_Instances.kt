@@ -62,6 +62,7 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
@@ -90,7 +91,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			tuple(topMeta),
 			mostGeneralSetType())
 
-	override fun interestingSplitConditions(
+	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		// It would be nice to know the number of instances.  For now, split on
@@ -143,7 +144,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 						result.restriction().intersectionWithType(
 							setTypeForSizesContentType(
 								countRange,
-								argument.restriction().type))))
+								argument.type))))
 				return
 			}
 		}

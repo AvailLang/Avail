@@ -258,7 +258,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		val (functionRead, tupleRead) = arguments
 
 		// Examine the function type.
-		val functionType = functionRead.type()
+		val functionType = functionRead.type
 		val functionArgsType = functionType.argsTupleType
 		val functionTypeSizes = functionArgsType.sizeRange
 		val upperBound = functionTypeSizes.upperBound
@@ -289,7 +289,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		for (i in 1 .. argsSize)
 		{
 			val argReg = explodedArgumentReads[i - 1]
-			val argType = argReg.type()
+			val argType = argReg.type
 			val exactTypeReg = extractParameterTypeFromFunction(functionRead, i)
 			val constantExactArgType = exactTypeReg.constantOrNull
 			if (constantExactArgType === null

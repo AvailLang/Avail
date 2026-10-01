@@ -134,13 +134,13 @@ object P_TupleToSet : Primitive1(CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		val sizeRange = tupleReg.type().sizeRange
+		val sizeRange = tupleReg.type.sizeRange
 		val size = sizeRange.lowerBound
 		if (!size.isInt || !sizeRange.upperBound.equals(size)) return false
 		val sizeInt = size.extractInt
 		val elementRegs = explodeTupleIfPossible(
 			tupleReg,
-			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+			tupleReg.type.tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
 
 		// Create the set directly from the values.  This may turn the tuple

@@ -67,7 +67,6 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.levelTwo.operation.tuples.L2_CONCATENATE_TUPLES
@@ -165,7 +164,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 		assert(arguments.size == 1)
 		val tupleOfTuplesReg = arguments[0]
 
-		val tupleOfTuplesType = tupleOfTuplesReg.type()
+		val tupleOfTuplesType = tupleOfTuplesReg.type
 		val range = tupleOfTuplesType.sizeRange
 		val size = range.lowerBound
 		if (!size.isInt || !range.upperBound.equals(size)) return false
@@ -206,7 +205,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 			adjustedSources.add(boxedConstant(currentTuple))
 		}
 		if (adjustedSources.size == 2
-			&& adjustedSources[1].type().sizeRange.run {
+			&& adjustedSources[1].type.sizeRange.run {
 				upperBound.equalsInt(1) && lowerBound.equalsInt(1)
 			})
 		{
@@ -218,8 +217,8 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 				"left tuple",
 				restrictionForType(
 					concatenatingAnd(
-						inputTuple.type(),
-						newElementTuple.type())))
+						inputTuple.type,
+						newElementTuple.type)))
 			val elementTemp = newTemp("value to append")
 			extractTupleElement(newElementTuple, 1, setOf(elementTemp))
 			+L2_APPEND_TO_TUPLE(
@@ -242,7 +241,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanFold, CanInline)
 					rawFunction, argumentTypes)
 				val write = boxedWriteTemp(
 					"concatenated",
-					restriction(guaranteedType, null))
+					restrictionForType(guaranteedType))
 				+L2_CONCATENATE_TUPLES(
 					L2ReadBoxedVectorOperand(adjustedSources),
 					write)

@@ -73,9 +73,8 @@ abstract class L2ControlFlowInstruction : L2Instruction()
 	 *   The [L2ValueManifest] that is active where this instruction was just
 	 *   added to its [L2BasicBlock].
 	 */
-	override fun justAdded(manifest: L2ValueManifest)
-	{
-		operands.forEach { it.setInstruction(this) }
+	override fun justAdded(manifest: L2ValueManifest) = manifest.run {
+		operands.forEach { it.setInstruction(this@L2ControlFlowInstruction) }
 		if (manifest.hasEliminatedPhis)
 		{
 			// Remove register definitions for any registers that are about to
@@ -90,7 +89,7 @@ abstract class L2ControlFlowInstruction : L2Instruction()
 		// be as accurate as possible.
 		readOperands.forEach { read ->
 			manifest.updateRestriction(read.semanticValue()) {
-				read.restriction()
+				read.restriction
 			}
 		}
 		val manifestByPurpose = mutableMapOf<Purpose?, L2ValueManifest>()
@@ -105,7 +104,7 @@ abstract class L2ControlFlowInstruction : L2Instruction()
 					}
 			}
 		}
-		basicBlock().postPhiMap = manifest.extractPostPhiMap()
+		basicBlock().postPhiData = manifest.extractPostPhiData()
 		writeOperands.forEach { write ->
 			manifest.updateRestriction(write.pickSemanticValue()) {
 				write.restriction()

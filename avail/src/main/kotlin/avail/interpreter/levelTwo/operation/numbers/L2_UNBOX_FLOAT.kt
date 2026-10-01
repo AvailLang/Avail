@@ -40,9 +40,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.optimizer.L2SplitCondition
-import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Unbox an `float` from an [AvailObject].
@@ -66,18 +66,18 @@ class L2_UNBOX_FLOAT(
 		append(source.registerString())
 	}
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
-	{
-		destination.restrict { source.restriction() }
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest
+	) = manifest.run {
+		destination.restrict { source.restriction }
 		super.instructionWasAdded(manifest)
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
-		tracer.continueTracing(source.register(), restriction)
+		continueTracing(source.register(), restriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()

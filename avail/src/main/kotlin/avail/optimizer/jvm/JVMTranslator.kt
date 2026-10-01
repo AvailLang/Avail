@@ -44,6 +44,7 @@ import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
@@ -81,6 +82,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -94,15 +96,12 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.L2Optimizer
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedField.Companion.staticField
-import avail.optimizer.jvm.JVMTranslator.Companion.debugJVM
-import avail.optimizer.jvm.JVMTranslator.Companion.emptyArrayOfObject
-import avail.optimizer.jvm.JVMTranslator.Companion.prepareOutputDirectory
-import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
 import avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
 import avail.utility.Strings.traceFor
@@ -280,6 +279,23 @@ class JVMTranslator constructor(
 	lateinit var method : MethodVisitor private set
 
 	/**
+	 * When a [JVMTranslator] is a receiver, this accesses the restrioction of a
+	 * read by navigating to the instruction, its block, and its [PostPhiData],
+	 * then uses that to get to the final restriction.
+	 */
+	val L2ReadOperand<*>.restriction: TypeRestriction
+		get()
+		{
+			val read = this
+			instruction.basicBlock().postPhiData!!.run {
+				return read.restriction
+			}
+		}
+
+	val L2ReadOperand<*>.type: A_Type
+		get() = restriction.type
+
+	/**
 	 * We're at a point where reification has been requested.  A [StackReifier]
 	 * has already been stashed in the [Interpreter], and already-popped calls
 	 * may have already queued actions in the reifier, to be executed in reverse
@@ -436,9 +452,7 @@ class JVMTranslator constructor(
 	 * The [L2Register]s used by the [L2Chunk], mapped to their JVM local
 	 * indices.
 	 */
-	val locals = RegisterKind.all.associateWithTo(mutableMapOf()) {
-		mutableMapOf<Int, Int>()
-	}
+	val locals = RegisterKind.associate { mutableMapOf<Int, Int>() }
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the

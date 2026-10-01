@@ -95,6 +95,7 @@ import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive3
 import avail.utility.Strings.increaseIndentation
@@ -124,7 +125,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
+object P_CreateRestrictedSendExpression : Primitive3(
+	CanSuspend,
+	Unknown,
+	// The returnType might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -320,13 +325,6 @@ object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 					}
 				})
 		}
-
-	/**
-	 * The returnType might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

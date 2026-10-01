@@ -35,7 +35,10 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
@@ -47,6 +50,7 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
@@ -70,6 +74,7 @@ import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2Synonym
+import avail.optimizer.PostPhiData
 import avail.optimizer.ValueClass
 import avail.optimizer.manifest.L2ValueManifest.Representation.Companion.emptyRepresentation
 import avail.optimizer.manifest.L2ValueManifest.ValueState.Companion.newEmptyState
@@ -806,15 +811,6 @@ class L2ValueManifest
 	private var impossibleRestrictionCount = 0
 
 	/**
-	 * The depth of nested [renarrowPostponedConsumersOf] activations, used to
-	 * bound the mutual recursion between narrowing a value and re-narrowing the
-	 * postponed instructions that consume it.  Narrowing is monotone, so the
-	 * recursion always terminates, but a deeply chained set of postponed
-	 * instructions could otherwise recurse further than is comfortable.
-	 */
-	private var renarrowDepth = 0
-
-	/**
 	 * The [ValueClass.id] to give the next [ValueClass] created here.
 	 *
 	 * Numbering is per manifest rather than global, since a [ValueClass] never
@@ -937,19 +933,19 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Produce a manifest based on the reciver, but without any information
-	 * about registers or postponed instructions.  This will be plugged into a
-	 * block's [L2BasicBlock.postPhiMap].
+	 * Produce an abstract of this manifest, without any information about
+	 * registers or postponed instructions.  This will be plugged into a block's
+	 * [L2BasicBlock.postPhiData].
 	 *
 	 * Leave out constants that have no other semantic value.
 	 */
-	fun extractPostPhiMap(): Map<L2Synonym, TypeRestriction> =
+	fun extractPostPhiData() = PostPhiData(
 		states.values
 			// Leave off synonyms built from only a constant.
 			.filterNot {
 				it.members.singleOrNull().notNullAnd { isConstant }
 			}
-			.associate { L2Synonym(it.members) to it.restriction }
+			.associate { L2Synonym(it.members) to it.restriction })
 
 	/**
 	 * Record an [L2Instruction] suitable for subsequent emission, if necessary,
@@ -1069,55 +1065,47 @@ class L2ValueManifest
 		val targets = postponedReaders[narrowedClass]
 		if (targets === null) return
 		// Copy, since re-narrowing can modify the index and the constraints.
-		renarrowDepth++
-		try
-		{
-			targets.toList().forEach { staleTarget ->
-				// Values are resolved lazily, and the target may since have
-				// been forgotten or had its instruction emitted.
-				val targetClass = resolve(staleTarget)
-				val state = states[targetClass] ?: return@forEach
-				// A value can have a postponed instruction per kind, and the
-				// narrowing may sharpen any of them.
-				state.forEachRepresentation inner@{ representation, kind ->
-					val postponed =
-						representation.postponedInstruction ?: return@inner
-					if (postponed.writeOperands.size != 1) return@inner
-					val narrowedClone = postponed.narrowedForManifest(this)
-					if (narrowedClone === null) return@inner
-					val implied = narrowedClone.impliedWriteRestriction(
-						narrowedClone.readOperands.map { it.restriction() })
-					narrowedClone.writeOperands.single().restrict { implied }
-					val synonym = state.synonym
-					val target = synonym.pickSemanticValue()
-					updateRepresentation(synonym, kind.cast()) {
-						postponedInstruction = narrowedClone
-					}
-					// isStrongerThan is reflexive, so test for an actual
-					// change.
-					val existing = restrictionFor(target)
-					if (implied.intersection(existing) != existing)
+		targets.toList().forEach { staleTarget ->
+			// Values are resolved lazily, and the target may since have
+			// been forgotten or had its instruction emitted.
+			val targetClass = resolve(staleTarget)
+			val state = states[targetClass] ?: return@forEach
+			// A value can have a postponed instruction per kind, and the
+			// narrowing may sharpen any of them.
+			state.forEachRepresentation inner@{ representation, kind ->
+				val postponed =
+					representation.postponedInstruction ?: return@inner
+				assert(postponed.writeOperands.size == 1)
+				val synonym = state.synonym
+				val narrowedClone = postponed.narrowedForManifest(this, synonym)
+				if (narrowedClone === null) return@inner
+				val implied = narrowedClone.impliedWriteRestriction(
+					narrowedClone.readOperands.map { read -> this.restrictionFor(read) })
+				narrowedClone.writeOperands.single().restrict { implied }
+				val target = synonym.pickSemanticValue()
+				updateRepresentation(synonym, kind.cast()) {
+					postponedInstruction = narrowedClone
+				}
+				// isStrongerThan is reflexive, so test for an actual
+				// change.
+				val existing = restrictionFor(target)
+				if (implied.intersection(existing) != existing)
+				{
+					// This may make the value constant, in which case the
+					// synonym gains an L2SemanticConstant and the postponed
+					// instruction becomes unnecessary.
+					updateRestriction(target) { implied }
+					if (restrictionFor(target).isConstant)
 					{
-						// This may make the value constant, in which case the
-						// synonym gains an L2SemanticConstant and the postponed
-						// instruction becomes unnecessary.
-						updateRestriction(target) { implied }
-						if (restrictionFor(target).isConstant)
-						{
-							updateRepresentation(
-								semanticValueToSynonym(target),
-								kind.cast()
-							) {
-								postponedInstruction = null
-							}
+						updateRepresentation(
+							semanticValueToSynonym(target),
+							kind.cast()
+						) {
+							postponedInstruction = null
 						}
 					}
 				}
 			}
-		}
-		finally
-		{
-			renarrowDepth--
 		}
 	}
 
@@ -1955,7 +1943,7 @@ class L2ValueManifest
 	 *   Whether this semantic value is known to this manifest, due to a
 	 *   previous instruction that wrote it, or its synonymy with a previously
 	 *   written instruction's written value, or the presence of a postponed
-	 *   instruction, or the fact of an [L2BasicBlock.postPhiMap] causing it to
+	 *   instruction, or the fact of an [L2BasicBlock.postPhiData] causing it to
 	 *   come into existence.
 	 */
 	fun hasSemanticValue(semanticValue: L2SemanticValue): Boolean =
@@ -2598,7 +2586,7 @@ class L2ValueManifest
 		value1: L2SemanticValue,
 		value2: L2SemanticValue)
 	{
-		RegisterKind.all.forEach { kind ->
+		RegisterKind.forEachKind { kind ->
 			equivalentPopulatedSemanticValue(value1, kind.cast())
 				?.let { eqv1 ->
 					equivalentPopulatedSemanticValue(value2, kind.cast())
@@ -2763,14 +2751,25 @@ class L2ValueManifest
 		updateRestriction(semanticValue) { minusType(type) }
 	}
 
-	fun restrictionFor(read: L2ReadOperand<*>): TypeRestriction = when
+	fun restrictionFor(read: L2ReadOperand<*>): TypeRestriction =
+		restrictionFor(read.semanticValue())
+
+	/**
+	 * Alter this read's [restriction] within the manifest.
+	 *
+	 * @param transformer
+	 *   An extension lambda to produce a new [TypeRestriction] from the
+	 *   existing one.
+	 */
+	fun L2ReadOperand<*>.restrict(
+		transformer: TypeRestriction.()->TypeRestriction)
 	{
-		// Simplify things for the caller.  The operand carries its own
-		// restriction, which is the whole answer once the graph is held
-		// together by registers rather than by semantic values.
-		!caresAboutSemanticValues -> read.restriction()
-		else -> restrictionFor(read.semanticValue())
-			.intersection(read.restriction())
+		// Try to preserve the restriction's identity if unchanged.
+		val newRestriction = restriction.transformer().intersection(restriction)
+		if (newRestriction != restriction)
+		{
+			setRestriction(semanticValue(), newRestriction)
+		}
 	}
 
 	fun restrictionFor(write: L2WriteOperand<*>): TypeRestriction = when
@@ -2809,6 +2808,52 @@ class L2ValueManifest
 		val equivalent = equivalentSemanticValue(semanticValue)!!
 		return stateOrNull(equivalent)!!.restriction
 	}
+
+	/**
+	 * Answer this read's restriction in this manifest.
+	 *
+	 * @return
+	 *   The [TypeRestriction] of the [L2ReadOperand] in this manifest.
+	 */
+	val L2ReadOperand<*>.restriction: TypeRestriction
+		get() = restrictionFor(this)
+
+	/**
+	 * Answer this read's restriction's bounding type in this manifest.
+	 *
+	 * @return
+	 *   The [A_Type] of the [L2ReadOperand] in this manifest.
+	 */
+	val L2ReadOperand<*>.type: A_Type
+		get() = restrictionFor(this).type
+
+	/**
+	 * Answer this read's restriction's constant value (i.e., the exact value
+	 * that this read is guaranteed to produce), within this manifest, or `null`
+	 * if such a constraint is not available.
+	 *
+	 * @param semanticValue
+	 *   The given [L2SemanticValue].
+	 * @return
+	 *   The [AvailObject] that the synonym is bound to, or `null` if it's not a
+	 *   constant.
+	 */
+	fun constantOrNullFor (
+		semanticValue: L2SemanticValue
+	): AvailObject? = semanticValue.constant ?:
+		restrictionFor(semanticValue).constantOrNull
+
+	/**
+	 * Answer this read's restriction's constant value (i.e., the exact value
+	 * that this read is guaranteed to produce), within this manifest, or `null`
+	 * if such a constraint is not available.
+	 *
+	 * @return
+	 *   The exact [AvailObject] that's known to be in this register, or else
+	 *   `null`.
+	 */
+	val L2ReadOperand<*>.constantOrNull: AvailObject?
+		get() = constantOrNullFor(semanticValue())
 
 	/**
 	 * Answer the [Representation] having the given [kind] and associated with
@@ -3058,13 +3103,11 @@ class L2ValueManifest
 	): Set<L2Synonym> = when
 	{
 		registers.isEmpty() -> emptySet()
-		else -> registers.first().kind.let { kind ->
-			states.values
-				.filter { state ->
-					state.allDefinitions.any { def -> def in registers }
-				}
-				.mapToSet { it.synonym }
-		}
+		else -> states.values
+			.filter { state ->
+				state.allDefinitions.any { def -> def in registers }
+			}
+			.mapToSet(transform = ValueState::synonym)
 	}
 
 	/**
@@ -3080,10 +3123,7 @@ class L2ValueManifest
 	fun <K: RegisterKind<K>> read(
 		semanticValue: L2SemanticValue,
 		kind: K
-	): L2ReadOperand<K> =
-		kind.readOperand(
-			semanticValue,
-			restrictionFor(semanticValue))
+	): L2ReadOperand<K> = kind.readOperand(semanticValue)
 
 	/**
 	 * Create an [L2ReadBoxedOperand] for the given [L2SemanticValue].
@@ -3093,8 +3133,7 @@ class L2ValueManifest
 	 */
 	fun readBoxed(
 		semanticValue: L2SemanticValue
-	): L2ReadBoxedOperand =
-		L2ReadBoxedOperand(semanticValue, restrictionFor(semanticValue))
+	): L2ReadBoxedOperand = L2ReadBoxedOperand(semanticValue)
 
 	/**
 	 * Create an [L2ReadIntOperand] for the given [L2SemanticValue].
@@ -3103,9 +3142,14 @@ class L2ValueManifest
 	 *   The [L2SemanticValue] to read as an [L2ReadIntOperand].
 	 */
 	fun readInt(
-		semanticValue: L2SemanticValue
-	): L2ReadIntOperand =
-		L2ReadIntOperand(semanticValue, restrictionFor(semanticValue))
+		semanticValue: L2SemanticValue,
+		optionalRestriction: TypeRestriction = i32Restriction,
+		register: L2IntRegister? = null
+	): L2ReadIntOperand
+	{
+		agglomerateSynonym(setOf(semanticValue), optionalRestriction)
+		return L2ReadIntOperand(semanticValue)
+	}
 
 	/**
 	 * Create an [L2ReadFloatOperand] for the given [L2SemanticValue].
@@ -3115,8 +3159,7 @@ class L2ValueManifest
 	 */
 	fun readFloat(
 		semanticValue: L2SemanticValue
-	): L2ReadFloatOperand =
-		L2ReadFloatOperand(semanticValue, restrictionFor(semanticValue))
+	): L2ReadFloatOperand = L2ReadFloatOperand(semanticValue)
 
 	/**
 	 * Populate the empty receiver with bindings from the manifests on edges
@@ -3222,48 +3265,35 @@ class L2ValueManifest
 					return@forEach
 				}
 				val pick = relatedSemanticValues[0]
-				// Create a boxed phi if *any* boxed values are available, or if
-				// not every edge is constrained to the same constant.  Box
-				// (retroactively) from other representations as needed.
-				var forceBoxed =
-					manifests.any {
-						it.getDefinitionOrNull(pick, BOXED_KIND) != null
+
+				// If forcing phis (loop heads), use BOXED. Otherwise, prefer any kind
+				// that has common registers in all input edges to avoid phi creation.
+				val kind = when {
+					forcePhis -> BOXED_KIND
+					manifests.all { it.hasLiveSemanticValue(pick, INTEGER_KIND) } ->
+						INTEGER_KIND
+					manifests.all { it.hasLiveSemanticValue(pick, FLOAT_KIND) } ->
+						FLOAT_KIND
+					manifests.all { it.hasLiveSemanticValue(pick, BOXED_KIND) } ->
+						BOXED_KIND
+					else -> {
+						// No common registers; choose based on union type.
+						val unionType = manifests
+							.map { it.restrictionFor(pick).type }
+							.reduce { a, b -> a.typeUnion(b) }
+						when {
+							unionType.isSubtypeOf(i32) -> INTEGER_KIND
+							unionType.isSubtypeOf(FLOAT()) -> FLOAT_KIND
+							else -> BOXED_KIND
+						}
 					}
-						|| manifests
-							.mapNotNullTo(mutableSetOf()) {
-								it.restrictionFor(pick).constantOrNull
-							}
-							.size > 1
-				if (forceBoxed)
-				{
-					populateOneSynonym(
-						BOXED_KIND,
-						relatedSemanticValues,
-						manifests,
-						generator,
-						forcePhis)
 				}
-				// Only create an int phi if *all* ints are available.
-				if (manifests
-					.all { it.hasLiveSemanticValue(pick, INTEGER_KIND) })
-				{
-					populateOneSynonym(
-						INTEGER_KIND,
-						relatedSemanticValues,
-						manifests,
-						generator,
-						forcePhis)
-				}
-				// Only create a float phi if *all* floats are available.
-				if (manifests.all { it.hasLiveSemanticValue(pick, FLOAT_KIND) })
-				{
-					populateOneSynonym(
-						FLOAT_KIND,
-						relatedSemanticValues,
-						manifests,
-						generator,
-						forcePhis)
-				}
+				populateOneSynonym(
+					kind.cast(),
+					relatedSemanticValues,
+					manifests,
+					generator,
+					forcePhis)
 			}
 			if (manifests.size > 1)
 			{
@@ -3543,7 +3573,6 @@ class L2ValueManifest
 		val sources = manifests.map { m ->
 			kind.readOperand(
 				firstLive,
-				m.restrictionFor(firstLive),
 				m.getDefinition(firstLive, kind))
 		}
 		generator.addInstruction(
@@ -3643,21 +3672,8 @@ class L2ValueManifest
 			// Strengthen read operand restrictions by intersecting with each
 			// edge's manifest, to avoid propagating overly-broad restrictions
 			// upward.
-			val strengthenedInstructions = oldInstructions.zip(manifests)
-				.map { (instr, edgeManifest) ->
-					instr.clone().apply {
-						readOperands.forEach { readOp ->
-							val manifestRestriction =
-								edgeManifest.restrictionFor(readOp.semanticValue())
-							readOp.restrict {
-								println("DEBUG: Restricting ${readOp.semanticValue()} from $this by $manifestRestriction")
-								manifestRestriction
-							}
-						}
-					}
-				}
-			val newInstruction = strengthenedInstructions[0]
-				.mergeInstructions(strengthenedInstructions)
+			val newInstruction = oldInstructions[0]
+				.mergeInstructions(oldInstructions)
 			agglomerateSynonym(
 				equivalence.synonym.semanticValues(),
 				newInstruction.writeOperands.single().restriction())
@@ -3679,12 +3695,13 @@ class L2ValueManifest
 	 * Given a map from synonyms to restrictions, add this information to this
 	 * manifest.  That may entail merging synonyms and narrowing restrictions.
 	 *
-	 * @param map
-	 *   The [L2Synonym]s and associated [TypeRestriction]s to apply.
+	 * @param data
+	 *   The [PostPhiData] containing [L2Synonym]s and the associated
+	 *   [TypeRestriction]s to apply.
 	 */
-	fun applyPostPhiMap(map: Map<L2Synonym, TypeRestriction>)
+	fun applyPostPhiData(data: PostPhiData)
 	{
-		map.forEach { synonym, restriction ->
+		data.restrictionsBySynonym.forEach { synonym, restriction ->
 			agglomerateSynonym(synonym.semanticValues(), restriction)
 		}
 	}
@@ -3872,7 +3889,7 @@ class L2ValueManifest
 		// visited.
 		var changed = false
 		synonymsArray().forEach { synonym ->
-			RegisterKind.all.forEach { kind ->
+			RegisterKind.forEachKind { kind ->
 				// Warning; don't switch to short-circuit "||".
 				changed = changed or
 					retainRegistersHelper(
@@ -3911,7 +3928,7 @@ class L2ValueManifest
 	{
 		if (registersToBeOverwritten.isEmpty()) return
 		synonymsArray().forEach { synonym ->
-			RegisterKind.all.forEach { kind ->
+			RegisterKind.forEachKind { kind ->
 				updateDefinitions(synonym.pickSemanticValue(), kind.cast()) {
 					filterNot(registersToBeOverwritten::contains)
 				}

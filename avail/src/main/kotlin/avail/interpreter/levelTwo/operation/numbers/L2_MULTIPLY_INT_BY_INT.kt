@@ -127,7 +127,7 @@ class L2_MULTIPLY_INT_BY_INT(
 		}
 		var range = P_Multiplication.returnTypeGuaranteedByVM(
 			null,
-			listOf(multiplicand.type(), multiplier.type()))
+			listOf(multiplicand.type, multiplier.type))
 		// The result isn't a constant.  See if it has the form (y / x) * x.
 		for ((a, b) in
 			listOf(multiplicand to multiplier, multiplier to multiplicand))

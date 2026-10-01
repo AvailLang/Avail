@@ -344,8 +344,11 @@ class L2Optimizer internal constructor(
 		controlFlowGraph.forwardVisit { block ->
 			// Don't allow split wishes along cold paths to be honored.
 			if (block.isCold) return@forwardVisit
+			val postPhiData = block.postPhiData!!
 			val newConditions = block.instructions()
-				.flatMap(L2Instruction::interestingConditions)
+				.flatMap { instruction ->
+					instruction.run { postPhiData.interestingConditions() }
+				}
 				.filterNotNull()
 			// Ignore ones that were already true along all incoming edges
 			// of the block holding that instruction.
@@ -787,7 +790,6 @@ class L2Optimizer internal constructor(
 							(move as L2_MOVE_BOXED).destination.run {
 								BOXED_KIND.readOperand(
 									pickSemanticValue(),
-									restriction(),
 									register())
 							}
 						}
@@ -889,26 +891,28 @@ class L2Optimizer internal constructor(
 	/**
 	 * Create a new register for every &lt;kind, finalIndex&gt; (i.e., color) of
 	 * an existing register, then transform every instruction of this control
-	 * flow graph to use the new registers.  The new registers have a
-	 * [L2Register.uniqueValue] that's the same as its
-	 * [finalIndex][L2Register.finalIndex].
+	 * flow graph to use the new registers.  The new registers have (fresh)
+	 * numbering whose [L2Register.uniqueValue] corresponds to the register's
+	 * identity over time, and a [L2Register.finalIndex] that identifies its
+	 * storage location.
 	 */
 	fun replaceRegistersByColor()
 	{
 		// Create new registers for each <kind, finalIndex> in the existing
 		// registers.
-		val byKindAndIndex = RegisterKind.all.associateWith {
+		val byKindAndIndex = RegisterKind.associateArray {
 			mutableMapOf<Int, L2Register<*>>()
 		}
 		val remap: MutableMap<L2Register<*>, L2Register<*>> = mutableMapOf()
+		var freshNumber = 0
 		val action = { reg: L2Register<*> ->
 			// Exclude analysis of constant pseudo-registers (which have no
 			// definitions).
 			if (!reg.isConstant)
 			{
-				remap[reg] = byKindAndIndex[reg.kind]!!
+				remap[reg] = byKindAndIndex[reg.kind.ordinal]
 					.computeIfAbsent(reg.finalIndex) {
-						reg.copyAfterColoring()
+						reg.copyAfterColoring(freshNumber++)
 					}
 			}
 		}
@@ -925,24 +929,14 @@ class L2Optimizer internal constructor(
 			isRemovingDeadCode = true
 		) { sourceInstruction ->
 			basicTransformInstruction(sourceInstruction).run {
-				// Drop it if it's a same-color move that doesn't introduce any
-				// new semantic values.
+				// Drop it if it's a same-color move.
 				when
 				{
-					// Keep if it's not a move.
-					this !is L2_MOVE<*> -> +this
-					// Keep if it's not a same-color move.
-					source.register().finalIndex
-						!= destination.register().finalIndex -> +this
-					// Keep if source isn't in manifest (can't check synonymy)
-					!currentManifest.hasSemanticValue(source.semanticValue()) ->
-						+this
-					// Keep if it introduces a new semantic value.
-					!currentManifest.semanticValueToSynonym(
-						source.semanticValue()).semanticValues().containsAll(
-						destination.semanticValues()) -> +this
-					// Eliminate this same-color non-introducing move.
-					else -> Unit
+					// Eliminate same-color move.
+					this is L2_MOVE<*>
+						&& source.register().finalIndex
+							== destination.register().finalIndex -> Unit
+					else -> +this
 				}
 			}
 		}
@@ -1072,8 +1066,8 @@ class L2Optimizer internal constructor(
 
 	/**
 	 * Replace any branches that lead to the same target with a simple jump.  If
-	 * any such replacements are made, we'll need to run all the passes again,
-	 * to allow the newly constructed jumps to be elided, if possible.
+	 * any such replacements are made, we'll need to run this again, to allow
+	 * the newly constructed jumps to be elided, if possible.
 	 */
 	private fun removeUselessBranches(): Boolean
 	{
@@ -1110,7 +1104,7 @@ class L2Optimizer internal constructor(
 			}
 		}
 		val registerIdentityMap = allRegisters.associateWithTo(
-			mutableMapOf(), L2Register<*>::copyAfterColoring)
+			mutableMapOf(), { it })
 		// Rewrite the graph with the useless branches replaced by jumps.
 		regenerateGraph(
 			WithFixedRegisterMap(registerIdentityMap),
@@ -1315,7 +1309,7 @@ class L2Optimizer internal constructor(
 							read,
 							L2WriteBoxedOperand(
 								setOf(read.semanticValue()),
-								read.restriction(),
+								block.postPhiData!![read.semanticValue()],
 								read.register())
 						).cloneFor(generator, block))
 				}
@@ -1418,7 +1412,7 @@ class L2Optimizer internal constructor(
 
 		override fun toString() = buildString {
 			var any = false
-			RegisterKind.all.forEach { kind ->
+			RegisterKind.forEachKind { kind ->
 				val bitSet = liveRegistersByKind[kind.ordinal]
 				if (!bitSet.isEmpty)
 				{
@@ -1435,7 +1429,7 @@ class L2Optimizer internal constructor(
 		/** Create an instance with no tracking information. */
 		constructor()
 		{
-			liveRegistersByKind = Array(RegisterKind.all.size) { BitSet() }
+			liveRegistersByKind = RegisterKind.associateArray { BitSet() }
 		}
 
 		/**
@@ -1446,8 +1440,8 @@ class L2Optimizer internal constructor(
 		 */
 		constructor(original: UsedRegisters)
 		{
-			liveRegistersByKind = Array(RegisterKind.all.size) {
-				original.liveRegistersByKind[it].clone() as BitSet
+			liveRegistersByKind = RegisterKind.associateArray {
+				original.liveRegistersByKind[it.ordinal].clone() as BitSet
 			}
 		}
 	}

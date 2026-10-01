@@ -46,6 +46,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveN
 
@@ -62,7 +63,13 @@ import avail.interpreter.primitive.PrimitiveN
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_InvokeCallback : PrimitiveN(-1, Private, CanSuspend, HasSideEffect)
+object P_InvokeCallback : PrimitiveN(
+	-1,
+	Private,
+	CanSuspend,
+	HasSideEffect,
+	// An argument might capture an escaped variable and make it shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attemptN(
 		interpreter: Interpreter,
@@ -87,13 +94,6 @@ object P_InvokeCallback : PrimitiveN(-1, Private, CanSuspend, HasSideEffect)
 				})
 		}
 	}
-
-	/**
-	 * An argument might capture an escaped variable and make it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	/** This primitive is suitable for any block signature. */
 	override fun privateBlockTypeRestriction(): A_Type = bottom

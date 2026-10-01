@@ -273,7 +273,7 @@ object P_TupleToObject : Primitive1(CanFold, CanInline)
 			fieldMap[atom]?.let { index ->
 				if (index != 0)
 				{
-					val valueType = pairSource.type().typeAtIndex(2)
+					val valueType = pairSource.type.typeAtIndex(2)
 					val valueTemp = newTemp(
 						"value for ${atom.atomName.asNativeString()}"
 					)

@@ -392,7 +392,7 @@ class CallSiteHelper internal constructor(
 		answerReg: L2ReadBoxedOperand,
 		mightEndangerEscapedLocals: Boolean)
 	{
-		val answerType = answerReg.type()
+		val answerType = generator.run { answerReg.type }
 		when
 		{
 			answerType.isBottom ->

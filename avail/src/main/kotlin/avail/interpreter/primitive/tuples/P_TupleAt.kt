@@ -165,7 +165,7 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			val semanticSize =
 				P_TupleSize.semanticInvocation(tupleReg.semanticValue())
 			var sizeRestriction = restrictionForType(
-				tupleReg.type().sizeRange.typeIntersection(i31))
+				tupleReg.type.sizeRange.typeIntersection(i31))
 			val sizeType = sizeRestriction.type
 			if (sizeType.lowerBound.equals(sizeType.upperBound))
 			{
@@ -183,7 +183,7 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 
 			// Check the upper bound, if necessary.
 			if (currentlyReachable()
-				&& subscriptReg.type().upperBound.greaterThan(
+				&& subscriptReg.type.upperBound.greaterThan(
 					sizeRestriction.type.lowerBound))
 			{
 				val inBounds = createBasicBlock("passed upper bound check")
@@ -258,7 +258,7 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			// site.
 		}
 		// The primitive cannot fail at this site.
-		val subscriptType = subscriptReg.type()
+		val subscriptType = subscriptReg.type
 		val lower = subscriptType.lowerBound
 		val upper = subscriptType.upperBound
 		val writer = boxedWriteTemp(

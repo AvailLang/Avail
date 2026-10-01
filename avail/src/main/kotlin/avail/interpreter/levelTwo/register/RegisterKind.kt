@@ -124,8 +124,6 @@ constructor (
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to consume via an [L2ReadOperand].
-	 * @param restriction
-	 *   The [TypeRestriction] relevant to this read.
 	 * @param register
 	 *   The earliest known defining [RegisterKind] of the [L2SemanticValue].
 	 * @return
@@ -133,7 +131,6 @@ constructor (
 	 */
 	abstract fun readOperand(
 		semanticValue: L2SemanticValue,
-		restriction: TypeRestriction,
 		register: L2Register<Self>? = null
 	): L2ReadOperand<Self>
 
@@ -304,16 +301,28 @@ constructor (
 
 	companion object
 	{
-		/** Don't modify this array. */
-		val all: Array<RegisterKind<*>> = arrayOf(
-			BOXED_KIND,
-			INTEGER_KIND,
-			FLOAT_KIND)
-
-		init
+		inline fun forEachKind(
+			action: (RegisterKind<*>) -> Unit)
 		{
-			assert(all.indices.all { all[it].ordinal == it })
+			action(BOXED_KIND)
+			action(INTEGER_KIND)
+			action(FLOAT_KIND)
 		}
+
+		inline fun <V> associate(
+			action: (RegisterKind<*>) -> V
+		): Map<RegisterKind<*>, V> = buildMap {
+			this[BOXED_KIND] = action(BOXED_KIND)
+			this[INTEGER_KIND] = action(INTEGER_KIND)
+			this[FLOAT_KIND] = action(FLOAT_KIND)
+		}
+
+		inline fun <reified V> associateArray(
+			action: (RegisterKind<*>) -> V
+		): Array<V> = arrayOf(
+			action(BOXED_KIND),
+			action(INTEGER_KIND),
+			action(FLOAT_KIND))
 	}
 }
 
@@ -331,9 +340,8 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 {
 	override fun readOperand(
 		semanticValue: L2SemanticValue,
-		restriction: TypeRestriction,
 		register: L2Register<BOXED_KIND>?
-	) = L2ReadBoxedOperand(semanticValue, restriction, register)
+	) = L2ReadBoxedOperand(semanticValue, register)
 
 	override fun createWrite(
 		semanticValues: Set<L2SemanticValue>,
@@ -414,9 +422,8 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 {
 	override fun readOperand(
 		semanticValue: L2SemanticValue,
-		restriction: TypeRestriction,
 		register: L2Register<INTEGER_KIND>?
-	) = L2ReadIntOperand(semanticValue, restriction, register)
+	) = L2ReadIntOperand(semanticValue, register)
 
 	override fun createWrite(
 		semanticValues: Set<L2SemanticValue>,
@@ -500,9 +507,8 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 {
 	override fun readOperand(
 		semanticValue: L2SemanticValue,
-		restriction: TypeRestriction,
 		register: L2Register<FLOAT_KIND>?
-	) = L2ReadFloatOperand(semanticValue, restriction, register)
+	) = L2ReadFloatOperand(semanticValue, register)
 
 	override fun createWrite(
 		semanticValues: Set<L2SemanticValue>,

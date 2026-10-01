@@ -141,8 +141,8 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 			val constant = valueRead.constantOrNull
 			val passedTest: Boolean = when {
 				constant !== null -> constant.isInstanceOf(typeTest)
-				valueRead.type().isSubtypeOf(typeTest) -> true
-				valueRead.type().typeIntersection(typeTest).isBottom -> false
+				valueRead.type.isSubtypeOf(typeTest) -> true
+				valueRead.type.typeIntersection(typeTest).isBottom -> false
 				else -> {
 					bypassTesting = false
 					false  // Keep compiler happy below.

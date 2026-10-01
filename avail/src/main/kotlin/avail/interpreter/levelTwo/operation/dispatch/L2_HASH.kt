@@ -45,7 +45,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 
@@ -73,18 +73,17 @@ class L2_HASH(
 		return this@L2_HASH
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		assert(writeOperand == hash)
-		if (!tracer.traceArithmetic) return
+		if (!traceArithmetic) return
 		// Obviously we can't "unhash" an int.  However, if the source value is
 		// an enuumeration, we can transform the restriction on the hash into a
 		// restriction on which values would cause the hash to satisfy the int
 		// restriction.
-		val valueType = value.restriction().type
+		val valueType = value.restriction.type
 		if (!valueType.isEnumeration || valueType.isInstanceMeta)
 		{
 			// The value isn't constrained to a finite enumeration.  Give up.
@@ -106,7 +105,7 @@ class L2_HASH(
 		}
 		val valueRestriction = restrictionForType(
 			enumerationWith(setFromCollection(satisfiedValues)))
-		tracer.continueTracing(value.register(), valueRestriction)
+		continueTracing(value.register(), valueRestriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()

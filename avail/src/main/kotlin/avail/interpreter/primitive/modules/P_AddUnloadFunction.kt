@@ -51,6 +51,7 @@ import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 
@@ -62,7 +63,12 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_AddUnloadFunction : Primitive1(
-	CanInline, HasSideEffect, WritesToHiddenGlobalState)
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState,
+	// The function might contain outers that are escaped variables, but they're
+	// made shared here.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -76,14 +82,6 @@ object P_AddUnloadFunction : Primitive1(
 				SpecialMethodAtom.ADD_UNLOAD_FUNCTION, unloadFunction))
 		return nil
 	}
-
-	/**
-	 * The function might contain outers that are escaped variables, but they're
-	 * made shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(functionTypeReturning(TOP())), TOP())

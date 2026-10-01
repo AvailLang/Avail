@@ -33,7 +33,6 @@
 package avail.interpreter.levelTwo.operation.variables
 
 import avail.descriptor.representation.A_Variable
-import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Instruction
@@ -44,8 +43,8 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2Synonym
-import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Assign a value to a [variable][VariableDescriptor] *without* checking that
@@ -65,8 +64,6 @@ constructor(
 {
 	init
 	{
-		assert(this.variable.restriction()
-			.containedByType(mostGeneralVariableType))
 		assert(!this.variable.isConstantRead) {
 			"L2_SET_UNESCAPED_LOCAL_VARIABLE is an elided local here."
 		}
@@ -144,7 +141,7 @@ constructor(
 				removePostponedInstructionFor(
 					variable.semanticValue(),
 					BOXED_KIND)
-				assert(variable.restriction() == variableOut.restriction())
+				assert(variable.restriction == variableOut.restriction())
 				recordPostponedInstruction(
 					synonym.pickSemanticValue(),
 					L2_CREATE_VARIABLE(

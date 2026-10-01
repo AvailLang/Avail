@@ -344,8 +344,7 @@ constructor (
 		// dump containing the state of all live registers.  A subsequent
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
-		val liveMap =
-			RegisterKind.all.associateWith { mutableListOf<L2Register<*>>() }
+		val liveMap = RegisterKind.associate { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
 			liveness!!.registers
 				.sortedBy(L2Register<*>::finalIndex)

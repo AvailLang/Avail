@@ -69,6 +69,7 @@ import avail.interpreter.levelTwo.operation.variables.L2_VARIABLE_COMPARE_AND_SW
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -85,7 +86,12 @@ import avail.performance.StatisticReport.PRIMITIVES
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
+object P_AtomicCompareAndSwap : Primitive3(
+	CanInline,
+	HasSideEffect,
+	// If the variable is shared and a local variable is captured inside the
+	// newValue, it could become shared.
+	MightMakeEscapedVariableShared)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -114,14 +120,6 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 		return objectFromBoolean(replaced)
 	}
 
-	/**
-	 * If the variable is shared and a local variable is captured inside the
-	 * newValue, it could become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
-
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
@@ -131,7 +129,7 @@ object P_AtomicCompareAndSwap : Primitive3(CanInline, HasSideEffect)
 	): Boolean
 	{
 		val (variableReg, referenceReg, newValueReg) = arguments
-		if (!newValueReg.type().isSubtypeOf(variableReg.type().writeType))
+		if (!newValueReg.type.isSubtypeOf(variableReg.type.writeType))
 		{
 			// We can't guarantee the type being assigned is strong enough.
 			return false

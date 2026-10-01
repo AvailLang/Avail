@@ -107,7 +107,7 @@ object P_ElementInSet : Primitive2(CannotFail, CanFold, CanInline)
 			return false
 		}
 		val possibleElements = allSources.filterNot { element ->
-			element.restriction().intersection(value.restriction())
+			element.restriction.intersection(value.restriction)
 				.isImpossible
 		}
 		if (possibleElements.size > largestChainedTest)
