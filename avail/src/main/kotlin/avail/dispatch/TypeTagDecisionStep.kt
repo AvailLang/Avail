@@ -514,28 +514,37 @@ constructor(
 				}
 			}
 		}
-		// Merge null edges (impossible restrictions) with neighbors to reduce
-		// the number of distinct edges in the splitter.
-		val mergedEdges = edges.toMutableList()
-		for (i in mergedEdges.indices)
+		// For impossible edges, create new operands that redirect to neighbors
+		// rather than reusing the neighbor object (which would cause duplicate
+		// references in the edges list).
+		val finalEdges = edges.toMutableList()
+		for (i in finalEdges.indices)
 		{
-			if (mergedEdges[i] == null)
+			if (finalEdges[i] == null)
 			{
 				// Try previous neighbor first, then next.
-				val neighbor = if (i > 0 && mergedEdges[i - 1] != null)
-					mergedEdges[i - 1]
+				val neighbor = if (i > 0 && finalEdges[i - 1] != null)
+					finalEdges[i - 1]
 				else
-					mergedEdges.drop(i + 1).firstOrNull { it != null }
+					finalEdges.drop(i + 1).firstOrNull { it != null }
 
 				if (neighbor != null)
-					mergedEdges[i] = neighbor
+				{
+					// Create a new operand pointing to the neighbor's target,
+					// rather than reusing the neighbor object itself.
+					finalEdges[i] = L2PcOperand(
+						neighbor.targetBlock(),
+						false,
+						currentManifest,
+						"Merged: impossible edge")
+				}
 			}
 		}
 		val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
 		splitter.run {
 			emitSplitterInstruction(
 				readIntNoFail(semanticTag),
-				mergedEdges.filterNotNull())
+				finalEdges.filterNotNull())
 		}
 		return reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
 			val edge = edges[index]

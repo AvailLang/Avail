@@ -3196,4 +3196,96 @@ class SimpleOptimizerTest
 			"if not, the passed-check branch was likely made unreachable")
 	}
 
+	@Test
+	fun testImpossibleWithArgument()
+	{
+		// Uses tupleType as argument #1 (should PASS with L2_RETURN)
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			argumentTypes(tupleMeta)
+			val tupleTypeArg = declareName("tupleType")
+
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			L1_doPushLocal(tupleTypeArg)
+			pushLiteral(one)
+			L1_doPushLocal(tupleTypeArg)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushLocal(tupleTypeArg)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastLocal(tupleTypeArg)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		helper.testOptimize(rawFunction)
+
+		val startingChunk = rawFunction.startingChunk
+		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
+			instruction is L2_RETURN
+		}
+		assertTrue(hasReturnInstructions,
+			"Argument version: chunk should contain return instructions")
+	}
+
+	@Test
+	fun testImpossibleWithOuter()
+	{
+		// Uses tupleType as outer (should FAIL - no L2_RETURN)
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			val tupleTypeOuter = createOuter(tupleMeta)
+			declareName("tupleType")
+
+			L1_doPushOuter(tupleTypeOuter)
+			pushLiteral(one)
+			L1_doPushOuter(tupleTypeOuter)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushOuter(tupleTypeOuter)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastOuter(tupleTypeOuter)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		helper.testOptimize(rawFunction)
+
+		val startingChunk = rawFunction.startingChunk
+		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
+			instruction is L2_RETURN
+		}
+		assertTrue(hasReturnInstructions,
+			"Outer version: chunk should contain return instructions")
+	}
+
 }
