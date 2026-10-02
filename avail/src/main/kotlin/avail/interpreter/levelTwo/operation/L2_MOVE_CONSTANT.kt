@@ -57,6 +57,7 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
@@ -157,6 +158,14 @@ protected constructor(
 			this.append(increaseIndentation(constant().toString(), 2))
 		}
 	}
+
+	/**
+	 * Constant moves can be reconstructed on demand, but generally don't have
+	 * to be, because their synonym and restriction effect is captured in a
+	 * [PostPhiData] for replay.
+	 */
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction? = null
 
 	override fun JVMTranslator.translateToJVM()
 	{

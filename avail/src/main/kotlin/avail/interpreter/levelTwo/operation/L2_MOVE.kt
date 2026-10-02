@@ -56,6 +56,7 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -248,6 +249,13 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 	{
 		continueTracing(source.register(), restriction)
 	}
+
+	/**
+	 * Moves can be reconstructed on demand, but generally don't have to be,
+	 * because their synonym effect is captured in a [PostPhiData] for replay.
+	 */
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction? = null
 
 	override fun JVMTranslator.translateToJVM()
 	{

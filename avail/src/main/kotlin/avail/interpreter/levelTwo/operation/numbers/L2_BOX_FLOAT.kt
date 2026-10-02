@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -79,6 +80,10 @@ class L2_BOX_FLOAT(
 	{
 		continueTracing(source.register(), restriction)
 	}
+
+	/** Boxing/unboxing operations are created on demand. */
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction? = null
 
 	override fun JVMTranslator.translateToJVM()
 	{

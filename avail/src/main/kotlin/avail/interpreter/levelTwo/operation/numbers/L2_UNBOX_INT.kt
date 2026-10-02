@@ -41,9 +41,10 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.optimizer.PostPhiData
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 
@@ -82,6 +83,10 @@ class L2_UNBOX_INT(
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
+	/** Boxing/unboxing operations are created on demand. */
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction? = null
 
 	override fun JVMTranslator.translateToJVM()
 	{

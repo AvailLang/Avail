@@ -392,11 +392,7 @@ constructor(
 			// Compute int and box it.
 			state.intRepresentation.postponedInstruction != null ->
 			{
-				addInstruction(
-					adjustedPostponedInstruction(
-						removePostponedInstructionFor(
-							semanticValue, INTEGER_KIND)!!,
-						single))
+				ensureDefinedOrEmitMoveInt(semanticValue)
 				L2_BOX_INT(
 					L2ReadIntOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
@@ -404,17 +400,25 @@ constructor(
 			// Compute float and box it.
 			state.floatRepresentation.postponedInstruction != null ->
 			{
-				addInstruction(
-					adjustedPostponedInstruction(
-						removePostponedInstructionFor(
-							semanticValue, FLOAT_KIND)!!,
-						single))
+				ensureDefinedOrEmitMoveFloat(semanticValue)
 				L2_BOX_FLOAT(
 					L2ReadFloatOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
 			else -> BOXED_KIND.moveConstant(semanticValue.constant!!, single)
+		}
+		// Ensure all reads are already available before adding instruction.
+		// Skip reads in a different synonym, as those cascade through predecessors.
+		val mySynonym = semanticValueToSynonymOrNull(semanticValue)
+		newInstruction.readOperands.forEach { read ->
+			val readSv = read.semanticValue()
+			val readSynonym = semanticValueToSynonymOrNull(readSv)
+			if (readSynonym != mySynonym) return@forEach
+			assert(hasLiveSemanticValue(readSv, read.kind) ||
+				constantOrNullFor(readSv) != null) {
+				"Attempting to add boxed instruction reading $readSv (${read.kind}) which is not live"
+			}
 		}
 		addInstruction(newInstruction)
 	}
@@ -456,17 +460,25 @@ constructor(
 			// Compute boxed value and unbox it.
 			state.boxedRepresentation.postponedInstruction != null ->
 			{
-				addInstruction(
-					adjustedPostponedInstruction(
-						removePostponedInstructionFor(
-							semanticValue, BOXED_KIND)!!,
-						single))
+				ensureDefinedOrEmitMoveBoxed(semanticValue)
 				L2_UNBOX_INT(
 					L2ReadBoxedOperand(semanticValue),
 					L2WriteIntOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
 			else -> INTEGER_KIND.moveConstant(semanticValue.constant!!, single)
+		}
+		// Ensure all reads are already available before adding instruction.
+		// Skip reads in a different synonym, as those cascade through predecessors.
+		val mySynonym = semanticValueToSynonymOrNull(semanticValue)
+		newInstruction.readOperands.forEach { read ->
+			val readSv = read.semanticValue()
+			val readSynonym = semanticValueToSynonymOrNull(readSv)
+			if (readSynonym != mySynonym) return@forEach
+			assert(hasLiveSemanticValue(readSv, read.kind) ||
+				constantOrNullFor(readSv) != null) {
+				"Attempting to add int instruction reading $readSv (${read.kind}) which is not live"
+			}
 		}
 		addInstruction(newInstruction)
 	}
@@ -508,17 +520,25 @@ constructor(
 			// Compute boxed value and unbox it to a float.
 			state.boxedRepresentation.postponedInstruction != null ->
 			{
-				addInstruction(
-					adjustedPostponedInstruction(
-						removePostponedInstructionFor(
-							semanticValue, BOXED_KIND)!!,
-						single))
+				ensureDefinedOrEmitMoveBoxed(semanticValue)
 				L2_UNBOX_FLOAT(
 					L2ReadBoxedOperand(semanticValue),
 					L2WriteFloatOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
 			else -> FLOAT_KIND.moveConstant(semanticValue.constant!!, single)
+		}
+		// Ensure all reads are already available before adding instruction.
+		// Skip reads in a different synonym, as those cascade through predecessors.
+		val mySynonym = semanticValueToSynonymOrNull(semanticValue)
+		newInstruction.readOperands.forEach { read ->
+			val readSv = read.semanticValue()
+			val readSynonym = semanticValueToSynonymOrNull(readSv)
+			if (readSynonym != mySynonym) return@forEach
+			assert(hasLiveSemanticValue(readSv, read.kind) ||
+				constantOrNullFor(readSv) != null) {
+				"Attempting to add float instruction reading $readSv (${read.kind}) which is not live"
+			}
 		}
 		addInstruction(newInstruction)
 	}
@@ -660,18 +680,20 @@ constructor(
 			assert(currentManifest
 				.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		}
-		// Re-check for boxed kind, in case the postponed int-producing
-		// instruction generated a boxed form somehow.
-		if (!currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
-		{
-			// Simply unbox it.
-			+L2_UNBOX_INT(
-				currentManifest.readBoxed(semanticValue),
-				L2WriteIntOperand(
-					setOf(semanticValue),
-					restriction,
-					L2IntRegister(nextUnique())))
-		}
+//TODO remove
+//		// Re-check for boxed kind, in case the postponed int-producing
+//		// instruction generated a boxed form somehow.
+//
+//		if (!currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
+//		{
+//			// Simply unbox it.
+//			+L2_UNBOX_INT(
+//				currentManifest.readBoxed(semanticValue),
+//				L2WriteIntOperand(
+//					setOf(semanticValue),
+//					restriction,
+//					L2IntRegister(nextUnique())))
+//		}
 		return currentManifest.readInt(semanticValue)
 	}
 

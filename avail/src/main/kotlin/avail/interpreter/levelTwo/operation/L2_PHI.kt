@@ -243,10 +243,7 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 	 *   equivalent effect.
 	 */
 	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
-	): L2Instruction?
-	{
-		return null
-	}
+	): L2Instruction? = null
 
 	/**
 	 * Phi instructions cannot be replaced by moves in this way.  However,
