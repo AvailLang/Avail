@@ -984,6 +984,10 @@ class L2ValueManifest
 					!= null)
 				return
 		}
+		// MOVE_CONSTANT instructions should not be postponed; they should be
+		// emitted immediately or replaced with constant folding.
+		if (instruction is L2_MOVE_CONSTANT<*, *>)
+			return
 		installOrFoldPostponed(semanticValue, instruction)
 	}
 
@@ -2807,7 +2811,13 @@ class L2ValueManifest
 		{
 			return semanticValue.constantRestrictionOrNull!!
 		}
-		val equivalent = equivalentSemanticValue(semanticValue)!!
+		val equivalent = equivalentSemanticValue(semanticValue)
+		if (equivalent == null)
+		{
+			// Semantic value doesn't exist in this manifest. This can happen
+			// with dummy values or registers in late optimization stages.
+			return topRestriction
+		}
 		return stateOrNull(equivalent)!!.restriction
 	}
 
