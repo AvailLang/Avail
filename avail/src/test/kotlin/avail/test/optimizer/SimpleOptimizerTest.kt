@@ -130,6 +130,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
@@ -3131,5 +3132,67 @@ class SimpleOptimizerTest
 		}
 
 		helper.testOptimize(rawFunction)
+	}
+
+	@Test
+	fun testSemanticRestrictionOfTupleSubtractionL2Execution()
+	{
+		// Regression test for Tuples:4429 - ensure the max call result check
+		// is not unconditionally failing during L2 translation.
+		// The bug was that the passed-check branch would emit an ImpossibleCode
+		// instruction due to manifest state corruption at the merge point before
+		// the max call's result type check.
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			// Constants
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			// Outers
+			val tupleTypeOuter = createOuter(tupleMeta)
+			declareName("tupleType")
+
+			// :: union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+			L1_doPushOuter(tupleTypeOuter)
+			pushLiteral(one)
+			L1_doPushOuter(tupleTypeOuter)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			// :: <union… | 0 max (⌊tupleType⌋-1).. ⌈tupleType⌉>
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushOuter(tupleTypeOuter)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastOuter(tupleTypeOuter)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		// Force L2 optimization. This should not fail with
+		// "return result disagreed with expected type" for the max call.
+		// The bug manifested as the passed-check branch becoming unreachable
+		// due to an impossible restriction in the manifest at the merge point.
+		helper.testOptimize(rawFunction)
+
+		// Verify the compiled chunk contains return instructions.
+		// If the passed-check branch became unreachable, the return paths
+		// would be eliminated during dead code removal.
+		val startingChunk = rawFunction.startingChunk
+		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
+			instruction is L2_RETURN
+		}
+		assertTrue(hasReturnInstructions,
+			"Compiled chunk should contain return instructions; " +
+			"if not, the passed-check branch was likely made unreachable")
 	}
 }
