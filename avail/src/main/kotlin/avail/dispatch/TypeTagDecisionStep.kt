@@ -541,10 +541,17 @@ constructor(
 			}
 		}
 		val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
+		val edgesToEmit = finalEdges.filterNotNull()
+		// Paranoia: ensure no duplicate L2PcOperand objects in the edges list
+		// (each edge must be a unique object, not reused references).
+		assert(edgesToEmit.size == edgesToEmit.toSet().size) {
+			"Duplicate edge references detected: ${edgesToEmit.size} edges " +
+				"but only ${edgesToEmit.toSet().size} unique"
+		}
 		splitter.run {
 			emitSplitterInstruction(
 				readIntNoFail(semanticTag),
-				finalEdges.filterNotNull())
+				edgesToEmit)
 		}
 		return reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
 			val edge = edges[index]
