@@ -3195,4 +3195,5 @@ class SimpleOptimizerTest
 			"Compiled chunk should contain return instructions; " +
 			"if not, the passed-check branch was likely made unreachable")
 	}
+
 }

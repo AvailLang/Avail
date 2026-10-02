@@ -1404,8 +1404,13 @@ constructor() :
 		// Check if any read has been narrowed to a constant. If so, or if any
 		// read's restriction is strictly stronger than what we'd expect for a
 		// non-specialized read, return a clone for re-emission and specialization.
+		// If a read's semantic value doesn't exist in this manifest, it hasn't been
+		// generated in this control path yet, so check only its own constant.
 		val anyConstantRead = readOperands.any { read ->
-			manifest.restrictionFor(read).isConstant
+			val sv = read.semanticValue()
+			if (sv.isConstant) return@any true
+			val equivalent = equivalentSemanticValue(sv)
+			equivalent != null && stateOrNull(equivalent)?.restriction?.isConstant == true
 		}
 		if (!anyConstantRead) return null
 
