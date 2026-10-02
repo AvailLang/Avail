@@ -79,4 +79,20 @@ internal constructor(
 	 */
 	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.CONSTANT_NIL
+
+	companion object
+	{
+		/** Counter for generating unique dummy semantic value indices. */
+		private var nextDummyIndex = 0
+
+		/**
+		 * Create a new dummy semantic value for use in register-based dataflow
+		 * contexts (e.g., the make-immutables pass).
+		 *
+		 * @param comment Optional description of the dummy's purpose.
+		 * @return A new L2SemanticDummy with a unique index.
+		 */
+		fun create(comment: String? = null): L2SemanticDummy =
+			L2SemanticDummy(nextDummyIndex++, comment)
+	}
 }

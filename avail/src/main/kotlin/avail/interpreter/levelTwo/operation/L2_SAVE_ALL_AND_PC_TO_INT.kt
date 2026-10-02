@@ -60,6 +60,7 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_R
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.notNullAnd
@@ -330,9 +331,18 @@ constructor(
 		val referenceManifest = reference.manifest()
 		val reads = boxedRegisters.map { register ->
 			val synonyms = referenceManifest.synonymsForRegister(register)
-			val read = L2ReadBoxedOperand(
-				synonyms.first().pickSemanticValue(),
-				register)
+			val semanticValue = when
+			{
+				synonyms.isNotEmpty() -> synonyms.first().pickSemanticValue()
+				else ->
+				{
+					// Register is live but has no synonym in manifest (common at
+					// this late stage when dataflow is register-based). Create a
+					// dummy semantic value to represent it.
+					L2SemanticDummy.create("Live register: $register")
+				}
+			}
+			val read = L2ReadBoxedOperand(semanticValue, register)
 			register.addUse(read)
 			read
 		}
