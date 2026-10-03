@@ -34,7 +34,7 @@ import java.io.File
 
 plugins {
 	id("java")
-	kotlin("jvm") version "2.4.0"
+	kotlin("jvm") version "2.4.20"
 	id("com.gradleup.shadow") version "9.3.1"
 }
 

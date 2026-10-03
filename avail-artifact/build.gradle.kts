@@ -1,12 +1,12 @@
+
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.File
 
 plugins {
-	kotlin("jvm") version "2.4.0"
+	kotlin("jvm") version "2.4.20"
 	`maven-publish`
 	publishing
 	signing

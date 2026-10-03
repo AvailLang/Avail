@@ -37,7 +37,7 @@ import java.util.Locale
 
 plugins {
 	id("java")
-	kotlin("jvm") version "2.4.0"
+	kotlin("jvm") version "2.4.20"
 	id("com.gradleup.shadow") version "9.3.1"
 }
 
@@ -47,7 +47,7 @@ repositories {
 }
 
 /** The language level version of Kotlin. */
-val kotlinLanguage = "2.4.0"
+val kotlinLanguage = "2.4.20"
 
 /**
  * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
@@ -57,7 +57,7 @@ val kotlinLanguage = "2.4.0"
 val jvmTarget = 26
 
 /**
- * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4.0 supports
+ * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4.20 supports
  * emitting JVM 26 bytecode on a JDK 26 toolchain, so this matches [jvmTarget].
  */
 val jvmBytecodeTarget = 26

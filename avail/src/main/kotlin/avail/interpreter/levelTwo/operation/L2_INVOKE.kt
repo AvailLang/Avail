@@ -37,6 +37,10 @@ import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2Chunk
@@ -44,6 +48,7 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -72,12 +77,26 @@ import org.objectweb.asm.Opcodes.DUP
  * type against its expectation (prior to the value getting captured in any
  * continuation).
  *
+ * Note that the invoked function might read or write any of the state variables
+ * covered by [HiddenVariable], so this instruction has the same broad flags to
+ * prevent other instructions from being reordered around an invocation, unless
+ * they're completely free of these constraints.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable(
+	CURRENT_CONTINUATION::class,
+	CURRENT_FUNCTION::class,
 	LATEST_RETURN_VALUE::class,
-	STACK_REIFIER::class)
+	STACK_REIFIER::class,
+	GLOBAL_STATE::class)
+@ReadsHiddenVariable(
+	CURRENT_CONTINUATION::class,
+	CURRENT_FUNCTION::class,
+	LATEST_RETURN_VALUE::class,
+	STACK_REIFIER::class,
+	GLOBAL_STATE::class)
 class L2_INVOKE(
 	var calledFunction: L2ReadBoxedOperand,
 	var arguments: L2ReadBoxedVectorOperand,

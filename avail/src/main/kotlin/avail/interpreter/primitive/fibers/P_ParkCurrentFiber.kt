@@ -46,6 +46,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive0
 
@@ -63,7 +64,11 @@ import avail.interpreter.primitive.Primitive0
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ParkCurrentFiber : Primitive0(CannotFail, CanSuspend, Unknown)
+object P_ParkCurrentFiber : Primitive0(
+	CannotFail,
+	CanSuspend,
+	Unknown,
+	HasSideEffect)
 {
 	override fun attempt0(
 		interpreter: Interpreter

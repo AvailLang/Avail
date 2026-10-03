@@ -48,11 +48,11 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L1Translator
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue.Companion.constant
@@ -103,6 +103,13 @@ private constructor(
 	/** It depends on the primitive. */
 	override val hasSideEffect: Boolean
 		get() = primitive.constant.l2HasSideEffect
+
+	override val canBePostponed: Boolean
+		get() = primitive.constant.run {
+			l2ReadInterferenceMask == 0
+				&& l2WriteInterferenceMask == 0
+				&& !l2HasSideEffect
+		}
 
 	/** Defer to the primitive. */
 	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =

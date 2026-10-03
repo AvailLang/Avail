@@ -1523,7 +1523,6 @@ final class Interpreter(
 		theReifiedContinuation = continuation as AvailObject?
 		if (debugL2)
 		{
-			var off = -999999
 			val text = when
 			{
 				continuation === null -> "null"
@@ -1553,7 +1552,7 @@ final class Interpreter(
 					val line = code.codeStartingLineNumber
 					if (line != 0) name += ":$line"
 					val pc = continuation.pc
-					off = continuation.levelTwoOffset
+					val off = continuation.levelTwoOffset
 					when
 					{
 						continuation.levelTwoChunk == DefaultL1Chunk ->
@@ -1566,7 +1565,7 @@ final class Interpreter(
 			traceL2(
 				(chunk?.executableChunk ?: DefaultL1ExecutableChunk),
 				this,
-				off,
+				offset,
 				"Set continuation",
 				arrayOf(text))
 		}
@@ -2621,7 +2620,7 @@ final class Interpreter(
 	 * resumption uses [theReifiedContinuation] as its caller, even if there
 	 * are unreified JVM stack frames.  Any subsequent return or reification
 	 * will be handled the same as if it was never running the current L2
-	 * chunk and had always be running the unoptimized L1.
+	 * chunk and had always been running the unoptimized L1.
 	 *
 	 * @param pc
 	 *   The Level One program counter to set in the continuation.
@@ -2630,15 +2629,17 @@ final class Interpreter(
 	 * @param slots
 	 *   The (boxed) [AvailObject]s used to set up the continuation's slots.
 	 * @return
-	 *   Always `null`, after setting up this interpreter to immediately resume
-	 *   the continuation.
+	 *   The result of running the default chunk to continue making progress on
+	 *   this continuation.  If it completes, it returns the produced value, and
+	 *   if it reifies instead, it answers `null` after setting up the
+	 *   [currentReifier].
 	 */
 	@ReferencedInGeneratedCode
 	fun fallBackToL1(
 		pc: Int,
 		stackp: Int,
 		slots: Array<A_BasicObject>
-	) : StackReifier?
+	) : A_BasicObject?
 	{
 		setReifiedContinuation(
 			createContinuationWithFrame(
@@ -2653,7 +2654,7 @@ final class Interpreter(
 				zeroBasedStartIndex = 0))
 		chunk = DefaultL1Chunk
 		offset = DefaultEntryPoint.RESUME.offset
-		return null
+		return runChunk()
 	}
 
 	/**

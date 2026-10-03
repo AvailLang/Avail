@@ -96,10 +96,10 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.L2Optimizer
+import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedField.Companion.staticField
 import avail.performance.Statistic
@@ -1430,13 +1430,13 @@ class JVMTranslator constructor(
 	private fun dumpL1SourceToFile(fileName: Path): String? =
 		try
 		{
-			val builder = StringBuilder()
-			builder.append(chunkName)
-			builder.append(":\n\n")
-			val disassembler = L1Disassembler(code!!)
-			disassembler.print(builder, IdentityHashMap(), 0)
-
-			val buffer = StandardCharsets.UTF_8.encode(builder.toString())
+			val source = buildString {
+				append(chunkName)
+				append(":\n\n")
+				val disassembler = L1Disassembler(code!!)
+				disassembler.print(this@buildString, IdentityHashMap(), 0)
+			}
+			val buffer = StandardCharsets.UTF_8.encode(source)
 			val bytes = ByteArray(buffer.limit())
 			buffer.get(bytes)
 			Files.write(fileName, bytes)
@@ -1451,6 +1451,7 @@ class JVMTranslator constructor(
 				classInternalName)
 			null
 		}
+
 
 	/**
 	 * Dump the [visualized][L2ControlFlowGraphVisualizer] [L2ControlFlowGraph]
@@ -1958,7 +1959,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = false
+		const val debugNicerJavaDecompilation = true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -1995,7 +1996,7 @@ class JVMTranslator constructor(
 		 * NOTE: This is a feature switch. If you want to enter the area of
 		 * code that is protected by this switch, set the to true.
 		 */
-		const val callTraceL2AfterEveryInstruction = false
+		const val callTraceL2AfterEveryInstruction = true
 
 		/** Helper for stripping "_TAG" from end of tag names. */
 		val tagEndPattern: Pattern = Pattern.compile("_TAG$")

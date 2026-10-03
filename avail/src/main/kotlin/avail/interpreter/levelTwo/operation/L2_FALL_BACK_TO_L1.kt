@@ -98,7 +98,7 @@ class L2_FALL_BACK_TO_L1(
 			A_BasicObject::class.java)
 		// :: interpreter, pc, stackp, frameValues
 		generateCall(fallBackToL1Method)
-		// :: stack reifier (= null)
+		// :: return value or null
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }
