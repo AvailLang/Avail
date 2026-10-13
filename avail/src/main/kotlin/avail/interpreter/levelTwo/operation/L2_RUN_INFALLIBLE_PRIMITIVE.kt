@@ -105,11 +105,7 @@ private constructor(
 		get() = primitive.constant.l2HasSideEffect
 
 	override val canBePostponed: Boolean
-		get() = primitive.constant.run {
-			l2ReadInterferenceMask == 0
-				&& l2WriteInterferenceMask == 0
-				&& !l2HasSideEffect
-		}
+		get() = false // DEBUGGING: Disable primitive postponement
 
 	/** Defer to the primitive. */
 	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =

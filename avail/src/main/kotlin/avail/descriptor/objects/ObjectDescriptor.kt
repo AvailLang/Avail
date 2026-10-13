@@ -53,6 +53,7 @@ import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.A_Map
 import avail.descriptor.representation.A_Map.Companion.forEachInMap
@@ -673,9 +674,7 @@ class ObjectDescriptor internal constructor(
 
 		/** Access the [setField] method. */
 		val setFieldMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::setField.name,
-			AvailObject::class.java,
+			::setField,
 			AvailObject::class.java,
 			int,
 			A_BasicObject::class.java)
@@ -715,9 +714,7 @@ class ObjectDescriptor internal constructor(
 		 */
 		@Suppress("unused")
 		val objectFromMapMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::objectFromMap.name,
-			AvailObject::class.java,
+			::objectFromMap,
 			A_Map::class.java)
 
 		/**
@@ -767,9 +764,7 @@ class ObjectDescriptor internal constructor(
 		 * Access the [createUninitializedObject] static method.
 		 */
 		val createUninitializedObjectMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::createUninitializedObject.name,
-			AvailObject::class.java,
+			::createUninitializedObject,
 			ObjectLayoutVariant::class.java,
 			A_Type::class.java)
 
@@ -788,9 +783,7 @@ class ObjectDescriptor internal constructor(
 
 		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
 		val staticObjectVariantIdMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::staticObjectVariantId.name,
-			int,
+			::staticObjectVariantId,
 			AvailObject::class.java)
 	}
 }

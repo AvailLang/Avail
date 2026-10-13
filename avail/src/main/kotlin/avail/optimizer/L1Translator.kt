@@ -175,7 +175,10 @@ import avail.interpreter.levelTwo.operation.variables.L2_CHECK_ESCAPED_LOCALS
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_UNESCAPED_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING_IF_MUTABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.Primitive
@@ -612,6 +615,8 @@ class L1Translator private constructor(
 	 */
 	fun emitCheckLocals(actuallyCheck: Boolean, comment: String)
 	{
+		if (!enableVariableElision) return
+
 		if (numLocals == 0) return
 		val ifSafe = createBasicBlock("locals are safe")
 		val ifFallBack = createBasicBlock(
@@ -1073,6 +1078,24 @@ class L1Translator private constructor(
 		// when the downstream one gets its turn, it'll see that it has a block
 		// built for it and that it's reachable.
 		callSiteHelper.generateReachableJunctions()
+
+		// Now we're after the call.  Along every path here, each local was
+		// either checked and moved into a new semantic slot, or just moved. The
+		// semanticSlots array must not have changed.  Now update it to use
+		// those new semantic slots.
+		if (currentlyReachable() && enableVariableElision)
+		{
+			(numArgs + 1 .. numArgs + numLocals).forEach { slotIndex ->
+				currentManifest
+					.restrictionFor(semanticSlot(slotIndex))
+					.constantOrNull
+					?: run {
+						val newSlot = createSemanticSlot(slotIndex, pc)
+						assert(currentManifest.hasSemanticValue(newSlot))
+						forceSlot(slotIndex, newSlot)
+					}
+			}
+		}
 	}
 
 	/**
@@ -1942,8 +1965,6 @@ class L1Translator private constructor(
 		val extractedValue = createSemanticSlot(stackp, pc)
 		val variable = semanticSlot(localSlotIndex)
 		val variableRestriction = currentManifest.restrictionFor(variable)
-		val variableOut = createSemanticSlot(localSlotIndex, pc)
-		forceSlot(localSlotIndex, variableOut)
 
 		val success = createBasicBlock("successfully read variable")
 		val failure = createBasicBlock(
@@ -1952,29 +1973,51 @@ class L1Translator private constructor(
 			isCold = true)
 
 		// Emit the specified get-variable instruction variant.
-		if (clear)
-		{
-			+L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
-				frame = L2ArbitraryConstantOperand(topFrame),
-				variable = readBoxed(variable),
-				variableOut = boxedWrite(variableOut, variableRestriction),
-				extractedValue = boxedWrite(
-					extractedValue,
-					restrictionForType(variableRestriction.type.readType)),
-				ifReadSucceeded = edgeTo(success),
-				ifReadFailed = edgeTo(failure))
-		}
-		else
-		{
-			+L2_GET_UNESCAPED_LOCAL_VARIABLE(
-				frame = L2ArbitraryConstantOperand(topFrame),
-				variable = readBoxed(variable),
-				variableOut = boxedWrite(variableOut, variableRestriction),
-				extractedValue = boxedWrite(
-					extractedValue,
-					restrictionForType(variableRestriction.type.readType)),
-				ifReadSucceeded = edgeTo(success),
-				ifReadFailed = edgeTo(failure))
+		when {
+			!enableVariableElision && clear -> {
+				+L2_GET_VARIABLE_CLEARING_IF_MUTABLE(
+					variable = readBoxed(variable),
+					extractedValue = boxedWrite(
+						extractedValue,
+						restrictionForType(variableRestriction.type.readType)),
+					ifReadSucceeded = edgeTo(success),
+					ifReadFailed = edgeTo(failure))
+			}
+			!enableVariableElision -> {
+				+L2_GET_VARIABLE(
+					variable = readBoxed(variable),
+					extractedValue = boxedWrite(
+						extractedValue,
+						restrictionForType(variableRestriction.type.readType)),
+					ifReadSucceeded = edgeTo(success),
+					ifReadFailed = edgeTo(failure))
+			}
+			clear -> {
+				val variableOut = createSemanticSlot(localSlotIndex, pc)
+				forceSlot(localSlotIndex, variableOut)
+				+L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
+					frame = L2ArbitraryConstantOperand(topFrame),
+					variable = readBoxed(variable),
+					variableOut = boxedWrite(variableOut, variableRestriction),
+					extractedValue = boxedWrite(
+						extractedValue,
+						restrictionForType(variableRestriction.type.readType)),
+					ifReadSucceeded = edgeTo(success),
+					ifReadFailed = edgeTo(failure))
+			}
+			else -> {
+				val variableOut = createSemanticSlot(localSlotIndex, pc)
+				forceSlot(localSlotIndex, variableOut)
+				+L2_GET_UNESCAPED_LOCAL_VARIABLE(
+					frame = L2ArbitraryConstantOperand(topFrame),
+					variable = readBoxed(variable),
+					variableOut = boxedWrite(variableOut, variableRestriction),
+					extractedValue = boxedWrite(
+						extractedValue,
+						restrictionForType(variableRestriction.type.readType)),
+					ifReadSucceeded = edgeTo(success),
+					ifReadFailed = edgeTo(failure))
+			}
 		}
 		startBlock(failure)
 		if (currentlyReachable())
@@ -2153,14 +2196,35 @@ class L1Translator private constructor(
 		// graph.  We'll set them to new variables right after the interrupt has
 		// been serviced and resumed safely (from a continuation that isn't
 		// shared or immutable).
-		val elidedLocalPlaceholders = (1..numLocals).map { localindex ->
-			newPlaceholder(code.localTypeAt(localindex), localindex)
-		}
-		for (localIndex in 1 .. numLocals)
+		val elidedLocalPlaceholders: List<AvailObject>
+		if (enableVariableElision)
 		{
-			forceConstantSlot(
-				numArgs + localIndex,
-				elidedLocalPlaceholders[localIndex - 1])
+			elidedLocalPlaceholders = (1..numLocals).map { localindex ->
+				newPlaceholder(code.localTypeAt(localindex), localindex)
+			}
+			for (localIndex in 1..numLocals)
+			{
+				forceConstantSlot(
+					numArgs + localIndex,
+					elidedLocalPlaceholders[localIndex - 1])
+			}
+		}
+		else
+		{
+			elidedLocalPlaceholders = (1..numLocals).map { nil }
+			for (localIndex in 1..numLocals)
+			{
+				val localType = code.localTypeAt(localIndex)
+				+L2_CREATE_VARIABLE(
+					localIndex = L2IntImmediateOperand(localIndex),
+					outerType = L2ConstantOperand(localType),
+					variable = writeSlot(
+						numArgs + localIndex,
+						pc,
+						restrictionForType(localType)),
+					initialValueOrNil = boxedConstant(nil),
+					constantVariableIfElided = L2ConstantOperand(nil))
+			}
 		}
 		var startOfConstantsToClear = numArgs + numLocals + 1
 		primitive?.let {
@@ -2190,19 +2254,23 @@ class L1Translator private constructor(
 		// Finally, create the remaining local variables.  These creation
 		// instructions will migrate through the graph during optimization,
 		// allowing some to be elided entirely.
-		for (localIndex in 1 .. numLocals)
+		if (enableVariableElision)
 		{
-			val localType = code.localTypeAt(localIndex)
-			+L2_CREATE_VARIABLE(
-				localIndex = L2IntImmediateOperand(localIndex),
-				outerType = L2ConstantOperand(localType),
-				variable = writeSlot(
-					numArgs + localIndex,
-					pc,
-					restrictionForType(localType)),
-				initialValueOrNil = boxedConstant(nil),
-				constantVariableIfElided =
-					L2ConstantOperand(elidedLocalPlaceholders[localIndex - 1]))
+			for (localIndex in 1 .. numLocals)
+			{
+				val localType = code.localTypeAt(localIndex)
+				+L2_CREATE_VARIABLE(
+					localIndex = L2IntImmediateOperand(localIndex),
+					outerType = L2ConstantOperand(localType),
+					variable = writeSlot(
+						numArgs + localIndex,
+						pc,
+						restrictionForType(localType)),
+					initialValueOrNil = boxedConstant(nil),
+					constantVariableIfElided =
+						L2ConstantOperand(
+							elidedLocalPlaceholders[localIndex - 1]))
+			}
 		}
 
 		val nybblecodeMap = mutableMapOf<Int, String>()
@@ -2271,23 +2339,6 @@ class L1Translator private constructor(
 		val bundle = code.literalAt(instructionDecoder.getOperand())
 		val expectedType = code.literalAt(instructionDecoder.getOperand())
 		generateCall(bundle, expectedType, bottom)
-		// Now we're after the call.  Along every path here, each local was
-		// either checked and moved into a new semantic slot, or just moved. The
-		// semanticSlots array must not have changed.  Now update it to use
-		// those new semantic slots.
-		if (currentlyReachable())
-		{
-			(numArgs + 1 .. numArgs + numLocals).forEach { slotIndex ->
-				currentManifest
-					.restrictionFor(semanticSlot(slotIndex))
-					.constantOrNull
-					?: run {
-						val newSlot = createSemanticSlot(slotIndex, pc)
-						assert(currentManifest.hasSemanticValue(newSlot))
-						forceSlot(slotIndex, newSlot)
-					}
-			}
-		}
 	}
 
 	override fun L1_doPushLiteral()
@@ -2360,19 +2411,45 @@ class L1Translator private constructor(
 
 	override fun L1_doSetLocal()
 	{
-		// Output an [L2_VIRTUAL_SET_VARIABLE] instruction, which is free to be
-		// postponed by an optimization pass.
 		val slotIndex = instructionDecoder.getOperand()
 		// Note that L1 raw functions statically guarantee that the value will
 		// always satisfy a local variable's content type.
-		+L2_SET_UNESCAPED_LOCAL_VARIABLE(
-			readSlot(slotIndex),
-			readSlot(stackp),
-			writeSlot(
-				slotIndex,
-				pc,
-				restrictionForType(
-					code.localTypeAt(slotIndex - numArgs))))
+		if (enableVariableElision)
+		{
+			// Optimized translation: use unescaped local variant, which can be
+			// postponed by optimization passes.
+			+L2_SET_UNESCAPED_LOCAL_VARIABLE(
+				readSlot(slotIndex),
+				readSlot(stackp),
+				writeSlot(
+					slotIndex,
+					pc,
+					restrictionForType(
+						code.localTypeAt(slotIndex - numArgs))))
+		}
+		else
+		{
+			// Naive translation: use standard set variable instruction
+			val success = createBasicBlock("set local success")
+			val failure = createBasicBlock(
+				"set local failure",
+				isCold = true)
+			+L2_SET_VARIABLE(
+				variable = readSlot(slotIndex),
+				valueToWrite = readSlot(stackp),
+				ifWriteSucceeded = edgeTo(success),
+				ifWriteFailed = edgeTo(failure))
+			startBlock(failure)
+			if (currentlyReachable())
+			{
+				+L2_FALL_BACK_TO_L1(
+					L2IntImmediateOperand(pcOfCurrentInstruction),
+					L2IntImmediateOperand(stackpOfCurrentInstruction),
+					L2ReadBoxedVectorOperand(semanticSlots.map(::readBoxed)))
+			}
+			assert(!currentlyReachable())
+			startBlock(success)
+		}
 		nilSlot(stackp)
 		stackp++
 	}
@@ -2582,13 +2659,6 @@ class L1Translator private constructor(
 		val superUnionType: A_Type =
 			code.literalAt(instructionDecoder.getOperand())
 		generateCall(bundle, expectedType, superUnionType)
-		// Now we're after the (super) call.  Along every path here, each local
-		// was either checked and moved into a new semantic slot, or just moved.
-		// The semanticSlots array must not have changed.  Now update it to use
-		// those new semantic slots.
-		(numArgs + 1 .. numArgs + numLocals).forEach { slotIndex ->
-			forceSlot(slotIndex, createSemanticSlot(slotIndex, pc))
-		}
 	}
 
 	override fun L1Ext_doSetLocalSlot()
@@ -2602,6 +2672,9 @@ class L1Translator private constructor(
 
 	companion object
 	{
+		/** Feature flag to enable/disable variable elision optimization. */
+		const val enableVariableElision = false
+
 		/**
 		 * Determine if the given [A_RawFunction]'s instantiations as
 		 * [A_Function]s must be mutually equal.

@@ -401,9 +401,7 @@ interface A_Fiber : A_BasicObject
 
 		/** The [CheckedMethod] for [getFiberPriority]. */
 		val getFiberPriorityMethod = CheckedMethod.staticMethod(
-			A_Fiber::class.java,
-			::getFiberPriority.name,
-			int,
+			::getFiberPriority,
 			A_Fiber::class.java)
 
 

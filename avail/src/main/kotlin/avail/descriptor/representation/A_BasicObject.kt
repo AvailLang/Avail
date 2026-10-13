@@ -52,7 +52,6 @@ import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailException
-import avail.interpreter.JavaLibrary.boolean
 import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -475,29 +474,6 @@ interface A_BasicObject : JSONFriendly
 	 * Note: [nil] is never the target of an indirection.
 	 */
 	val notNil get() = this !== nil
-
-	/**
-	 * If the receiver [isNil], evaluate the [action].  Answer either the
-	 * non-nil receiver, or the result of the action.
-	 */
-	fun <T : A_BasicObject> ifNil(action: ()->T): T =
-		if (this === nil) action() else cast()
-
-	/**
-	 * If the receiver [isNil], evaluate the [action].  Answer either the
-	 * non-nil receiver, or the result of the action.  The lambda is allowed to
-	 * be nullable in this version.
-	 */
-	fun <T : A_BasicObject> ifNilNullable(action: ()->T?): T? =
-		if (this === nil) action() else cast()
-
-	/**
-	 * If the receiver is [notNil], evaluate the [action] with it.
-	 */
-	fun <T : A_BasicObject> ifNotNil(action: (T)->Unit)
-	{
-		if (notNil) action(cast())
-	}
 
 	/**
 	 * If the receiver is [notNil], evaluate the [action] with it, answering the
@@ -1186,6 +1162,24 @@ interface A_BasicObject : JSONFriendly
 				descriptor.f(this as AvailObject)
 
 		/**
+		 * If the receiver [isNil], evaluate the [action].  Answer either the
+		 * non-nil receiver, or the result of the action.
+		 */
+		inline fun <A, B, C: A_BasicObject> A.ifNil(action: ()->B): C
+		where
+			A: C,
+			B: C
+		= if (this === nil) action() else this
+
+		/**
+		 * If the receiver is [notNil], evaluate the [action] with it.
+		 */
+		inline fun <T: A_BasicObject> A_BasicObject.ifNotNil(action: (T)->Unit)
+		{
+			if (notNil) action(cast())
+		}
+
+		/**
 		 * If the provided condition is true, synchronize with the receiver's
 		 * monitor around the execution of the body function.  Otherwise, run
 		 * the body function without synchronization.
@@ -1216,41 +1210,26 @@ interface A_BasicObject : JSONFriendly
 
 		/** The [CheckedMethod] for [equals]. */
 		val equalsMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::equals.name,
-			boolean,
+			A_BasicObject::equals,
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [isInstanceOf]. */
 		val isInstanceOfMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::isInstanceOf.name,
-			boolean,
+			A_BasicObject::isInstanceOf,
 			A_Type::class.java)
 
 		/** The [CheckedMethod] for [makeImmutable]. */
-		val makeImmutableMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::makeImmutable.name,
-			AvailObject::class.java)
+		val makeImmutableMethod = instanceMethod(A_BasicObject::makeImmutable)
 
 		/** The [CheckedMethod] for [makeSubobjectsImmutable]. */
 		@Suppress("unused")
 		val makeSubobjectsImmutableMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::makeSubobjectsImmutable.name,
-			AvailObject::class.java)
+			A_BasicObject::makeSubobjectsImmutable)
 
 		/** The [CheckedMethod] for [traversed]. */
-		val traversedMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::traversed.name,
-			AvailObject::class.java)
+		val traversedMethod = instanceMethod(A_BasicObject::traversed)
 
 		/** The [CheckedMethod] for [hash]. */
-		val hashMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::hash.name,
-			int)
+		val hashMethod = instanceMethod(A_BasicObject::hash)
 	}
 }

@@ -786,9 +786,7 @@ interface A_Phrase : A_BasicObject {
 
 		/** The [CheckedMethod] for [staticPhraseExpressionType][staticPhraseExpressionType]. */
 		val phraseExpressionTypeMethod = staticMethod(
-			A_Phrase::class.java,
-			A_Phrase::staticPhraseExpressionType.name,
-			A_Type::class.java,
+			A_Phrase::staticPhraseExpressionType,
 			A_Phrase::class.java)
 	}
 }

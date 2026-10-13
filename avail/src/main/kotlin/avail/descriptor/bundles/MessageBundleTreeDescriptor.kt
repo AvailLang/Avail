@@ -51,6 +51,7 @@ import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.A_Bundle
 import avail.descriptor.representation.A_Bundle.Companion.grammaticalRestrictions
 import avail.descriptor.representation.A_Bundle.Companion.messagePart

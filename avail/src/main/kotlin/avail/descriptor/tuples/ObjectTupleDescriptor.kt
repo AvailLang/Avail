@@ -67,6 +67,7 @@ import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByte
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.utility.disambiguate
 import kotlin.math.min
 
 /**
@@ -635,9 +636,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 
 		/** Access to the [tupleFromArray] method. */
 		val tupleFromArrayMethod = staticMethod(
-			ObjectTupleDescriptor::class.java,
-			::tupleFromArray.name,
-			A_Tuple::class.java,
+			::tupleFromArray,
 			Array<A_BasicObject>::class.java)
 
 		/**
@@ -659,13 +658,11 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/**
-		 * The [CheckedMethod] for [tuple].
+		 * The [CheckedMethod] for 1-argument [tuple].
 		 */
 		@Suppress("unused")
 		val tuple1Method = staticMethod(
-			ObjectTupleDescriptor::class.java,
-			"tuple",
-			A_Tuple::class.java,
+			disambiguate<(A_BasicObject)->A_Tuple>(::tuple),
 			A_BasicObject::class.java)
 
 		/**
@@ -723,13 +720,11 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/**
-		 * The [CheckedMethod] for [tuple].
+		 * The [CheckedMethod] for 2-argument [tuple].
 		 */
 		@Suppress("unused")
 		val tuple2Method = staticMethod(
-			ObjectTupleDescriptor::class.java,
-			"tuple",
-			A_Tuple::class.java,
+			disambiguate<(A_BasicObject, A_BasicObject)->A_Tuple>(::tuple),
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
 
@@ -761,13 +756,13 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/**
-		 * The [CheckedMethod] for [tuple].
+		 * The [CheckedMethod] for 3-argument [tuple].
 		 */
 		@Suppress("unused")
 		val tuple3Method = staticMethod(
-			ObjectTupleDescriptor::class.java,
-			"tuple",
-			A_Tuple::class.java,
+			disambiguate<
+					(A_BasicObject, A_BasicObject, A_BasicObject)->A_Tuple
+				>(::tuple),
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
@@ -804,13 +799,16 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/**
-		 * The [CheckedMethod] for [tuple].
+		 * The [CheckedMethod] for 4-argument [tuple].
 		 */
 		@Suppress("unused")
 		val tuple4Method = staticMethod(
-			ObjectTupleDescriptor::class.java,
-			"tuple",
-			A_Tuple::class.java,
+			disambiguate<(
+				A_BasicObject,
+				A_BasicObject,
+				A_BasicObject,
+				A_BasicObject)->A_Tuple
+				>(::tuple),
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,
@@ -852,13 +850,17 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/**
-		 * The [CheckedMethod] for [tuple].
+		 * The [CheckedMethod] for 5-argument [tuple].
 		 */
 		@Suppress("unused")
 		val tuple5Method = staticMethod(
-			ObjectTupleDescriptor::class.java,
-			"tuple",
-			A_Tuple::class.java,
+			disambiguate<(
+				A_BasicObject,
+				A_BasicObject,
+				A_BasicObject,
+				A_BasicObject,
+				A_BasicObject)->A_Tuple
+				>(::tuple),
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,

@@ -352,7 +352,7 @@ constructor() :
 	open val hasSideEffect get() = false
 
 	open val canBePostponed: Boolean
-		get() = !hasSideEffect && layout.hasSingleWriteOperand
+		get() = false //TODO:  !hasSideEffect && layout.hasSingleWriteOperand
 
 	/**
 	 * Answer whether, upon discovering all edges out of this instruction but
@@ -1817,7 +1817,7 @@ constructor() :
 	 * An [L2Synonym] is also captured.  This is the synonym that would be
 	 * populated by the postponed instruction.
 	 */
-	class InstructionEquivalence(
+	data class InstructionEquivalence(
 		val instruction: L2Instruction,
 		val synonym: L2Synonym)
 	{

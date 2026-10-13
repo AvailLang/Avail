@@ -1283,10 +1283,7 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 
 		/** The [CheckedMethod] for [A_RawFunction.codePrimitive]. */
-		val codePrimitiveMethod = instanceMethod(
-			A_RawFunction::class.java,
-			A_RawFunction::codePrimitive.name,
-			Primitive::class.java)
+		val codePrimitiveMethod = instanceMethod(A_RawFunction::codePrimitive)
 
 		/** The Avail string "Unknown function". */
 		val unknownFunctionName: A_String =

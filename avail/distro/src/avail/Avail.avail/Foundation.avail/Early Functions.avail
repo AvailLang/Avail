@@ -46,12 +46,14 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"_(«_‡,»)"
+	"_(«_‡,»)",
+	"[*]→_"
 Body
 
 Method "function accepting_and returning_"
 	is stable at [tuple of any meta, type]→function meta;
 Method "[«_‡,»]→_" is stable at [tuple of any meta, type]→function meta;
+Method "[*]→_" is stable at [type]→function meta;
 Method "_'s⁇parameters'type" is stable at [function meta]→tuple meta;
 Method "_'s⁇return type" is stable at [function meta]→type;
 
@@ -277,4 +279,37 @@ Semantic restriction "new_applying_" is
 	functionType : function meta
 |
 	requestedTypeMeta's instance
+];
+
+/**
+ * @method "[*]→_"
+ * Create a function type with contradictory arity – the type says an instance
+ * would have accept an arbitrary number of arguments, which is not something
+ * that a function (instance) can actually do.  Therefore, types produced by
+ * this method are below non-vacuous function types, but above bottom.
+ *
+ * This form is useful when building a continuation type from such a function
+ * type, due to continuations being contrravariant with beth return type and
+ * argument types.
+ */
+Method "[*]→_" is
+[
+	returnType : type
+|
+	/* Intersect a zero-argument and one-argument function type, each having
+	 * the expected return type.
+	 */
+	([]→returnType) ∩ ([⊥]→returnType)
+];
+
+/**
+ * @method "[*]→_"
+ * @restricts "type's type"
+ */
+Semantic restriction "[*]→_" is
+[
+	returnTypeMeta : type's type
+|
+	fType ::= [*]→(returnTypeMeta's instance);
+	fType's type
 ];

@@ -56,7 +56,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.MUTABLE
-import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteString
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -439,13 +438,13 @@ class ByteStringDescriptor private constructor(
 			self.sameAddressAs(aByteString) -> return true
 			self.tupleSize != aByteString.tupleSize -> return false
 			self.hash() != aByteString.hash() -> return false
-			// The longs array *must* be padded with zeros for the last 0-3
-			// shorts. Compare long-by-long.
+			// The longs array *must* be padded with zeros for the last 0-7
+			// bytes. Compare long-by-long.
 			!self.longSlotsCompare(aByteString as AvailObject, RAW_LONGS_) ->
 				return false
-			// They're equal, but occupy disjoint storage. If possible, replace one
-			// with an indirection to the other to keep down the frequency of
-			// character comparisons.
+			// They're equal, but occupy disjoint storage. If possible, replace
+			// one with an indirection to the other to keep down the frequency
+			// of character comparisons.
 			!isShared ->
 			{
 				aByteString.makeImmutable()
@@ -797,9 +796,7 @@ class ByteStringDescriptor private constructor(
 
 		/** The [CheckedMethod] for [createUninitializedByteString]. */
 		val createUninitializedByteStringMethod = staticMethod(
-			ByteStringDescriptor::class.java,
-			::createUninitializedByteString.name,
-			AvailObject::class.java,
+			::createUninitializedByteString,
 			int)
 
 		/**

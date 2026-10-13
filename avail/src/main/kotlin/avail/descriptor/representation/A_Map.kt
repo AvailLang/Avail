@@ -173,9 +173,7 @@ interface A_Map : A_BasicObject
 
 		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
 		val mapAtPuttingStaticMethod = staticMethod(
-			A_Map::class.java,
-			::mapAtPuttingStatic.name,
-			A_Map::class.java,
+			::mapAtPuttingStatic,
 			A_Map::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)

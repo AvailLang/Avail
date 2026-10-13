@@ -33,7 +33,6 @@ package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
-import avail.descriptor.representation.A_Continuation.Companion.frameAt
 import avail.descriptor.representation.A_Continuation.Companion.pc
 import avail.descriptor.representation.A_Continuation.Companion.stackp
 import avail.descriptor.representation.A_Function
@@ -83,7 +82,6 @@ object P_RestartContinuation : Primitive1(
 		interpreter: Interpreter,
 		originalCon: AvailObject
 	): A_BasicObject? = interpreter.run {
-
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
 		assert(originalCon.stackp == code.numSlots + 1)
@@ -96,16 +94,10 @@ object P_RestartContinuation : Primitive1(
 			"Continuation should have been a label- rather than " +
 				"call-continuation"
 		}
-
-		// Move the (original) arguments from the continuation into
-		// interpreter.argsBuffer.
-		val numArgs = code.numArgs()
-		val arguments = (1..numArgs).map { originalCon.frameAt(it) }
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
 		clearLatestResult()
-		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
-		return null
+		return createReifierToRestart(originalCon)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

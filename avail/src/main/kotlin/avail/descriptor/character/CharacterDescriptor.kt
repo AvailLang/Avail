@@ -32,8 +32,6 @@
 package avail.descriptor.character
 
 import avail.descriptor.character.CharacterDescriptor.Companion.characterCache
-import avail.descriptor.character.CharacterDescriptor.Companion.staticFromByteCodePoint
-import avail.descriptor.character.CharacterDescriptor.Companion.staticFromCodePoint
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.CODE_POINT
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.numbers.IntegerDescriptor
@@ -291,9 +289,7 @@ class CharacterDescriptor private constructor(
 
 		/** The [CheckedMethod] for [staticFromCodePoint]. */
 		val staticFromCodePointMethod = staticMethod(
-			CharacterDescriptor::class.java,
-			::staticFromCodePoint.name,
-			AvailObject::class.java,
+			::staticFromCodePoint,
 			int)
 
 		/**
@@ -318,9 +314,7 @@ class CharacterDescriptor private constructor(
 
 		/** The [CheckedMethod] for [staticFromByteCodePoint]. */
 		val staticFromByteCodePointMethod = staticMethod(
-			CharacterDescriptor::class.java,
-			::staticFromByteCodePoint.name,
-			AvailObject::class.java,
+			::staticFromByteCodePoint,
 			int)
 
 		/** The first 256 Unicode characters. */

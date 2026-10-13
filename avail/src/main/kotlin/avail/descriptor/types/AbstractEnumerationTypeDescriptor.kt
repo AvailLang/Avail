@@ -585,9 +585,7 @@ protected constructor(
 		 * The [CheckedMethod] for [instanceTypeOrMetaOn].
 		 */
 		val instanceTypeOrMetaOnMethod = staticMethod(
-			AbstractEnumerationTypeDescriptor::class.java,
-			::instanceTypeOrMetaOn.name,
-			A_Type::class.java,
+			::instanceTypeOrMetaOn,
 			A_BasicObject::class.java)
 	}
 }

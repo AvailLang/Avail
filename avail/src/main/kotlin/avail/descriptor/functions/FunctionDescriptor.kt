@@ -33,12 +33,6 @@ package avail.descriptor.functions
 
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
-import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
-import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
-import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
-import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters3
-import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters4
-import avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters5
 import avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -309,10 +303,7 @@ class FunctionDescriptor private constructor(
 	companion object
 	{
 		/** The [CheckedMethod] for [A_Function.code]. */
-		val functionCodeMethod = instanceMethod(
-			A_Function::class.java,
-			A_Function::code.name,
-			A_RawFunction::class.java)
+		val functionCodeMethod = instanceMethod(A_Function::code)
 
 		/**
 		 * Create a function that takes arguments of the specified types, then
@@ -467,9 +458,7 @@ class FunctionDescriptor private constructor(
 		 * Access the [createExceptOuters] method.
 		 */
 		val createExceptOutersMethod = staticMethod(
-			FunctionDescriptor::class.java,
-			::createExceptOuters.name,
-			AvailObject::class.java,
+			::createExceptOuters,
 			A_RawFunction::class.java,
 			int)
 
@@ -496,9 +485,7 @@ class FunctionDescriptor private constructor(
 		 * Access the [createWithOuters1] method.
 		 */
 		val createWithOuters1Method = staticMethod(
-			FunctionDescriptor::class.java,
-			::createWithOuters1.name,
-			AvailObject::class.java,
+			::createWithOuters1,
 			A_RawFunction::class.java,
 			AvailObject::class.java)
 
@@ -529,9 +516,7 @@ class FunctionDescriptor private constructor(
 		 * Access the [createWithOuters2] method.
 		 */
 		val createWithOuters2Method = staticMethod(
-			FunctionDescriptor::class.java,
-			::createWithOuters2.name,
-			AvailObject::class.java,
+			::createWithOuters2,
 			A_RawFunction::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java)
@@ -567,9 +552,7 @@ class FunctionDescriptor private constructor(
 		 * Access the [createWithOuters3] method.
 		 */
 		val createWithOuters3Method = staticMethod(
-			FunctionDescriptor::class.java,
-			::createWithOuters3.name,
-			AvailObject::class.java,
+			::createWithOuters3,
 			A_RawFunction::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -610,9 +593,7 @@ class FunctionDescriptor private constructor(
 		 * Access the [createWithOuters4] method.
 		 */
 		val createWithOuters4Method = staticMethod(
-			FunctionDescriptor::class.java,
-			::createWithOuters4.name,
-			AvailObject::class.java,
+			::createWithOuters4,
 			A_RawFunction::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -658,9 +639,7 @@ class FunctionDescriptor private constructor(
 		 * Access the [createWithOuters5] method.
 		 */
 		val createWithOuters5Method = staticMethod(
-			FunctionDescriptor::class.java,
-			::createWithOuters5.name,
-			AvailObject::class.java,
+			::createWithOuters5,
 			A_RawFunction::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -669,19 +648,11 @@ class FunctionDescriptor private constructor(
 			AvailObject::class.java)
 
 		/** Access the [A_Function.outerVarAt] method. */
-		val outerVarAtMethod = instanceMethod(
-			A_Function::class.java,
-			A_Function::outerVarAt.name,
-			AvailObject::class.java,
-			int)
+		val outerVarAtMethod = instanceMethod(A_Function::outerVarAt, int)
 
 		/** Access the [A_Function.outerVarAtPut] method. */
 		val outerVarAtPutMethod = instanceMethod(
-			A_Function::class.java,
-			A_Function::outerVarAtPut.name,
-			Void.TYPE,
-			int,
-			AvailObject::class.java)
+			A_Function::outerVarAtPut, int, AvailObject::class.java)
 
 		/**
 		 * Convert a [phrase][PhraseDescriptor] into a zero-argument

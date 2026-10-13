@@ -38,7 +38,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.exceptions.unsupported
 import avail.interpreter.JavaLibrary.int
-import avail.interpreter.JavaLibrary.long
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -181,18 +180,14 @@ interface A_RegisterDump : A_BasicObject
 		 * A [CheckedMethod] for invoking the method [extractDumpedObjectAt].
 		 */
 		val extractDumpedObjectAtMethod = instanceMethod(
-			A_RegisterDump::class.java,
-			A_RegisterDump::extractDumpedObjectAt.name,
-			AvailObject::class.java,
+			A_RegisterDump::extractDumpedObjectAt,
 			int)
 
 		/**
 		 * A [CheckedMethod] for invoking the method [extractDumpedLongAt].
 		 */
 		val extractDumpedLongAtMethod = instanceMethod(
-			A_RegisterDump::class.java,
-			A_RegisterDump::extractDumpedLongAt.name,
-			long,
+			A_RegisterDump::extractDumpedLongAt,
 			int)
 	}
 }

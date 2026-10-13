@@ -40,8 +40,8 @@ import avail.optimizer.jvm.CheckedField
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryInstanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryStaticMethod
+import avail.utility.disambiguate
 import java.util.concurrent.atomic.LongAdder
-import kotlin.reflect.KFunction
 
 // Alias the Java primitive classes for convenience.
 typealias JavaVoid = java.lang.Void
@@ -55,6 +55,7 @@ typealias JavaDouble = java.lang.Double
 
 // Alias some common Java utility classes.
 typealias JavaList = java.util.List<*>
+typealias JavaListOfAny = java.util.List<Any?>
 
 /**
  * [CheckedMethod]s and [CheckedField]s for the Java class library.
@@ -84,39 +85,36 @@ object JavaLibrary
 	val doubleBoxed = JavaDouble::class.java
 
 	/** Static method to cast from `long` to `double`. */
-	var bitCastLongToDoubleMethod =
-		javaLibraryStaticMethod(
-			doubleBoxed,
-			java.lang.Double::longBitsToDouble.name,
-			double,
-			long)
+	var bitCastLongToDoubleMethod = javaLibraryStaticMethod(
+		doubleBoxed,
+		java.lang.Double::longBitsToDouble.name,
+		double,
+		long)
 
 	/** Static method to cast from `double` to `long`. */
-	var bitCastDoubleToLongMethod =
-		javaLibraryStaticMethod(
-			doubleBoxed,
-			java.lang.Double::doubleToRawLongBits.name,
-			long,
-			double)
+	var bitCastDoubleToLongMethod = javaLibraryStaticMethod(
+		doubleBoxed,
+		java.lang.Double::doubleToRawLongBits.name,
+		long,
+		double)
 
 	/** The [CheckedMethod] for [Class.getClassLoader]. */
-	val getClassLoader =
-		javaLibraryInstanceMethod(
-			Class::class.java,
-			java.lang.Class<*>::getClassLoader.name,
-			ClassLoader::class.java)
+	val getClassLoader = javaLibraryInstanceMethod(
+		Class::class.java,
+		java.lang.Class<*>::getClassLoader.name,
+		ClassLoader::class.java)
 
 	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
 	val javaUnboxIntegerMethod = javaLibraryStaticMethod(
 		intBoxed,
-		"valueOf",
+		disambiguate<(Int)->Int>(JavaInteger::valueOf).name,
 		intBoxed,
 		int)
 
 	/** The [CheckedMethod] for *Java* [java.lang.Double.valueOf] boxing. */
 	val javaUnboxDoubleMethod = javaLibraryStaticMethod(
 		doubleBoxed,
-		"valueOf",
+		disambiguate<(Double)->Double>(JavaDouble::valueOf).name,
 		doubleBoxed,
 		double)
 
@@ -133,10 +131,10 @@ object JavaLibrary
 		JavaList::clear.name,
 		void)
 
-	/** The [CheckedMethod] for [java.util.List.add]. */
+	/** The [CheckedMethod] for [java.util.List.add] (Object). */
 	val listAddMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
-		"add",
+		disambiguate<JavaListOfAny.(Any?)->Boolean>(JavaListOfAny::add).name,
 		boolean,
 		Object::class.java)
 
@@ -149,7 +147,7 @@ object JavaLibrary
 	/** The [CheckedMethod] for taking the [Math.max] of two [Int]s. */
 	val intMaxMethod = javaLibraryStaticMethod(
 		java.lang.Math::class.java,
-		"max",
+		disambiguate<(Int, Int)->Int>(Math::max).name,
 		int,
 		int,
 		int)
@@ -157,7 +155,7 @@ object JavaLibrary
 	/** The [CheckedMethod] for taking the [Math.min] of two [Int]s. */
 	val intMinMethod = javaLibraryStaticMethod(
 		java.lang.Math::class.java,
-		"min",
+		disambiguate<(Int, Int)->Int>(Math::min).name,
 		int,
 		int,
 		int)

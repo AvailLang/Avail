@@ -1035,9 +1035,7 @@ class AvailRuntime constructor(
 		 * The [CheckedMethod] for [implicitObserveFunction].
 		 */
 		val implicitObserveFunctionMethod = instanceMethod(
-			AvailRuntime::class.java,
-			AvailRuntime::implicitObserveFunction.name,
-			A_Function::class.java)
+			AvailRuntime::implicitObserveFunction)
 
 		internal fun produceDefaultFunctionSupplier(
 			hookName: A_String,

@@ -32,7 +32,6 @@
 package avail.optimizer
 
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.frameAt
 import avail.descriptor.representation.A_Continuation.Companion.function
@@ -203,7 +202,7 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 	override fun runChunk(
 		interpreter: Interpreter,
 		offset: Int
-	): A_BasicObject?
+	): AvailObject?
 	{
 		if (offset == INITIAL_ENTRY.offset)
 		{
@@ -393,13 +392,14 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 	/**
 	 * Construct a [StackReifier] that will reify the current stack frame for
 	 * eventual resumption, process an interrupt after the reification, then
-	 * eventually continue running at the interrupt point.
+	 * eventually continue running at the interrupt point.  Always return `null`
+	 * (typed as nullable [AvailObject]) as a convenience.
 	 */
 	fun reifyForInterrupt(
 		interpreter: Interpreter,
 		frame: Array<AvailObject>,
 		statistic: Statistic
-	): A_BasicObject?
+	): AvailObject?
 	{
 		// Build an interrupted continuation, reify the rest of the stack, and
 		// push the continuation onto the reified stack. Then process the

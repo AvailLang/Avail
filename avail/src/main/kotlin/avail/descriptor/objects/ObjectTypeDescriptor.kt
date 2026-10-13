@@ -113,8 +113,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
@@ -1209,10 +1209,8 @@ class ObjectTypeDescriptor internal constructor(
 			anObjectType.objectTypeVariant.variantId
 
 		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
-		val staticObjectTypeVariantIdMethod = CheckedMethod.staticMethod(
-			ObjectTypeDescriptor::class.java,
-			::staticObjectTypeVariantId.name,
-			int,
+		val staticObjectTypeVariantIdMethod = staticMethod(
+			::staticObjectTypeVariantId,
 			AvailObject::class.java)
 	}
 }

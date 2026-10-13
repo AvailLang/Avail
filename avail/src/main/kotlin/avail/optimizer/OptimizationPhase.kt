@@ -93,9 +93,11 @@ internal enum class OptimizationPhase constructor(
 	 * profitable combination of conditions, allowing the code regeneration to
 	 * take advantage of the stronger condition along that path... at the
 	 * expense of producing more code.
+	 *
+	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	@Requires(IS_SSA::class)
-	DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
+	// @Requires(IS_SSA::class)
+	// DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -108,9 +110,11 @@ internal enum class OptimizationPhase constructor(
 	 * Note that this breaks SSA by duplicating defining instructions.
 	 * It also always recomputes liveness after each change, so there's no
 	 * need to recompute it after this phase.
+	 *
+	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_1(
-		L2Optimizer::postponeConditionallyUsedValues),
+	// POSTPONE_CONDITIONALLY_USED_VALUES_1(
+	// 	L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Postponing conditionally used values can introduce idempotent
@@ -124,9 +128,11 @@ internal enum class OptimizationPhase constructor(
 	 * Postponements may have exposed new opportunities for useful splitting.
 	 * For example, variable elision can allow i32 values to stay in int
 	 * registers longer without needing to be boxed as often.
+	 *
+	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	@Requires(IS_SSA::class)
-	DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
+	// @Requires(IS_SSA::class)
+	// DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -139,9 +145,11 @@ internal enum class OptimizationPhase constructor(
 	 * Note that this breaks SSA by duplicating defining instructions.
 	 * It also always recomputes liveness after each change, so there's no
 	 * need to recompute it after this phase.
+	 *
+	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_2(
-		L2Optimizer::postponeConditionallyUsedValues),
+	// POSTPONE_CONDITIONALLY_USED_VALUES_2(
+	// 	L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
@@ -166,9 +174,11 @@ internal enum class OptimizationPhase constructor(
 	/**
 	 * If [REPLACE_PLACEHOLDER_INSTRUCTIONS] made any changes, give one more try
 	 * at pushing conditionally used values.  Otherwise do nothing.
+	 *
+	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_3(
-		L2Optimizer::postponeConditionallyUsedValues),
+	// POSTPONE_CONDITIONALLY_USED_VALUES_3(
+	// 	L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in

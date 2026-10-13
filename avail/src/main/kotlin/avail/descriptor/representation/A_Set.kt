@@ -34,7 +34,6 @@ package avail.descriptor.representation
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.TupleDescriptor
-import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -253,9 +252,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 
 		/** The [CheckedMethod] for [setSizeStatic]. */
 		val setSizeMethod = staticMethod(
-			A_Set::class.java,
-			::setSizeStatic.name,
-			int,
+			::setSizeStatic,
 			AvailObject::class.java)
 
 		/**
@@ -272,9 +269,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 
 		/** The [CheckedMethod] for [setWithElementStatic]. */
 		val setWithElementMethod = staticMethod(
-			A_Set::class.java,
-			::setWithElementStatic.name,
-			AvailObject::class.java,
+			::setWithElementStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 	}

@@ -39,7 +39,6 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
-import java.util.Collections.unmodifiableList
 
 /**
  * An [L2ReadVectorOperand] is an operand of type
@@ -52,15 +51,9 @@ import java.util.Collections.unmodifiableList
  */
 abstract class L2ReadVectorOperand<out R: L2ReadOperand<*>>
 constructor(
-	elements: List<R>
+	val elements: List<R>
 ) : L2Operand()
 {
-	/** The [List] of [L2ReadOperand]s. */
-	protected val privateElements: List<R> = unmodifiableList(elements)
-
-	/** The [List] of [L2ReadOperand]s. */
-	open val elements: List<R> get() = privateElements
-
 	abstract override fun clone(): L2ReadVectorOperand<R>
 
 	/**

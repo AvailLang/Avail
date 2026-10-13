@@ -44,7 +44,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.exceptions.ArithmeticException
 import avail.interpreter.JavaLibrary.boolean
-import avail.interpreter.JavaLibrary.double
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.optimizer.jvm.CheckedMethod
@@ -1198,9 +1197,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [divideStatic].
 		 */
 		val divideMethod = staticMethod(
-			A_Number::class.java,
-			::divideStatic.name,
-			AvailObject::class.java,
+			::divideStatic,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			boolean)
@@ -1215,9 +1212,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [extractDoubleStatic].
 		 */
 		val extractDoubleMethod = staticMethod(
-			A_Number::class.java,
-			::extractDoubleStatic.name,
-			double,
+			::extractDoubleStatic,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1230,9 +1225,7 @@ interface A_Number : A_BasicObject
 		 */
 		@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 		val extractIntStaticMethod = staticMethod(
-			A_Number::class.java,
-			::extractIntStatic.name,
-			int,
+			::extractIntStatic,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1250,9 +1243,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [minusStatic].
 		 */
 		val minusCanDestroyMethod = staticMethod(
-			A_Number::class.java,
-			::minusStatic.name,
-			AvailObject::class.java,
+			::minusStatic,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			boolean)
@@ -1268,9 +1259,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericCompare].
 		 */
 		val numericCompareMethod = staticMethod(
-			A_Number::class.java,
-			::numericCompareStatic.name,
-			Order::class.java,
+			::numericCompareStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1289,9 +1278,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [timesCanDestroy].
 		 */
 		val timesCanDestroyMethod = staticMethod(
-			A_Number::class.java,
-			::timesStatic.name,
-			AvailObject::class.java,
+			::timesStatic,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			boolean)
@@ -1303,9 +1290,7 @@ interface A_Number : A_BasicObject
 
 		/** The [CheckedMethod] for [isInt]. */
 		val isIntMethod = staticMethod(
-			A_Number::class.java,
-			::isIntStatic.name,
-			boolean,
+			::isIntStatic,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1315,9 +1300,7 @@ interface A_Number : A_BasicObject
 
 		/** The [CheckedMethod] for [isInt]. */
 		val equalsIntMethod = staticMethod(
-			A_Number::class.java,
-			::equalsIntStatic.name,
-			boolean,
+			::equalsIntStatic,
 			AvailObject::class.java,
 			int)
 
@@ -1328,16 +1311,15 @@ interface A_Number : A_BasicObject
 
 		/** The [CheckedMethod] for [isDouble]. */
 		val isDoubleMethod = staticMethod(
-			A_Number::class.java,
-			::isDoubleStatic.name,
-			boolean,
+			::isDoubleStatic,
 			AvailObject::class.java)
 
 		// Numeric comparison operations:
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun numericLessThanStatic(
+		fun
+			numericLessThanStatic(
 			self: AvailObject,
 			another: AvailObject
 		): Boolean =
@@ -1347,9 +1329,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericLessThanStatic].
 		 */
 		val numericLessThanMethod = staticMethod(
-			A_Number::class.java,
-			::numericLessThanStatic.name,
-			boolean,
+			::numericLessThanStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1365,9 +1345,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericLessOrEqualStatic].
 		 */
 		val numericLessOrEqualMethod = staticMethod(
-			A_Number::class.java,
-			::numericLessOrEqualStatic.name,
-			boolean,
+			::numericLessOrEqualStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1383,9 +1361,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericGreaterThanStatic].
 		 */
 		val numericGreaterThanMethod = staticMethod(
-			A_Number::class.java,
-			::numericGreaterThanStatic.name,
-			boolean,
+			::numericGreaterThanStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1401,9 +1377,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericGreaterOrEqualStatic].
 		 */
 		val numericGreaterOrEqualMethod = staticMethod(
-			A_Number::class.java,
-			::numericGreaterOrEqualStatic.name,
-			boolean,
+			::numericGreaterOrEqualStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1419,9 +1393,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericEqualStatic].
 		 */
 		val numericEqualMethod = staticMethod(
-			A_Number::class.java,
-			::numericEqualStatic.name,
-			boolean,
+			::numericEqualStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -1437,9 +1409,7 @@ interface A_Number : A_BasicObject
 		 * The [CheckedMethod] for [numericNotEqualStatic].
 		 */
 		val numericNotEqualMethod = staticMethod(
-			A_Number::class.java,
-			::numericNotEqualStatic.name,
-			boolean,
+			::numericNotEqualStatic,
 			AvailObject::class.java,
 			AvailObject::class.java)
 	}

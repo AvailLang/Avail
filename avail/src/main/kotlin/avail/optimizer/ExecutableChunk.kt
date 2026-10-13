@@ -32,7 +32,7 @@
 package avail.optimizer
 
 import avail.descriptor.functions.CompiledCodeDescriptor
-import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 
@@ -73,5 +73,5 @@ interface ExecutableChunk
 	 *   The returned value if returning normally, otherwise `null` to indicate
 	 *   the [Interpreter.currentReifier] has been set for reification.
 	 */
-	fun runChunk(interpreter: Interpreter, offset: Int): A_BasicObject?
+	fun runChunk(interpreter: Interpreter, offset: Int): AvailObject?
 }

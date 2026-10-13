@@ -100,13 +100,13 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.primitive.Primitive
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
@@ -4375,10 +4375,8 @@ abstract class AbstractDescriptor protected constructor (
 			value.typeTag.ordinal
 
 		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
-		val staticTypeTagOrdinalMethod = CheckedMethod.staticMethod(
-			AbstractDescriptor::class.java,
-			::staticTypeTagOrdinal.name,
-			int,
+		val staticTypeTagOrdinalMethod = staticMethod(
+			::staticTypeTagOrdinal,
 			AvailObject::class.java)
 	}
 }

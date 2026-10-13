@@ -46,6 +46,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Phrase.Companion.declaredType
 import avail.descriptor.representation.A_Phrase.Companion.emitEffectOn

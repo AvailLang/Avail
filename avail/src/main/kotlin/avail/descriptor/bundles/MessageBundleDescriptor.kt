@@ -306,14 +306,14 @@ class MessageBundleDescriptor private constructor(
 	): Array<AvailObjectFieldHelper>
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
-		fields.add(
-			AvailObjectFieldHelper(
-				self,
-				DUMMY_DEBUGGER_SLOT,
-				-1,
-				messageSplitter,
-				slotName = "messageSplitter",
-				forcedName = "messageSplitter"))
+//		fields.add(
+//			AvailObjectFieldHelper(
+//				self,
+//				DUMMY_DEBUGGER_SLOT,
+//				-1,
+//				messageSplitter,
+//				slotName = "messageSplitter",
+//				forcedName = "messageSplitter"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,

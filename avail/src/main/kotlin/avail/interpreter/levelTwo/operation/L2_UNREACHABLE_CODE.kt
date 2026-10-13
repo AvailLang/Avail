@@ -86,8 +86,6 @@ class L2_UNREACHABLE_CODE(
 		 * The [CheckedMethod] for [throwUnreachableCodeException].
 		 */
 		val throwUnreachableCodeExceptionMethod = staticMethod(
-			L2_UNREACHABLE_CODE::class.java,
-			::throwUnreachableCodeException.name,
-			UnreachableCodeException::class.java)
+			::throwUnreachableCodeException)
 	}
 }

@@ -59,7 +59,6 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastO
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.copyAsMutableTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.descriptorFor
-import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableTwoByteStringOfSize
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.interpreter.JavaLibrary.int
@@ -648,12 +647,9 @@ class TwoByteStringDescriptor private constructor(
 			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2)
 
 		/** The [CheckedMethod] for [mutableTwoByteStringOfSize]. */
-		val createUninitializedTwoByteStringMethod =
-			staticMethod(
-				TwoByteStringDescriptor::class.java,
-				::mutableTwoByteStringOfSize.name,
-				AvailObject::class.java,
-				int)
+		val createUninitializedTwoByteStringMethod = staticMethod(
+			::mutableTwoByteStringOfSize,
+			int)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

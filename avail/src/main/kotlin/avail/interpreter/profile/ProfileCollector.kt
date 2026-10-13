@@ -33,6 +33,9 @@
 package avail.interpreter.profile;
 
 import avail.AvailRuntimeSupport.captureNanos
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_Continuation.Companion.caller
+import avail.descriptor.representation.A_Continuation.Companion.function
 import avail.descriptor.representation.A_Module
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_RawFunction
@@ -40,7 +43,6 @@ import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineN
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.module
 import avail.descriptor.representation.A_String.Companion.asNativeString
-import avail.descriptor.representation.A_Styler.Companion.function
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2SimpleChunk
@@ -153,10 +155,12 @@ class ProfileCollector(
 	private fun writeStack()
 	{
 		val stack = buildList {
-			var continuation = interpreter.getReifiedContinuation()!!
+			var continuation: A_Continuation =
+				interpreter.getReifiedContinuation()!!
 			while (continuation.notNil)
 			{
 				add(continuation.function.code())
+				continuation = continuation.caller
 			}
 		}
 		writeULong(stack.size.toULong())
@@ -176,12 +180,12 @@ class ProfileCollector(
 		var codeIndex = rawFunctionToIndex[code]
 		if (codeIndex !== null)
 		{
-			// We've seen this code before, so just output its index + 1.
-			writeULong((codeIndex + 1).toULong())
+			// We've seen this code before, so just output its (non-zero) index.
+			writeULong(codeIndex.toULong())
 			return
 		}
-		codeIndex = rawFunctions.size
 		rawFunctions.add(code)
+		codeIndex = rawFunctions.size
 		rawFunctionToIndex[code] = codeIndex
 		// We haven't seen this code before, so output a zero, the code's name
 		// string, the line number, and the module information.
@@ -193,7 +197,7 @@ class ProfileCollector(
 		var moduleIndex = moduleToIndex[module]
 		if (moduleIndex !== null)
 		{
-			writeULong((moduleIndex + 1).toULong())
+			writeULong(moduleIndex.toULong())
 		}
 		else
 		{
@@ -204,8 +208,8 @@ class ProfileCollector(
 				else -> module.moduleName.asNativeString()
 			}
 			writeString(moduleName)
-			moduleIndex = modules.size
 			modules.add(module)
+			moduleIndex = modules.size
 			moduleToIndex[module] = moduleIndex
 		}
 	}

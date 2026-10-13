@@ -1807,34 +1807,22 @@ constructor(
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
 		{
-			for (read in operand.elements)
-			{
-				objectMax = objectMax.coerceAtLeast(read.finalIndex())
-			}
+			operand.elements.forEach(::doOperand)
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
-			for (read in operand.elements)
-			{
-				intMax = intMax.coerceAtLeast(read.finalIndex())
-			}
+			operand.elements.forEach(::doOperand)
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
-			for (read in operand.elements)
-			{
-				floatMax = floatMax.coerceAtLeast(read.finalIndex())
-			}
+			operand.elements.forEach(::doOperand)
 		}
 
 		override fun doOperand(operand: L2ReadMixedVectorOperand)
 		{
-			for (read in operand.elements)
-			{
-				read.dispatchOperand(this)
-			}
+			operand.elements.forEach { it.dispatchOperand(this) }
 		}
 
 		override fun doOperand(operand: L2WriteIntOperand)
@@ -1854,10 +1842,7 @@ constructor(
 
 		override fun doOperand(operand: L2WriteBoxedVectorOperand)
 		{
-			for (register in operand.elements)
-			{
-				objectMax = objectMax.coerceAtLeast(register.finalIndex())
-			}
+			operand.elements.forEach(::doOperand)
 		}
 
 		override fun doOperand(operand: L2PcVectorOperand) = Unit

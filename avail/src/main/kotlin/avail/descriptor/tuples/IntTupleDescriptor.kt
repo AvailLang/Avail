@@ -69,7 +69,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.MUTABLE
-import avail.descriptor.tuples.IntTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
@@ -754,9 +753,7 @@ private constructor(
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
 		val createUninitializedIntTupleMethod = staticMethod(
-			IntTupleDescriptor::class.java,
-			::mutableObjectOfSize.name,
-			AvailObject::class.java,
+			::mutableObjectOfSize,
 			int)
 
 		/**

@@ -3288,4 +3288,33 @@ class SimpleOptimizerTest
 			"Outer version: chunk should contain return instructions")
 	}
 
+	/**
+	 * Test optimization of a function with two arguments of equal instance types.
+	 * This triggered an L2 translation failure during initial code generation
+	 * due to type restrictions on the first two arguments being identical.
+	 */
+	@Test
+	fun test_EqualInstanceTypeArguments()
+	{
+		val singletonType = instanceType(one)
+		val resultType = integerRangeType(two, true, positiveInfinity, false)
+		val rawFunction = helper.rawFunction(resultType) {
+			argumentTypes(singletonType, singletonType, naturalNumbers)
+			val x = declareName("x")
+			val y = declareName("y")
+			val z = declareName("z")
+
+			// :: x + y + z + 1
+			L1_doPushLocal(x)
+			L1_doPushLocal(y)
+			call("_+_", resultType)
+			L1_doPushLocal(z)
+			call("_+_", resultType)
+			pushLiteral(one)
+			call("_+_", resultType)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
 }

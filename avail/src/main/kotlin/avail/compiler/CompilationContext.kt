@@ -63,6 +63,8 @@ import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_Atom.Companion.issuingModule
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
+import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_Fiber

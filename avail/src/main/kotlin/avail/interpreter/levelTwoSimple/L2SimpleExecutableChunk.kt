@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwoSimple
 
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.caller
 import avail.descriptor.representation.A_Continuation.Companion.registerDump
@@ -125,7 +124,7 @@ constructor(
 
 	override fun name(): String = "L2Simple chunk: ${code.methodName}"
 
-	override fun runChunk(interpreter: Interpreter, offset: Int): A_BasicObject?
+	override fun runChunk(interpreter: Interpreter, offset: Int): AvailObject?
 	{
 		// An offset of 0 is used when invoking the underlying function.  An
 		// offset of -1 is used as a sentinel to indicate *not* to attempt the

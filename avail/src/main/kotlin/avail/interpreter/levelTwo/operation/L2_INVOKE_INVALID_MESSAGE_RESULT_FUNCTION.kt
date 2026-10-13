@@ -59,7 +59,8 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
-class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
+class
+L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 	var returnedValue: L2ReadBoxedOperand,
 	var expectedType: L2ConstantOperand,
 	var pc: L2IntImmediateOperand,

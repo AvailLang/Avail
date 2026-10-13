@@ -270,9 +270,7 @@ class RegisterDumpDescriptor private constructor(
 
 		/** Access the method [createRegisterDump]. */
 		val createRegisterDumpMethod = staticMethod(
-			RegisterDumpDescriptor::class.java,
-			::createRegisterDump.name,
-			AvailObject::class.java,
+			::createRegisterDump,
 			int,
 			A_Tuple::class.java,
 			Array<AvailObject>::class.java,

@@ -625,7 +625,7 @@ class JVMTranslator constructor(
 			var name: String = when
 			{
 				value is Primitive -> value.name
-				value is LongAdder -> "COUNTER_$index"
+				value is LongAdder -> "COUNTER"
 				value !is AvailObject -> value.javaClass.simpleName
 				value.isInstanceOf(stringType) && value.tupleSize > 0 ->
 					"STRING_${tidy(value.asNativeString())}"
@@ -1520,7 +1520,7 @@ class JVMTranslator constructor(
 			ACC_PUBLIC,
 			ExecutableChunk::runChunk.name,
 			Type.getMethodDescriptor(
-				Type.getType(A_BasicObject::class.java),
+				Type.getType(AvailObject::class.java),
 				Type.getType(Interpreter::class.java),
 				Type.INT_TYPE),
 			null,
@@ -2122,10 +2122,7 @@ class JVMTranslator constructor(
 		val emptyArrayOfObject = emptyArray<Any>()
 
 		/** A static [CheckedField] for accessing [emptyArrayOfObject]. */
-		val emptyArrayOfObjectField = staticField(
-			JVMTranslator::class.java,
-			::emptyArrayOfObject.name,
-			Array<Any>::class.java)
+		val emptyArrayOfObjectField = staticField(::emptyArrayOfObject)
 	}
 
 	init

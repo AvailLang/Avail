@@ -45,7 +45,6 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.JavaLibrary.boolean
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -480,9 +479,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticGetValueMakingImmutable]. */
 		val getValueMakingImmutableMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticGetValueMakingImmutable.name,
-			returnClass = AvailObject::class.java,
+			::staticGetValueMakingImmutable,
 			A_Variable::class.java)
 
 
@@ -495,9 +492,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticGetValueClearing]. */
 		val getValueClearingMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticGetValueClearing.name,
-			returnClass = AvailObject::class.java,
+			::staticGetValueClearing,
 			A_Variable::class.java)
 
 
@@ -513,9 +508,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticGetValueClearing]. */
 		val getValueClearingMethodIfMutableMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticGetValueClearingIfMutable.name,
-			returnClass = AvailObject::class.java,
+			::staticGetValueClearingIfMutable,
 			A_Variable::class.java)
 
 
@@ -527,9 +520,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticSetValue]. */
 		val setValueMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticSetValue.name,
-			returnClass = Void.TYPE,
+			::staticSetValue,
 			A_Variable::class.java,
 			A_BasicObject::class.java)
 
@@ -543,9 +534,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticSetValueNoCheck]. */
 		val setValueNoCheckMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticSetValueNoCheck.name,
-			returnClass = Void.TYPE,
+			::staticSetValueNoCheck,
 			A_Variable::class.java,
 			A_BasicObject::class.java)
 
@@ -562,9 +551,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [compareAndSwapValuesNoCheck]. */
 		val compareAndSwapValuesNoCheckMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticCompareAndSwapValuesNoCheck.name,
-			returnClass = boolean,
+			::staticCompareAndSwapValuesNoCheck,
 			A_Variable::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
@@ -577,9 +564,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticCheckForSharedOrReactors]. */
 		val checkForSharedOrReactorsMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticCheckForSharedOrReactors.name,
-			returnClass = boolean,
+			::staticCheckForSharedOrReactors,
 			A_Variable::class.java)
 	}
 }

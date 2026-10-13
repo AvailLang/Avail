@@ -98,8 +98,6 @@ constructor(
 		 * The [CheckedMethod] for [throwImpossibleCodeException].
 		 */
 		val throwImpossibleCodeExceptionMethod = staticMethod(
-			L2_IMPOSSIBLE_CODE::class.java,
-			::throwImpossibleCodeException.name,
-			ImpossibleCodeException::class.java)
+			::throwImpossibleCodeException)
 	}
 }

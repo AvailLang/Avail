@@ -40,7 +40,6 @@ import avail.descriptor.representation.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.representation.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.representation.A_Continuation.Companion.replacingCaller
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.JavaLibrary.void
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.execution.Interpreter.Companion.debugL2
@@ -257,9 +256,7 @@ class StackReifier constructor(
 	{
 		/** Access the [pushContinuationAction] method. */
 		val pushContinuationActionMethod = instanceMethod(
-			StackReifier::class.java,
-			StackReifier::pushContinuationAction.name,
-			void,
+			StackReifier::pushContinuationAction,
 			AvailObject::class.java)
 	}
 }

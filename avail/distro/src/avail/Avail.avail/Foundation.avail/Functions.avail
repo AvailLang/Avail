@@ -62,6 +62,7 @@ Method "“_”" is
 	s : string := "[";
 	params ::= t's parameters' type;
 	If params = ⊥ then [s ++= "…";]
+	else if params = tuple then [s ++= "*";]
 	else
 	[
 		index : natural number := 1;

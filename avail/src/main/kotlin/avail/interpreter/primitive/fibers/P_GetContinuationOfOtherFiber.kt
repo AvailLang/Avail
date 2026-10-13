@@ -77,7 +77,7 @@ object P_GetContinuationOfOtherFiber : Primitive1(
 		otherFiber: AvailObject
 	): A_BasicObject? = interpreter.run {
 
-		currentReifier = StackReifier(true, reificationForNoninlineStat) {
+		currentReifier = StackReifier(true, reificationForNoninlineStat!!) {
 			suspendThen {
 				otherFiber.whenContinuationIsAvailableDo { otherContinuation ->
 					when {

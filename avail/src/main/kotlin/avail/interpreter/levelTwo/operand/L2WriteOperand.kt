@@ -201,7 +201,13 @@ constructor(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		if (manifest.caresAboutSemanticValues)
+		// Consider an L2_STRIP_MANIFEST at the head of a function that accepts
+		// multiple arguments of the same single-instance type (e.g., {1}ᵀ).
+		// There will be multiple writes to the same synonym, since they'll have
+		// been made synonymous, and we don't want the assert below to trip for
+		// this harmless situation.
+		if (manifest.caresAboutSemanticValues
+			&& instruction.writeOperands.size == 1)
 		{
 			// Directly overwriting a semantic value is not allowed.
 			val alreadyLive = semanticValues

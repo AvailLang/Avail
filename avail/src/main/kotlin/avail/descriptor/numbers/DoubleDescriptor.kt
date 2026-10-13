@@ -552,11 +552,7 @@ class DoubleDescriptor private constructor(
 			}
 
 		/** The [CheckedMethod] for [fromDouble]. */
-		val fromDoubleMethod = staticMethod(
-			DoubleDescriptor::class.java,
-			::fromDouble.name,
-			A_Number::class.java,
-			double)
+		val fromDoubleMethod = staticMethod(::fromDouble, double)
 
 		/**
 		 * Construct an Avail boxed [double][DoubleDescriptor]-precision

@@ -280,10 +280,8 @@ constructor(
 			if (reference.isBackward) return@apply
 			manifest.allPostponedInstructions()
 				.filter { it.instruction is L2_CREATE_VARIABLE }
-				.forEach { instructionEquivalence ->
-					val postponedCreation =
-						instructionEquivalence.instruction as L2_CREATE_VARIABLE
-					val synonym = instructionEquivalence.synonym
+				.forEach { (postponedCreation, synonym) ->
+					postponedCreation as L2_CREATE_VARIABLE
 					val elidedVariable =
 						postponedCreation.constantVariableIfElided.constant
 					removePostponedInstructionFor(

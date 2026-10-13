@@ -1719,9 +1719,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticAppendToTuple]. */
 		val appendToTupleMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticAppendToTuple.name,
-			A_Tuple::class.java,
+			::staticAppendToTuple,
 			A_Tuple::class.java,
 			A_BasicObject::class.java)
 
@@ -1745,9 +1743,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
 		val concatenateTupleMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticConcatenateTuples.name,
-			A_Tuple::class.java,
+			::staticConcatenateTuples,
 			A_Tuple::class.java,
 			A_Tuple::class.java)
 
@@ -1768,9 +1764,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleAt.name,
-			AvailObject::class.java,
+			::staticTupleAt,
 			A_Tuple::class.java,
 			int)
 
@@ -1792,9 +1786,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleIntAt]. */
 		val tupleIntAtMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleIntAt.name,
-			int,
+			::staticTupleIntAt,
 			A_Tuple::class.java,
 			int)
 
@@ -1818,9 +1810,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleCodepointAt]. */
 		val tupleCodePointAtMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleCodepointAt.name,
-			int,
+			::staticTupleCodepointAt,
 			A_Tuple::class.java,
 			int)
 
@@ -1847,9 +1837,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleCopyFromTo]. */
 		val tupleCopyFromToMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleCopyFromTo.name,
-			AvailObject::class.java,
+			::staticTupleCopyFromTo,
 			A_Tuple::class.java,
 			int,
 			int)
@@ -1878,9 +1866,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtPuttingMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleAtPutting.name,
-			AvailObject::class.java,
+			::staticTupleAtPutting,
 			A_Tuple::class.java,
 			int,
 			A_BasicObject::class.java)
@@ -1897,9 +1883,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleSize]. */
 		val tupleSizeMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleSize.name,
-			int,
+			::staticTupleSize,
 			A_Tuple::class.java)
 	}
 }

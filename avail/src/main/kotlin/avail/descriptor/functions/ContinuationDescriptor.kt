@@ -36,9 +36,6 @@ import avail.AvailThread
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuation
-import avail.descriptor.functions.ContinuationDescriptor.Companion.functionStatic
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -50,6 +47,7 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.caller
 import avail.descriptor.representation.A_Continuation.Companion.currentLineNumber
@@ -653,9 +651,7 @@ class ContinuationDescriptor private constructor(
 
 		/** The [CheckedMethod] for [functionStatic]. */
 		val continuationFunctionMethod = staticMethod(
-			ContinuationDescriptor::class.java,
-			::functionStatic.name,
-			A_Function::class.java,
+			::functionStatic,
 			AvailObject::class.java)
 
 		/**
@@ -760,9 +756,7 @@ class ContinuationDescriptor private constructor(
 
 		/** The [CheckedMethod] for [createContinuationExceptFrame]. */
 		val createContinuationExceptFrameMethod = staticMethod(
-			ContinuationDescriptor::class.java,
-			::createContinuationExceptFrame.name,
-			AvailObject::class.java,
+			::createContinuationExceptFrame,
 			A_Function::class.java,
 			A_Continuation::class.java,
 			AvailObject::class.java,
@@ -862,9 +856,7 @@ class ContinuationDescriptor private constructor(
 
 		/** The [CheckedMethod] for [createDummyContinuation]. */
 		val createDummyContinuationMethod = staticMethod(
-			ContinuationDescriptor::class.java,
-			::createDummyContinuation.name,
-			AvailObject::class.java,
+			::createDummyContinuation,
 			A_Function::class.java,
 			A_RegisterDump::class.java,
 			L2Chunk::class.java,
@@ -920,7 +912,7 @@ class ContinuationDescriptor private constructor(
 			// decodeBoxedValueFromDump() which allows a boxed, i32, or double
 			// value to be used for initialization (boxing as needed).
 			val dump = this[LEVEL_TWO_REGISTER_DUMP]
-			dump.ifNotNil<A_RegisterDump> {
+			dump.ifNotNil { dump: A_RegisterDump ->
 				val encoded: A_Tuple = dump.encodedElidedLocals
 				val numArgs = code.numArgs()
 				val placeholderReplacements =

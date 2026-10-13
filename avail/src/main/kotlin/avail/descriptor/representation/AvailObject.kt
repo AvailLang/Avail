@@ -1230,10 +1230,7 @@ class AvailObject private constructor(
 
 		/** The [CheckedMethod] for [iterator]. */
 		@Suppress("unused")
-		val iteratorMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::iterator.name,
-			Iterator::class.java)
+		val iteratorMethod = instanceMethod(AvailObject::iterator)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1245,9 +1242,7 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut] method. */
 		val frameAtPutMethod = staticMethod(
-			AvailObject::class.java,
-			::frameAtPut.name,
-			AvailObject::class.java,
+			::frameAtPut,
 			AvailObject::class.java,
 			int,
 			AvailObject::class.java)
@@ -1270,9 +1265,7 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut2] method. */
 		val frameAtPut2Method = staticMethod(
-			AvailObject::class.java,
-			::frameAtPut2.name,
-			AvailObject::class.java,
+			::frameAtPut2,
 			AvailObject::class.java,
 			int,
 			AvailObject::class.java,
@@ -1300,9 +1293,7 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut3] method. */
 		val frameAtPut3Method = staticMethod(
-			AvailObject::class.java,
-			::frameAtPut3.name,
-			AvailObject::class.java,
+			::frameAtPut3,
 			AvailObject::class.java,
 			int,
 			AvailObject::class.java,
@@ -1335,9 +1326,7 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut4] method. */
 		val frameAtPut4Method = staticMethod(
-			AvailObject::class.java,
-			::frameAtPut4.name,
-			AvailObject::class.java,
+			::frameAtPut4,
 			AvailObject::class.java,
 			int,
 			AvailObject::class.java,
@@ -1375,9 +1364,7 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut5] method. */
 		val frameAtPut5Method = staticMethod(
-			AvailObject::class.java,
-			::frameAtPut5.name,
-			AvailObject::class.java,
+			::frameAtPut5,
 			AvailObject::class.java,
 			int,
 			AvailObject::class.java,
@@ -1420,9 +1407,7 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut6] method. */
 		val frameAtPut6Method = staticMethod(
-			AvailObject::class.java,
-			::frameAtPut6.name,
-			AvailObject::class.java,
+			::frameAtPut6,
 			AvailObject::class.java,
 			int,
 			AvailObject::class.java,
@@ -1444,37 +1429,27 @@ class AvailObject private constructor(
 
 		/** Access the [registerDumpStatic] method. */
 		val registerDumpMethod = staticMethod(
-			AvailObject::class.java,
-			::registerDumpStatic.name,
-			AvailObject::class.java,
+			::registerDumpStatic,
 			AvailObject::class.java)
 
 		/** Access the [fieldAt] method. */
 		val fieldAtMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldAt.name,
-			AvailObject::class.java,
+			AvailObject::fieldAt,
 			A_Atom::class.java)
 
 		/** Access the [fieldAtIndex] method for objects. */
 		val fieldAtIndexMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldAtIndex.name,
-			AvailObject::class.java,
+			AvailObject::fieldAtIndex,
 			int)
 
 		/** Access the [fieldTypeAt] method. */
 		val fieldTypeAtMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldTypeAt.name,
-			A_Type::class.java,
+			AvailObject::fieldTypeAt,
 			A_Atom::class.java)
 
 		/** Access the [fieldTypeAtIndex] method for object types. */
 		val fieldTypeAtIndexMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldTypeAtIndex.name,
-			A_Type::class.java,
+			AvailObject::fieldTypeAtIndex,
 			int)
 	}
 }

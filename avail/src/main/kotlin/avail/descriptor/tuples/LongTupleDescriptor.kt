@@ -652,9 +652,7 @@ private constructor(
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
 		val createUninitializedLongTupleMethod = staticMethod(
-			LongTupleDescriptor::class.java,
-			::mutableObjectOfSize.name,
-			AvailObject::class.java,
+			::mutableObjectOfSize,
 			int)
 
 		/**

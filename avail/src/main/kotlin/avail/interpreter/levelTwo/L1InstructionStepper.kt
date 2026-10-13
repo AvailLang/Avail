@@ -1056,7 +1056,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		interpreter.setOffset(savedOffset)
 		interpreter.function = savedFunction
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder, pc)
-		valueOrNull?.let { return it as AvailObject }
+		valueOrNull?.let { return it }
 		val reifier = interpreter.currentReifier!!
 		if (Interpreter.debugL2)
 		{

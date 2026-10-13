@@ -128,8 +128,9 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
 		clearLatestResult()
-		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
-		return null
+		return createReifierToRestartWithArguments(
+			originalCon,
+			arguments.toList().toTypedArray())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

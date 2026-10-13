@@ -64,7 +64,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedInteg
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.TypeTag
-import avail.interpreter.JavaLibrary.boolean
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -194,28 +193,16 @@ abstract class AbstractNumberDescriptor protected constructor(
 
 		companion object {
 			/** The [CheckedMethod] for [isLess]. */
-			val isLessMethod = instanceMethod(
-				Order::class.java,
-				Order::isLess.name,
-				boolean)
+			val isLessMethod = instanceMethod(Order::isLess)
 
 			/** The [CheckedMethod] for [isLessOrEqual]. */
-			val isLessOrEqualMethod = instanceMethod(
-				Order::class.java,
-				Order::isLessOrEqual.name,
-				boolean)
+			val isLessOrEqualMethod = instanceMethod(Order::isLessOrEqual)
 
 			/** The [CheckedMethod] for [isMore]. */
-			val isMoreMethod = instanceMethod(
-				Order::class.java,
-				Order::isMore.name,
-				boolean)
+			val isMoreMethod = instanceMethod(Order::isMore)
 
 			/** The [CheckedMethod] for [isMoreOrEqual]. */
-			val isMoreOrEqualMethod = instanceMethod(
-				Order::class.java,
-				Order::isMoreOrEqual.name,
-				boolean)
+			val isMoreOrEqualMethod = instanceMethod(Order::isMoreOrEqual)
 
 			init {
 				LESS.reverse = MORE

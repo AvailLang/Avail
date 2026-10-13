@@ -36,7 +36,6 @@ import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Chunk
 import avail.optimizer.jvm.CheckedField.Companion.instanceField
 import avail.utility.Strings.traceFor
-import java.lang.reflect.InvocationTargetException
 import java.util.logging.Level
 
 /**
@@ -101,10 +100,11 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 			val o = constructor.newInstance()
 			return o as JVMChunk
 		}
-		catch (e: Exception)
+		catch (e: Throwable)
 		{
 			when (e)
 			{
+				is LinkageError,
 				is ReflectiveOperationException,
 				is ClassCastException ->
 				{
@@ -125,9 +125,6 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 	companion object
 	{
 		/** The [CheckedField] for [parameters]. */
-		val parametersField = instanceField(
-			JVMChunkClassLoader::class.java,
-			JVMChunkClassLoader::parameters.name,
-			Array<Any>::class.java)
+		val parametersField = instanceField(JVMChunkClassLoader::parameters)
 	}
 }

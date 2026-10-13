@@ -305,9 +305,7 @@ constructor(
 		 * The [CheckedMethod] for [lookup].
 		 */
 		private val lookupMethod = staticMethod(
-			L2_LOOKUP_BY_VALUES::class.java,
-			::lookup.name,
-			A_Function::class.java,
+			::lookup,
 			Interpreter::class.java,
 			A_Bundle::class.java,
 			Array<AvailObject>::class.java)
@@ -316,9 +314,7 @@ constructor(
 		 * The [CheckedMethod] for [lookupWithTracking].
 		 */
 		private val lookupWithTrackingMethod = staticMethod(
-			L2_LOOKUP_BY_VALUES::class.java,
-			::lookupWithTracking.name,
-			A_Function::class.java,
+			::lookupWithTracking,
 			Interpreter::class.java,
 			A_Bundle::class.java,
 			Array<AvailObject>::class.java)

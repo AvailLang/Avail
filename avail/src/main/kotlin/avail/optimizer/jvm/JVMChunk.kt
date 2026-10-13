@@ -38,15 +38,8 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator
+import avail.optimizer.jvm.CheckedField.Companion.staticField
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
-import avail.optimizer.jvm.JVMChunk.Companion.badOffset
-import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray1
-import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray2
-import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray3
-import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray4
-import avail.optimizer.jvm.JVMChunk.Companion.createObjectArray5
-import avail.optimizer.jvm.JVMChunk.Companion.noLongs
-import avail.optimizer.jvm.JVMChunk.Companion.noObjects
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -132,10 +125,7 @@ constructor() : ExecutableChunk
 		val noLongs = LongArray(0)
 
 		/** Access to the field [noLongs]. */
-		val noLongsField: CheckedField = CheckedField.staticField(
-			JVMChunk::class.java,
-			::noLongs.name,
-			LongArray::class.java)
+		val noLongsField = staticField(::noLongs)
 
 		/** An empty [AvailObject] array. */
 		@ReferencedInGeneratedCode
@@ -143,10 +133,7 @@ constructor() : ExecutableChunk
 		val noObjects = arrayOf<AvailObject>()
 
 		/** Access to the field [noObjects]. */
-		val noObjectsField: CheckedField = CheckedField.staticField(
-			JVMChunk::class.java,
-			::noObjects.name,
-			Array<AvailObject>::class.java)
+		val noObjectsField: CheckedField = staticField(::noObjects)
 
 		/** Create an array containing one [AvailObject]. */
 		@ReferencedInGeneratedCode
@@ -158,9 +145,7 @@ constructor() : ExecutableChunk
 
 		/** The [CheckedMethod] for [createObjectArray1]. */
 		val createObjectArray1Method = CheckedMethod.staticMethod(
-			JVMChunk::class.java,
-			::createObjectArray1.name,
-			Array<AvailObject>::class.java,
+			::createObjectArray1,
 			AvailObject::class.java)
 
 		/** Create an array containing 2 [AvailObject]s. */
@@ -174,9 +159,7 @@ constructor() : ExecutableChunk
 
 		/** The [CheckedMethod] for [createObjectArray2]. */
 		val createObjectArray2Method = CheckedMethod.staticMethod(
-			JVMChunk::class.java,
-			::createObjectArray2.name,
-			Array<AvailObject>::class.java,
+			::createObjectArray2,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
@@ -192,9 +175,7 @@ constructor() : ExecutableChunk
 
 		/** The [CheckedMethod] for [createObjectArray3]. */
 		val createObjectArray3Method = CheckedMethod.staticMethod(
-			JVMChunk::class.java,
-			::createObjectArray3.name,
-			Array<AvailObject>::class.java,
+			::createObjectArray3,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java)
@@ -212,9 +193,7 @@ constructor() : ExecutableChunk
 
 		/** The [CheckedMethod] for [createObjectArray4]. */
 		val createObjectArray4Method = CheckedMethod.staticMethod(
-			JVMChunk::class.java,
-			::createObjectArray4.name,
-			Array<AvailObject>::class.java,
+			::createObjectArray4,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -234,9 +213,7 @@ constructor() : ExecutableChunk
 
 		/** The [CheckedMethod] for [createObjectArray5]. */
 		val createObjectArray5Method = CheckedMethod.staticMethod(
-			JVMChunk::class.java,
-			::createObjectArray5.name,
-			Array<AvailObject>::class.java,
+			::createObjectArray5,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -264,10 +241,6 @@ constructor() : ExecutableChunk
 		}
 
 		/** The [CheckedMethod] for [badOffset]. */
-		val badOffsetMethod = staticMethod(
-			JVMChunk::class.java,
-			::badOffset.name,
-			RuntimeException::class.java,
-			int)
+		val badOffsetMethod = staticMethod(::badOffset, int)
 	}
 }

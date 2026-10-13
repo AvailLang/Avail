@@ -910,9 +910,6 @@ class MapDescriptor private constructor(
 		fun emptyAvailMap() = emptyMap
 
 		/** The [CheckedMethod] for [emptyMap]. */
-		val emptyMapMethod = staticMethod(
-			MapDescriptor::class.java,
-			::emptyAvailMap.name,
-			A_Map::class.java)
+		val emptyMapMethod = staticMethod(::emptyAvailMap)
 	}
 }

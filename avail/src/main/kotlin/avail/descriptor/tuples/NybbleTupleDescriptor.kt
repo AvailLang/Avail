@@ -789,9 +789,7 @@ private constructor(
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
 		val createUninitializedNybbleTupleMethod = staticMethod(
-			NybbleTupleDescriptor::class.java,
-			::mutableObjectOfSize.name,
-			AvailObject::class.java,
+			::mutableObjectOfSize,
 			int)
 
 		/**

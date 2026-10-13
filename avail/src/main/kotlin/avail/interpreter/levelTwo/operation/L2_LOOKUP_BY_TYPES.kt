@@ -224,9 +224,7 @@ class L2_LOOKUP_BY_TYPES(
 		 * The [CheckedMethod] for [lookup].
 		 */
 		private val lookupMethod = staticMethod(
-			L2_LOOKUP_BY_TYPES::class.java,
-			::lookup.name,
-			A_Function::class.java,
+			::lookup,
 			Interpreter::class.java,
 			A_Bundle::class.java,
 			Array<AvailObject>::class.java)

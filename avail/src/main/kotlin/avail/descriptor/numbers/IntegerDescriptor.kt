@@ -1830,11 +1830,7 @@ class IntegerDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [fromInt]. */
-		val fromIntMethod = staticMethod(
-			IntegerDescriptor::class.java,
-			::fromInt.name,
-			AvailObject::class.java,
-			int)
+		val fromIntMethod = staticMethod(::fromInt, int)
 
 		/**
 		 * Convert the specified byte-valued Java `short` into an Avail

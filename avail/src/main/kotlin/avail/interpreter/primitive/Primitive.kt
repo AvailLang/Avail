@@ -93,6 +93,7 @@ import avail.interpreter.levelTwoSimple.instructions.L2Simple_RunInfalliblePrimi
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
+import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
@@ -101,13 +102,13 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
@@ -124,6 +125,8 @@ import avail.performance.StatisticReport
 import avail.performance.StatisticReport.PRIMITIVES
 import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
+import avail.utility.bitfield.BitFlag
+import avail.utility.bitfield.PackedBits
 import avail.utility.isNullOr
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.POP
@@ -131,7 +134,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.String.format
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.EnumSet
 import java.util.regex.Pattern
 
 /**
@@ -205,7 +207,22 @@ import java.util.regex.Pattern
 abstract class Primitive
 constructor(
 	val argCount: Int,
-	vararg flags: Flag)
+	vararg flags: Flag
+): PackedBits<Flag>(setupFlags = {
+	assert(flags.size == flags.distinct().size) {
+		"Duplicate flag in ${javaClass.simpleName}"
+	}
+	// Sanity check certain conditions.
+	assert(Flag.CanFold !in flags || Flag.CanInline in flags)
+	{
+		"Primitive ${javaClass.simpleName} has CanFold without CanInline"
+	}
+	assert(Flag.Invokes !in flags || Flag.CanInline in flags)
+	{
+		"Primitive ${javaClass.simpleName} has Invokes without CanInline"
+	}
+	flags.forEach { flag -> flag(true) }
+})
 {
 	/**
 	 * To simplify styling during bootstrapping, a method defined by the
@@ -229,12 +246,6 @@ constructor(
 
 	/** Capture the simpleName of the primitive class once for performance. */
 	val simpleName: String = javaClass.simpleName
-
-	/**
-	 * The flags that indicate to the [L2Generator] how an invocation of
-	 * this primitive should be handled.
-	 */
-	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
 
 	/**
 	 * A [type][TypeDescriptor] to constrain the local constant holding the
@@ -269,15 +280,22 @@ constructor(
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
 	 * changing the continuaation.
 	 */
-	lateinit var reificationAbandonmentStat: Statistic
-		private set
+	val reificationAbandonmentStat: Statistic? = when {
+		hasFlag(Flag.CanSwitchContinuations) ->
+			Statistic(
+				REIFICATIONS, "Abandoned for continuation change from $name")
+		else -> null
+	}
 
 	/**
 	 * The [Statistic] for reification prior to invoking a primitive that
 	 * *does not* have [Flag.CanInline] set.
 	 */
-	lateinit var reificationForNoninlineStat: Statistic
-		private set
+	val reificationForNoninlineStat: Statistic? = when {
+		!hasFlag(Flag.CanInline) ->
+			Statistic(REIFICATIONS, "Reification for $name")
+		else -> null
+	}
 
 	/**
 	 * A performance metric indicating how long was spent checking the return
@@ -294,70 +312,25 @@ constructor(
 	 * The [Int] mask of the ways in which this primitive might be reading from
 	 * [HiddenVariable]s.
 	 */
-	val l2ReadInterferenceMask: Int
+	val l2ReadInterferenceMask: Int = run {
+		// Set up interference flags for when this primitive is used in an
+		// L2_RUN_INFALLIBLE_PRIMITIVE.
+		when {
+			hasFlag(Flag.HasSideEffect) -> GLOBAL_STATE.mask
+			hasFlag(Flag.Unknown) -> GLOBAL_STATE.mask
+			hasFlag(Flag.ReadsFromHiddenGlobalState) -> GLOBAL_STATE.mask
+			else -> 0
+		}
+	}
 
 	/**
 	 * The [Int] mask of the ways in which this primitive might be writing to
 	 * [HiddenVariable]s.
 	 */
-	val l2WriteInterferenceMask: Int
-
-	/**
-	 * A cached decision about whether this primitive is considered to have a
-	 * side-effect when used in an [L2_RUN_INFALLIBLE_PRIMITIVE].
-	 */
-	val l2HasSideEffect: Boolean =
-		(hasFlag(Flag.HasSideEffect)
-			|| hasFlag(Flag.CatchException)
-			|| hasFlag(Flag.Invokes)
-			|| hasFlag(Flag.CanSwitchContinuations)
-			|| hasFlag(Flag.ReadsFromHiddenGlobalState)
-			|| hasFlag(Flag.WritesToHiddenGlobalState)
-			|| hasFlag(Flag.Unknown))
-
-	init
-	{
-		assert(primitiveFlags.isEmpty())
-		for (flag in flags)
-		{
-			assert(!primitiveFlags.contains(flag))
-			{
-				"Duplicate flag in ${javaClass.simpleName}"
-			}
-			primitiveFlags.add(flag)
-		}
-		// Sanity check certain conditions.
-		assert(!primitiveFlags.contains(Flag.CanFold)
-				|| primitiveFlags.contains(Flag.CanInline))
-		{
-			"Primitive ${javaClass.simpleName} has CanFold without CanInline"
-		}
-		assert(!primitiveFlags.contains(Flag.Invokes)
-				|| primitiveFlags.contains(Flag.CanInline))
-		{
-			"Primitive ${javaClass.simpleName} has Invokes without CanInline"
-		}
-		if (hasFlag(Flag.CanSwitchContinuations))
-		{
-			reificationAbandonmentStat = Statistic(
-				REIFICATIONS, "Abandoned for continuation change from $name")
-		}
-		if (!hasFlag(Flag.CanInline))
-		{
-			reificationForNoninlineStat = Statistic(
-				REIFICATIONS, "Reification for $name")
-		}
-
-		// Set up interference flags for when this primitive is used in an
-		// L2_RUN_INFALLIBLE_PRIMITIVE.
+	val l2WriteInterferenceMask: Int = run {
 		val rw = hasFlag(Flag.HasSideEffect) || hasFlag(Flag.Unknown)
 		val reads = rw || hasFlag(Flag.ReadsFromHiddenGlobalState)
 		val writes = rw || hasFlag(Flag.WritesToHiddenGlobalState)
-		l2ReadInterferenceMask = when
-		{
-			reads -> GLOBAL_STATE.mask
-			else -> 0
-		}
 		var writeHidden = buildSet {
 			when
 			{
@@ -387,14 +360,27 @@ constructor(
 				}
 			}
 		}
-		l2WriteInterferenceMask = writeHidden.map { it.mask }.fold(0, Int::or)
+		writeHidden.map { it.mask }.fold(0, Int::or)
 	}
+
+	/**
+	 * A cached decision about whether this primitive is considered to have a
+	 * side-effect when used in an [L2_RUN_INFALLIBLE_PRIMITIVE].
+	 */
+	val l2HasSideEffect: Boolean =
+		(hasFlag(Flag.HasSideEffect)
+			|| hasFlag(Flag.CatchException)
+			|| hasFlag(Flag.Invokes)
+			|| hasFlag(Flag.CanSwitchContinuations)
+			|| hasFlag(Flag.ReadsFromHiddenGlobalState)
+			|| hasFlag(Flag.WritesToHiddenGlobalState)
+			|| hasFlag(Flag.Unknown))
 
 	/**
 	 * These flags are used by the execution machinery and optimizer to indicate
 	 * the potential mischief that the corresponding primitives may get into.
 	 */
-	enum class Flag
+	enum class Flag : BitFlag<Flag>
 	{
 		/**
 		 * The primitive can be attempted by the `L2Generator` at
@@ -710,7 +696,7 @@ constructor(
 	 *   variable declared in a block using this primitive.
 	 */
 	protected open fun privateFailureVariableType(): A_Type =
-		if (Flag.CannotFail in primitiveFlags) bottom
+		if (hasFlag(Flag.CannotFail)) bottom
 		else naturalNumbers
 
 	/**
@@ -735,7 +721,7 @@ constructor(
 	 *   The `Flag` to test.
 	 * @return Whether that `Flag` is set for this primitive.
 	 */
-	fun hasFlag(flag: Flag): Boolean = primitiveFlags.contains(flag)
+	fun hasFlag(flag: Flag): Boolean = this[flag]
 
 	/**
 	 * A helper class to assist with lazy loading of [Primitive]s.
@@ -1853,40 +1839,30 @@ constructor(
 
 		/** The method [attempt]. */
 		val attemptMethod = instanceMethod(
-			Primitive::class.java,
-			Primitive::attempt.name,
-			A_BasicObject::class.java,
+			Primitive::attempt,
 			Interpreter::class.java)
 
 		/** The method [Primitive0.attempt0]. */
 		val attempt0Method = instanceMethod(
-			Primitive0::class.java,
-			"attempt0",
-			A_BasicObject::class.java,
+			Primitive0::attempt0,
 			Interpreter::class.java)
 
 		/** The method [Primitive1.attempt1]. */
 		val attempt1Method = instanceMethod(
-			Primitive1::class.java,
-			"attempt1",
-			A_BasicObject::class.java,
+			Primitive1::attempt1,
 			Interpreter::class.java,
 			AvailObject::class.java)
 
 		/** The method [Primitive2.attempt2]. */
 		val attempt2Method = instanceMethod(
-			Primitive2::class.java,
-			"attempt2",
-			A_BasicObject::class.java,
+			Primitive2::attempt2,
 			Interpreter::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java)
 
 		/** The method [Primitive3.attempt3]. */
 		val attempt3Method = instanceMethod(
-			Primitive3::class.java,
-			"attempt3",
-			A_BasicObject::class.java,
+			Primitive3::attempt3,
 			Interpreter::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -1894,9 +1870,7 @@ constructor(
 
 		/** The method [Primitive4.attempt4]. */
 		val attempt4Method = instanceMethod(
-			Primitive4::class.java,
-			"attempt4",
-			A_BasicObject::class.java,
+			Primitive4::attempt4,
 			Interpreter::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -1905,9 +1879,7 @@ constructor(
 
 		/** The method [PrimitiveN.attemptN]. */
 		val attemptNMethod = instanceMethod(
-			PrimitiveN::class.java,
-			"attemptN",
-			A_BasicObject::class.java,
+			PrimitiveN::attemptN,
 			Interpreter::class.java,
 			Array<AvailObject>::class.java)
 	}
