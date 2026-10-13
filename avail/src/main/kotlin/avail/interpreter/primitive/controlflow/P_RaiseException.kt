@@ -83,16 +83,15 @@ import java.util.logging.Level
 @Suppress("unused")
 object P_RaiseException : Primitive1(CanSuspend, CanSwitchContinuations)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val exception = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		exception: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val raiseFunction = function!!
 		assert(raiseFunction.code().codePrimitive() == P_RaiseException)
 
-		currentReifier = StackReifier(true, reificationForNoninlineStat) {
+		currentReifier = StackReifier(true, reificationForNoninlineStat!!) {
 			// The call stack must have been reified now.
 			assert(callerIsReified())
 
@@ -117,7 +116,7 @@ object P_RaiseException : Primitive1(CanSuspend, CanSwitchContinuations)
 				// Set up the argument as well.
 				argsBuffer.run {
 					assert(size == 1)
-					set(0, arg1)
+					set(0, exception)
 				}
 			}
 			CONTINUE_FIBER

@@ -36,7 +36,6 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinu
 import avail.descriptor.representation.A_Continuation.Companion.frameAtPut
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwoSimple.L2SimpleExecutableChunk
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
@@ -46,9 +45,10 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.StackReifier
 
 /**
- * Poll to see if an interrupt has been requested.  The bulk of this is handled
- * directly by [L2SimpleExecutableChunk], but reentry still has to be handled
- * here.
+ * Poll to see if an interrupt has been requested, reifying if necessary.
+ * Also ensure the current registers are recorded in a continuation that gets
+ * added last, so that after the interrupt, it can restore those registers and
+ * continue.
  */
 class L2Simple_CheckForInterrupt(
 	nextOffset: Offset,
@@ -62,7 +62,7 @@ class L2Simple_CheckForInterrupt(
 		interpreter: Interpreter
 	): Offset
 	{
-		val statistic =  interpreter.statisticForRequestedInterrupt
+		val statistic =  interpreter.statisticForRequestedInterrupt()
 		if (statistic === null)
 			return nextOffset
 		// An interrupt has been requested.  Reify and process it.

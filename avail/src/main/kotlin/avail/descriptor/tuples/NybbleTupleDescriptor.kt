@@ -70,7 +70,6 @@ import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.descriptorFor
-import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
@@ -80,6 +79,7 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastO
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -789,10 +789,8 @@ private constructor(
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
 		val createUninitializedNybbleTupleMethod = staticMethod(
-			NybbleTupleDescriptor::class.java,
-			::mutableObjectOfSize.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			::mutableObjectOfSize,
+			int)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

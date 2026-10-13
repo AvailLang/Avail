@@ -46,14 +46,14 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.primitive.numbers.P_Division
 import avail.interpreter.primitive.numbers.P_Division.positiveI31
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Opcodes
 
 /**
@@ -95,12 +95,12 @@ class L2_DIVIDE_INT_BY_INT(
 	}
 
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
+		manifest: L2ValueManifest
+	) = manifest.run {
 		super.instructionWasAdded(manifest)
-		val initialNumerator = dividend.restriction().intersection(
+		val initialNumerator = dividend.restriction.intersection(
 			manifest.restrictionFor(dividend.semanticValue()))
-		val initialDenominator = divisor.restriction().intersection(
+		val initialDenominator = divisor.restriction.intersection(
 			manifest.restrictionFor(divisor.semanticValue()))
 		success.manifest().run {
 			val successNumerator = initialNumerator.intersectionWithType(i31)
@@ -116,14 +116,14 @@ class L2_DIVIDE_INT_BY_INT(
 				denominatorRange.lowerBound.extractInt
 			setRestriction(
 				quotient.pickSemanticValue(),
-				intRestrictionForType(inclusive(lowQuotient, highQuotient)))
+				restrictionForType(inclusive(lowQuotient, highQuotient)))
 		}
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val outputRange = P_Division.returnTypeGuaranteedByVM(
-			null, listOf(dividend.type(), divisor.type()))
+			null, listOf(dividend.type, divisor.type))
 		if (outputRange.isSubtypeOf(i32))
 		{
 			+L2_BIT_LOGIC_OP(Div, dividend, divisor, quotient)

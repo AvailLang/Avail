@@ -74,13 +74,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreatePermutedListPhrase : Primitive2(CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val list: A_Phrase = arg1
-		val permutation: A_Tuple = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		list: AvailObject,
+		permutation: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val size = permutation.tupleSize
 		return when
 		{

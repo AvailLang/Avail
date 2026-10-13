@@ -93,7 +93,6 @@ class L2_TUPLE_AT_NO_FAIL(
 			firstUses[destination.register()] =
 				(instructionIndex + 1) to L2ReadBoxedOperand(
 					destination.pickSemanticValue(),
-					destination.restriction(),
 					destination.register())
 		}
 		else

@@ -46,13 +46,13 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.notNullAnd
 import org.objectweb.asm.Opcodes
 
@@ -88,9 +88,10 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 	{
 		super.instructionWasAdded(manifest)
 		// Restrict the value to the type along the ifKind branch
-		ifKind.manifest()
-			.intersectType(value.semanticValue(), type.type().instance)
-		type.constantOrNull?.let { constantType ->
+		ifKind.manifest().run {
+			intersectType(value.semanticValue(), type.type.instance)
+		}
+		manifest.constantOrNullFor(type.semanticValue())?.let { constantType ->
 			// The type is a constant, so we can exclude it along the ifNotkind
 			// path.
 			ifNotKind.manifest()
@@ -112,8 +113,9 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		+this@L2_JUMP_IF_KIND_OF_OBJECT
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
-		val constantType = type.constantOrNull ?: return emptyList()
+	override fun PostPhiData.interestingConditions() = buildList {
+		val constantType = type.semanticValue().constant ?: type.constantOrNull
+		constantType ?: return@buildList
 		if (!ifKind.targetBlock().isCold)
 		{
 			// The ifKind target is warm, so allow a split back to a point where
@@ -126,7 +128,7 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			addAll(
 				typeRestrictionConditions(
 					listOf(value.register()),
-					boxedRestrictionForType(constantType)))
+					restrictionForType(constantType)))
 		}
 		if (!ifNotKind.targetBlock().isCold)
 		{
@@ -135,7 +137,7 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			addAll(
 				typeRestrictionConditions(
 					listOf(value.register()),
-					boxedRestrictionForType(ANY()).minusType(constantType)))
+					restrictionForType(ANY()).minusType(constantType)))
 		}
 	}
 
@@ -151,8 +153,8 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			// type with the test type, then there is no additional narrowing
 			// and we can use the isInt method (to avoid the more general and
 			// more expensive boundary tests).
-			type.constantOrNull.notNullAnd {
-				val valueType = value.restriction().type
+			type.register().constant.notNullAnd {
+				val valueType = value.restriction.type
 				isSubtypeOf(i32)
 					&& !isEnumeration
 					&& valueType.typeIntersection(this).equals(
@@ -164,11 +166,11 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			}
 
 			// Same, but for doubles.
-			type.constantOrNull.notNullAnd {
+			type.register().constant.notNullAnd {
 				isSubtypeOf(Types.DOUBLE())
 					&& !isEnumeration
 					&& equals(
-					value.restriction()
+					value.restriction
 						.intersectionWithType(Types.DOUBLE()).type) } ->
 			{
 				// :: (value.isDouble)

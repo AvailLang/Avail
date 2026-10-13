@@ -46,11 +46,12 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -62,13 +63,11 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val type1 = arg1
-		val type2 = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		type1: AvailObject,
+		type2: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return type1.typeIntersection(type2).makeImmutable()
 	}
 
@@ -85,19 +84,18 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 		return meta1.typeIntersection(meta2)  // by metavariance
 	}
 
-	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+	override fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		readBoxedOperands.forEach { read ->
 			addAll(
 				typeRestrictionConditions(
 					listOf(read.register()),
-					boxedRestrictionForConstant(bottom)))
+					restrictionForConstant(bottom)))
 			addAll(
 				typeRestrictionConditions(
 					listOf(read.register()),
-					boxedRestrictionForConstant(TOP())))
+					restrictionForConstant(TOP())))
 		}
 	}
 
@@ -108,8 +106,8 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 	{
 		// Take advantage of identities exposed by the split conditions.
 		val (arg1, arg2) = arguments.elements
-		val (restriction1, restriction2) =
-			arguments.elements.map(L2ReadBoxedOperand::restriction)
+		val restriction1 = arg1.restriction
+		val restriction2 = arg2.restriction
 		var moveSource: L2ReadBoxedOperand? = null
 		restriction1.constantOrNull?.let { const1 ->
 			moveSource = when
@@ -128,8 +126,7 @@ object P_TypeIntersection : Primitive2(CannotFail, CanFold, CanInline)
 			}
 		}
 		moveSource?.let { source ->
-			moveBoxedRegister(
-				source.semanticValue(), result.semanticValues())
+			move(source.semanticValue(), result.semanticValues())
 		}
 		emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 	}

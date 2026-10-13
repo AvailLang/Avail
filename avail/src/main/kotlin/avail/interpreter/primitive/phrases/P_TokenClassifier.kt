@@ -68,11 +68,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_TokenClassifier : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val token = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		token: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return TokenType.lookupTokenType(token.tokenType().ordinal).atom
 	}
 

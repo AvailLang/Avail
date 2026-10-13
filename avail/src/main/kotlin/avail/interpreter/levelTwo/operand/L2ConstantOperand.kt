@@ -41,7 +41,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 
 /**
- * An `L2ConstantOperand` is an operand of type [L2OperandType.CONSTANT].  It
+ * An [L2ConstantOperand] is an operand of type [L2OperandType.CONSTANT].  It
  * also holds the actual [AvailObject] that is the constant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

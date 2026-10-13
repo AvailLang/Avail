@@ -41,7 +41,6 @@ import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
 import avail.compiler.splitter.MessageSplitter.Companion.cache
 import avail.compiler.splitter.MessageSplitter.Companion.circledNumbersString
 import avail.compiler.splitter.MessageSplitter.Companion.permutations
-import avail.compiler.splitter.MessageSplitter.Companion.split
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted

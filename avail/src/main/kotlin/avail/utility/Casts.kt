@@ -31,6 +31,8 @@
  */
 package avail.utility
 
+import kotlin.reflect.KFunction
+
 /**
  * When you know better, this bypasses static type-safety, while leaving
  * dynamic type-safety intact, other than generics and nulls.
@@ -70,3 +72,19 @@ inline fun <T> T?.notNullAnd (body: T.() -> Boolean): Boolean =
  */
 inline fun <T> T?.isNullOr (body: T.() -> Boolean): Boolean =
 	this === null || body()
+
+/**
+ * Disambiguate a Kotlin method reference expression (Foo::bar) by specifying an
+ * explicit type constraint for it to match.  Overloaded method references are
+ * one place where this disambiguation can't be done with Kotlin language
+ * constructs, without a separate helper like this.
+ *
+ * @param T
+ *   The [Function] type for the argument to match, for disambiguation.  This
+ *   can be expressed as disambiguate<(Type1, Type2,...)->Result>(Foo::bar).
+ * @param value
+ *   The value to pass through this function, which must be a [T].
+ * @return
+ *   The same value as was passed, strengthened to a KFunction<*>.
+ */
+fun <T: Function<*>> disambiguate(value : T): KFunction<*> = value.cast()

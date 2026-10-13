@@ -37,12 +37,11 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
 /**
- * An `L2WriteFloatOperand` is an operand of type [L2OperandType.WRITE_FLOAT].
+ * An [L2WriteFloatOperand] is an operand of type [L2OperandType.WRITE_FLOAT].
  * It holds the actual [L2FloatRegister] that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -61,7 +60,7 @@ import avail.utility.cast
  */
 class L2WriteFloatOperand
 constructor(
-	semanticValues: Set<L2SemanticValue<FLOAT_KIND>>,
+	semanticValues: Set<L2SemanticValue>,
 	restriction: TypeRestriction,
 	register: L2Register<FLOAT_KIND>? = null
 ) : L2WriteOperand<FLOAT_KIND>(semanticValues, restriction, register)
@@ -70,22 +69,8 @@ constructor(
 
 	override val kind get() = FLOAT_KIND
 
-	override fun onlySemanticValue(): L2SemanticUnboxedFloat =
-		super.onlySemanticValue().cast()
-
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
-	override fun semanticValues(): Set<L2SemanticUnboxedFloat> =
-		super.semanticValues().cast()
-
-	override fun pickSemanticValue(): L2SemanticUnboxedFloat =
-		semanticValues().first()
-
 	override fun register(): L2FloatRegister = super.register().cast()
-
-	init
-	{
-		assert(restriction.isUnboxedFloat)
-	}
 }

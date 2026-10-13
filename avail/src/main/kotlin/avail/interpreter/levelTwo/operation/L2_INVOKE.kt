@@ -37,6 +37,10 @@ import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2Chunk
@@ -44,22 +48,21 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.utility.cast
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes.DUP
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -74,12 +77,26 @@ import org.objectweb.asm.Opcodes
  * type against its expectation (prior to the value getting captured in any
  * continuation).
  *
+ * Note that the invoked function might read or write any of the state variables
+ * covered by [HiddenVariable], so this instruction has the same broad flags to
+ * prevent other instructions from being reordered around an invocation, unless
+ * they're completely free of these constraints.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable(
+	CURRENT_CONTINUATION::class,
+	CURRENT_FUNCTION::class,
 	LATEST_RETURN_VALUE::class,
-	STACK_REIFIER::class)
+	STACK_REIFIER::class,
+	GLOBAL_STATE::class)
+@ReadsHiddenVariable(
+	CURRENT_CONTINUATION::class,
+	CURRENT_FUNCTION::class,
+	LATEST_RETURN_VALUE::class,
+	STACK_REIFIER::class,
+	GLOBAL_STATE::class)
 class L2_INVOKE(
 	var calledFunction: L2ReadBoxedOperand,
 	var arguments: L2ReadBoxedVectorOperand,
@@ -91,16 +108,13 @@ class L2_INVOKE(
 	override val hasSideEffect get() = true
 
 	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun mightMakeEscapedVariableShared(
-		manifest: L2ValueManifest
-	): Boolean
+	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean
 	{
-		calledFunction.definitionSkippingMoves(manifest)
-			.getConstantCode(manifest)
+		calledFunction.definitionSkippingMoves(this)
+			.getConstantCode(this)
 			?.let { code ->
 				code.codePrimitive()?.let { prim ->
-					return prim.mightMakeEscapedVariableShared(
-						arguments.elements.map(L2ReadBoxedOperand::type))
+					return prim.mightMakeEscapedVariableShared()
 				}
 			}
 		return true
@@ -122,7 +136,9 @@ class L2_INVOKE(
 	override val isCold: Boolean
 		get()
 		{
-			val functionType = calledFunction.restriction().type
+			val functionType = basicBlock().postPhiData!!.run {
+				calledFunction.restriction.type
+			}
 			assert(functionType.isSubtypeOf(mostGeneralFunctionType))
 			return functionType.returnType.isBottom
 		}
@@ -195,7 +211,9 @@ class L2_INVOKE(
 			Interpreter.preinvoke0Method,
 			Interpreter.preinvoke1Method,
 			Interpreter.preinvoke2Method,
-			Interpreter.preinvoke3Method)
+			Interpreter.preinvoke3Method,
+			Interpreter.preinvoke4Method,
+			Interpreter.preinvoke5Method)
 
 		/**
 		 * Generate code to push the arguments and invoke.  This expects the stack
@@ -216,51 +234,45 @@ class L2_INVOKE(
 		 *   Where to jump if reification is requested during the call.
 		 */
 		fun JVMTranslator.generatePushArgumentsAndInvoke(
-			argsRegsList: List<L2ReadOperand<BOXED_KIND>>,
+			argsRegsList: List<L2ReadBoxedOperand>,
 			result: L2WriteBoxedOperand,
 			onNormalReturn: L2PcOperand,
 			onReification: L2PcOperand)
 		{
-			// :: caller set up [interpreter, callingChunk, interpreter, function]
+			// :: caller set up [interpreter, callingChunk, interpreter, fn]
 			val numArgs = argsRegsList.size
 			if (numArgs < preinvokeMethods.size)
 			{
 				argsRegsList.forEach { load(it) }
-				// :: [interpreter, callingChunk, interpreter, function, [args...]]
+				// :: [interpreter, callingChunk, interpreter, fn, [args...]]
 				generateCall(preinvokeMethods[numArgs])
 			}
 			else
 			{
-				objectArray(argsRegsList.cast(), AvailObject::class.java)
-				// :: [interpreter, callingChunk, interpreter, function, argsArray]
+				objectArray(argsRegsList, AvailObject::class.java)
+				// :: [interpreter, callingChunk, interpreter, fn, argsArray]
 				generateCall(Interpreter.preinvokeMethod)
 			}
 			// :: [interpreter, callingChunk, callingFunction]
 			loadInterpreter()
 			// :: [interpreter, callingChunk, callingFunction, interpreter]
 			generateCall(Interpreter.interpreterRunChunkMethod)
-			// :: [interpreter, callingChunk, callingFunction, reifier]
+			// :: [interpreter, callingChunk, callingFunction, valueOrNull]
 			generateCall(Interpreter.postinvokeMethod)
-			// :: [reifier]
-			method.visitVarInsn(Opcodes.ASTORE, reifierLocal())
-			// :: []
-			method.visitVarInsn(Opcodes.ALOAD, reifierLocal())
-			// :: if (reifier !== null) goto onReificationPreamble;
-			// :: result = interpreter.getLatestResult();
-			// :: goto onNormalReturn;
-			// :: onReificationPreamble: ...
-			val onReificationPreamble = Label()
-			method.visitJumpInsn(Opcodes.IFNONNULL, onReificationPreamble)
-
-			loadInterpreter()
-			// :: [interpreter]
-			generateCall(Interpreter.getLatestResultMethod)
-			// :: [latestResult]
+			// :: [valueOrNull]
+			method.visitInsn(DUP)
+			// :: [valueOrNull, valueOrNull]
+			val isReification = Label()
+			method.visitJumpInsn(Opcodes.IFNULL, isReification)
+			// :: [value]
 			store(result.register())
 			// :: []
 			jump(onNormalReturn)
 
-			method.visitLabel(onReificationPreamble)
+			method.visitLabel(isReification)
+			// :: [null]
+			method.visitInsn(Opcodes.POP)
+			// :: []
 			generateReificationPreamble(onReification)
 		}
 	}

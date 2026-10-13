@@ -54,13 +54,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_KeyInMap : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
-		val map = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		key: AvailObject,
+		map: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(map.hasKey(key))
 	}
 

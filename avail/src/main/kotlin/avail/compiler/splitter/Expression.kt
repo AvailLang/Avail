@@ -37,7 +37,7 @@ import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_Bundle
 import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.typeTuple
+import avail.descriptor.types.TupleTypeDescriptor
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 

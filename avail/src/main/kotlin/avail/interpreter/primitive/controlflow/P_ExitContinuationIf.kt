@@ -81,13 +81,11 @@ object P_ExitContinuationIf : Primitive2(
 	CanSwitchContinuations,
 	CannotFail)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val continuation = arg1
-		val condition = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		continuation: AvailObject,
+		condition: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!condition.extractBoolean) return nil
 		return returnIntoContinuation(
 			this@P_ExitContinuationIf, continuation.caller, nil)

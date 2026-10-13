@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * A `Graph` is an unordered collection of vertices, along with the
+ * A [Graph] is an unordered collection of vertices, along with the
  * successor-predecessor relationships between them.  From the Graph's
  * viewpoint, the vertices are merely mementos that support [equals] and
  * [hashCode].  Edges are not explicitly represented, but instead are a

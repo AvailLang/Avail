@@ -73,15 +73,12 @@ import java.nio.file.attribute.PosixFileAttributeView
 @Suppress("unused")
 object P_FileSetGroup : Primitive3(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val filename = arg1
-		val groupName = arg2
-		val followSymlinks = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		filename: AvailObject,
+		groupName: AvailObject,
+		followSymlinks: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fileSystem = IOSystem.fileSystem
 		val path: Path =
 			try

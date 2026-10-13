@@ -37,7 +37,7 @@ import java.io.IOException
 import kotlin.system.exitProcess
 
 /**
- * A `GenericHelpOption` provides an application help message that displays a
+ * A [GenericHelpOption] provides an application help message that displays a
  * customizable preamble followed by the complete set of [options][Option].
  *
  * @param OptionKeyType

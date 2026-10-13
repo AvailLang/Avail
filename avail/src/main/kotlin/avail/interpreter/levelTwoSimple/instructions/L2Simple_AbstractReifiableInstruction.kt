@@ -151,8 +151,13 @@ constructor(
 		if (reifier.actuallyReify)
 		{
 			reifier.pushAction {
-				createContinuation(
-					it, registers, thisChunk, bottom, Offset.UNREACHABLE)
+				setReifiedContinuation(
+					createContinuation(
+						getReifiedContinuation()!!,
+						registers,
+						thisChunk,
+						bottom,
+						Offset.UNREACHABLE))
 			}
 		}
 	}
@@ -189,8 +194,13 @@ constructor(
 		if (reifier.actuallyReify)
 		{
 			reifier.pushAction {
-				createContinuation(
-					it, registers, thisChunk, TOP(), reentryOffset)
+				setReifiedContinuation(
+					createContinuation(
+						getReifiedContinuation()!!,
+						registers,
+						thisChunk,
+						TOP(),
+						reentryOffset))
 			}
 		}
 		return REIFY_NOW

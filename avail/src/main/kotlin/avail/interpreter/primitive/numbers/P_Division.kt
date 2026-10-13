@@ -70,8 +70,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.interpreter.levelTwo.operation.NumericComparator.LessOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
@@ -85,6 +84,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -96,13 +96,11 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 @Suppress("unused")
 object P_Division : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (b.equalsInt(0) && a.isInstanceOf(integers))
 		{
 			return fail(E_CANNOT_DIVIDE_BY_ZERO)
@@ -276,7 +274,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 				intB,
 				intWrite(
 					intWrite.semanticValues(),
-					intRestrictionForType(strongerType)))
+					restrictionForType(strongerType)))
 		},
 		ifOutputIsPossiblyInt = {
 			+L2_DIVIDE_INT_BY_INT(
@@ -287,27 +285,26 @@ object P_Division : Primitive2(CanFold, CanInline)
 				success = edgeTo(intSuccess))
 		})
 
-	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+	override fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (aRead, bRead) = readBoxedOperands
-		if (!aRead.restriction().intersectsType(i31)) return emptyList()
-		if (!bRead.restriction().intersectsType(positiveI31)) return emptyList()
+		if (!aRead.restriction.intersectsType(i31)) return emptyList()
+		if (!bRead.restriction.intersectsType(positiveI31)) return emptyList()
 		// The division is possible in 32-bit math.
-		if (!aRead.restriction().containedByType(i31))
+		if (!aRead.restriction.containedByType(i31))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(aRead.register()),
-					boxedRestrictionForType(i31)))
+					restrictionForType(i31)))
 		}
-		if (!bRead.restriction().containedByType(positiveI31))
+		if (!bRead.restriction.containedByType(positiveI31))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(bRead.register()),
-					boxedRestrictionForType(positiveI31)))
+					restrictionForType(positiveI31)))
 		}
 		// Since we've already excluded the case that the values are always
 		// out of range, we can still wish for the values to be in int

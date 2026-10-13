@@ -51,11 +51,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
 
 /**
@@ -207,8 +207,6 @@ enum class NumericComparator(
 				bottomRestriction,
 				bottomRestriction)
 		}
-		assert(restriction1.isBoxed)
-		assert(restriction2.isBoxed)
 		val type1 = restriction1.type
 		val type2 = restriction2.type
 		assert(type1.isIntegerRangeType)
@@ -243,22 +241,21 @@ enum class NumericComparator(
 			return
 		}
 
-		val restriction1 = number1Read.restriction()
-		val restriction2 = number2Read.restriction()
+		val restriction1 = number1Read.restriction
+		val restriction2 = number2Read.restriction
 
-		val int1SemanticValue = currentManifest.equivalentSemanticValue(
-			number1Read.semanticValue().unboxedInt)
-		val int2SemanticValue = currentManifest.equivalentSemanticValue(
-			number2Read.semanticValue().unboxedInt)
-		if (int1SemanticValue !== null && int2SemanticValue !== null)
+		val value1 = number1Read.semanticValue()
+		val value2 = number2Read.semanticValue()
+		if (currentManifest.hasLiveSemanticValue(value1, INTEGER_KIND)
+			&& currentManifest.hasLiveSemanticValue(value2, INTEGER_KIND))
 		{
 			// We can compare the int registers instead.
 			assert(restriction1.containedByType(i32))
 			assert(restriction2.containedByType(i32))
 			compareAndBranchInt(
 				this@NumericComparator,
-				readIntNoFail(int1SemanticValue),
-				readIntNoFail(int2SemanticValue),
+				readIntNoFail(value1),
+				readIntNoFail(value2),
 				ifTrue,
 				ifFalse)
 			return
@@ -345,15 +342,14 @@ enum class NumericComparator(
 			return
 		}
 
-		val restriction1 = int1Reg.restriction()
-		val restriction2 = int2Reg.restriction()
+		val restriction1 = int1Reg.restriction
+		val restriction2 = int2Reg.restriction
 
 		assert(restriction1.containedByType(i32))
 		assert(restriction2.containedByType(i32))
 		// Restrict both values along both branches.
-		val (rest1, rest2, rest3, rest4) = computeRestrictions(
-			restriction1.forBoxed(), restriction2.forBoxed()
-		).map(TypeRestriction::forUnboxedInt)
+		val (rest1, rest2, rest3, rest4) =
+			computeRestrictions(restriction1, restriction2)
 		when
 		{
 			currentManifest.isEquivalentSemanticValue(
@@ -442,7 +438,7 @@ private fun A_Type.narrow(): A_Type = when
 private fun lessHelper(
 	type1: A_Type,
 	type2: A_Type
-) = boxedRestrictionForType(
+) = restrictionForType(
 	integerRangeType(negativeInfinity, true,  type2.upperBound, false).narrow())
 
 /**
@@ -459,7 +455,7 @@ private fun lessHelper(
 private fun lessOrEqualHelper(
 	type1: A_Type,
 	type2: A_Type
-) = boxedRestrictionForType(
+) = restrictionForType(
 	integerRangeType(
 		negativeInfinity, true, type2.upperBound, type2.upperInclusive
 	).narrow())
@@ -476,7 +472,7 @@ private fun lessOrEqualHelper(
 private fun greaterHelper(
 	type1: A_Type,
 	type2: A_Type
-) = boxedRestrictionForType(
+) = restrictionForType(
 	integerRangeType(type2.lowerBound, false, positiveInfinity, true).narrow())
 
 /**
@@ -491,7 +487,7 @@ private fun greaterHelper(
 private fun greaterOrEqualHelper(
 	type1: A_Type,
 	type2: A_Type
-) = boxedRestrictionForType(
+) = restrictionForType(
 	integerRangeType(
 		type2.lowerBound, type2.lowerInclusive, positiveInfinity, true
 	).narrow())
@@ -505,7 +501,7 @@ private fun greaterOrEqualHelper(
 private fun equalHelper(
 	type1: A_Type,
 	type2: A_Type
-) = boxedRestrictionForType(type1.typeIntersection(type2).narrow())
+) = restrictionForType(type1.typeIntersection(type2).narrow())
 
 /**
  * Given two extended integer subranges, answer the range that a value from the
@@ -522,7 +518,7 @@ private fun unequalHelper(
 	{
 		// Type2 has only one value, so produce a restriction based on type1,
 		// but with that one value removed.
-		return boxedRestrictionForType(type1).minusValue(type2.lowerBound)
+		return restrictionForType(type1).minusValue(type2.lowerBound)
 	}
 	return lessHelper(type1, type2).union(greaterHelper(type1, type2))
 }

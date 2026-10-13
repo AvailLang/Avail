@@ -1,5 +1,5 @@
 /*
- * HiddenVariableShift.kt
+ * Primitive0.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,23 +29,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.levelTwo
+
+package avail.interpreter.primitive;
+
+import avail.descriptor.representation.A_BasicObject;
+import avail.descriptor.representation.AvailObject;
+import avail.interpreter.execution.Interpreter;
+import avail.optimizer.L2Generator;
+import avail.optimizer.StackReifier;
+import avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import java.util.List;
 
 /**
- * `HiddenVariableShift` provides the amount to shift `1` to the left to get the
- * mask for a [HiddenVariable] subclass.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @property value
- *   The amount to shift `1` to the left to get the mask.
- *
- * @constructor
- * Construct a [HiddenVariableShift].
- *
- * @param value
- *   The amount to shift `1` to the left to get the mask.
+ * A {@link Primitive} taking exactly zero arguments.
  */
-@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class HiddenVariableShift(val value: Int)
+public abstract class Primitive0 extends Primitive
+{
+	/**
+	 * Initialize the primitive.
+	 *
+	 * @param flags
+	 *   The {@link Flag flags} that describe how the {@link Interpreter} and
+	 *   {@link L2Generator} should deal with this primitive.
+	 */
+	public Primitive0(Primitive.Flag... flags)
+	{
+		super(0, flags);
+	}
+
+	/**
+	 * Attempt to run a primitive taking zero arguments, answering either an
+	 * {@link AvailObject} if successful, or `null` if the primitive could not
+	 * complete for some reason.  If the primitive reifies, the {@link
+	 * Interpreter#currentReifier} will capture the {@link StackReifier}.  If
+	 * the primitive fails, its failure code will be stored in the {@link
+	 * Interpreter#latestResult}.
+	 *
+	 * @param interpreter
+	 *   The {@link Interpreter} performing the primitive attempt.
+	 * @return
+	 *   The result of the primitive attempt, or null if it failed or reified.
+	 */
+	@ReferencedInGeneratedCode
+	public abstract A_BasicObject attempt0(Interpreter interpreter);
+
+	@Override
+	public final A_BasicObject attempt(Interpreter interpreter)
+	{
+		List<AvailObject> args = interpreter.argsBuffer;
+		assert(args.isEmpty());
+		return attempt0(interpreter);
+	}
+}

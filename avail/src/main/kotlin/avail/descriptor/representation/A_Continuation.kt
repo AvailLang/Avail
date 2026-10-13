@@ -36,9 +36,6 @@ import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Continuation.Companion.caller
-import avail.descriptor.representation.A_Continuation.Companion.frameAt
-import avail.descriptor.representation.A_Continuation.Companion.pc
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction

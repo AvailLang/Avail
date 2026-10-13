@@ -52,10 +52,11 @@ import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACE
 import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -68,13 +69,17 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * One code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 @Suppress("unused")
-object P_GetClearing : Primitive1(CanInline, HasSideEffect)
+object P_GetClearing : Primitive1(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, clearing it can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		variable: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			variable.getValueClearing()
@@ -84,14 +89,6 @@ object P_GetClearing : Primitive1(CanInline, HasSideEffect)
 			fail(e.numericCode)
 		}
 	}
-
-	/**
-	 * If the variable had a reactor, clearing it can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
@@ -118,13 +115,13 @@ object P_GetClearing : Primitive1(CanInline, HasSideEffect)
 	{
 		val varReg = arguments[0]
 
-		val varType = varReg.type()
+		val varType = varReg.type
 		val varInnerType = varType.readType
 		val success = createBasicBlock("get clearing success")
 		val failure = createBasicBlock("get clearing failure/observe")
 		val extractedValue = boxedWriteTemp(
 			"extracted",
-			boxedRestrictionForType(varInnerType))
+			restrictionForType(varInnerType))
 
 		// DO NOT try to generate a L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE
 		// here.  We can recognize the circumstance just fine by examining the

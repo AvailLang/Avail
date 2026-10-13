@@ -65,6 +65,7 @@ import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.PrimitiveN
 import avail.io.ProcessInputChannel
 import avail.io.ProcessOutputChannel
@@ -84,13 +85,17 @@ import java.lang.ProcessBuilder.Redirect
  */
 @Suppress("unused")
 object P_ExecuteAttachedExternalProcess : PrimitiveN(
-	6, CanInline, HasSideEffect)
+	6,
+	CanInline,
+	HasSideEffect,
+	// An argument might capture an escaped variable and make it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 6)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(6)
 		val processArgsTuple = args[0]
 		val optDir = args[1]
 		val optEnvironment = args[2]
@@ -169,13 +174,6 @@ object P_ExecuteAttachedExternalProcess : PrimitiveN(
 		runtime.runOutermostFunction(newFiber, toRun, args, false)
 		return newFiber
 	}
-
-	/**
-	 * An argument might capture an escaped variable and make it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

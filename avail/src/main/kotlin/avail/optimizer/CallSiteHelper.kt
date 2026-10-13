@@ -51,7 +51,6 @@ import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckNoEscapes
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckTestEscapes
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.structures.EnumMap.Companion.enumMap
 
@@ -97,7 +96,7 @@ import avail.utility.structures.EnumMap.Companion.enumMap
 class CallSiteHelper internal constructor(
 	val translator: L1Translator,
 	val bundle: A_Bundle,
-	val semanticArguments: List<L2SemanticBoxedValue>,
+	val semanticArguments: List<L2SemanticValue>,
 	val superUnionType: A_Type,
 	val expectedType: A_Type,
 	val unionOfPossibleResults: A_Type)
@@ -171,7 +170,7 @@ class CallSiteHelper internal constructor(
 					}
 					else
 					{
-						translator.forceSlotRegister(
+						translator.forceSlotMove(
 							translator.stackp,
 							translator.pc - 1,
 							translator.getLatestReturnValue(
@@ -205,7 +204,7 @@ class CallSiteHelper internal constructor(
 					}
 					else
 					{
-						translator.forceSlotRegister(
+						translator.forceSlotMove(
 							translator.stackp,
 							translator.pc,
 							translator.getLatestReturnValue(
@@ -393,7 +392,7 @@ class CallSiteHelper internal constructor(
 		answerReg: L2ReadBoxedOperand,
 		mightEndangerEscapedLocals: Boolean)
 	{
-		val answerType = answerReg.type()
+		val answerType = generator.run { answerReg.type }
 		when
 		{
 			answerType.isBottom ->
@@ -406,7 +405,7 @@ class CallSiteHelper internal constructor(
 			answerType.isSubtypeOf(expectedType) ->
 			{
 				// Capture it as the checked value L2SemanticSlot.
-				translator.forceSlotRegister(
+				translator.forceSlotMove(
 					translator.stackp, translator.pc, answerReg)
 				generator.jumpTo(
 					when (mightEndangerEscapedLocals)
@@ -419,7 +418,7 @@ class CallSiteHelper internal constructor(
 			{
 				// Capture it as the unchecked return value SemanticSlot by
 				// using pc - 1.
-				translator.forceSlotRegister(
+				translator.forceSlotMove(
 					translator.stackp, translator.pc - 1, answerReg)
 				generator.jumpTo(
 					when (mightEndangerEscapedLocals)

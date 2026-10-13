@@ -46,8 +46,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -55,6 +55,7 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 
@@ -65,13 +66,11 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val type1 = arg1
-		val type2 = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		type1: AvailObject,
+		type2: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return type1.typeUnion(type2).makeImmutable()
 	}
 
@@ -88,9 +87,8 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		return meta1.typeUnion(meta2)  // by metavariance
 	}
 
-	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+	override fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
 		// Since we can optimize based on whether ⊥ is possible for one or the
@@ -99,11 +97,11 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		addAll(
 			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),
-				boxedRestrictionForConstant(bottom)))
+				restrictionForConstant(bottom)))
 		addAll(
 			typeRestrictionConditions(
 				setOf(arg1.register(), arg2.register()),
-				boxedRestrictionForType(topMeta).minusValue(bottom)))
+				restrictionForType(topMeta).minusValue(bottom)))
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
@@ -145,8 +143,8 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 			const2 !== null && argType1.instance.isSubtypeOf(const2) ->
 				callSiteHelper.useAnswer(arg2, false)
 			// if x≠⊥ ∧ y≠⊥, then (x∪y)≠⊥.
-			!arg1.restriction().containsEntireType(bottomMeta) &&
-				!arg2.restriction().containsEntireType(bottomMeta) ->
+			!arg1.restriction.containsEntireType(bottomMeta) &&
+				!arg2.restriction.containsEntireType(bottomMeta) ->
 			{
 				resultCanBeBottom = false
 			}
@@ -155,7 +153,7 @@ object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
 		// bound for the resulting type (arg1 ∪ arg2), due to metacovariance.
 		// As a potential performance nicety, exclude bottom if neither argument
 		// could be bottom.
-		var restriction = boxedRestrictionForType(argType1.typeUnion(argType2))
+		var restriction = restrictionForType(argType1.typeUnion(argType2))
 		if (!resultCanBeBottom)
 		{
 			restriction = restriction.minusValue(bottom)

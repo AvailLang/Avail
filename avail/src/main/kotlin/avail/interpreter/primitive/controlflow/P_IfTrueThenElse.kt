@@ -57,16 +57,12 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_IfTrueThenElse : Primitive3(Invokes, CanInline, CannotFail)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		// val booleanValue = arg1
-		val trueFunction = arg2
-		// val falseFunction = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		booleanValue: AvailObject,
+		trueFunction: AvailObject,
+		falseFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Function takes no arguments.
 		argsBuffer.clear()
 		return invokeInPrimitive(trueFunction)

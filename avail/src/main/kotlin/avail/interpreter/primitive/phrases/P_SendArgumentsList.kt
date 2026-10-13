@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SendArgumentsList : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val send = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		send: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return send.argumentsListNode
 	}
 

@@ -76,17 +76,13 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val recursive = arg1
-		val filename = arg2
-		val requireExistence = arg3
-		val followSymlinks = arg4
+	override fun attempt4(
+		interpreter: Interpreter,
+		recursive: AvailObject,
+		filename: AvailObject,
+		requireExistence: AvailObject,
+		followSymlinks: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val path: Path =
 			try
 			{

@@ -59,9 +59,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import org.objectweb.asm.Opcodes
@@ -103,7 +105,7 @@ class L2_CREATE_FUNCTION(
 		val outerPhrases = outerPairs
 			.map { (baseName, read) ->
 				val base = baseName.asNativeString()
-;				val name = stringFrom("$base(=${read.semanticValue()})")
+				val name = stringFrom("$base(=${read.semanticValue()})")
 				val token = literalToken(name, 0, 0, name, nil)
 				LiteralPhraseDescriptor.fromTokenForDecompiler(token)
 			}
@@ -137,24 +139,19 @@ class L2_CREATE_FUNCTION(
 		val rawCode: A_RawFunction = code.constant
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
-		var intersection = originalRead.restriction().intersectionWithType(
+		var intersection = originalRead.restriction.intersectionWithType(
 			outerType.typeIntersection(rawCode.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
 		val semanticValue = originalRead.semanticValue()
-		if (currentManifest.hasSemanticValue(semanticValue))
+		if (currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
 		{
 			// This semantic value is still live.  Use it directly.
-			val restriction = currentManifest.restrictionFor(semanticValue)
-			if (restriction.isBoxed)
-			{
-				// It's still live *and* boxed.
-				return readBoxed(semanticValue)
-			}
+			return readBoxed(semanticValue)
 		}
 		// The registers that supplied the value are no longer live.  Extract
 		// the value from the actual function.  Note that it's still guaranteed
 		// to have the strengthened type.
-		if (functionRegister.restriction().isImmutable)
+		if (functionRegister.restriction.isImmutable)
 		{
 			// An immutable function has immutable captured outers.
 			intersection = intersection.withFlag(IMMUTABLE_FLAG)
@@ -198,9 +195,7 @@ class L2_CREATE_FUNCTION(
 		}
 		val staticFunction = createFunction(
 			code.constant, tupleFromList(constantOuters))
-		moveBoxedRegister(
-			boxedConstant(staticFunction).semanticValue(),
-			newFunction.semanticValues())
+		move(constant(staticFunction), newFunction.semanticValues())
 	}
 
 	override fun JVMTranslator.translateToJVM()

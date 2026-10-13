@@ -36,7 +36,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Variable
 import avail.descriptor.representation.A_Variable.Companion.setValue
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -76,13 +75,12 @@ import kotlin.concurrent.withLock
 @Suppress("unused")
 object P_LinkLibrary : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val jarPath = arg1.asNativeString()
-		val oldModuleOut: A_Variable = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		jarPathString: AvailObject,
+		oldModuleOut: AvailObject
+	): A_BasicObject? = interpreter.run {
+		val jarPath = jarPathString.asNativeString()
 		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		loader.statementCanBeSummarized(false)
 		if (!loader.phase.isExecuting)

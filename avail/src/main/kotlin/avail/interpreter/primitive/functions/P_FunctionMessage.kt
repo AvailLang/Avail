@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_FunctionMessage : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val func = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		func: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return func.code().methodName
 	}
 

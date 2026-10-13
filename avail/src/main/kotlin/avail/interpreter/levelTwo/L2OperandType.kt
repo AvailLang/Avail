@@ -59,7 +59,7 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.RegisterKind
 
 /**
- * An `L2OperandType` specifies the nature of a level two operand.  It doesn't
+ * An [L2OperandType] specifies the nature of a level two operand.  It doesn't
  * fully specify how the operand is used, but it does say whether the associated
  * register is being read or written or both.
  *

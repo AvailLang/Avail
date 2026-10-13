@@ -46,6 +46,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.sizeRange
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.descriptor.representation.A_Type.Companion.unionOfTypesAtThrough
 import avail.descriptor.representation.A_Type.Companion.upperBound
@@ -58,6 +59,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -68,12 +70,12 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
@@ -86,7 +88,6 @@ import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import kotlin.math.max
@@ -99,15 +100,12 @@ import kotlin.math.min
 @Suppress("unused")
 object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
-		val start = arg2
-		val end = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		tuple: AvailObject,
+		start: AvailObject,
+		end: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!start.isInt || !end.isInt)
 		{
 			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
@@ -318,57 +316,55 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val outOfRange =
 			createBasicBlock("out of range for ExtractSubtuple")
 		val (lowInt, highInt) = readTwoInts(
-			low.semanticValue().unboxedInt,
-			high.semanticValue().unboxedInt,
+			low.semanticValue(),
+			high.semanticValue(),
 			outOfRange)
 		{
 			return false
 		}
-		val lowType = lowInt.restriction().type
-		assert(lowType.isSubtypeOf(naturalNumbers))
-		val highType = highInt.restriction().type
-		assert(highType.isSubtypeOf(wholeNumbers))
+		assert(lowInt.type.isSubtypeOf(naturalNumbers))
+		assert(highInt.type.isSubtypeOf(wholeNumbers))
 
-		val sizeRange = tuple.type().sizeRange
-		val sizeBoxed = primitiveInvocation(
+		val sizeRange = tuple.type.sizeRange.typeIntersection(i31)
+		val size = primitiveInvocation(
 			P_TupleSize,
 			listOf(tuple.semanticValue()))
-		val sizeInt = sizeBoxed.unboxedInt
-		val equivalentSize = currentManifest.equivalentSemanticValue(sizeInt)
+		val equivalentSize = currentManifest
+			.equivalentPopulatedSemanticValue(size, INTEGER_KIND)
 		if (equivalentSize !== null)
 		{
 			// It already exists, so reuse it.
-			if (equivalentSize != sizeInt)
+			if (equivalentSize != size)
 			{
-				moveIntRegister(equivalentSize, setOf(sizeInt))
+				move(equivalentSize, setOf(size))
 			}
 		}
 		else
 		{
 			// It's not yet available, so compute it.
 			val writer = intWrite(
-				setOf(sizeInt),
-				intRestrictionForType(sizeRange))
+				setOf(size),
+				restrictionForType(sizeRange))
 			+L2_TUPLE_SIZE(tuple, writer)
 		}
 
 		// Now write range checks for the low and high index.
 		// :: if (highInt > sizeInt) goto outOfBounds.
-		if (highInt.type().upperBound.greaterThan(sizeRange.lowerBound))
+		if (highInt.type.upperBound.greaterThan(sizeRange.lowerBound))
 		{
 			// Dynamic check is needed.
 			val inRange = createBasicBlock("high <= size")
 			compareAndBranchInt(
 				NumericComparator.LessOrEqual,
 				highInt,
-				readIntNoFail(sizeInt),
+				readIntNoFail(size),
 				edgeTo(inRange),
 				edgeTo(outOfRange))
 			startBlock(inRange)
 		}
 		// :: if (lowInt - 1 > highInt) goto outOfBounds.
-		if (lowInt.type().upperBound.noFailMinusCanDestroy(one, false)
-			.greaterThan(highInt.type().lowerBound))
+		if (lowInt.type.upperBound.noFailMinusCanDestroy(one, false)
+			.greaterThan(highInt.type.lowerBound))
 		{
 			// Dynamic check is needed.
 			val lowMinusOne = primitiveInvocation(
@@ -379,18 +375,18 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 				lowInt,
 				unboxedIntConstant(1),
 				intWrite(
-					setOf(lowMinusOne.unboxedInt),
-					intRestrictionForType(
+					setOf(lowMinusOne),
+					restrictionForType(
 						integerRangeType(
-							lowInt.type().lowerBound
+							lowInt.type.lowerBound
 								.noFailMinusCanDestroy(one, true),
 							true,
-							lowInt.type().upperBound,
+							lowInt.type.upperBound,
 							false))))
 			val inRange = createBasicBlock("low - 1 <= high")
 			compareAndBranchInt(
 				NumericComparator.LessOrEqual,
-				readIntNoFail(lowMinusOne.unboxedInt),
+				readIntNoFail(lowMinusOne),
 				highInt,
 				edgeTo(inRange),
 				edgeTo(outOfRange))
@@ -404,11 +400,11 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 			highInt,
 			boxedWrite(
 				temp,
-				boxedRestrictionForType(
+				restrictionForType(
 					computeSliceType(
-						tuple.type(),
-						lowInt.type(),
-						highInt.type()))))
+						tuple.type,
+						lowInt.type,
+						highInt.type))))
 		callSiteHelper.useAnswer(readBoxed(temp), false)
 		startBlock(outOfRange)
 		if (currentlyReachable())
@@ -432,8 +428,8 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val (inputTuple, low, high) = arguments.elements
 		+L2_TUPLE_SUBRANGE_NO_FAIL(
 			inputTuple,
-			readIntNoFail(low.semanticValue().unboxedInt),
-			readIntNoFail(high.semanticValue().unboxedInt),
+			readIntNoFail(low.semanticValue()),
+			readIntNoFail(high.semanticValue()),
 			result)
 	}
 }

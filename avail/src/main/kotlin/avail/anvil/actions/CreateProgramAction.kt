@@ -37,7 +37,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `CreateProgramAction` produces a program file that can be executed
+ * A [CreateProgramAction] produces a program file that can be executed
  * separately from the workbench environment.
  *
  * @constructor

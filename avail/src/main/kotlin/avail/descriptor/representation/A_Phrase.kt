@@ -55,8 +55,6 @@ import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
-import avail.descriptor.representation.A_Phrase.Companion.phraseKind
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.PhraseTypeDescriptor
@@ -71,7 +69,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * An `A_Phrase` is generally produced when the [AvailCompiler] parses source
+ * An [A_Phrase] is generally produced when the [AvailCompiler] parses source
  * code of an [A_Module].  Avail defines a variety of phrases, which are
  * implemented by the subclasses of [PhraseDescriptor].  [A_Phrase] is a
  * sub-interface of [A_BasicObject], and defines the operations that phrases
@@ -788,9 +786,7 @@ interface A_Phrase : A_BasicObject {
 
 		/** The [CheckedMethod] for [staticPhraseExpressionType][staticPhraseExpressionType]. */
 		val phraseExpressionTypeMethod = staticMethod(
-			A_Phrase::class.java,
-			A_Phrase::staticPhraseExpressionType.name,
-			A_Type::class.java,
+			A_Phrase::staticPhraseExpressionType,
 			A_Phrase::class.java)
 	}
 }

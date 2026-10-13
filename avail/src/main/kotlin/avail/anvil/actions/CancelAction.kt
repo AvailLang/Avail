@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `CancelAction` cancels a background [build&#32;task][BuildTask].
+ * A [CancelAction] cancels a background [build&#32;task][BuildTask].
  *
  * @constructor
  * Construct a new [CancelAction].

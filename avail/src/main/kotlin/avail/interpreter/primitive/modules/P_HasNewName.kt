@@ -62,13 +62,11 @@ import avail.interpreter.primitive.Primitive2
 object P_HasNewName : Primitive2(
 	CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val module = arg1
-		val nameString = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		module: AvailObject,
+		nameString: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(module.newNames.hasKey(nameString))
 	}
 

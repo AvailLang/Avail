@@ -60,11 +60,10 @@ import java.lang.reflect.Array
 object P_CreateTupleFromPojoArray : Primitive1(
 	CanInline, CannotFail, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val array = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		array: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Hold a lock on the array while accessing it.
 		return array.lock {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()

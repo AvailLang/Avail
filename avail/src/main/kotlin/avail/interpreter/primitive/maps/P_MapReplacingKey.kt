@@ -69,15 +69,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_MapReplacingKey : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val map = arg1
-		val key = arg2
-		val value= arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		map: AvailObject,
+		key: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return map.mapAtPuttingCanDestroy(key, value, true)
 	}
 
@@ -87,7 +84,8 @@ object P_MapReplacingKey : Primitive3(CannotFail, CanFold, CanInline)
 			mapTypeForSizesKeyTypeValueType(naturalNumbers, ANY(), ANY()))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (mapType, addedKeyType, addedValueType) = argumentTypes
 

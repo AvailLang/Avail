@@ -41,7 +41,7 @@ import java.io.Reader
 import java.nio.charset.MalformedInputException
 
 /**
- * A `RenamesFileParser` parses a [file][File] of Avail
+ * A [RenamesFileParser] parses a [file][File] of Avail
  * [module][ModuleDescriptor] renaming rules and answers a [map][Map].
  *
  * The format of the renames file is specified by the following simple grammar:

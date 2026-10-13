@@ -1,5 +1,5 @@
 /*
- * L2_GET_RETURNING_FUNCTION.kt
+ * L2_REIFY_IF_INTERRUPT.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,46 +31,49 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.performance.Statistic
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 
 /**
- * Ask the [Interpreter] for the current function, writing it into the provided
- * register.
+ * If reification has been requested for some reason for this fiber, the call
+ * to [Interpreter.statisticForRequestedInterruptMethod] will return the
+ * [Statistic] under which to track the cost, and we should reify the outer call
+ * stack, eventually invoking an action that runs more L2 code to reify the
+ * current frame as well, ultimately returning null from the JVM frame.  After
+ * interrupt processing completes, the chunk will be resumed at an L2 offset
+ * captured within that continuation (if the chunk has become invalid, an L1
+ * default chunk entry point will be invoked instead).
+ *
+ * In the far more frequent case that the returned statistic was `null`, we just
+ * jump to [ifNotInterrupt].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(CURRENT_FUNCTION::class)
-class L2_GET_RETURNING_FUNCTION(
-	var returningFunction: L2WriteBoxedOperand
-): L2Instruction()
+class L2_REIFY_IF_INTERRUPT(
+	@On(OFF_RAMP) var ifInterrupt: L2PcOperand,
+	@On(SUCCESS) var ifNotInterrupt: L2PcOperand
+): L2ControlFlowInstruction()
 {
-	override fun StringBuilder.appendToWithWarnings(
-		desiredOperandTypes: Set<L2OperandType>,
-		ignoreMisconnections: Boolean,
-		warningStyleChange: (Boolean)->Unit)
-	{
-		renderPreamble()
-		append(' ')
-		append(returningFunction.registerString())
-	}
+	// It jumps, which counts as a side effect.
+	override val hasSideEffect: Boolean get() = true
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: target = interpreter.returningFunction;
+		// :: if (interpreter.reifyIfInterrupt()) goto ifInterrupt
+		// :: else goto ifNotinterrupt
 		loadInterpreter()
-		load(Interpreter.interpreterReturningFunctionField)
-		method.visitTypeInsn(
-			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
-		store(returningFunction.register())
+		generateCall(Interpreter.reifyIfInterruptMethod)
+		// Note: Don't bother capturing branch statistics here.
+		method.visitJumpInsn(Opcodes.IFEQ, labelFor(ifNotInterrupt.offset()))
+		// Interrupt was requested, and a reifier was set up for it, but not
+		// yet populated with continuations.
+		generateReificationPreamble(ifInterrupt)
 	}
 }

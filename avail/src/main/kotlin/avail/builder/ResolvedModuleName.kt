@@ -38,7 +38,7 @@ import avail.resolver.ResolverReference
 import java.io.File
 
 /**
- * A `ResolvedModuleName` represents the canonical name of an Avail
+ * A [ResolvedModuleName] represents the canonical name of an Avail
  * [module][ModuleDescriptor] that has been resolved to an
  * [absolute][File.isAbsolute] [file&#32;reference][File].
  *

@@ -55,6 +55,7 @@ import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 import java.lang.reflect.Array
 
@@ -64,18 +65,18 @@ import java.lang.reflect.Array
  * [pojo&#32;array][PojoTypeDescriptor].
  */
 @Suppress("unused")
-object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
+object P_PojoArraySet : Primitive3(
+	CanInline,
+	HasSideEffect,
+	// The value might capture an escaped variable and make it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val pojo = arg1
-		val subscript = arg2
-		val value = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		pojo: AvailObject,
+		subscript: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()
@@ -104,13 +105,6 @@ object P_PojoArraySet : Primitive3(CanInline, HasSideEffect)
 			fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * The value might capture an escaped variable and make it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

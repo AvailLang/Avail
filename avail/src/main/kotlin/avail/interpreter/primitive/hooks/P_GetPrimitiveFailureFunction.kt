@@ -42,6 +42,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive0
@@ -65,22 +66,16 @@ object P_GetPrimitiveFailureFunction : Primitive0(
 	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
-	WritesToHiddenGlobalState)
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		// Get the primitive failure handler function.
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return runtime[PRIMITIVE_FAILURE_HANDLER]
 	}
-
-	/**
-	 * The function outers could contain an escaped variable that becomes
-	 * shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

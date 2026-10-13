@@ -37,6 +37,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
@@ -59,11 +60,10 @@ import avail.optimizer.OptimizationLevel
 @WritesHiddenVariable(GLOBAL_STATE::class)
 object P_PrivateForceOptimizationForTests : Primitive1(Private, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val code = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		code: AvailObject
+	): A_BasicObject? = interpreter.run {
 		try
 		{
 			L1Translator.`🌼translateToLevelTwo`(
@@ -73,6 +73,14 @@ object P_PrivateForceOptimizationForTests : Primitive1(Private, HasSideEffect)
 		}
 		catch (e: Throwable)
 		{
+			// Report it before discarding it.  The error code below is all the
+			// Avail level ever sees, and the test harness turns that into an
+			// emergency exit, so without this the actual failure - typically a
+			// blown optimizer invariant - leaves no trace at all.
+			System.err.println(
+				"Translation failed while forcing optimization of " +
+					"${code.methodName}:")
+			e.printStackTrace()
 			// Reuse an easily identified error code that isn't likely to be
 			// encountered otherwise.
 			return fail(E_ILLEGAL_TRACE_MODE)

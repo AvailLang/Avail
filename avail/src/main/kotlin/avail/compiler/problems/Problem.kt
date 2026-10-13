@@ -38,7 +38,7 @@ import java.nio.charset.Charset
 import java.text.MessageFormat
 
 /**
- * A `Problem` is produced when encountering an unexpected or less than ideal
+ * A [Problem] is produced when encountering an unexpected or less than ideal
  * situation during compilation.  Within an interactive system, the problem is
  * presumably presented to the user in some manner, whereas in batch usage
  * multiple problems may simply be collected and later presented in aggregate.

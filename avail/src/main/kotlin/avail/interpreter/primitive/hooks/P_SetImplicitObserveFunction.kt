@@ -60,6 +60,7 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 import avail.utility.cast
@@ -77,13 +78,13 @@ object P_SetImplicitObserveFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
-	WritesToHiddenGlobalState)
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
@@ -143,14 +144,6 @@ object P_SetImplicitObserveFunction : Primitive1(
 		code.methodName = stringFrom("«implicit observe function wrapper»")
 		return code
 	}
-
-	/**
-	 * The function outers could contain an escaped variable that becomes
-	 * shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(IMPLICIT_OBSERVE.functionType), TOP())

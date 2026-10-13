@@ -44,7 +44,7 @@ import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 /**
- * A `ProcessInputChannel` provides a faux
+ * A [ProcessInputChannel] provides a faux
  * [asynchronous&#32;interface][TextInputChannel] to a synchronous
  * [process][Process] [input&#32;stream][InputStream]. The reader must supply
  * [UTF-8][StandardCharsets.UTF_8] encoded characters.

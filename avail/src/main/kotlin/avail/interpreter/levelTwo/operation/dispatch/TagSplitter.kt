@@ -44,10 +44,11 @@ import avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import kotlin.math.max
 import kotlin.math.min
 
@@ -87,19 +88,20 @@ class TagSplitter(
 	 */
 	override fun interestingConditions(
 		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
 	): List<L2SplitCondition?> = buildList {
-		addAll(super.interestingConditions(read, edges))
-		val sourceInstructionOfInt = read.definitionSkippingMoves(null)
+		addAll(super.interestingConditions(read, edges, postPhiData))
+		val sourceInstructionOfInt = read.definitionSkippingMoves()
 		if (sourceInstructionOfInt is L2_EXTRACT_TAG_ORDINAL)
 		{
 			val originalSource = sourceInstructionOfInt.value
 			val originalSourceRegister = originalSource.register()
 			val intSemanticValue = read.semanticValue()
 			edges.forEach { edge ->
-				val intRestriction =
+				val restriction =
 					edge.manifest().restrictionFor(intSemanticValue)
-				intRestriction.constantOrNull?.let { tagOrdinal ->
+				restriction.constantOrNull?.let { tagOrdinal ->
 					val tag = tagFromOrdinal(tagOrdinal.extractInt)
 					val supremum = tag.supremum
 					if (!supremum.equals(Types.TOP()))
@@ -109,13 +111,13 @@ class TagSplitter(
 						addAll(
 							typeRestrictionConditions(
 								listOf(originalSourceRegister),
-								boxedRestrictionForType(supremum)))
+								restrictionForType(supremum)))
 						// Allow splitting if there's an upstream point that can
 						// guarantee that the supremum is *not* satisfied.
 						addAll(
 							typeRestrictionConditions(
 								listOf(originalSourceRegister),
-								boxedRestrictionForType(Types.ANY())
+								restrictionForType(Types.ANY())
 									.minusType(supremum)))
 					}
 				}

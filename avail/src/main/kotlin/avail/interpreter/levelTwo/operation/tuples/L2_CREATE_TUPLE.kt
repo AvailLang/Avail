@@ -32,9 +32,9 @@
 
 package avail.interpreter.levelTwo.operation.tuples
 
-import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Character.Companion.codePoint
+import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.instanceCount
@@ -67,14 +67,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -107,11 +105,11 @@ class L2_CREATE_TUPLE(
 	}
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit =
-		moveBoxedRegister(
+		move(
 			elements.elements[index - 1].semanticValue(),
 			destinationSemanticValues)
 
@@ -134,19 +132,19 @@ class L2_CREATE_TUPLE(
 
 		// Special cases for characters and integers
 		val unionType = elements.elements.fold(bottom) { t, read ->
-			t.typeUnion(read.type())
+			t.typeUnion(read.type)
 		}
 		when
 		{
 			unionType.isSubtypeOf(PrimitiveTypeDescriptor.Types.CHARACTER()) ->
 			{
 				val maxCodepoint = elements.elements
-					.map(L2ReadBoxedOperand::type)
+					.map { it.type }
 					.filter(A_Type::isEnumeration)
 					.maxOfOrNull { it.instances.maxOf { c -> c.codePoint} }
 				val constantEntries = elements.elements.map { read ->
-					read.type().run {
-						if (instanceCount.equals(one)) instance
+					read.type.let { t ->
+						if (t.instanceCount.equalsInt(1)) t.instance
 						else null
 					}
 				}

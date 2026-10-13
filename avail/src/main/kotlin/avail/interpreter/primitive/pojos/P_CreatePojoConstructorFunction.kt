@@ -87,14 +87,11 @@ object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
 	 */
 	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val pojoType = arg1
-		val paramTypes = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		pojoType: AvailObject,
+		paramTypes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the argument types and look up the appropriate

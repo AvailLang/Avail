@@ -60,13 +60,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_MapAtKey : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val map = arg1
-		val key = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		map: AvailObject,
+		key: AvailObject
+	): A_BasicObject? = interpreter.run {
 		map.mapAtOrNull(key)?.let {
 			return it
 		}
@@ -77,7 +75,8 @@ object P_MapAtKey : Primitive2(CanFold, CanInline)
 		functionType(tuple(mostGeneralMapType(), ANY()), ANY())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (mapType, keyType) = argumentTypes
 		if (mapType.isEnumeration && keyType.isEnumeration)

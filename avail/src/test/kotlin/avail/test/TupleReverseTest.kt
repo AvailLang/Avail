@@ -527,13 +527,13 @@ class TupleReverseTest
 			.copyTupleFromToCanDestroy(17, 63, false)
 		assert(aTreeTupleReversedSubrange.descriptor is ReverseTupleDescriptor)
 		assertEquals(
-			aTreeTupleReversedSubrange.tupleSize,
-			63 - 17 + 1)
+			63 - 17 + 1,
+			aTreeTupleReversedSubrange.tupleSize)
 		val aConcatenation = aTreeTuple
 			.tupleReverse()
 			.concatenateWith(aTreeTupleReversed.tupleReverse(), true)
 		assert(aConcatenation.descriptor is TreeTupleDescriptor)
-		assertEquals(aConcatenation.childCount, 4)
+		assertEquals(4, aConcatenation.childCount)
 		assertEquals(aConcatenation.childAt(4), anObjectTuple)
 		assertEquals(aConcatenation.childAt(3), byteString)
 		assertEquals(

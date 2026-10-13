@@ -55,13 +55,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_TupleTypeConcatenate : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val tupleType1 = arg1
-		val tupleType2 = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		tupleType1: AvailObject,
+		tupleType2: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return concatenatingAnd(tupleType1, tupleType2)
 	}
 

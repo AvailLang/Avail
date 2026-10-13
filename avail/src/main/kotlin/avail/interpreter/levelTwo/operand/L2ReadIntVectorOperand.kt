@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT_VECTOR
 import avail.utility.cast
 
 /**
- * An `L2ReadIntVectorOperand` is an operand of type
+ * An [L2ReadIntVectorOperand] is an operand of type
  * [L2OperandType.READ_INT_VECTOR]. It holds a [List] of [L2ReadIntOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

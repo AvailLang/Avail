@@ -56,7 +56,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_BundleTree
 import avail.descriptor.representation.A_BundleTree.Companion.allParsingPlansInProgress
-import avail.descriptor.representation.A_BundleTree.Companion.expand
 import avail.descriptor.representation.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.representation.A_Map.Companion.keysAsSet
 import avail.descriptor.representation.A_Map.Companion.mapIterable

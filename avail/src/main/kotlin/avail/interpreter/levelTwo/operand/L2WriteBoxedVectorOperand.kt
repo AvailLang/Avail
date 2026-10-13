@@ -38,9 +38,8 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
-import java.util.Collections.unmodifiableList
 
 /**
  * An [L2WriteBoxedVectorOperand] is an operand of type [WRITE_BOXED_VECTOR]. It
@@ -50,16 +49,9 @@ import java.util.Collections.unmodifiableList
  */
 class L2WriteBoxedVectorOperand
 constructor(
-	elements: List<L2WriteBoxedOperand>
+	val elements: List<L2WriteBoxedOperand>
 ) : L2Operand()
 {
-	/** The [List] of [L2WriteBoxedOperand]s. */
-	val privateElements: List<L2WriteBoxedOperand> =
-		unmodifiableList(elements)
-
-	/** The [List] of [L2WriteBoxedOperand]s. */
-	val elements: List<L2WriteBoxedOperand> get() = privateElements
-
 	override fun clone(): L2WriteBoxedVectorOperand =
 		L2WriteBoxedVectorOperand(elements.map { it.clone().cast() })
 

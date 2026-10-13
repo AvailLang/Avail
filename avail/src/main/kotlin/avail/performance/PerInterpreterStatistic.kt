@@ -41,7 +41,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * A `PerInterpreterStatistic` is an incremental, summarized recording of
+ * A [PerInterpreterStatistic] is an incremental, summarized recording of
  * a set of integral values and times.  It is synchronized, although the typical
  * usage is that it will only be written by a single [Thread] at a time,
  * and read by another [Thread] only rarely.
@@ -100,15 +100,18 @@ class PerInterpreterStatistic internal constructor(
 	 */
 	private inline fun <A> spinLockWhile(body: () -> A): A
 	{
-		while (!lock.compareAndSet(0, 1)) Thread.onSpinWait()
+		// It's not worth doing a test-and-test-and-set optimization here, since
+		// the instances have strong affinity to Threads and cores, so we're
+		// expecting very close to zero contention.
+//		while (lock.getAcquire() == 1) Thread.onSpinWait()
+		while (!lock.weakCompareAndSetAcquire(0, 1)) Thread.onSpinWait()
 		return try
 		{
 			body()
 		}
 		finally
 		{
-			val ok = lock.compareAndSet(1, 0)
-			assert(ok) { "Invalid spinlock state" }
+			lock.setRelease(0)
 		}
 	}
 

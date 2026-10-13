@@ -1401,8 +1401,7 @@ class TypeConsistencyTest
 			for (y in Node.values)
 			{
 				assertT(
-					x.intersect(y).isInstanceOf(
-						topMeta),
+					x.intersect(y).isInstanceOf(topMeta),
 					"intersection closure: %s, %s",
 					x,
 					y)
@@ -1649,8 +1648,7 @@ class TypeConsistencyTest
 		{
 			// Force early initialization of the Avail runtime to prevent
 			// initialization errors.
-			@Suppress("UnusedExpression")
-			AvailRuntime
+			AvailRuntime.let {}
 
 			Node.createTypes()
 			@Suppress("ConstantConditionIf")

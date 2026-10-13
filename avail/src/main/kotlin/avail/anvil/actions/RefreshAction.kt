@@ -39,7 +39,7 @@ import javax.swing.Action
 import javax.swing.SwingUtilities.invokeLater
 
 /**
- * A `RefreshAction` updates the module tree with new information from the
+ * A [RefreshAction] updates the module tree with new information from the
  * filesystem.
  *
  * @constructor

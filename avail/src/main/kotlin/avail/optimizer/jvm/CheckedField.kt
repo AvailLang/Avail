@@ -35,6 +35,10 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty0
+import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.javaField
 
 /**
  * A helper class for referring to a field.  It verifies at construction time
@@ -184,129 +188,40 @@ class CheckedField private constructor(
 		 * annotated with [ReferencedInGeneratedCode], failing if there is a
 		 * problem.
 		 *
-		 * @param receiverClass
-		 *   The type of the object containing the field.
-		 * @param fieldName
-		 *   The name of the field.
-		 * @param fieldClass
-		 *   The type of the field.
+		 * @param field
+		 *   The [KProperty] to reference.  This can be constructed via an
+		 *   expression like `SomeClass::someField`.
 		 * @return
 		 *   The `CheckedField`.
 		 */
 		fun instanceField(
-			receiverClass: Class<*>,
-			fieldName: String,
-			fieldClass: Class<*>
-		): CheckedField =
-			CheckedField(
-				true,
-				false,
-				receiverClass,
-				fieldName,
-				fieldClass)
+			field: KProperty1<*, *>
+		) = CheckedField(
+			verifyAnnotation = true,
+			isStatic = false,
+			receiverClass = field.javaField!!.declaringClass,
+			fieldNameString = field.javaField!!.name,
+			fieldClass = field.javaField!!.type)
 
 		/**
 		 * Create a `CheckedField` for accessing a static field that has been
 		 * annotated with [ReferencedInGeneratedCode], failing if there is a
 		 * problem.
 		 *
-		 * @param receiverClass
-		 *   The type defining the static field.
-		 * @param fieldName
-		 *   The name of the static field.
-		 * @param fieldClass
-		 *   The type of the field.
+		 * @param field
+		 *   The [KProperty] to reference.  This can be constructed via an
+		 *   expression like `SomeClass::someStaticField`.
 		 * @return
 		 *   The `CheckedField`.
 		 */
 		fun staticField(
-			receiverClass: Class<*>,
-			fieldName: String,
-			fieldClass: Class<*>
+			field: KProperty0<*>
 		): CheckedField =
 			CheckedField(
-				true,
-				true,
-				receiverClass,
-				fieldName,
-				fieldClass)
-
-		/**
-		 * Create a `CheckedField` for accessing an `enum` instance, failing if
-		 * there is a problem.
-		 *
-		 * @param T
-		 *   The `enum` type.
-		 * @param enumInstance
-		 *   The `enum` value.
-		 * @return
-		 *   The `CheckedField`.
-		 */
-		fun <T : Enum<T>> enumField(enumInstance: T): CheckedField
-		{
-			val theClass: Class<T> = enumInstance.javaClass
-			val theSuper: Class<in T> = theClass.superclass
-			val enumClass: Class<*> =
-				if (theSuper == Enum::class.java) theClass else theSuper
-			return CheckedField(
-				false,
-				true,
-				enumClass,
-				enumInstance.name,
-				enumClass)
-		}
-
-		/**
-		 * Create a `CheckedField` for accessing an instance field that has not
-		 * been annotated with [ReferencedInGeneratedCode], failing if there is
-		 * a problem.
-		 *
-		 * @param receiverClass
-		 *   The type of the object containing the field.
-		 * @param fieldName
-		 *   The name of the field.
-		 * @param fieldClass
-		 *   The type of the field.
-		 * @return
-		 *   The `CheckedField`.
-		 */
-		fun javaLibraryInstanceField(
-			receiverClass: Class<*>,
-			fieldName: String,
-			fieldClass: Class<*>
-		): CheckedField =
-			CheckedField(
-				false,
-				false,
-				receiverClass,
-				fieldName,
-				fieldClass)
-
-		/**
-		 * Create a `CheckedField` for accessing a static field that has not
-		 * been annotated with [ReferencedInGeneratedCode], failing if there is
-		 * a problem.
-		 *
-		 * @param receiverClass
-		 *   The type defining the static field.
-		 * @param fieldName
-		 *   The name of the static field.
-		 * @param fieldClass
-		 *   The type of the field.
-		 * @return
-		 *   The `CheckedField`.
-		 */
-		@Suppress("unused")
-		fun javaLibraryStaticField(
-			receiverClass: Class<*>,
-			fieldName: String,
-			fieldClass: Class<*>
-		): CheckedField =
-			CheckedField(
-				false,
-				true,
-				receiverClass,
-				fieldName,
-				fieldClass)
+				verifyAnnotation = true,
+				isStatic = true,
+				receiverClass = field.javaField!!.declaringClass,
+				fieldNameString = field.javaField!!.name,
+				fieldClass = field.javaField!!.type)
 	}
 }

@@ -32,8 +32,6 @@
 package avail.descriptor.character
 
 import avail.descriptor.character.CharacterDescriptor.Companion.characterCache
-import avail.descriptor.character.CharacterDescriptor.Companion.staticFromByteCodePoint
-import avail.descriptor.character.CharacterDescriptor.Companion.staticFromCodePoint
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.CODE_POINT
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.numbers.IntegerDescriptor
@@ -55,6 +53,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MarshalingException
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -290,10 +289,8 @@ class CharacterDescriptor private constructor(
 
 		/** The [CheckedMethod] for [staticFromCodePoint]. */
 		val staticFromCodePointMethod = staticMethod(
-			CharacterDescriptor::class.java,
-			::staticFromCodePoint.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			::staticFromCodePoint,
+			int)
 
 		/**
 		 * Answer an already instantiated Avail [character][A_Character] for the
@@ -317,10 +314,8 @@ class CharacterDescriptor private constructor(
 
 		/** The [CheckedMethod] for [staticFromByteCodePoint]. */
 		val staticFromByteCodePointMethod = staticMethod(
-			CharacterDescriptor::class.java,
-			::staticFromByteCodePoint.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			::staticFromByteCodePoint,
+			int)
 
 		/** The first 256 Unicode characters. */
 		private val byteCharacters = Array(256) {

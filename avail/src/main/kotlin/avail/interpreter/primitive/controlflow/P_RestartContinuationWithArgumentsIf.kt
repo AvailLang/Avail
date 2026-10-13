@@ -32,7 +32,6 @@
 package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
@@ -95,16 +94,12 @@ import avail.optimizer.L1Translator
 object P_RestartContinuationWithArgumentsIf : Primitive3(
 	CanInline, CanSwitchContinuations)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val originalCon: A_Continuation = arg1
-		val arguments: A_Tuple = arg2
-		val condition: A_Atom = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		originalCon: AvailObject,
+		arguments: AvailObject,
+		condition: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!condition.extractBoolean)
 		{
 			// The condition is false, so don't restart the continuation.
@@ -133,8 +128,9 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
 		clearLatestResult()
-		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
-		return null
+		return createReifierToRestartWithArguments(
+			originalCon,
+			arguments.toList().toTypedArray())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -171,7 +167,7 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 			// We're restarting the current frame.  First set up the semantic
 			// arguments for phis at the loop head to converge.
 			val numArgs = code.numArgs()
-			val argsType = argumentsTupleReg.type()
+			val argsType = argumentsTupleReg.type
 			val argsSizeRange = argsType.sizeRange
 
 			if (!argsSizeRange.lowerBound.equalsInt(numArgs)
@@ -220,7 +216,7 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 		// special invocation if it's not possible.
 
 		// Examine the continuation's function's type.
-		val continuationType = continuationReg.type()
+		val continuationType = continuationReg.type
 		val functionType = continuationType.functionType
 		val functionArgsType = functionType.argsTupleType
 		val functionTypeSizes = functionArgsType.sizeRange

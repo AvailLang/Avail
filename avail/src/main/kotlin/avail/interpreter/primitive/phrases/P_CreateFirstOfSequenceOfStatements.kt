@@ -65,11 +65,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateFirstOfSequenceOfStatements : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val statements = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		statements: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val statementsSize = statements.tupleSize
 		val flat = mutableListOf<A_Phrase>()
 		for (i in 2 .. statementsSize)

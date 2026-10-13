@@ -41,14 +41,15 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 
 /**
@@ -96,13 +97,14 @@ class ShiftedHashSplitter constructor(
 	 */
 	override fun interestingConditions(
 		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
 	): List<L2SplitCondition?> = buildList {
-		addAll(super.interestingConditions(read, edges))
+		addAll(super.interestingConditions(read, edges, postPhiData))
 		// It would be nice to have already extracted the variant.
 		add(existsCondition(listOf(read.semanticValue())))
 		originalValueRead(read)?.let { sourceRead ->
-			val sourceType = sourceRead.restriction().type
+			val sourceType = postPhiData.run { sourceRead.type }
 			if (sourceType.isEnumeration && !sourceType.isInstanceMeta)
 			{
 				sourceType.instances.forEach { instance ->
@@ -111,14 +113,14 @@ class ShiftedHashSplitter constructor(
 					addAll(
 						typeRestrictionConditions(
 							listOf(sourceRead.register()),
-							boxedRestrictionForConstant(instance)))
+							restrictionForConstant(instance)))
 					// Split if there's a point upstream that knows that
 					// one or more of the constants will not be possible
 					// here.
 					addAll(
 						typeRestrictionConditions(
 							listOf(sourceRead.register()),
-							boxedRestrictionForType(Types.ANY())
+							restrictionForType(Types.ANY())
 								.minusValue(instance)))
 				}
 			}
@@ -142,21 +144,21 @@ class ShiftedHashSplitter constructor(
 		read: L2ReadIntOperand
 	): L2ReadBoxedOperand?
 	{
-		val sourceInstructionOfMasked = read.definitionSkippingMoves(null)
+		val sourceInstructionOfMasked = read.definitionSkippingMoves()
 		if (sourceInstructionOfMasked.isBitLogicOperation(And))
 		{
 			return null
 		}
 		val sourceInstructionOfShifted = sourceInstructionOfMasked
 			.readOperands.first()  // value & mask
-			.definitionSkippingMoves(null)
+			.register().definition().instruction
 		val sourceInstructionOfHash: L2Instruction = when
 		{
 			sourceInstructionOfShifted.isBitLogicOperation(Ushr) ->
 			{
 				sourceInstructionOfShifted
 					.readOperands.first() // value >>> shift
-					.definitionSkippingMoves(null)
+					.definitionSkippingMoves()
 			}
 			// No shift was needed in this case.
 			else -> sourceInstructionOfShifted

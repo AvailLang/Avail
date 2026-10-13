@@ -59,11 +59,10 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_FileCanRead : Primitive1(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val filename = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		filename: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val path: Path =
 			try
 			{

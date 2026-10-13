@@ -74,7 +74,7 @@ import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 
 /**
- * A `Sequence` is the juxtaposition of any number of other [Expression]s.  It
+ * A [Sequence] is the juxtaposition of any number of other [Expression]s.  It
  * is not itself a repetition, but it can be the left or right half of a [Group]
  * (bounded by the double-dagger (‡)).
  *

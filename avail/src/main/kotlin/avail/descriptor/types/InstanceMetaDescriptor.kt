@@ -472,18 +472,14 @@ private constructor(
 		 * The [CheckedMethod] for [instanceMeta].
 		 */
 		val instanceMetaMethod = staticMethod(
-			InstanceMetaDescriptor::class.java,
-			::instanceMeta.name,
-			A_Type::class.java,
+			::instanceMeta,
 			A_Type::class.java)
 
 		/**
 		 * The [CheckedMethod] for [instanceOfMeta].
 		 */
 		val instanceOfMetaMethod = staticMethod(
-			InstanceMetaDescriptor::class.java,
-			::instanceOfMeta.name,
-			A_Type::class.java,
+			::instanceOfMeta,
 			A_Type::class.java)
 	}
 }

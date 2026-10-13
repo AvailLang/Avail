@@ -54,6 +54,7 @@ import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.MapException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive1
 
@@ -64,13 +65,13 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ExceptionStackDump : Primitive1(CanSuspend, Unknown)
+object P_ExceptionStackDump : Primitive1(
+	CanSuspend, Unknown, MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val exception = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		exception: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val runtime = runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
 		val continuation: A_Continuation =
@@ -94,10 +95,6 @@ object P_ExceptionStackDump : Primitive1(CanSuspend, Unknown)
 			}
 		}
 	}
-
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(exceptionType), zeroOrMoreOf(stringType))

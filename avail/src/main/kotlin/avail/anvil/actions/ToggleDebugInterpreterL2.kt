@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ToggleDebugInterpreterL2` toggles the flag that indicates whether to write
+ * A [ToggleDebugInterpreterL2] toggles the flag that indicates whether to write
  * debug information about Level Two execution to the transcript.
  *
  * @constructor

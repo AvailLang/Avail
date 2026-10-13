@@ -49,8 +49,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_BreakPoint : Primitive0(CanSuspend, CannotFail, HasSideEffect)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		// Enter a safe point, invoke the runtime's injected breakpoint handler,
 		// then succeed from the primitive with nil.  The debugger, if it is

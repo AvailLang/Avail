@@ -96,13 +96,11 @@ import java.util.Collections.nCopies
 @Suppress("unused")
 object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
-		val argTuple = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		function: AvailObject,
+		argTuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val functionType = function.kind()
 
 		val numArgs = argTuple.tupleSize
@@ -260,7 +258,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		val (functionRead, tupleRead) = arguments
 
 		// Examine the function type.
-		val functionType = functionRead.type()
+		val functionType = functionRead.type
 		val functionArgsType = functionType.argsTupleType
 		val functionTypeSizes = functionArgsType.sizeRange
 		val upperBound = functionTypeSizes.upperBound
@@ -291,7 +289,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		for (i in 1 .. argsSize)
 		{
 			val argReg = explodedArgumentReads[i - 1]
-			val argType = argReg.type()
+			val argType = argReg.type
 			val exactTypeReg = extractParameterTypeFromFunction(functionRead, i)
 			val constantExactArgType = exactTypeReg.constantOrNull
 			if (constantExactArgType === null

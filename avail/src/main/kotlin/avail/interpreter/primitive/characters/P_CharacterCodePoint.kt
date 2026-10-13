@@ -56,7 +56,6 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
 * **Primitive:** Extract the [code&#32;point][IntegerDescriptor] from a
@@ -65,11 +64,10 @@ import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 @Suppress("unused")
 object P_CharacterCodePoint : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val character = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		character: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromInt(character.codePoint)
 	}
 
@@ -87,7 +85,7 @@ object P_CharacterCodePoint : Primitive1(CannotFail, CanFold, CanInline)
 		if (characterInstruction is L2_CODEPOINT_TO_CHARACTER)
 		{
 			callSiteHelper.useAnswer(
-				readBoxed(characterInstruction.source.semanticValue().boxed),
+				readBoxed(characterInstruction.source.semanticValue()),
 				false)
 			return true
 		}

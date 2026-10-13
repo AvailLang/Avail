@@ -77,14 +77,17 @@ class L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: return interpreter.reifierToRestart(
-		// ::    continuation, argsArray);
+		// :: return interpreter.reifierToRestart(continuation, argsArray);
 		loadInterpreter()
+		// :: interpreter
 		load(continuationToRestart)
+		// :: interpreter, continuation
 		objectArray(
 			arguments.elements,
 			AvailObject::class.java)
-		generateCall(Interpreter.reifierToRestartWithArgumentsMethod)
+		// :: interpreter, continuation, array(arg1, arg2...)
+		generateCall(Interpreter.createReifierToRestartWithArgumentsMethod)
+		// :: null (as a nullable AvailObject)
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }

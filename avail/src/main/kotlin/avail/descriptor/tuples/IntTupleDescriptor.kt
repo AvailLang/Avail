@@ -69,7 +69,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.MUTABLE
-import avail.descriptor.tuples.IntTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
@@ -80,6 +79,7 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastO
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -753,10 +753,8 @@ private constructor(
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
 		val createUninitializedIntTupleMethod = staticMethod(
-			IntTupleDescriptor::class.java,
-			::mutableObjectOfSize.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			::mutableObjectOfSize,
+			int)
 
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an

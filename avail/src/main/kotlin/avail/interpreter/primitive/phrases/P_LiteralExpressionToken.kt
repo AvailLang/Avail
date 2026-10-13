@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_LiteralExpressionToken : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val literal = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		literal: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return literal.token
 	}
 

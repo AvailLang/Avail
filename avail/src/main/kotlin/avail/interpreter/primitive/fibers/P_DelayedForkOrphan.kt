@@ -75,6 +75,7 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive4
 import java.util.TimerTask
@@ -90,20 +91,18 @@ import java.util.TimerTask
  */
 @Suppress("unused")
 object P_DelayedForkOrphan : Primitive4(
-	CanInline, HasSideEffect, WritesToHiddenGlobalState)
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val sleepMillis = arg1
-		val function = arg2
-		val argTuple = arg3
-		val priority = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		sleepMillis: AvailObject,
+		function: AvailObject,
+		argTuple: AvailObject,
+		priority: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize
 		val code = function.code()
@@ -172,11 +171,6 @@ object P_DelayedForkOrphan : Primitive4(
 		} // Otherwise, schedule the fiber to start later.
 		return nil
 	}
-
-	/** The function or its arguments could become shared. */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

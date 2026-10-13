@@ -60,11 +60,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_AtomIssuingModule : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (atom.isAtomSpecial)
 		{
 			return fail(E_SPECIAL_ATOM)

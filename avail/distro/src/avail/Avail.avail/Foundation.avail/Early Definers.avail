@@ -83,7 +83,7 @@ Semantic restriction "_'s⁇instance" is
 	tt : type's type
 |
 	result : type;
-	Cast tt's instance into [t : type | result := t;] else [];
+	Cast tt's instance into [t : type | result := t;] else [Shouldn't happen];
 	result
 ];
 

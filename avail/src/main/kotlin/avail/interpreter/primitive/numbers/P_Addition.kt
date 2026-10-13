@@ -38,8 +38,6 @@ import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.equalsInt
-import avail.descriptor.representation.A_Number.Companion.extractInt
-import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
@@ -70,7 +68,6 @@ import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
@@ -82,10 +79,9 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.utility.notNullAnd
 
@@ -95,13 +91,11 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_Addition : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			a.plusCanDestroy(b, true)
@@ -212,11 +206,11 @@ object P_Addition : Primitive2(CanFold, CanInline)
 		},
 		ifOutputIsPossiblyInt = {
 			+L2_ADD_INT_TO_INT(
-				intA,
-				intB,
-				intWrite,
-				edgeTo(intFailure),
-				edgeTo(intSuccess))
+				augend = intA,
+				addend = intB,
+				sum = intWrite,
+				inRange = edgeTo(intSuccess),
+				outOfRange = edgeTo(intFailure))
 		})
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
@@ -236,7 +230,7 @@ object P_Addition : Primitive2(CanFold, CanInline)
 		val resultRestriction = result.restriction().intersectionWithType(
 			returnTypeGuaranteedByVM(
 				rawFunction,
-				listOf(arg1.type(), arg2.type())))
+				listOf(arg1.type, arg2.type)))
 		val resultType = resultRestriction.type
 		if (resultType.isIntegerRangeType &&
 			resultType.lowerBound.equals(resultType.upperBound))
@@ -245,18 +239,7 @@ object P_Addition : Primitive2(CanFold, CanInline)
 			try
 			{
 				val sum = resultType.lowerBound
-				moveBoxedRegister(
-					boxedConstant(sum).semanticValue(),
-					result.semanticValues())
-				if (sum.isInt)
-				{
-					// It's an i32, so put it in the int semantic value, so that
-					// code downstream may use it without unboxing.
-					moveIntRegister(
-						unboxedIntConstant(sum.extractInt)
-							.semanticValue(),
-						result.semanticValues().map(::L2SemanticUnboxedInt))
-				}
+				move(constant(sum), result.semanticValues())
 				return
 			}
 			catch (e: ArithmeticException)
@@ -276,13 +259,13 @@ object P_Addition : Primitive2(CanFold, CanInline)
 			if (const1.notNullAnd { equalsInt(0) })
 			{
 				// 0 + x = x  (since x is an extended integer).
-				moveBoxedRegister(arg2.semanticValue(), result.semanticValues())
+				move(arg2.semanticValue(), result.semanticValues())
 				return
 			}
 			if (const2.notNullAnd { equalsInt(0) })
 			{
 				// x + 0 = x  (since x is an extended integer).
-				moveBoxedRegister(arg1.semanticValue(), result.semanticValues())
+				move(arg1.semanticValue(), result.semanticValues())
 				return
 			}
 			// TODO We could look for chains of additions and subtractions where
@@ -301,12 +284,10 @@ object P_Addition : Primitive2(CanFold, CanInline)
 
 		// Replace with a non-overflowing i32 addition.
 		val unreachable = L2BasicBlock("should not reach")
-		val intWrite = intWrite(
-			result.semanticValues().map(::L2SemanticUnboxedInt).toSet(),
-			resultRestriction.forUnboxedInt())
+		val intWrite = intWrite(result.semanticValues(), resultRestriction)
 		val (int1, int2) = readTwoInts(
-			arg1.semanticValue().unboxedInt,
-			arg2.semanticValue().unboxedInt,
+			arg1.semanticValue(),
+			arg2.semanticValue(),
 			unreachable)
 		{
 			return
@@ -320,15 +301,13 @@ object P_Addition : Primitive2(CanFold, CanInline)
 	}
 
 	override fun propagateManifestRestrictions(
-		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)
 	{
 		val regular = primitiveInvocation(this, arguments)
 		val commuted = primitiveInvocation(this, arguments.reversed())
 		manifest.mergeSemanticValueEquivalentsIfPresent(commuted, regular)
-		manifest.mergeSemanticValueEquivalentsIfPresent(
-			commuted.unboxedInt, regular.unboxedInt)
 	}
 
 	override val semanticInfixOperatorString: String? get() = "Add"

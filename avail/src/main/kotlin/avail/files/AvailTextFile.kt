@@ -39,7 +39,7 @@ import java.nio.charset.CodingErrorAction
 import java.util.UUID
 
 /**
- * An `AvailTextFile` is an [AvailFile] that is a nondescript text file
+ * An [AvailTextFile] is an [AvailFile] that is a nondescript text file
  * contained in an Avail `ModuleRoot` hierarchy of files.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

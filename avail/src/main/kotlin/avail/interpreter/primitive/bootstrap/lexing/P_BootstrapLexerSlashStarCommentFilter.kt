@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 object P_BootstrapLexerSlashStarCommentFilter
 	: Primitive1(CannotFail, CanFold, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val character = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		character: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val codePoint = character.codePoint
 		return objectFromBoolean(codePoint == '/'.code)
 	}

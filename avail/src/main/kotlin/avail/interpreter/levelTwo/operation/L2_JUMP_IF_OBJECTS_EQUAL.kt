@@ -40,14 +40,13 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
-import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.sameSynonymCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Opcodes
 
 /**
@@ -64,13 +63,13 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 ): L2ConditionalJump()
 {
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
+		manifest: L2ValueManifest
+	) = manifest.run {
 		super.instructionWasAdded(manifest)
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().agglomerateSynonym(
 			setOf(first.semanticValue(), second.semanticValue()),
-			first.restriction().intersection(second.restriction()))
+			first.restriction.intersection(second.restriction))
 	}
 
 	override fun StringBuilder.appendToWithWarnings(
@@ -116,8 +115,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 			jumpTo(ifEqual.targetBlock())
 			return
 		}
-		if (!first.restriction().containedByType(i32)
-			|| !second.restriction().containedByType(i32))
+		if (!first.restriction.containedByType(i32)
+			|| !second.restriction.containedByType(i32))
 		{
 			+this@L2_JUMP_IF_OBJECTS_EQUAL
 			return
@@ -126,8 +125,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
 		val (int1Read, int2Read) = readTwoInts(
-			first.semanticValue().unboxedInt,
-			second.semanticValue().unboxedInt,
+			first.semanticValue(),
+			second.semanticValue(),
 			unreachable)
 		{
 			+this@L2_JUMP_IF_OBJECTS_EQUAL
@@ -152,15 +151,15 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
+	override fun PostPhiData.interestingConditions() = buildList {
 		add(
 			sameSynonymCondition(
 				listOf(first.register()),
 				listOf(second.register())))
 		// If the values are both available as ints, we can do the comparison
 		// more efficiently, perhaps avoiding boxing entirely.
-		if (first.restriction().intersectsType(i32)
-			&& second.restriction().intersectsType(i32))
+		if (first.restriction.intersectsType(i32)
+			&& second.restriction.intersectsType(i32))
 		{
 			addAll(unboxedIntConditions(listOf(first.register())))
 			addAll(unboxedIntConditions(listOf(second.register())))

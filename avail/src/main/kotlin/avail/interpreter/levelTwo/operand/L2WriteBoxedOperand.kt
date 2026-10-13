@@ -37,12 +37,11 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
 /**
- * An `L2WriteBoxedOperand` is an operand of type [L2OperandType.WRITE_BOXED].
+ * An [L2WriteBoxedOperand] is an operand of type [L2OperandType.WRITE_BOXED].
  * It holds the actual [L2BoxedRegister] that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -60,7 +59,7 @@ import avail.utility.cast
  */
 class L2WriteBoxedOperand
 constructor(
-	semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
+	semanticValues: Set<L2SemanticValue>,
 	restriction: TypeRestriction,
 	register: L2Register<BOXED_KIND>? = null
 ) : L2WriteOperand<BOXED_KIND>(semanticValues, restriction, register)
@@ -69,22 +68,8 @@ constructor(
 
 	override val kind get() = BOXED_KIND
 
-	override fun onlySemanticValue(): L2SemanticBoxedValue =
-		super.onlySemanticValue().cast()
-
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
-	override fun semanticValues(): Set<L2SemanticBoxedValue> =
-		super.semanticValues().cast()
-
-	override fun pickSemanticValue(): L2SemanticBoxedValue =
-		semanticValues().first()
-
 	override fun register(): L2BoxedRegister = super.register().cast()
-
-	init
-	{
-		assert(restriction.isBoxed)
-	}
 }

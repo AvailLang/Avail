@@ -55,11 +55,10 @@ import avail.interpreter.primitive.Primitive1
 object P_ContinuationTypeToFunctionType : Primitive1(
 	CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val continuationType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		continuationType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return continuationType.functionType()
 	}
 

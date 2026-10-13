@@ -40,7 +40,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ResetCCReportDataAction` clears code coverage information obtained
+ * A [ResetCCReportDataAction] clears code coverage information obtained
  * from running.
  *
  * @constructor

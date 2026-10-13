@@ -72,7 +72,6 @@ import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE
@@ -81,7 +80,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
@@ -191,6 +192,10 @@ private constructor(
 		if (tupleType.isBottom)
 		{
 			builder.append("…")
+		}
+		else if (tupleType.equals(mostGeneralTupleType))
+		{
+			builder.append("*")
 		}
 		else
 		{
@@ -432,8 +437,28 @@ private constructor(
 		self: AvailObject,
 		aFunctionType: A_Type): A_Type
 	{
-		val tupleTypeUnion =
-			self[ARGS_TUPLE_TYPE].typeUnion(aFunctionType.argsTupleType)
+		var argsTupleType1 = self[ARGS_TUPLE_TYPE]
+		var argsTupleType2 = aFunctionType.argsTupleType
+		val tupleTypeUnion = argsTupleType1.typeUnion(argsTupleType2)
+		val adjustedTupleTypeUnion = when
+		{
+			// If either arguments tuple type was bottom, use the other one,
+			// since it's more general, making the function type more specific.
+			argsTupleType1.isBottom -> argsTupleType2
+			argsTupleType2.isBottom -> argsTupleType1
+
+			// The arity is fixed.
+			tupleTypeUnion.sizeRange.run { lowerBound == upperBound } ->
+				tupleTypeUnion
+
+			// The intersection of a 1-argument function type and 2-argument
+			// function type is a function type taking `tuple` as the arguments
+			// tuple type, which is one of thee most *specific*, but
+			// uninstantiable, function types.  It's useful solely inside a
+			// continuation type, which is contravriant on both the return type
+			// *and* the argument types.
+			else -> mostGeneralTupleType
+		}
 		val returnType =
 			self[RETURN_TYPE].typeIntersection(aFunctionType.returnType)
 		var exceptions = emptySet
@@ -447,7 +472,7 @@ private constructor(
 		}
 		exceptions = normalizeExceptionSet(exceptions)
 		return functionTypeFromArgumentTupleType(
-			tupleTypeUnion, returnType, exceptions)
+			adjustedTupleTypeUnion, returnType, exceptions)
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type = when
@@ -463,14 +488,34 @@ private constructor(
 	{
 		// Subobjects may be shared with result.
 		self.makeSubobjectsImmutable()
-		val tupleTypeIntersection =
-			self[ARGS_TUPLE_TYPE].typeIntersection(
-				aFunctionType.argsTupleType)
+		val tupleType1 = self[ARGS_TUPLE_TYPE]
+		val tupleType2 = aFunctionType.argsTupleType
+		val tupleTypeIntersection = when
+		{
+			// #1 is most general function type, so use it.
+			tupleType1.sizeRange.isBottom -> bottom
+			// #2 is most general function type, so use it.
+			tupleType2.sizeRange.isBottom -> bottom
+			// Neither is a general function type, so check the arities.
+			tupleType1.sizeRange != tupleType2.sizeRange -> bottom
+			// Avoid using tuple type intersection, since it barely tolerates
+			// having any ⊥ for any element types, and likes to reduce the whole
+			// tuple type to ⊥, which is wrong for a function type's usage.
+			else ->
+			{
+				val arity = tupleType1.sizeRange.lowerBound.extractInt
+				val argTypes = (1..arity).map { i ->
+					tupleType1.typeAtIndex(i).typeIntersection(
+						tupleType2.typeAtIndex(i))
+				}
+				tupleTypeForTypesList(argTypes)
+			}
+		}
 		val returnType =
 			self[RETURN_TYPE].typeUnion(aFunctionType.returnType)
 		val exceptions = normalizeExceptionSet(
 			self[DECLARED_EXCEPTIONS].setUnionCanDestroy(
-				aFunctionType.declaredExceptions, true))
+				aFunctionType.declaredExceptions, false))
 		return functionTypeFromArgumentTupleType(
 			tupleTypeIntersection, returnType, exceptions)
 	}
@@ -687,6 +732,9 @@ private constructor(
 		): A_Type
 		{
 			assert(argsTupleType.isTupleType)
+			assert(argsTupleType.isBottom
+				|| argsTupleType.equals(mostGeneralTupleType)
+				|| argsTupleType.sizeRange.run { lowerBound == upperBound })
 			val exceptionsReduced = normalizeExceptionSet(exceptionSet)
 			return mutable.createImmutable {
 				setSlot(ARGS_TUPLE_TYPE, argsTupleType)

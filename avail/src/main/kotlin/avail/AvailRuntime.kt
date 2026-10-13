@@ -83,10 +83,8 @@ import avail.descriptor.representation.A_Definition.Companion.definitionMethod
 import avail.descriptor.representation.A_Fiber
 import avail.descriptor.representation.A_Fiber.Companion.continuation
 import avail.descriptor.representation.A_Fiber.Companion.executionState
-import avail.descriptor.representation.A_Fiber.Companion.failureContinuation
 import avail.descriptor.representation.A_Fiber.Companion.fiberHelper
 import avail.descriptor.representation.A_Fiber.Companion.priority
-import avail.descriptor.representation.A_Fiber.Companion.resultContinuation
 import avail.descriptor.representation.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.representation.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.representation.A_Function
@@ -116,7 +114,6 @@ import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleState
 import avail.descriptor.representation.A_Module.Companion.newNames
 import avail.descriptor.representation.A_Module.Companion.privateNames
-import avail.descriptor.representation.A_Module.Companion.removeFrom
 import avail.descriptor.representation.A_Module.Companion.visibleNames
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_RawFunction
@@ -220,7 +217,7 @@ import kotlin.concurrent.read
 import kotlin.math.min
 
 /**
- * An `AvailRuntime` comprises the [modules][ModuleDescriptor],
+ * An [AvailRuntime] comprises the [modules][ModuleDescriptor],
  * [methods][MethodDescriptor], [SpecialObject]s, and [HookType]s that define an
  * Avail system.  It also manages global resources, such as file connections.
  *
@@ -248,6 +245,13 @@ class AvailRuntime constructor(
 	{
 		fileManager.associateRuntime(this)
 	}
+
+	/**
+	 * In order to catch arbitrary exceptions thrown by AvailTasks during test
+	 * execution, we allow the test harness to inject a callback that runs in
+	 * the failing thread's context.
+	 */
+	var testHarnessOnFailure: ((Throwable)->Unit)? = null
 
 	/**
 	 * An array of AtomicReference<Interpreter>, each of which is initially
@@ -1031,9 +1035,7 @@ class AvailRuntime constructor(
 		 * The [CheckedMethod] for [implicitObserveFunction].
 		 */
 		val implicitObserveFunctionMethod = instanceMethod(
-			AvailRuntime::class.java,
-			AvailRuntime::implicitObserveFunction.name,
-			A_Function::class.java)
+			AvailRuntime::implicitObserveFunction)
 
 		internal fun produceDefaultFunctionSupplier(
 			hookName: A_String,
@@ -1382,6 +1384,7 @@ class AvailRuntime constructor(
 					("\n\tException in running-interpreter task:\n\t" +
 						e.stackToString)
 						.trimIndent())
+				testHarnessOnFailure?.invoke(e)
 			}
 			finally
 			{

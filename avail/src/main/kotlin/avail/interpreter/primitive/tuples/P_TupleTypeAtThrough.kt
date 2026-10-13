@@ -63,15 +63,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_TupleTypeAtThrough : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val tupleType = arg1
-		val startIndex = arg2
-		val endIndex = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		tupleType: AvailObject,
+		startIndex: AvailObject,
+		endIndex: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val startInt = when {
 			startIndex.isInt -> startIndex.extractInt
 			else -> Integer.MAX_VALUE

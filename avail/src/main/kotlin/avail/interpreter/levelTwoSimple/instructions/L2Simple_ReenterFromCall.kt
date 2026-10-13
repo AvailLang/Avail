@@ -110,7 +110,7 @@ class L2Simple_ReenterFromCall(
 		interpreter.currentReifier!!.pushAction {
 			val continuation = createContinuationExceptFrame(
 				registers.function,
-				it,
+				getReifiedContinuation()!!,
 				emptyRegisterDump(UNREACHABLE_ENTRY.offset),
 				stateOfL1.pc,
 				stateOfL1.stackp,
@@ -119,7 +119,7 @@ class L2Simple_ReenterFromCall(
 			stateOfL1.liveSlots.forEachIndexed { zeroIndex, source ->
 				continuation.frameAtPut(zeroIndex + 1, registers[source])
 			}
-			continuation
+			setReifiedContinuation(continuation)
 		}
 		return REIFY_NOW
 	}

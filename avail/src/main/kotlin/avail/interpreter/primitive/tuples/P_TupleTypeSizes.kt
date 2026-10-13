@@ -47,20 +47,21 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Answer the allowed size [ranges][IntegerRangeTypeDescriptor]
@@ -72,11 +73,10 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tupleType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tupleType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return tupleType.sizeRange
 	}
 
@@ -85,19 +85,19 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
-		val tupleMetaRestriction = arguments.elements[0].restriction()
+		val tupleMetaRestriction = arguments.elements[0].restriction
 		if (tupleMetaRestriction.type.equals(bottomMeta))
 		{
 			// The tuple type is necessrily bottom, so the size range is also
 			// bottom.
-			moveBoxedRegister(
-				boxedConstant(bottom).semanticValue(),
+			move(
+				constant(bottom),
 				result.semanticValues())
 			return
 		}
 		val sizeRange = tupleMetaRestriction.type.instance.sizeRange
 		var strongSizeRestriction =
-			boxedRestrictionForType(instanceMeta(sizeRange))
+			restrictionForType(instanceMeta(sizeRange))
 		if (tupleMetaRestriction.canBeBottom)
 		{
 			// The tuple type can be bottom, which means the output size range
@@ -107,33 +107,30 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		if (tupleMetaRestriction.isConstant)
 		{
 			// For this invocation, only one size happens to be possible.
-			moveBoxedRegister(
-				boxedConstant(
-					tupleMetaRestriction.constantOrNull!!.sizeRange
-				).semanticValue(),
+			move(
+				constant(tupleMetaRestriction.constantOrNull!!.sizeRange),
 				result.semanticValues())
 			return
 		}
-		+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-			L2ConstantOperand(rawFunction),
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			rawFunction,
 			this@P_TupleTypeSizes,
 			arguments,
 			boxedWrite(result.semanticValues(), strongSizeRestriction))
 	}
 
-	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+	override fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val tupleTypeRegister = readBoxedOperands[0].register()
 		addAll(
 			typeRestrictionConditions(
 				setOf(tupleTypeRegister),
-				boxedRestrictionForConstant(bottom)))
+				restrictionForConstant(bottom)))
 		addAll(
 			typeRestrictionConditions(
 				setOf(tupleTypeRegister),
-				readBoxedOperands[0].restriction().withCanBeBottom(false)))
+				readBoxedOperands[0].restriction.withCanBeBottom(false)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

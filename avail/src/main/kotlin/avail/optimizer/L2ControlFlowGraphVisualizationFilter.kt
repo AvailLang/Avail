@@ -94,7 +94,7 @@ interface L2ControlFlowGraphVisualizationFilter
 	 * @return
 	 *   The [Set] of interesting [L2Synonym]s for this edge, or `null` for all.
 	 */
-	fun interestingSynonymsFor(edge: L2PcOperand): Set<L2Synonym<*>>?
+	fun interestingSynonymsFor(edge: L2PcOperand): Set<L2Synonym>?
 }
 
 /**
@@ -109,7 +109,7 @@ class NoFilter : L2ControlFlowGraphVisualizationFilter
 
 	override fun shouldShowEdgeManifest(edge: L2PcOperand) = true
 
-	override fun interestingSynonymsFor(edge: L2PcOperand): Set<L2Synonym<*>>? =
+	override fun interestingSynonymsFor(edge: L2PcOperand): Set<L2Synonym>? =
 		null // null means show all
 }
 
@@ -144,7 +144,7 @@ class NoFilter : L2ControlFlowGraphVisualizationFilter
  *   The control flow graph.
  */
 class FocusFilter constructor(
-	private val focusValue: L2SemanticValue<*>,
+	private val focusValue: L2SemanticValue,
 	private val currentBlock: L2BasicBlock?,
 	private val controlFlowGraph: L2ControlFlowGraph
 ) : L2ControlFlowGraphVisualizationFilter
@@ -153,7 +153,7 @@ class FocusFilter constructor(
 	 * All semantic values being traced backward. Starts with [focusValue] and
 	 * expands as we find instructions that write to traced values.
 	 */
-	private val interestingSemanticValues = mutableSetOf<L2SemanticValue<*>>()
+	private val interestingSemanticValues = mutableSetOf<L2SemanticValue>()
 
 	/**
 	 * Blocks that contain at least one instruction that reads or writes an
@@ -184,7 +184,7 @@ class FocusFilter constructor(
 	 * interesting semantic values. Used for filtering manifest display.
 	 */
 	private val interestingSynonymsPerEdge =
-		mutableMapOf<L2PcOperand, Set<L2Synonym<*>>>()
+		mutableMapOf<L2PcOperand, Set<L2Synonym>>()
 
 	init
 	{
@@ -212,7 +212,7 @@ class FocusFilter constructor(
 	{
 		// Map from block to the set of values its successors need from it.
 		val valuesNeededByBlock =
-			mutableMapOf<L2BasicBlock, MutableSet<L2SemanticValue<*>>>()
+			mutableMapOf<L2BasicBlock, MutableSet<L2SemanticValue>>()
 
 		// Initialize starting blocks with focusValue.
 		if (currentBlock != null)

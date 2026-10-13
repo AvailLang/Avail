@@ -51,19 +51,24 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
  * **Primitive:** Clear the [variable][A_Variable].
  */
 @Suppress("unused")
-object P_ClearValue : Primitive1(CanInline, HasSideEffect)
+object P_ClearValue : Primitive1(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, clearing it can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		variable: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try {
 			variable.clearValue()
 			nil
@@ -73,14 +78,6 @@ object P_ClearValue : Primitive1(CanInline, HasSideEffect)
 			fail(e.numericCode)
 		}
 	}
-
-	/**
-	 * If the variable had a reactor, clearing it can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

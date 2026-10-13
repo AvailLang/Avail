@@ -41,10 +41,10 @@ import avail.descriptor.fiber.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEF
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Fiber.Companion.getFiberPriority
 import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.variables.VariableDescriptor
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.AvailLoader
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
@@ -401,9 +401,7 @@ interface A_Fiber : A_BasicObject
 
 		/** The [CheckedMethod] for [getFiberPriority]. */
 		val getFiberPriorityMethod = CheckedMethod.staticMethod(
-			A_Fiber::class.java,
-			::getFiberPriority.name,
-			Int::class.javaPrimitiveType!!,
+			::getFiberPriority,
 			A_Fiber::class.java)
 
 

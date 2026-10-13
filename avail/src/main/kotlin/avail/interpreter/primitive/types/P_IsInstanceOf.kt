@@ -63,14 +63,11 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_IsInstanceOf : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
-		val type = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		value: AvailObject,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(value.isInstanceOf(type))
 	}
 
@@ -100,8 +97,8 @@ object P_IsInstanceOf : Primitive2(CannotFail, CanFold, CanInline)
 	{
 		val (xReg, yTypeReg) = arguments
 
-		if (xReg.restriction().metaRestriction().intersection(
-				yTypeReg.restriction()).type.isVacuousType)
+		if (xReg.restriction.metaRestriction().intersection(
+				yTypeReg.restriction).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
 			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
@@ -116,7 +113,7 @@ object P_IsInstanceOf : Primitive2(CannotFail, CanFold, CanInline)
 		{
 			jumpIfKindOfConstant(
 				xReg,
-				constantYType.typeIntersection(xReg.type()),
+				constantYType.typeIntersection(xReg.type),
 				ifInstance,
 				ifNotInstance)
 		}

@@ -66,44 +66,7 @@ import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import avail.descriptor.representation.A_Bundle.Companion.addGrammaticalRestriction
 import avail.descriptor.representation.A_Character.Companion.equalsCharacterWithCodePoint
-import avail.descriptor.representation.A_Method.Companion.methodAddDefinition
-import avail.descriptor.representation.A_Module.Companion.moduleAddDefinition
-import avail.descriptor.representation.A_Module.Companion.moduleAddGrammaticalRestriction
-import avail.descriptor.representation.A_Number.Companion.addToInfinityCanDestroy
-import avail.descriptor.representation.A_Number.Companion.addToIntegerCanDestroy
-import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
-import avail.descriptor.representation.A_Number.Companion.divideIntoInfinityCanDestroy
-import avail.descriptor.representation.A_Number.Companion.divideIntoIntegerCanDestroy
-import avail.descriptor.representation.A_Number.Companion.equalsInfinity
-import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
-import avail.descriptor.representation.A_Number.Companion.multiplyByInfinityCanDestroy
-import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDestroy
-import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
-import avail.descriptor.representation.A_Number.Companion.subtractFromInfinityCanDestroy
-import avail.descriptor.representation.A_Number.Companion.subtractFromIntegerCanDestroy
-import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
-import avail.descriptor.representation.A_Set.Companion.isSet
-import avail.descriptor.representation.A_String.Companion.asNativeString
-import avail.descriptor.representation.A_Tuple.Companion.asSet
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithByteStringStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithTwentyOneBitStringStartingAt
-import avail.descriptor.representation.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
-import avail.descriptor.representation.A_Type.Companion.acceptsArgTypesFromFunctionType
-import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgTypes
-import avail.descriptor.representation.A_Type.Companion.acceptsListOfArgValues
-import avail.descriptor.representation.A_Type.Companion.acceptsTupleOfArgTypes
-import avail.descriptor.representation.A_Type.Companion.acceptsTupleOfArguments
-import avail.descriptor.representation.A_Type.Companion.argsTupleType
-import avail.descriptor.representation.A_Type.Companion.declaredExceptions
-import avail.descriptor.representation.A_Type.Companion.returnType
-import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
@@ -143,6 +106,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.primitive.Primitive
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
@@ -4411,10 +4375,8 @@ abstract class AbstractDescriptor protected constructor (
 			value.typeTag.ordinal
 
 		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
-		val staticTypeTagOrdinalMethod = CheckedMethod.staticMethod(
-			AbstractDescriptor::class.java,
-			::staticTypeTagOrdinal.name,
-			Int::class.javaPrimitiveType!!,
+		val staticTypeTagOrdinalMethod = staticMethod(
+			::staticTypeTagOrdinal,
 			AvailObject::class.java)
 	}
 }

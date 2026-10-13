@@ -69,11 +69,10 @@ import avail.interpreter.primitive.Primitive1
 object P_AtomFieldBound : Primitive1(
 	CanInline, CanFold, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (atom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
 			// It's an explicit subclassing atom, so its type bound is just the

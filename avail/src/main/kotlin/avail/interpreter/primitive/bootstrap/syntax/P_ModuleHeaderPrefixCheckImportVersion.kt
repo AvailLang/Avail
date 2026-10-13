@@ -71,16 +71,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_ModuleHeaderPrefixCheckImportVersion : Primitive3(Private, Bootstrap)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		// val moduleName = arg1
-		// val moduleVersion = arg2
-		val allImportsList = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		moduleName: AvailObject,
+		moduleVersion: AvailObject,
+		allImportsList: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val lastImport = allImportsList.lastExpression
 		assert(lastImport.expressionsSize == 2)  // extends/uses, then content
 		val lastImportNames = lastImport.expressionAt(2)

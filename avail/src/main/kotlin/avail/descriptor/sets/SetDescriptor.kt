@@ -659,10 +659,7 @@ private constructor(
 		/**
 		 * The [CheckedMethod] for [emptySet].
 		 */
-		val emptySetMethod = staticMethod(
-			SetDescriptor::class.java,
-			::emptyAvailSet.name,
-			A_Set::class.java)
+		val emptySetMethod = staticMethod(::emptyAvailSet)
 
 		/**
 		 * Create an Avail set with exactly one element.  The element is not

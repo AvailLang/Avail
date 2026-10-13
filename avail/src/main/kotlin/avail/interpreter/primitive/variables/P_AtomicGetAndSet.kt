@@ -56,6 +56,7 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -65,15 +66,18 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicGetAndSet : Primitive2(CanInline, HasSideEffect)
+object P_AtomicGetAndSet : Primitive2(
+	CanInline,
+	HasSideEffect,
+	// If the variable is shared and a local variable is captured inside the
+	// newValue, it could become shared.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val newValue = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		newValue: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try {
 			variable.getAndSetValue(newValue)
 		}
@@ -86,14 +90,6 @@ object P_AtomicGetAndSet : Primitive2(CanInline, HasSideEffect)
 			fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * If the variable is shared and a local variable is captured inside the
-	 * newValue, it could become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

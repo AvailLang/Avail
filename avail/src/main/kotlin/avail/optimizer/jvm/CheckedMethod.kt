@@ -39,6 +39,8 @@ import org.objectweb.asm.Opcodes.INVOKESTATIC
 import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
 import org.objectweb.asm.Type
 import java.lang.reflect.Modifier
+import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.javaMethod
 
 /**
  * A helper class for referring to a method.  It verifies at construction
@@ -93,7 +95,6 @@ class CheckedMethod private constructor(
 	returnClass: Class<*>,
 	vararg argumentTypes: Class<*>)
 {
-
 	/** Whether the method is defined in an interface. */
 	private val isInterface: Boolean
 
@@ -157,28 +158,24 @@ class CheckedMethod private constructor(
 		 * been annotated with [ReferencedInGeneratedCode], failing if there is
 		 * a problem.
 		 *
-		 * @param receiverClass
-		 *   The type of the receiver of the method.
-		 * @param methodName
-		 *   The name of the method.
-		 * @param returnClass
-		 *   The required return type.
+		 * @param method
+		 *   The reference (SomeClass::someMethod) to the instance method that
+		 *   should be invoked.  The receiver class, method name, and return
+		 *   type are all extracted from the reference.
 		 * @param argumentTypes
 		 *   A vararg array of argument types.
 		 * @return
 		 *   The `CheckedMethod`.
 		 */
 		fun instanceMethod(
-			receiverClass: Class<*>,
-			methodName: String,
-			returnClass: Class<*>,
+			method: KFunction<*>,
 			vararg argumentTypes: Class<*>
 		) = CheckedMethod(
-			true,
-			false,
-			receiverClass,
-			methodName,
-			returnClass,
+			verifyAnnotation = true,
+			isStatic = false,
+			receiverClass = method.javaMethod!!.declaringClass,
+			methodNameString = method.javaMethod!!.name,
+			returnClass = method.javaMethod!!.returnType,
 			*argumentTypes)
 
 		/**
@@ -186,28 +183,22 @@ class CheckedMethod private constructor(
 		 * annotated with [ReferencedInGeneratedCode], failing if there is a
 		 * problem.
 		 *
-		 * @param receiverClass
-		 *   The [Class] that defines the method.
-		 * @param methodName
-		 *   The name of the method.
-		 * @param returnClass
-		 *   The required return type.
+		 * @param method
+		 *   The reference to the static method to be invoked.
 		 * @param argumentTypes
 		 *   A vararg array of argument types.
 		 * @return
 		 *   The `CheckedMethod`.
 		 */
 		fun staticMethod(
-			receiverClass: Class<*>,
-			methodName: String,
-			returnClass: Class<*>,
+			method: KFunction<*>,
 			vararg argumentTypes: Class<*>
 		) = CheckedMethod(
-			true,
-			true,
-			receiverClass,
-			methodName,
-			returnClass,
+			verifyAnnotation = true,
+			isStatic = true,
+			receiverClass = method.javaMethod!!.declaringClass,
+			methodNameString = method.javaMethod!!.name,
+			returnClass = method.javaMethod!!.returnType,
 			*argumentTypes)
 
 		/**
@@ -232,11 +223,11 @@ class CheckedMethod private constructor(
 			returnClass: Class<*>,
 			vararg argumentTypes: Class<*>
 		) = CheckedMethod(
-			false,
-			false,
-			receiverClass,
-			methodName,
-			returnClass,
+			verifyAnnotation = false,
+			isStatic = false,
+			receiverClass = receiverClass,
+			methodNameString = methodName,
+			returnClass = returnClass,
 			*argumentTypes)
 
 		/**
@@ -261,13 +252,13 @@ class CheckedMethod private constructor(
 			returnClass: Class<*>,
 			vararg argumentTypes: Class<*>
 		) = CheckedMethod(
-			false,
-			true,
-			receiverClass,
-			methodName,
-			returnClass,
+			verifyAnnotation = false,
+			isStatic = true,
+			receiverClass = receiverClass,
+			methodNameString = methodName,
+			returnClass = returnClass,
 			*argumentTypes)
-	}
+		}
 
 	/* The [Method] that was looked up during construction of this instance. */
 	private val method =
@@ -299,7 +290,27 @@ class CheckedMethod private constructor(
 		}
 		val modifiers = method.modifiers
 		assert(modifiers and Modifier.PUBLIC != 0)
-		assert(modifiers and Modifier.STATIC != 0 == isStatic)
+		// Instance *and static* Kotlin references have this clear, because in
+		// the latter case, the reference is to an instance method on the
+		// companion... which we'll check has @JvmStatic, and use the static
+		// method that also gets created.
+		val javaDeclaringClass = when
+		{
+			isStatic && verifyAnnotation ->
+			{
+				assert(method.isAnnotationPresent(JvmStatic::class.java))
+				method.declaringClass.enclosingClass
+			}
+			isStatic && !verifyAnnotation ->
+			{
+				method.declaringClass
+			}
+			else ->
+			{
+				assert(modifiers and Modifier.STATIC == 0)
+				method.declaringClass
+			}
+		}
 		val methodReturnType = method.returnType
 		internalNameToCheckCastOrNull =
 			when
@@ -316,8 +327,8 @@ class CheckedMethod private constructor(
 					Type.getInternalName(returnClass)
 				}
 			}
-		receiverClassInternalName = Type.getInternalName(method.declaringClass)
-		isInterface = method.declaringClass.isInterface
+		receiverClassInternalName = Type.getInternalName(javaDeclaringClass)
+		isInterface = javaDeclaringClass.isInterface
 		methodDescriptorString = Type.getMethodDescriptor(method)
 	}
 }

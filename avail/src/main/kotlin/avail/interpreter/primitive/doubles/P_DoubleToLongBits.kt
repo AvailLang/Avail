@@ -58,11 +58,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_DoubleToLongBits : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val doubleObject = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		doubleObject: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val doubleValue = doubleObject.extractDouble
 		val doubleBits = doubleValue.toRawBits()
 		return fromLong(doubleBits)

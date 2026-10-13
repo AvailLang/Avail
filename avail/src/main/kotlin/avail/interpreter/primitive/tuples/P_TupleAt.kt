@@ -63,11 +63,10 @@ import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.codePointIntRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
-import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
@@ -85,7 +84,6 @@ import avail.optimizer.L1Translator
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface.Companion.readInt
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import java.lang.Integer.MAX_VALUE
 
 /**
@@ -94,13 +92,11 @@ import java.lang.Integer.MAX_VALUE
 @Suppress("unused")
 object P_TupleAt : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
-		val indexObject = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		tuple: AvailObject,
+		indexObject: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!indexObject.isInt)
 		{
 			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
@@ -166,32 +162,20 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			val outOfBounds = createBasicBlock(
 				"failed bounds check",
 				ZoneType.DEAD_END.createZone("failed bounds check"))
-			val unboxedSemanticSize =
-				P_TupleSize.semanticInvocation(
-					tupleReg.semanticValue()
-				).unboxedInt
-			val intSizeRestriction = intRestrictionForType(
-				tupleReg.type().sizeRange.typeIntersection(i31))
-			val intSizeType = intSizeRestriction.type
-			val sizeWriter = intWrite(
-				setOf(unboxedSemanticSize), intSizeRestriction)
-			if (intSizeType.lowerBound.equals(intSizeType.upperBound))
+			val semanticSize =
+				P_TupleSize.semanticInvocation(tupleReg.semanticValue())
+			var sizeRestriction = restrictionForType(
+				tupleReg.type.sizeRange.typeIntersection(i31))
+			val sizeType = sizeRestriction.type
+			if (sizeType.lowerBound.equals(sizeType.upperBound))
 			{
-				+L2_MOVE_INT(
-					unboxedIntConstant(intSizeType.lowerBound.extractInt),
-					sizeWriter)
+				sizeRestriction = restrictionForConstant(sizeType.lowerBound)
 			}
-			else
-			{
-				val equivalent =
-					currentManifest.equivalentSemanticValue(unboxedSemanticSize)
-				if (equivalent != null)
-					moveIntRegister(equivalent, setOf(unboxedSemanticSize))
-				else
-					+L2_TUPLE_SIZE(tupleReg, sizeWriter)
-			}
+			+L2_TUPLE_SIZE(
+				tupleReg,
+				intWrite(setOf(semanticSize), sizeRestriction))
 			val readSubscript = readInt(
-				subscriptReg.semanticValue().unboxedInt,
+				subscriptReg.semanticValue(),
 				outOfBounds
 			) {
 				return false
@@ -199,21 +183,21 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 
 			// Check the upper bound, if necessary.
 			if (currentlyReachable()
-				&& subscriptReg.type().upperBound.greaterThan(
-					intSizeRestriction.type.lowerBound))
+				&& subscriptReg.type.upperBound.greaterThan(
+					sizeRestriction.type.lowerBound))
 			{
 				val inBounds = createBasicBlock("passed upper bound check")
 				compareAndBranchInt(
 					NumericComparator.LessOrEqual,
 					readSubscript,
-					readIntNoFail(unboxedSemanticSize),
+					readIntNoFail(semanticSize),
 					edgeTo(inBounds),
 					edgeTo(outOfBounds))
 				startBlock(inBounds)
 			}
 			if (currentlyReachable())
 			{
-				val resultRestriction = boxedRestrictionForType(
+				val resultRestriction = restrictionForType(
 					returnTypeGuaranteedByVM(
 						rawFunction,
 						listOf(
@@ -229,10 +213,8 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 				{
 					// Extract it as an Int, then box it.  Further optimizations
 					// may be able to elide the boxing.
-					val semanticResultInt = semanticResult.unboxedInt
-					val writeIntResult = intWrite(
-						setOf(semanticResultInt),
-						resultRestriction.forUnboxedInt())
+					val writeIntResult =
+						intWrite(setOf(semanticResult), resultRestriction)
 					+L2_TUPLE_INT_AT_NO_FAIL(
 						tupleReg, readSubscript, writeIntResult)
 					+L2_BOX_INT(
@@ -246,7 +228,6 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 					// elided.
 					val semanticResultCodepoint =
 						P_CharacterCodePoint.semanticInvocation(semanticResult)
-							.unboxedInt
 					val writeCodepointResult = intWrite(
 						setOf(semanticResultCodepoint), codePointIntRestriction)
 					+L2_TUPLE_CODEPOINT_AT_NO_FAIL(
@@ -277,12 +258,12 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 			// site.
 		}
 		// The primitive cannot fail at this site.
-		val subscriptType = subscriptReg.type()
+		val subscriptType = subscriptReg.type
 		val lower = subscriptType.lowerBound
 		val upper = subscriptType.upperBound
 		val writer = boxedWriteTemp(
 			"element",
-			boxedRestrictionForType(
+			restrictionForType(
 				returnTypeGuaranteedByVM(rawFunction, argumentTypes)))
 		if (lower.equals(upper))
 		{
@@ -297,7 +278,7 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 		val subscriptConversionFailure =
 			createBasicBlock("Should be unreachable")
 		val subscriptIntReg = readInt(
-			subscriptReg.semanticValue().unboxedInt,
+			subscriptReg.semanticValue(),
 			subscriptConversionFailure
 		) {
 			return false

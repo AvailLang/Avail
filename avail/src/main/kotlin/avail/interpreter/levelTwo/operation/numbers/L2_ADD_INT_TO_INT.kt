@@ -32,7 +32,6 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
@@ -44,13 +43,13 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -66,14 +65,14 @@ class L2_ADD_INT_TO_INT(
 	var augend: L2ReadIntOperand,
 	var addend: L2ReadIntOperand,
 	@On(SUCCESS) var sum: L2WriteIntOperand,
-	@On(FAILURE) var outOfRange: L2PcOperand,
-	@On(SUCCESS) var inRange: L2PcOperand
+	@On(SUCCESS) var inRange: L2PcOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand
 ): L2ControlFlowInstruction()
 {
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
-		sum.restrict { intRestrictionForType(i32) }
+		manifest: L2ValueManifest
+	): Unit = manifest.run {
+		sum.restrict { restrictionForType(i32) }
 		super.instructionWasAdded(manifest)
 		addend.constantOrNull?.let { addendValue ->
 			// By virtue of the overflow and the fact that the addend is
@@ -82,7 +81,7 @@ class L2_ADD_INT_TO_INT(
 				minusType(
 					inclusive(
 						Int.MIN_VALUE.toLong() - addendValue.extractLong,
-						Int.MAX_VALUE.toLong() - addendValue.extractInt))
+						Int.MAX_VALUE.toLong() - addendValue.extractLong))
 			}
 		}
 		augend.constantOrNull?.let { augendValue ->
@@ -103,7 +102,7 @@ class L2_ADD_INT_TO_INT(
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val outputRange = P_Addition.returnTypeGuaranteedByVM(
-			null, listOf(augend.type(), addend.type()))
+			null, listOf(augend.type, addend.type))
 		if (outputRange.isSubtypeOf(i32))
 		{
 			+L2_BIT_LOGIC_OP(Add, augend, addend, sum)

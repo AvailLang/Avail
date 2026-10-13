@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateSequenceAsExpressionPhrase : Primitive1(CannotFail, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val sequence = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		sequence: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newSequenceAsExpression(sequence)
 	}
 

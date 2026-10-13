@@ -67,11 +67,10 @@ import avail.interpreter.primitive.Primitive1
 object P_RequestTermination : Primitive1(
 	CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val fiber = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		fiber: AvailObject
+	): A_BasicObject? = interpreter.run {
 		with (fiber) {
 			lock {
 				// Set the interrupt request flag.

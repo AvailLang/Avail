@@ -58,11 +58,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_IsCanonicalMessage : Primitive1(CannotFail, CanInline, CanFold)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val name = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		name: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			// Ignore the return value. We just want to see if the name is

@@ -55,6 +55,7 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -65,13 +66,13 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GenerateFunctionForBlock : Primitive1(CanFold, CanInline)
+object P_GenerateFunctionForBlock : Primitive1(
+	CanFold, CanInline, MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val block = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		block: AvailObject
+	): A_BasicObject? = interpreter.run {
 		try
 		{
 			recursivelyValidate(block)
@@ -98,10 +99,6 @@ object P_GenerateFunctionForBlock : Primitive1(CanFold, CanInline)
 		val function = createFunction(compiledCode, emptyTuple)
 		return function.makeImmutable()
 	}
-
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

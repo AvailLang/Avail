@@ -63,11 +63,10 @@ import java.io.RandomAccessFile
 @Suppress("unused")
 object P_FileSize : Primitive1(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{

@@ -66,7 +66,6 @@ import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfPojoType
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.A_Type.Companion.typeUnionOfPojoType
-import avail.descriptor.representation.A_Type.Companion.typeVariables
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -108,7 +107,7 @@ import java.math.BigInteger
 import java.util.IdentityHashMap
 
 /**
- * An `PojoTypeDescriptor` describes the type of a plain-old Java object (pojo)
+ * An [PojoTypeDescriptor] describes the type of a plain-old Java object (pojo)
  * that is accessible to an Avail programmer as an
  * [Avail&#32;object][AvailObject].
  *

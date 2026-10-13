@@ -95,6 +95,7 @@ import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive3
 import avail.utility.Strings.increaseIndentation
@@ -124,18 +125,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
+object P_CreateRestrictedSendExpression : Primitive3(
+	CanSuspend,
+	Unknown,
+	// The returnType might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val messageName = arg1
-		val argsListPhrase = arg2
-		val returnType = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		messageName: AvailObject,
+		argsListPhrase: AvailObject,
+		returnType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader ?:
 			return fail(E_LOADING_IS_OVER)
@@ -324,13 +325,6 @@ object P_CreateRestrictedSendExpression : Primitive3(CanSuspend, Unknown)
 					}
 				})
 		}
-
-	/**
-	 * The returnType might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

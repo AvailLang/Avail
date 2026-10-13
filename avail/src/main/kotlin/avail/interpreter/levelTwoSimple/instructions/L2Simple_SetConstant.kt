@@ -57,6 +57,8 @@ class L2Simple_SetConstant(
 ) : L2Simple_AbstractReifiableInstruction(
 	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.RESUME)
 {
+	init { assert(variable.descriptor.isShared) }
+
 	override fun step(
 		registers: RegisterSet,
 		interpreter: Interpreter

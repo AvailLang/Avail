@@ -46,7 +46,6 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
@@ -55,11 +54,12 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.Strings.increaseIndentation
 
@@ -94,14 +94,11 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 	override val hasSideEffect get() = true
 
 	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun mightMakeEscapedVariableShared(
-		manifest: L2ValueManifest
-	): Boolean =
+	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =
 		when (val prim = constantFunction.constant.code().codePrimitive())
 		{
 			null -> true
-			else -> prim.mightMakeEscapedVariableShared(
-				arguments.elements.map(L2ReadBoxedOperand::type))
+			else -> prim.mightMakeEscapedVariableShared()
 		}
 
 	override fun L2Regenerator.regenerateForPostponement()
@@ -146,26 +143,25 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			desiredOperandTypes, ::constantFunction, ::arguments)
 	}
 
-	override fun interestingConditions(): List<L2SplitCondition?>
+	override fun PostPhiData.interestingConditions(): List<L2SplitCondition?>
 	{
 		val rawFunction = constantFunction.constant.code()
-		val argumentTypes = arguments.elements.map(L2ReadBoxedOperand::type)
-		val primitive = rawFunction.codePrimitive()
-		when
-		{
-			primitive === null -> { }
-			!primitive.hasFlag(CanInline) -> { }
-			primitive.hasFlag(CanSwitchContinuations) -> { }
-			primitive.hasFlag(Invokes) -> { }
-			primitive.hasFlag(Unknown) -> { }
-			primitive.fallibilityForArgumentTypes(argumentTypes)
-				== CallSiteCanFail ->
+		val argumentTypes = arguments.elements.map { it.type }
+		rawFunction.codePrimitive()?.run {
+			when
 			{
-				// The call site is *sometimes* fallible, so ask the primitive
-				// to produce any interesting conditions that might make it
-				// entirely infalllible along some split paths.
-				return primitive.interestingSplitConditions(
-					arguments.elements, rawFunction)
+				!hasFlag(CanInline) -> { }
+				hasFlag(CanSwitchContinuations) -> { }
+				hasFlag(Invokes) -> { }
+				hasFlag(Unknown) -> { }
+				fallibilityForArgumentTypes(argumentTypes) == CallSiteCanFail ->
+				{
+					// The call site is *sometimes* fallible, so ask the
+					// primitive to produce any interesting conditions that
+					// might make it entirely infalllible along some split
+					// paths.
+					return interestingSplitConditions(arguments.elements)
+				}
 			}
 		}
 		return emptyList()
@@ -176,7 +172,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		// See if the new situation has become specialized enough to invoke a
 		// primitive that's infallible for these arguments.
 		val rawFunction = constantFunction.constant.code()
-		val argumentTypes = arguments.elements.map(L2ReadBoxedOperand::type)
+		val argumentTypes = arguments.elements.map { it.type }
 		val primitive = rawFunction.codePrimitive()
 		when
 		{
@@ -190,14 +186,13 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			{
 				val resultType = primitive.returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
-				+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-					L2ConstantOperand(rawFunction),
+				+L2_RUN_INFALLIBLE_PRIMITIVE(
+					rawFunction,
 					primitive,
 					arguments,
 					boxedWrite(
 						result.semanticValues(),
 						result.restriction().intersectionWithType(resultType)))
-				// Don't forget to jump to the ifReturn edge's target.
 				jumpTo(ifReturn.targetBlock())
 				return
 			}

@@ -62,11 +62,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_DeclarationInitializingExpression : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val decl = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		decl: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val initializer = decl.initializationExpression
 		if (initializer.isNil)

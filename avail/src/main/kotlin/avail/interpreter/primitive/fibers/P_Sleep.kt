@@ -72,11 +72,10 @@ import java.util.TimerTask
 @Suppress("unused")
 object P_Sleep : Primitive1(CannotFail, CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val sleepMillis = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		sleepMillis: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// If the requested sleep time is 0 milliseconds, then return
 		// immediately. We could have chosen to yield here, but it was better to
 		// make sleep and yield behave differently.

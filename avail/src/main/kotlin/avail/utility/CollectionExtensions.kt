@@ -304,6 +304,23 @@ fun <T> Collection<T>.ifNotEmpty(body: (Collection<T>)->Unit)
 		body(this)
 }
 
+/**
+ * Answer whether there are any elements in common between the receiver and
+ * [other].
+ *
+ * @receiver
+ *   One of the collections.
+ * @param
+ *   The other collection.
+ * @return
+ *   Whether there's at least one element in common in the two collections.
+ */
+fun <T> Collection<T>.intersects(other: Collection<T>): Boolean = when
+{
+	size < other.size -> any(other::contains)
+	else -> other.any(::contains)
+}
+
 interface Tuple
 
 /** Tuple of length 1. */
@@ -515,4 +532,16 @@ fun <X> List<Iterable<X>>.cartesianProductForEach(action: (List<X>)->Unit)
 			action(butLastProduct.append(lastElement))
 		}
 	}
+}
+
+/**
+ * Combine two nullable values.  If either is null, answer the other.  If both
+ * are null, answer null.  If neither is null, run the supplied fold function to
+ * produce a combined value.
+ */
+fun <X> X?.combine(other: X?, fold: (a: X, b: X)->X): X? = when
+{
+	this == null -> other
+	other == null -> this
+	else -> fold(this, other)
 }

@@ -53,11 +53,11 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.characterRestriction
-import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Given an [Int] representing a codepoint, produce the corresponding
@@ -83,10 +83,11 @@ class L2_CODEPOINT_TO_CHARACTER(
 		append(')')
 	}
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
-	{
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest
+	) = manifest.run {
 		destination.restrict { characterRestriction }
-		val codepointRestriction = source.restriction()
+		val codepointRestriction = source.restriction
 		val codepoints = codepointRestriction.type
 		if (codepoints.isEnumeration)
 		{
@@ -94,7 +95,7 @@ class L2_CODEPOINT_TO_CHARACTER(
 			val charSet =
 				codepoints.instances.map { fromCodePoint(it.extractInt) }
 			destination.restrict {
-				boxedRestrictionForType(
+				restrictionForType(
 					enumerationWith(setFromCollection(charSet)))
 			}
 		}
@@ -144,7 +145,7 @@ class L2_CODEPOINT_TO_CHARACTER(
 					.flatMap(IntRange::toList)
 					.map(CharacterDescriptor::fromCodePoint)
 				destination.restrict {
-					boxedRestrictionForType(
+					restrictionForType(
 						enumerationWith(setFromCollection(characters)))
 				}
 			}
@@ -161,19 +162,18 @@ class L2_CODEPOINT_TO_CHARACTER(
 		super.instructionWasAdded(manifest)
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
-		tracer.continueTracing(source.register(), restriction.forUnboxedInt())
+		continueTracing(source.register(), restriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = CharacterDescriptor.fromCodePoint(source);
 		load(source)
-		when (source.type().isSubtypeOf(u8))
+		when (source.restriction.type.isSubtypeOf(u8))
 		{
 			true -> generateCall(staticFromByteCodePointMethod)
 			else -> generateCall(staticFromCodePointMethod)

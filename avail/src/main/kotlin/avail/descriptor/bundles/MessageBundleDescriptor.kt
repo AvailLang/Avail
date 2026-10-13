@@ -108,12 +108,12 @@ import avail.exceptions.SignatureException
 import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.serialization.SerializerOperation
+import avail.utility.atomicUpdater
 import org.availlang.json.JSONWriter
 import java.util.Collections.nCopies
 import java.util.IdentityHashMap
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 import kotlin.concurrent.withLock
 
 /**
@@ -217,7 +217,7 @@ class MessageBundleDescriptor private constructor(
 				toList(self[MACROS_TUPLE]),
 				nCopies(
 					numArgs,
-					boxedRestrictionForType(PARSE_PHRASE.mostGeneralType)),
+					restrictionForType(PARSE_PHRASE.mostGeneralType)),
 				Unit)
 			do
 			{
@@ -306,20 +306,20 @@ class MessageBundleDescriptor private constructor(
 	): Array<AvailObjectFieldHelper>
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
+//		fields.add(
+//			AvailObjectFieldHelper(
+//				self,
+//				DUMMY_DEBUGGER_SLOT,
+//				-1,
+//				messageSplitter,
+//				slotName = "messageSplitter",
+//				forcedName = "messageSplitter"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
 				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(messageSplitter),
-				slotName = "messageSplitter",
-				forcedName = "messageSplitter"))
-		fields.add(
-			AvailObjectFieldHelper(
-				self,
-				DUMMY_DEBUGGER_SLOT,
-				-1,
-				arrayOf(privateMacroTestingTree),
+				privateMacroTestingTree,
 				slotName = "macroTestingTree",
 				forcedName = "macroTestingTree"))
 		return fields.toTypedArray()
@@ -446,10 +446,7 @@ class MessageBundleDescriptor private constructor(
 	companion object {
 		/** Atomic access to [privateMacroTestingTree]. */
 		private val macroTestingTreeUpdater =
-			AtomicReferenceFieldUpdater.newUpdater(
-				MessageBundleDescriptor::class.java,
-				LookupTree::class.java,
-				MessageBundleDescriptor::privateMacroTestingTree.name)
+			atomicUpdater(MessageBundleDescriptor::privateMacroTestingTree)
 
 		/**
 		 * Add an [A_DefinitionParsingPlan] to this bundle.  This is performed

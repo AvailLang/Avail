@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
@@ -38,14 +39,11 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
-import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
- * An `L2ReadFloatOperand` is an operand of type [L2OperandType.READ_FLOAT]. It
+ * An [L2ReadFloatOperand] is an operand of type [L2OperandType.READ_FLOAT]. It
  * holds the actual [L2FloatRegister] that is to be accessed.
  *
  * @constructor
@@ -53,10 +51,6 @@ import avail.utility.cast
  * @param semanticValue
  *   The [L2SemanticValue] that is being read when an [L2Instruction] uses this
  *   [L2Operand].
- * @param restriction
- *   The [TypeRestriction] to constrain this particular read. This restriction
- *   has been guaranteed by the VM at the point where this operand's instruction
- *   occurs.
  * @param register
  *   An optional [L2FloatRegister] to use for this operand.
  *
@@ -65,27 +59,16 @@ import avail.utility.cast
  */
 class L2ReadFloatOperand
 constructor(
-	semanticValue: L2SemanticValue<FLOAT_KIND>,
-	restriction: TypeRestriction,
+	semanticValue: L2SemanticValue,
 	register: L2Register<FLOAT_KIND>? = null
-) : L2ReadOperand<FLOAT_KIND>(semanticValue, restriction, register)
+) : L2ReadOperand<FLOAT_KIND>(semanticValue, register)
 {
-	init {
-		assert(restriction.isUnboxedFloat)
-	}
-
 	override val operandType: L2OperandType get() = READ_FLOAT
-
-	override fun semanticValue(): L2SemanticUnboxedFloat =
-		super.semanticValue().cast()
 
 	override fun register(): L2FloatRegister = super.register().cast()
 
-	override fun createConstantRegister() =
-		L2FloatRegister(-999, constantOrNull!!)
-
-	override fun createSemanticConstant(): L2SemanticUnboxedFloat =
-		constant(register().constant!!).unboxedFloat
+	override fun createConstantRegister(constant: AvailObject) =
+		L2FloatRegister(-999, constant)
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

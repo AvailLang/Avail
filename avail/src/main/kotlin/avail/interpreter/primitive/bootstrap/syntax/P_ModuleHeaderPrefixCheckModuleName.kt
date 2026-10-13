@@ -61,11 +61,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ModuleHeaderPrefixCheckModuleName : Primitive1(Private, Bootstrap)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val moduleNameLiteral = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		moduleNameLiteral: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = availLoader()
 		val module = loader.module
 		val qualifiedName = module.moduleName

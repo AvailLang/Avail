@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SuperCastLookupType : Primitive1(CanFold, CanInline, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val supercast = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		supercast: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return supercast.superUnionType
 	}
 

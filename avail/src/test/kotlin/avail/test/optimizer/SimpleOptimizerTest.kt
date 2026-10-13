@@ -94,6 +94,7 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
@@ -103,6 +104,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.dispatch.TypeTagDecisionStep
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
 import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
@@ -120,8 +122,16 @@ import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import avail.interpreter.levelTwo.operation.L2_RETURN
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
@@ -148,12 +158,15 @@ import avail.interpreter.primitive.integers.P_LowerBound
 import avail.interpreter.primitive.maps.P_KeyInMap
 import avail.interpreter.primitive.maps.P_MapAtKey
 import avail.interpreter.primitive.maps.P_MapSize
+import avail.interpreter.primitive.maps.P_MapTypeKeyType
+import avail.interpreter.primitive.maps.P_MapTypeValueType
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.interpreter.primitive.numbers.P_Division
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.interpreter.primitive.numbers.P_LessThan
 import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.interpreter.primitive.numbers.P_Subtraction
+import avail.interpreter.primitive.phrases.P_LiteralTokenTypeValueType
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.interpreter.primitive.rawfunctions.P_PrivateForceOptimizationForTests
@@ -167,6 +180,9 @@ import avail.interpreter.primitive.tuples.P_IntegerIntervalTuple
 import avail.interpreter.primitive.tuples.P_TupleAt
 import avail.interpreter.primitive.tuples.P_TupleReplaceAt
 import avail.interpreter.primitive.tuples.P_TupleSize
+import avail.interpreter.primitive.tuples.P_TupleTypeAt
+import avail.interpreter.primitive.tuples.P_TupleTypeAtThrough
+import avail.interpreter.primitive.tuples.P_TupleTypeLeadingTypes
 import avail.interpreter.primitive.types.P_CastIntoElse
 import avail.interpreter.primitive.types.P_CreateEnumeration
 import avail.interpreter.primitive.types.P_InstanceCount
@@ -180,13 +196,22 @@ import avail.interpreter.primitive.variables.P_SetValue
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2Synonym
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.Frame
+import avail.optimizer.values.L2SemanticDummy
+import avail.optimizer.values.L2SemanticTemp
+import avail.optimizer.values.L2SemanticValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
+import org.junit.jupiter.api.assertNotNull
 
 class SimpleOptimizerTest
 {
@@ -222,6 +247,7 @@ class SimpleOptimizerTest
 			"`|_`|" to P_MapSize,
 			"`|_`|" to P_InstanceCount,
 			"_[_]" to P_TupleAt,
+			"_[_]" to P_TupleTypeAt,
 			"_[_]" to P_MapAtKey,
 			"_[_]" to P_ParamTypeAt,
 			"_[_.._]" to P_ExtractSubtuple,
@@ -234,7 +260,15 @@ class SimpleOptimizerTest
 			"_∈_" to P_KeyInMap,
 			"_∈_" to P_ElementInSet,
 			"_∈_" to P_IsInstanceOf,
+			"_'s⁇leading types" to P_TupleTypeLeadingTypes,
+			"∪_[_.._]" to P_TupleTypeAtThrough,
 			"_'s⁇type" to P_Type,
+			"_'s⁇key type" to P_MapTypeKeyType,
+			// Two definitions, so that a call must dispatch.  Their argument
+			// types (map meta and literal token meta) intersect at bottom meta,
+			// which is what produces the interesting branch.
+			"_'s⁇value type" to P_MapTypeValueType,
+			"_'s⁇value type" to P_LiteralTokenTypeValueType,
 			"_'s⁇instances" to P_Instances,
 			"_to_by_" to P_IntegerIntervalTuple,
 			"Invoke_with tuple_" to P_InvokeWithTuple,
@@ -354,6 +388,17 @@ class SimpleOptimizerTest
 			L1_doPushLocal(1)
 			call("_'s⁇genuine lower bound", extendedIntegers)
 		}
+		helper.defineMethod("⌊_⌋", wholeNumbers) {
+			argumentTypes(tupleMeta)
+			pushLiteral(stringFrom("\"⌊_⌋\" for tupleMeta is a stub."))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("⌊_⌋", bottom) {
+			argumentTypes(bottomMeta)
+			L1_doPushLocal(1)
+			call("Crash:_", bottom)
+		}
+
 		helper.defineMethod("⌊_⌋is inclusive", booleanType) {
 			argumentTypes(extendedIntegersMeta)
 			pushLiteral(stringFrom("\"⌊_⌋is inclusive\" is a stub."))
@@ -362,6 +407,16 @@ class SimpleOptimizerTest
 		helper.defineMethod("⌈_⌉", extendedIntegers) {
 			argumentTypes(extendedIntegersMeta)
 			pushLiteral(stringFrom("\"⌈_⌉\" is a stub."))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("⌈_⌉", inclusive(zero, positiveInfinity)) {
+			argumentTypes(tupleMeta)
+			pushLiteral(stringFrom("\"⌈_⌉\" for tupleMeta is a stub."))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("⌈_⌉", bottom) {
+			argumentTypes(bottomMeta)
+			L1_doPushLocal(1)
 			call("Crash:_", bottom)
 		}
 		helper.defineMethod("⌈_⌉is inclusive", booleanType) {
@@ -491,7 +546,23 @@ class SimpleOptimizerTest
 			L1_doPushLastLocal(varArgument)
 			call("↓_", NUMBER())
 		}
-
+		helper.defineMethod("«_‡max»", NUMBER()) {
+			argumentTypes(oneOrMoreOf(NUMBER()))
+			declareName("values")
+			pushLiteral(stringFrom("«_‡max» is a stub"))
+			call("Crash:_", bottom)
+		}
+		helper.defineMethod("<«_‡,»`…`|_.._>", tupleMeta) {
+			argumentTypes(
+				oneOrMoreOf(anyMeta),
+				wholeNumbers,
+				inclusive(zero, positiveInfinity))
+			declareName("elementTypes")
+			declareName("lowerBound")
+			declareName("upperBound")
+			pushLiteral(stringFrom("<«_‡,»`…`|_.._> is a stub"))
+			call("Crash:_", bottom)
+		}
 
 		// Force lookup by value, otherwise only the bypassForTypeLookup will
 		// get warmed up.  Specifically, we want the tree to dispatch by
@@ -736,10 +807,10 @@ class SimpleOptimizerTest
 			val sites =
 				createOuter(variableTypeFor(zeroOrMoreOf(formatSiteType)))
 
-			assertEquals(declareName("closeDelimiter"), closeDelimiter)
-			assertEquals(declareName("interpType"), interpType)
-			assertEquals(declareName("start"), start)
-			assertEquals(declareName("varName"), varName)
+			assertEquals(closeDelimiter, declareName("closeDelimiter"))
+			assertEquals(interpType, declareName("interpType"))
+			assertEquals(start, declareName("start"))
+			assertEquals(varName, declareName("varName"))
 			declareName("index")
 			declareName("template")
 			declareName("sites")
@@ -805,10 +876,16 @@ class SimpleOptimizerTest
 
 
 	/**
-	 * Somehow, the union of specific TypeRestrictions
-	 * Test optimization of a function that finds one more format site for
-	 * pattern substitution.  This is equivalent to the addSite block in the
-	 * Format module's "format sites for_" method.  This is a regression test.
+	 * Using the same outer as an argument for two calls over-strengthened the
+	 * restriction somehow, and failed during naive translation of the second
+	 * call.  The argument for the second call had a restriction of ⊤, which is
+	 * due to a default restriction being applied for the semantic value.  Say
+	 * x is the semantic value for the slot for the first push of the outer,
+	 * and y is the second push.  It calculated Int(Tag(x)) for dispatching the
+	 * first call, performed complicated logic to do an inline division, and at
+	 * the point of control flow merge prior to the next outer, it weakened the
+	 * restriction on x to ⊤.  That's the defaultRestriction for boxed values,
+	 * so tha might be where that restriction came from, but it's unclear why.
 	 */
 	@Test
 	fun divisionSemanticRestriction_3_2()
@@ -1091,7 +1168,7 @@ class SimpleOptimizerTest
 			close(
 				outers = listOf(
 					"tempExpected4" to inclusive(one, twoToMaxM1),
-					"tempOctual4" to inclusive(zero, twoToMaxM1)),
+					"tempActual4" to inclusive(zero, twoToMaxM1)),
 				returnType = bottom)
 			call("Unless_then_", TOP())
 			L1_doPop()
@@ -1362,7 +1439,6 @@ class SimpleOptimizerTest
 
 			val iVariableType = variableTypeFor(naturalNumbers)
 			val twoOrMore = integerRangeType(two, true, positiveInfinity, false)
-
 
 			createLocal(iVariableType)
 			val i = declareName("i")
@@ -2778,4 +2854,467 @@ class SimpleOptimizerTest
 
 		helper.testOptimize(rawFunction)
 	}
+
+	/**
+	 * The initial translation of Method "_×_" in Math.avail (line ~504) had a
+	 * lookup of the floor function (⌊a⌋) that failed translation to L2.  This
+	 * is a greatly reduced version of just the initial instructions.
+	 *
+	 */
+	@Test
+	fun testMultiplyIntegralTypes()
+	{
+		val rawFunction = helper.rawFunction(extendedIntegers) {
+			argumentTypes(extendedIntegersMeta)
+			val a = declareName("a")
+			L1_doPushLastLocal(a)
+			call("⌊_⌋", extendedIntegers)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * Regression test for the semantic restriction of `"_'s⁇bindings"` in
+	 * `Early Maps.avail`, currently lines 161-166:
+	 *
+	 * ```
+	 * Semantic restriction "_'s⁇bindings" is
+	 * [
+	 *     mapType : map meta
+	 * |
+	 *     <<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>
+	 * ];
+	 * ```
+	 *
+	 * This is the L1 prefix of line 165, reduced to the two calls that matter:
+	 *
+	 * ```
+	 * 3.  PushLocal mapType
+	 * 5.  Call "_'s⁇key type", {any}ᵀ
+	 * 8.  PushLocal mapType
+	 * 10. Call "_'s⁇value type", {any}ᵀ
+	 * 13. MakeTuple #2
+	 * ```
+	 *
+	 * `"_'s⁇key type"` is an infallible, side-effect-free primitive, so its
+	 * invocation is postponed.  `"_'s⁇value type"` has two definitions, for
+	 * map meta and for literal token meta, so the call must dispatch, and it
+	 * does so with a type tag test.  Along the branch where the tag is bottom
+	 * (112), the argument is narrowed to **bottom meta**.
+	 *
+	 * The postponed [P_MapTypeKeyType] invocation should have its input
+	 * specialized by that narrowing, which would make it eligible for folding.
+	 * It does not, and translation to L2 fails.
+	 */
+	@Test
+	fun earlyMapsBindingsSemanticRestriction()
+	{
+		val rawFunction = helper.rawFunction(mostGeneralTupleType) {
+			argumentTypes(mapMeta())
+			val mapType = declareName("mapType")
+
+			L1_doPushLocal(mapType)
+			call("_'s⁇key type", anyMeta)
+			L1_doPushLastLocal(mapType)
+			call("_'s⁇value type", anyMeta)
+			L1_doMakeTuple(2)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * Answer a fresh boxed [L2SemanticValue] suitable for manifest-level unit
+	 * tests.  Deliberately *not* an [L2SemanticDummy]: those exist for the
+	 * phase where the graph is held together by registers alone, and
+	 * [L2ValueManifest.restrictionFor] short-circuits them to
+	 * [TypeRestriction.topRestriction], which would make any assertion about
+	 * restrictions vacuous.
+	 *
+	 * @param name
+	 *   A short descriptive name.
+	 * @param uniqueId
+	 *   An id distinguishing this temp from others in the same test.
+	 * @return
+	 *   A fresh [L2SemanticValue].
+	 */
+	private fun newTemp(name: String, uniqueId: Int): L2SemanticValue =
+		L2SemanticTemp(
+			Frame(
+				null,
+				helper.createDummyRawFunction(returnType = TOP()),
+				0,
+				"test frame",
+				"test frame"),
+			name,
+			uniqueId)
+
+	/**
+	 * A postponed [L2Instruction] captures its operands' [TypeRestriction]s at
+	 * the moment it is postponed, which may be well above a branch that later
+	 * narrows what it reads.  [L2Instruction.narrowedForManifest] re-derives
+	 * those restrictions.
+	 *
+	 * The property this pins down above all is that it **clones**.  A postponed
+	 * instruction is shared by every manifest descended from the one that
+	 * recorded it, including *both* outbound edges of a branch, where the
+	 * narrowings are contradictory.  Narrowing in place would leak the true
+	 * branch's knowledge into the false branch and miscompile.
+	 */
+	@Test
+	fun postponedInstructionNarrowsByCloning()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		// Note: not L2SemanticDummy, whose whole purpose is to carry no
+		// restriction - L2ValueManifest.restrictionFor answers topRestriction
+		// for those unconditionally.
+		val argA: L2SemanticValue = newTemp("a", 1)
+		val argB: L2SemanticValue = newTemp("b", 2)
+		val result: L2SemanticValue = newTemp("result", 3)
+		val wide = restrictionForType(inclusive(0, 100))
+		manifest.introduceSynonym(setOf(argA), wide)
+		manifest.introduceSynonym(setOf(argB), wide)
+		val resultSynonym = L2Synonym(setOf(result))
+		manifest.introduceSynonym(setOf(result), restrictionForType(NUMBER()))
+
+		val instruction = L2_RUN_INFALLIBLE_PRIMITIVE(
+			helper.createDummyRawFunction(returnType = NUMBER()),
+			P_Addition,
+			L2ReadBoxedVectorOperand(
+				listOf(
+					L2ReadBoxedOperand(argA),
+					L2ReadBoxedOperand(argB))),
+			L2WriteBoxedOperand(
+				emptySet(), restrictionForType(NUMBER())))
+		val impliedBefore = instruction.impliedWriteRestriction(
+			instruction.readOperands.map(manifest::restrictionFor))
+
+		// Nothing has narrowed yet, so there is nothing to do.  Answering null
+		// rather than a copy is what lets callers skip work.
+		assertNull(instruction.narrowedForManifest(manifest, resultSynonym))
+
+		// Narrow both arguments to single values, as a branch would.
+		manifest.updateRestriction(argA) {
+			restrictionForConstant(fromInt(3))
+		}
+		manifest.updateRestriction(argB) {
+			restrictionForConstant(fromInt(4))
+		}
+
+		val narrowed = instruction.narrowedForManifest(manifest, resultSynonym)
+		assertNotNull(narrowed)
+		// The implied result is at least as strong as before, computed by the
+		// same helper that emitTransformedInstruction uses.
+		val impliedAfter = narrowed.impliedWriteRestriction(
+			narrowed.readOperands.map(manifest::restrictionFor))
+		assertTrue(impliedAfter.isStrongerThan(impliedBefore))
+	}
+
+	/**
+	 * A semantic restriction for the set building method, `"{«_‡,»}"#1`,
+	 * currently in Literals.avail:581, leads to an inconsistency in the
+	 * manifest during code splitting.  It pushes outer#1, of type tupleType,
+	 * and the argument, a natural number, then calls `'_[_]"`.  It later pushes
+	 * the same outer and argument, and again calls `"_[_]"`.  That time, it
+	 * knows the tag for the outer is the same as the tag for the first push of
+	 * the outer, but it hasn't figured out that the two pushes of the outer
+	 * should be in the same synonym.
+	 */
+	@Test
+	fun testSemanticRestrictionOfSetCreation_1()
+	{
+		var extendedWholeNumbers = inclusive(zero, positiveInfinity)
+		val rawFunction = helper.rawFunction(booleanType) {
+			val elementsType = instanceMeta(oneOrMoreOf(Types.ANY()))
+
+			argumentTypes(naturalNumbers)
+			val index = declareName("index")
+
+			// Constants
+			val element = createConstant(anyMeta)
+			declareName("element")
+
+			// Outers
+			val elementsOuter = createOuter(elementsType)
+			declareName("elements")
+
+			// This has some simplifications from the original raw function.
+			// :: element ::= elements[index]
+			L1_doPushOuter(elementsOuter)
+			L1_doPushLocal(index)
+			call("_[_]", anyMeta)
+			L1Ext_doSetLocalSlot(element)
+			// :: ... |elements[index]| ...
+			L1_doPushOuter(elementsOuter)
+			L1_doPushLocal(index)
+			call("_[_]", anyMeta)
+			call("`|_`|", extendedWholeNumbers)
+			// :: ... |elements[index]| = 1 ...
+			pushLiteral(one)
+			call("_=_", booleanType)
+			// :: ... [...elements ... index ...] ...
+			L1_doPushLastOuter(elementsOuter)
+			L1_doPushLastLocal(index)
+			close(
+				emptyList(),
+				listOf(
+					"elements" to elementsType,
+					"index" to naturalNumbers),
+				TOP())
+			// :; [...]
+			pushLiteral(
+				createFunction(
+					helper.createDummyRawFunction(
+						emptyList(), emptyList(), TOP()),
+					emptyTuple))
+			// :: If _ = 1 then [...elements ... index...] else [...]
+			call("If_then_else_", TOP())
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * This was a block inside the semantic restriction for `"_-_"`, for calls
+	 * taking a tuple and element to exclude.
+	 *
+	 * The proximal problem was an attempt to send [extractInt] to
+	 * [positiveInfinity].  It was expecting the value to be a tag ordinal,
+	 * inside the tag calculations for [TypeTagDecisionStep].  This was traced
+	 * down to block#20 (may drift as the optimizer changes), where a merge of
+	 * control flow combined two not-bottom restrictions and somehow ended up
+	 * with a may-be-bottom restriction (for the tupleType outer).  This led to
+	 * exposing a different bug in [TypeTagDecisionStep], where an edge that had
+	 * an impossible restriction wasn't being eliminated.
+	 *
+	 * Resolutions:
+	 *   TBD – fix the edge-building loop in [TypeTagDecisionStep].
+	 *   TBD - fix the control flow merge code to keep bottom out.
+	 */
+	@Test
+	fun testSemanticRestrictionOfTupleSubtraction_4()
+	{
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			// Constants
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			// Outers
+			val tupleTypeOuter = createOuter(tupleMeta)
+			declareName("tupleType")
+
+			// :: union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+			L1_doPushOuter(tupleTypeOuter)
+			pushLiteral(one)
+			L1_doPushOuter(tupleTypeOuter)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			// :: <union… | 0 max (⌊tupleType⌋-1).. ⌈tupleType⌉>
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushOuter(tupleTypeOuter)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastOuter(tupleTypeOuter)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	@Test
+	fun testSemanticRestrictionOfTupleSubtractionL2Execution()
+	{
+		// Regression test for Tuples:4429 - ensure the max call result check
+		// is not unconditionally failing during L2 translation.
+		// The bug was that the passed-check branch would emit an ImpossibleCode
+		// instruction due to manifest state corruption at the merge point before
+		// the max call's result type check.
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			// Constants
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			// Outers
+			val tupleTypeOuter = createOuter(tupleMeta)
+			declareName("tupleType")
+
+			// :: union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+			L1_doPushOuter(tupleTypeOuter)
+			pushLiteral(one)
+			L1_doPushOuter(tupleTypeOuter)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			// :: <union… | 0 max (⌊tupleType⌋-1).. ⌈tupleType⌉>
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushOuter(tupleTypeOuter)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastOuter(tupleTypeOuter)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		// Force L2 optimization. This should not fail with
+		// "return result disagreed with expected type" for the max call.
+		// The bug manifested as the passed-check branch becoming unreachable
+		// due to an impossible restriction in the manifest at the merge point.
+		helper.testOptimize(rawFunction)
+
+		// Verify the compiled chunk contains return instructions.
+		// If the passed-check branch became unreachable, the return paths
+		// would be eliminated during dead code removal.
+		val startingChunk = rawFunction.startingChunk
+		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
+			instruction is L2_RETURN
+		}
+		assertTrue(hasReturnInstructions,
+			"Compiled chunk should contain return instructions; " +
+			"if not, the passed-check branch was likely made unreachable")
+	}
+
+	@Test
+	fun testImpossibleWithArgument()
+	{
+		// Uses tupleType as argument #1 (should PASS with L2_RETURN)
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			argumentTypes(tupleMeta)
+			val tupleTypeArg = declareName("tupleType")
+
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			L1_doPushLocal(tupleTypeArg)
+			pushLiteral(one)
+			L1_doPushLocal(tupleTypeArg)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushLocal(tupleTypeArg)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastLocal(tupleTypeArg)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		helper.testOptimize(rawFunction)
+
+		val startingChunk = rawFunction.startingChunk
+		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
+			instruction is L2_RETURN
+		}
+		assertTrue(hasReturnInstructions,
+			"Argument version: chunk should contain return instructions")
+	}
+
+	@Test
+	fun testImpossibleWithOuter()
+	{
+		// Uses tupleType as outer (should FAIL - no L2_RETURN)
+		val rawFunction = helper.rawFunction(tupleMeta) {
+			val unionLocal = createConstant(anyMeta)
+			declareName("union")
+
+			val tupleTypeOuter = createOuter(tupleMeta)
+			declareName("tupleType")
+
+			L1_doPushOuter(tupleTypeOuter)
+			pushLiteral(one)
+			L1_doPushOuter(tupleTypeOuter)
+			call("_'s⁇leading types", zeroOrMoreOf(anyMeta))
+			call("`|_`|", wholeNumbers)
+			pushLiteral(one)
+			call("_+_", naturalNumbers)
+			call("∪_[_.._]", anyMeta)
+			L1Ext_doSetLocalSlot(unionLocal)
+
+			L1_doPushLastLocal(unionLocal)
+			L1_doMakeTuple(1)
+			pushLiteral(zero)
+			L1_doPushOuter(tupleTypeOuter)
+			call("⌊_⌋", wholeNumbers)
+			pushLiteral(one)
+			call("_-_",
+				integerRangeType(negativeOne, true, positiveInfinity, false))
+			L1_doMakeTuple(2)
+			call("«_‡max»", wholeNumbers)
+			L1_doPushLastOuter(tupleTypeOuter)
+			call("⌈_⌉", inclusive(zero, positiveInfinity))
+			call("<«_‡,»`…`|_.._>", tupleMeta)
+		}
+
+		helper.testOptimize(rawFunction)
+
+		val startingChunk = rawFunction.startingChunk
+		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
+			instruction is L2_RETURN
+		}
+		assertTrue(hasReturnInstructions,
+			"Outer version: chunk should contain return instructions")
+	}
+
+	/**
+	 * Test optimization of a function with two arguments of equal instance types.
+	 * This triggered an L2 translation failure during initial code generation
+	 * due to type restrictions on the first two arguments being identical.
+	 */
+	@Test
+	fun test_EqualInstanceTypeArguments()
+	{
+		val singletonType = instanceType(one)
+		val resultType = integerRangeType(two, true, positiveInfinity, false)
+		val rawFunction = helper.rawFunction(resultType) {
+			argumentTypes(singletonType, singletonType, naturalNumbers)
+			val x = declareName("x")
+			val y = declareName("y")
+			val z = declareName("z")
+
+			// :: x + y + z + 1
+			L1_doPushLocal(x)
+			L1_doPushLocal(y)
+			call("_+_", resultType)
+			L1_doPushLocal(z)
+			call("_+_", resultType)
+			pushLiteral(one)
+			call("_+_", resultType)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
 }

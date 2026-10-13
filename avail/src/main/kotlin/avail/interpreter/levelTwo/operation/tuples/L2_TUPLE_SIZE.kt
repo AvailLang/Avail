@@ -32,11 +32,11 @@
 
 package avail.interpreter.levelTwo.operation.tuples
 
-import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.primitive.tuples.P_TupleSize
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Answer the [size][tupleSize] of the specified [tuple][A_Tuple].
@@ -69,31 +70,32 @@ class L2_TUPLE_SIZE(
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction?
+	{
+		var sizeType = P_TupleSize.returnTypeGuaranteedByVM(
+			null, listOf(tuple.type))
+		if (sizeType.lowerBound.equals(sizeType.upperBound))
+		{
+			// Strengtheen to a constant.
+			sizeType = instanceType(sizeType.lowerBound)
+		}
+		tupleSize.restrict { intersectionWithType(sizeType) }
+		assert(!tupleSize.restriction().isImpossible)
+		tupleSize.restriction().constantOrNull?.let { exactSize ->
+			move(
+				constant(exactSize),
+				tupleSize.semanticValues())
+			return null
+		}
+		return this@L2_TUPLE_SIZE
+	}
+
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: size = tuple.tupleSize();
 		load(tuple)
 		generateCall(TupleDescriptor.tupleSizeMethod)
 		store(tupleSize.register())
-	}
-
-	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
-	): L2Instruction?
-	{
-		val strongerResultType = P_TupleSize.returnTypeGuaranteedByVM(
-			null, listOf(tuple.type()))
-		tupleSize.restrict { intersectionWithType(strongerResultType) }
-		assert(!tupleSize.restriction().isImpossible)
-		// Try constant folding.
-		val sizeType = tupleSize.restriction().type
-		if (sizeType.lowerBound.equals(sizeType.upperBound))
-		{
-			moveIntRegister(
-				unboxedIntConstant(sizeType.lowerBound.extractInt)
-					.semanticValue(),
-				tupleSize.semanticValues())
-			return null
-		}
-		return this@L2_TUPLE_SIZE
 	}
 }

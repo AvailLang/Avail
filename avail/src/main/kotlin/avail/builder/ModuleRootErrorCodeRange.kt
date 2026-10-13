@@ -38,7 +38,7 @@ import avail.error.InvalidErrorCode
 import avail.resolver.ModuleRootResolver
 
 /**
- * A `ModuleRootErrorCodeRange` is an [ErrorCodeRange] that holds defined error
+ * A [ModuleRootErrorCodeRange] is an [ErrorCodeRange] that holds defined error
  * codes that involve failures while dealing with [ModuleRoot]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

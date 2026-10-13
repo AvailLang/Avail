@@ -51,13 +51,7 @@ import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
@@ -70,17 +64,14 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_PHI_BOXED
 import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT
 import avail.interpreter.levelTwo.operation.L2_PHI_INT
+import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticConstant
-import avail.optimizer.values.L2SemanticUnboxedFloat
-import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest.Representation
+import avail.optimizer.manifest.L2ValueManifest.Representation.Companion.emptyRepresentation
+import avail.optimizer.manifest.L2ValueManifest.ValueState
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -98,9 +89,6 @@ import org.objectweb.asm.Type
  *   The JVM instruction that loads a register of this kind.
  * @property jvmStoreInstruction
  *   The JVM instruction for storing.
- * @property restrictionFlag
- *   The [RestrictionFlagEncoding] used to indicate a [TypeRestriction] has
- *   an available register of this kind.
  *
  * @constructor
  * Create an instance of the enum.
@@ -120,8 +108,6 @@ import org.objectweb.asm.Type
  *   The JVM instruction for loading.
  * @param jvmStoreInstruction
  *   The JVM instruction for storing.
- * @param restrictionFlag
- *   The corresponding [RestrictionFlagEncoding].
  */
 sealed class RegisterKind<Self : RegisterKind<Self>>
 constructor (
@@ -130,8 +116,7 @@ constructor (
 	val prefix: String,
 	val jvmTypeString: String,
 	val jvmLoadInstruction: Int,
-	val jvmStoreInstruction: Int,
-	val restrictionFlag: RestrictionFlagEncoding)
+	val jvmStoreInstruction: Int)
 {
 	/**
 	 * Answer a suitable [L2ReadOperand] for extracting the indicated
@@ -139,31 +124,14 @@ constructor (
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to consume via an [L2ReadOperand].
-	 * @param restriction
-	 *   The [TypeRestriction] relevant to this read.
 	 * @param register
 	 *   The earliest known defining [RegisterKind] of the [L2SemanticValue].
 	 * @return
 	 *   The new [L2ReadOperand].
 	 */
 	abstract fun readOperand(
-		semanticValue: L2SemanticValue<Self>,
-		restriction: TypeRestriction,
+		semanticValue: L2SemanticValue,
 		register: L2Register<Self>? = null
-	): L2ReadOperand<Self>
-
-	/**
-	 * Synthesize an [L2ReadOperand] of the appropriately strengthened [Self]
-	 * kind of register.
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] being read.2
-	 * @param manifest
-	 *   The [L2ValueManifest] from which to extract the semantic value.
-	 */
-	abstract fun createRead(
-		semanticValue: L2SemanticValue<Self>,
-		manifest: L2ValueManifest
 	): L2ReadOperand<Self>
 
 	/**
@@ -178,7 +146,7 @@ constructor (
 	 *   A new [L2WriteOperand] of the appropriate [Self] kind of register.
 	 */
 	abstract fun createWrite(
-		semanticValues: Set<L2SemanticValue<Self>>,
+		semanticValues: Set<L2SemanticValue>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<Self>? = null
 	): L2WriteOperand<Self>
@@ -231,17 +199,15 @@ constructor (
 	 *   The [TypeRestriction] indicating what type of value is being moved.
 	 */
 	fun dynamicMove(
-		source: L2SemanticValue<*>,
-		destinations: Set<L2SemanticValue<*>>,
+		source: L2SemanticValue,
+		destinations: Set<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction
 	): L2_MOVE<Self>
 	{
-		assert(source.kind == this)
-		assert(destinations.all { it.kind == this })
 		return move(
-			createRead(source.cast(), manifest),
-			createWrite(destinations.cast(), restriction))
+			manifest.read(source, this.cast<RegisterKind<*>, Self>()),
+			createWrite(destinations, restriction))
 	}
 
 	/**
@@ -253,7 +219,7 @@ constructor (
 	 */
 	abstract fun moveConstant(
 		boxedValue: A_BasicObject,
-		destinations: Iterable<L2SemanticValue<Self>>
+		destinations: Iterable<L2SemanticValue>
 	): L2_MOVE_CONSTANT<*, Self>
 
 	/**
@@ -278,27 +244,85 @@ constructor (
 	): L2_PHI<Self>
 
 	/**
-	 * Create an [L2SemanticConstant] or a wrapped version if unboxed.
+	 * Answer the given [ValueState]'s [Representation] for this kind, which is
+	 * [emptyRepresentation] if the value is not held in a register of this
+	 * kind.
+	 *
+	 * A [ValueState] keeps a separate slot per kind, so reaching the right one
+	 * is a three-way choice.  Making it here rather than in the [ValueState]
+	 * keeps the choice in the one place that already knows the answer, and
+	 * keeps it typed: the caller gets a [Representation] of *this* kind, with
+	 * no cast.
+	 *
+	 * @param state
+	 *   The [ValueState] to interrogate.
+	 * @return
+	 *   That state's [Representation] for this kind.
 	 */
-	abstract fun createSemanticConstant(
-		value: AvailObject
-	): L2SemanticValue<Self>
+	abstract fun representationIn(state: ValueState): Representation<Self>
+
+	/**
+	 * Answer a [ValueState] holding the given [Representation] as its
+	 * representation for this kind.
+	 *
+	 * @param members
+	 *   The canonical, boxed [L2SemanticValue]s naming the value.
+	 * @param restriction
+	 *   The [TypeRestriction] bounding it.
+	 * @param representation
+	 *   This kind's [Representation] of it, which is [emptyRepresentation] if it
+	 *   is not held in a register of this kind.
+	 * @param otherKinds
+	 *   The [ValueState] to take the *other* kinds' representations from, or
+	 *   `null` when building a record for a value that is new to a manifest and
+	 *   therefore held in this kind alone.
+	 * @return
+	 *   The new [ValueState].
+	 */
+	abstract fun stateWith(
+		members: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		representation: Representation<Self>,
+		otherKinds: ValueState?
+	): ValueState
+
+	/**
+	 * Gonorate code to popuulate the given semantic value for this kind, in the
+	 * generator.
+	 */
+	abstract fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
 
 	abstract fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
 
+	override fun toString(): String = kindName
+
 	companion object
 	{
-		/** Don't modify this array. */
-		val all: Array<RegisterKind<*>> = arrayOf(
-			BOXED_KIND,
-			INTEGER_KIND,
-			FLOAT_KIND)
-
-		init
+		inline fun forEachKind(
+			action: (RegisterKind<*>) -> Unit)
 		{
-			assert(all.indices.all { all[it].ordinal == it })
+			action(BOXED_KIND)
+			action(INTEGER_KIND)
+			action(FLOAT_KIND)
 		}
+
+		inline fun <V> associate(
+			action: (RegisterKind<*>) -> V
+		): Map<RegisterKind<*>, V> = buildMap {
+			this[BOXED_KIND] = action(BOXED_KIND)
+			this[INTEGER_KIND] = action(INTEGER_KIND)
+			this[FLOAT_KIND] = action(FLOAT_KIND)
+		}
+
+		inline fun <reified V> associateArray(
+			action: (RegisterKind<*>) -> V
+		): Array<V> = arrayOf(
+			action(BOXED_KIND),
+			action(INTEGER_KIND),
+			action(FLOAT_KIND))
 	}
 }
 
@@ -312,28 +336,15 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 	prefix = "r",
 	jvmTypeString = Type.getDescriptor(AvailObject::class.java),
 	jvmLoadInstruction = Opcodes.ALOAD,
-	jvmStoreInstruction = Opcodes.ASTORE,
-	restrictionFlag = BOXED_FLAG)
+	jvmStoreInstruction = Opcodes.ASTORE)
 {
 	override fun readOperand(
-		semanticValue: L2SemanticValue<BOXED_KIND>,
-		restriction: TypeRestriction,
+		semanticValue: L2SemanticValue,
 		register: L2Register<BOXED_KIND>?
-	) = L2ReadBoxedOperand(semanticValue, restriction, register)
-
-	override fun createRead(
-		semanticValue: L2SemanticValue<BOXED_KIND>,
-		manifest: L2ValueManifest
-	): L2ReadBoxedOperand
-	{
-		semanticValue as L2SemanticBoxedValue
-		val restriction = manifest.restrictionFor(semanticValue)
-		assert(restriction.isBoxed)
-		return L2ReadBoxedOperand(semanticValue, restriction)
-	}
+	) = L2ReadBoxedOperand(semanticValue, register)
 
 	override fun createWrite(
-		semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
+		semanticValues: Set<L2SemanticValue>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<BOXED_KIND>?
 	) = L2WriteBoxedOperand(semanticValues, restriction, forceRegister)
@@ -351,12 +362,12 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 
 	override fun moveConstant(
 		boxedValue: A_BasicObject,
-		destinations: Iterable<L2SemanticValue<BOXED_KIND>>
+		destinations: Iterable<L2SemanticValue>
 	) = L2_MOVE_CONSTANT_BOXED(
-		L2ConstantOperand(boxedValue as AvailObject),
+		L2ConstantOperand(boxedValue),
 		L2WriteBoxedOperand(
 			destinations.toSet(),
-			boxedRestrictionForConstant(boxedValue)))
+			restrictionForConstant(boxedValue)))
 
 	override fun readConstant(
 		generator: L2GeneratorInterface,
@@ -368,9 +379,28 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		destination: L2WriteOperand<BOXED_KIND>
 	) = L2_PHI_BOXED(sources.cast(), destination.cast())
 
-	override fun createSemanticConstant(
-		value: AvailObject
-	): L2SemanticBoxedValue = constant(value)
+	override fun representationIn(
+		state: ValueState
+	): Representation<BOXED_KIND> = state.boxedRepresentation
+
+	override fun stateWith(
+		members: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		representation: Representation<BOXED_KIND>,
+		otherKinds: ValueState?
+	) = ValueState(
+		members,
+		restriction,
+		representation,
+		otherKinds?.intRepresentation ?: emptyRepresentation(),
+		otherKinds?.floatRepresentation ?: emptyRepresentation())
+
+	override fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+	{
+		generator.ensureDefinedOrEmitMoveBoxed(semanticValue)
+	}
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -388,33 +418,19 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	prefix = "i",
 	jvmTypeString = Type.INT_TYPE.descriptor,
 	jvmLoadInstruction = Opcodes.ILOAD,
-	jvmStoreInstruction = Opcodes.ISTORE,
-	restrictionFlag = UNBOXED_INT_FLAG)
+	jvmStoreInstruction = Opcodes.ISTORE)
 {
 	override fun readOperand(
-		semanticValue: L2SemanticValue<INTEGER_KIND>,
-		restriction: TypeRestriction,
+		semanticValue: L2SemanticValue,
 		register: L2Register<INTEGER_KIND>?
-	) = L2ReadIntOperand(semanticValue, restriction, register)
-
-	override fun createRead(
-		semanticValue: L2SemanticValue<INTEGER_KIND>,
-		manifest: L2ValueManifest
-	): L2ReadIntOperand
-	{
-		semanticValue as L2SemanticUnboxedInt
-		val restriction = manifest.restrictionFor(semanticValue)
-		assert(restriction.isUnboxedInt)
-		return L2ReadIntOperand(semanticValue, restriction)
-	}
+	) = L2ReadIntOperand(semanticValue, register)
 
 	override fun createWrite(
-		semanticValues: Set<L2SemanticValue<INTEGER_KIND>>,
+		semanticValues: Set<L2SemanticValue>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<INTEGER_KIND>?
 	): L2WriteIntOperand
 	{
-		assert(restriction.isUnboxedInt)
 		return L2WriteIntOperand(semanticValues, restriction, forceRegister)
 	}
 
@@ -431,12 +447,12 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 
 	override fun moveConstant(
 		boxedValue: A_BasicObject,
-		destinations: Iterable<L2SemanticValue<INTEGER_KIND>>
+		destinations: Iterable<L2SemanticValue>
 	) = L2_MOVE_CONSTANT_INT(
 		L2IntImmediateOperand((boxedValue as AvailObject).extractInt),
 		L2WriteIntOperand(
 			destinations.toSet(),
-			intRestrictionForConstant(boxedValue.extractInt)))
+			restrictionForConstant(boxedValue)))
 
 	override fun readConstant(
 		generator: L2GeneratorInterface,
@@ -448,9 +464,28 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		destination: L2WriteOperand<INTEGER_KIND>
 	) = L2_PHI_INT(sources.cast(), destination.cast())
 
-	override fun createSemanticConstant(
-		value: AvailObject
-	): L2SemanticUnboxedInt = constant(value).unboxedInt
+	override fun representationIn(
+		state: ValueState
+	): Representation<INTEGER_KIND> = state.intRepresentation
+
+	override fun stateWith(
+		members: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		representation: Representation<INTEGER_KIND>,
+		otherKinds: ValueState?
+	) = ValueState(
+		members,
+		restriction,
+		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
+		representation,
+		otherKinds?.floatRepresentation ?: emptyRepresentation())
+
+	override fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+	{
+		generator.ensureDefinedOrEmitMoveInt(semanticValue)
+	}
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)
@@ -468,33 +503,19 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 	prefix = "f",
 	jvmTypeString = Type.DOUBLE_TYPE.descriptor,
 	jvmLoadInstruction = Opcodes.DLOAD,
-	jvmStoreInstruction = Opcodes.DSTORE,
-	restrictionFlag = UNBOXED_FLOAT_FLAG)
+	jvmStoreInstruction = Opcodes.DSTORE)
 {
 	override fun readOperand(
-		semanticValue: L2SemanticValue<FLOAT_KIND>,
-		restriction: TypeRestriction,
+		semanticValue: L2SemanticValue,
 		register: L2Register<FLOAT_KIND>?
-	) = L2ReadFloatOperand(semanticValue, restriction, register)
-
-	override fun createRead(
-		semanticValue: L2SemanticValue<FLOAT_KIND>,
-		manifest: L2ValueManifest
-	): L2ReadFloatOperand
-	{
-		semanticValue as L2SemanticUnboxedFloat
-		val restriction = manifest.restrictionFor(semanticValue)
-		assert(restriction.isUnboxedFloat)
-		return L2ReadFloatOperand(semanticValue, restriction)
-	}
+	) = L2ReadFloatOperand(semanticValue, register)
 
 	override fun createWrite(
-		semanticValues: Set<L2SemanticValue<FLOAT_KIND>>,
+		semanticValues: Set<L2SemanticValue>,
 		restriction: TypeRestriction,
 		forceRegister: L2Register<FLOAT_KIND>?
 	): L2WriteFloatOperand
 	{
-		assert(restriction.isUnboxedFloat)
 		return L2WriteFloatOperand(semanticValues, restriction, forceRegister)
 	}
 
@@ -511,12 +532,12 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 
 	override fun moveConstant(
 		boxedValue: A_BasicObject,
-		destinations: Iterable<L2SemanticValue<FLOAT_KIND>>
+		destinations: Iterable<L2SemanticValue>
 	) = L2_MOVE_CONSTANT_FLOAT(
 		L2FloatImmediateOperand((boxedValue as AvailObject).extractDouble),
 		L2WriteFloatOperand(
 			destinations.toSet(),
-			restrictionForConstant(boxedValue, UNBOXED_FLOAT_FLAG)))
+			restrictionForConstant(boxedValue)))
 
 	override fun readConstant(
 		generator: L2GeneratorInterface,
@@ -529,9 +550,28 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		destination: L2WriteOperand<FLOAT_KIND>
 	) = L2_PHI_FLOAT(sources.cast(), destination.cast())
 
-	override fun createSemanticConstant(
-		value: AvailObject
-	): L2SemanticUnboxedFloat = constant(value).unboxedFloat
+	override fun representationIn(
+		state: ValueState
+	): Representation<FLOAT_KIND> = state.floatRepresentation
+
+	override fun stateWith(
+		members: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		representation: Representation<FLOAT_KIND>,
+		otherKinds: ValueState?
+	) = ValueState(
+		members,
+		restriction,
+		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
+		otherKinds?.intRepresentation ?: emptyRepresentation(),
+		representation)
+
+	override fun defineOrEmitMove(
+		semanticValue: L2SemanticValue,
+		generator: L2Generator)
+	{
+		generator.ensureDefinedOrEmitMoveFloat(semanticValue)
+	}
 
 	override fun JVMTranslator.jvmLoadConstant(
 		constant: AvailObject)

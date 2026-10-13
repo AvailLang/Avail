@@ -81,13 +81,11 @@ import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
 @Suppress("unused")
 object P_GrammaticalRestriction : Primitive2(Unknown)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val parentStrings = arg1
-		val excludedStringSets = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		parentStrings: AvailObject,
+		excludedStringSets: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = availLoaderOrNull() ?:
 			return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)

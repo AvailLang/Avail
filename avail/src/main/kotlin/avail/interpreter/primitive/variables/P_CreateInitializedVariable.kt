@@ -59,14 +59,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateInitializedVariable : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val innerType = arg1
-		val initialValue = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		innerType: AvailObject,
+		initialValue: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val variable = newVariableWithContentType(innerType)
 		try {
 			variable.setValue(initialValue)

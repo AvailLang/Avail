@@ -36,7 +36,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.representation.AvailObject
 
 /**
- * A `SerializerOperand` is part of a [SerializerOperation].  It indicates how
+ * A [SerializerOperand] is part of a [SerializerOperation].  It indicates how
  * to serialize part of an object already provided in an appropriate form, and
  * it knows how to describe the relationship between the parent object and this
  * part of it.

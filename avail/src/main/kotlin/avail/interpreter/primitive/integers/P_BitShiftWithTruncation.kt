@@ -79,15 +79,12 @@ import java.lang.Math.multiplyExact
 @Suppress("unused")
 object P_BitShiftWithTruncation : Primitive3(CanInline, CanFold)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val baseInteger = arg1
-		val shiftFactor = arg2
-		val truncationBits = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		baseInteger: AvailObject,
+		shiftFactor: AvailObject,
+		truncationBits: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			baseInteger.bitShiftLeftTruncatingToBits(

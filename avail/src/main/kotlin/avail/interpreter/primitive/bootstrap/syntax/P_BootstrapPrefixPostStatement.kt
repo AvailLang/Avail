@@ -68,18 +68,13 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_BootstrapPrefixPostStatement : Primitive4(CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		// val blockArgumentsPhrase: A_Phrase = arg1
-		// val optionalPrimFailurePhrase: A_Phrase = arg2
-		// val optionalLabelPhrase: A_Phrase = arg3
-		val statementsPhrase = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		blockArgumentsPhrase: AvailObject,
+		optionalPrimFailurePhrase: AvailObject,
+		optionalLabelPhrase: AvailObject,
+		statementsPhrase: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 
 		// Here the statements so far are a list phrase, not a sequence.

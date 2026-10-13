@@ -337,7 +337,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 /**
- * A `SerializerOpcode` describes how to disassemble and assemble the various
+ * A [SerializerOperation] describes how to disassemble and assemble the various
  * kinds of objects encountered in Avail.
  *
  * The ordinal is passed in the constructor as a cross-check, to increase the

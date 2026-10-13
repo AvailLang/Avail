@@ -254,6 +254,7 @@ class L2ControlFlowGraph : L2Visualizable
 		assert(!basicBlockOrder.contains(block))
 		if (block.isIrremovable || block.predecessorEdges().isNotEmpty())
 		{
+			block.blockNumber = basicBlockOrder.size
 			basicBlockOrder.add(block)
 		}
 	}
@@ -393,14 +394,12 @@ class L2ControlFlowGraph : L2Visualizable
 			block.predecessorEdges().forEach { edge: L2PcOperand? ->
 				append("\t\tFrom: ")
 				append(edge!!.sourceBlock().name())
-				if (edge.alwaysLiveInEntities != null
-					|| edge.sometimesLiveInEntities != null)
-				{
+				edge.liveness?.run {
 					append("\n\t\t\t[")
 					append("always live-in: ")
-					append(edge.alwaysLiveInEntities)
+					append(alwaysLiveInRegisters)
 					append(", sometimes live-in: ")
-					append(edge.sometimesLiveInEntities)
+					append(sometimesLiveInRegisters)
 					append("]")
 				}
 				append("\n")
@@ -464,7 +463,7 @@ class L2ControlFlowGraph : L2Visualizable
 	 */
 	override fun visualize(
 		generator: L2Generator?,
-		focusValue: L2SemanticValue<*>?
+		focusValue: L2SemanticValue?
 	): Unit
 	{
 		val builder = StringBuilder()
@@ -501,7 +500,7 @@ class L2ControlFlowGraph : L2Visualizable
 	 */
 	override fun simplyVisualize(
 		generator: L2Generator?,
-		focusValue: L2SemanticValue<*>?
+		focusValue: L2SemanticValue?
 	): Unit
 	{
 		val builder = StringBuilder()

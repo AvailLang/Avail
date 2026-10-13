@@ -32,12 +32,15 @@
 package avail.interpreter.primitive.maps
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.keyType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.TypeDescriptor
@@ -54,12 +57,25 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MapTypeKeyType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val mapType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		mapType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return mapType.keyType
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
+	{
+		val mapMetaType = argumentTypes[0]
+		if (mapMetaType.isInstanceMeta)
+		{
+			// The argument is exactly one known map type, so the answer is
+			// exactly its key type.
+			return instanceMeta(mapMetaType.instance.keyType)
+		}
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

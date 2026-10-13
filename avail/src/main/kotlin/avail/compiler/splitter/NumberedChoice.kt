@@ -52,7 +52,7 @@ import avail.exceptions.SignatureException
 import java.util.Collections
 
 /**
- * A `NumberedChoice` is a special subgroup (i.e., not a root group) indicated
+ * A [NumberedChoice] is a special subgroup (i.e., not a root group) indicated
  * by an [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] following a
  * [group][Group].  It must not contain [arguments][Argument] or subgroups and
  * it must not contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].  The

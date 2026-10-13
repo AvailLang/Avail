@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_DecompileFunction : Primitive1(CanInline, CanFold, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return decompile(function.code())
 	}
 

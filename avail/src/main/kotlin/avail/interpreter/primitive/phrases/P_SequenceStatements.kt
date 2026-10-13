@@ -58,11 +58,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_SequenceStatements : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val seq = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		seq: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return seq.statements
 	}
 

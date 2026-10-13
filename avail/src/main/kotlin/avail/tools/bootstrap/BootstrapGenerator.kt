@@ -128,6 +128,7 @@ import avail.tools.bootstrap.Resources.specialObjectsBaseName
 import avail.tools.bootstrap.Resources.stringify
 import avail.utility.Strings.increaseIndentation
 import avail.utility.UTF8ResourceBundleControl
+import avail.utility.intersects
 import avail.utility.notNullAnd
 import avail.utility.t
 import java.io.File
@@ -638,7 +639,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		val wanted = primitives(fallible).toSet()
 		return primitiveNameMap.entries
-			.filter { (_, prims) -> prims.intersect(wanted).isNotEmpty() }
+			.filter { (_, prims) -> prims.intersects(wanted) }
 			.map(Map.Entry<String, *>::key)
 			.sorted()
 			.joinToString(",") { "\n\t\"$it\"" }

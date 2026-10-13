@@ -45,7 +45,6 @@ import avail.descriptor.representation.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.representation.A_Phrase.Companion.token
 import avail.descriptor.representation.A_Phrase.Companion.tokens
 import avail.descriptor.representation.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
@@ -75,14 +74,11 @@ object P_BootstrapDefineSpecialObjectMacroStyler :
 		ReadsFromHiddenGlobalState,
 		WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val optionalSendPhrase: A_Tuple = arg1
-		//val transformedPhrase: A_Phrase = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		optionalSendPhrase: AvailObject,
+		transformedPhrase: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		if (!fiber.canStyle)
 			return fail(E_CANNOT_STYLE)

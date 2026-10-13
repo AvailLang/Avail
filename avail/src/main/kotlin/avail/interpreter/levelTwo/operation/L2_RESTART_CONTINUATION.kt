@@ -70,10 +70,13 @@ class L2_RESTART_CONTINUATION(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: return interpreter.reifierToRestart(continuation);
+		// :: return interpreter.createReifierToRestart(continuation);
 		loadInterpreter()
+		// :: interpreter
 		load(continuationToRestart)
-		generateCall(Interpreter.reifierToRestartMethod)
+		// :: interpreter, continuation
+		generateCall(Interpreter.createReifierToRestartMethod)
+		// :: null (as a nullable AvailObject)
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }

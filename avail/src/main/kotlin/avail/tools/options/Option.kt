@@ -37,7 +37,7 @@ import avail.tools.options.OptionProcessorFactory.OptionInvocation
 import avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 
 /**
- * An `Option` comprises an [enumerated&#32;type][Enum] which defines the domain
+ * An [Option] comprises an [enumerated&#32;type][Enum] which defines the domain
  * of the option, the keywords which parsers may use to identify the option, an
  * end-user friendly description of the option, and an action that should be
  * performed each time that the option is set.

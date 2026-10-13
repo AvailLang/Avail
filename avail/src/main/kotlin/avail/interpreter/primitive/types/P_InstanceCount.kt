@@ -55,12 +55,12 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
@@ -71,11 +71,10 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return type.instanceCount
 	}
 
@@ -105,25 +104,18 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+	override fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		// If we can separate knowledge of whether the argument is bottomMeta,
 		// we can produce 0 along that path.
 		val argument = readBoxedOperands[0]
-		if (argument.restriction().intersectsType(bottomMeta))
+		if (argument.restriction.intersectsType(bottomMeta))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(argument.register()),
-					boxedRestrictionForConstant(bottom)))
-		}
-		else
-		{
-			addAll(
-				super.interestingSplitConditions(
-					readBoxedOperands, rawFunction))
+					restrictionForConstant(bottom)))
 		}
 	}
 
@@ -133,15 +125,19 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 		result: L2WriteBoxedOperand)
 	{
 		val instanceTypeRead = arguments.elements[0]
-		val restriction = instanceTypeRead.restriction()
+		val restriction = instanceTypeRead.restriction
 		restriction.constantOrNull?.let { constant ->
-			+L2_MOVE_BOXED(boxedConstant(constant.instanceCount), result)
+			currentManifest.agglomerateSynonym(
+				result.semanticValues(),
+				restrictionForConstant(constant.instanceCount))
 			return
 		}
 		val instanceType = restriction.type
 		if (instanceType.equals(bottomMeta))
 		{
-			+L2_MOVE_BOXED(boxedConstant(zero), result)
+			currentManifest.agglomerateSynonym(
+				result.semanticValues(),
+				restrictionForConstant(zero))
 			return
 		}
 		val minCount = if (restriction.canBeBottom) zero else one
@@ -165,7 +161,9 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 			.equals(rangeRestriction.type.upperBound))
 		{
 			// There's only one value it can be.
-			+L2_MOVE_BOXED(boxedConstant(rangeRestriction.type.lowerBound), result)
+			currentManifest.agglomerateSynonym(
+				result.semanticValues(),
+				restrictionForConstant(rangeRestriction.type.lowerBound))
 			return
 		}
 		emitBasicInfalliblePrimitive(

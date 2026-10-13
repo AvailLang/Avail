@@ -3281,8 +3281,7 @@ class AvailWorkbench internal constructor(
 			(System.getProperty("avail.usetouchbar") == "true") &&
 				try
 				{
-					@Suppress("UnusedExpression")
-					JTouchBarJNI::class
+					JTouchBarJNI::class.let {}
 					true
 				}
 				catch (_: Throwable)

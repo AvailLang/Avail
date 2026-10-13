@@ -41,8 +41,8 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `DisplayCodeCoverageReportAction` instructs the
- * [Avail&#32;builder][AvailBuilder] to display the code coverage report.
+ * A [ShowCCReportAction] instructs the [AvailBuilder] to display the code
+ * coverage report.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  *

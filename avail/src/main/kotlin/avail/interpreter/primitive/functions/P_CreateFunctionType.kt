@@ -64,13 +64,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateFunctionType : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val argTypes = arg1
-		val returnType = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		argTypes: AvailObject,
+		returnType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return functionType(argTypes, returnType)
 	}
 

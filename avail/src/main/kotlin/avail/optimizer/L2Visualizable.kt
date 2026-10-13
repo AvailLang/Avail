@@ -54,7 +54,7 @@ interface L2Visualizable
 	 */
 	fun visualize(
 		generator: L2Generator? = null,
-		focusValue: L2SemanticValue<*>? = null
+		focusValue: L2SemanticValue? = null
 	): Unit
 
 	/**
@@ -69,6 +69,6 @@ interface L2Visualizable
 	 */
 	fun simplyVisualize(
 		generator: L2Generator? = null,
-		focusValue: L2SemanticValue<*>? = null
+		focusValue: L2SemanticValue? = null
 	): Unit
 }

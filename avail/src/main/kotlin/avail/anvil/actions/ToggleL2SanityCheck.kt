@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ToggleL2SanityCheck` toggles the flag that indicates whether enable
+ * A [ToggleL2SanityCheck] toggles the flag that indicates whether enable
  * debugging support for JVM translation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

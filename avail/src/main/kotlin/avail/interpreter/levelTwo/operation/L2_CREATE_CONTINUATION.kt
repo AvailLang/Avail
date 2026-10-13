@@ -158,7 +158,7 @@ constructor (
 		for (i in 0 until slotCount)
 		{
 			val regRead = slotValues.elements[i]
-			val constant: A_BasicObject? = regRead.constantOrNull
+			val constant: A_BasicObject? = regRead.register().constant
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.
 			if (constant === null || constant.notNil)

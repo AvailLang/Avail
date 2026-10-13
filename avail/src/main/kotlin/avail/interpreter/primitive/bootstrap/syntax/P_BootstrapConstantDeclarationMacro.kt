@@ -70,14 +70,11 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 object P_BootstrapConstantDeclarationMacro
 	: Primitive2(CannotFail, CanInline, Bootstrap)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val constantNameLiteral = arg1
-		val initializationExpression = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		constantNameLiteral: AvailObject,
+		initializationExpression: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val nameToken = constantNameLiteral.token.literal()
 		val nameString = nameToken.string()
 		if (nameToken.tokenType() != KEYWORD)

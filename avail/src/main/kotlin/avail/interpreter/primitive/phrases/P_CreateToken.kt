@@ -77,17 +77,13 @@ import avail.interpreter.primitive.Primitive4
 @Suppress("unused")
 object P_CreateToken : Primitive4(CanFold, CanInline)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
-		val lexeme = arg2
-		val start = arg3
-		val line = arg4
+	override fun attempt4(
+		interpreter: Interpreter,
+		type: AvailObject,
+		lexeme: AvailObject,
+		start: AvailObject,
+		line: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
 		{
 			// The low end was already limited by the primitive's argument type

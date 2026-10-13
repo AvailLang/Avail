@@ -59,6 +59,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.PrimitiveN
 
 /**
@@ -70,13 +71,17 @@ import avail.interpreter.primitive.PrimitiveN
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLiteralToken : PrimitiveN(5, CanInline)
+object P_CreateLiteralToken : PrimitiveN(
+	5,
+	CanInline,
+	// The token might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val (value, lexeme, start, line, optionalGeneratingPhrase) = argsBuffer
 		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
 		{
@@ -97,13 +102,6 @@ object P_CreateLiteralToken : PrimitiveN(5, CanInline)
 			fiber().currentLexer,
 			generatingPhrase)
 	}
-
-	/**
-	 * The token might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,

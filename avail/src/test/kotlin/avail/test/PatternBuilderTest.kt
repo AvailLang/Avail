@@ -36,7 +36,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.interpreter.primitive.general.P_Hash
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.optimizer.values.PatternBuilder
@@ -76,7 +76,7 @@ class PatternBuilderTest
 				capture(2)
 			)
 		}
-		val matches = mutableListOf<List<L2SemanticBoxedValue>>()
+		val matches = mutableListOf<List<L2SemanticValue>>()
 		pattern.matchForEach(value) { matches.add(it.toList()) }
 		val (a, b, c) = matches[0]
 		assertEquals(a, constant(trueObject))

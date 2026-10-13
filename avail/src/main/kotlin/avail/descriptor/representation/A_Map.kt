@@ -33,7 +33,6 @@ package avail.descriptor.representation
 
 import avail.descriptor.maps.MapDescriptor.Entry
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.MapException
@@ -174,9 +173,7 @@ interface A_Map : A_BasicObject
 
 		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
 		val mapAtPuttingStaticMethod = staticMethod(
-			A_Map::class.java,
-			::mapAtPuttingStatic.name,
-			A_Map::class.java,
+			::mapAtPuttingStatic,
 			A_Map::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
@@ -197,7 +194,7 @@ interface A_Map : A_BasicObject
 		 *   The value to use as the second argument to the transformer if the
 		 *   key was not found.
 		 * @param canDestroy
-		 *   Whether the map can be modified by this call, if it's also mutable.
+		 *   Whether this call can modify the map, if it's also mutable.
 		 * @param transformer
 		 *   A function that produces a replacement value to store into the map.
 		 *   It takes the key and either the found value or the [notFoundValue].
@@ -235,7 +232,7 @@ interface A_Map : A_BasicObject
 		 *   The value to use as the second argument to the transformer when a
 		 *   key is not found.
 		 * @param canDestroy
-		 *   Whether the map can be modified by this call, if it's also mutable.
+		 *   Whether this call can modify the map, if it's also mutable.
 		 * @param transformer
 		 *   A function that produces a replacement value to store into the map.
 		 *   It takes the original key, the transformed key, and either the

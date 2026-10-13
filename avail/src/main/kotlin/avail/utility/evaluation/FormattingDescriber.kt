@@ -36,7 +36,7 @@ import java.lang.String.format
 import java.util.Formatter
 
 /**
- * A `FormattingDescriber` is a [Describer] that is given a [String] to act as a
+ * A [FormattingDescriber] is a [Describer] that is given a [String] to act as a
  * [Formatter] pattern, and an array of arbitrary values to supply to it.
  *
  * @property patternString

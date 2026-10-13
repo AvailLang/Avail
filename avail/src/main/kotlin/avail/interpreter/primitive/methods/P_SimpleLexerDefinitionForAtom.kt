@@ -93,18 +93,13 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_SimpleLexerDefinitionForAtom : Primitive4(CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
-		val filterFunction = arg2
-		val bodyFunction = arg3
-		val optionalStylerFunction = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		filterFunction: AvailObject,
+		bodyFunction: AvailObject,
+		optionalStylerFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		val loader = fiber.availLoader ?:
 			return fail(E_LOADING_IS_OVER)

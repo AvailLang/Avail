@@ -86,18 +86,13 @@ import java.nio.channels.AsynchronousFileChannel
 @Suppress("unused")
 object P_FileSync : Primitive4(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
-		val succeed = arg2
-		val fail = arg3
-		val priority = arg4
-
+	override fun attempt4(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		succeed: AvailObject,
+		fail: AvailObject,
+		priority: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{

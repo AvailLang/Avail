@@ -66,13 +66,11 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_Equality : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(a.equals(b))
 	}
 
@@ -129,8 +127,8 @@ object P_Equality : Primitive2(CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		val type1 = firstReg.type()
-		val type2 = secondReg.type()
+		val type1 = firstReg.type
+		val type2 = secondReg.type
 		if (type1.typeIntersection(type2).isBottom)
 		{
 			// The actual values cannot be equal at runtime.

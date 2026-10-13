@@ -104,7 +104,7 @@ import java.util.stream.Collectors.joining
 import kotlin.concurrent.read
 
 /**
- * An `AvailBuilder` [compiles][AvailCompiler] and installs into an
+ * An [AvailBuilder] [compiles][AvailCompiler] and installs into an
  * [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and
  * each of its dependencies.
  *
@@ -662,6 +662,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		problemHandler: ProblemHandler)
 	{
 		val semaphore = Semaphore(0)
+		var internalError: Throwable? = null
+		runtime.testHarnessOnFailure = { throwable ->
+			internalError = throwable
+			semaphore.release() }
 		buildTargetThen(
 			target,
 			localTracker,
@@ -671,6 +675,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			semaphore.release()
 		}
 		semaphore.acquireUninterruptibly()
+		// Tidy up.
+		runtime.testHarnessOnFailure = null
+		// Rethrow the internal error so the test harness can see it.
+		if (internalError != null) throw internalError
 	}
 
 	/**

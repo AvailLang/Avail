@@ -54,12 +54,13 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.notNullAnd
@@ -115,6 +116,13 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		assert(
 			manifest.mode != GenerationMode.BySemanticValue ||
 				source.semanticValue() !in destination.semanticValues())
+	}
+
+	override fun postponeInstruction(generator: L2GeneratorInterface)
+	{
+		generator.currentManifest.agglomerateSynonym(
+			destination.semanticValues() + source.semanticValue(),
+			destination.restriction())
 	}
 
 	/**
@@ -175,8 +183,8 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			// coupled by semantic values, we can look for a write to the source
 			// register within the current block, and if present we can simply
 			// augment the write to include one more semantic value.
-			val postponed =
-				currentManifest.postponedInstructionFor(source.semanticValue())
+			val postponed = currentManifest
+				.postponedInstructionFor(source.semanticValue(), kind)
 			if (postponed != null)
 			{
 				// The source of the move is still postponed, so we can just
@@ -188,18 +196,19 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			}
 			// The instruction providing the source has already been written.
 			val sourceRegister =
-				currentManifest.getDefinition(source.semanticValue())
+				currentManifest.getDefinition(source.semanticValue(), kind)
 			val definingWrite = sourceRegister.definition()
 			val definingInstruction = definingWrite.instruction
 			if (definingInstruction.basicBlock() == currentBlock()
 				&& definingInstruction !is L2_PHI<*>)
 			{
-				+L2_NOP("transformed move: $this@L2_MOVE")
+				+L2_NOP("transformed move: ${this@L2_MOVE}")
 				// It was defined in the current block.  Augment the write.
 				// Note that phis don't count, since regeneration ignores them
 				// in BySemanticValue mode, regenerating them afresh.
 				destination.semanticValues().forEach { newSemanticValue ->
-					if (!currentManifest.hasLiveSemanticValue(newSemanticValue))
+					if (!currentManifest
+						.hasLiveSemanticValue(newSemanticValue, kind))
 					{
 						definingWrite.retroactivelyIncludeSemanticValue(
 							newSemanticValue)
@@ -226,18 +235,6 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		currentManifest.agglomerateSynonym(values, destination.restriction())
 	}
 
-	/**
-	 * If the instruction providing the source of this move is also postponed,
-	 * replace both with a copy of that instruction that also populates the
-	 * move's destination semantic values.
-	 *
-	 * Since a postponed move has already merged the source and destination
-	 * synonyms, there's nothing to do here.
-	 */
-	override fun L2ValueManifest.rewritePostponed(
-		synonym: L2Synonym<*>
-	): Boolean = false
-
 	override fun sourceOfMoveToRegister(
 		destinationRegister: L2Register<*>
 	): L2Register<*>?
@@ -246,13 +243,19 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		return source.register()
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
-		tracer.continueTracing(source.register(), restriction)
+		continueTracing(source.register(), restriction)
 	}
+
+	/**
+	 * Moves can be reconstructed on demand, but generally don't have to be,
+	 * because their synonym effect is captured in a [PostPhiData] for replay.
+	 */
+	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
+	): L2Instruction? = null
 
 	override fun JVMTranslator.translateToJVM()
 	{
@@ -282,9 +285,9 @@ constructor(
 			.getConstantCode(manifest)
 
 	override fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit = extractTupleElement(source, index, destinationSemanticValues)
 
 	override fun processForMakeImmutable(

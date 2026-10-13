@@ -57,11 +57,10 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_Type : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return instanceTypeOrMetaOn(value)
 	}
 
@@ -85,7 +84,7 @@ object P_Type : Primitive1(CannotFail, CanFold, CanInline)
 	{
 		// Note that we exclude the values ⊥ and ⊤, as these are not the exact
 		// types of any objects.
-		val restriction = arguments[0].restriction().metaRestriction()
+		val restriction = arguments[0].restriction.metaRestriction()
 		val writer = boxedWriteTemp("type", restriction)
 		+L2_GET_TYPE(arguments[0], writer)
 		callSiteHelper.useAnswer(readBoxed(writer), false)

@@ -79,11 +79,11 @@ import java.util.EnumSet
 @Suppress("unused")
 object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val source = args[0]
 		val destination = args[1]
 		val followSymlinks = args[2]

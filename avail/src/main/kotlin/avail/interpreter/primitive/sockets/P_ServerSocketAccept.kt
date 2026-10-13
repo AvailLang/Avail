@@ -97,11 +97,11 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_ServerSocketAccept : PrimitiveN(5, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 5)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(5)
 		val (handle, name, succeed, fail, priority) = args
 
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)

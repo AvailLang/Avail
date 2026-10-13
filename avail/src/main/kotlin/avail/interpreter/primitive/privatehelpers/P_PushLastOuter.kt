@@ -67,10 +67,10 @@ import avail.optimizer.L1Translator
 object P_PushLastOuter : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val function = function!!
 		assert(function.code().codePrimitive() === P_PushLastOuter)
 		return function.outerVarAt(1)
@@ -117,7 +117,7 @@ object P_PushLastOuter : PrimitiveN(
 		// should allow us to skip the creation of the function.
 		val functionCreationInstruction =
 			functionToCallReg.definitionSkippingMoves(currentManifest)
-		val returnType = functionToCallReg.type().returnType
+		val returnType = functionToCallReg.type.returnType
 		val outerReg = functionCreationInstruction.run {
 			extractFunctionOuter(functionToCallReg, 1, returnType)
 		}

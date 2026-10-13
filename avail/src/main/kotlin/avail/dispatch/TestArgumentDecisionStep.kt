@@ -41,7 +41,7 @@ import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
@@ -50,7 +50,7 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import java.lang.String.format
@@ -173,14 +173,14 @@ constructor(
 	}
 
 	override fun L2GeneratorInterface.generateEdgesFor(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 	{
 		if (!currentlyReachable())
 		{
@@ -207,7 +207,7 @@ constructor(
 		val semanticArgument =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val argRead = readBoxed(semanticArgument)
-		val argRestriction = argRead.restriction()
+		val argRestriction = argRead.restriction
 
 		// Tricky here.  We have the type we want to test for, and we have
 		// the argument for which we want to test the type, but we also have
@@ -295,7 +295,7 @@ constructor(
 		val superUnionReg = boxedConstant(superUnionElementType)
 		val unionReg = boxedWriteTemp(
 			"supercast arg type",
-			boxedRestrictionForType(argMeta.typeUnion(superUnionReg.type())))
+			restrictionForType(argMeta.typeUnion(superUnionReg.type)))
 		+L2_TYPE_UNION(
 			readBoxed(argTypeWrite),
 			superUnionReg,

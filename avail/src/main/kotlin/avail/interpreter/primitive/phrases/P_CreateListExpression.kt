@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateListExpression : Primitive1(CannotFail, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val expressions = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		expressions: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newListNode(expressions)
 	}
 

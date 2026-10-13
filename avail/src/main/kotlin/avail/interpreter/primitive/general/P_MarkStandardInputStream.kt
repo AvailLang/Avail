@@ -63,11 +63,10 @@ import java.io.IOException
 @Suppress("unused")
 object P_MarkStandardInputStream : Primitive1(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val readAhead = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		readAhead: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val readAheadInt = readAhead.extractInt
 		val channel = fiber().textInterface.inputChannel
 		return try

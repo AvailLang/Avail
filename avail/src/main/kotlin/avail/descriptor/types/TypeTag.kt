@@ -94,9 +94,8 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -561,6 +560,16 @@ constructor(
 		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
 
 	/**
+	 * Precompute the name without the "_TYPE_TAG" suffix, and mapped to
+	 * CamelCase.
+	 */
+	val shorterTypeName = name
+		.removeSuffix("_TAG")
+		.removeSuffix("_TYPE")
+		.split("_")
+		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
+
+	/**
 	 * Capture the ordinal as an Avail integer.
 	 */
 	lateinit var ordinalInteger: A_Number private set
@@ -805,7 +814,6 @@ constructor(
 				return bottomRestriction
 			val tagRestriction = givenTagRestriction.intersectionWithType(
 				inclusive(TOP_TAG.ordinal, TypeTag.count - 1))
-			assert(tagRestriction.isUnboxedInt)
 			tagRestriction.makeShared()
 			val excludingBottomTag = tagRestriction.minusValue(
 				BOTTOM_TYPE_TAG.ordinalInteger)
@@ -813,7 +821,7 @@ constructor(
 			if (excludingBottomTag.isImpossible)
 			{
 				// Only the bottom tag was possible.
-				return restrictionForConstant(bottom, BOXED_FLAG).makeShared()
+				return restrictionForConstant(bottom).makeShared()
 			}
 			// If the bottom tag is omitted, exclude it from the result.
 			val tagRange = tagRestriction.type
@@ -826,7 +834,7 @@ constructor(
 			// entirely excluded from the tagRange.
 			val excludedTags = mutableSetOf<TypeTag>()
 			baseTag.collectExclusions(tagRestriction, excludedTags)
-			var baseRestriction = boxedRestrictionForType(baseTag.supremum)
+			var baseRestriction = restrictionForType(baseTag.supremum)
 			return excludedTags
 				.map(TypeTag::supremum)
 				.fold(baseRestriction, TypeRestriction::minusType)

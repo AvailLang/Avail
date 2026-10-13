@@ -135,11 +135,11 @@ import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
 @Suppress("unused")
 object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 7)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(7)
 		val optionalArgumentDeclarations = args[0]
 		val optionalPrimitive = args[1]
 		val optionalLabel = args[2]

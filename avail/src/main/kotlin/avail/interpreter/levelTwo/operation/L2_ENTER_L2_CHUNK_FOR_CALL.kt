@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
@@ -45,7 +44,6 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_PRIMITIV
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
@@ -91,14 +89,15 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 		// back to the default chunk, using the TO_RESTART entry point.  Note
 		// that there can't be a primitive for such continuations.
 
-		// :: if (!checkValidity()) {
+		// :: if (!checkValidity(offsetInL1DefaultChunk)) {
 		loadInterpreter()
 		intConstant(AFTER_PRIMITIVE_FAILURE.offset)
 		generateCall(Interpreter.checkValidityMethod)
 		val isValidLabel = Label()
 		method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
-		// ::    return null;
-		method.visitInsn(Opcodes.ACONST_NULL)
+		// ::    return interpreter.runChunk()
+		loadInterpreter()
+		generateCall(Interpreter.interpreterRunChunkMethod)
 		method.visitInsn(Opcodes.ARETURN)
 		// :: }
 		method.visitLabel(isValidLabel)
@@ -121,9 +120,6 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 				// [... argsBuffer, i]
 				generateCall(listGetMethod)
 				// [... argsBuffer[i]]
-				method.visitTypeInsn(
-					Opcodes.CHECKCAST,
-					Type.getInternalName(AvailObject::class.java))
 				store(write.register())
 				// [...]
 			}

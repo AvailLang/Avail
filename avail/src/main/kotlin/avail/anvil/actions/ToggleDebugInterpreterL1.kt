@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ToggleDebugInterpreterL1` toggles the flag that indicates whether to write
+ * A [ToggleDebugInterpreterL1] toggles the flag that indicates whether to write
  * debug information about Level One nybblecode execution to the transcript.
  *
  * @constructor

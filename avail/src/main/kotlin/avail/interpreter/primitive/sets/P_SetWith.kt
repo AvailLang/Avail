@@ -68,14 +68,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetWith : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val set = arg1
-		val newElement = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		set: AvailObject,
+		newElement: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return set.setWithElementCanDestroy(newElement, true)
 	}
 

@@ -65,7 +65,7 @@ import java.lang.reflect.Modifier
 import java.util.IdentityHashMap
 
 /**
- * A `PojoFinalFieldDescriptor` is an Avail [variable][VariableDescriptor] that
+ * A [PojoFinalFieldDescriptor] is an Avail [variable][VariableDescriptor] that
  * facilitates access to the instance Java [Field] of a particular
  * [pojo][PojoDescriptor] or the static field of a particular
  * [pojo&#32;type][PojoTypeDescriptor]. It supports the same protocol as any

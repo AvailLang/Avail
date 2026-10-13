@@ -51,6 +51,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 
@@ -66,25 +67,17 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
-	WritesToHiddenGlobalState)
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		function: AvailObject
+	): A_BasicObject? = interpreter.run {
 		runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE] = function
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		return nil
 	}
-
-	/**
-	 * The function outers could contain an escaped variable that becomes
-	 * shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

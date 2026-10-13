@@ -37,7 +37,7 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.representation.A_Type
 
 /**
- * A `RawTokenArgument` is an occurrence of [ellipsis][Metacharacter.ELLIPSIS]
+ * A [RawTokenArgument] is an occurrence of [ellipsis][Metacharacter.ELLIPSIS]
  * (…) in a message name, followed by an
  * [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!). It indicates
  * where *any* raw token is expected, which gets captured as an argument,

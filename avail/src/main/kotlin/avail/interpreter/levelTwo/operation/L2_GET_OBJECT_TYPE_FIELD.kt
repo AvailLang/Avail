@@ -67,30 +67,36 @@ class L2_GET_OBJECT_TYPE_FIELD(
 		append(objectType)
 		append("[")
 		append(fieldAtom)
-		objectType.restriction().positiveGroup.objectTypeVariants
-			?.singleOrNull()
-			?.let { variant ->
-				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-				append(" =#$fieldIndex")
-			}
+		basicBlock().postPhiData?.run {
+			objectType.restriction.positiveGroup.objectTypeVariants
+				?.singleOrNull()
+				?.let { variant ->
+					val fieldIndex =
+						variant.fieldToSlotIndex[fieldAtom.constant]!!
+					append(" =#$fieldIndex")
+				}
+		}
 		append("]")
 	}
 
 	override fun simpleAppendTo(builder: StringBuilder)
 	{
 		super.simpleAppendTo(builder)
-		objectType.restriction().positiveGroup.objectVariants
-			?.singleOrNull()
-			?.let { variant ->
-				val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-				builder.append("(#$fieldIndex)")
-			}
+		basicBlock().postPhiData?.run {
+			objectType.restriction.positiveGroup.objectVariants
+				?.singleOrNull()
+				?.let { variant ->
+					val fieldIndex =
+						variant.fieldToSlotIndex[fieldAtom.constant]!!
+					builder.append("(#$fieldIndex)")
+				}
+		}
 	}
 
 	override fun JVMTranslator.translateToJVM()
 	{
 		load(objectType)
-		val variants = objectType.restriction().positiveGroup.objectTypeVariants
+		val variants = objectType.restriction.positiveGroup.objectTypeVariants
 		if (variants.notNullAnd { distinctBy { it.variantId }.size == 1 })
 		{
 			// The field index is the same for every variant possible at this

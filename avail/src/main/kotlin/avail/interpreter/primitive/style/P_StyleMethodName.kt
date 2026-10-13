@@ -35,7 +35,6 @@ package avail.interpreter.primitive.style
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Fiber.Companion.availLoader
 import avail.descriptor.representation.A_Fiber.Companion.canStyle
-import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Phrase.Companion.token
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
@@ -63,11 +62,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_StyleMethodName : Primitive1(CanInline, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val phrase: A_Phrase = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		phrase: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		if (!fiber.canStyle)
 			return fail(E_CANNOT_STYLE)

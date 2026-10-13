@@ -51,6 +51,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive2
 
@@ -61,15 +62,17 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_SetFiberVariable : Primitive2(
-	CannotFail, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+	CannotFail,
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
-		val value = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		key: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
 		{
@@ -84,11 +87,6 @@ object P_SetFiberVariable : Primitive2(
 		}
 		return nil
 	}
-
-	/** The value could contain an escaped variable that becomes shared. */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ATOM(), ANY()), TOP())

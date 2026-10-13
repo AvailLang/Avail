@@ -57,7 +57,7 @@ import java.io.OutputStream
 import java.util.ArrayDeque
 
 /**
- * A `Serializer` converts a series of objects passed individually to
+ * A [Serializer] converts a series of objects passed individually to
  * [serialize] into a stream of bytes which, when replayed in a [Deserializer],
  * will reconstruct an analogous series of objects.
  *

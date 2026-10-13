@@ -90,14 +90,19 @@ class L2_TRY_PRIMITIVE(
 
 		method.visitLabel(notSuccess)
 		// :: valueOrNull(=null)
+		method.visitInsn(Opcodes.POP)
+		// ::
 		loadInterpreter()
-		// :: valueOrNull(=null), interpreter
+		// :: interpreter
 		load(Interpreter.currentReifierField)
-		// :: valueOrNull(=null), reifier
+		// :: reifier
 		val notReifying = Label()
 		method.visitJumpInsn(Opcodes.IFNULL, notReifying)
-		// :: valueOrNull(=null)
+		// ::
+		method.visitInsn(Opcodes.ACONST_NULL)
+		// :: null
 		method.visitInsn(Opcodes.ARETURN)
+
 		method.visitLabel(notReifying)
 		// ::
 		// Fall through for the case of a failed primitive.

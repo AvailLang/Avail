@@ -44,11 +44,11 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
-import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.mapToSet
 import org.objectweb.asm.Label
 
@@ -132,8 +132,8 @@ constructor(
 	}
 
 	/** Delegate to the MultiWaySplitter. */
-	override fun interestingConditions(): List<L2SplitCondition?> =
-		splitter.constant.interestingConditions(value, branchEdges.edges)
+	override fun PostPhiData.interestingConditions() =
+		splitter.constant.interestingConditions(value, branchEdges.edges, this)
 
 	override fun L2GeneratorInterface.generateConditionalReplacement(
 		originalInstruction: L2Instruction)
@@ -152,7 +152,7 @@ constructor(
 		translateRegionToJVM(
 			0,
 			splitter.constant.splitPoints.size - 1,
-			value.restriction(),
+			value.restriction,
 			targetsToLabels)
 	}
 

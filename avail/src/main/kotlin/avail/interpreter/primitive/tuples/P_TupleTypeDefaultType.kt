@@ -53,11 +53,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_TupleTypeDefaultType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tupleType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tupleType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return tupleType.defaultType
 	}
 

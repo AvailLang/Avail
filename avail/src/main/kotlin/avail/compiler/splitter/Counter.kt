@@ -57,7 +57,7 @@ import avail.exceptions.SignatureException
 import java.util.Collections
 
 /**
- * A `Counter` is a special subgroup (i.e., not a root group)
+ * A [Counter] is a special subgroup (i.e., not a root group)
  * indicated by an [octothorp][Metacharacter.OCTOTHORP] following a
  * [group][Group]. It may not contain [arguments][Argument] or subgroups, though
  * it may contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].

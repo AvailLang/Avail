@@ -58,6 +58,8 @@ class L2Simple_GetConstant(
 ) : L2Simple_AbstractReifiableInstruction(
 	nextOffset, reentryOffset, stateOfL1, DefaultEntryPoint.UNREACHABLE_ENTRY)
 {
+	init { assert(variable.descriptor.isShared) }
+
 	override fun step(
 		registers: RegisterSet,
 		interpreter: Interpreter

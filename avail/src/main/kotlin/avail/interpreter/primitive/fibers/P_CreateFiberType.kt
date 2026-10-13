@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateFiberType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val resultType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		resultType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fiberType(resultType)
 	}
 

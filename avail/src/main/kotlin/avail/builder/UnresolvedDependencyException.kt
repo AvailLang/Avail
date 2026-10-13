@@ -35,7 +35,7 @@ package avail.builder
 import avail.descriptor.module.ModuleDescriptor
 
 /**
- * A `UnresolvedDependencyException` is thrown by the [builder][AvailBuilder]
+ * A [UnresolvedDependencyException] is thrown by the [builder][AvailBuilder]
  * when an unresolved reference to a [module][ModuleDescriptor] is discovered.
  *
  * @property referringModuleName

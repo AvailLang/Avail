@@ -35,7 +35,7 @@ package avail.utility.evaluation
 import avail.compiler.AvailCompiler
 
 /**
- * A `Describer` produces a message and forwards it to a supplied continuation.
+ * A [Describer] produces a message and forwards it to a supplied continuation.
  * It is used by the [AvailCompiler] to support lazy stringification in a
  * continuation-passing style.
  *

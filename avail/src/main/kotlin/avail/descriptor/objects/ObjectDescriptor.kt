@@ -38,9 +38,6 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KE
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
-import avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
-import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
-import avail.descriptor.objects.ObjectDescriptor.Companion.setField
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.FIELD_VALUES_
@@ -56,6 +53,7 @@ import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.A_Map
 import avail.descriptor.representation.A_Map.Companion.forEachInMap
@@ -74,7 +72,6 @@ import avail.descriptor.representation.A_Type.Companion.fieldTypeMap
 import avail.descriptor.representation.A_Type.Companion.hasObjectInstance
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.representation.A_Variable.Companion.value
-import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -97,6 +94,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.dispatch.LookupTree
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.CheckedMethod
@@ -676,11 +674,9 @@ class ObjectDescriptor internal constructor(
 
 		/** Access the [setField] method. */
 		val setFieldMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::setField.name,
+			::setField,
 			AvailObject::class.java,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_BasicObject::class.java)
 
 		/**
@@ -718,9 +714,7 @@ class ObjectDescriptor internal constructor(
 		 */
 		@Suppress("unused")
 		val objectFromMapMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::objectFromMap.name,
-			AvailObject::class.java,
+			::objectFromMap,
 			A_Map::class.java)
 
 		/**
@@ -770,9 +764,7 @@ class ObjectDescriptor internal constructor(
 		 * Access the [createUninitializedObject] static method.
 		 */
 		val createUninitializedObjectMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::createUninitializedObject.name,
-			AvailObject::class.java,
+			::createUninitializedObject,
 			ObjectLayoutVariant::class.java,
 			A_Type::class.java)
 
@@ -791,9 +783,7 @@ class ObjectDescriptor internal constructor(
 
 		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
 		val staticObjectVariantIdMethod = staticMethod(
-			ObjectDescriptor::class.java,
-			::staticObjectVariantId.name,
-			Int::class.javaPrimitiveType!!,
+			::staticObjectVariantId,
 			AvailObject::class.java)
 	}
 }

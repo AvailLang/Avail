@@ -71,14 +71,11 @@ import java.lang.reflect.Modifier
 @Suppress("unused")
 object P_BindPojoStaticField : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val pojoType = arg1
-		val fieldName = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		pojoType: AvailObject,
+		fieldName: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val errorOut = Mutable<AvailErrorCode?>(null)

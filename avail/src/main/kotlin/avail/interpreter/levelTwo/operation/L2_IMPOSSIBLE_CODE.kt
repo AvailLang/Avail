@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE.Companion.throwImpossibleCodeException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -61,8 +60,6 @@ constructor(
 ): L2ControlFlowInstruction()
 {
 	override val isCold get() = true
-
-	override val altersControlFlow: Boolean get() = true
 
 	override val hasSideEffect get() = true
 
@@ -101,8 +98,6 @@ constructor(
 		 * The [CheckedMethod] for [throwImpossibleCodeException].
 		 */
 		val throwImpossibleCodeExceptionMethod = staticMethod(
-			L2_IMPOSSIBLE_CODE::class.java,
-			::throwImpossibleCodeException.name,
-			ImpossibleCodeException::class.java)
+			::throwImpossibleCodeException)
 	}
 }

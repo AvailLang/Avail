@@ -80,15 +80,12 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_SocketIPv4Bind : Primitive3(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val handle = arg1
-		val addressTuple = arg2
-		val port = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		handle: AvailObject,
+		addressTuple: AvailObject,
+		port: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{

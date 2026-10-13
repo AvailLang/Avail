@@ -81,13 +81,11 @@ import avail.interpreter.primitive.style.P_BootstrapDefineSpecialObjectMacroStyl
 object P_BootstrapDefineSpecialObjectMacro
 	: Primitive2(Bootstrap, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val nameLiteral = arg1
-		val specialObjectLiteral = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		nameLiteral: AvailObject,
+		specialObjectLiteral: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)

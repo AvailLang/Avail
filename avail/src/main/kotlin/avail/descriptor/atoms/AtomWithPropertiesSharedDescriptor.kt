@@ -53,6 +53,7 @@ import avail.descriptor.representation.A_Module
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IndirectionDescriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -70,7 +71,7 @@ import avail.utility.ifZero
 import java.util.WeakHashMap
 
 /**
- * An `atom` is an object that has identity by fiat, i.e., it is distinguished
+ * An [A_Atom] is an object that has identity by fiat, i.e., it is distinguished
  * from all other objects by the fact of its creation event and the history of
  * what happens to its references.  Not all objects in Avail have that property
  * (hence the acronym Advanced Value And Identity Language), unlike most
@@ -81,9 +82,9 @@ import java.util.WeakHashMap
  * that property, any Avail object.  Atoms without properties have a
  * [representation][AtomDescriptor] that does not include a slot for the
  * properties information, but adding a property causes it to transform (via
- * [AvailObject.becomeIndirectionTo] into an [AtomWithPropertiesDescriptor]
- * representation that has a slot which contains a map from property keys to
- * property values.
+ * [AvailObjectRepresentation.becomeIndirectionTo] into an
+ * [AtomWithPropertiesDescriptor] representation that has a slot which contains
+ * a map from property keys to property values.
  *
  * [AvailObject]s using this descriptor are [Mutability.SHARED].
  *

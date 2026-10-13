@@ -659,9 +659,7 @@ private constructor(
 		 * The [CheckedMethod] for [instanceType].
 		 */
 		val instanceTypeMethod = staticMethod(
-			InstanceTypeDescriptor::class.java,
-			::instanceType.name,
-			AvailObject::class.java,
+			::instanceType,
 			A_BasicObject::class.java)
 	}
 }

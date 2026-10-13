@@ -32,8 +32,6 @@
 package avail.optimizer.values
 
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which holds a temporary value in a [Frame].  The scope
@@ -68,16 +66,16 @@ constructor(
 	val uniqueId: Int
 ) : L2FrameSpecificSemanticValue(frame, uniqueId xor -0x5d6360e4)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		(other is L2SemanticTemp
 			&& super.equalsSemanticValue(other)
 			&& uniqueId == other.uniqueId)
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		frameTransformer(frame).let { newFrame ->
 			if (newFrame == frame) this
 			else L2SemanticTemp(newFrame, name, uniqueId)

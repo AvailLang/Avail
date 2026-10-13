@@ -49,6 +49,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_Fiber
 import avail.descriptor.representation.A_Fiber.Companion.heritableFiberGlobals

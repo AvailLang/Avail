@@ -58,11 +58,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_FloatToIntBits : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val floatObject = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		floatObject: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val floatValue = floatObject.extractFloat
 		val floatBits = floatValue.toRawBits()
 		return fromInt(floatBits)

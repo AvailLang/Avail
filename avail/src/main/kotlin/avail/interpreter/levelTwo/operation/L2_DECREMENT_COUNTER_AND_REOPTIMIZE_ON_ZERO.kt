@@ -32,14 +32,13 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_RawFunction.Companion.countdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.Companion.decrement
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -129,10 +128,8 @@ constructor(
 		 * The [CheckedMethod] for [decrement].
 		 */
 		private val decrementMethod = staticMethod(
-			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
-			::decrement.name,
-			Boolean::class.javaPrimitiveType!!,
+			::decrement,
 			Interpreter::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 	}
 }

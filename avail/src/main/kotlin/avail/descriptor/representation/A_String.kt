@@ -32,7 +32,6 @@
 package avail.descriptor.representation
 
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.StringDescriptor
 import avail.utility.cast
 

@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_OuterVariables : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val aFunction = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		aFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return generateObjectTupleFrom(
 			aFunction.numOuterVars
 		) { index ->

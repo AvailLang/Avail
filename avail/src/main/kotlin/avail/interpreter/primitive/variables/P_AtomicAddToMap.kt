@@ -69,6 +69,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 
 /**
@@ -78,16 +79,18 @@ import avail.interpreter.primitive.Primitive3
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val key = arg2
-		val value = arg3
+object P_AtomicAddToMap : Primitive3(
+	CanInline,
+	HasSideEffect,
+	// A variable may be part of the value, so it could become shared here.
+	MightMakeEscapedVariableShared)
+{
+	override fun attempt3(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		key: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		try
 		{
 			variable.atomicAddToMap(key, value)
@@ -158,13 +161,6 @@ object P_AtomicAddToMap : Primitive3(CanInline, HasSideEffect) {
 		stat.record(captureNanos() - before, interpreter.interpreterIndex)
 		return success
 	}
-
-	/**
-	 * A variable may be part of the value, so it could become shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

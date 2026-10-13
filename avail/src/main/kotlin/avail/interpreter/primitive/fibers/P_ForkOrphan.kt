@@ -67,6 +67,7 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive3
 
@@ -79,18 +80,17 @@ import avail.interpreter.primitive.Primitive3
  */
 @Suppress("unused")
 object P_ForkOrphan : Primitive3(
-	CanInline, HasSideEffect, WritesToHiddenGlobalState)
+	CanInline,
+	HasSideEffect,
+	WritesToHiddenGlobalState,
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val function = arg1
-		val argTuple = arg2
-		val priority = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		function: AvailObject,
+		argTuple: AvailObject,
+		priority: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize
 		val code = function.code()
@@ -132,11 +132,6 @@ object P_ForkOrphan : Primitive3(
 		runtime.runOutermostFunction(orphan, function, callArgs, false)
 		return nil
 	}
-
-	/** The function or its arguments could become shared. */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

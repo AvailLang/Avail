@@ -36,10 +36,8 @@ import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELI
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
-import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
-import avail.descriptor.representation.A_RegisterDump.Companion.encodedElidedLocals
 import avail.exceptions.unsupported
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -182,18 +180,14 @@ interface A_RegisterDump : A_BasicObject
 		 * A [CheckedMethod] for invoking the method [extractDumpedObjectAt].
 		 */
 		val extractDumpedObjectAtMethod = instanceMethod(
-			A_RegisterDump::class.java,
-			A_RegisterDump::extractDumpedObjectAt.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			A_RegisterDump::extractDumpedObjectAt,
+			int)
 
 		/**
 		 * A [CheckedMethod] for invoking the method [extractDumpedLongAt].
 		 */
 		val extractDumpedLongAtMethod = instanceMethod(
-			A_RegisterDump::class.java,
-			A_RegisterDump::extractDumpedLongAt.name,
-			Long::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!)
+			A_RegisterDump::extractDumpedLongAt,
+			int)
 	}
 }

@@ -65,10 +65,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateAnonymousModule : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
+	override fun attempt1(
+		interpreter: Interpreter,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// TODO Not implemented yet, just fail generically for now.
 		return fail(E_INCORRECT_ARGUMENT_TYPE)
 	}

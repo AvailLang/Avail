@@ -57,13 +57,11 @@ import kotlin.math.exp
 @Suppress("unused")
 object P_FloatExp : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		// val e = arg1
-		val a = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		e: AvailObject,
+		a: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromFloatRecycling(
 			exp(a.extractFloat.toDouble()).toFloat(), a, true)
 	}

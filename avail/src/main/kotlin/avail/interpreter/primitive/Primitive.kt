@@ -34,6 +34,7 @@ package avail.interpreter.primitive
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import avail.AvailRuntimeSupport.captureNanos
+import avail.annotations.DSLHelper
 import avail.compiler.PragmaKind
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.specialPrimitivePatterns
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -68,28 +69,32 @@ import avail.interpreter.execution.Interpreter.Companion.argsBufferField
 import avail.interpreter.execution.Interpreter.Companion.beforeAttemptPrimitiveMethod
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
+import avail.interpreter.levelTwo.HiddenVariable
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2SimpleChunk
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_RunInfalliblePrimitiveNoCheck
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
+import avail.interpreter.primitive.Primitive.Flag
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
-import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
@@ -102,15 +107,16 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2Optimizer
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.StackReifier.AfterReification.CONTINUE_FIBER
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
+import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -119,15 +125,15 @@ import avail.performance.StatisticReport
 import avail.performance.StatisticReport.PRIMITIVES
 import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
+import avail.utility.bitfield.BitFlag
+import avail.utility.bitfield.PackedBits
 import avail.utility.isNullOr
-import org.objectweb.asm.Opcodes.ARETURN
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.POP
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.String.format
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.EnumSet
 import java.util.regex.Pattern
 
 /**
@@ -187,7 +193,7 @@ import java.util.regex.Pattern
  *
  * Note that it's essential that this method, invoked during static
  * initialization of each Primitive subclass, install this new instance into
- * this primitive's [PrimitiveHolder] in [holdersByClassName].
+ * this primitive's [PrimitiveHolder.holdersByClassName].
  *
  * @param argCount
  *   The number of arguments the primitive expects.  The value -1 is used by
@@ -201,7 +207,22 @@ import java.util.regex.Pattern
 abstract class Primitive
 constructor(
 	val argCount: Int,
-	vararg flags: Flag)
+	vararg flags: Flag
+): PackedBits<Flag>(setupFlags = {
+	assert(flags.size == flags.distinct().size) {
+		"Duplicate flag in ${javaClass.simpleName}"
+	}
+	// Sanity check certain conditions.
+	assert(Flag.CanFold !in flags || Flag.CanInline in flags)
+	{
+		"Primitive ${javaClass.simpleName} has CanFold without CanInline"
+	}
+	assert(Flag.Invokes !in flags || Flag.CanInline in flags)
+	{
+		"Primitive ${javaClass.simpleName} has Invokes without CanInline"
+	}
+	flags.forEach { flag -> flag(true) }
+})
 {
 	/**
 	 * To simplify styling during bootstrapping, a method defined by the
@@ -225,12 +246,6 @@ constructor(
 
 	/** Capture the simpleName of the primitive class once for performance. */
 	val simpleName: String = javaClass.simpleName
-
-	/**
-	 * The flags that indicate to the [L2Generator] how an invocation of
-	 * this primitive should be handled.
-	 */
-	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
 
 	/**
 	 * A [type][TypeDescriptor] to constrain the local constant holding the
@@ -265,15 +280,22 @@ constructor(
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
 	 * changing the continuaation.
 	 */
-	lateinit var reificationAbandonmentStat: Statistic
-		private set
+	val reificationAbandonmentStat: Statistic? = when {
+		hasFlag(Flag.CanSwitchContinuations) ->
+			Statistic(
+				REIFICATIONS, "Abandoned for continuation change from $name")
+		else -> null
+	}
 
 	/**
 	 * The [Statistic] for reification prior to invoking a primitive that
 	 * *does not* have [Flag.CanInline] set.
 	 */
-	lateinit var reificationForNoninlineStat: Statistic
-		private set
+	val reificationForNoninlineStat: Statistic? = when {
+		!hasFlag(Flag.CanInline) ->
+			Statistic(REIFICATIONS, "Reification for $name")
+		else -> null
+	}
 
 	/**
 	 * A performance metric indicating how long was spent checking the return
@@ -286,45 +308,79 @@ constructor(
 		PRIMITIVE_RETURNER_TYPE_CHECKS,
 		"$simpleName (checking result)")
 
-	init
-	{
-		assert(primitiveFlags.isEmpty())
-		for (flag in flags)
-		{
-			assert(!primitiveFlags.contains(flag))
-			{
-				"Duplicate flag in ${javaClass.simpleName}"
-			}
-			primitiveFlags.add(flag)
-		}
-		// Sanity check certain conditions.
-		assert(!primitiveFlags.contains(Flag.CanFold)
-				|| primitiveFlags.contains(Flag.CanInline))
-		{
-			"Primitive ${javaClass.simpleName} has CanFold without CanInline"
-		}
-		assert(!primitiveFlags.contains(Flag.Invokes)
-				|| primitiveFlags.contains(Flag.CanInline))
-		{
-			"Primitive ${javaClass.simpleName} has Invokes without CanInline"
-		}
-		if (hasFlag(Flag.CanSwitchContinuations))
-		{
-			reificationAbandonmentStat = Statistic(
-				REIFICATIONS, "Abandoned for continuation change from $name")
-		}
-		if (!hasFlag(Flag.CanInline))
-		{
-			reificationForNoninlineStat = Statistic(
-				REIFICATIONS, "Reification for $name")
+	/**
+	 * The [Int] mask of the ways in which this primitive might be reading from
+	 * [HiddenVariable]s.
+	 */
+	val l2ReadInterferenceMask: Int = run {
+		// Set up interference flags for when this primitive is used in an
+		// L2_RUN_INFALLIBLE_PRIMITIVE.
+		when {
+			hasFlag(Flag.HasSideEffect) -> GLOBAL_STATE.mask
+			hasFlag(Flag.Unknown) -> GLOBAL_STATE.mask
+			hasFlag(Flag.ReadsFromHiddenGlobalState) -> GLOBAL_STATE.mask
+			else -> 0
 		}
 	}
+
+	/**
+	 * The [Int] mask of the ways in which this primitive might be writing to
+	 * [HiddenVariable]s.
+	 */
+	val l2WriteInterferenceMask: Int = run {
+		val rw = hasFlag(Flag.HasSideEffect) || hasFlag(Flag.Unknown)
+		val reads = rw || hasFlag(Flag.ReadsFromHiddenGlobalState)
+		val writes = rw || hasFlag(Flag.WritesToHiddenGlobalState)
+		var writeHidden = buildSet {
+			when
+			{
+				reads && writes ->
+				{
+					add(CURRENT_CONTINUATION)
+					add(CURRENT_FUNCTION)
+					add(LATEST_RETURN_VALUE)
+					add(GLOBAL_STATE)
+				}
+				writes ->
+				{
+					add(CURRENT_CONTINUATION)
+					add(CURRENT_FUNCTION)
+					add(LATEST_RETURN_VALUE)
+					add(GLOBAL_STATE)
+				}
+				reads ->
+				{
+					add(CURRENT_CONTINUATION)
+					add(CURRENT_FUNCTION)
+					add(LATEST_RETURN_VALUE)
+				}
+				else ->
+				{
+					add(LATEST_RETURN_VALUE)
+				}
+			}
+		}
+		writeHidden.map { it.mask }.fold(0, Int::or)
+	}
+
+	/**
+	 * A cached decision about whether this primitive is considered to have a
+	 * side-effect when used in an [L2_RUN_INFALLIBLE_PRIMITIVE].
+	 */
+	val l2HasSideEffect: Boolean =
+		(hasFlag(Flag.HasSideEffect)
+			|| hasFlag(Flag.CatchException)
+			|| hasFlag(Flag.Invokes)
+			|| hasFlag(Flag.CanSwitchContinuations)
+			|| hasFlag(Flag.ReadsFromHiddenGlobalState)
+			|| hasFlag(Flag.WritesToHiddenGlobalState)
+			|| hasFlag(Flag.Unknown))
 
 	/**
 	 * These flags are used by the execution machinery and optimizer to indicate
 	 * the potential mischief that the corresponding primitives may get into.
 	 */
-	enum class Flag
+	enum class Flag : BitFlag<Flag>
 	{
 		/**
 		 * The primitive can be attempted by the `L2Generator` at
@@ -445,6 +501,16 @@ constructor(
 		 * implicit observer function ([IMPLICIT_OBSERVE]).
 		 */
 		ReadsFromHiddenGlobalState,
+
+		/**
+		 * This primitive could theoretically cause an escaped local variable to
+		 * become shared, or to have read/write reactors added to it. In either
+		 * case, we must not continue executing L2 code that assumes that any
+		 * local variables that may have escaped can use a register to track
+		 * what value would have been written and read.  Instead, it falls back
+		 * to L1 execution if this happens.
+		 */
+		MightMakeEscapedVariableShared,
 
 		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
@@ -613,13 +679,9 @@ constructor(
 	 * a map from a variable and writing it back into the variable could cause
 	 * this, but only if it was updating or adding an entry, not if it's
 	 * removing one.
-	 *
-	 * @param argumentTypes
-	 *   The types of the arguments at the call site.
 	 */
-	open fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>,
-	) = false
+	fun mightMakeEscapedVariableShared() =
+		hasFlag(Flag.MightMakeEscapedVariableShared)
 
 	/**
 	 * Return an Avail [type][TypeDescriptor] that a failure variable
@@ -634,7 +696,7 @@ constructor(
 	 *   variable declared in a block using this primitive.
 	 */
 	protected open fun privateFailureVariableType(): A_Type =
-		if (Flag.CannotFail in primitiveFlags) bottom
+		if (hasFlag(Flag.CannotFail)) bottom
 		else naturalNumbers
 
 	/**
@@ -659,7 +721,7 @@ constructor(
 	 *   The `Flag` to test.
 	 * @return Whether that `Flag` is set for this primitive.
 	 */
-	fun hasFlag(flag: Flag): Boolean = primitiveFlags.contains(flag)
+	fun hasFlag(flag: Flag): Boolean = this[flag]
 
 	/**
 	 * A helper class to assist with lazy loading of [Primitive]s.
@@ -953,9 +1015,9 @@ constructor(
 		// type as possible.
 		val guaranteedType =
 			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val restriction = boxedRestrictionForType(
+		val restriction = restrictionForType(
 			if (guaranteedType.isBottom) TOP() else guaranteedType)
-		val semanticValue: L2SemanticBoxedValue
+		val semanticValue: L2SemanticValue
 		if (hasFlag(Flag.CanFold) && !guaranteedType.isBottom)
 		{
 			semanticValue = primitiveInvocation(
@@ -963,7 +1025,8 @@ constructor(
 				arguments.map(L2ReadBoxedOperand::semanticValue))
 			// See if we already have a value for an equivalent invocation.
 			currentManifest.equivalentPopulatedSemanticValue(
-				semanticValue
+				semanticValue,
+				BOXED_KIND
 			)?.let { equivalent ->
 				// Reuse the previously computed result.
 				currentManifest.updateRestriction(equivalent) {
@@ -971,7 +1034,7 @@ constructor(
 				}
 				callSiteHelper.useAnswer(
 					readBoxed(equivalent),
-					mightMakeEscapedVariableShared(argumentTypes))
+					mightMakeEscapedVariableShared())
 				return true
 			}
 		}
@@ -980,8 +1043,8 @@ constructor(
 			semanticValue = newTemp("$name result")
 		}
 		val writer = boxedWrite(semanticValue, restriction)
-		+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-			L2ConstantOperand(rawFunction),
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			rawFunction,
 			this@Primitive,
 			L2ReadBoxedVectorOperand(arguments),
 			writer)
@@ -990,7 +1053,7 @@ constructor(
 			guaranteedType.isBottom -> addUnreachableCode()
 			else -> callSiteHelper.useAnswer(
 				readBoxed(writer),
-				mightMakeEscapedVariableShared(argumentTypes))
+				mightMakeEscapedVariableShared())
 		}
 		return true
 	}
@@ -1148,7 +1211,7 @@ constructor(
 					rawFunction = rawFunction,
 					arguments = arguments,
 					answer = answer)
-				return true // boxedRestrictionForType(guaranteedType)
+				return true // restrictionForType(guaranteedType)
 			}
 			else ->
 			{
@@ -1228,6 +1291,24 @@ constructor(
 		result: L2WriteBoxedOperand
 	) = emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 
+	open fun analyzeAndOptionallyRewriteInstruction(
+		generator: L2GeneratorInterface,
+		instruction: L2_RUN_INFALLIBLE_PRIMITIVE
+	): L2Instruction? = instruction
+
+	/**
+	 * A [L2_RUN_INFALLIBLE_PRIMITIVE] instruction, a secondary receiver, is
+	 * being traceed to determine how to propagate its origins by the [tracer].
+	 * The [restriction] is an interesting condition for the instruction's
+	 * result to satisfy.
+	 */
+	open fun L2_RUN_INFALLIBLE_PRIMITIVE.traceCandidateSplitConditions(
+		restriction: TypeRestriction,
+		tracer: RestrictionTracer)
+	{
+		// Do nothing by default.
+	}
+
 	/**
 	 * Generate an [L2_RUN_INFALLIBLE_PRIMITIVE] for this primitive.  This
 	 * would normally be in the body of [emitTransformedInfalliblePrimitive],
@@ -1248,12 +1329,14 @@ constructor(
 	open fun L2GeneratorInterface.emitBasicInfalliblePrimitive(
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand
-	) = +L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-		L2ConstantOperand(rawFunction),
-		this@Primitive,
-		arguments,
-		result)
+		result: L2WriteBoxedOperand)
+	{
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			rawFunction,
+			this@Primitive,
+			arguments,
+			result)
+	}
 
 	/**
 	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to
@@ -1262,6 +1345,7 @@ constructor(
 	 *
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
+	@DSLHelper
 	class BinaryIntGeneratorHelper(
 		val intA: L2ReadIntOperand,
 		val intB: L2ReadIntOperand,
@@ -1279,6 +1363,7 @@ constructor(
 	 *
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
+	@DSLHelper
 	class BinaryNonIntGeneratorHelper(
 		@Suppress("unused")
 		val boxedA: L2ReadBoxedOperand,
@@ -1330,14 +1415,13 @@ constructor(
 				translator.generateGeneralFunctionInvocation(
 					functionToCallReg, false, callSiteHelper, arguments)
 			}
-	): Boolean
-	{
+	): Boolean = callSiteHelper.translator.run {
 		val (boxedA, boxedB) = arguments
 		val (aType, bType) = argumentTypes
 
-		val aIntersectInt32 = boxedA.restriction()
+		val aIntersectInt32 = boxedA.restriction
 			.intersectionWithType(aType.typeIntersection(i32))
-		val bIntersectInt32 = boxedB.restriction()
+		val bIntersectInt32 = boxedB.restriction
 			.intersectionWithType(bType.typeIntersection(i32))
 		if (aIntersectInt32.isImpossible || bIntersectInt32.isImpossible)
 		{
@@ -1346,31 +1430,26 @@ constructor(
 		}
 
 		// Attempt to unbox the arguments.
-		val translator = callSiteHelper.translator
 		val valueA = boxedA.semanticValue()
 		val valueB = boxedB.semanticValue()
-		val intSuccess = translator.createBasicBlock("output is i32")
-		val intFallback = translator.createBasicBlock("fall back to boxed")
-		val (intA, intB) = translator.readTwoInts(
-			valueA.unboxedInt,
-			valueB.unboxedInt,
-			intFallback)
+		val intSuccess = createBasicBlock("output is i32")
+		val intFallback = createBasicBlock("fall back to boxed")
+		val (intA, intB) = readTwoInts(valueA, valueB, intFallback)
 		{
 			return false
 		}
-		assert(translator.currentlyReachable())
+		assert(currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction, listOf(aIntersectInt32.type, bIntersectInt32.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
-		val intSemanticPrimitive = semanticPrimitive.unboxedInt
-		val intWriter = translator.intWrite(
-			setOf(intSemanticPrimitive),
-			intRestrictionForType(returnTypeIfInts.typeIntersection(i32)))
-		val boxedWrite = translator.boxedWrite(
+		val intWriter = intWrite(
 			setOf(semanticPrimitive),
-			boxedRestrictionForType(returnTypeIfInts))
+			restrictionForType(returnTypeIfInts.typeIntersection(i32)))
+		val boxedWrite = boxedWrite(
+			setOf(semanticPrimitive),
+			restrictionForType(returnTypeIfInts))
 		val helper = BinaryIntGeneratorHelper(
 			intA = intA,
 			intB = intB,
@@ -1378,7 +1457,7 @@ constructor(
 			boxedWrite = boxedWrite,
 			intSuccess = intSuccess,
 			intFailure = intFallback,
-			translator = translator)
+			translator = this)
 		if (returnTypeIfInts.isSubtypeOf(i32))
 		{
 			// The result is guaranteed not to overflow, so emit an instruction
@@ -1391,22 +1470,21 @@ constructor(
 			val equivalent = helper.currentManifest
 				.equivalentPopulatedSemanticValue(
 					primitiveInvocation(
-						this,
-						arguments.map(L2ReadBoxedOperand::semanticValue)
-					).unboxedInt)
+						this@Primitive,
+						arguments.map(L2ReadBoxedOperand::semanticValue)),
+					INTEGER_KIND)
 			when (equivalent)
 			{
 				null -> helper.ifOutputIsInt()
-				else ->  callSiteHelper.translator.moveRegister(
-					equivalent,
-					intWriter.semanticValues())
+				else -> callSiteHelper.translator.move(
+					equivalent, intWriter.semanticValues())
 			}
 		}
 		else
 		{
 			// The result could exceed an int32.
 			helper.ifOutputIsPossiblyInt()
-			translator.startBlock(intSuccess)
+			startBlock(intSuccess)
 		}
 
 		// Even though we're just using the boxed value again, the unboxed form
@@ -1414,25 +1492,295 @@ constructor(
 		// allow the boxing instruction to evaporate.  Note that the prior
 		// int-specific generation blocks are allowed to have simply emitted a
 		// jump to the fallback, so only use the int/boxed value if it exists.
-		val manifest = translator.currentManifest
-		if (manifest.hasSemanticValue(semanticPrimitive) ||
-			manifest.hasSemanticValue(semanticPrimitive.unboxedInt))
+		if (currentManifest.hasSemanticValue(semanticPrimitive))
 		{
-			callSiteHelper.useAnswer(
-				translator.readBoxed(semanticPrimitive), false)
+			callSiteHelper.useAnswer(readBoxed(semanticPrimitive), false)
 		}
 		if (intFallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,
 			// or from int32 overflow calculating the product.
-			translator.startBlock(intFallback)
+			startBlock(intFallback)
 			BinaryNonIntGeneratorHelper(
-				boxedA, boxedB, boxedWrite, translator
+				boxedA, boxedB, boxedWrite, this
 			).fallback()
 		}
 		return true
 	}
+
+	/**
+	 * Write a JVM invocation of this primitive, *under the assumption that the
+	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
+	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls
+	 * [Interpreter.afterAttemptPrimitive], and records statistics as needed. It
+	 * also deals with primitive failures, and reifications.
+	 *
+	 * Subclasses may do something more specific and efficient, and should be
+	 * free to neglect the statistics.  However, the [result] register must be
+	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
+	 *
+	 * @receiver
+	 *   The [JVMTranslator] through which to write bytecodes.
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
+	 *   the primitive.
+	 */
+	fun JVMTranslator.generateJvmCode(
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		if (Interpreter.trackInlineInfalliblePrimitives)
+		{
+			generateJvmCodeWithTracking(arguments, result)
+		}
+		else
+		{
+			generateJvmCodeWithoutTracking(arguments, result)
+		}
+	}
+
+	/**
+	 * Write a JVM invocation of this primitive, *under the assumption that the
+	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
+	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls
+	 * [Interpreter.afterAttemptPrimitive], and records statistics as needed. It
+	 * also deals with primitive failures, and reifications.
+	 *
+	 * Subclasses may do something more specific and efficient, and should be
+	 * free to neglect the statistics.  However, the [result] register must be
+	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
+	 *
+	 * @receiver
+	 *   The [JVMTranslator] through which to write bytecodes.
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
+	 *   the primitive.
+	 */
+	fun JVMTranslator.generateJvmCodeWithTracking(
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		// :: argsBuffer = interpreter.argsBuffer;
+		loadInterpreter()
+		// [interpreter]
+		load(argsBufferField)
+		// [argsBuffer]
+		when (arguments.elements.size)
+		{
+			0 ->
+			{
+				// :: argsBuffer.clear();
+				generateCall(JavaLibrary.listClearMethod)
+			}
+			else ->
+			{
+				method.visitInsn(DUP)
+				// [argsBuffer, argsBuffer]
+				// :: argsBuffer.clear();
+				generateCall(JavaLibrary.listClearMethod)
+				// [argsBuffer]
+				val limit = arguments.elements.size
+				for (i in 0 until limit)
+				{
+					// :: argsBuffer.add(«argument[i]»);
+					if (i < limit - 1)
+					{
+						method.visitInsn(DUP)
+						// :: [argsBuffer, argsBuffer]
+					}
+					// :: argsBuffer.add(«arguments[i]»);
+					load(arguments.elements[i])
+					// :: [{argsBuffer}, argsBuffer, arg]
+					generateCall(JavaLibrary.listAddMethod)
+					// :: [{argsBuffer}, boolean]
+					method.visitInsn(POP)
+					// :: [{argsBuffer}]
+				}
+				// :: []
+			}
+		}
+		// []
+		loadInterpreter()
+		// [interpreter]
+		loadLiteralObject(this@Primitive)
+		// [interpreter, prim]
+		loadInterpreter()
+		// [interpreter, prim, interpreter]
+		loadLiteralObject(this@Primitive)
+		// [interpreter, prim, interpreter, prim]
+		// :: long timeBefore = beforeAttemptPrimitive(primitive);
+		generateCall(beforeAttemptPrimitiveMethod)
+		// [interpreter, prim, timeBeforeLong]
+		loadLiteralObject(this@Primitive)
+		// [interpreter, prim, timeBeforeLong, prim]
+		loadInterpreter()
+		// [interpreter, prim, timeBeforeLong, prim, interpreter]
+		// :: Result success = primitive.attempt(interpreter)
+		generateCall(attemptMethod)
+		// [interpreter, prim, timeBeforeLong, valueOrNull]
+		// :: afterAttemptPrimitive(primitive, timeBeforeLong, valueOrNull)
+		generateCall(afterAttemptPrimitiveMethod)
+		// :: [valueOrNull] (returned as a nicety by afterAttemptPrimitive)
+		// Write the result into the given [result] register.
+		store(result.register())
+	}
+
+	/**
+	 * Write a JVM invocation of this primitive, under the assumption that the
+	 * primitive *cannot fail or reify*.  It *does not* measure the primitive's
+	 * performance with [Interpreter.beforeAttemptPrimitive] and
+	 * [Interpreter.afterAttemptPrimitive], nor record an invocation occurrence.
+	 *
+	 * Subclasses may do something more specific and efficient, and should be
+	 * free to neglect the statistics.  However, the [result] register must be
+	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
+	 *
+	 * @receiver
+	 *   The [JVMTranslator] through which to write bytecodes.
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
+	 *   the primitive.
+	 */
+	open fun JVMTranslator.generateJvmCodeWithoutTracking(
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		loadLiteralObject(this@Primitive)
+		loadInterpreter()
+		val method: CheckedMethod = when (this@Primitive)
+		{
+			is Primitive0 -> Primitive.attempt0Method
+			is Primitive1 -> Primitive.attempt1Method
+			is Primitive2 -> Primitive.attempt2Method
+			is Primitive3 -> Primitive.attempt3Method
+			is Primitive4 -> Primitive.attempt4Method
+			is PrimitiveN ->
+			{
+				objectArray(arguments.elements, AvailObject::class.java)
+				generateCall(Primitive.attemptNMethod)
+				store(result.register())
+				return
+			}
+			else -> error("Unsupported primitive argument count")
+		}
+		arguments.elements.forEach<L2ReadBoxedOperand>(::load)
+		generateCall(method)
+		store(result.register())
+	}
+
+	/**
+	 * Answer the list of [L2SplitCondition]s which, if true, would allow better
+	 * L2 code to be regenerated.  The [L2Optimizer] checks if any of these are
+	 * true on edges leading to ancestor phis, and if so, it may perform code
+	 * splitting to avoid erasing that information prematurely through a control
+	 * flow merge.
+	 *
+	 * @return
+	 *   The [List] of [L2SplitCondition]s which would be profitable to preserve
+	 *   upstream.
+	 */
+	open fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
+	): List<L2SplitCondition?> = emptyList()
+
+	/**
+	 * Answer a semantic value representing the result of invoking this
+	 * primitive with the provided list of boxed semantic values.
+	 *
+	 * @param arguments
+	 *   [L2SemanticValue]s that supplied the arguments to the primitive.
+	 * @return
+	 *   The [L2SemanticValue] representing the primitive result.
+	 */
+	fun semanticInvocation(
+		arguments: List<L2SemanticValue>
+	): L2SemanticPrimitiveInvocation = primitiveInvocation(this, arguments)
+
+	/**
+	 * Answer a semantic value representing the result of invoking this
+	 * primitive with the provided varargs array of boxed semantic values.
+	 *
+	 * @param arguments
+	 *   [L2SemanticValue]s that supplied the arguments to the primitive.
+	 * @return
+	 *   The [L2SemanticValue] representing the primitive result.
+	 */
+	fun semanticInvocation(
+		vararg arguments: L2SemanticValue
+	): L2SemanticPrimitiveInvocation
+	{
+		assert(argCount == -1 || arguments.size == argCount)
+		return primitiveInvocation(this, arguments.toList())
+	}
+
+	/**
+	 * The [manifest] has just gotten a narrower [TypeRestriction] set for a
+	 * semantic invocation of this primitive with the given semantic
+	 * [arguments].  Within the given [manifest], propagate that narrowing to
+	 * any related [L2SemanticValue]s.
+	 *
+	 * @param arguments
+	 *   The argument [L2SemanticValue]s of the primitive invocation.
+	 * @param manifest
+	 *   The [L2ValueManifest] to update.
+	 * @param restriction
+	 *   The current boxed [TypeRestriction] of the primitive invocation.
+	 */
+	open fun propagateManifestRestrictions(
+		arguments: List<L2SemanticValue>,
+		manifest: L2ValueManifest,
+		restriction: TypeRestriction)
+	{
+		// Do nothing by default.
+	}
+
+	override fun toString(): String
+	{
+		return this::class.java.simpleName
+	}
+
+	/**
+	 * Given a [L2SemanticPrimitiveInvocation] whose primitive is the receiver,
+	 * render it as text.
+	 */
+	open fun printSemanticInvocation(
+		invocation: L2SemanticPrimitiveInvocation
+	): String
+	{
+		assert(invocation.primitive == this)
+		semanticInfixOperatorString?.let { infix ->
+			assert(argCount == 2)
+			val (left, right) = invocation.argumentSemanticValues
+			var leftString =
+				left.constant?.let(AvailObject::toString) ?: left.toString()
+			if (left.requiresParentheses()) leftString = "($leftString)"
+			var rightString =
+				right.constant?.let(AvailObject::toString) ?: right.toString()
+			if (right.requiresParentheses()) rightString = "($rightString)"
+			return "$leftString $infix $rightString"
+		}
+		return invocation.argumentSemanticValues.joinToString(
+			separator = ", ",
+			prefix = "$name(",
+			postfix = ")" )
+		{
+			it.constant?.let(AvailObject::toString) ?: it.toString()
+		}
+	}
+
+	/**
+	 * If an [L2SemanticPrimitiveInvocation] of this primitive should be
+	 * described with an infix syntax, answer the infix operator string,
+	 * otherwise `null`.
+	 */
+	open val semanticInfixOperatorString: String? get() = null
 
 	companion object
 	{
@@ -1491,191 +1839,48 @@ constructor(
 
 		/** The method [attempt]. */
 		val attemptMethod = instanceMethod(
-			Primitive::class.java,
-			Primitive::attempt.name,
-			A_BasicObject::class.java,
+			Primitive::attempt,
 			Interpreter::class.java)
+
+		/** The method [Primitive0.attempt0]. */
+		val attempt0Method = instanceMethod(
+			Primitive0::attempt0,
+			Interpreter::class.java)
+
+		/** The method [Primitive1.attempt1]. */
+		val attempt1Method = instanceMethod(
+			Primitive1::attempt1,
+			Interpreter::class.java,
+			AvailObject::class.java)
+
+		/** The method [Primitive2.attempt2]. */
+		val attempt2Method = instanceMethod(
+			Primitive2::attempt2,
+			Interpreter::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [Primitive3.attempt3]. */
+		val attempt3Method = instanceMethod(
+			Primitive3::attempt3,
+			Interpreter::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [Primitive4.attempt4]. */
+		val attempt4Method = instanceMethod(
+			Primitive4::attempt4,
+			Interpreter::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [PrimitiveN.attemptN]. */
+		val attemptNMethod = instanceMethod(
+			PrimitiveN::attemptN,
+			Interpreter::class.java,
+			Array<AvailObject>::class.java)
 	}
-
-	/**
-	 * Write a JVM invocation of this primitive.  This sets up the interpreter,
-	 * calls [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt],
-	 * calls [Interpreter.afterAttemptPrimitive], and records statistics as
-	 * needed. It also deals with primitive failures, and reifications.
-	 *
-	 * Subclasses may do something more specific and efficient, and should be
-	 * free to neglect the statistics.  However, the [result] register must be
-	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
-	 *
-	 * @receiver
-	 *   The [JVMTranslator] through which to write bytecodes.
-	 * @param arguments
-	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
-	 * @param result
-	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
-	 *   the primitive, if successful.
-	 */
-	fun JVMTranslator.generateJvmCode(
-		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand)
-	{
-		// :: argsBuffer = interpreter.argsBuffer;
-		loadInterpreter()
-		// [interpreter]
-		load(argsBufferField)
-		// [argsBuffer]
-		// :: argsBuffer.clear();
-		if (arguments.elements.isNotEmpty())
-		{
-			method.visitInsn(DUP)
-		}
-		// [argsBuffer[, argsBuffer if #args > 0]]
-		generateCall(JavaLibrary.listClearMethod)
-		// [argsBuffer if #args > 0]
-		val limit = arguments.elements.size
-		for (i in 0 until limit)
-		{
-			// :: argsBuffer.add(«argument[i]»);
-			if (i < limit - 1)
-			{
-				method.visitInsn(DUP)
-			}
-			load(arguments.elements[i])
-			generateCall(JavaLibrary.listAddMethod)
-			method.visitInsn(POP)
-		}
-		// []
-		loadInterpreter()
-		// [interpreter]
-		loadLiteralObject(this@Primitive)
-		// [interpreter, prim]
-		loadInterpreter()
-		// [interpreter, prim, interpreter]
-		loadLiteralObject(this@Primitive)
-		// [interpreter, prim, interpreter, prim]
-		// :: long timeBefore = beforeAttemptPrimitive(primitive);
-		generateCall(beforeAttemptPrimitiveMethod)
-		// [interpreter, prim, timeBeforeLong]
-		loadLiteralObject(this@Primitive)
-		// [interpreter, prim, timeBeforeLong, prim]
-		loadInterpreter()
-		// [interpreter, prim, timeBeforeLong, prim, interpreter]
-		// :: Result success = primitive.attempt(interpreter)
-		generateCall(attemptMethod)
-		// [interpreter, prim, timeBeforeLong, valueOrNull]
-		// :: afterAttemptPrimitive(primitive, timeBeforeLong, valueOrNull)
-		generateCall(afterAttemptPrimitiveMethod)
-		// :: [valueOrNull] (returned as a nicety by afterAttemptPrimitive)
-		// Return it now, either to report the value or to propagate the
-		// reification.
-		method.visitInsn(ARETURN)
-	}
-
-	/**
-	 * Answer the list of [L2SplitCondition]s which, if true, would allow better
-	 * L2 code to be regenerated.  The [L2Optimizer] checks if any of these are
-	 * true on edges leading to ancestor phis, and if so, it may perform code
-	 * splitting to avoid erasing that information prematurely through a control
-	 * flow merge.
-	 *
-	 * @return
-	 *   The [List] of [L2SplitCondition]s which would be profitable to preserve
-	 *   upstream.
-	 */
-	open fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
-	): List<L2SplitCondition?> = emptyList()
-
-	/**
-	 * Answer a semantic value representing the result of invoking this
-	 * primitive with the provided list of boxed semantic values.
-	 *
-	 * @param arguments
-	 *   [L2SemanticBoxedValue]s that supplied the arguments to the primitive.
-	 * @return
-	 *   The [L2SemanticBoxedValue] representing the primitive result.
-	 */
-	fun semanticInvocation(
-		arguments: List<L2SemanticBoxedValue>
-	): L2SemanticPrimitiveInvocation = primitiveInvocation(this, arguments)
-
-	/**
-	 * Answer a semantic value representing the result of invoking this
-	 * primitive with the provided varargs array of boxed semantic values.
-	 *
-	 * @param arguments
-	 *   [L2SemanticBoxedValue]s that supplied the arguments to the primitive.
-	 * @return
-	 *   The [L2SemanticBoxedValue] representing the primitive result.
-	 */
-	fun semanticInvocation(
-		vararg arguments: L2SemanticBoxedValue
-	): L2SemanticPrimitiveInvocation
-	{
-		assert(argCount == -1 || arguments.size == argCount)
-		return primitiveInvocation(this, arguments.toList())
-	}
-
-	/**
-	 * The [manifest] has just gotten a narrower [TypeRestriction] set for a
-	 * semantic invocation of this primitive with the given semantic
-	 * [arguments].  Within the given [manifest], propagate that narrowing to
-	 * any related [L2SemanticValue]s.
-	 *
-	 * @param arguments
-	 *   The argument [L2SemanticBoxedValue]s of the primitive invocation.
-	 * @param manifest
-	 *   The [L2ValueManifest] to update.
-	 * @param restriction
-	 *   The current boxed [TypeRestriction] of the primitive invocation.
-	 */
-	open fun propagateManifestRestrictions(
-		arguments: List<L2SemanticValue<BOXED_KIND>>,
-		manifest: L2ValueManifest,
-		restriction: TypeRestriction)
-	{
-		// Do nothing by default.
-	}
-
-	override fun toString(): String
-	{
-		return this::class.java.simpleName
-	}
-
-	/**
-	 * Given a [L2SemanticPrimitiveInvocation] whose primitive is the receiver,
-	 * render it as text.
-	 */
-	open fun printSemanticInvocation(
-		invocation: L2SemanticPrimitiveInvocation
-	): String
-	{
-		assert(invocation.primitive == this)
-		semanticInfixOperatorString?.let { infix ->
-			assert(argCount == 2)
-			val (left, right) = invocation.argumentSemanticValues
-			var leftString =
-				left.constant?.let(AvailObject::toString) ?: left.toString()
-			if (left.requiresParentheses()) leftString = "($leftString)"
-			var rightString =
-				right.constant?.let(AvailObject::toString) ?: right.toString()
-			if (right.requiresParentheses()) rightString = "($rightString)"
-			return "$leftString $infix $rightString"
-		}
-		return invocation.argumentSemanticValues.joinToString(
-			separator = ", ",
-			prefix = "$name(",
-			postfix = ")" )
-		{
-			it.constant?.let(AvailObject::toString) ?: it.toString()
-		}
-	}
-
-	/**
-	 * If an [L2SemanticPrimitiveInvocation] of this primitive should be
-	 * described with an infix syntax, answer the infix operator string,
-	 * otherwise `null`.
-	 */
-	open val semanticInfixOperatorString: String? get() = null
 }

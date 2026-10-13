@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_PermutedListList : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val permuted = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		permuted: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return permuted.list
 	}
 

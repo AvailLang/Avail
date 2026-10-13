@@ -55,11 +55,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MethodDefinitionBody : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val methodDefinition = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		methodDefinition: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return methodDefinition.bodyBlock().makeImmutable()
 	}
 

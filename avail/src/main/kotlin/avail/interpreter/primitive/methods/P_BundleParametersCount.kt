@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_BundleParametersCount : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val bundle = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		bundle: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val splitter = bundle.messageSplitter
 		return fromInt(splitter.numberOfArguments)

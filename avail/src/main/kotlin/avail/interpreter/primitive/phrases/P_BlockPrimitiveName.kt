@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_BlockPrimitiveName : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val block = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		block: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return when (val primitive = block.primitive)
 		{
 			null -> emptyTuple

@@ -67,9 +67,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES.Companion.lookup
-import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES.Companion.lookupWithTracking
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -307,9 +305,7 @@ constructor(
 		 * The [CheckedMethod] for [lookup].
 		 */
 		private val lookupMethod = staticMethod(
-			L2_LOOKUP_BY_VALUES::class.java,
-			::lookup.name,
-			A_Function::class.java,
+			::lookup,
 			Interpreter::class.java,
 			A_Bundle::class.java,
 			Array<AvailObject>::class.java)
@@ -318,9 +314,7 @@ constructor(
 		 * The [CheckedMethod] for [lookupWithTracking].
 		 */
 		private val lookupWithTrackingMethod = staticMethod(
-			L2_LOOKUP_BY_VALUES::class.java,
-			::lookupWithTracking.name,
-			A_Function::class.java,
+			::lookupWithTracking,
 			Interpreter::class.java,
 			A_Bundle::class.java,
 			Array<AvailObject>::class.java)

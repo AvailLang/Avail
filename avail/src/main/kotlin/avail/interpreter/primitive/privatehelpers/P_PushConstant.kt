@@ -56,7 +56,6 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.PrimitiveN
-import avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -74,10 +73,10 @@ import avail.optimizer.L1Translator
 object P_PushConstant : PrimitiveN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
+	): A_BasicObject? = interpreter.run {
 		val code = function!!.code()
 		assert(code.codePrimitive() === P_PushConstant)
 		return code.literalAt(1)

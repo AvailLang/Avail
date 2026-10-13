@@ -36,7 +36,7 @@ import java.util.EnumMap
 import java.util.EnumSet
 
 /**
- * A `StateMachineFactory` enables a client to dynamically specify and assemble
+ * A [StateMachineFactory] enables a client to dynamically specify and assemble
  * a [finite&#32;state&#32;machine][StateMachine]. In particular, the factory
  * allows a client to flexibly define a particular FSM while ignoring
  * specification and evaluation order dependency. Validation is postponed until
@@ -136,9 +136,7 @@ constructor(
 	 */
 	private fun getSummary(state: State):
 			StateSummary<State, Event, GuardKey, ActionKey, Memento> =
-		(summaries as MutableMap<
-			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>>)
-			.computeIfAbsent(state) { s -> StateSummary(s, eventType) }
+		summaries.computeIfAbsent(state) { s -> StateSummary(s, eventType) }
 
 	/**
 	 * Set the *entry* action key that indicates which action

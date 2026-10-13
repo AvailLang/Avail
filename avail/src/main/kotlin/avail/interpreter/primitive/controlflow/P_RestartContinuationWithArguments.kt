@@ -103,14 +103,11 @@ object P_RestartContinuationWithArguments : Primitive2(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val originalCon = arg1
-		val arguments = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		originalCon: AvailObject,
+		arguments: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
 		assert(originalCon.stackp == code.numSlots + 1)
@@ -143,8 +140,9 @@ object P_RestartContinuationWithArguments : Primitive2(
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
 		clearLatestResult()
-		currentReifier = reifierToRestartWithArguments(originalCon, arguments)
-		return null
+		return createReifierToRestartWithArguments(
+			originalCon,
+			arguments.toList().toTypedArray())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -204,7 +202,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 			// We're restarting the current frame.  First set up the semantic
 			// arguments for phis at the loop head to converge.
 			val numArgs = code.numArgs()
-			val argsType = argumentsTupleReg.type()
+			val argsType = argumentsTupleReg.type
 			val argsSizeRange = argsType.sizeRange
 
 			if (!argsSizeRange.lowerBound.equalsInt(numArgs)
@@ -241,7 +239,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 		// special invocation if it's not possible.
 
 		// Examine the continuation's function's type.
-		val continuationType = continuationReg.type()
+		val continuationType = continuationReg.type
 		val functionType = continuationType.functionType
 		val functionArgsType = functionType.argsTupleType
 		val functionTypeSizes = functionArgsType.sizeRange

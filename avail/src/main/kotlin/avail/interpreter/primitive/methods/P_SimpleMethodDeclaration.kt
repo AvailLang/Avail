@@ -95,16 +95,12 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_SimpleMethodDeclaration : Primitive3(Bootstrap, CanSuspend, Unknown)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val string: A_String = arg1
-		val function: A_Function = arg2
-		val optionalStylerFunction: A_Tuple = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		string: AvailObject,
+		function: AvailObject,
+		optionalStylerFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)

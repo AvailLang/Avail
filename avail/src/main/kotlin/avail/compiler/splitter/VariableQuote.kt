@@ -42,7 +42,7 @@ import avail.descriptor.variables.VariableDescriptor
 import java.util.IdentityHashMap
 
 /**
- * A `VariableQuote` is an occurrence of [up&#32;arrow][Metacharacter.UP_ARROW]
+ * A [VariableQuote] is an occurrence of [up&#32;arrow][Metacharacter.UP_ARROW]
  * (↑) after an underscore in a message name. It indicates that the expression
  * must be the name of a [variable][VariableDescriptor] that is currently
  * in-scope. It produces a [reference][ReferencePhraseDescriptor] to the

@@ -47,13 +47,13 @@ import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_TYPE_FIELD
 import avail.interpreter.primitive.objects.P_GetObjectTypeField
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
@@ -265,8 +265,8 @@ constructor(
 	}
 
 	private fun newSemanticValue(
-		semanticValues: List<L2SemanticBoxedValue>,
-		extraSemanticValues: List<L2SemanticBoxedValue>
+		semanticValues: List<L2SemanticValue>,
+		extraSemanticValues: List<L2SemanticValue>
 	) = P_GetObjectTypeField.semanticInvocation(
 		sourceSemanticValue(semanticValues, extraSemanticValues),
 		constant(field))
@@ -278,19 +278,19 @@ constructor(
 	}
 
 	override fun L2GeneratorInterface.generateEdgesFor(
-		semanticArguments: List<L2SemanticBoxedValue>,
-		extraSemanticArguments: List<L2SemanticBoxedValue>,
+		semanticArguments: List<L2SemanticValue>,
+		extraSemanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticBoxedValue>>>
+			List<L2SemanticValue>>>
 	{
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction = currentManifest.restrictionFor(baseSemanticValue)
-		val fieldRestriction = boxedRestrictionForType(
+		val fieldRestriction = restrictionForType(
 			instanceMeta(
 				baseRestriction.type.instance.fieldTypeAtOrNull(field) ?:
 					field.fieldAtomConstraint))

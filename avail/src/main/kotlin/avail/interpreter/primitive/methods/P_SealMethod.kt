@@ -58,6 +58,7 @@ import avail.exceptions.SignatureException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -68,15 +69,19 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SealMethod : Primitive2(CanInline, HasSideEffect)
+object P_SealMethod : Primitive2(
+	CanInline,
+	HasSideEffect,
+	// The argument types might include instance types on variables that are
+	// escaped, and those instance types get added to the seal, making them
+	// immutable.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val methodName = arg1
-		val argumentTypes = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		methodName: AvailObject,
+		argumentTypes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = availLoaderOrNull() ?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)
 		{
@@ -100,15 +105,6 @@ object P_SealMethod : Primitive2(CanInline, HasSideEffect)
 		}
 		return nil
 	}
-
-	/**
-	 * The argument types might include instance types on variables that are
-	 * escaped, and those instance types get added to the seal, making them
-	 * immutable.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(stringType, zeroOrMoreOf(anyMeta)), TOP())

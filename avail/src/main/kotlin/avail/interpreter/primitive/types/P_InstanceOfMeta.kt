@@ -45,7 +45,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -61,11 +61,10 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val meta = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		meta: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return meta.instance
 	}
 
@@ -87,7 +86,7 @@ object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanFold, CanInline)
 	{
 		val metaReg = arguments[0]
 		val returnType = argumentTypes[0].instance
-		val restriction = boxedRestrictionForType(returnType)
+		val restriction = restrictionForType(returnType)
 		val writer = boxedWriteTemp("instance of meta", restriction)
 		+L2_INSTANCE_OF_META(metaReg, writer)
 		callSiteHelper.useAnswer(

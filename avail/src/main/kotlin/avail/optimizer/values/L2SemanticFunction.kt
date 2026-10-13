@@ -35,9 +35,8 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 
 /**
  * A semantic value which represents the current function while running code for
@@ -54,28 +53,26 @@ import avail.interpreter.levelTwo.register.BOXED_KIND
 internal class L2SemanticFunction constructor(frame: Frame)
 	: L2FrameSpecificSemanticValue(frame, -0xe519ffd)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+	override fun equalsSemanticValue(other: L2SemanticValue) =
 		other is L2SemanticFunction && super.equalsSemanticValue(other)
 
 	override val defaultRestriction: TypeRestriction
 		get() = constantRestrictionOrNull ?:
-			boxedRestrictionForType(frame.code.functionType())
-
-	override val isUsefulForGlobalValueNumbering: Boolean get() = true
+			restrictionForType(frame.code.functionType())
 
 	override val constantRestrictionOrNull: TypeRestriction?
 		get() = when (frame.code.numOuters)
 	{
-		0 -> boxedRestrictionForConstant(
+		0 -> restrictionForConstant(
 			createFunction(frame.code, emptyTuple))
 		else -> null
 	}
 
 	override fun transform(
 		semanticValueTransformer:
-			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+			(L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
+	): L2SemanticValue =
 		frameTransformer(frame).let { newFrame ->
 			if (newFrame == frame) this else L2SemanticFunction(newFrame)
 		}

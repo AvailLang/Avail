@@ -44,7 +44,7 @@ import avail.exceptions.SignatureException
 import java.util.IdentityHashMap
 
 /**
- * An `Argument` is an occurrence of [underscore][Metacharacter.UNDERSCORE] (_)
+ * An [Argument] is an occurrence of [underscore][Metacharacter.UNDERSCORE] (_)
  * in a message name. It indicates where an argument is expected.
  *
  * @property absoluteUnderscoreIndex

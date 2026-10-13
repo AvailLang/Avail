@@ -64,14 +64,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SemanticRestrictions : Primitive2(CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val method = arg1
-		val argTypes = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		method: AvailObject,
+		argTypes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (method.numArgs != argTypes.tupleSize)
 		{
 			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)

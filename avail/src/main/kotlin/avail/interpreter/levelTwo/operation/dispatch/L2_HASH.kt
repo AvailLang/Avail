@@ -43,10 +43,11 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Answer the [hash][A_BasicObject.hash] of the specified value.
@@ -63,8 +64,8 @@ class L2_HASH(
 	{
 		value.constantOrNull?.let { constant ->
 			// Hash the constant now.
-			moveIntRegister(
-				unboxedIntConstant(constant.hash()).semanticValue(),
+			move(
+				constant(constant.hash()),
 				hash.semanticValues())
 			return null
 		}
@@ -72,19 +73,17 @@ class L2_HASH(
 		return this@L2_HASH
 	}
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		assert(writeOperand == hash)
-		assert(restriction.isUnboxedInt)
-		if (!tracer.traceArithmetic) return
+		if (!traceArithmetic) return
 		// Obviously we can't "unhash" an int.  However, if the source value is
 		// an enuumeration, we can transform the restriction on the hash into a
 		// restriction on which values would cause the hash to satisfy the int
 		// restriction.
-		val valueType = value.restriction().type
+		val valueType = value.restriction.type
 		if (!valueType.isEnumeration || valueType.isInstanceMeta)
 		{
 			// The value isn't constrained to a finite enumeration.  Give up.
@@ -104,9 +103,9 @@ class L2_HASH(
 			// Nothing was disqualified by the hash's restriction.  Give up.
 			return
 		}
-		val valueRestriction = boxedRestrictionForType(
+		val valueRestriction = restrictionForType(
 			enumerationWith(setFromCollection(satisfiedValues)))
-		tracer.continueTracing(value.register(), valueRestriction)
+		continueTracing(value.register(), valueRestriction)
 	}
 
 	override fun JVMTranslator.translateToJVM()

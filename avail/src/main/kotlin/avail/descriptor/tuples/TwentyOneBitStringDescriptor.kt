@@ -61,10 +61,10 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.descriptorFor
-import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.mutableTwentyOneBitStringOfSize
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -609,12 +609,9 @@ class TwentyOneBitStringDescriptor private constructor(
 			descriptorFor(MUTABLE, size).create((size + 2).div3)
 
 		/** The [CheckedMethod] for [mutableTwentyOneBitStringOfSize]. */
-		val createUninitializedTwentyOneBitStringMethod =
-			staticMethod(
-				TwentyOneBitStringDescriptor::class.java,
-				::mutableTwentyOneBitStringOfSize.name,
-				AvailObject::class.java,
-				Int::class.javaPrimitiveType!!)
+		val createUninitializedTwentyOneBitStringMethod = staticMethod(
+			::mutableTwentyOneBitStringOfSize,
+			int)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

@@ -67,16 +67,12 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_IntegerIntervalTuple : Primitive3(CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val start = arg1
-		val end = arg2
-		val delta = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		start: AvailObject,
+		end: AvailObject,
+		delta: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return if (delta.equalsInt(0))
 		{
 			fail(E_INCORRECT_ARGUMENT_TYPE)

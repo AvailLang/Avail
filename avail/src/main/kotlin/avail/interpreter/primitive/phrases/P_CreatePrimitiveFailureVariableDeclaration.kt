@@ -46,6 +46,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -56,25 +57,19 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_CreatePrimitiveFailureVariableDeclaration : Primitive2(
-	CanInline, CannotFail)
+	CanInline,
+	CannotFail,
+	// The token or type might contain an escaped variable, making it shared
+	// here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val token = arg1
-		val type = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		token: AvailObject,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return newPrimitiveFailureConstant(token, nil, type)
 	}
-
-	/**
-	 * The token or type might contain an escaped variable, making it shared
-	 * here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

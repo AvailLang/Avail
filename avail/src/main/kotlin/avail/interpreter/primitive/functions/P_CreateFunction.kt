@@ -61,13 +61,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateFunction : Primitive2(CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val rawFunction = arg1
-		val outers = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		rawFunction: AvailObject,
+		outers: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val numOuters = rawFunction.numOuters
 		if (outers.tupleSize != numOuters)
 		{

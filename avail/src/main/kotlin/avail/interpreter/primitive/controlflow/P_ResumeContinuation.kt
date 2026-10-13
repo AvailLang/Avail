@@ -61,11 +61,10 @@ object P_ResumeContinuation : Primitive1(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val con = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		con: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return resumeContinuation(this@P_ResumeContinuation, con)
 	}
 

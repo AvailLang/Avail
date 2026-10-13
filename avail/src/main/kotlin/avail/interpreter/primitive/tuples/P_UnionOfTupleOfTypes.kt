@@ -52,11 +52,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_UnionOfTupleOfTypes : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tupleOfTypes = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tupleOfTypes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		var unionObject = bottom
 		for (aType in tupleOfTypes)
 		{

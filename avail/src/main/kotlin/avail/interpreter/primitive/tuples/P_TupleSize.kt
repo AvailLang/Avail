@@ -33,6 +33,7 @@ package avail.interpreter.primitive.tuples
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
@@ -45,6 +46,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
@@ -53,18 +55,16 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTyp
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
-import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
@@ -74,11 +74,10 @@ import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 @Suppress("unused")
 object P_TupleSize : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromInt(tuple.tupleSize)
 	}
 
@@ -88,16 +87,21 @@ object P_TupleSize : Primitive1(CannotFail, CanFold, CanInline)
 			wholeNumbers)
 
 	override fun propagateManifestRestrictions(
-		arguments: List<L2SemanticValue<BOXED_KIND>>,
+		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)
 	{
 		val sizeRange = restriction.type
 		manifest.equivalentSemanticValue(arguments[0])?.let { tupleValue ->
 			manifest.updateRestriction(tupleValue) {
-				intersectionWithType(
-					tupleTypeForSizesTypesDefaultType(
-						sizeRange, emptyTuple, ANY()))
+				var type = tupleTypeForSizesTypesDefaultType(
+					sizeRange, emptyTuple, ANY())
+				if (type.sizeRange.upperBound.equalsInt(0))
+				{
+					// Strengthen it to an instance type.
+					type = instanceType(emptyTuple)
+				}
+				intersectionWithType(type)
 			}
 		}
 	}
@@ -132,30 +136,27 @@ object P_TupleSize : Primitive1(CannotFail, CanFold, CanInline)
 				// extract it into an int register, then move that to a boxed
 				// register.  If the boxed form isn't needed, that instruction
 				// will be eliminated later.
-				val restriction = intRestrictionForType(returnType)
-				val sizeBoxed = primitiveInvocation(
+				val restriction = restrictionForType(returnType)
+				val size = primitiveInvocation(
 					P_TupleSize,
 					listOf(tupleReg.semanticValue()))
-				val sizeInt = sizeBoxed.unboxedInt
-				val equivalent =
-					currentManifest.equivalentSemanticValue(sizeInt)
+				val equivalent = currentManifest
+					.equivalentPopulatedSemanticValue(size, INTEGER_KIND)
 				if (equivalent !== null)
 				{
 					// It already exists, so reuse it.
-					if (equivalent != sizeInt)
+					if (equivalent != size)
 					{
-						moveIntRegister(equivalent, setOf(sizeInt))
+						move(equivalent, setOf(size))
 					}
 				}
 				else
 				{
 					// It's not yet available, so compute it.
-					val writer = intWrite(setOf(sizeInt), restriction)
+					val writer = intWrite(setOf(size), restriction)
 					+L2_TUPLE_SIZE(tupleReg, writer)
 				}
-				callSiteHelper.useAnswer(
-					readBoxed(sizeInt.boxed),
-					false)
+				callSiteHelper.useAnswer(readBoxed(size), false)
 			}
 		}
 		return true

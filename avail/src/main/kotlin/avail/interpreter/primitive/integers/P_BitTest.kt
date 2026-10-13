@@ -64,8 +64,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
@@ -79,7 +78,6 @@ import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface.Companion.readInt
-import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import kotlin.math.min
 
 /**
@@ -95,14 +93,11 @@ import kotlin.math.min
 @Suppress("unused")
 object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		val b = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		a: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val bInt = when
 		{
 			b.isInt -> b.extractInt
@@ -112,7 +107,8 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -179,19 +175,17 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 			return false
 		}
 		val fallback = L2BasicBlock("fallback for bit test")
-		val aInt = readInt(a.semanticValue().unboxedInt, fallback) {
+		val aInt = readInt(a.semanticValue(), fallback) {
 			return false
 		}
 		// At this point we have the i32 under test, and know from the primitive
 		// signature that the bit position is >= 0.  If the bit position we're
 		// selecting is >31, it'll just be a copy of the sign bit.
-		val bit = intWriteTemp("bit", intRestrictionForType(u1))
+		val bit = intWriteTemp("bit", restrictionForType(u1))
 		val bigShift = L2BasicBlock("shift is huge")
 		val hasBit = L2BasicBlock("bit was extracted")
 		run {
-			val bInt = readInt(
-				b.semanticValue().unboxedInt, bigShift
-			) {
+			val bInt = readInt(b.semanticValue(), bigShift) {
 				// We're shifting by an amount that *always* exceeds an i32, so
 				// we just use the sign bit (31) unconditionally.
 				jumpTo(bigShift)
@@ -223,7 +217,7 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 		val isOneLabel = createBasicBlock("bit is one")
 		compareAndBranchInt(
 			Equal,
-			L2ReadIntOperand(
+			readIntNoFail(
 				bit.pickSemanticValue(),
 				bit.restriction()),
 			unboxedIntConstant(0),

@@ -39,12 +39,6 @@ import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Type.Companion.argsTupleType
-import avail.descriptor.representation.A_Type.Companion.argsTupleTypeStatic
-import avail.descriptor.representation.A_Type.Companion.isSubtypeOfStatic
-import avail.descriptor.representation.A_Type.Companion.phraseKind
-import avail.descriptor.representation.A_Type.Companion.typeAtIndexStatic
-import avail.descriptor.representation.A_Type.Companion.typeUnionStatic
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
@@ -59,6 +53,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -1099,9 +1094,7 @@ interface A_Type : A_BasicObject
 
 		/** The [CheckedMethod] for [argsTupleTypeStatic]. */
 		val argsTupleTypeMethod = staticMethod(
-			A_Type::class.java,
-			::argsTupleTypeStatic.name,
-			AvailObject::class.java,
+			::argsTupleTypeStatic,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1111,9 +1104,7 @@ interface A_Type : A_BasicObject
 
 		/** The [CheckedMethod] for [isSubtypeOfStatic]. */
 		val isSubtypeOfMethod = staticMethod(
-			A_Type::class.java,
-			::isSubtypeOfStatic.name,
-			Boolean::class.javaPrimitiveType!!,
+			::isSubtypeOfStatic,
 			AvailObject::class.java,
 			A_Type::class.java)
 
@@ -1124,11 +1115,9 @@ interface A_Type : A_BasicObject
 
 		/** The [CheckedMethod] for [typeAtIndexStatic]. */
 		val typeAtIndexMethod = staticMethod(
-			A_Type::class.java,
-			::typeAtIndexStatic.name,
+			::typeAtIndexStatic,
 			AvailObject::class.java,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1137,9 +1126,7 @@ interface A_Type : A_BasicObject
 
 		/** The [CheckedMethod] for [typeUnionStatic]. */
 		val typeUnionMethod = staticMethod(
-			A_Type::class.java,
-			::typeUnionStatic.name,
-			AvailObject::class.java,
+			::typeUnionStatic,
 			AvailObject::class.java,
 			A_Type::class.java)
 	}

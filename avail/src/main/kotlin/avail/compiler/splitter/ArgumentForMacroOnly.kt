@@ -38,10 +38,9 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.representation.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.typeTuple
 
 /**
- * An `ArgumentForMacroOnly` is the translation of an
+ * An [ArgumentForMacroOnly] is the translation of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
  * immediately by an [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!).
  * It indicates where an argument is expected – but the argument is allowed to

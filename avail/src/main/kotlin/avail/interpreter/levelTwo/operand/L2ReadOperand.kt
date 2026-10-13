@@ -31,8 +31,6 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_MOVE
@@ -42,8 +40,10 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest.Representation
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
@@ -60,9 +60,6 @@ import avail.utility.notNullAnd
  * @property semanticValue
  *   The [L2SemanticValue] that is being read when an [L2Instruction] uses this
  *   [L2Operand].
- * @property restriction
- *   A type restriction, certified by the VM, that this particular read of this
- *   register is guaranteed to satisfy.
  * @property registerOrNull
  *   The actual [L2Register], if set.  This is only set during late optimization
  *   of the control flow graph.
@@ -73,16 +70,13 @@ import avail.utility.notNullAnd
  * @param semanticValue
  *   The [L2SemanticValue] that is being read when an [L2Instruction] uses this
  *   [L2Operand].
- * @param restriction
- *   The [TypeRestriction] that bounds the value being read.
  * @param registerOrNull
  *   The optional [L2Register] being read by this operand.  This may be null
  *   until the containing [L2Instruction] is written to an [L2BasicBlock].
  */
 abstract class L2ReadOperand<K : RegisterKind<K>>
 protected constructor(
-	private var semanticValue: L2SemanticValue<K>,
-	private var restriction: TypeRestriction,
+	private var semanticValue: L2SemanticValue,
 	private var registerOrNull: L2Register<K>? = null
 ) : L2Operand()
 {
@@ -117,7 +111,7 @@ protected constructor(
 	 * @return
 	 *   The [L2SemanticValue].
 	 */
-	open fun semanticValue(): L2SemanticValue<K> = semanticValue
+	open fun semanticValue(): L2SemanticValue = semanticValue
 
 	/**
 	 * Answer whether this [L2ReadOperand] supplies a constant directly, rather
@@ -156,50 +150,6 @@ protected constructor(
 	fun finalIndex(): Int = register().finalIndex
 
 	/**
-	 * Answer the type restriction for this register read.
-	 *
-	 * @return
-	 *   A [TypeRestriction].
-	 */
-	fun restriction(): TypeRestriction = restriction
-
-	/**
-	 * Alter this read's [restriction].
-	 *
-	 * @param transformer
-	 *   An extension lambda to produce a new [TypeRestriction] from the
-	 *   existing one.
-	 */
-	fun restrict(transformer: TypeRestriction.()->TypeRestriction)
-	{
-		// Try to preserve the restriction's identity if unchanged.
-		val newRestriction = restriction.transformer().intersection(restriction)
-		if (newRestriction != restriction)
-		{
-			restriction = newRestriction
-		}
-	}
-
-	/**
-	 * Answer this read's type restriction's basic type.
-	 *
-	 * @return
-	 *   An [A_Type].
-	 */
-	fun type(): A_Type = restriction.type
-
-	/**
-	 * Answer this read's type restriction's constant value (i.e., the exact
-	 * value that this read is guaranteed to produce), or `null` if such a
-	 * constraint is not available.
-	 *
-	 * @return
-	 *   The exact [A_BasicObject] that's known to be in this register, or else
-	 *   `null`.
-	 */
-	val constantOrNull: AvailObject? get() = restriction.constantOrNull
-
-	/**
 	 * Answer the [L2WriteOperand] that provided the value that this operand is
 	 * reading.  The control flow graph must be in SSA form.
 	 *
@@ -209,8 +159,8 @@ protected constructor(
 	fun definition(): L2WriteOperand<K> = register().definition().cast()
 
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
+		manifest: L2ValueManifest
+	) = manifest.run {
 		super.instructionWasAdded(manifest)
 		if (!isConstantRead)
 		{
@@ -231,9 +181,9 @@ protected constructor(
 		}
 		if (manifest.caresAboutSemanticValues && instruction !is L2_PHI<*>)
 		{
-			setRegister(manifest.getDefinition(semanticValue))
+			setRegister(manifest.getDefinition(semanticValue, kind))
 		}
-		register().addUse(this)
+		register().addUse(this@L2ReadOperand)
 	}
 
 	override fun instructionWasInserted(
@@ -289,11 +239,6 @@ protected constructor(
 	override fun appendTo(builder: StringBuilder)
 	{
 		builder.append('@').append(registerString())
-		if (restriction.constantOrNull === null)
-		{
-			// Don't redundantly print restriction information for constants.
-			builder.append(restriction.suffixString())
-		}
 	}
 
 	override fun simpleAppendOperand(
@@ -302,7 +247,7 @@ protected constructor(
 		targets: MutableList<String>)
 	{
 		if (isConstantRead)
-			simpleAppendConstant(constantOrNull!!, commands, sources)
+			simpleAppendConstant(register().constant!!, commands, sources)
 		else
 			sources.add(register().toString())
 	}
@@ -319,27 +264,73 @@ protected constructor(
 	 *   The requested [L2Instruction], which could still be postponed or
 	 *   already emitted.
 	 */
-	fun definitionSkippingMoves(manifest: L2ValueManifest?): L2Instruction
-	{
-		val sourceInstruction: L2Instruction =
-			registerOrNull?.definition()?.instruction
-				?: (manifest!!.getDefinitionOrNull(semanticValue)?.definition()
-					?.instruction)
-				?: (manifest!!.postponedInstructionFor(semanticValue)!!)
-		return when (sourceInstruction)
+	fun definitionSkippingMoves(
+		manifest: L2ValueManifest
+	): L2Instruction = manifest.run {
+		var sourceInstruction = registerOrNull?.definition()?.instruction
+		if (sourceInstruction == null)
 		{
-			// Recurse.  Iteration wouldn't be worth it here.
-			is L2_MOVE<*> ->
-				sourceInstruction.source.definitionSkippingMoves(manifest)
-			else -> sourceInstruction
+			sourceInstruction = manifest
+				.getDefinitionOrNull(semanticValue, kind)
+				?.definition()
+				?.instruction
 		}
+		// Check if it's already computed for a different kind.
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest
+				.stateOrNull(semanticValue)!!
+				.allDefinitions
+				.firstOrNull()
+				?.definition()
+				?.instruction
+		}
+		// Look for a postponed instruction of the requested kind.
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest
+				.postponedInstructionFor(semanticValue, kind)
+			// Synchesize an instruction if the restriction is constant.
+			if (sourceInstruction == null && restriction.isConstant)
+			{
+				sourceInstruction = kind.moveConstant(
+					restriction.constantOrNull!!, emptyList())
+			}
+		}
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest.stateOrNull(semanticValue)!!
+				.representations
+				.firstNotNullOf(Representation<*>::postponedInstruction)
+		}
+		if (sourceInstruction !is L2_MOVE<*>)
+			return sourceInstruction
+		// Recurse through the move.  Iteration wouldn't be worth it here.
+		return sourceInstruction.source.definitionSkippingMoves(manifest)
 	}
 
 	/**
-	 * Find the set of [L2SemanticValue]s and [TypeRestriction] leading to this
-	 * read operand.  The control flow graph is not necessarily in SSA form, so
-	 * the underlying register may have multiple definitions to choose from,
-	 * some of which are not in this read's history.
+	 * Answer the [L2Instruction] which generates the value that will populate
+	 * this register. Skip over move instructions. The containing graph must be
+	 * in SSA form.  Assume the chain of instructions are already emitted.
+	 *
+	 * @return
+	 *   The requested [L2Instruction], which must be already emitted.
+	 */
+	fun definitionSkippingMoves(): L2Instruction
+	{
+		var sourceInstruction = registerOrNull!!.definition().instruction
+		if (sourceInstruction !is L2_MOVE<*>)
+			return sourceInstruction
+		// Recurse through the move.  Iteration wouldn't be worth it here.
+		return sourceInstruction.source.definitionSkippingMoves()
+	}
+
+	/**
+	 * Find the set of [L2SemanticValue]s and [TypeRestriction] leading to
+	 * this read operand.  The control flow graph is not necessarily in SSA
+	 * form, so the underlying register may have multiple definitions to choose
+	 * from, some of which are not in this read's history.
 	 *
 	 * If there is a write of the register in the same block as the read,
 	 * extract the information from that.
@@ -354,7 +345,8 @@ protected constructor(
 	 *   A [Pair] consisting of a [Set] of synonymous [L2SemanticValue]s, and
 	 *   the [TypeRestriction] guaranteed at this read.
 	 */
-	fun findSourceInformation(): Pair<Set<L2SemanticValue<K>>, TypeRestriction>
+	fun findSourceInformation(
+	): Pair<Set<L2SemanticValue>, TypeRestriction>
 	{
 		// Either the write must happen inside the block we're moving from, or
 		// it must have come in along the edges, and is therefore in each
@@ -377,7 +369,7 @@ protected constructor(
 		val incoming = thisBlock.predecessorEdges().iterator()
 		assert(incoming.hasNext())
 		val firstManifest = incoming.next().manifest()
-		val semanticValues = mutableSetOf<L2SemanticValue<K>>()
+		val semanticValues = mutableSetOf<L2SemanticValue>()
 		var typeRestriction: TypeRestriction? = null
 		for (syn in firstManifest.synonymsForRegister(register()))
 		{
@@ -392,7 +384,7 @@ protected constructor(
 		}
 		incoming.forEachRemaining {
 			val nextManifest = it.manifest()
-			val newSemanticValues = mutableSetOf<L2SemanticValue<K>>()
+			val newSemanticValues = mutableSetOf<L2SemanticValue>()
 			for (syn in nextManifest.synonymsForRegister(register()))
 			{
 				newSemanticValues.addAll(syn.semanticValues())
@@ -409,13 +401,7 @@ protected constructor(
 	 * Create a new *consstant* pseudo-register, using the restriction to
 	 * determine the constant value.
 	 */
-	abstract fun createConstantRegister(): L2Register<K>
-
-	/**
-	 * Create a new *consstant* pseudo-register, using the restriction to
-	 * determine the constant value.
-	 */
-	abstract fun createSemanticConstant(): L2SemanticValue<K>
+	abstract fun createConstantRegister(constant: AvailObject): L2Register<K>
 
 	/**
 	 * If this [L2ReadOperand] produces a constant value, replace its register
@@ -423,18 +409,27 @@ protected constructor(
 	 * its defining writes, allowing fewer registers to be live at the same
 	 * time, and return true.  Otherwise return false.
 	 *
+	 * @param
+	 *   The [L2ValueManifest] active for this read operand's containing
+	 *   instruction.
 	 * @return
 	 *   Whether the register was replaced because it's a constant read.
 	 */
 	fun replaceIfConstantRead(): Boolean
 	{
-		if (constantOrNull === null) return false
+		val constant = when
+		{
+			semanticValue.isConstant -> semanticValue.constant
+			else -> instruction.basicBlock().postPhiData!![semanticValue]
+				.constantOrNull
+		}
+		if (constant == null) return false
 
 		instruction.sourceRegisters.remove(register())
-		register().removeUse(this)
-		registerOrNull = createConstantRegister()
-		semanticValue = createSemanticConstant()
-		register().addUse(this)
+		register().removeUse(this@L2ReadOperand)
+		registerOrNull = createConstantRegister(constant)
+		semanticValue = constant(constant)
+		register().addUse(this@L2ReadOperand)
 		// Simply rebuild the sourceRegisters.
 		instruction.sourceRegisters.clear()
 		instruction.readOperands.forEach { read ->
@@ -457,15 +452,5 @@ protected constructor(
 		operands as List<L2ReadOperand<*>>
 		val values = operands.mapToSet { it.semanticValue }
 		assert(values.size == 1)
-		restriction = operands
-			.map { it.restriction }
-			.reduce(TypeRestriction::union)
-	}
-
-	override fun postOptimizationCleanup()
-	{
-		// Leave the restriction in place.  It shouldn't be all that big.
-		// Same for the semanticValue.
-		restriction.makeShared()
 	}
 }

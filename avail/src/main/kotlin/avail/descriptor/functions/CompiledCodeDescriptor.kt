@@ -37,9 +37,6 @@ import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailRejectedParseException
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
-import avail.descriptor.functions.CompiledCodeDescriptor.Companion.returneeCheckStatisticsByName
-import avail.descriptor.functions.CompiledCodeDescriptor.Companion.returnerCheckStatisticsByName
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_ARGS
@@ -54,7 +51,6 @@ import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
-import avail.descriptor.representation.A_Continuation.Companion.frameAt
 import avail.descriptor.representation.A_Module
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleNameNative
@@ -1287,10 +1283,7 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 
 		/** The [CheckedMethod] for [A_RawFunction.codePrimitive]. */
-		val codePrimitiveMethod = instanceMethod(
-			A_RawFunction::class.java,
-			A_RawFunction::codePrimitive.name,
-			Primitive::class.java)
+		val codePrimitiveMethod = instanceMethod(A_RawFunction::codePrimitive)
 
 		/** The Avail string "Unknown function". */
 		val unknownFunctionName: A_String =

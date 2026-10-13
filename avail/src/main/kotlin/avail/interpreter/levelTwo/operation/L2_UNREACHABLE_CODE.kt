@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE.Companion.throwUnreachableCodeException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -50,8 +49,6 @@ class L2_UNREACHABLE_CODE(
 ): L2ControlFlowInstruction()
 {
 	override val isCold get() = true
-
-	override val altersControlFlow: Boolean get() = true
 
 	override val hasSideEffect get() = true
 
@@ -89,8 +86,6 @@ class L2_UNREACHABLE_CODE(
 		 * The [CheckedMethod] for [throwUnreachableCodeException].
 		 */
 		val throwUnreachableCodeExceptionMethod = staticMethod(
-			L2_UNREACHABLE_CODE::class.java,
-			::throwUnreachableCodeException.name,
-			UnreachableCodeException::class.java)
+			::throwUnreachableCodeException)
 	}
 }

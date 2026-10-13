@@ -35,7 +35,7 @@ package avail.io
 import java.util.UUID
 
 /**
- * An `AvailClient` is an accessor of Avail.
+ * An [AvailClient] is an accessor of Avail.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

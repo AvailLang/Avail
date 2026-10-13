@@ -37,7 +37,7 @@ import avail.compiler.splitter.MessageSplitter
 import java.util.function.Supplier
 
 /**
- * A `MalformedMessageException` is thrown when a method name is malformed
+ * A [MalformedMessageException] is thrown when a method name is malformed
  * and therefore cannot be converted to parsing instructions.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

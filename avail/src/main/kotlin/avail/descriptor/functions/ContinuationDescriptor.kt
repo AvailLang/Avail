@@ -36,9 +36,6 @@ import avail.AvailThread
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrame
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuation
-import avail.descriptor.functions.ContinuationDescriptor.Companion.functionStatic
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -50,6 +47,7 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.caller
 import avail.descriptor.representation.A_Continuation.Companion.currentLineNumber
@@ -108,6 +106,7 @@ import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugL2
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -135,6 +134,7 @@ import avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.logging.Level
+import kotlin.math.min
 
 /**
  * A [continuation][ContinuationDescriptor] acts as an immutable execution
@@ -336,16 +336,16 @@ class ContinuationDescriptor private constructor(
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
 		val declarationNames = code.declarationNamesWithoutOuters
-		for (i in 1..self.numSlots)
+		for (i in 1..min(self.numSlots, self.variableObjectSlotsCount()))
 		{
 			var name = if (i <= declarationNames.tupleSize)
 			{
 				val declName = declarationNames.tupleAt(i).asNativeString()
-				"FRAME[$i: $declName]"
+				"Slot[$i: $declName]"
 			}
 			else
 			{
-				"Frame[$i]"
+				"Slot[$i]"
 			}
 			if (i == self.stackp) name = "\uD83D\uDC49 $name"  // Pointing hand.
 			fields.add(
@@ -585,7 +585,7 @@ class ContinuationDescriptor private constructor(
 			append(self.currentLineNumber(false))
 			append(")")
 			val primitive = code.codePrimitive()
-			if (primitive === P_CatchException)
+			if (primitive === P_CatchException && self.pc != -1)
 			{
 				append(" GUARD = ")
 				val guardVariable =
@@ -651,9 +651,7 @@ class ContinuationDescriptor private constructor(
 
 		/** The [CheckedMethod] for [functionStatic]. */
 		val continuationFunctionMethod = staticMethod(
-			ContinuationDescriptor::class.java,
-			::functionStatic.name,
-			A_Function::class.java,
+			::functionStatic,
 			AvailObject::class.java)
 
 		/**
@@ -758,16 +756,14 @@ class ContinuationDescriptor private constructor(
 
 		/** The [CheckedMethod] for [createContinuationExceptFrame]. */
 		val createContinuationExceptFrameMethod = staticMethod(
-			ContinuationDescriptor::class.java,
-			::createContinuationExceptFrame.name,
-			AvailObject::class.java,
+			::createContinuationExceptFrame,
 			A_Function::class.java,
 			A_Continuation::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!,
+			int,
+			int,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Create a mutable continuation with the specified fields.  Initialize
@@ -860,13 +856,11 @@ class ContinuationDescriptor private constructor(
 
 		/** The [CheckedMethod] for [createDummyContinuation]. */
 		val createDummyContinuationMethod = staticMethod(
-			ContinuationDescriptor::class.java,
-			::createDummyContinuation.name,
-			AvailObject::class.java,
+			::createDummyContinuation,
 			A_Function::class.java,
 			A_RegisterDump::class.java,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/** The mutable [ContinuationDescriptor]. */
 		private val mutable = ContinuationDescriptor(Mutability.MUTABLE)
@@ -918,7 +912,7 @@ class ContinuationDescriptor private constructor(
 			// decodeBoxedValueFromDump() which allows a boxed, i32, or double
 			// value to be used for initialization (boxing as needed).
 			val dump = this[LEVEL_TWO_REGISTER_DUMP]
-			dump.ifNotNil<A_RegisterDump> {
+			dump.ifNotNil { dump: A_RegisterDump ->
 				val encoded: A_Tuple = dump.encodedElidedLocals
 				val numArgs = code.numArgs()
 				val placeholderReplacements =

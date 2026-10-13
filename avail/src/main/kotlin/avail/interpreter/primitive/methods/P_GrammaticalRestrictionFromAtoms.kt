@@ -74,13 +74,11 @@ import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
 @Suppress("unused")
 object P_GrammaticalRestrictionFromAtoms : Primitive2(Unknown)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val atomSet = arg1
-		val exclusionsTuple = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		atomSet: AvailObject,
+		exclusionsTuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val loader = fiber().availLoader
 			?: return fail(E_LOADING_IS_OVER)
 		if (!loader.phase.isExecuting)

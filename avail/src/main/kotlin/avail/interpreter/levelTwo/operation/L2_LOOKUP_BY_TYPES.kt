@@ -69,8 +69,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES.Companion.lookup
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -225,9 +224,7 @@ class L2_LOOKUP_BY_TYPES(
 		 * The [CheckedMethod] for [lookup].
 		 */
 		private val lookupMethod = staticMethod(
-			L2_LOOKUP_BY_TYPES::class.java,
-			::lookup.name,
-			A_Function::class.java,
+			::lookup,
 			Interpreter::class.java,
 			A_Bundle::class.java,
 			Array<AvailObject>::class.java)

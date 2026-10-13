@@ -37,7 +37,7 @@ import avail.error.ErrorCodeRange
 import avail.error.InvalidErrorCode
 
 /**
- * A `FileErrorCodeRange` is an [ErrorCodeRange] that holds defined error codes
+ * A [FileErrorCodeRange] is an [ErrorCodeRange] that holds defined error codes
  * that involve failures while handling files.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

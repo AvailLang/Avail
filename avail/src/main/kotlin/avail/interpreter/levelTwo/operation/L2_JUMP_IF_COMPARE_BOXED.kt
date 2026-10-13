@@ -40,14 +40,14 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Opcodes
 
 /**
@@ -71,11 +71,11 @@ class L2_JUMP_IF_COMPARE_BOXED(
 ) : L2ConditionalJump()
 {
 	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
-	{
+		manifest: L2ValueManifest
+	) = manifest.run {
 		super.instructionWasAdded(manifest)
-		val restriction1 = number1.restriction()
-		val restriction2 = number2.restriction()
+		val restriction1 = number1.restriction
+		val restriction2 = number2.restriction
 
 		if (restriction1.containedByType(extendedIntegers)
 			&& restriction2.containedByType(extendedIntegers))
@@ -110,9 +110,11 @@ class L2_JUMP_IF_COMPARE_BOXED(
 	override val name: String
 		get() = "${super.name} (${numericComparator.constant.comparatorName})"
 
-	override fun interestingConditions(): List<L2SplitCondition?> = buildList {
-		if (number1.restriction().intersectsType(i32)
-			&& number2.restriction().intersectsType(i32))
+	override fun PostPhiData.interestingConditions() = buildList {
+		val restriction1 = number1.restriction
+		val restriction2 = number2.restriction
+		if (restriction1.intersectsType(i32)
+			&& restriction2.intersectsType(i32))
 		{
 			// Both values could be in int registers at some point in the past.
 			// A conjunction mechanism would be very hard to use, and harder to
@@ -120,21 +122,21 @@ class L2_JUMP_IF_COMPARE_BOXED(
 			addAll(unboxedIntConditions(listOf(number1.register())))
 			addAll(unboxedIntConditions(listOf(number2.register())))
 		}
-		number2.constantOrNull?.let { constant2 ->
+		restriction2.constantOrNull?.let { constant2 ->
 			// If the constant2 is an extended integer, and if the argument is
 			// an extended integer, we can try to leverage that by keeping the
 			// code split whenever the comparison would have been always true or
 			// always false.
 			if (constant2.isInstanceOf(extendedIntegers)
-				&& number1.restriction().containedByType(extendedIntegers))
+				&& number1.restriction.containedByType(extendedIntegers))
 			{
 				// HOWEVER, don't use the current restriction for the value,
 				// since it might have been narrowed by previous comparisons.
 				// Use the broadest range (extendedIntegers), to get the
 				// broadest type that can be used to split the code as early as
 				// possible.
-				val restriction1 = boxedRestrictionForType(extendedIntegers)
-				val restriction2 = boxedRestrictionForConstant(constant2)
+				val restriction1 = restrictionForType(extendedIntegers)
+				val restriction2 = restrictionForConstant(constant2)
 				val (rest1, _, rest3, _) =
 					numericComparator.constant.computeRestrictions(
 						restriction1, restriction2)

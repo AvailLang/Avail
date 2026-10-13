@@ -60,11 +60,10 @@ import avail.interpreter.primitive.Primitive1
 object P_DeclarationHasInitializingExpression : Primitive1(
 	CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val decl = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		decl: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		return objectFromBoolean(decl.initializationExpression.notNil)
 	}

@@ -31,21 +31,29 @@
  */
 package avail.interpreter.levelTwo.operation.dispatch
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantFromId
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_INT
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * Extract the [ObjectLayoutVariant] of the given object, then extract its
@@ -75,14 +83,14 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 	): L2Instruction?
 	{
 		variantId.semanticValues()
-			.firstOrNull { readIfAvailable(it) != null }
+			.firstOrNull { readIfAvailable(it, INTEGER_KIND) != null }
 			?.let { existingValue ->
 				// Found one. Populate the rest.
 				val others = variantId.semanticValues()
 					.filterNot(currentManifest::hasSemanticValue)
 				if (others.isNotEmpty())
 				{
-					moveIntRegister(existingValue, others)
+					move(existingValue, others)
 					return null
 				}
 			}
@@ -91,16 +99,60 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		return this@L2_EXTRACT_OBJECT_VARIANT_ID
 	}
 
+	override fun transformedByRegenerator(
+		regenerator: L2Regenerator
+	): L2Instruction = regenerator.run {
+		var idRestriction = variantId.restriction()
+		sourceObject.restriction.positiveGroup.objectVariants
+			?.map { fromInt(it.variantId) }
+			?.let { ids ->
+				idRestriction = idRestriction.intersectionWithType(
+					enumerationWith(setFromCollection(ids)))
+			}
+		sourceObject.restriction.negativeGroup.objectVariants
+			?.map { fromInt(it.variantId) }
+			?.let { ids ->
+				idRestriction = idRestriction.minusValues(
+					setFromCollection(ids))
+			}
+		val destination = variantId.clone() as L2WriteIntOperand
+		destination.restrict { idRestriction }
+		val replacement = when
+		{
+			idRestriction.isImpossible ->
+			{
+				// Populate the output variant id with -1, which isn't a valid
+				// variant id.
+				regenerator.addInstruction(
+					INTEGER_KIND.moveConstant(
+						negativeOne,
+						destination.semanticValues()))
+				// Answer something that makes the entire manifest impossible,
+				// but will transform into an L2_IMPOSSIBLE_CODE in the next
+				// regeneration pass.
+				regenerator.impossibleCodeInstruction()
+			}
+			idRestriction.isConstant ->
+				L2_MOVE_CONSTANT_INT(
+					L2IntImmediateOperand(
+						idRestriction.constantOrNull!!.extractInt),
+					destination)
+			else -> L2_EXTRACT_OBJECT_VARIANT_ID(sourceObject, destination)
+		}
+		replacement.layout.updateOperands(
+			replacement,
+			regenerator::transformOperand)
+		return replacement
+	}
+
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
-	override fun traceCandidateSplitConditions(
+	override fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: L2SplitCondition.RestrictionTracer)
+		restriction: TypeRestriction)
 	{
-		assert(restriction.isUnboxedInt)
 		assert(writeOperand == variantId)
-		if (!tracer.traceVariants) return
+		if (!traceVariants) return
 		// If only one or a few variant ids are present in the variant's
 		// restriction, we can approximate the constraint on the sourceObject.
 		val variantsType = restriction.type
@@ -126,9 +178,9 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 			return
 		}
 		variants.forEach { variant ->
-			tracer.continueTracing(
+			continueTracing(
 				sourceObject.register(),
-				boxedRestrictionForType(variant.mostGeneralObjectType)
+				restrictionForType(variant.mostGeneralObjectType)
 					.intersectionWithObjectVariant(variant)
 			)
 		}

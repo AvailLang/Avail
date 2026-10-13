@@ -75,12 +75,12 @@ class L2_GET_TYPE(
 		// [value]
 		when
 		{
-			value.restriction().containedByType(NONTYPE()) ->
+			value.restriction.containedByType(NONTYPE()) ->
 			{
 				// The value will *never* be a type.
 				generateCall(InstanceTypeDescriptor.instanceTypeMethod)
 			}
-			value.restriction().containedByType(topMeta) ->
+			value.restriction.containedByType(topMeta) ->
 			{
 				// The value will *always* be a type. Strengthen to AvailObject.
 				generateCall(InstanceMetaDescriptor.instanceMetaMethod)

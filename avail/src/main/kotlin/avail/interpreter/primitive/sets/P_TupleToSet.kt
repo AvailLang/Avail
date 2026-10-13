@@ -58,7 +58,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -74,11 +74,10 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_TupleToSet : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return tuple.asSet
 	}
 
@@ -135,13 +134,13 @@ object P_TupleToSet : Primitive1(CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		val sizeRange = tupleReg.type().sizeRange
+		val sizeRange = tupleReg.type.sizeRange
 		val size = sizeRange.lowerBound
 		if (!size.isInt || !sizeRange.upperBound.equals(size)) return false
 		val sizeInt = size.extractInt
 		val elementRegs = explodeTupleIfPossible(
 			tupleReg,
-			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+			tupleReg.type.tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
 
 		// Create the set directly from the values.  This may turn the tuple
@@ -149,7 +148,7 @@ object P_TupleToSet : Primitive1(CannotFail, CanFold, CanInline)
 		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val semanticResult = semanticInvocation(tupleReg.semanticValue())
 		val write = boxedWrite(
-			semanticResult, boxedRestrictionForType(restriction))
+			semanticResult, restrictionForType(restriction))
 		+L2_CREATE_SET(L2ReadBoxedVectorOperand(elementRegs), write)
 		callSiteHelper.useAnswer(readBoxed(write), false)
 		return true

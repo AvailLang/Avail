@@ -64,6 +64,7 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 
 /**
@@ -76,18 +77,17 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateSendExpression : Primitive3(CanInline)
+object P_CreateSendExpression : Primitive3(
+	CanInline,
+	// The returnType might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val messageName = arg1
-		val argsListPhrase = arg2
-		val returnType = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		messageName: AvailObject,
+		argsListPhrase: AvailObject,
+		returnType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val argExpressions = argsListPhrase.expressionsTuple
 		val argsCount = argExpressions.tupleSize
 		try
@@ -110,13 +110,6 @@ object P_CreateSendExpression : Primitive3(CanInline)
 			return fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * The returnType might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

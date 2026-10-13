@@ -63,16 +63,12 @@ import kotlin.math.min
 @Suppress("unused")
 object P_DoubleTimesTwoPower : Primitive3(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
-		// val literalTwo = arg2
-		val b = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		a: AvailObject,
+		literalTwo: AvailObject,
+		b: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val scale = when {
 			b.isInt -> min(max(b.extractInt, -10000), 10000)
 			b.greaterOrEqual(zero) -> 10000

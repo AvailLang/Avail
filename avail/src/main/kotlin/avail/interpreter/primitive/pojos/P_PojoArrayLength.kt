@@ -54,11 +54,10 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_PojoArrayLength : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val pojo = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		pojo: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 		val array = pojo.rawPojo().javaObjectNotNull<Any>()

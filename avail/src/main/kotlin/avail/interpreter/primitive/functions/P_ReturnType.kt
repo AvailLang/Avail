@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ReturnType : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val functionType = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		functionType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return functionType.returnType
 	}
 
@@ -66,6 +65,7 @@ object P_ReturnType : Primitive1(CannotFail, CanFold, CanInline)
 		functionType(tuple(functionMeta()), topMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type =
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type =
 			instanceMeta(argumentTypes[0].instance.returnType)
 }

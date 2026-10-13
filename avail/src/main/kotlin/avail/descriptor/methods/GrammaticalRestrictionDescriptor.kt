@@ -56,7 +56,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TypeTag
 
 /**
- * A `GrammaticalRestrictionDescriptor grammatical restriction` serves to
+ * A [GrammaticalRestrictionDescriptor] (grammatical restriction) serves to
  * exclude specific parses of nested method sends, thereby defining the negative
  * space of a grammar.  As it happens, this negative space is significantly more
  * modular than traditional positive grammars, in which precedence between all

@@ -84,11 +84,10 @@ object P_AttemptJoinFiber : Primitive1(
 	WritesToHiddenGlobalState,
 	ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val joinee = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		joinee: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val current = fiber()
 		// Forbid auto-joining.
 		if (current.equals(joinee))

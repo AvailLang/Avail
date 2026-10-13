@@ -52,11 +52,10 @@ import java.util.logging.Level
 @Suppress("unused")
 object P_AdjustDebugSetting : Primitive1(Unknown, CannotFail)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val levelObject = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		levelObject: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val level = levelObject.extractInt
 		Interpreter.debugL1 = level and 1 != 0

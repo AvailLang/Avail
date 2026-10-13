@@ -71,7 +71,7 @@ import java.io.OutputStream
 import kotlin.math.max
 
 /**
- * A `SerializerOperandEncoding` is an encoding algorithm for part of a
+ * A [SerializerOperandEncoding] is an encoding algorithm for part of a
  * [SerializerOperation].  It assists in the disassembly and reassembly of the
  * various kinds of objects encountered in Avail.
  *

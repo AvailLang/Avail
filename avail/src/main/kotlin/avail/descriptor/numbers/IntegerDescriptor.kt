@@ -37,11 +37,8 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfIntegerObject
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashesOfSmallIntegers
-import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
 import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegerLimit
 import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegers
 import avail.descriptor.numbers.IntegerDescriptor.Companion.squaresOfQuintillionLock
@@ -103,6 +100,7 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import avail.exceptions.MarshalingException
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1832,11 +1830,7 @@ class IntegerDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [fromInt]. */
-		val fromIntMethod = staticMethod(
-			IntegerDescriptor::class.java,
-			::fromInt.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+		val fromIntMethod = staticMethod(::fromInt, int)
 
 		/**
 		 * Convert the specified byte-valued Java `short` into an Avail

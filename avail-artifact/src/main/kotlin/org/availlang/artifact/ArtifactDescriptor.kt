@@ -1,6 +1,5 @@
 package org.availlang.artifact
 
-import org.availlang.artifact.ArtifactDescriptor.Companion.artifactDescriptorFilePath
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import java.io.File
 import java.nio.ByteBuffer

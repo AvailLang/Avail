@@ -54,9 +54,10 @@ internal class GuideLinesSetting constructor(
 	private var original: String =
 		editorSettings.config.editorGuideLines.joinToString { it.toString() }
 
-	private val textField =
-		TextFieldWithLabelButtonValidationText("Editor Guide Lines: ", 5.0)
-		{
+	override val component: JComponent
+		field = TextFieldWithLabelButtonValidationText(
+			"Editor Guide Lines: ", 5.0
+		) {
 			if (hasValidContent()) null
 			else "Invalid Entry"
 		}.apply {
@@ -78,11 +79,9 @@ internal class GuideLinesSetting constructor(
 			}
 		}
 
-	override val component: JComponent get() = textField
-
 	/** The parsed guide lines */
 	internal val lines: List<Int>? get() =
-		textField.input.split(",").map {
+		component.input.split(",").map {
 			try
 			{
 				it.trim().toInt()
@@ -95,8 +94,8 @@ internal class GuideLinesSetting constructor(
 
 	override fun reset()
 	{
-		textField.textField.text = original
-		textField.checkInput()
+		component.textField.text = original
+		component.checkInput()
 	}
 
 	override fun update()
@@ -106,18 +105,18 @@ internal class GuideLinesSetting constructor(
 			clear()
 			addAll(l)
 		}
-		original = textField.input
+		original = component.input
 	}
 
 	override fun changeReady(): Boolean =
-		textField.input.isNotBlank()
-			&& textField.input != original
+		component.input.isNotBlank()
+			&& component.input != original
 			&& lines != null
 
 	override fun hasValidContent(): Boolean = lines != null
 
 	init
 	{
-		textField.checkInput()
+		component.checkInput()
 	}
 }

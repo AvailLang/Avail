@@ -54,8 +54,9 @@ import avail.interpreter.primitive.Primitive0
 @Suppress("unused")
 object P_CanRejectParse : Primitive0(CannotFail, CanInline)
 {
-	override fun Interpreter.attempt0(): A_BasicObject?
-	{
+	override fun attempt0(
+		interpreter: Interpreter
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(
 			fiber().generalFlag(CAN_REJECT_PARSE))
 	}

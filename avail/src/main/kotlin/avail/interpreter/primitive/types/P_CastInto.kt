@@ -73,14 +73,11 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_CastInto : Primitive2(Invokes, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
-		val castFunction = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		value: AvailObject,
+		castFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val expectedType =
 			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		if (!value.isInstanceOf(expectedType))
@@ -162,8 +159,8 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 			when
 			{
 				constantValue !== null -> constantValue.isInstanceOf(typeTest)
-				valueRead.type().isSubtypeOf(typeTest) -> true
-				valueRead.type().typeIntersection(typeTest).isBottom -> false
+				valueRead.type.isSubtypeOf(typeTest) -> true
+				valueRead.type.typeIntersection(typeTest).isBottom -> false
 				else -> null
 			}
 		}

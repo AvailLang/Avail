@@ -52,21 +52,22 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Obtain the instances of the specified [type][topMeta].
@@ -74,11 +75,10 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 @Suppress("unused")
 object P_Instances : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val type = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		type: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return if (!type.isEnumeration)
 		{
 			fail(E_NOT_AN_ENUMERATION)
@@ -91,9 +91,8 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			tuple(topMeta),
 			mostGeneralSetType())
 
-	override fun interestingSplitConditions(
-		readBoxedOperands: List<L2ReadBoxedOperand>,
-		rawFunction: A_RawFunction
+	override fun PostPhiData.interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		// It would be nice to know the number of instances.  For now, split on
 		// whether the given type is bottom – and therefore has ∅ as its
@@ -102,7 +101,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 		addAll(
 			typeRestrictionConditions(
 				setOf(typeRegister),
-				boxedRestrictionForConstant(bottom)))
+				restrictionForConstant(bottom)))
 		// Knowing the instance count can help constrain the set size.
 		add(
 			existsCondition(
@@ -127,8 +126,8 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			if (countRange.isSubtypeOf(inclusive(zero, zero)))
 			{
 				// The input must be bottom, so the output should be ∅.
-				moveBoxedRegister(
-					boxedConstant(emptySet).semanticValue(),
+				move(
+					constant(emptySet),
 					result.semanticValues())
 				return
 			}
@@ -136,8 +135,8 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			{
 				// We've deduced the possible sizes of the set of instances.  We
 				// also proved it's finite, so the primitive won't fail.
-				+L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
-					L2ConstantOperand(rawFunction),
+				+L2_RUN_INFALLIBLE_PRIMITIVE(
+					rawFunction,
 					this@P_Instances,
 					arguments,
 					boxedWrite(
@@ -145,7 +144,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 						result.restriction().intersectionWithType(
 							setTypeForSizesContentType(
 								countRange,
-								argument.restriction().type))))
+								argument.type))))
 				return
 			}
 		}

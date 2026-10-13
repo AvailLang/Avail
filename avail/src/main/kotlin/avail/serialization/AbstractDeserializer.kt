@@ -46,7 +46,7 @@ import java.io.IOException
 import java.io.InputStream
 
 /**
- * An `AbstractDeserializer` consumes a stream of bytes to reconstruct objects
+ * An [AbstractDeserializer] consumes a stream of bytes to reconstruct objects
  * that had been previously [serialized][Serializer.serialize] with a
  * [Serializer].
  *

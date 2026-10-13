@@ -53,7 +53,6 @@ import avail.descriptor.representation.A_Number.Companion.numericCompare
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.AvailObject
-import avail.test.ArithmeticTest.Companion.baseOffsetsForShifting
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName

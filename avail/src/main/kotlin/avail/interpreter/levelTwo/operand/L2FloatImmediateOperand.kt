@@ -36,7 +36,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.FLOAT_IMMEDIATE
 
 /**
- * An `L2FloatImmediateOperand` is an operand of type
+ * An [L2FloatImmediateOperand] is an operand of type
  * [L2OperandType.FLOAT_IMMEDIATE], which holds a `double` value representing
  * itself.
  *

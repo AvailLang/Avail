@@ -53,6 +53,7 @@ import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -62,15 +63,18 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_KeyInVariableMap : Primitive2(CanInline, HasSideEffect)
+object P_KeyInVariableMap : Primitive2(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, reading can activate that reactor, which
+	// might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val key = arg1
-		val variable = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		key: AvailObject,
+		variable: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			objectFromBoolean(variable.variableMapHasKey(key))
@@ -80,14 +84,6 @@ object P_KeyInVariableMap : Primitive2(CanInline, HasSideEffect)
 			fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * If the variable had a reactor, reading can activate that reactor, which
-	 * might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

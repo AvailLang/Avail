@@ -54,11 +54,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_AsDouble : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val number = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		number: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (number.isDouble) return number
 		return fromDouble(number.extractDouble)
 	}

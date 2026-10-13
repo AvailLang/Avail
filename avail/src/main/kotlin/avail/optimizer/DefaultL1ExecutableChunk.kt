@@ -32,7 +32,6 @@
 package avail.optimizer
 
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.frameAt
 import avail.descriptor.representation.A_Continuation.Companion.function
@@ -64,8 +63,6 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.INITIAL_ENTRY
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.RESUME
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.UNREACHABLE_ENTRY
-import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk.executableChunk
-import avail.optimizer.DefaultL1ExecutableChunk.runChunk
 import avail.optimizer.StackReifier.AfterReification.SWITCH_FROM_FIBER
 import avail.optimizer.jvm.JVMChunk
 import avail.performance.Statistic
@@ -205,7 +202,7 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 	override fun runChunk(
 		interpreter: Interpreter,
 		offset: Int
-	): A_BasicObject?
+	): AvailObject?
 	{
 		if (offset == INITIAL_ENTRY.offset)
 		{
@@ -241,10 +238,8 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			val frame = prepareNewFrame(interpreter)
 
 			// Check for an interrupt.
-			val interruptStatistic = interpreter.statisticForRequestedInterrupt
-			if (interruptStatistic !== null)
-			{
-				return reifyForInterrupt(interpreter, frame, interruptStatistic)
+			interpreter.statisticForRequestedInterrupt()?.let { stat ->
+				return reifyForInterrupt(interpreter, frame, stat)
 			}
 			// No interrupt was requested.  Run the nybblecodes from the
 			// beginning, with an initially empty stack.
@@ -335,7 +330,7 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			// jump upon return from a call that must not return.
 			throw UnreachableCodeException()
 		}
-		JVMChunk.badOffset(offset)
+		throw JVMChunk.badOffset(offset)
 	}
 
 	private fun prepareNewFrame(
@@ -397,13 +392,14 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 	/**
 	 * Construct a [StackReifier] that will reify the current stack frame for
 	 * eventual resumption, process an interrupt after the reification, then
-	 * eventually continue running at the interrupt point.
+	 * eventually continue running at the interrupt point.  Always return `null`
+	 * (typed as nullable [AvailObject]) as a convenience.
 	 */
 	fun reifyForInterrupt(
 		interpreter: Interpreter,
 		frame: Array<AvailObject>,
 		statistic: Statistic
-	): A_BasicObject?
+	): AvailObject?
 	{
 		// Build an interrupted continuation, reify the rest of the stack, and
 		// push the continuation onto the reified stack. Then process the

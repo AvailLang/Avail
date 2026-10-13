@@ -48,7 +48,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 
 /**
- * An `AvailTask` extends [Runnable] with a priority. Instances are intended to
+ * An [AvailTask] extends [Runnable] with a priority. Instances are intended to
  * be executed only by [Avail&#32;threads][AvailThread].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -100,6 +100,7 @@ class AvailTask constructor(
 			// maximum number of Interpreters.
 			System.err.println("Unexpected internal failure in AvailTask:\n")
 			e.printStackTrace()
+			AvailRuntime.currentRuntime().testHarnessOnFailure?.invoke(e)
 		}
 	}
 
@@ -125,7 +126,8 @@ class AvailTask constructor(
 		 */
 		fun forFiberResumption(
 			fiber: A_Fiber,
-			body: Interpreter.() -> Unit): () -> Unit
+			body: Interpreter.() -> Unit
+		): () -> Unit
 		{
 			assert(fiber.executionState.indicatesSuspension)
 			val scheduled = fiber.getAndSetSynchronizationFlag(
@@ -224,7 +226,8 @@ class AvailTask constructor(
 		 */
 		fun forUnboundFiber(
 			fiber: A_Fiber,
-			action: () -> Unit): () -> Unit
+			action: () -> Unit
+		): () -> Unit
 		{
 			assert(fiber.executionState === ExecutionState.SUSPENDED)
 			val scheduled = fiber.getAndSetSynchronizationFlag(

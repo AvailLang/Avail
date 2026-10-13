@@ -51,9 +51,9 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 internal abstract class L2FrameSpecificSemanticValue constructor(
 	val frame: Frame,
 	hash: Int
-) : L2SemanticBoxedValue(combine2(hash, frame.hashCode()))
+) : L2SemanticValue(combine2(hash, frame.hashCode()))
 {
-	override fun equalsSemanticValue(other: L2SemanticValue<*>): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		other is L2FrameSpecificSemanticValue && frame == other.frame
 
 	abstract override fun toString(): String

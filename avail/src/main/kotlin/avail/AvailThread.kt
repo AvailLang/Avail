@@ -35,7 +35,7 @@ import avail.interpreter.execution.Interpreter
 import java.util.concurrent.ScheduledThreadPoolExecutor
 
 /**
- * An `AvailThread` is a [thread][Thread] managed by a particular [Avail
+ * An [AvailThread] is a [thread][Thread] managed by a particular [Avail
  * runtime][AvailRuntime]. Instances may obtain the managing runtime through the
  * static accessor [AvailRuntime.currentRuntime]. New instances will be created
  * as necessary by an Avail runtime's [executor][ScheduledThreadPoolExecutor].

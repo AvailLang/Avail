@@ -33,11 +33,14 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.levelTwo.HideInAllVisualizations
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -46,11 +49,9 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraph.ZoneType
@@ -99,28 +100,27 @@ import avail.optimizer.reoptimizer.L2Regenerator
  * are recorded – for level one.  For level two, it also captures the register
  * dump and the level two offset of the entry point above.
  *
- * @property outputLabel
- *   Where to write the new continuation.
- * @property function
- *   The [A_Function] to use for the continuation.
  * @property code
  *   The [A_RawFunction] that is known statically to be referenced by the
  *   [function].
+ * @property function
+ *   The [A_Function] to use for the continuation.
  * @property arguments
  *   The [vector][L2ReadBoxedVectorOperand] of arguments that the [function]
  *   received when it was invoked.
- * @property frameSize
- *   The number of slots to allocate in the continuation, where only the
- *   [arguments] will be populated.  The rest will be [nil].
+ * @property outputLabel
+ *   Where to write the new continuation.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_VIRTUAL_CREATE_LABEL(
-	var outputLabel: L2WriteBoxedOperand,
-	var function: L2ReadBoxedOperand,
+class L2_VIRTUAL_CREATE_LABEL
+constructor(
+	@HideInAllVisualizations
 	var code: L2ConstantOperand,
+	@HideInAllVisualizations
+	var function: L2ReadBoxedOperand,
 	var arguments: L2ReadBoxedVectorOperand,
-	var frameSize: L2IntImmediateOperand
+	var outputLabel: L2WriteBoxedOperand
 ): L2Instruction()
 {
 	override val isPlaceholder get() = true
@@ -132,9 +132,13 @@ class L2_VIRTUAL_CREATE_LABEL(
 	{
 		renderPreamble()
 		append(" ").append(outputLabel)
-		append("\n\tfunction = ").append(function)
+		append("\n\tfunction = ").append(
+			when (val f = function.register().constant)
+			{
+				null -> function.toString()
+				else -> f.code().methodName
+			})
 		append("\n\targuments = ").append(arguments)
-		append("\n\tframeSize = ").append(frameSize)
 	}
 
 	override fun L2Regenerator.generateReplacement(
@@ -172,7 +176,6 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(startReification)
 			+L2_REIFY(
-				L2IntImmediateOperand(0),
 				L2ConstantOperand(
 					stringFrom("Reification for label creation in L2: "
 						+ topFrame.codeName.replace('\n', ' '))),
@@ -183,10 +186,10 @@ class L2_VIRTUAL_CREATE_LABEL(
 				L2IntImmediateOperand(DefaultEntryPoint.TRANSIENT.offset),
 				L2CommentOperand("Transient, cannot be invalid."))
 			val tempOffset = intWriteTemp(
-				"offset to continue dummy", intRestrictionForType(i32))
+				"offset to continue dummy", restrictionForType(i32))
 			val tempRegisterDump = boxedWriteTemp(
 				"dump for dummy continuation",
-				boxedRestrictionForType(Types.OTHER_NONTYPE()))
+				restrictionForType(Types.OTHER_NONTYPE()))
 			// Since this is a dummy continuation being constructed, it can't
 			// become immutable or shared, so we don't have to worry about
 			// capturing any elided variable values.
@@ -203,14 +206,14 @@ class L2_VIRTUAL_CREATE_LABEL(
 			startBlock(reificationOfframp)
 			val tempCaller = boxedWrite(
 				setOf(topFrame.reifiedCaller()),
-				boxedRestrictionForType(mostGeneralContinuationType))
+				restrictionForType(mostGeneralContinuationType))
 			val readCurrentFunction = currentFunction(
 				topFrame,
-				function.restriction().constantOrNull,
-				function.restriction().type)
+				function.restriction.constantOrNull,
+				function.restriction.type)
 			val dummyContinuation = boxedWriteTemp(
 				"dummy continuation",
-				boxedRestrictionForType(mostGeneralContinuationType))
+				restrictionForType(mostGeneralContinuationType))
 			+L2_GET_CURRENT_CONTINUATION(tempCaller)
 			+L2_CREATE_CONTINUATION(
 				readCurrentFunction,
@@ -243,22 +246,24 @@ class L2_VIRTUAL_CREATE_LABEL(
 			+L2_GET_CURRENT_CONTINUATION(
 				boxedWrite(
 					setOf(caller),
-					boxedRestrictionForType(mostGeneralContinuationType)))
+					restrictionForType(mostGeneralContinuationType)))
 		}
 		val fallThrough = createBasicBlock(
 			"Fall-through for label creation",
 			currentBlock().zone)
 		val writeOffset = intWriteTemp(
-			"offset to continue", intRestrictionForType(i32))
+			"offset to continue", restrictionForType(i32))
 		val writeRegisterDump = boxedWriteTemp(
 			"dump for label",
-			boxedRestrictionForType(Types.OTHER_NONTYPE()))
+			restrictionForType(Types.OTHER_NONTYPE()))
 		+L2_SAVE_ALL_AND_PC_TO_INT(
 			ifFallThrough = edgeTo(fallThrough),
 			// Force there to be nothing considered live in the edge
 			// leading to the label's entry point.
 			reference = backEdgeTo(
-				specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!, mutableSetOf()),
+				specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!,
+				mutableSetOf(),
+				mutableSetOf()),
 			referenceOffset = writeOffset,
 			registerDump = writeRegisterDump,
 			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()),
@@ -267,7 +272,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
 
 		startBlock(fallThrough)
-		val frameSizeInt = frameSize.value
+		val frameSizeInt = code.constant.numSlots
 		val slots = arguments.elements.toMutableList()
 		val nilRead = boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
@@ -279,9 +284,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 			levelOneStackp = L2IntImmediateOperand(frameSizeInt + 1),  // empty
 			L2ReadBoxedVectorOperand(slots),  // each immutable
 			outputLabel,
-			L2ReadIntOperand(
-				writeOffset.onlySemanticValue(),
-				intRestrictionForType(i32)),
+			readIntNoFail(writeOffset.onlySemanticValue()),
 			readBoxed(writeRegisterDump),
 			L2CommentOperand("Create label."))
 	}

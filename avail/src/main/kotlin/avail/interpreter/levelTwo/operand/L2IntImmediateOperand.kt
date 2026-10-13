@@ -36,7 +36,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 
 /**
- * An `L2IntImmediateOperand` is an operand of type
+ * An [L2IntImmediateOperand] is an operand of type
  * [L2OperandType.INT_IMMEDIATE], which holds an [Int] value representing
  * itself.
  *

@@ -64,13 +64,11 @@ import java.nio.file.Path
 @Suppress("unused")
 object P_FilesAreSame : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val first = arg1
-		val second = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		first: AvailObject,
+		second: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val firstPath: Path
 		val secondPath: Path =
 			try

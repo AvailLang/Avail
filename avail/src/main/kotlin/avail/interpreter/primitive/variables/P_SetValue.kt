@@ -59,6 +59,7 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -69,15 +70,18 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * [variable][VariableDescriptor].
  */
 @Suppress("unused")
-object P_SetValue : Primitive2(CanInline, HasSideEffect)
+object P_SetValue : Primitive2(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a write reactor, writing can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val value = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			variable.setValue(value)
@@ -88,14 +92,6 @@ object P_SetValue : Primitive2(CanInline, HasSideEffect)
 			fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * If the variable had a write reactor, writing can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
@@ -113,8 +109,8 @@ object P_SetValue : Primitive2(CanInline, HasSideEffect)
 	): Boolean
 	{
 		val (varReg, valueReg) = arguments
-		val varType = varReg.type()
-		val valueType = valueReg.type()
+		val varType = varReg.type
+		val valueType = valueReg.type
 		val varInnerType = varType.writeType
 
 		val success = createBasicBlock("set local success")

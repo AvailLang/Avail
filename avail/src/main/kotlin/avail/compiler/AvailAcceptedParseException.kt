@@ -36,7 +36,7 @@ import avail.exceptions.PrimitiveThrownException
 import avail.interpreter.primitive.compiler.P_AcceptParsing
 
 /**
- * An `AvailAcceptedParseException` is thrown by primitive [P_AcceptParsing] to
+ * An [AvailAcceptedParseException] is thrown by primitive [P_AcceptParsing] to
  * indicate the fiber running a semantic restriction has accepted the argument
  * types and does not need to restrict the proposed expression's type.
  *

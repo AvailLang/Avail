@@ -36,7 +36,6 @@ import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.representation.A_Tuple
-import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor
 import java.nio.ByteBuffer
@@ -46,7 +45,7 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 /**
- * An `AvailModuleFile` is an [AvailFile] that is a text file that represents
+ * An [AvailModuleFile] is an [AvailFile] that is a text file that represents
  * the source of an Avail module file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

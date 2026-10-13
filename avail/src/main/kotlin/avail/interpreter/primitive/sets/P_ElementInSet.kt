@@ -64,14 +64,11 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_ElementInSet : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val element = arg1
-		val set = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		element: AvailObject,
+		set: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(set.hasElement(element))
 	}
 
@@ -110,7 +107,7 @@ object P_ElementInSet : Primitive2(CannotFail, CanFold, CanInline)
 			return false
 		}
 		val possibleElements = allSources.filterNot { element ->
-			element.restriction().intersection(value.restriction())
+			element.restriction.intersection(value.restriction)
 				.isImpossible
 		}
 		if (possibleElements.size > largestChainedTest)

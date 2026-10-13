@@ -40,23 +40,19 @@ import avail.interpreter.primitive.Primitive.Flag
  * [ReadsHiddenVariable] and [WritesHiddenVariable] annotations on an
  * [L2Instruction] subclass.
  */
-sealed class HiddenVariable
+sealed class HiddenVariable(shift: Int)
 {
 	/** How the current continuation field is affected. */
-	@HiddenVariableShift(0)
-	class CURRENT_CONTINUATION : HiddenVariable()
+	object CURRENT_CONTINUATION : HiddenVariable(0)
 
 	/** How the current function field is affected. */
-	@HiddenVariableShift(1)
-	class CURRENT_FUNCTION : HiddenVariable()
+	object CURRENT_FUNCTION : HiddenVariable(1)
 
 	/** How the latest return value field is affected. */
-	@HiddenVariableShift(2)
-	class LATEST_RETURN_VALUE : HiddenVariable()
+	object LATEST_RETURN_VALUE : HiddenVariable(2)
 
 	/** How the current stack reifier field is affected. */
-	@HiddenVariableShift(3)
-	class STACK_REIFIER : HiddenVariable()
+	object STACK_REIFIER : HiddenVariable(3)
 
 	/**
 	 * How any other global variables are affected.  This includes things
@@ -67,6 +63,7 @@ sealed class HiddenVariable
 	 * and [Flag.WritesToHiddenGlobalState] flags in their constructors to
 	 * indicate that `GLOBAL_STATE` is affected.
 	 */
-	@HiddenVariableShift(4)
-	class GLOBAL_STATE : HiddenVariable()
+	object GLOBAL_STATE : HiddenVariable(4)
+
+	val mask = 1 shl shift
 }

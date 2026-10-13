@@ -58,16 +58,16 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_MapKeysAsSet : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val map = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		map: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return map.keysAsSet
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 1)
 		val mapType = argumentTypes[0]

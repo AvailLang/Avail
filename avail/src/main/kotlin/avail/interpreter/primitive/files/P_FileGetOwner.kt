@@ -70,13 +70,11 @@ import java.nio.file.attribute.UserPrincipal
 @Suppress("unused")
 object P_FileGetOwner : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val filename = arg1
-		val followSymlinks = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		filename: AvailObject,
+		followSymlinks: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val path: Path =
 			try
 			{

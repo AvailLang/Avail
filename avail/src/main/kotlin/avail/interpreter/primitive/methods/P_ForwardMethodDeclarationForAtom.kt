@@ -53,6 +53,7 @@ import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENT
 import avail.exceptions.AvailException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
@@ -61,15 +62,18 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
  * **Primitive:** Forward declare a method (for recursion or mutual recursion).
  */
 @Suppress("unused")
-object P_ForwardMethodDeclarationForAtom : Primitive2(CanSuspend, Unknown)
+object P_ForwardMethodDeclarationForAtom : Primitive2(
+	CanSuspend,
+	Unknown,
+	// The signature might include instance types on variables that are escaped,
+	// and those instance types get added to the forward definition.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
-		val blockSignature = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		blockSignature: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fiber = fiber()
 		val loader = fiber.availLoader ?:
 			return fail(E_LOADING_IS_OVER)
@@ -91,13 +95,6 @@ object P_ForwardMethodDeclarationForAtom : Primitive2(CanSuspend, Unknown)
 			}
 		}
 	}
-	/**
-	 * The signature might include instance types on variables that are escaped,
-	 * and those instance types get added to the forward definition.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ATOM(), functionMeta()), TOP())

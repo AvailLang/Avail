@@ -88,16 +88,12 @@ import java.util.WeakHashMap
 @Suppress("unused")
 object P_CreatePojoStaticMethodFunction : Primitive3(CanInline, CanFold)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val pojoType = arg1
-		val methodName = arg2
-		val paramTypes = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		pojoType: AvailObject,
+		methodName: AvailObject,
+		paramTypes: AvailObject
+	): A_BasicObject? = interpreter.run {
 		availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the argument types.

@@ -57,13 +57,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_AtomHasProperty : Primitive2(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val propertyKey = arg1
-		val atom = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		propertyKey: AvailObject,
+		atom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (atom.isAtomSpecial)
 		{
 			return fail(E_SPECIAL_ATOM)

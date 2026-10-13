@@ -65,11 +65,10 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused")
 object P_ServerSocketClose : Primitive1(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val handle = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		handle: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{

@@ -64,6 +64,7 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -83,16 +84,18 @@ import avail.optimizer.L1Translator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
+object P_CreateObjectFieldGetter : Primitive2(
+	CanFold,
+	CanInline,
+	// The objectType might contain an instance type on an escaped variables,
+	// making it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val objectType = arg1
-		val fieldAtom = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		objectType: AvailObject,
+		fieldAtom: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val fieldType = objectType.fieldTypeAtOrNull(fieldAtom)
 		if (fieldType == null)
 		{
@@ -161,14 +164,6 @@ object P_CreateObjectFieldGetter : Primitive2(CanFold, CanInline)
 				tuple(
 					mostGeneralObjectType),
 				ANY()))
-
-	/**
-	 * The objectType might contain an instance type on an escaped variables,
-	 * making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SUCH_FIELD))

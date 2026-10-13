@@ -51,7 +51,7 @@ import java.io.DataOutputStream
 import java.io.IOException
 
 /**
- * A `ModuleManifestEntry` is a short summary of an interesting definition
+ * A [ModuleManifestEntry] is a short summary of an interesting definition
  * created by some module.  This includes atoms, method definitions, semantic
  * restrictions, lexers, module variables/constants, etc.
  *

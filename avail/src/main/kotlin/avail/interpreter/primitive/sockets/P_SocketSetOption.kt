@@ -61,7 +61,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive2
-import avail.interpreter.primitive.sockets.P_SocketSetOption.privateBlockTypeRestriction
 import avail.utility.cast
 import java.io.IOException
 import java.net.SocketOption
@@ -82,13 +81,11 @@ import java.nio.channels.AsynchronousSocketChannel
 @Suppress("unused")
 object P_SocketSetOption : Primitive2(CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val handle = arg1
-		val options = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		handle: AvailObject,
+		options: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{

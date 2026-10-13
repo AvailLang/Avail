@@ -40,7 +40,7 @@ import java.io.File
 import java.util.Collections
 
 /**
- * A `ModuleNameResolver` resolves fully-qualified references to Avail
+ * A [ModuleNameResolver] resolves fully-qualified references to Avail
  * [modules][ModuleDescriptor] to [absolute][File.isAbsolute]
  * [file&#32;references][File].
  *

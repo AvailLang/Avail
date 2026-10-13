@@ -38,17 +38,7 @@ import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.representation.A_RawFunction.Companion.numNybbles
 import avail.descriptor.representation.A_Tuple.Companion.isBetterRepresentationThan
-import avail.descriptor.representation.A_Type.Companion.argsTupleType
-import avail.descriptor.representation.A_Type.Companion.declaredExceptions
-import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut2
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut3
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut4
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut5
-import avail.descriptor.representation.AvailObject.Companion.frameAtPut6
-import avail.descriptor.representation.AvailObject.Companion.registerDumpStatic
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ByteStringDescriptor
@@ -63,6 +53,7 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.L2Chunk
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -1239,10 +1230,7 @@ class AvailObject private constructor(
 
 		/** The [CheckedMethod] for [iterator]. */
 		@Suppress("unused")
-		val iteratorMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::iterator.name,
-			Iterator::class.java)
+		val iteratorMethod = instanceMethod(AvailObject::iterator)
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1254,11 +1242,9 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut] method. */
 		val frameAtPutMethod = staticMethod(
+			::frameAtPut,
 			AvailObject::class.java,
-			::frameAtPut.name,
-			AvailObject::class.java,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1279,13 +1265,11 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut2] method. */
 		val frameAtPut2Method = staticMethod(
+			::frameAtPut2,
 			AvailObject::class.java,
-			::frameAtPut2.name,
+			int,
 			AvailObject::class.java,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1309,15 +1293,13 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut3] method. */
 		val frameAtPut3Method = staticMethod(
+			::frameAtPut3,
 			AvailObject::class.java,
-			::frameAtPut3.name,
+			int,
 			AvailObject::class.java,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1344,17 +1326,15 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut4] method. */
 		val frameAtPut4Method = staticMethod(
+			::frameAtPut4,
 			AvailObject::class.java,
-			::frameAtPut4.name,
+			int,
 			AvailObject::class.java,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1384,19 +1364,17 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut5] method. */
 		val frameAtPut5Method = staticMethod(
+			::frameAtPut5,
 			AvailObject::class.java,
-			::frameAtPut5.name,
+			int,
 			AvailObject::class.java,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1429,21 +1407,19 @@ class AvailObject private constructor(
 
 		/** Access the [frameAtPut6] method. */
 		val frameAtPut6Method = staticMethod(
+			::frameAtPut6,
 			AvailObject::class.java,
-			::frameAtPut6.name,
+			int,
 			AvailObject::class.java,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			AvailObject::class.java)
 
 		@ReferencedInGeneratedCode
@@ -1453,37 +1429,27 @@ class AvailObject private constructor(
 
 		/** Access the [registerDumpStatic] method. */
 		val registerDumpMethod = staticMethod(
-			AvailObject::class.java,
-			::registerDumpStatic.name,
-			AvailObject::class.java,
+			::registerDumpStatic,
 			AvailObject::class.java)
 
 		/** Access the [fieldAt] method. */
 		val fieldAtMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldAt.name,
-			AvailObject::class.java,
+			AvailObject::fieldAt,
 			A_Atom::class.java)
 
 		/** Access the [fieldAtIndex] method for objects. */
 		val fieldAtIndexMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldAtIndex.name,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			AvailObject::fieldAtIndex,
+			int)
 
 		/** Access the [fieldTypeAt] method. */
 		val fieldTypeAtMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldTypeAt.name,
-			A_Type::class.java,
+			AvailObject::fieldTypeAt,
 			A_Atom::class.java)
 
 		/** Access the [fieldTypeAtIndex] method for object types. */
 		val fieldTypeAtIndexMethod = instanceMethod(
-			AvailObject::class.java,
-			AvailObject::fieldTypeAtIndex.name,
-			A_Type::class.java,
-			Int::class.javaPrimitiveType!!)
+			AvailObject::fieldTypeAtIndex,
+			int)
 	}
 }

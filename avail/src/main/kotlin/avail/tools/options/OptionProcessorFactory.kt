@@ -37,7 +37,7 @@ import avail.utility.configuration.Configuration
 import java.util.EnumSet
 
 /**
- * An `OptionProcessorFactory` enables a client to dynamically specify and
+ * An [OptionProcessorFactory] enables a client to dynamically specify and
  * assemble an [option&#32;processor][OptionProcessor]. In particular, the
  * factory allows a client to flexibly define a particular option processor
  * while ignoring specification and evaluation order dependency. Validation is

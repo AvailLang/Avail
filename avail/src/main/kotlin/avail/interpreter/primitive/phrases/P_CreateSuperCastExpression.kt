@@ -52,6 +52,7 @@ import avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_T
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -62,16 +63,16 @@ import avail.interpreter.primitive.Primitive2
  * supertype, or if it is top-valued or bottom-valued.
  */
 @Suppress("unused")
-object P_CreateSuperCastExpression : Primitive2(CanInline)
+object P_CreateSuperCastExpression : Primitive2(
+	CanInline,
+	// The lookupType might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val expression = arg1
-		val lookupType = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		expression: AvailObject,
+		lookupType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val expressionType = expression.phraseExpressionType
 		return when {
 			expressionType.isBottom || expressionType.isTop ->
@@ -87,13 +88,6 @@ object P_CreateSuperCastExpression : Primitive2(CanInline)
 			else -> newSuperCastNode(expression, lookupType)
 		}
 	}
-
-	/**
-	 * The lookupType might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

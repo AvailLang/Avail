@@ -33,7 +33,6 @@
 package avail.interpreter.levelTwo.operation.variables
 
 import avail.descriptor.representation.A_Variable
-import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Instruction
@@ -41,10 +40,11 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Assign a value to a [variable][VariableDescriptor] *without* checking that
@@ -64,8 +64,6 @@ constructor(
 {
 	init
 	{
-		assert(this.variable.restriction()
-			.containedByType(mostGeneralVariableType))
 		assert(!this.variable.isConstantRead) {
 			"L2_SET_UNESCAPED_LOCAL_VARIABLE is an elided local here."
 		}
@@ -112,13 +110,15 @@ constructor(
 	 *   `true` if a replacement was made, otherwise `false`.
 	 */
 	override fun L2ValueManifest.rewritePostponed(
-		synonym: L2Synonym<*>
+		synonym: L2Synonym
 	): Boolean
 	{
 		// Check if the value to be written depends on this variable.
 		// If so, we must not merge the assignment with the creation, or
 		// it would introduce an unsatisfiable dependency order.
-		val variableOrigin = postponedInstructionFor(variable.semanticValue())
+		val variableOrigin = postponedInstructionFor(
+			variable.semanticValue(),
+			BOXED_KIND)
 		if (variableOrigin != null
 			&& checkDependency(
 				valueToWrite.semanticValue(),
@@ -135,9 +135,13 @@ constructor(
 			{
 				// A create/setter pair can be collapsed to be a create with the
 				// setter's value as its initial value.
-				removePostponedInstructionFor(synonym.pickSemanticValue())
-				removePostponedInstructionFor(variable.semanticValue())
-				assert(variable.restriction() == variableOut.restriction())
+				removePostponedInstructionFor(
+					synonym.pickSemanticValue(),
+					BOXED_KIND)
+				removePostponedInstructionFor(
+					variable.semanticValue(),
+					BOXED_KIND)
+				assert(variable.restriction == variableOut.restriction())
 				recordPostponedInstruction(
 					synonym.pickSemanticValue(),
 					L2_CREATE_VARIABLE(
@@ -163,8 +167,12 @@ constructor(
 				// instruction's input variable, sets the second instruction's
 				// value, and produces the second instruction's output variable.
 				// This effectively removes an unobserved write.
-				removePostponedInstructionFor(synonym.pickSemanticValue())
-				removePostponedInstructionFor(variable.semanticValue())
+				removePostponedInstructionFor(
+					synonym.pickSemanticValue(),
+					BOXED_KIND)
+				removePostponedInstructionFor(
+					variable.semanticValue(),
+					BOXED_KIND)
 				assert(!variableOrigin.variable.isConstantRead) {
 					"This would read from an elided local variable"
 				}

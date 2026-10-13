@@ -79,16 +79,12 @@ import avail.optimizer.L1Translator
 object P_ExitContinuationWithResultIf : Primitive3(
 	CanInline, CanSwitchContinuations)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val continuation = arg1
-		val result = arg2
-		val condition = arg3
-
+	override fun attempt3(
+		interpreter: Interpreter,
+		continuation: AvailObject,
+		result: AvailObject,
+		condition: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (!condition.extractBoolean) return nil
 		// The primitive fails if the value being returned disagrees with the
 		// label continuation's function's return type.  Any stronger check, as

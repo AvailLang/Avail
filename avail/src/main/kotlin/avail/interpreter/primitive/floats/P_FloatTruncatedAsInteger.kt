@@ -57,11 +57,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_FloatTruncatedAsInteger : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val a = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		a: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
 		val f = a.extractFloat

@@ -903,9 +903,7 @@ open class VariableDescriptor protected constructor(
 		 * The [CheckedMethod] for [newVariableWithOuterType].
 		 */
 		val newVariableWithOuterTypeMethod = staticMethod(
-			VariableDescriptor::class.java,
-			::newVariableWithOuterType.name,
-			AvailObject::class.java,
+			::newVariableWithOuterType,
 			A_Type::class.java,
 			A_BasicObject::class.java)
 

@@ -40,8 +40,6 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.SPACE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
-import avail.compiler.splitter.MessageSplitterTokenizer.Companion.allCanonicalMessageParts
-import avail.compiler.splitter.MessageSplitterTokenizer.Companion.allCanonicalMessagePartsLock
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.concatenateTuplesCanDestroy

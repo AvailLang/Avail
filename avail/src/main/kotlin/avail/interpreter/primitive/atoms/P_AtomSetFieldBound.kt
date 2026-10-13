@@ -64,13 +64,11 @@ import avail.interpreter.primitive.Primitive2
 object P_AtomSetFieldBound : Primitive2(
 	CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val atom = arg1
-		val typeBound = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		atom: AvailObject,
+		typeBound: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (atom.isAtomSpecial)
 		{
 			return fail(E_SPECIAL_ATOM)

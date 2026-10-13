@@ -57,7 +57,7 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 
 /**
- * An `L2OperandDispatcher` acts as a visitor for the actual operands of
+ * An [L2OperandDispatcher] acts as a visitor for the actual operands of
  * [level&#32;two&#32;instructions][L2Instruction].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

@@ -41,21 +41,19 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
+import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticExtractedTag
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
-import avail.utility.cast
+import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
+import avail.optimizer.values.L2SemanticValue
 
 /**
  * An abstraction for factoring out the maintenance of multi-way dispatch logic
@@ -79,9 +77,9 @@ constructor(
 	 */
 	open fun interestingConditions(
 		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>
-	): List<L2SplitCondition?>
-	{
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
+	): List<L2SplitCondition?> = postPhiData.run {
 		val register = read.register()
 		val semanticValue = read.semanticValue()
 		val allConstantInts =
@@ -95,7 +93,7 @@ constructor(
 			}
 		val conditions = mutableListOf<L2SplitCondition?>()
 		allConstantInts.forEach { constant ->
-			val exclude = read.restriction().minusValue(constant)
+			val exclude = read.restriction.minusValue(constant)
 			conditions.addAll(
 				typeRestrictionConditions(
 					setOf(register),
@@ -103,7 +101,7 @@ constructor(
 		}
 		warmConstantInts.forEach { constant ->
 			val include =
-				intRestrictionForConstant(constant.extractInt)
+				restrictionForConstant(constant.extractInt)
 			conditions.addAll(
 				typeRestrictionConditions(
 					setOf(register),
@@ -143,14 +141,14 @@ constructor(
 		val possibleEdges = edges.filterNot { edge ->
 			edge.manifest().hasImpossibleRestriction
 				|| edge.manifest().restrictionFor(readValue.semanticValue())
-					.intersection(readValue.restriction())
+					.intersection(readValue.restriction)
 					.isImpossible
 		}.toSet()
 
 		when
 		{
 			// Shouldn't happen, but play nice.
-			possibleEdges.isEmpty() -> return L2_IMPOSSIBLE_CODE()
+			possibleEdges.isEmpty() -> return impossibleCodeInstruction()
 			possibleEdges.size == 1 -> return L2_JUMP(possibleEdges.single())
 			edges.size == 2 -> return L2_JUMP_IF_COMPARE_INT(
 				numericComparator = L2ArbitraryConstantOperand(GreaterOrEqual),
@@ -260,12 +258,12 @@ constructor(
 
 	fun originalValueSource(
 		readInt: L2ReadIntOperand
-	): L2SemanticBoxedValue?
+	): L2SemanticValue?
 	{
-		val intTagValue = readInt.semanticValue()
-		val tagValue = intTagValue.boxed
-		if (tagValue !is L2SemanticExtractedTag) return null
-		return tagValue.base.cast()
+		val tagValue = readInt.semanticValue()
+		if (!tagValue.isExtractTag) return null
+		return (tagValue as L2SemanticPrimitiveInvocation)
+			.argumentSemanticValues[0]
 	}
 
 	/** Provide meaningful names for the target blocks of a branch. */

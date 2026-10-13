@@ -42,7 +42,7 @@ import javax.swing.Action
 import javax.swing.JOptionPane
 
 /**
- * A `ExamineModuleManifest` presents information about a specific
+ * A [ExamineModuleManifest] presents information about a specific
  * compilation of the selected module.
  *
  * @constructor

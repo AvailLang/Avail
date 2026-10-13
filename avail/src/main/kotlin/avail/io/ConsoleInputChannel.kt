@@ -43,7 +43,7 @@ import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 /**
- * A `ConsoleInputChannel` provides a faux
+ * A [ConsoleInputChannel] provides a faux
  * [asynchronous&#32;interface][TextInputChannel] to a synchronous
  * [input&#32;stream][InputStream]. The reader must supply
  * [UTF-8][StandardCharsets.UTF_8] encoded characters.

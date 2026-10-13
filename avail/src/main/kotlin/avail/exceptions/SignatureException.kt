@@ -35,7 +35,7 @@ package avail.exceptions
 import avail.descriptor.methods.DefinitionDescriptor
 
 /**
- * A `SignatureException` is thrown when a [definition][DefinitionDescriptor] of
+ * A [SignatureException] is thrown when a [definition][DefinitionDescriptor] of
  * a method is invalid.  This might indicate a compatibility problem between the
  * argument signature and the message name, or perhaps an inconsistency between
  * the signature and other signatures already installed in the system.

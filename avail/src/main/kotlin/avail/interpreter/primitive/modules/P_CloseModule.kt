@@ -58,12 +58,10 @@ import avail.interpreter.primitive.Primitive1
  */
 object P_CloseModule : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val module: A_Module = arg1
-
+	override fun attempt1(
+		interpreter: Interpreter,
+		module: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (module.moduleState != Loading)
 		{
 			// TODO Should rename error code.

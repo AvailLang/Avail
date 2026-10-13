@@ -37,12 +37,11 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
-import java.util.Collections.unmodifiableList
 
 /**
- * An `L2ReadVectorOperand` is an operand of type
+ * An [L2ReadVectorOperand] is an operand of type
  * [L2OperandType.READ_BOXED_VECTOR], or the int or float variants. It holds a
  * [List] of [L2ReadOperand]s.
  *
@@ -52,15 +51,9 @@ import java.util.Collections.unmodifiableList
  */
 abstract class L2ReadVectorOperand<out R: L2ReadOperand<*>>
 constructor(
-	elements: List<R>
+	val elements: List<R>
 ) : L2Operand()
 {
-	/** The [List] of [L2ReadOperand]s. */
-	protected val privateElements: List<R> = unmodifiableList(elements)
-
-	/** The [List] of [L2ReadOperand]s. */
-	open val elements: List<R> get() = privateElements
-
 	abstract override fun clone(): L2ReadVectorOperand<R>
 
 	/**
@@ -150,7 +143,7 @@ constructor(
 	override fun appendTo(builder: StringBuilder): Unit = with(builder)
 	{
 		append("@<")
-		val big = elements.size > 4
+		val big = elements.size > 3
 		var first = true
 		for (read in elements)
 		{
@@ -158,13 +151,6 @@ constructor(
 			if (big) append("\n\t\t")
 			else if (!first) append (" ")
 			append(read.registerString())
-			val restriction = read.restriction()
-			if (restriction.constantOrNull === null)
-			{
-				// Don't redundantly print restriction information for
-				// constants.
-				append(restriction.suffixString())
-			}
 			first = false
 		}
 		if (big) append("\n\t")
@@ -202,9 +188,6 @@ constructor(
 				operands.map { it.elements[elementIndex] })
 		}
 	}
-
-	override fun postOptimizationCleanup() =
-		elements.forEach(L2ReadOperand<*>::postOptimizationCleanup)
 
 	/**
 	 * This vector operand is the input to an [L2_PHI]

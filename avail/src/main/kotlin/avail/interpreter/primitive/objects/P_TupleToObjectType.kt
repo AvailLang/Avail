@@ -82,11 +82,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_TupleToObjectType : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			objectTypeFromTuple(tuple)
@@ -103,7 +102,8 @@ object P_TupleToObjectType : Primitive1(CanFold, CanInline)
 			mostGeneralObjectMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange

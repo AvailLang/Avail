@@ -30,36 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.primitive
+package avail.interpreter.primitive;
 
-import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AvailObject
-import avail.interpreter.execution.Interpreter
-import avail.optimizer.L2Generator
-import avail.optimizer.StackReifier
+import avail.descriptor.representation.A_BasicObject;
+import avail.descriptor.representation.AvailObject;
+import avail.interpreter.execution.Interpreter;
+import avail.optimizer.L2Generator;
+import avail.optimizer.StackReifier;
+import avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import java.util.List;
 
 /**
- * A [Primitive] taking exactly four arguments.
- *
- * @param flags
- *   The flags that describe how the [Interpreter] and [L2Generator] should deal
- *   with this primitive.
+ * A {@link Primitive} taking exactly four arguments.
  */
-abstract class Primitive4
-constructor(
-	vararg flags: Flag
-): Primitive(4, *flags)
+public abstract class Primitive4 extends Primitive
 {
 	/**
-	 * Attempt to run a primitive taking four arguments, answering either an
-	 * AvailObject if successful, or null if the primitive could not complete
-	 * for some reason.  If the primitive reifies, the
-	 * [Interpreter.currentReifier] will capture the [StackReifier].  If the
-	 * primitive fails, its failure code will be stored in the
-	 * [Interpreter.latestResult].
+	 * Initialize the primitive.
 	 *
-	 * @receiver
-	 *   The [Interpreter] performing the primitive attempt.
+	 * @param flags
+	 *   The {@link Flag flags} that describe how the {@link Interpreter} and
+	 *   {@link L2Generator} should deal with this primitive.
+	 */
+	public Primitive4(Primitive.Flag... flags)
+	{
+		super(4, flags);
+	}
+
+	/**
+	 * Attempt to run a primitive taking four arguments, answering either an
+	 * {@link AvailObject} if successful, or `null` if the primitive could not
+	 * complete for some reason.  If the primitive reifies, the {@link
+	 * Interpreter#currentReifier} will capture the {@link StackReifier}.  If
+	 * the primitive fails, its failure code will be stored in the {@link
+	 * Interpreter#latestResult}.
+	 *
+	 * @param interpreter
+	 *   The {@link Interpreter} performing the primitive attempt.
 	 * @param arg1
 	 *   The first argument to the primitive.
 	 * @param arg2
@@ -71,17 +79,20 @@ constructor(
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */
-	abstract fun Interpreter.attempt4(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject,
-		arg4: AvailObject
-	): A_BasicObject?
+	@ReferencedInGeneratedCode
+	public abstract A_BasicObject attempt4(
+		Interpreter interpreter,
+		AvailObject arg1,
+		AvailObject arg2,
+		AvailObject arg3,
+		AvailObject arg4);
 
-	final override fun attempt(interpreter: Interpreter): A_BasicObject?
+	@Override
+	public final A_BasicObject attempt(Interpreter interpreter)
 	{
-		val args = interpreter.argsBuffer
-		assert(args.size == 4)
-		return interpreter.attempt4(args[0], args[1], args[2], args[3])
+		List<AvailObject> args = interpreter.argsBuffer;
+		assert(args.size() == 4);
+		return attempt4(
+			interpreter, args.get(0), args.get(1), args.get(2), args.get(3));
 	}
 }

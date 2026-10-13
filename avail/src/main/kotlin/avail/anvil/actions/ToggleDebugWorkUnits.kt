@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ToggleDebugWorkUnits` toggles the flag that indicates whether to write
+ * A [ToggleDebugWorkUnits] toggles the flag that indicates whether to write
  * debug information about queued and executed work units to the transcript.
  *
  * @constructor

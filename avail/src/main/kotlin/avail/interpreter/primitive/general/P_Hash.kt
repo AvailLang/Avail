@@ -46,16 +46,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.dispatch.L2_HASH
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
-import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
  * **Primitive:** Answer the [hash&#32;value][A_BasicObject.hash] of the
@@ -66,11 +60,10 @@ import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 @Suppress("unused")
 object P_Hash : Primitive1(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromInt(value.hash())
 	}
 
@@ -87,24 +80,6 @@ object P_Hash : Primitive1(CannotFail, CanFold, CanInline)
 					setFromCollection(instances.map { fromInt(it.hash()) }))
 			else -> i32
 		}
-	}
-
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
-		functionToCallReg: L2ReadBoxedOperand,
-		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
-		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
-	): Boolean
-	{
-		val valueReg = arguments[0]
-		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val restriction = intRestrictionForType(returnType)
-		val writer = intWriteTemp("hash", restriction)
-		+L2_HASH(valueReg, writer)
-		callSiteHelper.useAnswer(
-			readBoxed(writer.onlySemanticValue().boxed), false)
-		return true
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

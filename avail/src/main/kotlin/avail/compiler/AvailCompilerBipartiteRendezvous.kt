@@ -36,7 +36,7 @@ import avail.descriptor.representation.A_Phrase
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * An `AvailCompilerBipartiteRendezvous` comes at parsing from both sides to
+ * An [AvailCompilerBipartiteRendezvous] comes at parsing from both sides to
  * maximize the freedom of implementation of the parser.  It uses dynamic
  * programming to avoid parsing the same subexpression multiple times.  When a
  * new continuation needs to run against all possible subexpressions, it looks

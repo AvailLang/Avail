@@ -61,11 +61,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateReferenceExpression : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val variableUse = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		variableUse: AvailObject
+	): A_BasicObject? = interpreter.run {
 
 		val declaration = variableUse.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)

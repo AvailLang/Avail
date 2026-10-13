@@ -39,9 +39,8 @@ directory (or use `avail/gradlew -p avail <task>` from the repo root).
 ./gradlew dokkaGeneratePublicationHtml
 ```
 
-JDK toolchain is Java 26 (Oracle vendor); Kotlin/Java emit Java 25 bytecode
-because Kotlin 2.3.10 cannot yet target 26. Tests run headless
-(`java.awt.headless=true`).
+JDK toolchain is Java 26 (Oracle vendor); Kotlin/Java emit Java 26 bytecode.
+Tests run headless (`java.awt.headless=true`).
 
 `packageApp` is macOS-only. It writes `avail/build/jpackage/Anvil.app`, a
 self-contained bundle whose `Contents/runtime` is a jlinked image of the

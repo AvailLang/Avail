@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * An `AbstractFileWrapper` is an abstraction for holding an [AvailFile]. The
+ * An [AbstractFileWrapper] is an abstraction for holding an [AvailFile]. The
  * purpose of this is to enable the Avail server  [FileManager] cache to delay
  * establishing the type of `AvailFile` until the file type can be read without
  * delaying adding a file object to the `FileManager` cache.

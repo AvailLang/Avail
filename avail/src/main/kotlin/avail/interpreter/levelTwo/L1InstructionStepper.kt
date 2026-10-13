@@ -543,7 +543,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							CONTINUE_FIBER
 						}
 						reifier.pushAction {
-							continuation.replacingCaller(it)
+							setReifiedContinuation(
+								continuation.replacingCaller(
+									getReifiedContinuation()!!))
 						}
 						interpreter.currentReifier = reifier
 						return null
@@ -791,7 +793,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				continuation.function.code().methodName.asNativeString())
 		}
 		reifier.pushAction {
-			continuation.replacingCaller(it)
+			setReifiedContinuation(
+				continuation.replacingCaller(getReifiedContinuation()!!))
 		}
 	}
 
@@ -1053,7 +1056,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		interpreter.setOffset(savedOffset)
 		interpreter.function = savedFunction
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder, pc)
-		valueOrNull?.let { return it as AvailObject }
+		valueOrNull?.let { return it }
 		val reifier = interpreter.currentReifier!!
 		if (Interpreter.debugL2)
 		{

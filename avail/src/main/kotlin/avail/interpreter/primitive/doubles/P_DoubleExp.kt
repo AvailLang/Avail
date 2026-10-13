@@ -57,13 +57,11 @@ import kotlin.math.exp
 @Suppress("unused")
 object P_DoubleExp : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		// val euler = arg1
-		val a = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		euler: AvailObject,
+		a: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return fromDoubleRecycling(exp(a.extractDouble), a, true)
 	}
 

@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `ResetVMReportDataAction` clears performance information obtained
+ * A [ResetVMReportDataAction] clears performance information obtained
  * from running.
  *
  * @constructor

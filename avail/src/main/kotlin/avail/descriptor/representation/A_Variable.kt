@@ -35,16 +35,6 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.A_Type.Companion.readType
-import avail.descriptor.representation.A_Type.Companion.writeType
-import avail.descriptor.representation.A_Variable.Companion.compareAndSwapValuesNoCheck
-import avail.descriptor.representation.A_Variable.Companion.getValue
-import avail.descriptor.representation.A_Variable.Companion.staticCheckForSharedOrReactors
-import avail.descriptor.representation.A_Variable.Companion.staticClearValue
-import avail.descriptor.representation.A_Variable.Companion.staticGetValueClearing
-import avail.descriptor.representation.A_Variable.Companion.staticGetValueMakingImmutable
-import avail.descriptor.representation.A_Variable.Companion.staticSetValue
-import avail.descriptor.representation.A_Variable.Companion.staticSetValueNoCheck
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
@@ -489,9 +479,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticGetValueMakingImmutable]. */
 		val getValueMakingImmutableMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticGetValueMakingImmutable.name,
-			returnClass = AvailObject::class.java,
+			::staticGetValueMakingImmutable,
 			A_Variable::class.java)
 
 
@@ -504,9 +492,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticGetValueClearing]. */
 		val getValueClearingMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticGetValueClearing.name,
-			returnClass = AvailObject::class.java,
+			::staticGetValueClearing,
 			A_Variable::class.java)
 
 
@@ -522,9 +508,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticGetValueClearing]. */
 		val getValueClearingMethodIfMutableMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticGetValueClearingIfMutable.name,
-			returnClass = AvailObject::class.java,
+			::staticGetValueClearingIfMutable,
 			A_Variable::class.java)
 
 
@@ -536,24 +520,9 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticSetValue]. */
 		val setValueMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticSetValue.name,
-			returnClass = Void.TYPE,
+			::staticSetValue,
 			A_Variable::class.java,
 			A_BasicObject::class.java)
-
-
-		@ReferencedInGeneratedCode
-		@JvmStatic
-		fun staticClearValue(variable: A_Variable) =
-			variable.dispatch { o_ClearValue(it) }
-
-		/** The [CheckedMethod] for [staticClearValue]. */
-		val clearVariableMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticClearValue.name,
-			returnClass = Void.TYPE,
-			A_Variable::class.java)
 
 
 		@ReferencedInGeneratedCode
@@ -565,9 +534,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticSetValueNoCheck]. */
 		val setValueNoCheckMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticSetValueNoCheck.name,
-			returnClass = Void.TYPE,
+			::staticSetValueNoCheck,
 			A_Variable::class.java,
 			A_BasicObject::class.java)
 
@@ -584,9 +551,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [compareAndSwapValuesNoCheck]. */
 		val compareAndSwapValuesNoCheckMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticCompareAndSwapValuesNoCheck.name,
-			returnClass = Boolean::class.javaPrimitiveType!!,
+			::staticCompareAndSwapValuesNoCheck,
 			A_Variable::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
@@ -599,9 +564,7 @@ interface A_Variable : A_ChunkDependable
 
 		/** The [CheckedMethod] for [staticCheckForSharedOrReactors]. */
 		val checkForSharedOrReactorsMethod = staticMethod(
-			receiverClass = A_Variable::class.java,
-			methodName = ::staticCheckForSharedOrReactors.name,
-			returnClass = Boolean::class.javaPrimitiveType!!,
+			::staticCheckForSharedOrReactors,
 			A_Variable::class.java)
 	}
 }

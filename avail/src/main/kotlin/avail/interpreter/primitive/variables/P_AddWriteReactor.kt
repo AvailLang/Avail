@@ -53,6 +53,7 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 
 /**
@@ -63,17 +64,17 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AddWriteReactor : Primitive3(HasSideEffect)
+object P_AddWriteReactor : Primitive3(
+	HasSideEffect,
+	// The variable gets a reactor here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt3(
-		arg1: AvailObject,
-		arg2: AvailObject,
-		arg3: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
-		val key = arg2
-		val reactorFunction = arg3
+	override fun attempt3(
+		interpreter: Interpreter,
+		variable: AvailObject,
+		key: AvailObject,
+		reactorFunction: AvailObject
+	): A_BasicObject? = interpreter.run {
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{
@@ -84,13 +85,6 @@ object P_AddWriteReactor : Primitive3(HasSideEffect)
 		variable.addWriteReactor(key, writeReactor)
 		return nil
 	}
-
-	/**
-	 * The variable gets a reactor here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

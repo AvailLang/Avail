@@ -72,7 +72,7 @@ import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * A `SetTypeDescriptor` object instance is a type that some
+ * A [SetTypeDescriptor] object instance is a type that some
  * [sets][SetDescriptor] may conform to. It is built up from a [range of
  * sizes][ObjectSlots.SIZE_RANGE] that the sets may be, and the [content
  * type][ObjectSlots.CONTENT_TYPE] that the set's elements would have to conform

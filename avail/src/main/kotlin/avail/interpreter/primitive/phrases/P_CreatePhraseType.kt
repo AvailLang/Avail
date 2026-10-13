@@ -46,6 +46,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -54,28 +55,24 @@ import avail.interpreter.primitive.Primitive2
  * of the same [kind][PhraseKind] but with the specified expression type.
  */
 @Suppress("unused")
-object P_CreatePhraseType : Primitive2(CanFold, CanInline, CannotFail)
+object P_CreatePhraseType : Primitive2(
+	CanFold,
+	CanInline,
+	CannotFail,
+	// The types might contain an escaped variable, making it shared here.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val baseType = arg1
-		val expressionType = arg2
+	override fun attempt2(
+		interpreter: Interpreter,
+		baseType: AvailObject,
+		expressionType: AvailObject
+	): A_BasicObject? = interpreter.run {
 		if (baseType.isBottom) return baseType
 		val kind = baseType.phraseKind
 		val intersected =
 			expressionType.typeIntersection(kind.mostGeneralYieldType)
 		return kind.create(intersected)
 	}
-
-	/**
-	 * The types might contain an escaped variable, making it shared here.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

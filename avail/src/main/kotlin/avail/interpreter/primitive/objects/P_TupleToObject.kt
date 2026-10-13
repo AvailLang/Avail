@@ -83,7 +83,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
@@ -109,11 +109,10 @@ import avail.optimizer.L1Translator
 @Suppress("unused")
 object P_TupleToObject : Primitive1(CanFold, CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val tuple = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		tuple: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			objectFromTuple(tuple)
@@ -130,7 +129,8 @@ object P_TupleToObject : Primitive1(CanFold, CanInline)
 			mostGeneralObjectType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange
@@ -273,7 +273,7 @@ object P_TupleToObject : Primitive1(CanFold, CanInline)
 			fieldMap[atom]?.let { index ->
 				if (index != 0)
 				{
-					val valueType = pairSource.type().typeAtIndex(2)
+					val valueType = pairSource.type.typeAtIndex(2)
 					val valueTemp = newTemp(
 						"value for ${atom.atomName.asNativeString()}"
 					)
@@ -286,7 +286,7 @@ object P_TupleToObject : Primitive1(CanFold, CanInline)
 		val typeGuarantee = objectTypeFromTuple(tupleFromList(fieldTypePairs))
 		val write = boxedWriteTemp(
 			"new object",
-			boxedRestrictionForType(typeGuarantee)
+			restrictionForType(typeGuarantee)
 				.intersectionWithObjectVariant(variant))
 		+L2_CREATE_OBJECT(
 			L2ArbitraryConstantOperand(variant),

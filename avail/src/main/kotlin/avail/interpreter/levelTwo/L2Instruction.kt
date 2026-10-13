@@ -48,7 +48,7 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -62,7 +62,6 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -75,14 +74,15 @@ import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
-import avail.optimizer.L2ValueManifest
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.PublicCloneable
 import avail.utility.Strings.increaseIndentation
 import avail.utility.cast
+import avail.utility.intersects
 import avail.utility.mapToSet
 import javax.annotation.CheckReturnValue
 import kotlin.reflect.KMutableProperty0
@@ -367,12 +367,10 @@ constructor() :
 	 * instructions can't do this, and override for instructions that can, like
 	 * invocations of general functions, or of primitives that say they can.
 	 *
-	 * @param manifest
+	 * @receiver
 	 *   The [L2ValueManifest] in which to trace postponed instructions.
 	 */
-	open fun mightMakeEscapedVariableShared(
-		manifest: L2ValueManifest
-	): Boolean = false
+	open fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean = false
 
 	/**
 	 * Answer whether this instruction produces any JVM code.  Examples of
@@ -423,19 +421,19 @@ constructor() :
 	 * @param index
 	 *   The one-based index of the tuple element to extract.
 	 * @param destinationSemanticValues
-	 *   The [L2SemanticBoxedValue]s that will containing the element.
+	 *   The [L2SemanticValue]s that will containing the element.
 	 */
 	open fun L2GeneratorInterface.extractTupleElement(
-		synonym: L2Synonym<BOXED_KIND>,
+		synonym: L2Synonym,
 		index: Int,
-		destinationSemanticValues: Set<L2SemanticBoxedValue>
+		destinationSemanticValues: Set<L2SemanticValue>
 	): Unit =
 		+L2_TUPLE_AT_CONSTANT(
 			readBoxed(synonym.pickSemanticValue()),
 			L2IntImmediateOperand(index),
 			boxedWrite(
 				destinationSemanticValues,
-				boxedRestrictionForType(
+				restrictionForType(
 					currentManifest.restrictionFor(synonym.pickSemanticValue())
 						.type
 						.typeAtIndex(index))))
@@ -478,7 +476,7 @@ constructor() :
 
 	/**
 	 * An [Int] with bit positions corresponding to entries from
-	 * [HiddenVariableShift], indicating what hidden state is written by this
+	 * [HiddenVariable], indicating what hidden state is written by this
 	 * instruction.
 	 */
 	open val writesHiddenVariablesMask: Int
@@ -486,7 +484,7 @@ constructor() :
 
 	/**
 	 * An [Int] with bit positions corresponding to entries from
-	 * [HiddenVariableShift], indicating what hidden state is read by this
+	 * [HiddenVariable], indicating what hidden state is read by this
 	 * instruction.
 	 */
 	open val readsHiddenVariablesMask: Int
@@ -524,7 +522,7 @@ constructor() :
 	 *   earlier instruction is not an [L2_MOVE_CONSTANT].
 	 *  4. One is annotated as [WritesHiddenVariable], and the other is marked
 	 *   as either [WritesHiddenVariable] or [ReadsHiddenVariable] for the same
-	 *   [HiddenVariableShift].
+	 *   [HiddenVariable].
 	 * In all other circumstances, it's acceptable to change the order in which
 	 * the instructions execute.
 	 *
@@ -544,8 +542,7 @@ constructor() :
 	fun canCommuteWith(another: L2Instruction): Boolean = when
 	{
 		!canBePostponed && !another.canBePostponed -> false
-		destinationRegisters.intersect(another.sourceRegisters).isNotEmpty() ->
-			false
+		destinationRegisters.intersects(another.sourceRegisters) -> false
 		another is L2_SAVE_ALL_AND_PC_TO_INT
 			&& this !is L2_MOVE_CONSTANT<*, *>
 			-> false
@@ -586,10 +583,10 @@ constructor() :
 			val targets = write.semanticValues()
 			val (sources, allTargets) = targets
 				.mapNotNull {
-					manifest.equivalentPopulatedSemanticValue(it)
+					manifest.equivalentPopulatedSemanticValue(it, write.kind)
 				}
 				.plus(targets)
-				.partition(manifest::hasLiveSemanticValue)
+				.partition { manifest.hasLiveSemanticValue(it, write.kind) }
 			if (allTargets.isEmpty())
 			{
 				// All targets are already populated.  Emit nothing.
@@ -603,7 +600,7 @@ constructor() :
 				val source = sources.first()
 				val restriction = manifest.restrictionFor(source)
 					.intersection(write.restriction())
-				val move = source.kind.dynamicMove(
+				val move = write.kind.dynamicMove(
 					source,
 					allTargets.toSet(),
 					manifest,
@@ -622,19 +619,16 @@ constructor() :
 	 *   The [L2ValueManifest] that is active where this instruction was just
 	 *   added to its [L2BasicBlock].
 	 */
-	fun justAdded(manifest: L2ValueManifest)
-	{
+	open fun justAdded(
+		manifest: L2ValueManifest
+	) = manifest.run {
+		// This should be overridden in L2ControlFlowInstruction.
+		assert(!altersControlFlow)
 		if (isEntryPoint)
 		{
-			assert(
-				basicBlock().instructions().all {
-					it is L2_PHI<*> || it == this
-				}
-			) {
-				"Entry point instruction must be after phis"
-			}
+			assert(basicBlock().instructions().single() == this@L2Instruction)
 		}
-		operands.forEach { it.setInstruction(this) }
+		operands.forEach { it.setInstruction(this@L2Instruction) }
 		if (manifest.hasEliminatedPhis)
 		{
 			// Remove register definitions for any registers that are about to
@@ -644,79 +638,27 @@ constructor() :
 			manifest.removeRegisters(registersToBeOverwritten)
 		}
 		instructionWasAdded(manifest)
-		// The instruction may have restrictions set on its reads and writes
-		// that are stronger than what's in the manifest.  Force the manifest to
-		// be as accurate as possible.
-		val manifestByPurpose = mutableMapOf<Purpose?, L2ValueManifest>()
-		if (altersControlFlow)
-		{
-			edgesAndPurposesDo { edge, purpose ->
-				manifestByPurpose[purpose] = edge.manifest()
-			}
-			writesAndPurposesDo { write, purpose ->
-				purpose?.let {
-					manifestByPurpose[purpose]!!
-						.updateRestriction(write.pickSemanticValue()) {
-							write.restriction()
-						}
-				}
-			}
-		}
-		// Phi instructions shouldn't attempt to strengthen restrictions in the
-		// manifest for reads, since those reads are actually in the context of
-		// the corresponding incoming edge's manifest.
-		if (this !is L2_PHI<*>)
-		{
-			readOperands.forEach { read ->
+		readOperands.forEach { read ->
+			// Phi instructions shouldn't attempt to strengthen restrictions in the
+			// manifest for reads, since those reads are actually in the context of
+			// the corresponding incoming edge's manifest.
+			if (this@L2Instruction !is L2_PHI<*>)
+			{
+				// It's not a phi, so narrow the restriction in the read if
+				// necessary.  Phis mustn't do this, since their reads are in
+				// the context of an incoming edge's manifest.
 				manifest.updateRestriction(read.semanticValue()) {
-					read.restriction()
+					read.restriction
 				}
 			}
+			read.restrict { manifest.restrictionFor(read) }
 		}
 		writeOperands.forEach { write ->
 			manifest.updateRestriction(write.pickSemanticValue()) {
 				write.restriction()
 			}
-		}
-		// All manifests have now been updated, including propagation for
-		// related semantic values.  Narrow the restrictions for my reads and
-		// writes.  Phi instructions are excluded: their read operands each
-		// belong to a specific incoming edge's manifest (not the merged
-		// currentManifest), and their write restriction was already set
-		// correctly by populateOneSynonym as the union of incoming restrictions.
-		// Using the (stale, pre-merge) currentManifest here would incorrectly
-		// intersect those restrictions down to bottom.
-		if (this !is L2_PHI<*>)
-		{
-			val allManifests = manifestByPurpose.values + manifest
-			readOperands.forEach { read ->
-				// The outbound edges may vary in how they've deduced a stronger
-				// restriction for the semantic value being read here, so only
-				// strengthen the read up to the *union* of what the manifests
-				// have recorded.
-				val union = allManifests
-					.map { it.restrictionFor(read) }
-					.reduce(TypeRestriction::union)
-				read.restrict { union }
-			}
-			writesAndPurposesDo { write, purpose ->
-				if (purpose == null)
-				{
-					val intersection = allManifests
-						.map { it.restrictionFor(write.pickSemanticValue()) }
-						.reduce(TypeRestriction::intersection)
-					write.restrict { intersection }
-				}
-				else
-				{
-					// The write is associated with only one edge, so use the
-					// manifest that was just updated on that edge.
-					write.restrict {
-						manifestByPurpose[purpose]!!
-							.restrictionFor(write.pickSemanticValue())
-					}
-				}
-			}
+			// Narrow the restriction in the write if necessary.
+			write.restrict { manifest.restrictionFor(write) }
 		}
 	}
 
@@ -748,31 +690,33 @@ constructor() :
 		// non-edge operand, applying their effects.
 		val manifestByPurposeOrdinal =
 			arrayOfNulls<L2ValueManifest>(Purpose.entries.size)
-		operandsWithNamedTypesDo nextOperand@{ operand, namedOperandType ->
+		operandsWithNamedTypesDo { operand, namedOperandType ->
 			val purpose = namedOperandType.purpose
-			purpose ?: return@nextOperand
-			if (operand is L2PcOperand) return@nextOperand
-			if (operand is L2PcVectorOperand) return@nextOperand
-			var manifestCopy = manifestByPurposeOrdinal[purpose.ordinal]
-			if (manifestCopy === null)
+			if (purpose != null
+				&& operand !is L2PcOperand
+				&& operand !is L2PcVectorOperand)
 			{
-				manifestCopy = L2ValueManifest(manifest)
-				manifestByPurposeOrdinal[purpose.ordinal] = manifestCopy
+				var manifestCopy = manifestByPurposeOrdinal[purpose.ordinal]
+				if (manifestCopy === null)
+				{
+					manifestCopy = L2ValueManifest(manifest)
+					manifestByPurposeOrdinal[purpose.ordinal] = manifestCopy
+				}
+				operand.instructionWasAdded(manifestCopy)
 			}
-			operand.instructionWasAdded(manifestCopy)
 		}
 		// Now plug the suitably-purposed manifest copies into each edge.
-		operandsWithNamedTypesDo nextOperand@{ operand, namedOperandType ->
+		operandsWithNamedTypesDo { operand, namedOperandType ->
 			val purpose = namedOperandType.purpose
-			purpose ?: return@nextOperand
-			when (operand)
+			when
 			{
-				is L2PcOperand ->
+				purpose == null -> { }
+				operand is L2PcOperand ->
 				{
 					operand.instructionWasAdded(
 						manifestByPurposeOrdinal[purpose.ordinal] ?: manifest)
 				}
-				is L2PcVectorOperand ->
+				operand is L2PcVectorOperand ->
 				{
 					val manifestCopy =
 						manifestByPurposeOrdinal[purpose.ordinal] ?: manifest
@@ -905,7 +849,8 @@ constructor() :
 		}
 		else
 		{
-			append("${instruction.name}:\n\t")
+			append("${instruction.name}")
+			if (pairs.isNotEmpty()) append(":\n\t")
 			pairs.joinTo(this, ",\n\t") { (name, operand) ->
 				val operandString =
 					increaseIndentation(operand.toString(ignoreMisconnections), 2)
@@ -998,7 +943,7 @@ constructor() :
 		if (readOperands.any { manifest.restrictionFor(it).isImpossible }
 			|| writeOperands.any { manifest.restrictionFor(it).isImpossible })
 		{
-			return L2_IMPOSSIBLE_CODE()
+			return regenerator.impossibleCodeInstruction()
 		}
 		if (regenerator.mode is WithFixedRegisterMap
 			|| !altersControlFlow
@@ -1023,7 +968,7 @@ constructor() :
 			{
 				// All paths are impossible, and none are possible. Rewrite as
 				// an impossible instruction.
-				0 -> return L2_IMPOSSIBLE_CODE()
+				0 -> return regenerator.impossibleCodeInstruction()
 				// At least one edge is impossible, but there's only one that's
 				// still possible, so rewrite it as a jump.
 				1 if canReduceToJumpIfOnePathRemains() ->
@@ -1044,7 +989,7 @@ constructor() :
 				// since it shouldn't be executed at runtime.  This instruction
 				// will propagate backward in a later pass, eventually
 				// eliminating the arm of the branch instruction that led to it.
-				return L2_IMPOSSIBLE_CODE()
+				return regenerator.impossibleCodeInstruction()
 			}
 		}
 		return clone().also { clone ->
@@ -1093,8 +1038,50 @@ constructor() :
 	}
 
 	/**
+	 * This instruction has no side-effect.  Ensure this instruction or an
+	 * equivalent effect is added as a postponed instruction in the generator's
+	 * current manifest.
+	 */
+	open fun postponeInstruction(generator: L2GeneratorInterface)
+	{
+		assert(canBePostponed)
+		val originalWrite = writeOperands.single()
+		assert(originalWrite.semanticValues().isNotEmpty())
+		val kind = originalWrite.kind
+		val manifest = generator.currentManifest
+		// See if there's already an existing equivalent value.
+		val existing = originalWrite.semanticValues()
+			.firstNotNullOfOrNull {
+				manifest.equivalentPopulatedSemanticValue(it, kind.cast())
+			}
+		if (existing != null)
+		{
+			// Just augment the existing synonym.
+			val newRestriction = manifest.restrictionFor(existing)
+				.intersection(originalWrite.restriction())
+			if (newRestriction.isImpossible)
+			{
+				// Emit an instruction that notes the impossibility of this
+				// path.
+				generator.addInstruction(generator.impossibleCodeInstruction())
+			}
+			manifest.agglomerateSynonym(
+				originalWrite.semanticValues() + existing,
+				newRestriction)
+			return
+		}
+		manifest.agglomerateSynonym(
+			originalWrite.semanticValues(),
+			originalWrite.restriction())
+		manifest.recordPostponedInstruction(
+			originalWrite.pickSemanticValue(),
+			clone().apply {
+				writeOperands[0].retroactivelySetSemanticValues(emptySet())
+			})
+	}
+
+	/**
 	 * After transformation, analyze and optionally rewrite this instruction.
-	 * Read operands have already been strengthened via manifest intersection.
 	 *
 	 * The typical pattern:
 	 * 1. Strengthen write restrictions based on read restrictions,
@@ -1153,7 +1140,7 @@ constructor() :
 		if (targetEdges.size > 1 &&
 			destinationRegisters.all { writeReg ->
 				targetEdges.all { edge ->
-					writeReg in edge.alwaysLiveInEntities!!
+					writeReg in edge.liveness!!.alwaysLiveInRegisters
 				}
 			})
 		{
@@ -1202,8 +1189,10 @@ constructor() :
 		// move it to that write's destinations, eliding the sourceInstruction.
 		val semanticValues = write.semanticValues()
 		val unpopulated = semanticValues
-			.filterNotTo(mutableSetOf(), currentManifest::isPopulated)
-		val constantSource = semanticValues.find(L2SemanticValue<*>::isConstant)
+			.filterNotTo(mutableSetOf()) {
+				currentManifest.isPopulated(it, write.kind)
+			}
+		val constantSource = semanticValues.find(L2SemanticValue::isConstant)
 		val constant =
 			constantSource?.constant ?: write.restriction().constantOrNull
 		if (constant != null)
@@ -1217,7 +1206,7 @@ constructor() :
 			return true
 		}
 		val possibleSources = semanticValues.mapNotNull {
-			currentManifest.equivalentPopulatedSemanticValue(it)
+			currentManifest.equivalentPopulatedSemanticValue(it, write.kind)
 		}
 		if (possibleSources.isEmpty()) return false
 		if (unpopulated.isEmpty())
@@ -1236,7 +1225,7 @@ constructor() :
 			}.toList()
 			for (i in 1 ..< synonymRepresentatives.size)
 			{
-				currentManifest.dynamicMergeExistingSemanticValues(
+				currentManifest.mergeExistingSemanticValues(
 					synonymRepresentatives[0],
 					synonymRepresentatives[i])
 			}
@@ -1253,9 +1242,9 @@ constructor() :
 					currentManifest,
 					write.restriction())
 
-			else -> +constantSource.kind.moveConstant(
+			else -> +write.kind.moveConstant(
 				constantSource.constant!!,
-				currentManifest.getDefinitionOrNull(constantSource)
+				currentManifest.getDefinitionOrNull(constantSource, write.kind)
 					?.let { unpopulated }
 					?: (unpopulated + constantSource))
 		}
@@ -1324,11 +1313,12 @@ constructor() :
 	 */
 	open fun replaceConstantReads(
 		generator: L2GeneratorInterface,
-		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
-	{
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue>
+	): Unit = generator.run {
 		// Note: We have to run this against all readOperands, so don't replace
 		// the count{} with any{}, which short-circuits.
-		if (readOperands.count(L2ReadOperand<*>::replaceIfConstantRead) > 0)
+		if (readOperands
+			.count { it.replaceIfConstantRead() } > 0)
 		{
 			// Rebuild the sourceRegisters list if anything changed.
 			sourceRegisters.clear()
@@ -1336,6 +1326,95 @@ constructor() :
 				operand.addSourceRegistersTo(sourceRegisters)
 			}
 		}
+	}
+
+	/**
+	 * Answer the [TypeRestriction] that this instruction's sole write operand
+	 * is guaranteed to satisfy, given the [TypeRestriction]s that its read
+	 * operands are now known to satisfy.  The default is to claim nothing
+	 * beyond what the write operand already says.
+	 *
+	 * Operations whose output type is a function of their input types should
+	 * override this, and should compute the answer with the *same* helper that
+	 * their [emitTransformedInstruction] uses, so that the eager narrowing
+	 * performed by [narrowedForManifest] cannot drift from what is ultimately
+	 * emitted.
+	 *
+	 * @param readRestrictions
+	 *   The [TypeRestriction]s of this instruction's [readOperands], in order.
+	 * @return
+	 *   The implied [TypeRestriction] for the sole write operand.
+	 */
+	open fun impliedWriteRestriction(
+		readRestrictions: List<TypeRestriction>
+	): TypeRestriction = writeOperands.single().restriction()
+
+	/**
+	 * This instruction's [writeOperands] is singular.  Narrow its restriction
+	 * to conform with the manifest's entry for the write, which must be
+	 * present.  This instruction must not be postponed, and therefore must have
+	 * semantic values present in its write.
+	 *
+	 * This **mutates the receiver**, so it must only ever be sent to an
+	 * instruction that is not shared.  In particular, a postponed instruction
+	 * held in a [L2ValueManifest] is reachable from every manifest descended
+	 * from the one that recorded it – including both outbound edges of a
+	 * branch, where the narrowings are contradictory – so a postponed
+	 * instruction must be cloned before being refreshed.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] supplying the current restrictions.
+	 */
+	fun refreshRestrictionsFrom(manifest: L2ValueManifest)
+	{
+		if (!manifest.caresAboutSemanticValues) return
+		if (altersControlFlow) return
+		if (writeOperands.size != 1) return
+		val write = writeOperands.single()
+		assert(write.semanticValues().isNotEmpty())
+		write.restrict {
+			manifest.restrictionFor(write.pickSemanticValue())
+		}
+	}
+
+	/**
+	 * This instruction is currently postponed in the given [L2ValueManifest],
+	 * and something it reads may since have been narrowed.  If any of its write
+	 * operands can be strengthened, answer a clone with the tighter restriction
+	 * for those writes, otherwise answer `null` to indicate that nothing
+	 * changed.
+	 *
+	 * The receiver is never modified, since postponed instructions are shared
+	 * between manifests – see [refreshRestrictionsFrom].
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] in which this instruction is postponed.
+	 * @return
+	 *   A narrowed clone, or `null` if no read was narrowed.
+	 */
+	open fun narrowedForManifest(
+		manifest: L2ValueManifest,
+		synonym: L2Synonym
+	): L2Instruction? = manifest.run {
+		val write = writeOperands.single()
+		// It's a postponed instruction.
+		assert(write.semanticValues().isEmpty())
+		if (!manifest.caresAboutSemanticValues) return null
+
+		// Check if any read has been narrowed to a constant. If so, or if any
+		// read's restriction is strictly stronger than what we'd expect for a
+		// non-specialized read, return a clone for re-emission and specialization.
+		// If a read's semantic value doesn't exist in this manifest, it hasn't been
+		// generated in this control path yet, so check only its own constant.
+		val anyConstantRead = readOperands.any { read ->
+			val sv = read.semanticValue()
+			if (sv.isConstant) return@any true
+			val equivalent = equivalentSemanticValue(sv)
+			equivalent != null && stateOrNull(equivalent)?.restriction?.isConstant == true
+		}
+		if (!anyConstantRead) return null
+
+		return clone()
 	}
 
 	/**
@@ -1357,7 +1436,7 @@ constructor() :
 	 *   `true` if a replacement was made, otherwise `false`.
 	 */
 	open fun L2ValueManifest.rewritePostponed(
-		synonym: L2Synonym<*>
+		synonym: L2Synonym
 	): Boolean = false
 
 	/**
@@ -1396,21 +1475,9 @@ constructor() :
 			// If we already have a live value for each of the *writes* of this
 			// instruction, we can elide the instruction and write extending
 			// moves instead.
-			val liveWriteRepresentatives = writeOperands.map { write ->
-				write to
-					write.semanticValues()
-						.filter(currentManifest::hasLiveSemanticValue)
-			}
-			if (liveWriteRepresentatives.all { (_, reps) -> reps.isNotEmpty() })
-			{
-				// We have an assigned semantic value from each of the write
-				// operands.  Generate extending moves as needed, and omit the
-				// redundant postponed instruction.
-				liveWriteRepresentatives.forEach { (write, reps) ->
-					val notYetAssigned = write.semanticValues() - reps
-					moveRegister(reps.first(), notYetAssigned.cast())
-				}
-				return
+			writeOperands.forEach { write ->
+				currentManifest.agglomerateSynonym(
+					write.semanticValues(), write.restriction())
 			}
 		}
 		// At least one write didn't have a semantic value already populated (or
@@ -1418,10 +1485,16 @@ constructor() :
 		// instruction.  Emit any necessary predecessors first.
 		readOperands.forEach { read ->
 			currentManifest.check() //TODO Remove
-			forceTranslationForRead(read.semanticValue())
+			forceTranslationForRead(read.semanticValue(), read.kind)
 			currentManifest.check() //TODO Remove
 		}
 		cloneFor(this).run {
+			// The operands were captured when this instruction was postponed,
+			// possibly above branches that have since narrowed what it reads.
+			// Refresh before emitting, so that the operation gets its chance to
+			// specialize or fold against what is known here.  Safe to mutate,
+			// since this is a clone.
+			refreshRestrictionsFrom(currentManifest)
 			emitTransformedInstruction()
 		}
 	}
@@ -1514,22 +1587,25 @@ constructor() :
 	 * condition to be preserved.  This eliminates extra type tests, unboxing to
 	 * int registers, recomputing stable primitives, etc.
 	 *
+	 * @receiver
+	 *   The [PostPhiData] that's present in the block where this instruction
+	 *   occurs.
 	 * @return A [List] of [L2SplitCondition] to watch for upstream.
 	 */
-	open fun interestingConditions(): List<L2SplitCondition?> = emptyList()
+	open fun PostPhiData.interestingConditions(
+	): List<L2SplitCondition?> = emptyList()
 
 	/**
 	 * Given a [writeOperand] from this instruction, and a [restriction] that is
-	 * an interesting condition for it to satisfy, update the [tracer] to ensure
-	 * any ancestor values will be traced, but perhaps with a transformed
-	 * restriction.  The transformation can be boxing/unboxing, mapping from a
-	 * [TypeTag]'s numerical restriction to a restriction on the underlying
-	 * value's suprema, etc.
+	 * an interesting condition for it to satisfy, update the
+	 * [RestrictionTracer] to ensure any ancestor values will be traced, but
+	 * perhaps with a transformed restriction.  The transformation can be
+	 * boxing/unboxing, mapping from a [TypeTag]'s numerical restriction to a
+	 * restriction on the underlying value's suprema, etc.
 	 */
-	open fun traceCandidateSplitConditions(
+	open fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
-		restriction: TypeRestriction,
-		tracer: RestrictionTracer)
+		restriction: TypeRestriction)
 	{
 		// Do nothing by default.
 	}
@@ -1705,7 +1781,7 @@ constructor() :
 	{
 		val instruction = this
 		instruction.readsThatMightDestroy.forEach { read ->
-			if (read.restriction().isImmutable) return@forEach
+			if (read.isImmutableForEmittedInstruction()) return@forEach
 			val readReg = read.register()
 			val pair = firstUses[readReg]
 			when
@@ -1723,7 +1799,8 @@ constructor() :
 				{
 					// Record this first use of a mutable.
 					firstUses[readReg] =
-						basicBlock!!.instructions().indexOf(this) to read
+						basicBlock!!.instructions().indexOf(instruction) to
+							read
 				}
 			}
 		}
@@ -1740,9 +1817,9 @@ constructor() :
 	 * An [L2Synonym] is also captured.  This is the synonym that would be
 	 * populated by the postponed instruction.
 	 */
-	class InstructionEquivalence(
+	data class InstructionEquivalence(
 		val instruction: L2Instruction,
-		val synonym: L2Synonym<*>)
+		val synonym: L2Synonym)
 	{
 		/** Cache the instruction's [equivalentHash] upon creation. */
 		private val cachedHash =
@@ -1757,5 +1834,12 @@ constructor() :
 		override fun hashCode(): Int = cachedHash
 
 		override fun toString(): String = "EQ($instruction for $synonym)"
+
+		/**
+		 * The instruction must write only one value, so we can ask its write
+		 * operand to tell us the kind of value it produces.
+		 */
+		val kind: RegisterKind<*> get() =
+			instruction.writeOperands.single().kind
 	}
 }

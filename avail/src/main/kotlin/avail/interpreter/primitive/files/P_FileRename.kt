@@ -86,11 +86,11 @@ import java.nio.file.StandardCopyOption
 @Suppress("unused")
 object P_FileRename : PrimitiveN(6, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attemptN(
+	override fun attemptN(
+		interpreter: Interpreter,
 		args: Array<AvailObject>
-	): A_BasicObject?
-	{
-		assert(args.size == 6)
+	): A_BasicObject? = interpreter.run {
+		checkArgumentCount(6)
 		val source = args[0]
 		val destination = args[1]
 		val replaceExisting = args[2]

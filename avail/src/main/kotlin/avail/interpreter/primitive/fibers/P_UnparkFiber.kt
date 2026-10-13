@@ -70,32 +70,30 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_UnparkFiber : Primitive1(CannotFail, CanInline, HasSideEffect)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val fiber = arg1
-		with(fiber) {
-			lock {
-				// Restore the permit. If the fiber is parked, then unpark it.
-				getAndSetSynchronizationFlag(PERMIT_AVAILABLE, true)
-				when (executionState) {
-					PARKED ->
-					{
-						// Wake up the fiber.
-						executionState = SUSPENDED
-						val suspendingPrimitive =
-							suspendingFunction.code().codePrimitive()!!
-						assert(
-							suspendingPrimitive === P_ParkCurrentFiber
-								|| suspendingPrimitive === P_AttemptJoinFiber)
-						runtime.resumeFromSuccessfulPrimitive(
-							fiber, suspendingPrimitive, nil)
-					}
-					else -> {
-						// Save the permit for next time.
-						getAndSetSynchronizationFlag(PERMIT_AVAILABLE, true)
-					}
+	override fun attempt1(
+		interpreter: Interpreter,
+		fiber: AvailObject
+	): A_BasicObject? = interpreter.run {
+		fiber.lock {
+			// Restore the permit. If the fiber is parked, then unpark it.
+			fiber.getAndSetSynchronizationFlag(PERMIT_AVAILABLE, true)
+			when (fiber.executionState) {
+				PARKED ->
+				{
+					// Wake up the fiber.
+					fiber.executionState = SUSPENDED
+					val suspendingPrimitive =
+						fiber.suspendingFunction.code().codePrimitive()!!
+					assert(
+						suspendingPrimitive === P_ParkCurrentFiber
+							|| suspendingPrimitive === P_AttemptJoinFiber)
+					runtime.resumeFromSuccessfulPrimitive(
+						fiber, suspendingPrimitive, nil)
+				}
+				else ->
+				{
+					// Save the permit for next time.
+					fiber.getAndSetSynchronizationFlag(PERMIT_AVAILABLE, true)
 				}
 			}
 		}

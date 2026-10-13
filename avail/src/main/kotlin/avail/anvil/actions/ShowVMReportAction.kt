@@ -40,7 +40,7 @@ import java.util.EnumSet
 import javax.swing.Action
 
 /**
- * A `ReportAction` dumps performance information obtained from running.
+ * A [ShowVMReportAction] dumps performance information obtained from running.
  *
  * @constructor
  * Construct a new [ShowVMReportAction].

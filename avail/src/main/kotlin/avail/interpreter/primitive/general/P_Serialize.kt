@@ -59,11 +59,10 @@ import java.io.ByteArrayOutputStream
 @Suppress("unused")
 object P_Serialize : Primitive1(CanInline)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val value = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		value: AvailObject
+	): A_BasicObject? = interpreter.run {
 		val out = ByteArrayOutputStream(100)
 		val serializer = Serializer(out)
 		try

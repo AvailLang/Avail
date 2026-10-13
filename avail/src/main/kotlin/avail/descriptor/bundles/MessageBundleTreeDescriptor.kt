@@ -51,13 +51,13 @@ import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.A_Bundle
 import avail.descriptor.representation.A_Bundle.Companion.grammaticalRestrictions
 import avail.descriptor.representation.A_Bundle.Companion.messagePart
 import avail.descriptor.representation.A_BundleTree
 import avail.descriptor.representation.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.representation.A_BundleTree.Companion.allParsingPlansInProgress
-import avail.descriptor.representation.A_BundleTree.Companion.expand
 import avail.descriptor.representation.A_BundleTree.Companion.hasBackwardJump
 import avail.descriptor.representation.A_BundleTree.Companion.isSourceOfCycle
 import avail.descriptor.representation.A_BundleTree.Companion.latestBackwardJump
@@ -125,7 +125,7 @@ import avail.dispatch.TypeComparison.Companion.compareForParsing
 import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.performance.Statistic
 import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.utility.Strings.newlineTab
@@ -691,7 +691,7 @@ class MessageBundleTreeDescriptor private constructor(
 				lazyTypeFilterTree = ParserTypeChecker.createRoot(
 					toList(lazyTypeFilterPairsTuple),
 					listOf(
-						boxedRestrictionForType(PARSE_PHRASE.mostGeneralType)),
+						restrictionForType(PARSE_PHRASE.mostGeneralType)),
 					latestBack)
 			}
 			// Do this volatile write last for correctness.

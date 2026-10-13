@@ -53,14 +53,11 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SetIsSubset : Primitive2(CannotFail, CanFold, CanInline)
 {
-	override fun Interpreter.attempt2(
-		arg1: AvailObject,
-		arg2: AvailObject
-	): A_BasicObject?
-	{
-		val set1 = arg1
-		val set2 = arg2
-
+	override fun attempt2(
+		interpreter: Interpreter,
+		set1: AvailObject,
+		set2: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return objectFromBoolean(set1.isSubsetOf(set2))
 	}
 

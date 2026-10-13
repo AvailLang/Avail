@@ -828,9 +828,7 @@ private constructor(
 
 		/** Access the method [tupleTypeForTypes]. */
 		val tupleTypesForTypesArrayMethod = staticMethod(
-			TupleTypeDescriptor::class.java,
-			::tupleTypeForTypes.name,
-			A_Type::class.java,
+			::tupleTypeForTypes,
 			Array<A_Type>::class.java)
 
 		/**
@@ -853,9 +851,7 @@ private constructor(
 		/** Access the method [tupleTypeForTypes]. */
 		@Suppress("unused")
 		val tupleTypesForTypesListMethod = staticMethod(
-			TupleTypeDescriptor::class.java,
-			::tupleTypeForTypesList.name,
-			A_Type::class.java,
+			::tupleTypeForTypesList,
 			MutableList::class.java)
 
 		/**

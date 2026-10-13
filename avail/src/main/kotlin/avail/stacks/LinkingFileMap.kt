@@ -63,7 +63,8 @@ class LinkingFileMap
 	/**
 	 * The map containing categories.  Keyed by name to description.
 	 */
-	val categoryMethodList = mutableMapOf<String, MutableList<Pair<String, String>>>()
+	val categoryMethodList =
+		mutableMapOf<String, MutableList<Pair<String, String>>>()
 
 	/**
 	 * A map of aliases to file links.
@@ -196,13 +197,13 @@ class LinkingFileMap
 				jsonWriter.write(key)
 				jsonWriter.write("methods")
 				jsonWriter.startArray()
-				for (pair in pairs)
+				for ((first, second) in pairs)
 				{
-					val distinct = pair.first + pair.second
-					val relativeLink = pair.second.substring(1)
+					val distinct = first + second
+					val relativeLink = second.substring(1)
 					jsonWriter.startObject()
 					jsonWriter.write("methodName")
-					jsonWriter.write(pair.first)
+					jsonWriter.write(first)
 					jsonWriter.write("link")
 					jsonWriter.write(relativeLink)
 					jsonWriter.write("distinct")

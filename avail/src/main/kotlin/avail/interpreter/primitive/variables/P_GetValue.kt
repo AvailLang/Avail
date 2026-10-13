@@ -50,10 +50,11 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
+import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -68,13 +69,17 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * mutable anyhow, only the second case requires any real work.
  */
 @Suppress("unused")
-object P_GetValue : Primitive1(CanInline, HasSideEffect)
+object P_GetValue : Primitive1(
+	CanInline,
+	HasSideEffect,
+	// If the variable had a reactor, reading it can activate that reactor,
+	// which might cause a variable captured in it to become shared.
+	MightMakeEscapedVariableShared)
 {
-	override fun Interpreter.attempt1(
-		arg1: AvailObject
-	): A_BasicObject?
-	{
-		val variable = arg1
+	override fun attempt1(
+		interpreter: Interpreter,
+		variable: AvailObject
+	): A_BasicObject? = interpreter.run {
 		return try
 		{
 			if (traceVariableReadsBeforeWrites())
@@ -88,14 +93,6 @@ object P_GetValue : Primitive1(CanInline, HasSideEffect)
 			fail(e.errorCode)
 		}
 	}
-
-	/**
-	 * If the variable had a reactor, reading it can activate that reactor,
-	 * which might cause a variable captured in it to become shared.
-	 */
-	override fun mightMakeEscapedVariableShared(
-		argumentTypes: List<A_Type>
-	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
@@ -121,14 +118,14 @@ object P_GetValue : Primitive1(CanInline, HasSideEffect)
 	): Boolean
 	{
 		val varReg = arguments[0]
-		val varType = varReg.type()
+		val varType = varReg.type
 		val varInnerType = varType.readType
 
 		val success = createBasicBlock("get value success")
 		val failure = createBasicBlock("get value failure/observe")
 		val extractedValue = boxedWriteTemp(
 			"extracted",
-			boxedRestrictionForType(varInnerType))
+			restrictionForType(varInnerType))
 		// Emit the get-variable instruction.
 		+L2_GET_VARIABLE(
 			varReg,

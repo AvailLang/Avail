@@ -39,7 +39,7 @@ import java.lang.String.format
 import javax.swing.Action
 
 /**
- * A `CleanAction` empties all compiled module repositories.
+ * A [CleanAction] empties all compiled module repositories.
  *
  * @constructor
  * Construct a new `CleanAction`.

@@ -57,6 +57,7 @@ import avail.descriptor.fiber.FiberDescriptor.FiberKind
 import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_Character.Companion.isCharacter
 import avail.descriptor.representation.A_Continuation
@@ -359,6 +360,7 @@ class AvailDebugger internal constructor (
 			is AvailObject -> v.nameForDebugger()
 			is AvailObjectFieldHelper -> v.nameForDebugger()
 			is AvailIntegerValueHelper -> v.longValue.toString()
+			is String -> "String (${v.length})"
 			else -> "unknown(${v.javaClass.simpleName})"
 		}
 

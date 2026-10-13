@@ -87,14 +87,6 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSi
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.createSubrange
 import avail.descriptor.tuples.SubrangeTupleDescriptor.Companion.minSubrangeSize
-import avail.descriptor.tuples.TupleDescriptor.Companion.preToggle
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticAppendToTuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticConcatenateTuples
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleAt
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCodepointAt
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleCopyFromTo
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleIntAt
-import avail.descriptor.tuples.TupleDescriptor.Companion.staticTupleSize
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
@@ -105,6 +97,7 @@ import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.AvailException
+import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1525,7 +1518,7 @@ protected constructor(
 		 *   The Java type of the elements.
 		 */
 		fun <X : A_BasicObject?> toList(tuple: A_Tuple): MutableList<X> =
-			tuple.toMutableList() as MutableList<X>
+			tuple.toMutableList().cast()
 
 		/**
 		 * Construct an [array][AvailObject] from the specified [A_Tuple]. The
@@ -1726,9 +1719,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticAppendToTuple]. */
 		val appendToTupleMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticAppendToTuple.name,
-			A_Tuple::class.java,
+			::staticAppendToTuple,
 			A_Tuple::class.java,
 			A_BasicObject::class.java)
 
@@ -1752,9 +1743,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
 		val concatenateTupleMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticConcatenateTuples.name,
-			A_Tuple::class.java,
+			::staticConcatenateTuples,
 			A_Tuple::class.java,
 			A_Tuple::class.java)
 
@@ -1775,11 +1764,9 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleAt.name,
-			AvailObject::class.java,
+			::staticTupleAt,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the specified [Int] element of the tuple.
@@ -1799,11 +1786,9 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleIntAt]. */
 		val tupleIntAtMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleIntAt.name,
-			Int::class.javaPrimitiveType!!,
+			::staticTupleIntAt,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the codepoint [Int] of the character element of the tuple.
@@ -1825,11 +1810,9 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleCodepointAt]. */
 		val tupleCodePointAtMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleCodepointAt.name,
-			Int::class.javaPrimitiveType!!,
+			::staticTupleCodepointAt,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!)
+			int)
 
 		/**
 		 * Answer the specified elements of the tuple as another tuple.
@@ -1854,12 +1837,10 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleCopyFromTo]. */
 		val tupleCopyFromToMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleCopyFromTo.name,
-			AvailObject::class.java,
+			::staticTupleCopyFromTo,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!)
+			int,
+			int)
 
 		/**
 		 * Replace the specified element of the tuple, destructively if it's
@@ -1885,11 +1866,9 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtPuttingMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleAtPutting.name,
-			AvailObject::class.java,
+			::staticTupleAtPutting,
 			A_Tuple::class.java,
-			Int::class.javaPrimitiveType!!,
+			int,
 			A_BasicObject::class.java)
 
 		/**
@@ -1904,9 +1883,7 @@ protected constructor(
 
 		/** The [CheckedMethod] for [staticTupleSize]. */
 		val tupleSizeMethod = staticMethod(
-			TupleDescriptor::class.java,
-			::staticTupleSize.name,
-			Int::class.javaPrimitiveType!!,
+			::staticTupleSize,
 			A_Tuple::class.java)
 	}
 }
