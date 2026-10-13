@@ -352,7 +352,7 @@ constructor() :
 	open val hasSideEffect get() = false
 
 	open val canBePostponed: Boolean
-		get() = false //TODO:  !hasSideEffect && layout.hasSingleWriteOperand
+		get() = !hasSideEffect && layout.hasSingleWriteOperand
 
 	/**
 	 * Answer whether, upon discovering all edges out of this instruction but

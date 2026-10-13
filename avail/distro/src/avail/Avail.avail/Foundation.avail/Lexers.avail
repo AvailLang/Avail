@@ -142,7 +142,7 @@ radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
  *          conforming to a single {@type "integer"} {@type "literal token"}.
  */
 Lexer $"explicit radix integer lexer"
-when [c : character | c ∈ radixIntegerAlphabet]
+when [c : character | c ∈ radixIntegerAlphabetSet]
 is
 [
 	source : string,

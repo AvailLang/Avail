@@ -96,8 +96,8 @@ internal enum class OptimizationPhase constructor(
 	 *
 	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	// @Requires(IS_SSA::class)
-	// DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
+	 @Requires(IS_SSA::class)
+	 DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -113,8 +113,8 @@ internal enum class OptimizationPhase constructor(
 	 *
 	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	// POSTPONE_CONDITIONALLY_USED_VALUES_1(
-	// 	L2Optimizer::postponeConditionallyUsedValues),
+	 POSTPONE_CONDITIONALLY_USED_VALUES_1(
+	 	L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Postponing conditionally used values can introduce idempotent
@@ -131,8 +131,8 @@ internal enum class OptimizationPhase constructor(
 	 *
 	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	// @Requires(IS_SSA::class)
-	// DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
+	 @Requires(IS_SSA::class)
+	 DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -148,8 +148,8 @@ internal enum class OptimizationPhase constructor(
 	 *
 	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	// POSTPONE_CONDITIONALLY_USED_VALUES_2(
-	// 	L2Optimizer::postponeConditionallyUsedValues),
+	 POSTPONE_CONDITIONALLY_USED_VALUES_2(
+	 	L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
@@ -177,8 +177,8 @@ internal enum class OptimizationPhase constructor(
 	 *
 	 * DEBUGGING: Disabled to test for control flow issues.
 	 */
-	// POSTPONE_CONDITIONALLY_USED_VALUES_3(
-	// 	L2Optimizer::postponeConditionallyUsedValues),
+	 POSTPONE_CONDITIONALLY_USED_VALUES_3(
+	 	L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in

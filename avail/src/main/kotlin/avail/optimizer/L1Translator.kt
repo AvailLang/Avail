@@ -2673,7 +2673,7 @@ class L1Translator private constructor(
 	companion object
 	{
 		/** Feature flag to enable/disable variable elision optimization. */
-		const val enableVariableElision = false
+		const val enableVariableElision = true
 
 		/**
 		 * Determine if the given [A_RawFunction]'s instantiations as
