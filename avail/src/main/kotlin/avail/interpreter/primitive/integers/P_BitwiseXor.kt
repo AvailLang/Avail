@@ -67,7 +67,6 @@ import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.notNullAnd
 import kotlin.math.min
 
@@ -159,7 +158,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 			// x ⊕ x = 0
 			currentManifest.isEquivalentSemanticValue(
 				x.semanticValue(), y.semanticValue()
-			) -> move(constant(zero), result.semanticValues())
+			) -> moveConstant(zero, result.semanticValues())
 			else -> emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 		}
 	}

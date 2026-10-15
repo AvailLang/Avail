@@ -47,7 +47,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Answer the [hash][A_BasicObject.hash] of the specified value.
@@ -64,8 +63,8 @@ class L2_HASH(
 	{
 		value.constantOrNull?.let { constant ->
 			// Hash the constant now.
-			move(
-				constant(constant.hash()),
+			moveConstant(
+				constant.hash(),
 				hash.semanticValues())
 			return null
 		}

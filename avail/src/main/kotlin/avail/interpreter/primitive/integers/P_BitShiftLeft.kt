@@ -78,7 +78,6 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.notNullAnd
 
 /**
@@ -228,8 +227,8 @@ object P_BitShiftLeft : Primitive2(CanFold, CanInline)
 				outputType.lowerBound.equals(outputType.upperBound) ->
 				{
 					// The resulting value is known precisely.
-					move(
-						constant(outputType.lowerBound.extractInt),
+					moveConstant(
+						outputType.lowerBound.extractInt,
 						intWrite.semanticValues())
 				}
 				intA.type.isSubtypeOf(inclusive(-1, 0)) ||

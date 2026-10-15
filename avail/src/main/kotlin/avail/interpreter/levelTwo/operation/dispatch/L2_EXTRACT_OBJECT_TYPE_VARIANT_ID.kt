@@ -47,7 +47,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Extract the [ObjectLayoutVariant] of the given object type, then extract its
@@ -82,8 +81,8 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectTypeVariant
-			move(
-				constant(variant.variantId),
+			moveConstant(
+				variant.variantId,
 				variantId.semanticValues())
 			return
 		}

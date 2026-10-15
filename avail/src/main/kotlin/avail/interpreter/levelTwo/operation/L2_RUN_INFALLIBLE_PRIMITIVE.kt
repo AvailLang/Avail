@@ -55,7 +55,6 @@ import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -221,8 +220,8 @@ private constructor(
 			{
 				// This invocation is now known to produce a constant that can
 				// be folded.  Generate a constant move instead.
-				move(
-					constant(constant),
+				moveConstant(
+					constant,
 					strongerResult.semanticValues())
 				return
 			}

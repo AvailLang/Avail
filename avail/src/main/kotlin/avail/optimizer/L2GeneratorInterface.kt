@@ -267,6 +267,33 @@ interface L2GeneratorInterface : L2Visualizable
 		sourceSemanticValue: L2SemanticValue,
 		targetSemanticValues: Iterable<L2SemanticValue>)
 
+
+	/**
+	 * Ensure the [targetSemanticValues] will get the specified constant value
+	 * moved to them.
+	 *
+	 * @param constant
+	 *   The [A_BasicObject] to move as a constant.
+	 * @param targetSemanticValues
+	 *   Which [L2SemanticValue]s will be assigned the constant.
+	 */
+	fun moveConstant(
+		constant: A_BasicObject,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+
+	/**
+	 * Ensure the [targetSemanticValues] will get the specified constant integer
+	 * moved to them.
+	 *
+	 * @param integer
+	 *   The [Int] to move as a constant.
+	 * @param targetSemanticValues
+	 *   Which [L2SemanticValue]s will be assigned the constant.
+	 */
+	fun moveConstant(
+		integer: Int,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+
 	/**
 	 * Write instructions to extract the current function, and answer an
 	 * [L2ReadBoxedOperand] for the register that will hold the function

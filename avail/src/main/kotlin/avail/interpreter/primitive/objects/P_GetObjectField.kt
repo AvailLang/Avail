@@ -70,7 +70,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * **Primitive:** Extract the specified [field][AtomDescriptor] from the
@@ -157,7 +156,7 @@ object P_GetObjectField : Primitive2(CanFold, CanInline)
 		}
 		objectRead.constantOrNull?.let { exactObject ->
 			val fieldValue = exactObject.fieldAt(fieldAtom)
-			move(constant(fieldValue), result.semanticValues())
+			moveConstant(fieldValue, result.semanticValues())
 			return
 		}
 		val objectType = objectRead.type

@@ -81,7 +81,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.utility.notNullAnd
 
@@ -239,7 +238,7 @@ object P_Addition : Primitive2(CanFold, CanInline)
 			try
 			{
 				val sum = resultType.lowerBound
-				move(constant(sum), result.semanticValues())
+				moveConstant(sum, result.semanticValues())
 				return
 			}
 			catch (e: ArithmeticException)

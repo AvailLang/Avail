@@ -127,8 +127,8 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 			// which is not available during folding.
 			constant !== null ->
 			{
-				move(
-					constant(constant.fieldAt(fieldAtom)),
+				moveConstant(
+					constant.fieldAt(fieldAtom),
 					setOf(semanticFieldValue))
 			}
 
@@ -136,8 +136,8 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 				&& !fieldType.isInstanceMeta
 				&& fieldType.instanceCount.equalsInt(1) ->
 			{
-				move(
-					constant(fieldType.instance),
+				moveConstant(
+					fieldType.instance,
 					setOf(semanticFieldValue))
 			}
 

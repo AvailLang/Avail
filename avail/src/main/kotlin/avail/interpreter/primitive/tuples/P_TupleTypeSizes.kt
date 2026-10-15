@@ -57,10 +57,10 @@ import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.PostPhiData
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
@@ -90,9 +90,7 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 		{
 			// The tuple type is necessrily bottom, so the size range is also
 			// bottom.
-			move(
-				constant(bottom),
-				result.semanticValues())
+			moveConstant(bottom, result.semanticValues())
 			return
 		}
 		val sizeRange = tupleMetaRestriction.type.instance.sizeRange

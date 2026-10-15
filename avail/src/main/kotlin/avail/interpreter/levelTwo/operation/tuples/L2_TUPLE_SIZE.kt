@@ -44,7 +44,6 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.primitive.tuples.P_TupleSize
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Answer the [size][tupleSize] of the specified [tuple][A_Tuple].
@@ -83,8 +82,8 @@ class L2_TUPLE_SIZE(
 		tupleSize.restrict { intersectionWithType(sizeType) }
 		assert(!tupleSize.restriction().isImpossible)
 		tupleSize.restriction().constantOrNull?.let { exactSize ->
-			move(
-				constant(exactSize),
+			moveConstant(
+				exactSize,
 				tupleSize.semanticValues())
 			return null
 		}

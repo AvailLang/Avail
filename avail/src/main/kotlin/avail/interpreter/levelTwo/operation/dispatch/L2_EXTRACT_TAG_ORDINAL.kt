@@ -46,13 +46,12 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Extract the [TypeTag] of the given object, then extract its
@@ -121,8 +120,8 @@ constructor (
 				.firstOrNull(currentManifest::hasSemanticValue)
 			when (existingValue)
 			{
-				null -> move(
-					constant(exactTag.ordinal),
+				null -> moveConstant(
+					exactTag.ordinal,
 					tagOrdinal.semanticValues())
 				else ->
 				{

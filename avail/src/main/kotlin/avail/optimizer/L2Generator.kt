@@ -815,6 +815,24 @@ constructor(
 			currentManifest.restrictionFor(sourceSemanticValue))
 	}
 
+	override fun moveConstant(
+		constant: A_BasicObject,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+	{
+		move(
+			constant(constant),
+			targetSemanticValues)
+	}
+
+	override fun moveConstant(
+		integer: Int,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+	{
+		move(
+			constant(integer),
+			targetSemanticValues)
+	}
+
 	override fun createTuple(
 		elements: List<L2ReadBoxedOperand>
 	): L2ReadBoxedOperand

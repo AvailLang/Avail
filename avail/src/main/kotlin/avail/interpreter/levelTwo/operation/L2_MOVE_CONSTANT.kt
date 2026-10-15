@@ -207,8 +207,8 @@ constructor(
 		synonym: L2Synonym,
 		index: Int,
 		destinationSemanticValues: Set<L2SemanticValue>
-	): Unit = move(
-		constant(constant().constant.tupleAt(index)),
+	): Unit = moveConstant(
+		constant().constant.tupleAt(index),
 		destinationSemanticValues)
 
 	override fun propagateMutability(
