@@ -107,7 +107,7 @@ interface A_Module : A_BasicObject
 		 *   If the [module][A_Module] is already closed.
 		 */
 		@Throws(AvailRuntimeException::class)
-		fun A_Module.addImportedNames(trueNames: A_Set) =
+		fun A_Module.addImportedNames(trueNames: Iterable<A_Atom>) =
 			dispatch { o_AddImportedNames(it, trueNames) }
 
 		/**
@@ -137,8 +137,65 @@ interface A_Module : A_BasicObject
 		 *   If the [module][A_Module] is already closed.
 		 */
 		@Throws(AvailRuntimeException::class)
-		fun A_Module.addPrivateNames(trueNames: A_Set) =
+		fun A_Module.addPrivateNames(trueNames: Iterable<A_Atom>) =
 			dispatch { o_AddPrivateNames(it, trueNames) }
+
+		/**
+		 * Get an array of all atoms (from imported and private names) with the
+		 * given string name, without constructing intermediate [A_Map] objects.
+		 *
+		 * @param stringName
+		 *   The string name to look up.
+		 * @return
+		 *   An array of all atoms with that name.
+		 */
+		fun A_Module.atomsForStringName(
+			stringName: A_String
+		): Array<AvailObject> =
+			dispatch { o_AtomsForStringName(it, stringName) }
+
+		/**
+		 * Get an array of private atoms with the given string name, without
+		 * constructing an intermediate [A_Map] object. Used during deserialization
+		 * to look up atoms that were created in the current module.
+		 *
+		 * @param stringName
+		 *   The string name to look up.
+		 * @return
+		 *   An array of private atoms with that name (empty if none).
+		 */
+		fun A_Module.privateAtomsForStringName(
+			stringName: A_String
+		): Array<AvailObject> =
+			dispatch { o_PrivateAtomsForStringName(it, stringName) }
+
+		/**
+		 * Execute the given action with access to the imported names map, holding
+		 * the read lock for the module. The action cannot be executed after this
+		 * method returns; all access must occur within the lambda.
+		 *
+		 * @param action
+		 *   A function that operates on the imported names map.
+		 * @return
+		 *   The result of the action.
+		 */
+		fun <T> A_Module.withImportedNames(
+			action: (Map<A_String, Array<AvailObject>>) -> T
+		): T = dispatch { o_WithImportedNames(it, action) }
+
+		/**
+		 * Execute the given action with access to the private names map, holding
+		 * the read lock for the module. The action cannot be executed after this
+		 * method returns; all access must occur within the lambda.
+		 *
+		 * @param action
+		 *   A function that operates on the private names map.
+		 * @return
+		 *   The result of the action.
+		 */
+		fun <T> A_Module.withPrivateNames(
+			action: (Map<A_String, Array<AvailObject>>) -> T
+		): T = dispatch { o_WithPrivateNames(it, action) }
 
 		/**
 		 * TODO MvG Comment Me!
@@ -253,15 +310,6 @@ interface A_Module : A_BasicObject
 		 */
 		val A_Module.exportedNames: A_Set
 			get() = dispatch { o_ExportedNames(it) }
-
-		/**
-		 * The [map][A_Map] from [strings][A_String] to [atoms][A_Atom] which
-		 * act as true names. The true names are identity-based identifiers that
-		 * prevent or at least clarify name conflicts. Answer only those names
-		 * that have been imported from other modules.
-		 */
-		val A_Module.importedNames: A_Map
-			get() = dispatch { o_ImportedNames(it) }
 
 		/**
 		 * Introduce a new atom into this module.
@@ -379,11 +427,6 @@ interface A_Module : A_BasicObject
 		 *   The map of new names.
 		 */
 		val A_Module.newNames: A_Map get() = dispatch { o_NewNames(it) }
-
-		/**
-		 * Dispatch to the descriptor.
-		 */
-		val A_Module.privateNames: A_Map get() = dispatch { o_PrivateNames(it) }
 
 		/**
 		 * Dispatch to the descriptor.

@@ -220,6 +220,7 @@ import avail.descriptor.representation.A_Module.Companion.addUnloadFunction
 import avail.descriptor.representation.A_Module.Companion.addVariableBinding
 import avail.descriptor.representation.A_Module.Companion.allAncestors
 import avail.descriptor.representation.A_Module.Companion.applyModuleHeader
+import avail.descriptor.representation.A_Module.Companion.atomsForStringName
 import avail.descriptor.representation.A_Module.Companion.buildFilteredBundleTree
 import avail.descriptor.representation.A_Module.Companion.constantBindings
 import avail.descriptor.representation.A_Module.Companion.createLexicalScanner
@@ -227,7 +228,6 @@ import avail.descriptor.representation.A_Module.Companion.entryPoints
 import avail.descriptor.representation.A_Module.Companion.exportedNames
 import avail.descriptor.representation.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.representation.A_Module.Companion.hasAncestor
-import avail.descriptor.representation.A_Module.Companion.importedNames
 import avail.descriptor.representation.A_Module.Companion.introduceNewName
 import avail.descriptor.representation.A_Module.Companion.manifestEntries
 import avail.descriptor.representation.A_Module.Companion.methodDefinitions
@@ -243,7 +243,7 @@ import avail.descriptor.representation.A_Module.Companion.namesIndexRecord
 import avail.descriptor.representation.A_Module.Companion.newNames
 import avail.descriptor.representation.A_Module.Companion.originatingPhraseAtIndex
 import avail.descriptor.representation.A_Module.Companion.phrasePathRecord
-import avail.descriptor.representation.A_Module.Companion.privateNames
+import avail.descriptor.representation.A_Module.Companion.privateAtomsForStringName
 import avail.descriptor.representation.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.representation.A_Module.Companion.removeFrom
 import avail.descriptor.representation.A_Module.Companion.resolveForward
@@ -260,6 +260,8 @@ import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.representation.A_Module.Companion.variableBindings
 import avail.descriptor.representation.A_Module.Companion.versions
 import avail.descriptor.representation.A_Module.Companion.visibleNames
+import avail.descriptor.representation.A_Module.Companion.withImportedNames
+import avail.descriptor.representation.A_Module.Companion.withPrivateNames
 import avail.descriptor.representation.A_Number.Companion.addToDoubleCanDestroy
 import avail.descriptor.representation.A_Number.Companion.addToFloatCanDestroy
 import avail.descriptor.representation.A_Number.Companion.addToInfinityCanDestroy
@@ -994,7 +996,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_AddImportedNames(
 		self: AvailObject,
-		trueNames: A_Set
+		trueNames: Iterable<A_Atom>
 	) = self { addImportedNames(trueNames) }
 
 	override fun o_IntroduceNewName(
@@ -1009,8 +1011,18 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_AddPrivateNames(
 		self: AvailObject,
-		trueNames: A_Set
+		trueNames: Iterable<A_Atom>
 	) = self { addPrivateNames(trueNames) }
+
+	override fun o_AtomsForStringName(
+		self: AvailObject,
+		stringName: A_String
+	): Array<AvailObject> = self { atomsForStringName(stringName) }
+
+	override fun o_PrivateAtomsForStringName(
+		self: AvailObject,
+		stringName: A_String
+	): Array<AvailObject> = self { privateAtomsForStringName(stringName) }
 
 	override fun o_SetBinAddingElementHashLevelCanDestroy(
 		self: AvailObject,
@@ -2292,8 +2304,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
 		self { methodDefinitions }
 
-	override fun o_ImportedNames(self: AvailObject): A_Map =
-		self { importedNames }
+	override fun <T> o_WithImportedNames(
+		self: AvailObject,
+		action: (Map<A_String, Array<AvailObject>>) -> T
+	): T = self { withImportedNames(action) }
 
 	override fun o_NewNames(self: AvailObject): A_Map =
 		self { newNames }
@@ -2328,8 +2342,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_Priority(self: AvailObject): Int =
 		self { priority }
 
-	override fun o_PrivateNames(self: AvailObject): A_Map =
-		self { privateNames }
+	override fun <T> o_WithPrivateNames(
+		self: AvailObject,
+		action: (Map<A_String, Array<AvailObject>>) -> T
+	): T = self { withPrivateNames(action) }
 
 	override fun o_FiberGlobals(self: AvailObject): A_Map =
 		self { fiberGlobals }

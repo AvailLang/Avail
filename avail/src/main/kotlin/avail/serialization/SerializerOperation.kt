@@ -139,7 +139,7 @@ import avail.descriptor.representation.A_Module.Companion.hasAncestor
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleState
 import avail.descriptor.representation.A_Module.Companion.newNames
-import avail.descriptor.representation.A_Module.Companion.privateNames
+import avail.descriptor.representation.A_Module.Companion.privateAtomsForStringName
 import avail.descriptor.representation.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.representation.A_Module.Companion.variableBindings
@@ -3656,18 +3656,12 @@ enum class SerializerOperation constructor(
 			val module = deserializer.moduleNamed(moduleName)
 			val newNames = module.newNames
 			newNames.mapAtOrNull(atomName)?.let { return it }
-			val privateNames = module.privateNames
-			privateNames.mapAtOrNull(atomName)?.let { candidates ->
-				if (candidates.setSize == 1) return candidates.single()
-				if (candidates.setSize > 1)
-				{
-					throw RuntimeException(
-						"Ambiguous atom $atomName in module $module")
-				}
-			}
+			// Look up private atoms directly from mutable structures, avoiding A_Map construction
+			module.privateAtomsForStringName(atomName).singleOrNull()
+				?.let { return it }
 			// This should probably fail more gracefully.
 			throw RuntimeException(
-				"Unknown atom $atomName in module $module")
+				"Ambiguous or missing atom $atomName in module $module")
 		}
 
 		/**

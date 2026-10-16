@@ -1032,11 +1032,23 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_AddImportedName (self: AvailObject, trueName: A_Atom)
 
-	abstract fun o_AddImportedNames (self: AvailObject, trueNames: A_Set)
+	abstract fun o_AddImportedNames (
+		self: AvailObject,
+		trueNames: Iterable<A_Atom>)
 
 	abstract fun o_IntroduceNewName (self: AvailObject, trueName: A_Atom)
 
 	abstract fun o_AddPrivateName (self: AvailObject, trueName: A_Atom)
+
+	abstract fun o_AtomsForStringName (
+		self: AvailObject,
+		stringName: A_String
+	): Array<AvailObject>
+
+	abstract fun o_PrivateAtomsForStringName (
+		self: AvailObject,
+		stringName: A_String
+	): Array<AvailObject>
 
 	abstract fun o_BinElementAt (self: AvailObject, index: Int): AvailObject
 
@@ -2262,7 +2274,10 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_AtomName (self: AvailObject): A_String
 
-	abstract fun o_ImportedNames (self: AvailObject): A_Map
+	abstract fun <T> o_WithImportedNames(
+		self: AvailObject,
+		action: (Map<A_String, Array<AvailObject>>) -> T
+	): T
 
 	abstract fun o_NewNames (self: AvailObject): A_Map
 
@@ -2298,7 +2313,10 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_Priority (self: AvailObject): Int
 
-	abstract fun o_PrivateNames (self: AvailObject): A_Map
+	abstract fun <T> o_WithPrivateNames(
+		self: AvailObject,
+		action: (Map<A_String, Array<AvailObject>>) -> T
+	): T
 
 	abstract fun o_FiberGlobals (self: AvailObject): A_Map
 
@@ -3691,7 +3709,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsAtomSpecial (self: AvailObject): Boolean
 
-	abstract fun o_AddPrivateNames (self: AvailObject, trueNames: A_Set)
+	abstract fun o_AddPrivateNames (
+		self: AvailObject,
+		trueNames: Iterable<A_Atom>)
 
 	abstract fun o_HasValue (self: AvailObject): Boolean
 

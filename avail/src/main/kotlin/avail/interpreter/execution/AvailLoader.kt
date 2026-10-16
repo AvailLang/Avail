@@ -147,17 +147,16 @@ import avail.descriptor.representation.A_Method.Companion.updateStylers
 import avail.descriptor.representation.A_Module
 import avail.descriptor.representation.A_Module.Companion.addPrivateName
 import avail.descriptor.representation.A_Module.Companion.addSeal
+import avail.descriptor.representation.A_Module.Companion.atomsForStringName
 import avail.descriptor.representation.A_Module.Companion.buildFilteredBundleTree
 import avail.descriptor.representation.A_Module.Companion.createLexicalScanner
 import avail.descriptor.representation.A_Module.Companion.hasAncestor
-import avail.descriptor.representation.A_Module.Companion.importedNames
 import avail.descriptor.representation.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.representation.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.representation.A_Module.Companion.moduleAddMacro
 import avail.descriptor.representation.A_Module.Companion.moduleAddSemanticRestriction
 import avail.descriptor.representation.A_Module.Companion.moduleAddStyler
 import avail.descriptor.representation.A_Module.Companion.newNames
-import avail.descriptor.representation.A_Module.Companion.privateNames
 import avail.descriptor.representation.A_Module.Companion.resolveForward
 import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
@@ -178,7 +177,6 @@ import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.representation.A_Set
 import avail.descriptor.representation.A_Set.Companion.hasElement
 import avail.descriptor.representation.A_Set.Companion.setSize
-import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.representation.A_String
@@ -1805,14 +1803,14 @@ constructor(
 	 */
 	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock {
 		val name = module.newNames.mapAtOrNull(stringName)
-		val newNames = setFromCollection(listOfNotNull(name))
-		val publicNames =
-			module.importedNames.mapAtOrNull(stringName) ?: emptySet
-		val privateNames =
-			module.privateNames.mapAtOrNull(stringName) ?: emptySet
-		newNames
-			.setUnionCanDestroy(publicNames, true)
-			.setUnionCanDestroy(privateNames, true)
+		var result: A_Set = setFromCollection(listOfNotNull(name))
+		// Get imported and private atoms directly without creating intermediate maps
+		val atoms = module.atomsForStringName(stringName)
+		for (atom in atoms)
+		{
+			result = result.setWithElementCanDestroy(atom, true)
+		}
+		result
 	}
 
 	companion object
