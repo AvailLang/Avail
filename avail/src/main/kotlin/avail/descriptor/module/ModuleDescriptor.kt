@@ -37,6 +37,7 @@ import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.compiler.LexicalScanner
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleImport
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.AtomDescriptor
@@ -125,9 +126,7 @@ import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
 import avail.descriptor.representation.A_Set
 import avail.descriptor.representation.A_Set.Companion.hasElement
 import avail.descriptor.representation.A_Set.Companion.setIntersects
-import avail.descriptor.representation.A_Set.Companion.setMinusCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setSize
-import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.representation.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.representation.A_String
@@ -136,7 +135,6 @@ import avail.descriptor.representation.A_Styler
 import avail.descriptor.representation.A_Styler.Companion.stylerMethod
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.appendCanDestroy
-import avail.descriptor.representation.A_Tuple.Companion.asSet
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleReverse
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
@@ -157,7 +155,6 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
@@ -571,6 +568,145 @@ class ModuleDescriptor private constructor(
 		builder.append(self.moduleName)
 	}
 
+	/**
+	 * Check if an imported module's versions are compatible with requirements.
+	 *
+	 * @return Error message if incompatible, null if OK.
+	 */
+	private fun checkVersionCompatibility(
+		mod: A_Module,
+		moduleImport: ModuleImport
+	): String?
+	{
+		val requestedVersions = moduleImport.acceptableVersions
+		if (requestedVersions.setSize <= 0) return null
+		val suppliedVersions = mod.versions
+		if (suppliedVersions.setIntersects(requestedVersions)) return null
+		return "version compatibility; module " +
+			"${moduleImport.moduleName} guarantees versions " +
+			"$suppliedVersions but the current module requires " +
+			"$requestedVersions"
+	}
+
+	/**
+	 * Process one module import, adding atoms to this module. Updates
+	 * mutableAncestors with ancestor information.
+	 *
+	 * @param ancestors
+	 *   The ancestor set to update.
+	 * @return
+	 *   Error message if processing failed, `null` otherwise.
+	 */
+	private fun processModuleImport(
+		self: AvailObject,
+		loader: AvailLoader,
+		moduleImport: ModuleImport,
+		importedModule: A_Module,
+		ancestors: MutableSet<A_Module>
+	): String?
+	{
+		// Check version compatibility.
+		checkVersionCompatibility(importedModule, moduleImport)
+			?.let { return it }
+
+		ancestors.addAll(importedModule.allAncestors)
+		ancestors.add(importedModule)
+
+		// Collect atoms and process renames.
+		val atomsToImport = mutableSetOf<A_Atom>()
+		val problem = importedModule.withImportedNames { importedMap ->
+			val stringsToImport = mutableSetOf<A_String>()
+			if (moduleImport.wildcard)
+			{
+				val renameSourceNames = moduleImport.renames.valuesAsTuple
+				stringsToImport.addAll(importedMap.keys)
+				stringsToImport.removeAll(renameSourceNames)
+				stringsToImport.addAll(moduleImport.names)
+				val absentExclusions = mutableSetOf<A_String>()
+				absentExclusions.addAll(moduleImport.excludes)
+				absentExclusions.removeAll(stringsToImport)
+				if (absentExclusions.size > 0)
+				{
+					return@withImportedNames "these excluded names " +
+						"to have been exported from " +
+						"${moduleImport.moduleName}: $absentExclusions"
+				}
+				stringsToImport.removeAll(moduleImport.excludes)
+			}
+			else
+			{
+				stringsToImport.addAll(moduleImport.names)
+			}
+
+			// Collect base atoms.
+			stringsToImport.flatMapTo(atomsToImport) { string ->
+				importedMap[string]?.asIterable() ?: emptyList()
+			}
+
+			// Perform renames.
+			for ((newString, oldString) in moduleImport.renames.mapIterable)
+			{
+				val oldAtoms = importedMap[oldString]
+				if (oldAtoms.isNullOr { size != 1 })
+				{
+					return@withImportedNames null
+				}
+				val oldAtom = oldAtoms!![0]
+
+				val newAtom: A_Atom =
+					self.newNames.mapAtOrNull(newString) ?:
+					AtomWithPropertiesSharedDescriptor.shared
+						.createInitialized(
+							newString, self, nil, 0)
+						.also { self.introduceNewName(it) }
+				assert(newAtom.bundleOrNil.isNil)
+				val newBundle: A_Bundle
+				try
+				{
+					val oldBundle = oldAtom.bundleOrCreate()
+					val method = oldBundle.bundleMethod
+					newBundle = newBundle(
+						newAtom, method,
+						MessageSplitter.split(newString))
+					newAtom.setAtomBundle(newBundle)
+					atomsToImport.add(newAtom)
+					val copyMacros =
+						!oldBundle.messageSplitter.recursivelyContainsReorders
+							&& !newBundle.messageSplitter
+								.recursivelyContainsReorders
+					if (copyMacros)
+					{
+						for (macro in oldBundle.macrosTuple)
+						{
+							loader.addMacroBody(
+								newAtom,
+								macro.bodyBlock(),
+								macro.prefixFunctions(),
+								true)
+						}
+					}
+				}
+				catch (e: MalformedMessageException)
+				{
+					return@withImportedNames "well-formed " +
+						"signature for $newString, a rename " +
+						"of $oldString from ${moduleImport.names}"
+				}
+			}
+			null
+		}
+
+		problem?.let { return it }
+
+		// Add atoms to the module.
+		when
+		{
+			moduleImport.isExtension -> self.addImportedNames(atomsToImport)
+			else -> self.addPrivateNames(atomsToImport)
+		}
+		return null
+	}
+
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -590,7 +726,8 @@ class ModuleDescriptor private constructor(
 		}
 		self.addImportedNames(newAtoms)
 
-		var ancestors = allAncestors.get()
+		val ancestors = mutableSetOf<A_Module>()
+		ancestors.addAll(allAncestors.get())
 
 		for (moduleImport in moduleHeader.importedModules)
 		{
@@ -609,125 +746,20 @@ class ModuleDescriptor private constructor(
 			val availRef = stringFrom(ref.qualifiedName)
 			if (!runtime.includesModuleNamed(availRef))
 			{
-				return "module \"${ref.qualifiedName}\" to be loaded already"
+				return "module \"${ref.qualifiedName}\" " +
+					"to be loaded already"
 			}
 
-			val mod = runtime.moduleAt(availRef)
-			val reqVersions = moduleImport.acceptableVersions
-			if (reqVersions.setSize > 0)
-			{
-				val modVersions = mod.versions
-				if (!modVersions.setIntersects(reqVersions))
-				{
-					return (
-						"version compatibility; module "
-							+ "\"${ref.localName}\" guarantees versions "
-							+ "$modVersions but the current module requires "
-							+ "$reqVersions")
-				}
-			}
-			ancestors = ancestors.setUnionCanDestroy(mod.allAncestors, true)
-			ancestors = ancestors.setWithElementCanDestroy(mod, true)
-
-			// Figure out which strings to make available.
-			var stringsToImport: A_Set
-			val problem = mod.withImportedNames { importedMap ->
-				if (moduleImport.wildcard)
-				{
-					val renameSourceNames =
-						moduleImport.renames.valuesAsTuple.asSet
-					stringsToImport = setFromCollection(importedMap.keys)
-						.setMinusCanDestroy(renameSourceNames, true)
-						.setUnionCanDestroy(moduleImport.names, true)
-					val absentExclusions = moduleImport.excludes
-						.setMinusCanDestroy(stringsToImport, false)
-					if (absentExclusions.setSize > 0)
-					{
-						return@withImportedNames "these excluded names to " +
-							"have been exported from " +
-							"$availRef: $absentExclusions"
-					}
-					stringsToImport = stringsToImport.setMinusCanDestroy(
-						moduleImport.excludes, true)
-				}
-				else
-				{
-					stringsToImport = moduleImport.names
-				}
-
-				// Look up strings to get existing atoms.
-				val atomsToImport = mutableSetOf<A_Atom>()
-				stringsToImport
-					.flatMapTo(atomsToImport) { string ->
-						importedMap[string]?.asIterable() ?: emptyList()
-					}
-
-				// Perform renames.
-				for ((newString, oldString) in moduleImport.renames.mapIterable)
-				{
-					// Find the old atom.
-					val oldAtoms = importedMap[oldString]
-					if (oldAtoms.isNullOr { size != 1 })
-					{
-						return@withImportedNames null
-					}
-					val oldAtom = oldAtoms!![0]
-
-					// Find or create the new atom.
-					val newAtom: A_Atom = self.newNames.mapAtOrNull(newString) ?:
-						AtomWithPropertiesSharedDescriptor.shared
-							.createInitialized(newString, self, nil, 0)
-							.also { self.introduceNewName(it) }
-					// Now tie the bundles together.
-					assert(newAtom.bundleOrNil.isNil)
-					val newBundle: A_Bundle
-					try
-					{
-						val oldBundle = oldAtom.bundleOrCreate()
-						val method = oldBundle.bundleMethod
-						newBundle = newBundle(
-							newAtom, method, MessageSplitter.split(newString))
-						newAtom.setAtomBundle(newBundle)
-						atomsToImport.add(newAtom)
-						val copyMacros =
-							!oldBundle.messageSplitter.recursivelyContainsReorders
-								&& !newBundle.messageSplitter
-									.recursivelyContainsReorders
-						if (copyMacros)
-						{
-							// Neither bundle uses reordering.  Copy all macros.
-							for (macro in oldBundle.macrosTuple)
-							{
-								loader.addMacroBody(
-									newAtom,
-									macro.bodyBlock(),
-									macro.prefixFunctions(),
-									true)
-							}
-						}
-					}
-					catch (e: MalformedMessageException)
-					{
-						return@withImportedNames "well-formed signature for " +
-							"$newString, a rename of " +
-							"$oldString from \"${ref.qualifiedName}\""
-					}
-				}
-
-				// Actually make the atoms available in this module.
-				when
-				{
-					moduleImport.isExtension ->
-						self.addImportedNames(atomsToImport)
-					else -> self.addPrivateNames(atomsToImport)
-				}
-
-				null
-			}
-			problem?.let { return it }
+			val error = processModuleImport(
+				self = self,
+				loader = loader,
+				moduleImport = moduleImport,
+				importedModule = runtime.moduleAt(availRef),
+				ancestors = ancestors)
+			error?.let { return it }
 		}
 
-		allAncestors.set(ancestors.makeShared())
+		allAncestors.set(setFromCollection(ancestors).makeShared())
 
 		moduleHeader.entryPoints.forEach { name ->
 			assert(name.isString)
@@ -735,7 +767,7 @@ class ModuleDescriptor private constructor(
 			{
 				val trueNames = self.trueNamesForStringName(name)
 				val trueName: AvailObject
-				when (trueNames.setSize)
+				when (trueNames.size)
 				{
 					0 ->
 					{
@@ -1054,14 +1086,16 @@ class ModuleDescriptor private constructor(
 		assertState(Loading)
 		val string: A_String = trueName.atomName
 		// Only add if not already in imported names
-		if (trueName !in (importedNamesMap[string] ?: emptyArray()))
+		if (importedNamesMap[string].isNullOr { !contains(trueName) })
 		{
-			val privatized = privateNamesMap
-				.getOrElse(string) { emptyArray() }
-			if (trueName !in privatized)
+			val oldArray = privateNamesMap[string]
+			when
 			{
-				val newPrivatized = privatized.plusElement(trueName.cast())
-				privateNamesMap[string] = newPrivatized
+				oldArray == null ->
+					privateNamesMap[string] = arrayOf(trueName.cast())
+				trueName !in oldArray ->
+					privateNamesMap[string] =
+						oldArray.plusElement(trueName.cast())
 			}
 		}
 		visibleNamesSet.add(trueName)
@@ -1075,19 +1109,21 @@ class ModuleDescriptor private constructor(
 		// Add the collection of atoms to the current private scope.
 		assertState(Loading)
 
-		// Add each atom to privateNamesMap and visibleNamesSet
+		// Add each atom to privateNamesMap and visibleNamesSet.
 		for (trueName in trueNames)
 		{
 			val string: A_String = trueName.atomName
-			// Only add if not already in imported names
-			if (trueName !in (importedNamesMap[string] ?: emptyArray()))
+			// Only add if not already in imported names.
+			if (importedNamesMap[string].isNullOr { !contains(trueName) })
 			{
-				val privatized = privateNamesMap
-					.getOrElse(string) { emptyArray() }
-				if (trueName !in privatized)
+				val oldArray = privateNamesMap[string]
+				when
 				{
-					val newPrivatized = privatized.plusElement(trueName.cast())
-					privateNamesMap[string] = newPrivatized
+					oldArray == null ->
+						privateNamesMap[string] = arrayOf(trueName.cast())
+					trueName !in oldArray ->
+						privateNamesMap[string] =
+							oldArray.plusElement(trueName.cast())
 				}
 			}
 			visibleNamesSet.add(trueName)
@@ -1458,35 +1494,29 @@ class ModuleDescriptor private constructor(
 	override fun o_TrueNamesForStringName(
 		self: AvailObject,
 		stringName: A_String
-	): A_Set
+	): Array<AvailObject>
 	{
 		lock.read {
 			self[NEW_NAMES].let { newNames ->
 				newNames.mapAtOrNull(stringName)?.let {
-					return singletonSet(it)
+					return arrayOf(it)
 				}
 			}
 		}
 		lock.safeWrite {
 			self[NEW_NAMES].let { newNames ->
 				newNames.mapAtOrNull(stringName)?.let {
-					return singletonSet(it)
+					return arrayOf(it)
 				}
 			}
-			// Collect atoms from imported names
-			var publicNames: A_Set = emptySet
+			// Collect atoms from imported names.
+			var publicNames = emptyArray<AvailObject>()
 			importedNamesMap[stringName]?.let { atoms ->
-				for (atom in atoms)
-				{
-					publicNames = publicNames.setWithElementCanDestroy(atom, false)
-				}
+				publicNames += atoms
 			}
-			// Collect atoms from private names
+			// Collect atoms from private names.
 			privateNamesMap[stringName]?.let { atoms ->
-				for (atom in atoms)
-				{
-					publicNames = publicNames.setWithElementCanDestroy(atom, false)
-				}
+				publicNames += atoms
 			}
 			return publicNames
 		}

@@ -40,7 +40,6 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.representation.A_Atom.Companion.setAtomProperty
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
-import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -79,10 +78,11 @@ object P_CreateFiberHeritableAtom : Primitive1(CanInline)
 				}
 			else -> module.lock {
 				val trueNames = module.trueNamesForStringName(name)
-				when (trueNames.setSize) {
+				when (trueNames.size)
+				{
 					0 -> availLoader().lookupName(name) {
-							setAtomProperty(HERITABLE_KEY.atom, trueObject)
-						}
+						setAtomProperty(HERITABLE_KEY.atom, trueObject)
+					}
 					1 -> fail(E_ATOM_ALREADY_EXISTS)
 					else -> fail(E_AMBIGUOUS_NAME)
 				}

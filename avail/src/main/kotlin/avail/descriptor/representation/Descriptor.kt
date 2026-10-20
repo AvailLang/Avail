@@ -794,7 +794,8 @@ protected constructor (
 
 	override fun o_TrueNamesForStringName (
 		self: AvailObject,
-		stringName: A_String): A_Set = unsupported
+		stringName: A_String
+	): Array<AvailObject> = unsupported
 
 	override fun o_TupleReverse (self: AvailObject): A_Tuple = unsupported
 

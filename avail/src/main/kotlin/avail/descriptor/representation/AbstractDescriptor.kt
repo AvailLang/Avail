@@ -1947,7 +1947,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_TrueNamesForStringName (
 		self: AvailObject,
-		stringName: A_String): A_Set
+		stringName: A_String
+	): Array<AvailObject>
 
 	abstract fun o_TupleAt (self: AvailObject, index: Int): AvailObject
 

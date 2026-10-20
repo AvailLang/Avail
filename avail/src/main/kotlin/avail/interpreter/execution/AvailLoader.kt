@@ -1747,7 +1747,7 @@ constructor(
 	): A_Atom = module.lock {
 		//  Check if it's already defined somewhere...
 		val who = module.trueNamesForStringName(stringName)
-		val atom = when (who.setSize)
+		val atom = when (who.size)
 		{
 			1 -> who.single()
 			0 ->

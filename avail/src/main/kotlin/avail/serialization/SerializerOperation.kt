@@ -196,14 +196,12 @@ import avail.descriptor.representation.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.representation.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.representation.A_Set.Companion.asTuple
-import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.asSet
 import avail.descriptor.representation.A_Tuple.Companion.component1
 import avail.descriptor.representation.A_Tuple.Companion.component2
-import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
@@ -3643,10 +3641,7 @@ enum class SerializerOperation constructor(
 				// An atom in the current module.  Create it if necessary.
 				// Check if it's already defined somewhere...
 				val trueNames = currentModule.trueNamesForStringName(atomName)
-				if (trueNames.setSize == 1)
-				{
-					return trueNames.asTuple.tupleAt(1)
-				}
+				trueNames.singleOrNull()?.let { return it }
 				val atom = AtomWithPropertiesSharedDescriptor.shared
 					.createInitialized(atomName, currentModule, nil, 0)
 				currentModule.addPrivateName(atom)

@@ -450,7 +450,9 @@ interface A_Module : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.trueNamesForStringName(stringName: A_String): A_Set =
+		fun A_Module.trueNamesForStringName(
+			stringName: A_String
+		): Array<AvailObject> =
 			dispatch { o_TrueNamesForStringName(it, stringName) }
 
 		/**

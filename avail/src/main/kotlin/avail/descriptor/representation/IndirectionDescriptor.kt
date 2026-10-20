@@ -1886,7 +1886,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_TrueNamesForStringName(
 		self: AvailObject,
 		stringName: A_String
-	): A_Set = self { trueNamesForStringName(stringName) }
+	): Array<AvailObject> = self { trueNamesForStringName(stringName) }
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject =
 		self { tupleAt(index) }
