@@ -806,7 +806,8 @@ class L2Optimizer internal constructor(
 					val movesByEdgeIndex = instruction.targetEdges.map {
 						inserts[it]
 					}
-					addInstruction(basicTransformInstruction(instruction))
+					val transformed = basicTransformInstruction(instruction)
+					addInstruction(transformed)
 					val actualInstruction = activeBlock.instructions().last()
 					// Now that the instruction (and alternative edges) have
 					// been generated, perform any needed edge splits, inserting

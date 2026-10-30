@@ -135,7 +135,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 		// Fall back on figuring out whether to reply (-∞..0), [0..∞), or the
 		// union of the two.
 		return integerRangeType(
-			if (canBeNegative) negativeInfinity else negativeOne(),
+			if (canBeNegative) negativeInfinity else negativeOne,
 			false,
 			if (canBePositive) positiveInfinity else zero,
 			false)

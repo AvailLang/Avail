@@ -172,7 +172,7 @@ object P_BitShiftLeft : Primitive2(CanFold, CanInline)
 		if (zero.isInstanceOf(baseIntegers)) bounds.add(zero)
 		if (negativeOne.isInstanceOf(baseIntegers)) bounds.add(negativeOne)
 		// Deal with the negatives below -1.
-		if (lowBase.lessThan(negativeOne()))
+		if (lowBase.lessThan(negativeOne))
 		{
 			// There are values < -1, which can grow in magnitude under shifts.
 			// If the left shift would be huge, estimate it as -∞ instead.
@@ -181,7 +181,7 @@ object P_BitShiftLeft : Primitive2(CanFold, CanInline)
 				else lowBase.bitShift(mostLeftShift, false))
 			// Now find the negative output with least magnitude.
 			val highBaseBelowNegativeOne =
-				if (highBase.lessThan(negativeOne())) highBase
+				if (highBase.lessThan(negativeOne)) highBase
 				else fromInt(-2)
 			bounds.add(
 				if (mostRightShift.equals(positiveInfinity)) negativeOne

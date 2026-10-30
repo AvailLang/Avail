@@ -55,6 +55,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
@@ -185,15 +186,19 @@ class L2_INVOKE(
 	override fun JVMTranslator.translateToJVM()
 	{
 		loadInterpreter()
-		// :: [interpreter]
+		// :: interpreter
 		loadInterpreter()
-		// :: [interpreter, interpreter]
+		// :: interpreter, interpreter
 		load(Interpreter.chunkField)
-		// :: [interpreter, callingChunk]
+		// :: interpreter, callingChunk
 		loadInterpreter()
-		// :: [interpreter, callingChunk, interpreter]
+		// :: interpreter, callingChunk, interpreter
+		load(Interpreter.interpreterFunctionField)
+		// :: interpreter, callingChunk, callingFn
+		loadInterpreter()
+		// :: interpreter, callingChunk, callingFn, interpreter
 		load(calledFunction)
-		// :: [interpreter, callingChunk, interpreter, function]
+		// :: interpreter, callingChunk, callingFn, interpreter, calledFn
 		generatePushArgumentsAndInvoke(
 			arguments.elements,
 			result,
@@ -216,10 +221,10 @@ class L2_INVOKE(
 			Interpreter.preinvoke5Method)
 
 		/**
-		 * Generate code to push the arguments and invoke.  This expects the stack
-		 * to already contain the [Interpreter], the calling [L2Chunk],
-		 * another occurrence of the [Interpreter], and the [A_Function]
-		 * to be invoked.
+		 * Generate code to push the arguments and invoke.  This expects the
+		 * stack to already contain the [Interpreter], the calling [L2Chunk],
+		 * the calling [A_Function], another occurrence of the [Interpreter],
+		 * and the function to call.
 		 *
 		 * @receiver
 		 *   The translator on which to generate the invocation.
@@ -239,34 +244,37 @@ class L2_INVOKE(
 			onNormalReturn: L2PcOperand,
 			onReification: L2PcOperand)
 		{
-			// :: caller set up [interpreter, callingChunk, interpreter, fn]
+			// Caller set up:
+			// :: interpreter, callingChunk, callingFn, interpreter, fn
 			val numArgs = argsRegsList.size
 			if (numArgs < preinvokeMethods.size)
 			{
 				argsRegsList.forEach { load(it) }
-				// :: [interpreter, callingChunk, interpreter, fn, [args...]]
+				// :: interp, callingChunk, callingFn, interp, fn, [args...]
 				generateCall(preinvokeMethods[numArgs])
 			}
 			else
 			{
 				objectArray(argsRegsList, AvailObject::class.java)
-				// :: [interpreter, callingChunk, interpreter, fn, argsArray]
+				// :: interp, callingChunk, callingFn,  interp, fn, argsArray
 				generateCall(Interpreter.preinvokeMethod)
 			}
-			// :: [interpreter, callingChunk, callingFunction]
+			// :: interpreter, callingChunk, callingFn, executableChunk
 			loadInterpreter()
-			// :: [interpreter, callingChunk, callingFunction, interpreter]
-			generateCall(Interpreter.interpreterRunChunkMethod)
-			// :: [interpreter, callingChunk, callingFunction, valueOrNull]
+			// :: interpreter, callingChunk, callingFn, executableChunk, interp
+			intConstant(0)
+			// :: interp, callingChunk, callingFn, executableChunk, interp, 0
+			generateCall(ExecutableChunk.runChunkMethod)
+			// :: interpreter, callingChunk, callingFn, valueOrNull
 			generateCall(Interpreter.postinvokeMethod)
-			// :: [valueOrNull]
+			// :: valueOrNull
 			method.visitInsn(DUP)
-			// :: [valueOrNull, valueOrNull]
+			// :: valueOrNull, valueOrNull
 			val isReification = Label()
 			method.visitJumpInsn(Opcodes.IFNULL, isReification)
-			// :: [value]
+			// :: value
 			store(result.register())
-			// :: []
+			// ::
 			jump(onNormalReturn)
 
 			method.visitLabel(isReification)

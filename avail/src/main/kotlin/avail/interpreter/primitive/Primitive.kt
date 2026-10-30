@@ -1434,10 +1434,11 @@ constructor(
 		val valueB = boxedB.semanticValue()
 		val intSuccess = createBasicBlock("output is i32")
 		val intFallback = createBasicBlock("fall back to boxed")
-		val (intA, intB) = readTwoInts(valueA, valueB, intFallback)
-		{
-			return false
-		}
+		val (intA, intB) = readAsTwoInts(
+			valueA,
+			valueB,
+			intFallback
+		) ?: return false
 		assert(currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
@@ -1508,6 +1509,34 @@ constructor(
 		}
 		return true
 	}
+
+	/**
+	 * Generate code to extract two boxed values into int registers.  If
+	 * there's a path where they both succeed, return the [Pair] of
+	 * [L2ReadIntOperand]s, with the generator positioned at the success
+	 * path.  If there was a way for one or the other extraction to fail,
+	 * there will be a path to the supplied onFailure [L2BasicBlock].  If
+	 * one of the extractions *cannot* succeed, return `null`.
+	 *
+	 * @param semanticValue1
+	 *   The first [L2SemanticValue] to read as an unboxed int.
+	 * @param semanticValue2
+	 *   The second [L2SemanticValue] to read as an unboxed int.
+	 * @param onFailure
+	 *   Where to jump in the event that a dynamic type test against [i32]
+	 *   fails. The manifest at this location will not contain bindings for
+	 *   the unboxed `int` (since unboxing was not possible).
+	 * @return
+	 *   If the two unboxings are both possible, the [Pair] of unboxed
+	 *   [L2ReadIntOperand]s, with this generator set to the success path,
+	 *   otherwise `null`.
+	 */
+	open fun L2GeneratorInterface.readAsTwoInts(
+		semanticValue1: L2SemanticValue,
+		semanticValue2: L2SemanticValue,
+		onFailure: L2BasicBlock
+	): Pair<L2ReadIntOperand, L2ReadIntOperand>? =
+		readTwoInts(semanticValue1, semanticValue2, onFailure)
 
 	/**
 	 * Write a JVM invocation of this primitive, *under the assumption that the

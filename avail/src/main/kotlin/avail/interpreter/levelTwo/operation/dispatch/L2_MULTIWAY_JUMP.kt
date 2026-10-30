@@ -44,9 +44,9 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.mapToSet
@@ -67,7 +67,7 @@ import org.objectweb.asm.Label
  * @property splitter
  *   The [AbstractMultiWaySplitter] that determines how to jump.
  * @param branchEdges
- *   The [L2PcVectorOperand] contaaining the branch targets that the [splitter]
+ *   The [L2PcVectorOperand] containing the branch targets that the [splitter]
  *   is supposed to dispatch to.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -106,6 +106,7 @@ constructor(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
+
 		// Note: Instructions that add multi-way jumps always set up the
 		// manifests in the edges.
 		value.instructionWasAdded(manifest)

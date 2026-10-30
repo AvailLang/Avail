@@ -82,7 +82,6 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import org.objectweb.asm.Opcodes
@@ -563,12 +562,12 @@ constructor(
 			val fallback = createBasicBlock("fall back to boxed logic")
 			try
 			{
-				val (intA, intB) = readTwoInts(
-					a.semanticValue(),
-					b.semanticValue(),
-					fallback)
-				{
-					return false
+				val (intA, intB) = primitive.run {
+					readAsTwoInts(
+						a.semanticValue(),
+						b.semanticValue(),
+						fallback
+					) ?: return false
 				}
 				if (currentlyReachable())
 				{

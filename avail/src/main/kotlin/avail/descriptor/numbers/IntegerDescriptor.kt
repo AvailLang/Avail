@@ -566,10 +566,10 @@ class IntegerDescriptor private constructor(
 		val outputSize = intCount(output)
 		val extendedObject =
 			((self.rawSignedIntegerAt(objectSize) shr 31).toLong()
-				and 0xFFFFFFFFL)
+				and 0xFFFF_FFFFL)
 		val extendedAnInteger =
 			((anInteger.rawSignedIntegerAt(anIntegerSize) shr 31).toLong()
-				and 0xFFFFFFFFL)
+				and 0xFFFF_FFFFL)
 		var partial: Long = 0
 		var lastInt = 0
 		// The object is always big enough to store the max of the number of
@@ -1384,7 +1384,7 @@ class IntegerDescriptor private constructor(
 				// e.g., 123 >> 999999999999999999 is 0
 				self.numericCompareToInteger(zero) -> zero
 				// e.g., -123 >> 999999999999999999 is -1
-				else -> negativeOne()
+				else -> negativeOne
 			}
 		}
 		val shiftInt = shiftFactor.extractInt
@@ -1673,11 +1673,11 @@ class IntegerDescriptor private constructor(
 			when (anInteger) {
 				in 0..255 -> smallIntegers[anInteger]!!
 				in 0 until smallIntegerLimit -> smallIntegers[anInteger] ?:
-					createUninitializedInteger(1).apply {
+					createSharedOfSize(1) {
 						setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
-						makeShared()
+					}.also {
 						// Harmless race.
-						smallIntegers[anInteger] = this
+						smallIntegers[anInteger] = it
 					}
 				else -> createUninitializedInteger(1).apply {
 					setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
@@ -1695,9 +1695,10 @@ class IntegerDescriptor private constructor(
 		fun fromLong(aLong: Long): AvailObject = when (aLong) {
 			in 0..255 -> smallIntegers[aLong.toInt()]!!
 			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
-				createUninitializedInteger(1).apply {
+				createSharedOfSize(1) {
 					setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-					smallIntegers[aLong.toInt()] = makeShared()
+				}.also {
+					smallIntegers[aLong.toInt()] = it
 				}
 			aLong.toInt().toLong() -> createUninitializedInteger(1).apply {
 				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
@@ -1894,14 +1895,6 @@ class IntegerDescriptor private constructor(
 		}
 
 		/**
-		 * Answer an [AvailObject] representing the integer negative one (-1).
-		 *
-		 * @return
-		 *   The Avail integer negative one (-1).
-		 */
-		fun negativeOne(): A_Number = negativeOne
-
-		/**
 		 * Answer the [Int] hash value of the given [Short] in the range
 		 * `0..255` inclusive.
 		 *
@@ -2057,9 +2050,8 @@ class IntegerDescriptor private constructor(
 		private val smallIntegers =
 			arrayOfNulls<AvailObject>(smallIntegerLimit).also { array ->
 				(0..255).forEach { i ->
-					array[i] = createUninitializedInteger(1).run {
-						rawSignedIntegerAtPut(1, i)
-						makeShared()
+					array[i] = createSharedOfSize(1) {
+						setIntSlot(RAW_LONG_SLOTS_, 1, i)
 					}
 				}
 			}
@@ -2078,6 +2070,23 @@ class IntegerDescriptor private constructor(
 		private fun mutableFor(size: Int) = descriptors[MUTABLE]!![size and 1]
 
 		/**
+		 * Create a mutable integer with the given number of int slots, run the
+		 * setup function on it, and make it shared.
+		 *
+		 * @param size
+		 *   The number of int slots to reserve.
+		 * @param setup
+		 *   How to initialize the object while it's mutable.
+		 * @return
+		 *   The initialized [AvailObject], made shared.
+		 */
+		private inline fun createSharedOfSize(
+			size: Int,
+			setup: AvailObject.()->Unit
+		): AvailObject =
+			createUninitializedInteger(size).apply(setup).makeShared()
+
+		/**
 		 * An array of size [smallIntegerLimit] of [Int]s, corresponding to the
 		 * hashes of the integers at the corresponding indices.
 		 */
@@ -2094,11 +2103,9 @@ class IntegerDescriptor private constructor(
 		val two: AvailObject = smallIntegers[2]!!
 
 		/** The Avail integer negative one (-1). */
-		var negativeOne: AvailObject =
-			createUninitializedInteger(1).apply {
-				rawSignedIntegerAtPut(1, -1)
-				makeShared()
-			}
+		val negativeOne: AvailObject = createSharedOfSize(1) {
+			setIntSlot(RAW_LONG_SLOTS_, 1, -1)
+		}
 
 		/**
 		 * One (U.S.) quintillion, which is 10^18.  This is the largest power of

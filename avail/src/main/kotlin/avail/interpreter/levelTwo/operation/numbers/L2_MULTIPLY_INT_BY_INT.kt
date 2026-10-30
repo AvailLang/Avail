@@ -76,8 +76,8 @@ class L2_MULTIPLY_INT_BY_INT(
 	var multiplicand: L2ReadIntOperand,
 	var multiplier: L2ReadIntOperand,
 	@On(SUCCESS) var product: L2WriteIntOperand,
-	@On(FAILURE) var outOfRange: L2PcOperand,
-	@On(SUCCESS) var inRange: L2PcOperand
+	@On(SUCCESS) var inRange: L2PcOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand
 ): L2ControlFlowInstruction()
 {
 	// It jumps if the result doesn't fit in an int.

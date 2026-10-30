@@ -1035,14 +1035,11 @@ interface L2GeneratorInterface : L2Visualizable
 
 		/**
 		 * Generate code to extract two boxed values into int registers.  If
-		 * there's a path where they both succeed, return the [Pair] of [L2ReadIntOperand]s,
-		 * with the generator positioned at the success path.  If there was a
-		 * way for one or the other extraction to fail, there will be a path
-		 * to the supplied onFailure [L2BasicBlock].  If one of the extractions
-		 * *cannot* succeed, control flow is merged if necessary (i.e., if this
-		 * is detected during the second extraction), and [ifCannotSucceed] is
-		 * invoked with control flow unaffected.  Since the lambda has a return
-		 * type of [Nothing], the invocation should escape in some way.
+		 * there's a path where they both succeed, return the [Pair] of
+		 * [L2ReadIntOperand]s, with the generator positioned at the success
+		 * path.  If there was a way for one or the other extraction to fail,
+		 * there will be a path to the supplied onFailure [L2BasicBlock].  If
+		 * one of the extractions *cannot* succeed, return `null`.
 		 *
 		 * @param semanticValue1
 		 *   The first [L2SemanticValue] to read as an unboxed int.
@@ -1052,24 +1049,21 @@ interface L2GeneratorInterface : L2Visualizable
 		 *   Where to jump in the event that a dynamic type test against [i32]
 		 *   fails. The manifest at this location will not contain bindings for
 		 *   the unboxed `int` (since unboxing was not possible).
-		 * @param ifCannotSucceed
-		 *   What to execute if one of the unboxings will always fail.  This
-		 *   is evaluated without having affected the initial current block.
 		 * @return
-		 *   The [Pair] of unboxed [L2ReadIntOperand]s, with this generator
-		 *   set to the success path.
+		 *   If the two unboxings are both possible, the [Pair] of unboxed
+		 *   [L2ReadIntOperand]s, with this generator set to the success path,
+		 *   otherwise `null`.
 		 */
-		inline fun L2GeneratorInterface.readTwoInts(
+		fun L2GeneratorInterface.readTwoInts(
 			semanticValue1: L2SemanticValue,
 			semanticValue2: L2SemanticValue,
-			onFailure: L2BasicBlock,
-			ifCannotSucceed: ()->Nothing
-		): Pair<L2ReadIntOperand, L2ReadIntOperand>
+			onFailure: L2BasicBlock
+		): Pair<L2ReadIntOperand, L2ReadIntOperand>?
 		{
 			if (!currentManifest.canUnboxInt(semanticValue1)
 				|| !currentManifest.canUnboxInt(semanticValue2))
 			{
-				ifCannotSucceed()
+				return null
 			}
 			val firstInt = readInt(semanticValue1, onFailure) {
 				error("First unboxing should have been possible")

@@ -586,59 +586,12 @@ constructor(
 	): L2ReadOperand<INTEGER_KIND>
 	{
 		assert(currentlyReachable())
-		val state = currentManifest.stateOrNull(semanticValue)!!
-		val restriction = state.restriction
+		val restriction = currentManifest.restrictionFor(semanticValue)
 		// The current design (2026.09) is supposed to ensure this value
 		// definitely fits in an i32, performing explicit tests if necessary.
 		assert(restriction.containedByType(i32)) {
 			"Value should have been constrained to an i32"
 		}
-//		// There must be a postponed instruction.  Check for an int-producing
-//		// instruction first.
-//		val values = state.members
-//		if (currentManifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
-//		{
-//			// It already exists in an unboxed int register.
-//			return currentManifest.readInt(semanticValue)
-//		}
-//		if (currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
-//		{
-//			// It already exists in a boxed register, so unbox it, *even if*
-//			// there's a postponed int-producing instruction.
-//			val readBoxed = currentManifest.readBoxed(semanticValue)
-//			addInstruction(
-//				L2_UNBOX_INT(readBoxed.cast(), intWrite(values, restriction)))
-//			return currentManifest.readInt(semanticValue)
-//		}
-//		// Check for constant.  It can be infallibly converted.
-//		restriction.constantOrNull?.let { constant ->
-//			// Make it available as a constant in an int register.
-//			return unboxedIntConstant(constant.extractInt)
-//		}
-//		// See if we can use an equivalent int value.
-//		values.forEach { value ->
-//			val equivalentUnboxed = currentManifest
-//				.equivalentPopulatedSemanticValue(value, INTEGER_KIND)
-//			if (equivalentUnboxed !== null)
-//			{
-//				move(equivalentUnboxed, values)
-//				return currentManifest.readInt(semanticValue)
-//			}
-//		}
-//		when {
-//			!state.intRepresentation.isAbsent ->
-//				ensureDefinedOrEmitMove(semanticValue, INTEGER_KIND)
-//			!state.boxedRepresentation.isAbsent ->
-//			{
-//				ensureDefinedOrEmitMove(semanticValue, BOXED_KIND)
-//				addInstruction(
-//					L2_UNBOX_INT(
-//						readBoxed(semanticValue),
-//						intWrite(values, restriction)))
-//			}
-//			else ->
-//				error("Unable to read int value")
-//		}
 		return currentManifest.readInt(semanticValue)
 	}
 
@@ -680,20 +633,6 @@ constructor(
 			assert(currentManifest
 				.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		}
-//TODO remove
-//		// Re-check for boxed kind, in case the postponed int-producing
-//		// instruction generated a boxed form somehow.
-//
-//		if (!currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
-//		{
-//			// Simply unbox it.
-//			+L2_UNBOX_INT(
-//				currentManifest.readBoxed(semanticValue),
-//				L2WriteIntOperand(
-//					setOf(semanticValue),
-//					restriction,
-//					L2IntRegister(nextUnique())))
-//		}
 		return currentManifest.readInt(semanticValue)
 	}
 

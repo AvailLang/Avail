@@ -173,6 +173,7 @@ import avail.optimizer.jvm.CheckedField.Companion.instanceField
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import avail.optimizer.jvm.JVMTranslator.Companion.callTraceL2AfterEveryInstruction
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport
@@ -1995,25 +1996,38 @@ final class Interpreter(
 	}
 
 	/**
+	 * A helper function for setting up an Avail function invocation.
+	 *
+	 * @param calledFunction
+	 *   The [A_Function] that's about to be invoked.
+	 * @return
+	 *   The [ExecutableChunk] that the calling code should invoke.
+	 */
+	fun preinvokeHelper(calledFunction: A_Function): ExecutableChunk
+	{
+		val ch = calledFunction.code().startingChunk
+		function = calledFunction
+		chunk = ch
+		adjustUnreifiedCallDepthBy(1)
+		ch.beforeRunChunk(0)
+		return ch.executableChunk
+	}
+
+	/**
 	 * Prepare to run a [function][A_Function] invocation with zero arguments.
 	 *
 	 * @param calledFunction
 	 *   The function to call.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke0(
 		calledFunction: A_Function
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2024,22 +2038,17 @@ final class Interpreter(
 	 * @param arg1
 	 *   The sole argument to the function.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke1(
 		calledFunction: A_Function,
 		arg1: AvailObject
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2052,24 +2061,19 @@ final class Interpreter(
 	 * @param arg2
 	 *   The second argument to the function.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke2(
 		calledFunction: A_Function,
 		arg1: AvailObject,
 		arg2: AvailObject
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2084,7 +2088,7 @@ final class Interpreter(
 	 * @param arg3
 	 *   The third argument to the function.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke3(
@@ -2092,18 +2096,13 @@ final class Interpreter(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
 		argsBuffer.add(arg3)
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2120,7 +2119,7 @@ final class Interpreter(
 	 * @param arg4
 	 *   The fourth argument to the function.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke4(
@@ -2129,19 +2128,14 @@ final class Interpreter(
 		arg2: AvailObject,
 		arg3: AvailObject,
 		arg4: AvailObject
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
 		argsBuffer.add(arg3)
 		argsBuffer.add(arg4)
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2160,7 +2154,7 @@ final class Interpreter(
 	 * @param arg5
 	 *   The fifth argument to the function.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke5(
@@ -2170,20 +2164,15 @@ final class Interpreter(
 		arg3: AvailObject,
 		arg4: AvailObject,
 		arg5: AvailObject
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
 		argsBuffer.add(arg3)
 		argsBuffer.add(arg4)
 		argsBuffer.add(arg5)
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2195,22 +2184,17 @@ final class Interpreter(
 	 * @param args
 	 *   The [arguments][AvailObject] to the function.
 	 * @return
-	 *   The calling [A_Function]
+	 *   The [ExecutableChunk] to invoke.
 	 */
 	@ReferencedInGeneratedCode
 	fun preinvoke(
 		calledFunction: A_Function,
 		args: Array<AvailObject>
-	): AvailObject
+	): ExecutableChunk
 	{
-		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.addAll(args)
-		function = calledFunction
-		chunk = calledFunction.code().startingChunk
-		offset = 0
-		adjustUnreifiedCallDepthBy(1)
-		return savedFunction
+		return preinvokeHelper(calledFunction)
 	}
 
 	/**
@@ -2486,11 +2470,7 @@ final class Interpreter(
 	@ReferencedInGeneratedCode
 	fun runChunk(): AvailObject?
 	{
-		val currentChunk = chunk!!
-		currentChunk.beforeRunChunk(offset)
-		val valueOrNull = currentChunk.executableChunk.runChunk(this, offset)
-		assert(valueOrNull !== null || currentReifier !== null)
-		return valueOrNull
+		return chunk!!.executableChunk.runChunk(this, offset)
 	}
 
 	override fun nameForDebugger() = toString()

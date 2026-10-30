@@ -252,7 +252,7 @@ object P_Multiplication : Primitive2(CanFold, CanInline)
 		{
 			/** Partition the integers by sign. */
 			private val interestingRanges = listOf(
-				inclusive(negativeInfinity, negativeOne()),
+				inclusive(negativeInfinity, negativeOne),
 				inclusive(zero, zero),
 				inclusive(one, positiveInfinity))
 
@@ -305,11 +305,11 @@ object P_Multiplication : Primitive2(CanFold, CanInline)
 		},
 		ifOutputIsPossiblyInt = {
 			+L2_MULTIPLY_INT_BY_INT(
-				intA,
-				intB,
-				intWrite,
-				edgeTo(intFailure),
-				edgeTo(intSuccess))
+				multiplicand = intA,
+				multiplier = intB,
+				product = intWrite,
+				inRange = edgeTo(intSuccess),
+				outOfRange = edgeTo(intFailure))
 		})
 
 	override fun propagateManifestRestrictions(

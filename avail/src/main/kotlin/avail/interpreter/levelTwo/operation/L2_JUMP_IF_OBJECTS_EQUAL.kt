@@ -40,11 +40,11 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.L2SplitCondition.Companion.sameSynonymCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Opcodes
@@ -127,8 +127,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		val (int1Read, int2Read) = readTwoInts(
 			first.semanticValue(),
 			second.semanticValue(),
-			unreachable)
-		{
+			unreachable
+		) ?: run {
 			+this@L2_JUMP_IF_OBJECTS_EQUAL
 			return
 		}

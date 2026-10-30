@@ -84,11 +84,11 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
+import avail.optimizer.PostPhiData
 
 /**
  * **Primitive:** Divide a number by another number.
@@ -157,7 +157,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 		listOf(
 			naturalNumbers,
 			singleInt(0),
-			inclusive(negativeInfinity, negativeOne())
+			inclusive(negativeInfinity, negativeOne)
 		).forEach { range ->
 			val clipped = aType.typeIntersection(range)
 			if (!clipped.isBottom)
@@ -170,7 +170,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 		val bBoundaries = mutableSetOf<A_Number>()
 		listOf(
 			naturalNumbers,
-			inclusive(negativeInfinity, negativeOne())
+			inclusive(negativeInfinity, negativeOne)
 		).forEach { range ->
 			val clipped = bType.typeIntersection(range)
 			if (!clipped.isBottom)

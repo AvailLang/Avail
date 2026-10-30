@@ -287,10 +287,8 @@ object P_Addition : Primitive2(CanFold, CanInline)
 		val (int1, int2) = readTwoInts(
 			arg1.semanticValue(),
 			arg2.semanticValue(),
-			unreachable)
-		{
-			return
-		}
+			unreachable
+		) ?: return
 		+L2_BIT_LOGIC_OP(Add, int1, int2, intWrite)
 		// Unbox it, in case something needs it unboxed downstream.
 		+L2_BOX_INT(
