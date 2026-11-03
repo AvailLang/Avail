@@ -466,14 +466,10 @@ class IntegerDescriptor private constructor(
 					self.truncateWithFillerForNewIntegerSlotsCount(
 						size + 1 shr 1)
 				}
-				if (size and 1 == 1)
-				{
-					// Safety: Zero the bytes if the size is now odd.
-					self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
-				}
 				self.descriptor = mutableFor(size)
 			}
 		}
+		normalizeSpareInt(self)
 	}
 
 	override fun o_AddToInfinityCanDestroy(
@@ -552,6 +548,7 @@ class IntegerDescriptor private constructor(
 				output = output ?: createUninitializedInteger(1)
 				assert(intCount(output) == 1)
 				output.rawSignedIntegerAtPut(1, sum.toInt())
+				normalizeSpareInt(output)
 				return output
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
@@ -596,7 +593,9 @@ class IntegerDescriptor private constructor(
 					output.intSlot(RAW_LONG_SLOTS_, i))
 			}
 			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			// No need to truncate it in this case.
+			// Trim it, both to drop a redundant top int and to normalize the
+			// spare half of an odd number of ints.
+			newOutput.trimExcessInts()
 			return newOutput
 		}
 		output.trimExcessInts()
@@ -947,6 +946,7 @@ class IntegerDescriptor private constructor(
 				output = output ?: createUninitializedInteger(1)
 				assert(intCount(output) == 1)
 				output.rawSignedIntegerAtPut(1, diff.toInt())
+				normalizeSpareInt(output)
 				return output
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
@@ -991,7 +991,9 @@ class IntegerDescriptor private constructor(
 				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i))
 			}
 			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			// No need to truncate it in this case.
+			// Trim it, both to drop a redundant top int and to normalize the
+			// spare half of an odd number of ints.
+			newOutput.trimExcessInts()
 			return newOutput
 		}
 		output.trimExcessInts()
@@ -1092,6 +1094,7 @@ class IntegerDescriptor private constructor(
 				anIntegerTraversed.rawSignedIntegerAt(1))
 			output = output ?: createUninitializedInteger(1)
 			output.rawSignedIntegerAtPut(1, result)
+			normalizeSpareInt(output)
 			return output
 		}
 		// If neither of the inputs were suitable for destruction, then allocate
@@ -1288,6 +1291,7 @@ class IntegerDescriptor private constructor(
 						if (intCount(self) == 1)
 						{
 							self.rawSignedIntegerAtPut(1, resultLong.toInt())
+							normalizeSpareInt(self)
 							return self
 						}
 					}
@@ -1404,6 +1408,7 @@ class IntegerDescriptor private constructor(
 						if (intCount(self) == 1)
 						{
 							self.rawSignedIntegerAtPut(1, shiftedLong.toInt())
+							normalizeSpareInt(self)
 							return self
 						}
 					}
@@ -1600,6 +1605,26 @@ class IntegerDescriptor private constructor(
 			- (self.descriptor as IntegerDescriptor).unusedIntsOfLastLong)
 
 		/**
+		 * If the receiver holds an odd number of ints, make its unused upper int
+		 * hold the sign extension of its top int.  Equality compares the raw
+		 * longs, so this keeps equal values' storage identical.
+		 *
+		 * @param self
+		 *   The mutable integer object to normalize.
+		 */
+		private fun normalizeSpareInt(self: AvailObject)
+		{
+			val count = intCount(self)
+			if (count and 1 == 1)
+			{
+				self.setIntSlot(
+					RAW_LONG_SLOTS_,
+					count + 1,
+					self.rawSignedIntegerAt(count) shr 31)
+			}
+		}
+
+		/**
 		 * A helper function for printing very large integers.
 		 *
 		 * @param magnitude
@@ -1680,7 +1705,7 @@ class IntegerDescriptor private constructor(
 						smallIntegers[anInteger] = it
 					}
 				else -> createUninitializedInteger(1).apply {
-					setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
+					setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
 				}
 			}
 
@@ -1697,9 +1722,9 @@ class IntegerDescriptor private constructor(
 		 */
 		private fun recycleInt(anInteger: Int, output: AvailObject): AvailObject
 		{
-			output.setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
-			// Ints *require* a spare int slot to be 0.
-			output.setIntSlot(RAW_LONG_SLOTS_, 2, 0)
+			// The spare half holds the sign extension of the int, as equality
+			// requires of an odd number of ints.
+			output.setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
 			output.descriptor = mutableFor(1)
 			return output
 		}
@@ -1721,7 +1746,7 @@ class IntegerDescriptor private constructor(
 					smallIntegers[aLong.toInt()] = it
 				}
 			aLong.toInt().toLong() -> createUninitializedInteger(1).apply {
-				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
+				setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			}
 			else -> createUninitializedInteger(2).apply {
 				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
@@ -1755,12 +1780,8 @@ class IntegerDescriptor private constructor(
 				) -> recyclable2
 				else -> return fromLong(aLong)
 			}
-			output.setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-			// Ints *require* a spare int slot to be 0.
-			output.setIntSlot(
-				RAW_LONG_SLOTS_,
-				2,
-				if (intCount == 1) 0 else (aLong shr 32).toInt())
+			// A whole long already holds the sign extension of a one-int value.
+			output.setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			output.descriptor = mutableFor(intCount)
 			return output
 		}
@@ -2072,7 +2093,7 @@ class IntegerDescriptor private constructor(
 			arrayOfNulls<AvailObject>(smallIntegerLimit).also { array ->
 				(0..255).forEach { i ->
 					array[i] = createSharedOfSize(1) {
-						setIntSlot(RAW_LONG_SLOTS_, 1, i)
+						setLongSlot(RAW_LONG_SLOTS_, 1, i.toLong())
 					}
 				}
 			}
@@ -2125,7 +2146,7 @@ class IntegerDescriptor private constructor(
 
 		/** The Avail integer negative one (-1). */
 		val negativeOne: AvailObject = createSharedOfSize(1) {
-			setIntSlot(RAW_LONG_SLOTS_, 1, -1)
+			setLongSlot(RAW_LONG_SLOTS_, 1, -1L)
 		}
 
 		/**
