@@ -2024,7 +2024,7 @@ class JVMTranslator constructor(
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
-		var debugJVM = true // TODO false
+		var debugJVM = true  // false
 
 		/**
 		 * Counters for the class prefix names, to avoid name collisions.

@@ -78,10 +78,9 @@ data class CodeLoggingPathData(
 		 */
 		fun from(code: A_RawFunction?): CodeLoggingPathData
 		{
-			val module = code?.module ?: nil
-			val moduleName = when
+			val moduleName = when (val module = code?.module ?: nil)
 			{
-				module === nil -> "NoModule"
+				nil -> "NoModule"
 				else -> moduleNameStripper
 					.matcher(module.moduleNameNative)
 					.replaceAll("$1")

@@ -1,6 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit">
-    <module name="avail.test" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />
@@ -17,6 +16,9 @@
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />
     <option name="VM_PARAMETERS" value="-ea -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples;builder-tests=$PROJECT_DIR$/distro/src/builder-tests&quot;" />
+    <option name="TEST_SEARCH_SCOPE">
+      <value defaultName="wholeProject" />
+    </option>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
