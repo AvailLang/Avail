@@ -207,6 +207,17 @@ class CallbackTest
 				// Shouldn't happen.
 			}
 		}
+		helper.runtime.testHarnessOnFailure = { internal: Throwable ->
+			try
+			{
+				mailbox.put(Runnable {
+					Assertions.fail<Any>("Internal failure: $internal") })
+			}
+			catch (e: InterruptedException)
+			{
+				// Shouldn't happen.
+			}
+		}
 		helper.runtime.runOutermostFunction(
 			fiber,
 			body,
@@ -224,6 +235,7 @@ class CallbackTest
 		{
 			// Shouldn't happen.
 		}
+		helper.runtime.testHarnessOnFailure = null
 	}
 
 	companion object

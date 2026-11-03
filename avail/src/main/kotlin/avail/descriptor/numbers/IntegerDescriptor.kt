@@ -1685,6 +1685,26 @@ class IntegerDescriptor private constructor(
 			}
 
 		/**
+		 * Overwrite the mutable [output] so that it holds the given [Int].
+		 *
+		 * @param anInteger
+		 *   The [Int] to store.
+		 * @param output
+		 *   A mutable [AvailObject] with an [IntegerDescriptor] and an
+		 *   [intCount] <= 2.
+		 * @return
+		 *   The [output], now holding [anInteger].
+		 */
+		private fun recycleInt(anInteger: Int, output: AvailObject): AvailObject
+		{
+			output.setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
+			// Ints *require* a spare int slot to be 0.
+			output.setIntSlot(RAW_LONG_SLOTS_, 2, 0)
+			output.descriptor = mutableFor(1)
+			return output
+		}
+
+		/**
 		 * Convert the specified [Long] into a boxed Avail integer.
 		 *
 		 * @param aLong
@@ -1730,7 +1750,7 @@ class IntegerDescriptor private constructor(
 				(recyclable1.descriptor.isMutable
 					&& intCount(recyclable1) <= 2
 				) -> recyclable1
-				(recyclable1.descriptor.isMutable
+				(recyclable2.descriptor.isMutable
 					&& intCount(recyclable1) <= 2
 				) -> recyclable2
 				else -> return fromLong(aLong)
@@ -1832,6 +1852,7 @@ class IntegerDescriptor private constructor(
 
 		/** The [CheckedMethod] for [fromInt]. */
 		val fromIntMethod = staticMethod(::fromInt, int)
+
 
 		/**
 		 * Convert the specified byte-valued Java `short` into an Avail
@@ -2036,7 +2057,7 @@ class IntegerDescriptor private constructor(
 		 * their hashes can also be looked up in [hashesOfSmallIntegers].  This
 		 * value MUST be at least 256.
 		 */
-		private const val smallIntegerLimit = 16384
+		const val smallIntegerLimit = 16384
 
 		/**
 		 * A cache that maps from an index to a corresponding [A_Number].  The
@@ -2171,4 +2192,70 @@ class IntegerDescriptor private constructor(
 		descriptors[IMMUTABLE]!![unusedIntsOfLastLong]
 
 	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong]
+
+	/**
+	 * A stack of dead, mutable boxed integers that may be reused to hold a new
+	 * [Int] value.  The entries live in a circular array, so a push past
+	 * [capacity] overwrites the oldest entry.  A popped slot is nulled, so a
+	 * null top slot means the stack is empty.
+	 *
+	 * @property capacity
+	 *   The number of slots.  Must be a power of two.
+	 */
+	class RecyclePool(private val capacity: Int = 128)
+	{
+		init
+		{
+			assert(capacity > 0 && capacity and (capacity - 1) == 0)
+		}
+
+		/** The mask that wraps an index into [slots]. */
+		private val mask = capacity - 1
+
+		/** The circular storage for the recycled integers. */
+		private val slots = arrayOfNulls<AvailObject>(capacity)
+
+		/** The index of the top entry.  The top slot is null when empty. */
+		private var top = 0
+
+		/**
+		 * Push [anObject] for later reuse, if it's mutable and has room for any
+		 * [Int] value.  The caller must guarantee that nothing else references
+		 * [anObject].
+		 *
+		 * @param anObject
+		 *   A boxed integer that has lost its last reference.
+		 */
+		@ReferencedInGeneratedCode
+		fun recycleIfMutable(anObject: AvailObject)
+		{
+			if (anObject.descriptor.isMutable && intCount(anObject) <= 2)
+			{
+				top = (top + 1) and mask
+				slots[top] = anObject
+			}
+		}
+
+		/**
+		 * Answer an [AvailObject] holding [anInteger], reusing the most recently
+		 * recycled one if there is one.
+		 *
+		 * @param anInteger
+		 *   The [Int] to box.
+		 * @return
+		 *   An [AvailObject].
+		 */
+		@ReferencedInGeneratedCode
+		fun boxInt(anInteger: Int): AvailObject
+		{
+			if (anInteger in 0 until smallIntegerLimit)
+			{
+				return fromInt(anInteger)
+			}
+			val recycled = slots[top] ?: return fromInt(anInteger)
+			slots[top] = null
+			top = (top - 1) and mask
+			return recycleInt(anInteger, recycled)
+		}
+	}
 }

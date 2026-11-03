@@ -45,6 +45,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle
+import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.junit.jupiter.api.extension.TestWatcher
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -61,8 +64,39 @@ import java.util.concurrent.atomic.AtomicBoolean
 @TestInstance(Lifecycle.PER_CLASS)
 class AvailTest
 {
-	/** Setup for the test. */
-	private val helper = AvailRuntimeTestHelper(false)
+	/**
+	 * The shared fixture.  Nulled out after a failed test, since the failure may
+	 * have corrupted the [AvailRuntime].  Use [helper] to access it, which
+	 * creates a fresh fixture if necessary.
+	 */
+	private var helper: AvailRuntimeTestHelper? = null
+
+	/**
+	 * Answer the current fixture, creating it first if it was nulled out.
+	 *
+	 * @return
+	 *   The [AvailRuntimeTestHelper] to use.
+	 */
+	private fun helper(): AvailRuntimeTestHelper =
+		helper ?: AvailRuntimeTestHelper(false).also { helper = it }
+
+	/**
+	 * After a failed test, the failure may have corrupted the fixture's
+	 * [AvailRuntime], so destroy it and null it out, rethrowing nothing; JUnit
+	 * has already recorded the failure.  Pause first so that any fibers can
+	 * quiesce, since they can't be awaited after an unrecoverable failure.
+	 */
+	@JvmField
+	@RegisterExtension
+	val failureRecovery: TestWatcher = object : TestWatcher
+	{
+		override fun testFailed(context: ExtensionContext, cause: Throwable?)
+		{
+			Thread.sleep(1000)
+			helper?.runtime?.destroy()
+			helper = null
+		}
+	}
 
 	/**
 	 * Clear all repositories iff the `clearAllRepositories` system
@@ -80,7 +114,7 @@ class AvailTest
 	{
 		if (System.getProperty("clearAllRepositories", null) !== null)
 		{
-			helper.clearAllRepositories()
+			helper().clearAllRepositories()
 		}
 	}
 
@@ -90,7 +124,7 @@ class AvailTest
 	@BeforeEach
 	fun clearError()
 	{
-		helper.clearError()
+		helper?.clearError()
 	}
 
 	/**
@@ -99,7 +133,8 @@ class AvailTest
 	@AfterAll
 	fun tearDownRuntime()
 	{
-		helper.tearDownRuntime()
+		helper?.tearDownRuntime()
+		helper = null
 	}
 
 	/**
@@ -123,9 +158,9 @@ class AvailTest
 	@Throws(UnresolvedDependencyException::class)
 	fun testLoadStandardLibraries(moduleName: String)
 	{
-		val loaded = helper.loadModule(moduleName)
+		val loaded = helper().loadModule(moduleName)
 		assertTrue(loaded, "Failed to load module: $moduleName")
-		assertFalse(helper.errorDetected())
+		assertFalse(helper().errorDetected())
 	}
 
 	/**
@@ -143,11 +178,11 @@ class AvailTest
 	@Throws(UnresolvedDependencyException::class)
 	fun testBuildInvalidModules(moduleName: String)
 	{
-		val loaded = helper.loadModule(moduleName)
+		val loaded = helper().loadModule(moduleName)
 		assertFalse(
 			loaded,
 			"Should not have successfully loaded module: $moduleName")
-		assertTrue(helper.errorDetected())
+		assertTrue(helper().errorDetected())
 	}
 
 	/**
@@ -162,11 +197,11 @@ class AvailTest
 	@MethodSource("eachShouldPassTest")
 	fun testBuildValidModules(moduleName: String)
 	{
-		val loaded = helper.loadModule(moduleName)
+		val loaded = helper().loadModule(moduleName)
 		assertTrue(
 			loaded,
 			"Should have successfully loaded module: $moduleName")
-		assertFalse(helper.errorDetected())
+		assertFalse(helper().errorDetected())
 	}
 
 	/**
@@ -181,11 +216,18 @@ class AvailTest
 	fun testAvailUnitTests()
 	{
 		val testModuleName = "/avail/Avail Tests"
-		val loaded = helper.loadModule(testModuleName)
+		val loaded = helper().loadModule(testModuleName)
 		assertTrue(loaded, "Failed to load module: $testModuleName")
 		val semaphore = Semaphore(0)
 		val ok = AtomicBoolean(false)
-		helper.builder.attemptCommand(
+		var internalError: Throwable? = null
+		val runtime = helper().runtime
+		runtime.testHarnessOnFailure = { throwable ->
+			internalError = throwable
+			ok.set(false)
+			semaphore.release()
+		}
+		helper().builder.attemptCommand(
 			command = "Run all tests",
 			onAmbiguity = { commands, proceed ->
 				proceed(commands[0])
@@ -198,8 +240,10 @@ class AvailTest
 			},
 			onFailure = semaphore::release)
 		semaphore.acquireUninterruptibly()
+		runtime.testHarnessOnFailure = null
+		internalError?.let { throw it }
 		assertTrue(ok.get(), "Some Avail tests failed")
-		assertFalse(helper.errorDetected())
+		assertFalse(helper().errorDetected())
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,
 		// otherwise this test isn't nearly as useful as it could be.

@@ -32,8 +32,10 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromIntMethod
+import avail.descriptor.numbers.IntegerDescriptor.RecyclePool
 import avail.descriptor.representation.AvailObject
+import avail.interpreter.JavaLibrary.int
+import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -42,12 +44,17 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.jvm.CheckedField
+import avail.optimizer.jvm.CheckedField.Companion.instanceField
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Box an [Int] into an [AvailObject].
  *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_BOX_INT(
@@ -87,9 +94,22 @@ class L2_BOX_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = IntegerDescriptor.fromInt(source);
+		// :: destination = interpreter.integerPool.boxInt(source);
+		loadInterpreter()
+		load(integerPoolField)
 		load(source)
-		generateCall(fromIntMethod)
+		generateCall(boxIntMethod)
 		store(destination.register())
+	}
+
+	companion object
+	{
+		/** The [CheckedField] for [Interpreter.integerPool]. */
+		val integerPoolField: CheckedField =
+			instanceField(Interpreter::integerPool)
+
+		/** The [CheckedMethod] for [RecyclePool.boxInt]. */
+		val boxIntMethod: CheckedMethod =
+			instanceMethod(RecyclePool::boxInt, int)
 	}
 }

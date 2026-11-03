@@ -60,6 +60,7 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.numbers.IntegerDescriptor.RecyclePool
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Bundle.Companion.message
@@ -287,6 +288,14 @@ final class Interpreter(
 	val runtime: AvailRuntime
 ): DebugRenderer
 {
+	/**
+	 * The dead, mutable boxed integers that this interpreter may reuse when
+	 * boxing a new [Int].  Accessed only by this interpreter's own thread.
+	 */
+	@ReferencedInGeneratedCode
+	@JvmField
+	val integerPool = RecyclePool()
+
 	/**
 	 * As the system runs, the clock thread periodically wakes up and samples
 	 * the running interpreters to get an indication of which [A_RawFunction]s
@@ -2242,10 +2251,10 @@ final class Interpreter(
 		function = aFunction
 		val code = aFunction.code()
 		assert(code.numArgs() == argsBuffer.size)
+		adjustUnreifiedCallDepthBy(1)
 		chunk = code.startingChunk
 		assert(chunk!!.isValid)
 		offset = 0
-		adjustUnreifiedCallDepthBy(1)
 
 		try
 		{
@@ -2284,7 +2293,7 @@ final class Interpreter(
 					offset = 0
 				}
 			}
-			return runChunk()
+			return chunk!!.executableChunk.runChunk(this, 0)
 		}
 		finally
 		{
