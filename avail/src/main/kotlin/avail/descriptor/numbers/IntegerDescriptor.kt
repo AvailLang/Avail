@@ -49,7 +49,6 @@ import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.addToIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.asBigInteger
 import avail.descriptor.representation.A_Number.Companion.bitShift
-import avail.descriptor.representation.A_Number.Companion.bitwiseXor
 import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
 import avail.descriptor.representation.A_Number.Companion.divideIntoIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.equalsInteger
@@ -717,39 +716,21 @@ class IntegerDescriptor private constructor(
 				}
 			}
 		}
-		// Rare - fall back to slower math.
-		var numerator: A_Number = anInteger
-		var denominator: A_Number = self
-		if (denominator.lessThan(zero))
+		// Longs won't suffice, so fall back to BigInteger.  Its division
+		// truncates toward zero, so round toward negative infinity by hand: a
+		// nonzero remainder with the opposite sign of the divisor means the
+		// truncated quotient is one too large.  The divisor is nonzero here,
+		// since a zero divisor is always a long.
+		val denominatorBigInt = self.asBigInteger()
+		val qr = anInteger.asBigInteger().divideAndRemainder(denominatorBigInt)
+		val remainderSign = qr[1].signum()
+		val quotient = if (remainderSign != 0
+			&& remainderSign != denominatorBigInt.signum())
 		{
-			// n/d for d<0:  Compute (-n/-d) instead.
-			numerator =
-				numerator.subtractFromIntegerCanDestroy(zero, canDestroy)
-			denominator =
-				denominator.subtractFromIntegerCanDestroy(zero, canDestroy)
+			qr[0].subtract(BigInteger.ONE)
 		}
-		var invertResult = false
-		if (numerator.lessThan(zero))
-		{
-			// n/d for n<0, d>0:  use -1-(-1-n)/d
-			// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
-			// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
-			// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
-			numerator = numerator.bitwiseXor(negativeOne, canDestroy)
-			invertResult = true
-		}
-		// At this point, neither numerator nor denominator is negative.
-		// For simplicity and efficiency, fall back on Java's BigInteger
-		// implementation.
-		val numeratorBigInt = numerator.asBigInteger()
-		val denominatorBigInt = denominator.asBigInteger()
-		val quotient = numeratorBigInt.divide(denominatorBigInt)
-		var result = fromBigInteger(quotient)
-		if (invertResult)
-		{
-			result = result.bitwiseXor(negativeOne, true)
-		}
-		return result
+		else qr[0]
+		return fromBigInteger(quotient)
 	}
 
 	override fun o_DivideIntoDoubleCanDestroy(
