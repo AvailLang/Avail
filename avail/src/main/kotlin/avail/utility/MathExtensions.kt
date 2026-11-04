@@ -51,3 +51,10 @@ const val highBitsOfShorts: Long = lowBitsOfShorts.shl(15)
 /** Answer true iff any short of the receiver is zero. */
 fun Long.hasZeroShort(): Boolean =
 	(this - lowBitsOfShorts) and this.inv() and highBitsOfShorts != 0L
+
+/**
+ * Whether this [Long] is the sign extension of its low 32 bits, i.e., it fits
+ * in an [Int].
+ */
+val Long.isInt: Boolean
+	get() = this == (this shl 32) shr 32

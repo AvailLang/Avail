@@ -105,6 +105,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.isInt
 import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
 import java.lang.Double.isInfinite
@@ -381,7 +382,10 @@ class IntegerDescriptor private constructor(
 
 	override fun o_ExtractInt(self: AvailObject): Int {
 		assert(intCount(self) == 1) { "Integer value out of bounds" }
-		return self.longSlot(RAW_LONG_SLOTS_, 1).toInt()
+		val value = self.extractLong
+		val truncated = (value shl 32) shr 32
+		assert(value == truncated) { "Integer value out of bounds" }
+		return truncated.toInt()
 	}
 
 	override fun o_ExtractLong(self: AvailObject): Long {
@@ -1596,13 +1600,6 @@ class IntegerDescriptor private constructor(
 			val topIntRedundant = self.longSlot(RAW_LONG_SLOTS_, longs).isInt
 			return (longs shl 1) - if (topIntRedundant) 1 else 0
 		}
-
-		/**
-		 * Whether this [Long] is the sign extension of its low [Int], i.e., it
-		 * fits in an [Int].
-		 */
-		val Long.isInt: Boolean
-			get() = this == (this shl 32) shr 32
 
 		/**
 		 * If [count] is odd, make the receiver's unused upper int hold the sign
