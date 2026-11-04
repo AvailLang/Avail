@@ -36,11 +36,8 @@ import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.maps.MapDescriptor.Companion.generateMapFrom
 import avail.descriptor.numbers.IntegerDescriptor
-import avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
-import avail.descriptor.numbers.IntegerDescriptor.Companion.trimSized
 import avail.descriptor.representation.A_Character.Companion.codePoint
 import avail.descriptor.representation.A_Map.Companion.forEachInMap
 import avail.descriptor.representation.A_Map.Companion.mapSize
@@ -49,8 +46,6 @@ import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.extractNybble
 import avail.descriptor.representation.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.representation.A_Number.Companion.extractUnsignedShort
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAtPut
 import avail.descriptor.representation.A_Tuple.Companion.forEachCodepointInString
 import avail.descriptor.representation.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
@@ -237,26 +232,20 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val slotsCount = intCount(obj)
+			val traversed = obj.traversed()
+			val slotsCount = IntegerDescriptor.longCount(traversed)
 			writeCompressedPositiveInt(slotsCount, serializer)
-			for (i in slotsCount downTo 1)
-			{
-				serializer.writeInt(obj.rawSignedIntegerAt(i))
+			IntegerDescriptor.limbIterator(traversed).forEach { long ->
+				writeUncompressedLong(long, serializer)
 			}
 		}
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val slotsCount = readCompressedPositiveInt(deserializer)
-			val newInteger = createUninitializedInteger(slotsCount)
-			for (i in slotsCount downTo 1)
-			{
-				newInteger.rawSignedIntegerAtPut(i, deserializer.readInt())
+			return IntegerDescriptor.generateIntegerFromLimbs(slotsCount) {
+				readUncompressedLong(deserializer)
 			}
-			// Normalize the spare half of an odd count, as all integers must be.
-			trimSized(newInteger, slotsCount)
-			newInteger.makeImmutable()
-			return newInteger
 		}
 	},
 
@@ -1086,6 +1075,39 @@ internal enum class SerializerOperandEncoding
 			val value = readCompressedULong(deserializer)
 			assert(value <= 0x7FFF_FFFF_UL)
 			return value.toInt()
+		}
+
+		/**
+		 * Write an arbitrary [Long] without compression, which always takes
+		 * exactly 8 bytes.
+		 *
+		 * @param value The [Long] to write.
+		 * @param serializer Where to write it.
+		 */
+		internal fun writeUncompressedLong(
+			value: Long,
+			serializer: Serializer)
+		{
+			serializer.writeInt((value shr 32).toInt())
+			serializer.writeInt(value.toInt())
+		}
+
+
+		/**
+		 * Read an uncompressed [Long], which always consumes 8 bytes.
+		 *
+		 * @param deserializer
+		 *   Where to read the [Long] from.
+		 * @return
+		 *   The [Long] that was read.
+		 */
+		fun readUncompressedLong(
+			deserializer: AbstractDeserializer
+		): Long
+		{
+			val high = deserializer.readInt().toLong()
+			val low = deserializer.readInt().toLong()
+			return (high shl 32) or (low and 0xFFFF_FFFF)
 		}
 	}
 }

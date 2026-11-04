@@ -151,7 +151,6 @@ class IntegerDescriptor private constructor(
 	null,
 	IntegerSlots::class.java)
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -1972,6 +1971,48 @@ class IntegerDescriptor private constructor(
 		 */
 		fun createUninitializedLongInteger(longCount: Int): AvailObject =
 			mutable.create(longCount)
+
+		/**
+		 * Create an integer object with the given number of [Long] slots,
+		 * initialized in little-Endian order with values produced by the
+		 * [generator].
+		 *
+		 * @param size
+		 *   The number of [Long] slots to allocate in the boxed integer.
+		 * @param generator
+		 *   A generator to provide [Long]s to store, starting with the least
+		 *   significant one first.  The generator is passed the current long
+		 *   slot's index.
+		 * @return
+		 *   The new boxed integer.
+		 */
+		fun generateIntegerFromLimbs(
+			longCount: Int,
+			generator: (Int) -> Long
+		): AvailObject = mutable.create(longCount) {
+			for (i in 1..longCount)
+			{
+				setLongSlot(RAW_LONG_SLOTS_, i, generator(i))
+			}
+		}
+
+		/**
+		 * Answer an iterator over the [Long] slots of an Avail boxed integer,
+		 * starting with the least significant [Long].
+		 */
+		fun limbIterator(
+			integer: AvailObject
+		): Iterator<Long> = object: Iterator<Long>
+		{
+			val limit = longCount(integer)
+
+			var current = 1
+
+			override fun hasNext(): Boolean = current <= limit
+
+			override fun next(): Long =
+				integer.longSlot(RAW_LONG_SLOTS_, current++)
+		}
 
 		/** The mutable [IntegerDescriptor]. */
 		private val mutable = IntegerDescriptor(Mutability.MUTABLE)
