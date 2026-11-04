@@ -381,16 +381,13 @@ class IntegerDescriptor private constructor(
 
 	override fun o_ExtractInt(self: AvailObject): Int {
 		assert(intCount(self) == 1) { "Integer value out of bounds" }
-		return self.rawSignedIntegerAt(1)
+		return self.longSlot(RAW_LONG_SLOTS_, 1).toInt()
 	}
 
 	override fun o_ExtractLong(self: AvailObject): Long {
 		assert(intCount(self) <= 2) { "Integer value out of bounds" }
-		if (intCount(self) == 1) {
-			return self.rawSignedIntegerAt(1).toLong()
-		}
-		val low = self.rawSignedIntegerAt(1).toLong() and 0xffffffffL
-		return low or (self.rawSignedIntegerAt(2).toLong() shl 32)
+		// A value in long range is a single, canonical long.
+		return self.longSlot(RAW_LONG_SLOTS_, 1)
 	}
 
 	override fun o_ExtractFloat(self: AvailObject): Float =
