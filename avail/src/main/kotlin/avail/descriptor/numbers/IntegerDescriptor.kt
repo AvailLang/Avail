@@ -106,7 +106,6 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.safeWrite
-import avail.utility.structures.EnumMap
 import org.availlang.json.JSONWriter
 import java.lang.Double.isInfinite
 import java.lang.Math.getExponent
@@ -145,24 +144,17 @@ import kotlin.random.Random
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
- * @param unusedIntsOfLastLong
- *   The number of unused [Int]s in the last `long`.  Must be 0 or 1.
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class IntegerDescriptor private constructor(
-	mutability: Mutability,
-	val unusedIntsOfLastLong: Int
+	mutability: Mutability
 ) : ExtendedIntegerDescriptor(
 	mutability,
 	TypeTag.UNKNOWN_TAG,
 	null,
 	IntegerSlots::class.java)
 {
-	init {
-		assert((unusedIntsOfLastLong and 1.inv()) == 0)
-	}
 
 	/**
 	 * The layout of integer slots for my instances.
@@ -466,10 +458,10 @@ class IntegerDescriptor private constructor(
 					self.truncateWithFillerForNewIntegerSlotsCount(
 						size + 1 shr 1)
 				}
-				self.descriptor = mutableFor(size)
+				self.descriptor = mutable
 			}
 		}
-		normalizeSpareInt(self)
+		normalizeSpareInt(self, size)
 	}
 
 	override fun o_AddToInfinityCanDestroy(
@@ -548,7 +540,7 @@ class IntegerDescriptor private constructor(
 				output = output ?: createUninitializedInteger(1)
 				assert(intCount(output) == 1)
 				output.rawSignedIntegerAtPut(1, sum.toInt())
-				normalizeSpareInt(output)
+				normalizeSpareInt(output, 1)
 				return output
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
@@ -560,7 +552,8 @@ class IntegerDescriptor private constructor(
 		output = output ?:
 			createUninitializedInteger(max(objectSize, anIntegerSize))
 
-		val outputSize = intCount(output)
+		// The output is either fresh with this size, or an input of this size.
+		val outputSize = max(objectSize, anIntegerSize)
 		val extendedObject =
 			((self.rawSignedIntegerAt(objectSize) shr 31).toLong()
 				and 0xFFFF_FFFFL)
@@ -593,12 +586,10 @@ class IntegerDescriptor private constructor(
 					output.intSlot(RAW_LONG_SLOTS_, i))
 			}
 			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			// Trim it, both to drop a redundant top int and to normalize the
-			// spare half of an odd number of ints.
-			newOutput.trimExcessInts()
+			trimSized(newOutput, outputSize + 1)
 			return newOutput
 		}
-		output.trimExcessInts()
+		trimSized(output, outputSize)
 		return output
 	}
 
@@ -865,7 +856,7 @@ class IntegerDescriptor private constructor(
 			high = high ushr 32
 		}
 		// We can safely ignore any remaining bits from the partial products.
-		output.trimExcessInts()
+		trimSized(output, targetSize)
 		return output
 	}
 
@@ -946,7 +937,7 @@ class IntegerDescriptor private constructor(
 				output = output ?: createUninitializedInteger(1)
 				assert(intCount(output) == 1)
 				output.rawSignedIntegerAtPut(1, diff.toInt())
-				normalizeSpareInt(output)
+				normalizeSpareInt(output, 1)
 				return output
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
@@ -960,7 +951,8 @@ class IntegerDescriptor private constructor(
 		// be pretty rare, and they're handled by output.trimExcessInts().
 		output = output ?:
 			createUninitializedInteger(max(objectSize, anIntegerSize))
-		val outputSize = intCount(output)
+		// The output is either fresh with this size, or an input of this size.
+		val outputSize = max(objectSize, anIntegerSize)
 		val extendedObject =
 			self.rawSignedIntegerAt(objectSize).toLong() shr 31 and 0xFFFFFFFFL
 		val extendedAnInteger =
@@ -991,12 +983,10 @@ class IntegerDescriptor private constructor(
 				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i))
 			}
 			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			// Trim it, both to drop a redundant top int and to normalize the
-			// spare half of an odd number of ints.
-			newOutput.trimExcessInts()
+			trimSized(newOutput, outputSize + 1)
 			return newOutput
 		}
-		output.trimExcessInts()
+		trimSized(output, outputSize)
 		return output
 	}
 
@@ -1094,7 +1084,7 @@ class IntegerDescriptor private constructor(
 				anIntegerTraversed.rawSignedIntegerAt(1))
 			output = output ?: createUninitializedInteger(1)
 			output.rawSignedIntegerAtPut(1, result)
-			normalizeSpareInt(output)
+			normalizeSpareInt(output, 1)
 			return output
 		}
 		// If neither of the inputs were suitable for destruction, then allocate
@@ -1102,7 +1092,8 @@ class IntegerDescriptor private constructor(
 		output = output ?: createUninitializedInteger(
 			max(objectSize, anIntegerSize))
 		// Handle larger integers.
-		val outputSize = intCount(output)
+		// The output is either fresh with this size, or an input of this size.
+		val outputSize = max(objectSize, anIntegerSize)
 		val extendedObject = self.rawSignedIntegerAt(objectSize) shr 31
 		val extendedAnInteger =
 			anIntegerTraversed.rawSignedIntegerAt(anIntegerSize) shr 31
@@ -1124,7 +1115,7 @@ class IntegerDescriptor private constructor(
 			val result = operation(objectWord, anIntegerWord)
 			output.rawSignedIntegerAtPut(i, result)
 		}
-		output.trimExcessInts()
+		trimSized(output, outputSize)
 		return output
 	}
 
@@ -1198,11 +1189,11 @@ class IntegerDescriptor private constructor(
 			// Clobber it in place.
 			self.rawSignedIntegerAtPut(intIndex, newInt)
 			// Representation might need to shrink.
-			self.trimExcessInts()
+			trimSized(self, newIntCount)
 			return self
 		}
 		// It must be copied.
-		val result = newLike(mutableFor(newIntCount), self, 0, 0)
+		val result = newLike(mutable, self, 0, 0)
 		if (self.lessThan(zero))
 		{
 			for (i in oldIntCount + 1 .. newIntCount)
@@ -1211,7 +1202,7 @@ class IntegerDescriptor private constructor(
 			}
 		}
 		result.rawSignedIntegerAtPut(intIndex, newInt)
-		result.trimExcessInts()
+		trimSized(result, newIntCount)
 		return result
 	}
 
@@ -1291,7 +1282,7 @@ class IntegerDescriptor private constructor(
 						if (intCount(self) == 1)
 						{
 							self.rawSignedIntegerAtPut(1, resultLong.toInt())
-							normalizeSpareInt(self)
+							normalizeSpareInt(self, 1)
 							return self
 						}
 					}
@@ -1346,7 +1337,7 @@ class IntegerDescriptor private constructor(
 			// Completely wipe any higher ints.
 			mask = 0
 		}
-		result.trimExcessInts()
+		trimSized(result, slotCount)
 		return result
 	}
 
@@ -1408,7 +1399,7 @@ class IntegerDescriptor private constructor(
 						if (intCount(self) == 1)
 						{
 							self.rawSignedIntegerAtPut(1, shiftedLong.toInt())
-							normalizeSpareInt(self)
+							normalizeSpareInt(self, 1)
 							return self
 						}
 					}
@@ -1457,7 +1448,7 @@ class IntegerDescriptor private constructor(
 			}
 			sourceIndex--
 		}
-		result.trimExcessInts()
+		trimSized(result, intSlotCount)
 		return result
 	}
 
@@ -1601,20 +1592,34 @@ class IntegerDescriptor private constructor(
 		 */
 		fun intCount(
 			self: AvailObject
-		) = ((self.integerSlotsCount() shl 1)
-			- (self.descriptor as IntegerDescriptor).unusedIntsOfLastLong)
+		): Int
+		{
+			val longs = self.integerSlotsCount()
+			// The top int is redundant when the top long fits in an int.
+			val topIntRedundant = self.longSlot(RAW_LONG_SLOTS_, longs).isInt
+			return (longs shl 1) - if (topIntRedundant) 1 else 0
+		}
 
 		/**
-		 * If the receiver holds an odd number of ints, make its unused upper int
-		 * hold the sign extension of its top int.  Equality compares the raw
-		 * longs, so this keeps equal values' storage identical.
+		 * Whether this [Long] is the sign extension of its low [Int], i.e., it
+		 * fits in an [Int].
+		 */
+		val Long.isInt: Boolean
+			get() = this == (this shl 32) shr 32
+
+		/**
+		 * If [count] is odd, make the receiver's unused upper int hold the sign
+		 * extension of its top int.  Equality compares the raw longs, so this
+		 * keeps equal values' storage identical.  The count must be given
+		 * explicitly, since [intCount] depends on this very invariant.
 		 *
 		 * @param self
 		 *   The mutable integer object to normalize.
+		 * @param count
+		 *   The number of ints that the receiver is about to hold.
 		 */
-		private fun normalizeSpareInt(self: AvailObject)
+		private fun normalizeSpareInt(self: AvailObject, count: Int)
 		{
-			val count = intCount(self)
 			if (count and 1 == 1)
 			{
 				self.setIntSlot(
@@ -1622,6 +1627,22 @@ class IntegerDescriptor private constructor(
 					count + 1,
 					self.rawSignedIntegerAt(count) shr 31)
 			}
+		}
+
+		/**
+		 * Normalize the receiver's spare half for a result of [count] ints, then
+		 * trim any redundant top ints.  Writers must call this, rather than
+		 * [trimExcessInts] alone, because trimming reads the count from content.
+		 *
+		 * @param self
+		 *   The mutable integer object to finish.
+		 * @param count
+		 *   The number of ints that the receiver holds before trimming.
+		 */
+		fun trimSized(self: A_Number, count: Int)
+		{
+			normalizeSpareInt(self as AvailObject, count)
+			self.trimExcessInts()
 		}
 
 		/**
@@ -1725,7 +1746,7 @@ class IntegerDescriptor private constructor(
 			// The spare half holds the sign extension of the int, as equality
 			// requires of an odd number of ints.
 			output.setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
-			output.descriptor = mutableFor(1)
+			output.descriptor = mutable
 			return output
 		}
 
@@ -1782,7 +1803,7 @@ class IntegerDescriptor private constructor(
 			}
 			// A whole long already holds the sign extension of a one-int value.
 			output.setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
-			output.descriptor = mutableFor(intCount)
+			output.descriptor = mutable
 			return output
 		}
 
@@ -1829,7 +1850,7 @@ class IntegerDescriptor private constructor(
 			highInt = highInt shr (4 - byteIndex shl 3)
 			result.setIntSlot(RAW_LONG_SLOTS_, destIndex, highInt)
 			// There should be no need to trim it...
-			result.trimExcessInts()
+			trimSized(result, intCount)
 			assert(intCount(result) == intCount)
 			return result
 		}
@@ -1864,7 +1885,7 @@ class IntegerDescriptor private constructor(
 				truncated -= intSlice.toDouble()
 				truncated = scalb(truncated, 32)
 			}
-			out.trimExcessInts()
+			trimSized(out, slots)
 			return when {
 				neg -> zero.noFailMinusCanDestroy(out, true)
 				else -> out
@@ -2058,20 +2079,16 @@ class IntegerDescriptor private constructor(
 		 *   An uninitialized, mutable integer.
 		 */
 		fun createUninitializedInteger(size: Int): AvailObject =
-			mutableFor(size).create(size + 1 shr 1)
+			mutable.create(size + 1 shr 1)
 
-		/**
-		 * The static list of descriptors of this kind, organized by mutability
-		 * and then the number of unused ints in the last long.  This is mostly
-		 * a vestigial effect of having used 32-bit integer slots in the past.
-		 * There is still some merit to the technique, since for example integer
-		 * multiplication has to use u32 x u32 -> u64 for speed.
-		 */
-		private val descriptors = EnumMap.enumMap { mut: Mutability ->
-			Array(2) { unusedInts ->
-				IntegerDescriptor(mut, unusedInts)
-			}
-		}
+		/** The mutable [IntegerDescriptor]. */
+		private val mutable = IntegerDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [IntegerDescriptor]. */
+		private val immutable = IntegerDescriptor(Mutability.IMMUTABLE)
+
+		/** The shared [IntegerDescriptor]. */
+		private val shared = IntegerDescriptor(Mutability.SHARED)
 
 		/**
 		 * Values below this limit can be looked up in [smallIntegers], and
@@ -2098,18 +2115,6 @@ class IntegerDescriptor private constructor(
 				}
 			}
 
-		/**
-		 * Answer the mutable descriptor that is suitable to describe an integer
-		 * with the given number of int slots.
-		 *
-		 * @param size
-		 *   How many int slots are in the large integer to be represented by
-		 *   the descriptor.
-		 * @return
-		 *   An `IntegerDescriptor` suitable for representing an integer of the
-		 *   given mutability and int slot count.
-		 */
-		private fun mutableFor(size: Int) = descriptors[MUTABLE]!![size and 1]
 
 		/**
 		 * Create a mutable integer with the given number of int slots, run the
@@ -2206,13 +2211,11 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	override fun mutable() =
-		descriptors[MUTABLE]!![unusedIntsOfLastLong]
+	override fun mutable() = mutable
 
-	override fun immutable() =
-		descriptors[IMMUTABLE]!![unusedIntsOfLastLong]
+	override fun immutable() = immutable
 
-	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong]
+	override fun shared() = shared
 
 	/**
 	 * A stack of dead, mutable boxed integers that may be reused to hold a new

@@ -40,6 +40,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedI
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
+import avail.descriptor.numbers.IntegerDescriptor.Companion.trimSized
 import avail.descriptor.representation.A_Character.Companion.codePoint
 import avail.descriptor.representation.A_Map.Companion.forEachInMap
 import avail.descriptor.representation.A_Map.Companion.mapSize
@@ -252,6 +253,8 @@ internal enum class SerializerOperandEncoding
 			{
 				newInteger.rawSignedIntegerAtPut(i, deserializer.readInt())
 			}
+			// Normalize the spare half of an odd count, as all integers must be.
+			trimSized(newInteger, slotsCount)
 			newInteger.makeImmutable()
 			return newInteger
 		}

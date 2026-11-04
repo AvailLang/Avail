@@ -41,6 +41,7 @@ import avail.descriptor.numbers.DoubleDescriptor.IntegerSlots.LONG_BITS
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
+import avail.descriptor.numbers.IntegerDescriptor.Companion.trimSized
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.truncatedFromDouble
@@ -661,7 +662,7 @@ class DoubleDescriptor private constructor(
 				d -= unsignedIntSlice.toDouble()
 				d = scalb(d, 32)
 			}
-			out.trimExcessInts()
+			trimSized(out, slots)
 			if (neg) {
 				out = zero.noFailMinusCanDestroy(out, true)
 			}
