@@ -32,7 +32,7 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
@@ -290,7 +290,7 @@ private constructor(
 		for (index in end downTo start)
 		{
 			val itemHash =
-				computeHashOfInt(self.tupleIntAt(index)) xor preToggle
+				computeHashOfLong(self.tupleIntAt(index).toLong()) xor preToggle
 			hash = (hash + itemHash) * AvailObject.multiplier
 		}
 		return hash

@@ -35,7 +35,7 @@ import avail.descriptor.character.CharacterDescriptor.Companion.characterCache
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.CODE_POINT
 import avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.numbers.IntegerDescriptor
-import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfLong
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Character
 import avail.descriptor.representation.A_Character.Companion.equalsCharacterWithCodePoint
@@ -225,7 +225,7 @@ class CharacterDescriptor private constructor(
 		 *   The character's hashed [Int].
 		 */
 		fun computeHashOfCharacterWithCodePoint(codePoint: Int): Int =
-			computeHashOfInt(codePoint xor -0x297166b9)
+			computeHashOfLong((codePoint xor -0x297166b9).toLong())
 
 		/**
 		 * Answer the hash of the Avail [A_Character] with the specified

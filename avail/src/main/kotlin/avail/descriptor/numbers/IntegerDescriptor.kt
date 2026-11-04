@@ -83,7 +83,7 @@ import avail.descriptor.representation.A_Type.Companion.lowerInclusive
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.multiplier
+import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -339,46 +339,41 @@ class IntegerDescriptor private constructor(
 	override fun o_IsLong(self: AvailObject) = intCount(self) <= 2
 
 	override fun o_ExtractNybble(self: AvailObject): Byte {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value and 15) { "Value is out of range for a nybble" }
+		val value = self.extractLong
+		assert(value == value and 15L) { "Value is out of range for a nybble" }
 		return value.toByte()
 	}
 
 	override fun o_ExtractSignedByte(self: AvailObject): Byte {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value.toByte().toInt()) {
+		val value = self.extractLong
+		assert(value == value.toByte().toLong()) {
 			"Value is out of range for a signed byte"
 		}
 		return value.toByte()
 	}
 
 	override fun o_ExtractUnsignedByte(self: AvailObject): Short {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value and 255) {
+		val value = self.extractLong
+		assert(value == value and 255L) {
 			"Value is out of range for an unsigned byte"
 		}
 		return value.toShort()
 	}
 
 	override fun o_ExtractSignedShort(self: AvailObject): Short {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value.toShort().toInt()) {
+		val value = self.extractLong
+		assert(value == value.toShort().toLong()) {
 			"Value is out of range for a signed short"
 		}
 		return value.toShort()
 	}
 
 	override fun o_ExtractUnsignedShort(self: AvailObject): Int {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value and 65535) {
+		val value = self.extractLong
+		assert(value == value and 65535L) {
 			"Value is out of range for an unsigned short"
 		}
-		return value
+		return value.toInt()
 	}
 
 	override fun o_ExtractInt(self: AvailObject): Int {
@@ -1007,29 +1002,22 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject
 	): Order {
-		val size1 = intCount(self)
-		val size2 = intCount(anInteger)
-		val high1 = self.intSlot(RAW_LONG_SLOTS_, size1)
-		val high2 = anInteger.rawSignedIntegerAt(size2)
-		val composite1 = if (high1 >= 0) size1 else -size1
-		val composite2 = if (high2 >= 0) size2 else -size2
-		if (composite1 != composite2) {
-			return if (composite1 < composite2) Order.LESS else Order.MORE
+		val selfWords = self.integerSlotsCount()
+		val anIntegerWords = anInteger.integerSlotsCount()
+		val words = max(selfWords, anIntegerWords)
+		// The top word is signed, so it's compared on its own.
+		val selfTop = longWordOrSign(self, selfWords, words)
+		val anIntegerTop = longWordOrSign(anInteger, anIntegerWords, words)
+		if (selfTop != anIntegerTop) {
+			return if (selfTop < anIntegerTop) Order.LESS else Order.MORE
 		}
-		assert(size1 == size2)
-		assert(high1 >= 0 == high2 >= 0)
-		if (high1 != high2) {
-			return if (high1 < high2) Order.LESS else Order.MORE
-		}
-		for (i in size1 - 1 downTo 1) {
-			val a = self.intSlot(RAW_LONG_SLOTS_, i)
-			val b = anInteger.rawSignedIntegerAt(i)
+		// The lower words are unsigned.
+		for (i in words - 1 downTo 1) {
+			val a = longWordOrSign(self, selfWords, i)
+			val b = longWordOrSign(anInteger, anIntegerWords, i)
 			if (a != b) {
-				return when {
-					a.toLong() and 0xFFFFFFFFL < b.toLong() and 0xFFFFFFFFL ->
-						Order.LESS
-					else -> Order.MORE
-				}
+				return if (java.lang.Long.compareUnsigned(a, b) < 0) Order.LESS
+					else Order.MORE
 			}
 		}
 		return Order.EQUAL
@@ -1516,18 +1504,17 @@ class IntegerDescriptor private constructor(
 	 */
 	override fun o_AsBigInteger(self: AvailObject): BigInteger
 	{
-		val integerCount = intCount(self)
-		if (integerCount <= 2) {
+		if (self.isLong) {
 			return BigInteger.valueOf(self.extractLong)
 		}
-		val bytes = ByteArray(integerCount shl 2)
+		val words = self.integerSlotsCount()
+		val bytes = ByteArray(words shl 3)
 		var b = 0
-		for (i in integerCount downTo 1) {
-			val integer = self.intSlot(RAW_LONG_SLOTS_, i)
-			bytes[b++] = (integer shr 24).toByte()
-			bytes[b++] = (integer shr 16).toByte()
-			bytes[b++] = (integer shr 8).toByte()
-			bytes[b++] = integer.toByte()
+		for (i in words downTo 1) {
+			val word = self.longSlot(RAW_LONG_SLOTS_, i)
+			for (shift in 56 downTo 0 step 8) {
+				bytes[b++] = (word shr shift).toByte()
+			}
 		}
 		return BigInteger(bytes)
 	}
@@ -1805,36 +1792,23 @@ class IntegerDescriptor private constructor(
 			if (bytes.size <= 8) {
 				return fromLong(bigInteger.toLong())
 			}
-			val intCount = bytes.size + 3 shr 2
-			val result = createUninitializedInteger(intCount)
-			// Start with the least significant bits.
-			var byteIndex = bytes.size
-			var destIndex = 1
-			while (destIndex < intCount) {
-				byteIndex -= 4 // Zero-based index to start of four byte run
-				val intValue: Int = ((bytes[byteIndex].toInt() and 255 shl 24)
-					+ (bytes[byteIndex + 1].toInt() and 255 shl 16)
-					+ (bytes[byteIndex + 2].toInt() and 255 shl 8)
-					+ (bytes[byteIndex + 3].toInt() and 255))
-				result.setIntSlot(RAW_LONG_SLOTS_, destIndex, intValue)
-				destIndex++
+			// Pad at the front, to whole words, with the sign of the value.
+			val wordCount = (bytes.size + 7) ushr 3
+			val padByte: Byte = if (bytes[0] < 0) -1 else 0
+			val padded = ByteArray(wordCount shl 3) { padByte }
+			bytes.copyInto(padded, destinationOffset = padded.size - bytes.size)
+			val result = createUninitializedInteger(wordCount * 2)
+			// Word 1 is the least significant, so it comes from the last eight
+			// bytes.
+			for (i in 1..wordCount) {
+				var word = 0L
+				val start = (wordCount - i) shl 3
+				for (k in start until start + 8) {
+					word = (word shl 8) or (padded[k].toLong() and 0xFFL)
+				}
+				result.setLongSlot(RAW_LONG_SLOTS_, i, word)
 			}
-			// There are at least 4 bytes present (<=8 was special-cased), so
-			// create an int from the leading (most significant) 4 bytes.  Some
-			// of these bytes may have already been included in the previous
-			// int, but at least one and at most four bytes will survive to be
-			// written to the most significant int.
-			var highInt: Int = ((bytes[0].toInt() and 255 shl 24)
-				+ (bytes[1].toInt() and 255 shl 16)
-				+ (bytes[2].toInt() and 255 shl 8)
-				+ (bytes[3].toInt() and 255))
-			assert(byteIndex in 1..4)
-			// Now shift away the bytes already consumed.
-			highInt = highInt shr (4 - byteIndex shl 3)
-			result.setIntSlot(RAW_LONG_SLOTS_, destIndex, highInt)
-			// There should be no need to trim it...
-			trimSized(result, intCount)
-			assert(intCount(result) == intCount)
+			trimSized(result, wordCount * 2)
 			return result
 		}
 
@@ -1911,31 +1885,20 @@ class IntegerDescriptor private constructor(
 			self: AvailObject,
 			exponentBias: Int
 		): Double {
-			// Extract and scale the top three ints from anInteger, if
-			// available. This guarantees at least 64 correct upper bits were
-			// extracted (if available), which is better than a double can
-			// represent.
-			val slotsCount = intCount(self)
-			val high = self.rawSignedIntegerAt(slotsCount).toLong()
+			// Extract and scale the top two longs.  Together they hold at least
+			// 64 correct upper bits, which is more than a double can represent.
+			val words = self.integerSlotsCount()
 			var d = scalb(
-				high.toDouble(),
-				(slotsCount - 1 shl 5) - exponentBias)
-			if (slotsCount > 1) {
+				self.longSlot(RAW_LONG_SLOTS_, words).toDouble(),
+				64 * (words - 1) - exponentBias)
+			if (words > 1) {
 				// Don't sign-extend this component, since our initial estimate
 				// can only be too low, never too high.  Adding in the lower
-				// ints should increase the number, even if the first value was
+				// word should increase the number, even if the first was
 				// negative.
-				val med = self.rawUnsignedIntegerAt(slotsCount - 1)
-				d += scalb(
-					med.toDouble(),
-					(slotsCount - 2 shl 5) - exponentBias)
-				if (slotsCount > 2) {
-					// Again, don't sign-extend this component.
-					val low = self.rawUnsignedIntegerAt(slotsCount - 2)
-					d += scalb(
-						low.toDouble(),
-						(slotsCount - 3 shl 5) - exponentBias)
-				}
+				val next = self.longSlot(RAW_LONG_SLOTS_, words - 1)
+					.toULong().toDouble()
+				d += scalb(next, 64 * (words - 2) - exponentBias)
 			}
 			return d
 		}
@@ -1956,51 +1919,6 @@ class IntegerDescriptor private constructor(
 		/** The initialization value for computing the hash of an integer. */
 		private const val initialHashValue = 0x13592884
 
-		/**
-		 * The value to xor with after multiplying by the [multiplier] for each
-		 * [Int] slot of the integer.
-		 */
-		private const val postMultiplyHashToggle = -0x6a004a61
-
-		/**
-		 * The value to add after performing a final extra multiply by
-		 * [multiplier].
-		 */
-		private const val finalHashAddend = 0x5127ee66
-
-		/**
-		 * A table of random values.  This has different content on every run.
-		 */
-		private val byteHashes = IntArray(256) {
-			Random.nextBits(32)
-		}
-
-		private fun combineHash(currentHash: Int, nextInt: Int): Int
-		{
-			var hash = currentHash xor nextInt
-			var index = hash xor (hash shr 16)
-			index -= (index shr 8)
-			hash += byteHashes[index and 0xFF]
-			hash -= byteHashes[(index shr 8) and 0xFF]
-			return hash xor postMultiplyHashToggle
-		}
-
-		/**
-		 * Hash the passed [Int].  Note that it must have the same value as what
-		 * [computeHashOfIntegerObject] would return, given an encoding of the
-		 * [Int] as an Avail integer.
-		 *
-		 * @param anInt
-		 *   The [Int] to hash.
-		 * @return
-		 *   The hash of the given [Int], consistent with Avail integer hashing.
-		 */
-		fun computeHashOfInt(anInt: Int): Int {
-			var output = combineHash(initialHashValue, anInt)
-			output *= multiplier
-			output += finalHashAddend
-			return output
-		}
 
 		/**
 		 * Hash the passed [Long].  Note that it must have the same value as
@@ -2013,42 +1931,50 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   The hash of the given [Long], consistent with Avail integer hashing.
 		 */
-		fun computeHashOfLong(aLong: Long): Int {
-			val lowInt = aLong.toInt()
-			if (aLong == lowInt.toLong()) return computeHashOfInt(lowInt)
-			var output = initialHashValue
-
-			// First unrolled loop iteration (high 32).
-			output = combineHash(output, (aLong shr 32).toInt())
-
-			// Second unrolled loop iteration (low 32)
-			output = combineHash(output, lowInt)
-
-			// After loop.
-			output *= multiplier
-			output += finalHashAddend
-			return output
-		}
+		fun computeHashOfLong(aLong: Long): Int =
+			combineWord(aLong, initialHashValue)
 
 		/**
-		 * Compute the hash of the given Avail integer object.  Note that if the
-		 * input is within the range of an [Int], it should produce the same
-		 * value as the equivalent invocation of [computeHashOfInt].
+		 * Mix one 64-bit word into a running hash, a whole word at a time, using
+		 * [combine4] with [integerHashSalt].  The salt is used only for integers,
+		 * so integer hashes don't systematically collide with other types.
+		 *
+		 * @param aLong
+		 *   The word to mix in.
+		 * @param accumulator
+		 *   The running hash.
+		 * @return
+		 *   The updated running hash.
+		 */
+		private fun combineWord(aLong: Long, accumulator: Int): Int =
+			combine4(
+				aLong.toInt(),
+				(aLong ushr 32).toInt(),
+				accumulator,
+				integerHashSalt)
+
+		/** The salt that [combineWord] uses, reserved for integer hashing. */
+		private const val integerHashSalt = -0x45AC471B
+
+		/**
+		 * Compute the hash of the given Avail integer object, folding its words
+		 * from the top.  A value in long range has a single word, so it hashes
+		 * as [computeHashOfLong] does.
 		 *
 		 * @param anIntegerObject
-		 * An Avail integer to be hashed.
-		 * @return The hash of the given Avail integer.
+		 *   An Avail integer to be hashed.
+		 * @return
+		 *   The hash of the given Avail integer.
 		 */
 		private fun computeHashOfIntegerObject(
 			anIntegerObject: AvailObject
 		): Int {
 			var output = initialHashValue
-			for (i in intCount(anIntegerObject) downTo 1) {
-				output = combineHash(
-					output, anIntegerObject.rawSignedIntegerAt(i))
+			for (i in anIntegerObject.integerSlotsCount() downTo 1)
+			{
+				output = combineWord(
+					anIntegerObject.longSlot(RAW_LONG_SLOTS_, i), output)
 			}
-			output *= multiplier
-			output += finalHashAddend
 			return output
 		}
 
@@ -2121,7 +2047,7 @@ class IntegerDescriptor private constructor(
 		 * hashes of the integers at the corresponding indices.
 		 */
 		private val hashesOfSmallIntegers =
-			IntArray(smallIntegerLimit, ::computeHashOfInt)
+			IntArray(smallIntegerLimit) { computeHashOfLong(it.toLong()) }
 
 		/** An Avail integer representing zero (0). */
 		val zero: AvailObject = smallIntegers[0]!!
