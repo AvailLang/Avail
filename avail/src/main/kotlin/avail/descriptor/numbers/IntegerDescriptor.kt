@@ -37,9 +37,10 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import avail.descriptor.numbers.IntegerDescriptor.Companion.combineWord
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfIntegerObject
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashesOfSmallIntegers
-import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegerLimit
+import avail.descriptor.numbers.IntegerDescriptor.Companion.integerHashSalt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegers
 import avail.descriptor.numbers.IntegerDescriptor.Companion.squaresOfQuintillionLock
 import avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_
@@ -70,8 +71,6 @@ import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDe
 import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.numericCompareToInteger
 import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAtPut
-import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAt
 import avail.descriptor.representation.A_Number.Companion.subtractFromIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.A_Number.Companion.trimExcessInts
@@ -89,9 +88,6 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.IntegerSlotsEnum.Companion.describeLong
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.Mutability.IMMUTABLE
-import avail.descriptor.representation.Mutability.MUTABLE
-import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
@@ -120,7 +116,6 @@ import kotlin.concurrent.read
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 /**
  * An Avail [integer][IntegerDescriptor] is represented by a little endian
@@ -814,7 +809,6 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number
 	{
-		var output: AvailObject?
 		if (self.isLong && anInteger.isLong)
 		{
 			val x = self.extractLong
@@ -826,84 +820,73 @@ class IntegerDescriptor private constructor(
 				// High is just a repetition of low's sign bit.
 				return fromLongRecycling(low, self, anInteger, canDestroy)
 			}
+			// We know it fits in two longs, so go ahead and use that knowledge.
+			return createUninitializedLongInteger(2).apply {
+				setLongSlot(RAW_LONG_SLOTS_, 1, low)
+				setLongSlot(RAW_LONG_SLOTS_, 2, high)
+			}
 		}
 		if (self.equals(zero) || anInteger.equals(zero)) return zero
 		var shift = self.whichPowerOfTwo
 		if (shift >= 0) return anInteger.bitShift(fromInt(shift), canDestroy)
 		shift = anInteger.whichPowerOfTwo
 		if (shift >= 0) return self.bitShift(fromInt(shift), canDestroy)
-		val size1 = intCount(self)
-		val size2 = intCount(anInteger)
-		//TODO Tune this threshold, which is the number of `int*int`
-		// multiplications required with the naive method, which avoids the
-		// (linear) cost of conversion to BigIntegers.  BigInteger uses
-		// essentially the same algorithm if either operand is under 80, but its
-		// use of int arrays is undoubtedly more efficient than Avail's.
-		if (size1 > 40 && size2 > 40)
+		//TODO Tune this threshold, which is the number of word multiplications
+		// required with the naive method, which avoids the (linear) cost of
+		// conversion to BigIntegers.
+		if (self.integerSlotsCount() > 20 && anInteger.integerSlotsCount() > 20)
 		{
 			return fromBigInteger(
 				self.asBigInteger() * anInteger.asBigInteger())
 		}
-		// The following is a safe upper bound.  See below.
-		val targetSize = size1 + size2
-		output = createUninitializedInteger(targetSize)
-		val extension1 =
-			self.rawSignedIntegerAt(size1).toLong() shr 31 and 0xFFFFFFFFL
-		val extension2 =
-			anInteger.rawSignedIntegerAt(size2).toLong() shr 31 and 0xFFFFFFFFL
+		return multiplyWords(self, anInteger)
+	}
 
-		// We can't recycle storage quite as easily here as we did for addition
-		// and subtraction, because the intermediate sum would be clobbering one
-		// of the multiplicands that we (may) need to scan again.  So always
-		// allocate the new object.  The product will always fit in N+M cells if
-		// the multiplicands fit in sizes N and M cells.  For proof, consider
-		// the worst case (using bytes for the example).  In hex,
-		// -80 * -80 = +4000, which fits.  Also, 7F*7F = 3F01, and
-		// 7F*-80 = -3F80.  So no additional padding is necessary.  The scheme
-		// we will use is to compute each word of the result, low to high, using
-		// a carry of two words.  All quantities are treated as unsigned, but
-		// the multiplicands are sign-extended as needed.  Multiplying two
-		// one-word multiplicands yields a two word result, so we need to use
-		// three words to properly hold the carry (it would take more than four
-		// billion words to overflow this, and only one billion words are
-		// addressable on a 32-bit machine).  The three-word intermediate value
-		// is handled as two two-word accumulators, A and B.  B is considered
-		// shifted by a word (to the left).  The high word of A is added to the
-		// low word of B (with carry to the high word of B), and then the high
-		// word of A is cleared.  This "shifts the load" to B for holding big
-		// numbers without affecting their sum.  When a new two-word value needs
-		// to be added in, this trick is employed, followed by directly adding
-		// the two-word value to A, as long as we can ensure the *addition*
-		// won't overflow, which is the case if the two-word value is an
-		// unsigned product of two one-word values.  Since FF*FF=FE01, we can
-		// safely add this to 00FF (getting FF00) without overflow.  Pretty
-		// slick, huh?
-		var low: Long = 0
-		var high: Long = 0
-		for (i in 1..targetSize) {
-			var k = 1
-			var m = i
-			while (k <= i) {
-				val multiplicand1 =
-					if (k > size1) extension1
-					else self.rawUnsignedIntegerAt(k)
-				val multiplicand2 =
-					if (m > size2) extension2
-					else anInteger.rawUnsignedIntegerAt(m)
-				low += multiplicand1 * multiplicand2
-				// Add upper of low to high.
-				high += low ushr 32
-				// Subtract the same amount from low (clear upper word).
-				low = low and 0xFFFFFFFFL
-				k++
-				m--
+	/**
+	 * Answer the product of the two integers, computed column by column over
+	 * 64-bit words.  The product of an m-word and an n-word integer fits in m+n
+	 * words, so both operands are sign-extended to that many words and the
+	 * product is taken modulo 2^(64(m+n)).  Each column adds the 128-bit
+	 * products of its word pairs into a 192-bit accumulator.
+	 *
+	 * @param a
+	 *   The first integer.
+	 * @param b
+	 *   The second integer.
+	 * @return
+	 *   The product, in canonical form.
+	 */
+	private fun multiplyWords(a: AvailObject, b: AvailObject): AvailObject
+	{
+		val aWords = a.integerSlotsCount()
+		val bWords = b.integerSlotsCount()
+		val words = aWords + bWords
+		val output = createUninitializedLongInteger(words)
+		// The 192-bit accumulator for the current column is low, mid, high.
+		var low = 0L
+		var mid = 0L
+		var high = 0L
+		for (k in 1..words)
+		{
+			// Column k collects the word pairs (i, j) with i + j = k + 1.
+			for (i in 1..k)
+			{
+				val x = longWordOrSign(a, aWords, i)
+				val y = longWordOrSign(b, bWords, k + 1 - i)
+				val product = x * y
+				val productHigh = Math.unsignedMultiplyHigh(x, y)
+				val carryLow = carryOut(low, product, 0L)
+				low += product
+				val carryMid = carryOut(mid, productHigh, carryLow)
+				mid += productHigh + carryLow
+				high += carryMid
 			}
-			output.rawSignedIntegerAtPut(i, low.toInt())
-			low = high and 0xFFFFFFFFL
-			high = high ushr 32
+			output.setLongSlot(RAW_LONG_SLOTS_, k, low)
+			low = mid
+			mid = high
+			high = 0L
 		}
-		// We can safely ignore any remaining bits from the partial products.
-		trimSized(output, targetSize)
+		output.trimExcessInts()
 		return output
 	}
 
