@@ -1016,61 +1016,53 @@ class IntegerDescriptor private constructor(
 	): Order = compareDoubleAndInteger(aDouble, self).reverse()
 
 	/**
-	 * A helper function for bitwise operations.  Perform the given operation on
-	 * [Int]s from the incoming operands, writing the resulting [Int] to the
-	 * resulting object, which is either one of the operands if large enough and
-	 * mutable and [canDestroy], or a new object.
+	 * A helper function for bitwise operations.  Apply the given operation to
+	 * the 64-bit words of the two operands, sign-extending the shorter one.  A
+	 * bitwise operation never grows its result past the longer operand, so no
+	 * fixup is needed.  If both operands are in long range, the result is a
+	 * single long, and [canDestroy] allows recycling an operand.
+	 *
+	 * @param self
+	 *   The receiver.
+	 * @param anInteger
+	 *   The other operand.
+	 * @param canDestroy
+	 *   Whether an operand may be clobbered by the result.
+	 * @param operation
+	 *   The bitwise operation to apply to each pair of words.
+	 * @return
+	 *   The result, in canonical form.
 	 */
-	private fun bitwiseOperation(
+	private inline fun bitwiseOperation(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean,
-		operation: (Int, Int) -> Int
-	): AvailObject {
-		val objectSize = intCount(self)
-		val anIntegerTraversed = anInteger.traversed()
-		val anIntegerSize = intCount(anIntegerTraversed)
-		var output = largerMutableOf(
-			self, anIntegerTraversed, objectSize, anIntegerSize, canDestroy)
-		// Both integers are 32 bits. This is by far the most common case.
-		if (objectSize == 1 && anIntegerSize == 1) {
-			val result = operation(
-				self.rawSignedIntegerAt(1),
-				anIntegerTraversed.rawSignedIntegerAt(1))
-			output = output ?: createUninitializedInteger(1)
-			output.rawSignedIntegerAtPut(1, result)
-			normalizeSpareInt(output, 1)
-			return output
+		operation: (Long, Long) -> Long
+	): AvailObject
+	{
+		val other = anInteger.traversed()
+		if (self.isLong && other.isLong)
+		{
+			return fromLongRecycling(
+				operation(self.extractLong, other.extractLong),
+				self,
+				other,
+				canDestroy)
 		}
-		// If neither of the inputs were suitable for destruction, then allocate
-		// a new one whose size is that of the larger input.
-		output = output ?: createUninitializedInteger(
-			max(objectSize, anIntegerSize))
-		// Handle larger integers.
-		// The output is either fresh with this size, or an input of this size.
-		val outputSize = max(objectSize, anIntegerSize)
-		val extendedObject = self.rawSignedIntegerAt(objectSize) shr 31
-		val extendedAnInteger =
-			anIntegerTraversed.rawSignedIntegerAt(anIntegerSize) shr 31
-		for (i in 1..outputSize) {
-			val objectWord = if (i > objectSize) {
-				extendedObject
-			}
-			else
-			{
-				self.rawSignedIntegerAt(i)
-			}
-			val anIntegerWord = if (i > anIntegerSize) {
-				extendedAnInteger
-			}
-			else
-			{
-				anIntegerTraversed.rawSignedIntegerAt(i)
-			}
-			val result = operation(objectWord, anIntegerWord)
-			output.rawSignedIntegerAtPut(i, result)
+		val selfWords = self.integerSlotsCount()
+		val otherWords = other.integerSlotsCount()
+		val words = max(selfWords, otherWords)
+		val output = createUninitializedInteger(words * 2)
+		for (i in 1..words)
+		{
+			output.setLongSlot(
+				RAW_LONG_SLOTS_,
+				i,
+				operation(
+					longWordOrSign(self, selfWords, i),
+					longWordOrSign(other, otherWords, i)))
 		}
-		trimSized(output, outputSize)
+		output.trimExcessInts()
 		return output
 	}
 
@@ -1078,19 +1070,19 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::and)
+	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Long::and)
 
 	override fun o_BitwiseOr(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::or)
+	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Long::or)
 
 	override fun o_BitwiseXor(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::xor)
+	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Long::xor)
 
 	override fun o_BitTest(
 		self: AvailObject,
