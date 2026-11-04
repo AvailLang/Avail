@@ -320,21 +320,22 @@ class IntegerDescriptor private constructor(
 	): A_Number = aNumber.multiplyByIntegerCanDestroy(self, canDestroy)
 
 	override fun o_IsNybble(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in 0..15
+		self.isLong && self.extractLong in 0L..15L
 
 	override fun o_IsSignedByte(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in -128..127
+		self.isLong && self.extractLong in -128L..127L
 
 	override fun o_IsUnsignedByte(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in 0..255
+		self.isLong && self.extractLong in 0L..255L
 
 	override fun o_IsSignedShort(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in -32768..32767
+		self.isLong && self.extractLong in -32768L..32767L
 
 	override fun o_IsUnsignedShort(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in 0..65535
+		self.isLong && self.extractLong in 0L..65535L
 
-	override fun o_IsInt(self: AvailObject) = intCount(self) == 1
+	override fun o_IsInt(self: AvailObject) =
+		self.isLong && self.extractLong.isInt
 
 	override fun o_IsLong(self: AvailObject) = intCount(self) <= 2
 
@@ -593,7 +594,7 @@ class IntegerDescriptor private constructor(
 			-> a
 		canDestroy && b.descriptor.isMutable && b.integerSlotsCount() == words
 			-> b
-		else -> createUninitializedInteger(words * 2)
+		else -> createUninitializedLongInteger(words)
 	}
 
 	private fun chainedAddOrSubtract(
@@ -1111,14 +1112,12 @@ class IntegerDescriptor private constructor(
 	): Boolean
 	{
 		assert (bitPosition >= 0)
-		val intIndex = (bitPosition ushr 5) + 1
-		if (intIndex > intCount(self))
-		{
-			// Treat the receiver as two's complement.
-			return self.lessThan(zero)
-		}
-		val intValue = self.rawSignedIntegerAt(intIndex)
-		return (intValue and (1 shl (bitPosition and 31))) != 0
+		// Beyond the stored longs, the sign bit of the top long is the bit.
+		val boundedBitPosition =
+			min(bitPosition, (longCount(self) shl 6) - 1)
+		val longValue =
+			self.longSlot(RAW_LONG_SLOTS_, (boundedBitPosition ushr 6) + 1)
+		return (longValue and (1L shl (boundedBitPosition and 63))) != 0L
 	}
 
 	override fun o_BitSet(
@@ -1129,48 +1128,47 @@ class IntegerDescriptor private constructor(
 	) : A_Number
 	{
 		assert (bitPosition >= 0)
-		val intIndex = (bitPosition ushr 5) + 1
-		val oldIntCount = intCount(self)
-		val mask = 1 shl (bitPosition and 31)
-		val oldInt = when
+		val longIndex = (bitPosition ushr 6) + 1
+		val oldLongCount = longCount(self)
+		val mask = 1L shl (bitPosition and 63)
+		val oldLong = when
 		{
-			intIndex <= oldIntCount -> self.rawSignedIntegerAt(intIndex)
-			self.lessThan(zero) -> -1
-			else -> 0
+			longIndex <= oldLongCount -> self.longSlot(RAW_LONG_SLOTS_, longIndex)
+			self.lessThan(zero) -> -1L
+			else -> 0L
 		}
-		val newInt = when
+		val newLong = when
 		{
-			value -> oldInt or mask
-			else -> oldInt and mask.inv()
+			value -> oldLong or mask
+			else -> oldLong and mask.inv()
 		}
-		if (oldInt == newInt)
+		if (oldLong == newLong)
 		{
 			// No change.
 			if (isMutable && !canDestroy) self.makeImmutable()
 			return self
 		}
-		// The bit changed.  If the sign bit is what changed, add an int
-		// (the bitPosition + 1, below).
-		val newIntCount = max(oldIntCount, ((bitPosition + 1) ushr 5) + 1)
-		if (oldIntCount == newIntCount && isMutable && canDestroy)
+		// The bit changed.  If it's beyond the stored longs, add a long.
+		val newLongCount = max(oldLongCount, longIndex)
+		if (oldLongCount == newLongCount && isMutable && canDestroy)
 		{
-			// Clobber it in place.
-			self.rawSignedIntegerAtPut(intIndex, newInt)
-			// Representation might need to shrink.
-			trimSized(self, newIntCount)
+			// Clobber it in place.  Writing a whole long keeps the spare half
+			// of any odd int count canonical, so only the length may change.
+			self.setLongSlot(RAW_LONG_SLOTS_, longIndex, newLong)
+			self.trimExcessInts()
 			return self
 		}
 		// It must be copied.
-		val result = newLike(mutable, self, 0, 0)
+		val result = newLike(mutable, self, 0, newLongCount - oldLongCount)
 		if (self.lessThan(zero))
 		{
-			for (i in oldIntCount + 1 .. newIntCount)
+			for (i in oldLongCount + 1 .. newLongCount)
 			{
-				result.rawSignedIntegerAtPut(i, -1)
+				result.setLongSlot(RAW_LONG_SLOTS_, i, -1L)
 			}
 		}
-		result.rawSignedIntegerAtPut(intIndex, newInt)
-		trimSized(result, newIntCount)
+		result.setLongSlot(RAW_LONG_SLOTS_, longIndex, newLong)
+		result.trimExcessInts()
 		return result
 	}
 
@@ -1383,7 +1381,7 @@ class IntegerDescriptor private constructor(
 	{
 		val words = self.integerSlotsCount()
 		val resultWords = max(words + (shift shr 6) + 1, 1)
-		val output = createUninitializedInteger(resultWords * 2)
+		val output = createUninitializedLongInteger(resultWords)
 		for (j in 1..resultWords)
 		{
 			output.setLongSlot(
@@ -1413,7 +1411,7 @@ class IntegerDescriptor private constructor(
 		val words = self.integerSlotsCount()
 		val topWord = (bits + 63) ushr 6
 		val topBits = bits - 64 * (topWord - 1)
-		val output = createUninitializedInteger((topWord + 1) * 2)
+		val output = createUninitializedLongInteger(topWord + 1)
 		for (j in 1..topWord)
 		{
 			output.setLongSlot(
@@ -1538,22 +1536,21 @@ class IntegerDescriptor private constructor(
 	{
 		if (self.lessOrEqual(zero)) return -1
 		var nonZeroIndex = 1
-		var theInt: Int
+		var theLong: Long
 		while (true)
 		{
-			theInt = self.rawSignedIntegerAt(nonZeroIndex)
-			if (theInt != 0) break
+			theLong = self.longSlot(RAW_LONG_SLOTS_, nonZeroIndex)
+			if (theLong != 0L) break
 			nonZeroIndex++  // We ensured they can't all be zero.
 		}
-		if (theInt.countOneBits() > 1) return -1
-		// Check that the rest of the ints are zero.
-		if ((nonZeroIndex + 1 .. intCount(self))
-				.any { self.rawSignedIntegerAt(it) != 0 })
+		if (theLong.countOneBits() > 1) return -1
+		// Check that the rest of the longs are zero.
+		if ((nonZeroIndex + 1 .. longCount(self))
+				.any { self.longSlot(RAW_LONG_SLOTS_, it) != 0L })
 		{
 			return -1
 		}
-		return ((nonZeroIndex - 1) shl 5) +
-			Integer.numberOfTrailingZeros(theInt)
+		return ((nonZeroIndex - 1) shl 6) + theLong.countTrailingZeroBits()
 	}
 
 
@@ -1576,6 +1573,17 @@ class IntegerDescriptor private constructor(
 			val topIntRedundant = self.longSlot(RAW_LONG_SLOTS_, longs).isInt
 			return (longs shl 1) - if (topIntRedundant) 1 else 0
 		}
+
+		/**
+		 * Answer the number of 64-bit `long` slots occupied by the given integer
+		 * object.  The receiver must not be an indirection.
+		 *
+		 * @param self
+		 *   The integer object.
+		 * @return
+		 *   The number of occupied long slots in the object.
+		 */
+		fun longCount(self: AvailObject): Int = self.integerSlotsCount()
 
 		/**
 		 * If [count] is odd, make the receiver's unused upper int hold the sign
@@ -1690,7 +1698,7 @@ class IntegerDescriptor private constructor(
 				in 0..255 -> smallIntegers[anInteger]!!
 				in 0 until smallIntegerLimit -> smallIntegers[anInteger] ?:
 					createSharedOfSize(1) {
-						setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
+						setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
 					}.also {
 						// Harmless race.
 						smallIntegers[anInteger] = it
@@ -1732,7 +1740,7 @@ class IntegerDescriptor private constructor(
 			in 0..255 -> smallIntegers[aLong.toInt()]!!
 			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
 				createSharedOfSize(1) {
-					setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
+					setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 				}.also {
 					smallIntegers[aLong.toInt()] = it
 				}
@@ -1740,8 +1748,7 @@ class IntegerDescriptor private constructor(
 				setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			}
 			else -> createUninitializedInteger(2).apply {
-				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-				setIntSlot(RAW_LONG_SLOTS_, 2, (aLong shr 32).toInt())
+				setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			}
 		}
 
@@ -1797,7 +1804,7 @@ class IntegerDescriptor private constructor(
 			val padByte: Byte = if (bytes[0] < 0) -1 else 0
 			val padded = ByteArray(wordCount shl 3) { padByte }
 			bytes.copyInto(padded, destinationOffset = padded.size - bytes.size)
-			val result = createUninitializedInteger(wordCount * 2)
+			val result = createUninitializedLongInteger(wordCount)
 			// Word 1 is the least significant, so it comes from the last eight
 			// bytes.
 			for (i in 1..wordCount) {
@@ -1989,6 +1996,18 @@ class IntegerDescriptor private constructor(
 		 */
 		fun createUninitializedInteger(size: Int): AvailObject =
 			mutable.create(size + 1 shr 1)
+
+		/**
+		 * Create a mutable Avail integer with the specified number of
+		 * uninitialized [Long] slots.
+		 *
+		 * @param longCount
+		 *   The number of [Long] slots to have in the result.
+		 * @return
+		 *   An uninitialized, mutable integer.
+		 */
+		fun createUninitializedLongInteger(longCount: Int): AvailObject =
+			mutable.create(longCount)
 
 		/** The mutable [IntegerDescriptor]. */
 		private val mutable = IntegerDescriptor(Mutability.MUTABLE)
