@@ -530,7 +530,7 @@ class IntegerDescriptor private constructor(
 				return fromLongRecycling(sum, self, anInteger, canDestroy)
 		}
 		// At least one input is beyond the long range, or the sum overflows.
-		return chainedAddOrSubtract(self, anInteger, 0L)
+		return chainedAddOrSubtract(self, anInteger, 0L, canDestroy)
 	}
 
 	/**
@@ -572,16 +572,50 @@ class IntegerDescriptor private constructor(
 	 * @return
 	 *   The sum or difference, in canonical form.
 	 */
+	/**
+	 * Answer an object to hold a result of [words] 64-bit words.  That's one of
+	 * the operands if [canDestroy] allows it, the operand is mutable, and it
+	 * already has exactly [words] words.  Otherwise, it's a fresh object.
+	 *
+	 * @param a
+	 *   The first operand.
+	 * @param b
+	 *   The second operand.
+	 * @param words
+	 *   The number of 64-bit words in the result.
+	 * @param canDestroy
+	 *   Whether an operand may be overwritten.
+	 * @return
+	 *   A mutable integer with room for [words] words.
+	 */
+	private fun outputFor(
+		a: AvailObject,
+		b: AvailObject,
+		words: Int,
+		canDestroy: Boolean
+	): AvailObject = when {
+		canDestroy && a.descriptor.isMutable && a.integerSlotsCount() == words
+			-> a
+		canDestroy && b.descriptor.isMutable && b.integerSlotsCount() == words
+			-> b
+		else -> createUninitializedInteger(words * 2)
+	}
+
 	private fun chainedAddOrSubtract(
 		a: AvailObject,
 		b: AvailObject,
-		complementMask: Long
+		complementMask: Long,
+		canDestroy: Boolean
 	): AvailObject
 	{
 		val aWords = a.integerSlotsCount()
 		val bWords = b.integerSlotsCount()
 		val words = max(aWords, bWords)
-		val output = createUninitializedInteger(words * 2)
+		// The operands' top words are read before the output is written, since
+		// the output may be one of the operands.
+		val aTop = longWordOrSign(a, aWords, words)
+		val bTop = longWordOrSign(b, bWords, words) xor complementMask
+		val output = outputFor(a, b, words, canDestroy)
 		var carry = complementMask and 1L
 		for (i in 1..words) {
 			val x = longWordOrSign(a, aWords, i)
@@ -595,8 +629,6 @@ class IntegerDescriptor private constructor(
 		// is read as signed, so the value needs growth exactly when that
 		// extension differs from the top word's sign bit.  The extension is
 		// always -1, 0, or 1.
-		val aTop = longWordOrSign(a, aWords, words)
-		val bTop = longWordOrSign(b, bWords, words) xor complementMask
 		val resultTop = output.longSlot(RAW_LONG_SLOTS_, words)
 		val extension = carry - (aTop ushr 63) - (bTop ushr 63)
 		if (extension != resultTop shr 63)
@@ -942,7 +974,7 @@ class IntegerDescriptor private constructor(
 		}
 		// At least one input is beyond the long range, or the difference
 		// overflows.  The result is anInteger - self.
-		return chainedAddOrSubtract(anInteger, self, -1L)
+		return chainedAddOrSubtract(anInteger, self, -1L, canDestroy)
 	}
 
 	override fun o_SubtractFromDoubleCanDestroy(
@@ -1052,7 +1084,8 @@ class IntegerDescriptor private constructor(
 		val selfWords = self.integerSlotsCount()
 		val otherWords = other.integerSlotsCount()
 		val words = max(selfWords, otherWords)
-		val output = createUninitializedInteger(words * 2)
+		// Each word is read before the same index of the output is written.
+		val output = outputFor(self, other, words, canDestroy)
 		for (i in 1..words)
 		{
 			output.setLongSlot(
@@ -1206,86 +1239,21 @@ class IntegerDescriptor private constructor(
 			return zero
 		}
 		val shiftInt = shiftFactor.extractInt
-		if (self.isLong) {
-			val baseLong = self.extractLong
-			val shiftedLong = bitShiftLong(baseLong, shiftInt)
-			if (shiftInt < 0
-				|| truncationInt < 64
-				|| bitShiftLong(shiftedLong, -shiftInt) == baseLong)
+		if (self.isLong && truncationInt < 63)
+		{
+			// The low 64 bits of an arithmetic shift are exact, so the low
+			// truncationInt bits are too.  Zero bits gives zero.
+			val resultLong = arithmeticBitShiftLong(self.extractLong, shiftInt) and
+				((1L shl truncationInt) - 1)
+			if (canDestroy && isMutable && self.integerSlotsCount() == 1)
 			{
-				// Either a right shift, or a left shift that didn't lose bits,
-				// or a left shift that will fit in a long after the truncation.
-				// In these cases the result will still be a long.
-				var resultLong = shiftedLong
-				if (truncationInt < 64)
-				{
-					resultLong = resultLong and (1L shl truncationInt) - 1
-				}
-				if (canDestroy && isMutable)
-				{
-					if (resultLong == resultLong.toInt().toLong())
-					{
-						// Fits in an int.  Try to recycle.
-						if (intCount(self) == 1)
-						{
-							self.rawSignedIntegerAtPut(1, resultLong.toInt())
-							normalizeSpareInt(self, 1)
-							return self
-						}
-					}
-					else
-					{
-						// *Fills* a long.  Try to recycle.
-						if (intCount(self) == 2)
-						{
-							self.rawSignedIntegerAtPut(
-								1, resultLong.toInt())
-							self.rawSignedIntegerAtPut(
-								2, (resultLong shr 32).toInt())
-							return self
-						}
-					}
-				}
-				// Fall back and create a new integer object.
-				return fromLong(resultLong)
+				self.setLongSlot(RAW_LONG_SLOTS_, 1, resultLong)
+				return self
 			}
+			return fromLong(resultLong)
 		}
-		// Answer doesn't (necessarily) fit in a long.
-		val sourceSlots = intCount(self)
-		var estimatedBits = (sourceSlots shl 5) + shiftInt
-		estimatedBits = min(estimatedBits, truncationInt + 1)
-		estimatedBits = max(estimatedBits, 1)
-		val slotCount = estimatedBits + 31 shr 5
-		val result: A_Number = createUninitializedInteger(slotCount)
-		val shortShift = shiftInt and 31
-		var sourceIndex = slotCount - (shiftInt shr 5)
-		var accumulator = 0x5EADCAFEBABEBEEFL
-		// We range from slotCount+1 to 1 to pre-load the accumulator.
-		for (destIndex in slotCount + 1 downTo 1) {
-			val nextWord = if (sourceIndex in 1..sourceSlots)
-			{
-				self.rawSignedIntegerAt(sourceIndex)
-			}
-			else 0
-			accumulator = accumulator shl 32
-			accumulator = accumulator or (nextWord.toLong() shl shortShift)
-			if (destIndex <= slotCount) {
-				result.rawSignedIntegerAtPut(
-					destIndex,
-					(accumulator shr 32).toInt())
-			}
-			sourceIndex--
-		}
-		// Mask it if necessary to truncate some upper bits.
-		var mask = (1 shl (truncationInt and 31)) - 1
-		for (destIndex in (truncationInt shr 5)..slotCount) {
-			result.rawSignedIntegerAtPut(
-				destIndex, result.rawSignedIntegerAt(destIndex) and mask)
-			// Completely wipe any higher ints.
-			mask = 0
-		}
-		trimSized(result, slotCount)
-		return result
+		if (truncationInt == 0) return zero
+		return truncatedShift(self, shiftInt, truncationInt)
 	}
 
 	/**
@@ -1333,70 +1301,145 @@ class IntegerDescriptor private constructor(
 		if (self.isLong) {
 			val baseLong = self.extractLong
 			val shiftedLong = arithmeticBitShiftLong(baseLong, shiftInt)
+			// Either a right shift, or a left shift that didn't lose bits, so the
+			// result is still a long.
 			if (shiftInt < 0
 				|| arithmeticBitShiftLong(shiftedLong, -shiftInt) == baseLong)
 			{
-				// Either a right shift, or a left shift that didn't lose bits.
-				// In these cases the result will still be a long.
-				if (canDestroy && isMutable)
+				if (canDestroy && isMutable && self.integerSlotsCount() == 1)
 				{
-					if (shiftedLong == shiftedLong.toInt().toLong())
-					{
-						// Fits in an int.  Try to recycle.
-						if (intCount(self) == 1)
-						{
-							self.rawSignedIntegerAtPut(1, shiftedLong.toInt())
-							normalizeSpareInt(self, 1)
-							return self
-						}
-					}
-					else
-					{
-						// *Fills* a long.  Try to recycle.
-						if (intCount(self) == 2)
-						{
-							self.rawSignedIntegerAtPut(
-								1, shiftedLong.toInt())
-							self.rawSignedIntegerAtPut(
-								2, (shiftedLong shr 32).toInt())
-							return self
-						}
-					}
+					self.setLongSlot(RAW_LONG_SLOTS_, 1, shiftedLong)
+					return self
 				}
-				// Fall back and create a new integer object.
 				return fromLong(shiftedLong)
 			}
 		}
-		// Answer doesn't (necessarily) fit in a long.
-		val sourceSlots = intCount(self)
-		val estimatedBits = max((sourceSlots shl 5) + shiftInt, 1)
-		val intSlotCount = estimatedBits + 31 shr 5
-		val result: A_Number = createUninitializedInteger(intSlotCount)
-		val shortShift = shiftInt and 31
-		var sourceIndex = intSlotCount - (shiftInt shr 5)
-		var accumulator = 0x5EADCAFEBABEBEEFL
-		val signExtension = when (Order.LESS) {
-			self.numericCompareToInteger(zero) -> -1
-			else -> 0
+		return arithmeticShift(self, shiftInt)
+	}
+
+	/**
+	 * Answer the one-based [j]th 64-bit word of ⌊[integer] × 2<sup>[shift]</sup>⌋,
+	 * where [integer] holds [wordCount] words.  The result's bit k comes from
+	 * the source bit k − [shift], so each result word combines two adjacent
+	 * source words.  Below the source, bits are zero; above it, they're the
+	 * sign.
+	 *
+	 * @param integer
+	 *   The integer being shifted.
+	 * @param wordCount
+	 *   The number of 64-bit words in [integer].
+	 * @param shift
+	 *   The shift amount, which may be negative for an arithmetic right shift.
+	 * @param j
+	 *   The one-based index of the result word.
+	 * @return
+	 *   The word, as a signed [Long].
+	 */
+	private fun extractShiftedLong(
+		integer: AvailObject,
+		wordCount: Int,
+		shift: Int,
+		j: Int
+	): Long
+	{
+		// The shift is q words and b bits, with 0 ≤ b < 64.  A nonzero b makes
+		// the low source word one further back, and the bit offset r is 64 − b.
+		val q = shift shr 6
+		val b = shift and 63
+		val low = j - q - ((b + 63) ushr 6)
+		val r = (-b) and 63
+		// Shifting in two steps avoids Java's shift-count modulus at r = 0.
+		val lowPart = wordOrZeroOrSign(integer, wordCount, low) ushr r
+		val highPart =
+			(wordOrZeroOrSign(integer, wordCount, low + 1) shl 1) shl (63 - r)
+		return lowPart or highPart
+	}
+
+	/**
+	 * Answer the one-based [i]th 64-bit word of [integer], which holds
+	 * [wordCount] words.  Below the first word the value is zero, and beyond the
+	 * last word it is sign-extended.
+	 *
+	 * @param integer
+	 *   The integer whose word is wanted.
+	 * @param wordCount
+	 *   The number of 64-bit words that [integer] holds.
+	 * @param i
+	 *   The one-based index of the word.
+	 * @return
+	 *   The word, as a signed [Long].
+	 */
+	private fun wordOrZeroOrSign(
+		integer: AvailObject,
+		wordCount: Int,
+		i: Int
+	): Long
+	{
+		if (i < 1) return 0L
+		if (i <= wordCount) return integer.longSlot(RAW_LONG_SLOTS_, i)
+		return integer.longSlot(RAW_LONG_SLOTS_, wordCount) shr 63
+	}
+
+	/**
+	 * Answer ⌊[self] × 2<sup>[shift]</sup>⌋ in canonical form, computed over
+	 * 64-bit words.  The shift may be negative for an arithmetic right shift.
+	 *
+	 * @param self
+	 *   The integer to shift.
+	 * @param shift
+	 *   The shift amount.
+	 * @return
+	 *   The shifted integer.
+	 */
+	private fun arithmeticShift(self: AvailObject, shift: Int): A_Number
+	{
+		val words = self.integerSlotsCount()
+		val resultWords = max(words + (shift shr 6) + 1, 1)
+		val output = createUninitializedInteger(resultWords * 2)
+		for (j in 1..resultWords)
+		{
+			output.setLongSlot(
+				RAW_LONG_SLOTS_, j, extractShiftedLong(self, words, shift, j))
 		}
-		// We range from slotCount+1 to 1 to pre-load the accumulator.
-		for (destIndex in intSlotCount + 1 downTo 1) {
-			val nextWord = when {
-				sourceIndex < 1 -> 0
-				sourceIndex > sourceSlots -> signExtension
-				else -> self.rawSignedIntegerAt(sourceIndex)
-			}
-			accumulator = accumulator shl 32
-			accumulator = accumulator or
-				(nextWord.toLong() and 0xFFFFFFFFL shl shortShift)
-			if (destIndex <= intSlotCount) {
-				result.rawSignedIntegerAtPut(
-					destIndex, (accumulator shr 32).toInt())
-			}
-			sourceIndex--
+		output.trimExcessInts()
+		return output
+	}
+
+	/**
+	 * Answer [self] × 2<sup>[shift]</sup>, truncated to the low [bits] bits, so
+	 * the result is in `[0, 2^bits)`.  The shift is applied as an arithmetic
+	 * shift first, so the truncated bits are those of the infinite two's
+	 * complement value.
+	 *
+	 * @param self
+	 *   The integer to shift.
+	 * @param shift
+	 *   The shift amount.
+	 * @param bits
+	 *   The number of low bits to keep, which must be positive.
+	 * @return
+	 *   The truncated result, in canonical form.
+	 */
+	private fun truncatedShift(self: AvailObject, shift: Int, bits: Int): A_Number
+	{
+		val words = self.integerSlotsCount()
+		val topWord = (bits + 63) ushr 6
+		val topBits = bits - 64 * (topWord - 1)
+		val output = createUninitializedInteger((topWord + 1) * 2)
+		for (j in 1..topWord)
+		{
+			output.setLongSlot(
+				RAW_LONG_SLOTS_, j, extractShiftedLong(self, words, shift, j))
 		}
-		trimSized(result, intSlotCount)
-		return result
+		// Keep only the low topBits of the top word, and append a zero word so
+		// the result is nonnegative.
+		output.setLongSlot(
+			RAW_LONG_SLOTS_,
+			topWord,
+			output.longSlot(RAW_LONG_SLOTS_, topWord) and (-1L ushr (64 - topBits)))
+		output.setLongSlot(RAW_LONG_SLOTS_, topWord + 1, 0L)
+		output.trimExcessInts()
+		return output
 	}
 
 	override fun o_SerializerOperation(
