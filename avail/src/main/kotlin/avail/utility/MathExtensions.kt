@@ -58,3 +58,25 @@ fun Long.hasZeroShort(): Boolean =
  */
 val Long.isInt: Boolean
 	get() = this == (this shl 32) shr 32
+
+/**
+ * Answer the carry out of the unsigned 64-bit addition [a] + [b] + [carryIn],
+ * where [carryIn] is 0 or 1.  The result is 0 or 1.
+ *
+ * The carry out of each bit is the majority of its two inputs and the carry
+ * in, which is the form `(a and b) or ((a or b) and sum.inv())` in the top bit.
+ *
+ * @param a
+ *   The first unsigned word.
+ * @param b
+ *   The second unsigned word.
+ * @param carryIn
+ *   The carry into the low bit, 0 or 1.
+ * @return
+ *   The carry out of the top bit, 0 or 1.
+ */
+fun carryOut(a: Long, b: Long, carryIn: Long): Long
+{
+	val sum = a + b + carryIn
+	return ((a and b) or ((a or b) and sum.inv())) ushr 63
+}

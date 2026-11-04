@@ -105,6 +105,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.carryOut
 import avail.utility.isInt
 import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
@@ -523,74 +524,91 @@ class IntegerDescriptor private constructor(
 			val x = anInteger.extractLong
 			val y = self.extractLong
 			val sum = x + y
-			// Detect 64-bit overflow for addition.
+			// Detect 64-bit overflow for addition.  It occurs only when both
+			// inputs have the same sign and the sum's sign differs.
 			if (((x xor sum) and (y xor sum)) >= 0)
 				return fromLongRecycling(sum, self, anInteger, canDestroy)
 		}
- 		val objectSize = intCount(self)
-		val anIntegerSize = intCount(anInteger)
-		var output = largerMutableOf(
-			self, anInteger, objectSize, anIntegerSize, canDestroy)
-		if (objectSize == 1 && anIntegerSize == 1) {
-			// See if the (signed) sum will fit in 32 bits, the most common case
-			// by far.
-			val sum = self.extractLong + anInteger.extractLong
-			if (sum == sum.toInt().toLong()) {
-				// Yes, it fits.  Clobber one of the inputs, or create a new
-				// object if they were both immutable...
-				output = output ?: createUninitializedInteger(1)
-				assert(intCount(output) == 1)
-				output.rawSignedIntegerAtPut(1, sum.toInt())
-				normalizeSpareInt(output, 1)
-				return output
-			}
-			// Doesn't fit in 32 bits; use two 32-bit words.
-			return fromLong(sum)
-		}
-		// Set estimatedSize to the max of the input sizes. There will only
-		// rarely be an overflow and at most by one cell. Underflows should also
-		// be pretty rare, and they're handled by output.trimExcessInts().
-		output = output ?:
-			createUninitializedInteger(max(objectSize, anIntegerSize))
+		// At least one input is beyond the long range, or the sum overflows.
+		return chainedAddOrSubtract(self, anInteger, 0L)
+	}
 
-		// The output is either fresh with this size, or an input of this size.
-		val outputSize = max(objectSize, anIntegerSize)
-		val extendedObject =
-			((self.rawSignedIntegerAt(objectSize) shr 31).toLong()
-				and 0xFFFF_FFFFL)
-		val extendedAnInteger =
-			((anInteger.rawSignedIntegerAt(anIntegerSize) shr 31).toLong()
-				and 0xFFFF_FFFFL)
-		var partial: Long = 0
-		var lastInt = 0
-		// The object is always big enough to store the max of the number of
-		// quads from each input, so after the loop we can check partial and the
-		// upper bit of the result to see if another quad needs to be appended.
-		for (i in 1..outputSize) {
-			partial += if (i > objectSize) extendedObject
-				else self.rawUnsignedIntegerAt(i)
-			partial += if (i > anIntegerSize) extendedAnInteger
-				else anInteger.rawUnsignedIntegerAt(i)
-			lastInt = partial.toInt()
-			output.rawSignedIntegerAtPut(i, lastInt)
-			partial = partial ushr 32
+	/**
+	 * Answer the `i`th 64-bit word of the [integer], which has [words] words.
+	 * Beyond its last word, the value is sign-extended.
+	 *
+	 * @param integer
+	 *   The integer whose word is wanted.
+	 * @param words
+	 *   The number of 64-bit words that [integer] holds.
+	 * @param i
+	 *   The one-based index of the word.
+	 * @return
+	 *   The word, as a signed [Long].
+	 */
+	private fun longWordOrSign(integer: AvailObject, words: Int, i: Int): Long =
+		if (i <= words) integer.longSlot(RAW_LONG_SLOTS_, i)
+		else integer.longSlot(RAW_LONG_SLOTS_, words) shr 63
+
+	/**
+	 * Answer [a] + [b] when [subtract] is false, or [a] - [b] when it is true,
+	 * computed as a chain of unsigned 64-bit word additions.  A difference adds
+	 * the complement of each word of [b] with an initial carry of 1, which is
+	 * `a + ~b + 1`.
+	 *
+	 * The operands are sign-extended to the longer word count.  The result has
+	 * that many words, and it grows by one word only when the final carry
+	 * disagrees with the sign bits of the operands and result.  That rare
+	 * growth is fixed up by copying into an object with one more word, whose
+	 * new top word is the sign extension.
+	 *
+	 * @param a
+	 *   The minuend, or the first summand.
+	 * @param b
+	 *   The subtrahend, or the second summand.
+	 * @param complementMask
+	 *   0 to compute [a] + [b], or -1 to compute [a] - [b].  Each word of [b]
+	 *   is xored with this mask, and the initial carry is its low bit.
+	 * @return
+	 *   The sum or difference, in canonical form.
+	 */
+	private fun chainedAddOrSubtract(
+		a: AvailObject,
+		b: AvailObject,
+		complementMask: Long
+	): AvailObject
+	{
+		val aWords = a.integerSlotsCount()
+		val bWords = b.integerSlotsCount()
+		val words = max(aWords, bWords)
+		val output = createUninitializedInteger(words * 2)
+		var carry = complementMask and 1L
+		for (i in 1..words) {
+			val x = longWordOrSign(a, aWords, i)
+			val y = longWordOrSign(b, bWords, i) xor complementMask
+			output.setLongSlot(RAW_LONG_SLOTS_, i, x + y + carry)
+			carry = carryOut(x, y, carry)
 		}
-		partial += extendedObject + extendedAnInteger
-		if (lastInt shr 31 != partial.toInt()) {
-			// Top bit of last word no longer agrees with sign of result. Extend
-			// it.
-			val newOutput = createUninitializedInteger(outputSize + 1)
-			for (i in 1..outputSize) {
-				newOutput.setIntSlot(
-					RAW_LONG_SLOTS_,
-					i,
-					output.intSlot(RAW_LONG_SLOTS_, i))
-			}
-			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			trimSized(newOutput, outputSize + 1)
-			return newOutput
+		// The true value is the unsigned words plus (carry - aSign - bSign)
+		// times 2^(64*words), where aSign and bSign are the sign bits of the
+		// operands' top words (after complementing b).  The result's top word
+		// is read as signed, so the value needs growth exactly when that
+		// extension differs from the top word's sign bit.  The extension is
+		// always -1, 0, or 1.
+		val aTop = longWordOrSign(a, aWords, words)
+		val bTop = longWordOrSign(b, bWords, words) xor complementMask
+		val resultTop = output.longSlot(RAW_LONG_SLOTS_, words)
+		val extension = carry - (aTop ushr 63) - (bTop ushr 63)
+		if (extension != resultTop shr 63)
+		{
+			// Grow by one word.  The copied top word is now unsigned, so the
+			// new top word is the extension itself.
+			val grown = newLike(mutable, output, 0, 1)
+			grown.setLongSlot(RAW_LONG_SLOTS_, words + 1, extension)
+			grown.trimExcessInts()
+			return grown
 		}
-		trimSized(output, outputSize)
+		output.trimExcessInts()
 		return output
 	}
 
@@ -922,73 +940,9 @@ class IntegerDescriptor private constructor(
 			if (((x xor y) and (x xor diff)) >= 0)
 				return fromLongRecycling(diff, self, anInteger, canDestroy)
 		}
-		val objectSize = intCount(self)
-		val anIntegerSize = intCount(anInteger)
-		var output = largerMutableOf(
-			self, anInteger, objectSize, anIntegerSize, canDestroy)
-		if (objectSize == 1 && anIntegerSize == 1)
-		{
-			// See if the (signed) difference will fit in 32 bits, the most
-			// common case by far.
-			val diff = anInteger.extractLong - self.extractLong
-			if (diff == diff.toInt().toLong())
-			{
-				// Yes, it fits. Clobber one of the inputs, or create a new
-				// object if they were both immutable...
-				output = output ?: createUninitializedInteger(1)
-				assert(intCount(output) == 1)
-				output.rawSignedIntegerAtPut(1, diff.toInt())
-				normalizeSpareInt(output, 1)
-				return output
-			}
-			// Doesn't fit in 32 bits; use two 32-bit words.
-			output = createUninitializedInteger(2)
-			output.rawSignedIntegerAtPut(1, diff.toInt())
-			output.rawSignedIntegerAtPut(2, (diff shr 32).toInt())
-			return output
-		}
-		// Set estimatedSize to the max of the input sizes. There will only
-		// rarely be an overflow and at most by one cell. Underflows should also
-		// be pretty rare, and they're handled by output.trimExcessInts().
-		output = output ?:
-			createUninitializedInteger(max(objectSize, anIntegerSize))
-		// The output is either fresh with this size, or an input of this size.
-		val outputSize = max(objectSize, anIntegerSize)
-		val extendedObject =
-			self.rawSignedIntegerAt(objectSize).toLong() shr 31 and 0xFFFFFFFFL
-		val extendedAnInteger =
-			(anInteger.rawSignedIntegerAt(anIntegerSize).toLong() shr 31
-				and 0xFFFFFFFFL)
-		var partial: Long = 1
-		var lastInt = 0
-		// The object is always big enough to store the max of the number of
-		// quads from each input, so after the loop we can check partial and the
-		// upper bit of the result to see if another quad needs to be appended.
-		for (i in 1..outputSize) {
-			partial +=
-				if (i > anIntegerSize) extendedAnInteger
-				else anInteger.rawUnsignedIntegerAt(i)
-			partial += 0xFFFFFFFFL xor
-				if (i > objectSize) extendedObject
-				else self.rawUnsignedIntegerAt(i)
-			lastInt = partial.toInt()
-			output.rawSignedIntegerAtPut(i, lastInt)
-			partial = partial ushr 32
-		}
-		partial += extendedAnInteger + (extendedObject xor 0xFFFFFFFFL)
-		if (lastInt shr 31 != partial.toInt()) {
-			// Top bit of last word no longer agrees with sign of result.
-			// Extend it.
-			val newOutput = createUninitializedInteger(outputSize + 1)
-			for (i in 1..outputSize) {
-				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i))
-			}
-			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			trimSized(newOutput, outputSize + 1)
-			return newOutput
-		}
-		trimSized(output, outputSize)
-		return output
+		// At least one input is beyond the long range, or the difference
+		// overflows.  The result is anInteger - self.
+		return chainedAddOrSubtract(anInteger, self, -1L)
 	}
 
 	override fun o_SubtractFromDoubleCanDestroy(
