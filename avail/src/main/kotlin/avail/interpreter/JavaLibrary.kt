@@ -104,12 +104,12 @@ object JavaLibrary
 		java.lang.Class<*>::getClassLoader.name,
 		ClassLoader::class.java)
 
-	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
-	val javaUnboxIntegerMethod = javaLibraryStaticMethod(
-		intBoxed,
-		disambiguate<(Int)->Int>(JavaInteger::valueOf).name,
-		intBoxed,
-		int)
+	/** The [CheckedMethod] for *Java* [java.lang.Long.valueOf] boxing. */
+	val javaBoxLongMethod = javaLibraryStaticMethod(
+		longBoxed,
+		disambiguate<(Long)->Long>(JavaLong::valueOf).name,
+		longBoxed,
+		long)
 
 	/** The [CheckedMethod] for *Java* [java.lang.Double.valueOf] boxing. */
 	val javaUnboxDoubleMethod = javaLibraryStaticMethod(

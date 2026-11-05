@@ -152,9 +152,7 @@ constructor(
 					}
 					intConstant(i++) //one-based
 					generateCall(extractDumpedLongAtMethod)
-					method.visitInsn(Opcodes.L2I)
-					// Int registers hold longs, so widen the int.
-					method.visitInsn(Opcodes.I2L)
+					// The dump holds int registers' longs directly.
 					method.visitVarInsn(
 						INTEGER_KIND.jvmStoreInstruction, intRegisterIndex)
 					// :: [registerDump], or [] on last use

@@ -53,8 +53,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFuncti
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.JavaLibrary.getClassLoader
+import avail.interpreter.JavaLibrary.javaBoxLongMethod
 import avail.interpreter.JavaLibrary.javaUnboxDoubleMethod
-import avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import avail.interpreter.JavaLibrary.longAdderIncrement
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -1162,12 +1162,19 @@ class JVMTranslator constructor(
 		registers.forEachIndexed { i, register ->
 			method.visitInsn(Opcodes.DUP)
 			intConstant(i)
-			loadRegister(register)
 			when (register.kind)
 			{
-				INTEGER_KIND -> generateCall(javaUnboxIntegerMethod)
-				FLOAT_KIND -> generateCall(javaUnboxDoubleMethod)
-				else -> { }
+				INTEGER_KIND ->
+				{
+					loadLongRegister(register)
+					generateCall(javaBoxLongMethod)
+				}
+				FLOAT_KIND ->
+				{
+					loadRegister(register)
+					generateCall(javaUnboxDoubleMethod)
+				}
+				else -> loadRegister(register)
 			}
 			method.visitInsn(Opcodes.AASTORE)
 		}

@@ -237,17 +237,14 @@ constructor(
 
 	override fun getConstantSemanticValue() = constant(fromLong(source.value))
 
-	/**
-	 * Push the constant as an int, for consumers that still expect one.  The
-	 * constant must fit in an int.
-	 */
+	/** Push the constant as a `long`, the form held by int registers. */
 	override fun JVMTranslator.pushConstant() =
-		intConstant(constant().intValue)
+		method.visitLdcInsn(constant().value)
 
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = constant;
-		method.visitLdcInsn(constant().value)
+		pushConstant()
 		storeLong(destination().register())
 	}
 }

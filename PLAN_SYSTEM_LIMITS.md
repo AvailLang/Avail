@@ -55,5 +55,49 @@ and dropped for now; they are recorded so the reasoning isn't lost.
 - Audit of 32-bit integer access in integer code: clean. No `intSlot` or
   `setIntSlot` remains in `descriptor/numbers` or the integer primitives.
 - `intCount` removed; its uses test `longCount` directly.
-- Next major work: widen L2 int registers from 32 to 64 bits. See the notes
-  in the L2 section of the plan once it's written.
+- Next major work: widen L2 int registers from 32 to 64 bits. See below.
+
+## L2 int registers: 32 to 64 bits
+
+Int registers are 64-bit JVM locals that currently always hold sign-extended
+ints.  `JVMTranslator` offers two views: `load`/`store` (the int view, with
+`l2i`/`i2l`) and `loadLong`/`storeLong` (the long view).
+
+### Long view (done)
+
+Unbox, box, int and constant moves, add, subtract, multiply, divide,
+compare, bit logic, chunk entry, the register dump, and the L2 trace.  The
+bit-logic operations still reproduce 32-bit results (`wrapsTo32Bits`, 5-bit
+shift counts, `ushr32`), as do their folders.
+
+### Int view, permanently 32-bit
+
+These read or write values that are ints by nature: JVM `int` APIs, indices,
+or 32-bit identities.
+
+- Dispatch: `L2_HASH`, `L2_EXTRACT_OBJECT_VARIANT_ID`,
+  `L2_EXTRACT_OBJECT_TYPE_VARIANT_ID`, `L2_EXTRACT_TAG_ORDINAL`,
+  `L2_MULTIWAY_JUMP` (`lookupswitch`/`tableswitch`).
+- Program counters: `L2_SAVE_ALL_AND_PC_TO_INT`, `L2_CREATE_CONTINUATION`.
+- Tuples: `L2_TUPLE_SIZE`, `L2_TUPLE_AT_NO_FAIL`,
+  `L2_TUPLE_CODEPOINT_AT_NO_FAIL`, `L2_TUPLE_INT_AT_NO_FAIL`,
+  `L2_TUPLE_SUBRANGE_NO_FAIL`.
+- `L2_CODEPOINT_TO_CHARACTER`.
+
+### Invariant change needed before widening
+
+Today every int register holds an int, so an int-view read never truncates.
+Once arithmetic results may exceed 32 bits, an int-view read is only safe on a
+register whose restriction lies within `i32`.  Before widening, confirm that
+each int-view consumer above only receives `i32`-restricted registers, and
+assert it where the operation is added.
+
+### Remaining steps
+
+1. Add, subtract, multiply: check 64-bit overflow instead of `i32` range;
+   widen `L2_UNBOX_INT`'s assertion, `canUnboxInt` and `readAsTwoInts` to
+   `i64`.
+2. Bit logic: widen `generateBinaryIntOperation`; drop `wrapsTo32Bits`,
+   `ushr32` and the 5-bit shift masks; shifts become 0..63; bounds use
+   `extractLong`; rule shift limits become 0..63.
+3. Primitive fast paths still restricted to `i32`, by primitive family.

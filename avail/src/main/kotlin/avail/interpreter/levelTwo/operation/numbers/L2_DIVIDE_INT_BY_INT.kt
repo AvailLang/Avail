@@ -136,19 +136,23 @@ class L2_DIVIDE_INT_BY_INT(
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (divisor <= 0) goto outOfRangeOrZeroDiv;
-		load(divisor)
+		loadLong(divisor)
+		method.visitInsn(Opcodes.LCONST_0)
+		method.visitInsn(Opcodes.LCMP)
 		jumpIf(Opcodes.IFLE, outOfRangeOrZeroDiv)
 		// :: if (dividend < 0) goto outOfRangeOrZeroDiv;
-		load(dividend)
+		loadLong(dividend)
+		method.visitInsn(Opcodes.LCONST_0)
+		method.visitInsn(Opcodes.LCMP)
 		jumpIf(Opcodes.IFLT, outOfRangeOrZeroDiv)
 
-		load(dividend)
+		loadLong(dividend)
 		// :: dividend
-		load(divisor)
+		loadLong(divisor)
 		// :: dividend, divisor
-		method.visitInsn(Opcodes.IDIV)
+		method.visitInsn(Opcodes.LDIV)
 		// :: quotient
-		store(quotient.register())
+		storeLong(quotient.register())
 		// ::
 		jump(success)
 	}
