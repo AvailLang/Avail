@@ -60,10 +60,8 @@ Status: planned, not implemented. Written down for a later session.
 
 ## Related int-level work still open
 
-- `IntegerDescriptor.intCount` is an `Int` computed as `longCount shl 1`. It
-  overflows for integers above 2^30 longs. Its remaining uses are in `isLong`,
-  `equals`, comparisons, the double-extraction scale, and the recycle checks.
-  Replace them with long-based checks.
+- Done: `IntegerDescriptor.intCount` was removed. Its uses now test
+  `longCount` directly, which avoids the `Int` overflow above 2^30 longs.
 - `P_BitTest.returnTypeGuaranteedByVM` checks bits one at a time, so its cost
   grows with the bit size of the bounds. A word-at-a-time check would bound it.
 - `P_BitTest` still uses `extractLong` and `isLong` on bit positions, which is

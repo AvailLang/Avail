@@ -204,7 +204,7 @@ class IntegerDescriptor private constructor(
 				val longValue = self.extractLong
 				describeLong(
 					longValue,
-					if (intCount(self) == 1) 32 else 64,
+					if (self.isInt) 32 else 64,
 					this)
 				append(" = ")
 				append(longValue)
@@ -233,9 +233,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anAvailInteger: AvailObject
 	): Boolean {
-		val intCount = intCount(self)
 		// Assume integers being compared are always normalized (trimmed).
-		if (intCount != intCount(anAvailInteger)) return false
+		if (longCount(self) != longCount(anAvailInteger)) return false
 		return self.compareLongSlots(
 			RAW_LONG_SLOTS_,
 			1,
@@ -251,7 +250,7 @@ class IntegerDescriptor private constructor(
 	override fun o_EqualsLong(
 		self: AvailObject,
 		theLong: Long
-	) = intCount(self) <= 2 && self.extractLong == theLong
+	) = longCount(self) == 1 && self.extractLong == theLong
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -322,7 +321,7 @@ class IntegerDescriptor private constructor(
 	override fun o_IsInt(self: AvailObject) =
 		self.isLong && self.extractLong.isInt
 
-	override fun o_IsLong(self: AvailObject) = intCount(self) <= 2
+	override fun o_IsLong(self: AvailObject) = longCount(self) == 1
 
 	override fun o_ExtractNybble(self: AvailObject): Byte {
 		val value = self.extractLong
@@ -363,7 +362,7 @@ class IntegerDescriptor private constructor(
 	}
 
 	override fun o_ExtractInt(self: AvailObject): Int {
-		assert(intCount(self) == 1) { "Integer value out of bounds" }
+		assert(longCount(self) == 1) { "Integer value out of bounds" }
 		val value = self.extractLong
 		val truncated = (value shl 32) shr 32
 		assert(value == truncated) { "Integer value out of bounds" }
@@ -371,7 +370,7 @@ class IntegerDescriptor private constructor(
 	}
 
 	override fun o_ExtractLong(self: AvailObject): Long {
-		assert(intCount(self) <= 2) { "Integer value out of bounds" }
+		assert(longCount(self) == 1) { "Integer value out of bounds" }
 		// A value in long range is a single, canonical long.
 		return self.longSlot(RAW_LONG_SLOTS_, 1)
 	}
@@ -410,43 +409,6 @@ class IntegerDescriptor private constructor(
 	{
 		return if (sign == Sign.POSITIVE) positiveInfinity
 		else negativeInfinity
-	}
-
-	/**
-	 * Choose the most spacious mutable [argument][AvailObject].
-	 *
-	 * @param self
-	 *   An Avail integer.
-	 * @param another
-	 *   The number of ints in the representation of object.
-	 * @param selfIntCount
-	 *   The size of self in ints.
-	 * @param anotherIntCount
-	 *   The number of ints in the representation of another.
-	 * @param canDestroy
-	 *   A boolean indicating whether one of the arguments can actually be
-	 *   reused if it's mutable.
-	 * @return
-	 *   One of the arguments, or `null` if neither argument was suitable.
-	 */
-	private fun largerMutableOf(
-		self: AvailObject,
-		another: AvailObject,
-		selfIntCount: Int,
-		anotherIntCount: Int,
-		canDestroy: Boolean
-	): AvailObject? {
-		return when {
-			!canDestroy -> null
-			selfIntCount == anotherIntCount -> when {
-				isMutable -> self
-				another.descriptor.isMutable -> another
-				else -> null
-			}
-			selfIntCount > anotherIntCount -> if (isMutable) self else null
-			another.descriptor.isMutable -> another
-			else -> null
-		}
 	}
 
 	override fun o_AddToIntegerCanDestroy(
@@ -669,7 +631,7 @@ class IntegerDescriptor private constructor(
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledQuotient = doubleObject.extractDouble / scaledIntAsDouble
@@ -689,7 +651,7 @@ class IntegerDescriptor private constructor(
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledQuotient = floatObject.extractDouble / scaledIntAsDouble
@@ -807,7 +769,7 @@ class IntegerDescriptor private constructor(
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledProduct = doubleObject.extractDouble * scaledIntAsDouble
@@ -827,7 +789,7 @@ class IntegerDescriptor private constructor(
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledProduct = floatObject.extractDouble * scaledIntAsDouble
@@ -1455,25 +1417,6 @@ class IntegerDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Answer the number of int slots in the passed integer object, which
-		 * must not be an indirection.
-		 *
-		 * @param self
-		 *   The integer object.
-		 * @return
-		 *   The number of occupied int slots in the object.
-		 */
-		fun intCount(
-			self: AvailObject
-		): Int
-		{
-			val longs = self.integerSlotsCount()
-			// The top int is redundant when the top long fits in an int.
-			val topIntRedundant = self.longSlot(RAW_LONG_SLOTS_, longs).isInt
-			return (longs shl 1) - if (topIntRedundant) 1 else 0
-		}
-
-		/**
 		 * Answer the number of 64-bit `long` slots occupied by the given integer
 		 * object.  The receiver must not be an indirection.
 		 *
@@ -1575,8 +1518,8 @@ class IntegerDescriptor private constructor(
 		 * @param anInteger
 		 *   The [Int] to store.
 		 * @param output
-		 *   A mutable [AvailObject] with an [IntegerDescriptor] and an
-		 *   [intCount] <= 2.
+		 *   A mutable [AvailObject] with an [IntegerDescriptor] and a single
+		 *   long word.
 		 * @return
 		 *   The [output], now holding [anInteger].
 		 */
@@ -1617,7 +1560,7 @@ class IntegerDescriptor private constructor(
 		 * Create an Avail boxed integer with the given [Long] as its value. One
 		 * of the two recyclable values, which *must* have an
 		 * [IntegerDescriptor], can be reused to hold the value if it's mutable
-		 * and its [intCount] is <= 2.
+		 * and it holds a single long word.
 		 */
 		fun fromLongRecycling(
 			aLong: Long,
@@ -1631,10 +1574,10 @@ class IntegerDescriptor private constructor(
 			val output = when
 			{
 				(recyclable1.descriptor.isMutable
-					&& intCount(recyclable1) <= 2
+					&& longCount(recyclable1) == 1
 				) -> recyclable1
 				(recyclable2.descriptor.isMutable
-					&& intCount(recyclable1) <= 2
+					&& longCount(recyclable2) == 1
 				) -> recyclable2
 				else -> return fromLong(aLong)
 			}
@@ -2142,7 +2085,7 @@ class IntegerDescriptor private constructor(
 		@ReferencedInGeneratedCode
 		fun recycleIfMutable(anObject: AvailObject)
 		{
-			if (anObject.descriptor.isMutable && intCount(anObject) <= 2)
+			if (anObject.descriptor.isMutable && longCount(anObject) == 1)
 			{
 				top = (top + 1) and mask
 				slots[top] = anObject

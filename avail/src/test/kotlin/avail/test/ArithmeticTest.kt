@@ -39,6 +39,7 @@ import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLongRecycling
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.asBigInteger
@@ -117,6 +118,21 @@ class ArithmeticTest
 							&& availInt.lessOrEqual(upper))
 			}
 		}
+	}
+
+	/**
+	 * Check that [fromLongRecycling] doesn't reuse a mutable multi-word
+	 * integer, since it writes only one word of the output.
+	 */
+	@Test
+	fun testFromLongRecyclingSkipsMultiWordRecyclable()
+	{
+		val unusable =
+			(fromBigInteger(BigInteger.ONE.shiftLeft(70)) as AvailObject)
+				.makeImmutable()
+		val multiWord = fromBigInteger(BigInteger.ONE.shiftLeft(70)) as AvailObject
+		val result = fromLongRecycling(1000L, unusable, multiWord, true)
+		assertEquals(BigInteger.valueOf(1000L), result.asBigInteger())
 	}
 
 	/**
