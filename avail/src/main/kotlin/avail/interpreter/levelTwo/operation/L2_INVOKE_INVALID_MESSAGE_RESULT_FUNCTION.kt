@@ -97,8 +97,8 @@ L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 		// :: interpreter
 		load(returnedValue)
 		loadLiteralObject(expectedType.constant)
-		intConstant(pc.value)
-		intConstant(stackp.value)
+		intConstant(pc.intValue)
+		intConstant(stackp.intValue)
 		// :: interpreter, value, expected, pc, stackp
 		objectArray(frameValues.elements, AvailObject::class.java)
 		// :: interpreter, value, expected, pc, stackp, frameArray

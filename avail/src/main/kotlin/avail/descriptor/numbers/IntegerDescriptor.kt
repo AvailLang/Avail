@@ -1513,21 +1513,19 @@ class IntegerDescriptor private constructor(
 			}
 
 		/**
-		 * Overwrite the mutable [output] so that it holds the given [Int].
+		 * Overwrite the mutable [output] so that it holds the given [Long].
 		 *
-		 * @param anInteger
-		 *   The [Int] to store.
+		 * @param aLong
+		 *   The [Long] to store.
 		 * @param output
 		 *   A mutable [AvailObject] with an [IntegerDescriptor] and a single
 		 *   long word.
 		 * @return
-		 *   The [output], now holding [anInteger].
+		 *   The [output], now holding [aLong].
 		 */
-		private fun recycleInt(anInteger: Int, output: AvailObject): AvailObject
+		private fun recycleLong(aLong: Long, output: AvailObject): AvailObject
 		{
-			// The spare half holds the sign extension of the int, as equality
-			// requires of an odd number of ints.
-			output.setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
+			output.setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			output.descriptor = mutable
 			return output
 		}
@@ -2101,17 +2099,28 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
+		fun boxInt(anInteger: Int): AvailObject = boxLong(anInteger.toLong())
+
+		/**
+		 * Answer an [AvailObject] holding [aLong], reusing the most recently
+		 * recycled one if there is one.
+		 *
+		 * @param aLong
+		 *   The [Long] to box.
+		 * @return
+		 *   An [AvailObject].
+		 */
 		@ReferencedInGeneratedCode
-		fun boxInt(anInteger: Int): AvailObject
+		fun boxLong(aLong: Long): AvailObject
 		{
-			if (anInteger in 0 until smallIntegerLimit)
+			if (aLong in 0 until smallIntegerLimit)
 			{
-				return fromInt(anInteger)
+				return fromLong(aLong)
 			}
-			val recycled = slots[top] ?: return fromInt(anInteger)
+			val recycled = slots[top] ?: return fromLong(aLong)
 			slots[top] = null
 			top = (top - 1) and mask
-			return recycleInt(anInteger, recycled)
+			return recycleLong(aLong, recycled)
 		}
 	}
 }

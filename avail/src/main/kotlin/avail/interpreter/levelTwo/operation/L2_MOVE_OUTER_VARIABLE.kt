@@ -105,7 +105,7 @@ class L2_MOVE_OUTER_VARIABLE(
 	{
 		// :: destination = function.outerVarAt(outerIndex);
 		load(function)
-		intConstant(outerIndex.value)
+		intConstant(outerIndex.intValue)
 		generateCall(FunctionDescriptor.outerVarAtMethod)
 		store(destination.register())
 	}

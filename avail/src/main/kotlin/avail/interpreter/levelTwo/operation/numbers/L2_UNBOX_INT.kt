@@ -90,10 +90,10 @@ class L2_UNBOX_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = source.extractInt();
+		// :: destination = source.extractLong();
 		load(source)
-		generateCall(A_Number.extractIntStaticMethod)
-		store(destination.register())
+		generateCall(A_Number.extractLongStaticMethod)
+		storeLong(destination.register())
 	}
 
 	override fun PostPhiData.interestingConditions() = buildList {

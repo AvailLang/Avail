@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.register
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.extractDouble
 import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -452,7 +453,7 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		boxedValue: A_BasicObject,
 		destinations: Iterable<L2SemanticValue>
 	) = L2_MOVE_CONSTANT_INT(
-		L2IntImmediateOperand((boxedValue as AvailObject).extractInt),
+		L2IntImmediateOperand((boxedValue as AvailObject).extractLong),
 		L2WriteIntOperand(
 			destinations.toSet(),
 			restrictionForConstant(boxedValue)))

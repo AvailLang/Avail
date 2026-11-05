@@ -98,7 +98,7 @@ class L2_TUPLE_AT_UPDATE(
 			// overwriting it anyhow.
 			if (trace.updateIndex.value != updateIndex.value)
 			{
-				updates.add(trace.updateIndex.value to trace.newElement)
+				updates.add(trace.updateIndex.intValue to trace.newElement)
 			}
 			trace = trace.inputTuple.definitionSkippingMoves(currentManifest)
 		}
@@ -110,7 +110,7 @@ class L2_TUPLE_AT_UPDATE(
 		// Update the template tuple and re-apply the updates that weren't
 		// for that index.
 		val tupleTemplate = trace.source.constant.tupleAtPuttingCanDestroy(
-			updateIndex.value, newElement.constantOrNull!!, false)
+			updateIndex.intValue, newElement.constantOrNull!!, false)
 		var tupleTemp = boxedConstant(tupleTemplate)
 		val typesList =
 			tupleTemplate.mapTo(mutableListOf(), ::instanceTypeOrMetaOn)
@@ -141,7 +141,7 @@ class L2_TUPLE_AT_UPDATE(
 	): Unit = when (index)
 	{
 		// Use the value that was used to update that element.
-		updateIndex.value -> move(
+		updateIndex.intValue -> move(
 			newElement.semanticValue(),
 			destinationSemanticValues)
 		// It wasn't affected by this tuple update.
@@ -152,7 +152,7 @@ class L2_TUPLE_AT_UPDATE(
 	override fun JVMTranslator.translateToJVM()
 	{
 		load(inputTuple)
-		intConstant(updateIndex.value)
+		intConstant(updateIndex.intValue)
 		load(newElement)
 		generateCall(TupleDescriptor.tupleAtPuttingMethod)
 		store(outputTuple.register())

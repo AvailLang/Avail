@@ -134,10 +134,8 @@ class L2_ADD_INT_TO_INT(
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: longSum = (long) augend + (long) addend;
-		load(augend)
-		method.visitInsn(Opcodes.I2L)
-		load(addend)
-		method.visitInsn(Opcodes.I2L)
+		loadLong(augend)
+		loadLong(addend)
 		method.visitInsn(Opcodes.LADD)
 		val longSumStart = Label()
 		val longSumEnd = Label()
@@ -163,8 +161,7 @@ class L2_ADD_INT_TO_INT(
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
-		method.visitInsn(Opcodes.L2I)
-		store(sum.register())
+		storeLong(sum.register())
 		jump(inRange)
 		method.visitLabel(longSumEnd)
 		endLocal(longSumLocal, Type.LONG_TYPE)

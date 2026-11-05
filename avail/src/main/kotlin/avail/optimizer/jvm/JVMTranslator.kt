@@ -36,6 +36,7 @@ import avail.AvailThread
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
@@ -560,6 +561,57 @@ class JVMTranslator constructor(
 		}
 		method.visitVarInsn(
 			register.kind.jvmStoreInstruction,
+			localNumberFromRegister(register))
+	}
+
+	/**
+	 * Generate a load of the given int register as a Java `long`, without
+	 * narrowing it.  Int registers are 64-bit JVM locals holding sign-extended
+	 * ints, so a consumer that works in `long` can use the value directly.
+	 *
+	 * @param read
+	 *   An [L2ReadOperand] of an int register to push.
+	 */
+	fun loadLong(read: L2ReadOperand<*>)
+	{
+		loadLongRegister(read.register())
+	}
+
+	/**
+	 * Generate a load of the given int register as a Java `long`.  See
+	 * [loadLong].
+	 *
+	 * @param register
+	 *   A bound int `L2Register`.
+	 */
+	fun loadLongRegister(register: L2Register<*>)
+	{
+		assert(register.kind == INTEGER_KIND)
+		if (register.isConstant)
+		{
+			method.visitLdcInsn(register.constant!!.extractLong)
+		}
+		else
+		{
+			method.visitVarInsn(
+				Opcodes.LLOAD,
+				localNumberFromRegister(register))
+		}
+	}
+
+	/**
+	 * Generate a store of the `long` on top of the stack into the local of the
+	 * given int register.  The value must already be a sign-extended int, or
+	 * otherwise in the range that the register is meant to hold.
+	 *
+	 * @param register
+	 *   A bound int `L2Register`.
+	 */
+	fun storeLong(register: L2Register<*>)
+	{
+		assert(register.kind == INTEGER_KIND)
+		method.visitVarInsn(
+			Opcodes.LSTORE,
 			localNumberFromRegister(register))
 	}
 

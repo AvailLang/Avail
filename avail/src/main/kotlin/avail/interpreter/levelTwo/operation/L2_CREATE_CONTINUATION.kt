@@ -100,7 +100,7 @@ constructor (
 		slotValues.elements.forEachIndexed { zeroIndex, slot ->
 			val slotIndex = zeroIndex + 1
 			append(
-				when (slotIndex == levelOneStackp.value)
+				when (slotIndex == levelOneStackp.intValue)
 				{
 					true -> "\n\t->\t"
 					else -> "\n\t\t"
@@ -147,8 +147,8 @@ constructor (
 		load(function)
 		load(caller)
 		load(registerDump)
-		intConstant(levelOnePc.value)
-		intConstant(levelOneStackp.value)
+		intConstant(levelOnePc.intValue)
+		intConstant(levelOneStackp.intValue)
 		loadInterpreter()
 		load(Interpreter.chunkField)
 		load(labelAddress)

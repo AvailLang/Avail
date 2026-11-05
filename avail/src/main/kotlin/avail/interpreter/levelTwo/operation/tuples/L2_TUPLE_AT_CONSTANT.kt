@@ -72,14 +72,14 @@ class L2_TUPLE_AT_CONSTANT(
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		extractTupleElement(
-			tuple, subscript.value, destination.semanticValues())
+			tuple, subscript.intValue, destination.semanticValues())
 	}
 
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: destination = tuple.tupleAt(subscript);
 		load(tuple)
-		intConstant(subscript.value)
+		intConstant(subscript.intValue)
 		generateCall(TupleDescriptor.tupleAtMethod)
 		store(destination.register())
 	}

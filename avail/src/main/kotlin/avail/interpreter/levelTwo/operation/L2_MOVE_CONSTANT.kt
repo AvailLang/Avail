@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
@@ -234,10 +235,21 @@ constructor(
 
 	override fun destination(): L2WriteIntOperand = destination
 
-	override fun getConstantSemanticValue() = constant(source.value)
+	override fun getConstantSemanticValue() = constant(fromLong(source.value))
 
+	/**
+	 * Push the constant as an int, for consumers that still expect one.  The
+	 * constant must fit in an int.
+	 */
 	override fun JVMTranslator.pushConstant() =
-		intConstant(constant().value)
+		intConstant(constant().intValue)
+
+	override fun JVMTranslator.translateToJVM()
+	{
+		// :: destination = constant;
+		method.visitLdcInsn(constant().value)
+		storeLong(destination().register())
+	}
 }
 
 class L2_MOVE_CONSTANT_FLOAT

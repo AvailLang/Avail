@@ -58,6 +58,7 @@ import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.AvailObject
 import avail.exceptions.AvailSystemLimitException
+import avail.utility.addOrSubtractOverflows
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
@@ -116,6 +117,35 @@ class ArithmeticTest
 					f + 1.toDouble())
 				assert(lower.lessOrEqual(availInt)
 							&& availInt.lessOrEqual(upper))
+			}
+		}
+	}
+
+	/**
+	 * Check [addOrSubtractOverflows] against [Math.addExact] and
+	 * [Math.subtractExact], which throw exactly when the result overflows.
+	 */
+	@Test
+	fun testAddOrSubtractOverflows()
+	{
+		val samples = listOf(
+			Long.MIN_VALUE, Long.MIN_VALUE + 1, -2L, -1L, 0L, 1L, 2L,
+			Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong(),
+			Long.MAX_VALUE - 1, Long.MAX_VALUE)
+		for (a in samples)
+		{
+			for (b in samples)
+			{
+				val addOverflows =
+					runCatching { Math.addExact(a, b) }.isFailure
+				val subtractOverflows =
+					runCatching { Math.subtractExact(a, b) }.isFailure
+				assertEquals(
+					addOverflows, addOrSubtractOverflows(a, b), "$a + $b")
+				assertEquals(
+					subtractOverflows,
+					addOrSubtractOverflows(a, b, -1),
+					"$a - $b")
 			}
 		}
 	}

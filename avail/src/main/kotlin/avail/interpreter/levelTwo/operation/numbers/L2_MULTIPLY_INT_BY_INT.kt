@@ -241,10 +241,8 @@ class L2_MULTIPLY_INT_BY_INT(
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: longProduct = (long) multiplicand * (long) multiplier;
-		load(multiplicand)
-		method.visitInsn(Opcodes.I2L)
-		load(multiplier)
-		method.visitInsn(Opcodes.I2L)
+		loadLong(multiplicand)
+		loadLong(multiplier)
 		method.visitInsn(Opcodes.LMUL)
 		val longProductStart = Label()
 		val longProductEnd = Label()
@@ -270,8 +268,7 @@ class L2_MULTIPLY_INT_BY_INT(
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
-		method.visitInsn(Opcodes.L2I)
-		store(product.register())
+		storeLong(product.register())
 		jump(inRange)
 		method.visitLabel(longProductEnd)
 		endLocal(longProductLocal, Type.LONG_TYPE)

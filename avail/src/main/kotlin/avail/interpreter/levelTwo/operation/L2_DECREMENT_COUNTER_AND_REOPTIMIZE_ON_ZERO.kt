@@ -65,7 +65,7 @@ constructor(
 {
 	override val hasSideEffect: Boolean get() = true
 
-	override val isEntryPoint get() = isEntryPointFlag.value != 0
+	override val isEntryPoint get() = isEntryPointFlag.intValue != 0
 
 	override fun JVMTranslator.translateToJVM()
 	{
@@ -73,7 +73,7 @@ constructor(
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		loadInterpreter()
 		// :: interpreter
-		intConstant(currentOptimizationLevel.value)
+		intConstant(currentOptimizationLevel.intValue)
 		// :: interpreter, level
 		generateCall(decrementMethod)
 		// :: bool

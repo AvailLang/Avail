@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
-import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
@@ -51,6 +50,7 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.mapToSet
 import org.objectweb.asm.Label
+import org.objectweb.asm.Opcodes.IF_ICMPGE
 
 /**
  * Given an integer and a constant tuple of N distinct integers in ascending
@@ -210,7 +210,7 @@ constructor(
 			val greaterOrEqualLabel = Label()
 			load(value)
 			intConstant(medianValue)
-			method.visitJumpInsn(GreaterOrEqual.opcode, greaterOrEqualLabel)
+			method.visitJumpInsn(IF_ICMPGE, greaterOrEqualLabel)
 			translateRegionToJVM(
 				firstSplitIndex,
 				medianIndex - 1,
@@ -239,7 +239,7 @@ constructor(
 			load(value)
 			intConstant(splits[firstSplitIndex])
 			val notTooLow = Label()
-			method.visitJumpInsn(GreaterOrEqual.opcode, notTooLow)
+			method.visitJumpInsn(IF_ICMPGE, notTooLow)
 			// At this point the value is left of the first split.
 			jump(edges[firstSplitIndex])
 			method.visitLabel(notTooLow)

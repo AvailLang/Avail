@@ -144,19 +144,19 @@ object JavaLibrary
 		LongAdder::increment.name,
 		void)
 
-	/** The [CheckedMethod] for taking the [Math.max] of two [Int]s. */
-	val intMaxMethod = javaLibraryStaticMethod(
+	/** The [CheckedMethod] for taking the [Math.max] of two [Long]s. */
+	val longMaxMethod = javaLibraryStaticMethod(
 		java.lang.Math::class.java,
-		disambiguate<(Int, Int)->Int>(Math::max).name,
-		int,
-		int,
-		int)
+		disambiguate<(Long, Long)->Long>(Math::max).name,
+		long,
+		long,
+		long)
 
-	/** The [CheckedMethod] for taking the [Math.min] of two [Int]s. */
-	val intMinMethod = javaLibraryStaticMethod(
+	/** The [CheckedMethod] for taking the [Math.min] of two [Long]s. */
+	val longMinMethod = javaLibraryStaticMethod(
 		java.lang.Math::class.java,
-		disambiguate<(Int, Int)->Int>(Math::min).name,
-		int,
-		int,
-		int)
+		disambiguate<(Long, Long)->Long>(Math::min).name,
+		long,
+		long,
+		long)
 }

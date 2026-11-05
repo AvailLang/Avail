@@ -1197,10 +1197,19 @@ interface A_Number : A_BasicObject
 		fun extractIntStatic(self: AvailObject): Int =
 			self.dispatch { o_ExtractInt(it) }
 
+		/** The [CheckedMethod] for [extractLong]. */
+		val extractLongStaticMethod = staticMethod(
+			::extractLongStatic,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun extractLongStatic(self: AvailObject): Long =
+			self.dispatch { o_ExtractLong(it) }
+
 		/**
 		 * The [CheckedMethod] for [extractInt].
 		 */
-		@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 		val extractIntStaticMethod = staticMethod(
 			::extractIntStatic,
 			AvailObject::class.java)

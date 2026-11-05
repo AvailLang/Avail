@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation.numbers
 
 import avail.descriptor.numbers.IntegerDescriptor.RecyclePool
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.JavaLibrary.int
+import avail.interpreter.JavaLibrary.long
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -94,11 +94,11 @@ class L2_BOX_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = interpreter.integerPool.boxInt(source);
+		// :: destination = interpreter.integerPool.boxLong(source);
 		loadInterpreter()
 		load(integerPoolField)
-		load(source)
-		generateCall(boxIntMethod)
+		loadLong(source)
+		generateCall(boxLongMethod)
 		store(destination.register())
 	}
 
@@ -108,8 +108,8 @@ class L2_BOX_INT(
 		val integerPoolField: CheckedField =
 			instanceField(Interpreter::integerPool)
 
-		/** The [CheckedMethod] for [RecyclePool.boxInt]. */
-		val boxIntMethod: CheckedMethod =
-			instanceMethod(RecyclePool::boxInt, int)
+		/** The [CheckedMethod] for [RecyclePool.boxLong]. */
+		val boxLongMethod: CheckedMethod =
+			instanceMethod(RecyclePool::boxLong, long)
 	}
 }

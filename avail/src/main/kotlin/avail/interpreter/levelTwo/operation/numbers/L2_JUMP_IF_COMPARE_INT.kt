@@ -49,6 +49,7 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import org.objectweb.asm.Opcodes
 
 /**
  * Jump to the target if int1 compares to int2 in the way requested by the
@@ -165,11 +166,12 @@ class L2_JUMP_IF_COMPARE_INT(
 	{
 		// :: if (int1 op int2) goto ifTrue;
 		// :: else goto ifFalse;
-		load(int1)
-		load(int2)
+		loadLong(int1)
+		loadLong(int2)
+		method.visitInsn(Opcodes.LCMP)
 		emitBranch(
 			this@L2_JUMP_IF_COMPARE_INT,
-			numericComparator.constant.opcode,
+			numericComparator.constant.lcmpBranchOpcode,
 			ifTrue,
 			ifFalse)
 	}

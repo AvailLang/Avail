@@ -37,25 +37,50 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 
 /**
  * An [L2IntImmediateOperand] is an operand of type
- * [L2OperandType.INT_IMMEDIATE], which holds an [Int] value representing
- * itself.
+ * [L2OperandType.INT_IMMEDIATE], which holds an integer value representing
+ * itself.  Most immediates are indices or program counters and are naturally
+ * [Int]s, but constant integers destined for 64-bit int registers may need the
+ * full [Long] range.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @property value
- *   The actual [Int] value.
+ *   The actual [Long] value.
  *
  * @constructor
- * Construct a new `L2IntImmediateOperand` with the specified [Int] value.
+ * Construct a new `L2IntImmediateOperand` with the specified [Long] value.
  *
  * @param value
- *   The constant [Int] itself.
+ *   The constant [Long] itself.
  */
 class L2IntImmediateOperand
 constructor(
-	val value: Int
+	val value: Long
 ) : L2Operand()
 {
+	/**
+	 * Construct a new `L2IntImmediateOperand` with the specified [Int] value.
+	 *
+	 * @param value
+	 *   The constant [Int] itself.
+	 */
+	constructor(value: Int) : this(value.toLong())
+
+	/**
+	 * The [value] as an [Int], for immediates that are naturally ints, such as
+	 * indices, program counters, and flags.  Fail if the value doesn't fit.
+	 */
+	val intValue: Int
+		get()
+		{
+			val intValue = value.toInt()
+			check(intValue.toLong() == value) {
+				"Immediate $value does not fit in an Int"
+			}
+			return intValue
+		}
+
+
 	override val operandType: L2OperandType get() = INT_IMMEDIATE
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
@@ -77,5 +102,5 @@ constructor(
 	override fun equivalentTo(other: L2Operand) =
 		other is L2IntImmediateOperand && value.equals(other.value)
 
-	override val equivalentHash: Int get() = value
+	override val equivalentHash: Int get() = value.hashCode()
 }

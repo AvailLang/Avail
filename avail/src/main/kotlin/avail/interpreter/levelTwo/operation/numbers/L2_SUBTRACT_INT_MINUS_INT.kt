@@ -135,10 +135,8 @@ class L2_SUBTRACT_INT_MINUS_INT(
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: longDifference = (long) minuend - (long) subtrahend;
-		load(minuend)
-		method.visitInsn(Opcodes.I2L)
-		load(subtrahend)
-		method.visitInsn(Opcodes.I2L)
+		loadLong(minuend)
+		loadLong(subtrahend)
 		method.visitInsn(Opcodes.LSUB)
 		val longDifferenceStart = Label()
 		val longDifferenceEnd = Label()
@@ -164,8 +162,7 @@ class L2_SUBTRACT_INT_MINUS_INT(
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
-		method.visitInsn(Opcodes.L2I)
-		store(difference.register())
+		storeLong(difference.register())
 		jump(inRange)
 		method.visitLabel(longDifferenceEnd)
 		endLocal(longDifferenceLocal, Type.LONG_TYPE)

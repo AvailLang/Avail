@@ -89,9 +89,9 @@ class L2_FALL_BACK_TO_L1(
 	{
 		loadInterpreter()
 		// :: interpreter
-		intConstant(pc.value)
+		intConstant(pc.intValue)
 		// :: interpreter, pc
-		intConstant(stackp.value)
+		intConstant(stackp.intValue)
 		// :: interpreter, pc, stackp
 		objectArray(
 			frameValues.elements,

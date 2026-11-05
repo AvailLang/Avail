@@ -89,12 +89,12 @@ constructor(
 	{
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
-		if (entryPointOffsetInDefaultChunk.value !=
+		if (entryPointOffsetInDefaultChunk.intValue !=
 			DefaultEntryPoint.TRANSIENT.offset)
 		{
 			// :: if (checkValidity()) {
 			loadInterpreter()
-			intConstant(entryPointOffsetInDefaultChunk.value)
+			intConstant(entryPointOffsetInDefaultChunk.intValue)
 			generateCall(Interpreter.checkValidityMethod)
 			val isValidLabel = Label()
 			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)

@@ -96,7 +96,7 @@ class L2_FUNCTION_PARAMETER_TYPE(
 		generateCall(FunctionDescriptor.functionCodeMethod)
 		generateCall(A_RawFunction.functionTypeMethod)
 		generateCall(A_Type.argsTupleTypeMethod)
-		intConstant(parameterIndex.value)
+		intConstant(parameterIndex.intValue)
 		generateCall(A_Type.typeAtIndexMethod)
 		store(parameterType.register())
 	}

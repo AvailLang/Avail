@@ -247,7 +247,7 @@ constructor(
 			val newElidedVariable = manifest.read(sv, sourceKind.cast())
 			elidedVariables.add(newElidedVariable)
 			newElidedVariable.adjustCloneForInstruction(this, generator)
-			elidedVariableIndices.add(postponedCreation.localIndex.value)
+			elidedVariableIndices.add(postponedCreation.localIndex.intValue)
 		}
 		dirtyLocals = L2ReadMixedVectorOperand(elidedVariables)
 		dirtyLocalIndices =
