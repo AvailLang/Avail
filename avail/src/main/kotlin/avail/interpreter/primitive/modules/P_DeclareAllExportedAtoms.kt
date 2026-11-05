@@ -34,7 +34,6 @@ package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Module.Companion.addImportedNames
@@ -59,10 +58,10 @@ import avail.interpreter.primitive.Primitive2
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
  * deserialize correctly. It forces the given set of atoms to be included in the
- * current module's [public&#32;names][ObjectSlots.IMPORTED_NAMES] or
- * [private&#32;names][ObjectSlots.PRIVATE_NAMES], depending on the value of the
- * supplied [boolean][booleanType] ([true][trueObject] for public,
- * [false][falseObject] for private).
+ * current module's [public&#32;names][addImportedNames] or
+ * [private&#32;names][addPrivateNames], depending on the value of the supplied
+ * [boolean][booleanType] ([true][trueObject] for public, [false][falseObject]
+ * for private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

@@ -31,13 +31,11 @@
  */
 package avail.descriptor.functions
 
-import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDump
 import avail.descriptor.functions.RegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
-import avail.descriptor.representation.A_Continuation.Companion.registerDump
 import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
 import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue

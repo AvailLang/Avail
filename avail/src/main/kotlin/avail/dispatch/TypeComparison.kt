@@ -123,7 +123,8 @@ enum class TypeComparison
 		 */
 		fun compareForDispatch(
 			argumentRestrictions: List<TypeRestriction>,
-			elementSignature: A_Type): TypeComparison
+			elementSignature: A_Type
+		): TypeComparison
 		{
 			var allBelow = true
 			var allAbove = true

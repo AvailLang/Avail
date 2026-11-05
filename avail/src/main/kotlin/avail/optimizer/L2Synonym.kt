@@ -32,9 +32,10 @@
 package avail.optimizer
 
 import avail.descriptor.representation.AvailObject.Companion.combine2
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
-import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticSlot
+import avail.optimizer.values.L2SemanticValue
 
 /**
  * An [L2Synonym] is a set of [L2SemanticValue]s known to represent the

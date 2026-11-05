@@ -31,11 +31,8 @@
  */
 package avail.utility
 
-import avail.utility.PrefixSharingList.Companion.append
-import avail.utility.PrefixSharingList.Companion.withoutLast
 import java.util.AbstractList
 import java.util.Collections.singletonList
-import java.util.NoSuchElementException
 
 /**
  * This is an implementation of an immutable [List] for which [append], the

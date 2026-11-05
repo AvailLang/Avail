@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 
 /**

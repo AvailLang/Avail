@@ -1106,8 +1106,8 @@ class L2Optimizer internal constructor(
 				}
 			}
 		}
-		val registerIdentityMap = allRegisters.associateWithTo(
-			mutableMapOf(), { it })
+		val registerIdentityMap =
+			allRegisters.associateWithTo(mutableMapOf()) { it }
 		// Rewrite the graph with the useless branches replaced by jumps.
 		regenerateGraph(
 			WithFixedRegisterMap(registerIdentityMap),

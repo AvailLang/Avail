@@ -625,7 +625,7 @@ class ModuleDescriptor private constructor(
 				val absentExclusions = mutableSetOf<A_String>()
 				absentExclusions.addAll(moduleImport.excludes)
 				absentExclusions.removeAll(stringsToImport)
-				if (absentExclusions.size > 0)
+				if (absentExclusions.isNotEmpty())
 				{
 					return@withImportedNames "these excluded names " +
 						"to have been exported from " +

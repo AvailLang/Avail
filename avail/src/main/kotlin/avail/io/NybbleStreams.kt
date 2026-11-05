@@ -210,7 +210,7 @@ class NybbleArray constructor(
 		 * The canonical one-character nybble strings, for efficient printing
 		 * without resorting to [String.format].
 		 */
-		val nybbleStrings = (('0' .. '9') + ('A' .. 'F')).map { it.toString() }
+		val nybbleStrings = "0123456789ABCDEF".map { it.toString() }
 
 		/**
 		 * An iterator over the nybbles of a [NybbleArray].

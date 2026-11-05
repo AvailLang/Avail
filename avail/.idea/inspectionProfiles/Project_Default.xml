@@ -632,8 +632,8 @@
     <inspection_tool class="DuplicateThrows" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="DuplicatedCode" enabled="false" level="WEAK WARNING" enabled_by_default="false">
       <Languages>
-        <language minSize="100" name="Kotlin" />
         <language minSize="100" name="Java" />
+        <language minSize="100" name="Kotlin" />
       </Languages>
     </inspection_tool>
     <inspection_tool class="DuplicatedDataProviderNames" enabled="false" level="ERROR" enabled_by_default="false" />
@@ -667,7 +667,6 @@
     <inspection_tool class="EditorConfigShadowingOption" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="EditorConfigSpaceInHeader" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="EditorConfigUnexpectedComma" enabled="false" level="ERROR" enabled_by_default="false" />
-    <inspection_tool class="EditorConfigUnusedDeclaration" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="EditorConfigValueCorrectness" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="EditorConfigValueUniqueness" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="EditorConfigVerifyByCore" enabled="false" level="ERROR" enabled_by_default="false" />
@@ -808,7 +807,6 @@
     <inspection_tool class="GroovyUnsynchronizedMethodOverridesSynchronizedMethod" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="GroovyUnusedAssignment" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="GroovyUnusedCatchParameter" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="GroovyUnusedDeclaration" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="GroovyUnusedIncOrDec" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="GroovyVariableNotAssigned" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="GrpcSchemes" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
@@ -1093,6 +1091,7 @@
     <inspection_tool class="MethodOverridesPackageLocalMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodOverridesPrivateMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodRefCanBeReplacedWithLambda" enabled="false" level="INFORMATION" enabled_by_default="false" />
+    <inspection_tool class="MigrateAssertToMatcherAssert" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MigrateDiagnosticSuppression" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MismatchedArrayReadWrite" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MismatchedCollectionQueryUpdate" enabled="false" level="WARNING" enabled_by_default="false">
@@ -1106,7 +1105,6 @@
         <value />
       </option>
     </inspection_tool>
-    <inspection_tool class="MismatchedJavadocCode" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MismatchedStringBuilderQueryUpdate" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MismatchedStringCase" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MissingDeprecatedAnnotation" enabled="false" level="WARNING" enabled_by_default="false">
@@ -1260,7 +1258,6 @@
     <inspection_tool class="OverflowingLoopIndex" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="OverrideOnly" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="OverwrittenKey" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="PackageDirectoryMismatch" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PackageInfoWithoutPackage" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PackageName" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ParameterCanBeLocal" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -1744,7 +1741,6 @@
     <inspection_tool class="UnusedSymbol" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="UnusedVersionCatalogEntry" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UrlHashCode" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="UsagesOfObsoleteApi" enabled="false" level="TEXT ATTRIBUTES" enabled_by_default="false" />
     <inspection_tool class="UseBulkOperation" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UseCompareMethod" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UseExpressionBody" enabled="false" level="INFORMATION" enabled_by_default="false" />
@@ -1816,7 +1812,6 @@
       <option name="ADD_EXPORTED_PACKAGES_AND_SERVICES_TO_ENTRIES" value="false" />
       <option name="selected" value="false" />
       <option name="DEPRECATED_ENTRY_POINT" value="false" />
-      <option name="selected" value="false" />
     </inspection_tool>
   </profile>
 </component>
