@@ -80,6 +80,7 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -1458,6 +1459,9 @@ class TypeRestriction private constructor(
 
 		/** The default restriction for int semantic values. */
 		val i32Restriction = restrictionForType(i32)
+
+		/** The widest restriction that an int register can hold. */
+		val i64Restriction = restrictionForType(i64)
 
 		/** Default resstriction for float semantic values. */
 		val floatRestriction = restrictionForType(Types.DOUBLE())

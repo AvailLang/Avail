@@ -159,4 +159,15 @@ object JavaLibrary
 		long,
 		long,
 		long)
+
+	/**
+	 * The [CheckedMethod] for [Math.multiplyHigh], the high 64 bits of the
+	 * 128-bit product of two [Long]s.
+	 */
+	val longMultiplyHighMethod = javaLibraryStaticMethod(
+		java.lang.Math::class.java,
+		disambiguate<(Long, Long)->Long>(Math::multiplyHigh).name,
+		long,
+		long,
+		long)
 }

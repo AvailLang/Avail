@@ -39,6 +39,7 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -997,9 +998,13 @@ interface L2GeneratorInterface : L2Visualizable
 		 * @param semanticValue
 		 *   The [L2SemanticValue] to read as an unboxed int.
 		 * @param onFailure
-		 *   Where to jump in the event that a dynamic type test against [i32]
-		 *   fails. The manifest at this location will not contain bindings for
-		 *   the unboxed `int` (since unboxing was not possible).
+		 *   Where to jump in the event that a dynamic type test against the
+		 *   [range] fails. The manifest at this location will not contain
+		 *   bindings for the unboxed `int` (since unboxing was not possible).
+		 * @param range
+		 *   The integer range that the unboxed value must lie within.  This is
+		 *   [i32] unless the consumer reads the int register as a `long`, in
+		 *   which case it may be as wide as [i64].
 		 * @param ifCannotSucceed
 		 *   What to execute if the unboxing will always fail.  This is
 		 *   evaluated without having affected the initial current block.
@@ -1010,25 +1015,27 @@ interface L2GeneratorInterface : L2Visualizable
 		inline fun L2GeneratorInterface.readInt(
 			semanticValue: L2SemanticValue,
 			onFailure: L2BasicBlock,
+			range: A_Type = i32,
 			ifCannotSucceed: ()->Nothing
 		): L2ReadIntOperand
 		{
 			if (!currentlyReachable()) ifCannotSucceed()
 			val restriction = currentManifest.restrictionFor(semanticValue)
-			if (!restriction.intersectsType(i32))
+			if (!restriction.intersectsType(range))
 			{
 				ifCannotSucceed()
 			}
-			if (!restriction.containedByType(i32))
+			if (!restriction.containedByType(range))
 			{
-				// It interects i32, but isn't a subtype.  Use a dynamic test.
-				val isI32 = createBasicBlock("Is i32")
+				// It interects the range, but isn't a subtype.  Use a dynamic
+				// test.
+				val inRange = createBasicBlock("Is in $range")
 				+L2_JUMP_IF_KIND_OF_OBJECT(
 					readBoxed(semanticValue),
-					boxedConstant(i32),
-					ifKind = edgeTo(isI32),
+					boxedConstant(range),
+					ifKind = edgeTo(inRange),
 					ifNotKind = edgeTo(onFailure))
-				startBlock(isI32)
+				startBlock(inRange)
 			}
 			return readIntInternal(semanticValue).cast()
 		}
@@ -1046,9 +1053,12 @@ interface L2GeneratorInterface : L2Visualizable
 		 * @param semanticValue2
 		 *   The second [L2SemanticValue] to read as an unboxed int.
 		 * @param onFailure
-		 *   Where to jump in the event that a dynamic type test against [i32]
-		 *   fails. The manifest at this location will not contain bindings for
-		 *   the unboxed `int` (since unboxing was not possible).
+		 *   Where to jump in the event that a dynamic type test against the
+		 *   [range] fails. The manifest at this location will not contain
+		 *   bindings for the unboxed `int` (since unboxing was not possible).
+		 * @param range
+		 *   The integer range that each unboxed value must lie within, at most
+		 *   [i64].  See [readInt].
 		 * @return
 		 *   If the two unboxings are both possible, the [Pair] of unboxed
 		 *   [L2ReadIntOperand]s, with this generator set to the success path,
@@ -1057,18 +1067,19 @@ interface L2GeneratorInterface : L2Visualizable
 		fun L2GeneratorInterface.readTwoInts(
 			semanticValue1: L2SemanticValue,
 			semanticValue2: L2SemanticValue,
-			onFailure: L2BasicBlock
+			onFailure: L2BasicBlock,
+			range: A_Type = i32
 		): Pair<L2ReadIntOperand, L2ReadIntOperand>?
 		{
-			if (!currentManifest.canUnboxInt(semanticValue1)
-				|| !currentManifest.canUnboxInt(semanticValue2))
+			if (!currentManifest.canUnboxInt(semanticValue1, range)
+				|| !currentManifest.canUnboxInt(semanticValue2, range))
 			{
 				return null
 			}
-			val firstInt = readInt(semanticValue1, onFailure) {
+			val firstInt = readInt(semanticValue1, onFailure, range) {
 				error("First unboxing should have been possible")
 			}
-			val secondInt = readInt(semanticValue2, onFailure) {
+			val secondInt = readInt(semanticValue2, onFailure, range) {
 				error("Second unboxing should have been possible")
 			}
 			return Pair(firstInt, secondInt)
@@ -1077,23 +1088,28 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * Using the manifest in the implied receiver, answer whether it's possible
-	 * to extract a 32-bit integer from the given unboxed semantic value.
+	 * to extract an integer in the given [range] from the given semantic
+	 * value.
 	 *
 	 * @receiver
 	 *   The [L2ValueManifest] to use for checking unboxing possibility.
 	 * @param semanticValue
 	 *   The target [L2SemanticValue] to check for unboxability.
+	 * @param range
+	 *   The integer range to unbox into, at most [i64].  See
+	 *   [Companion.readInt].
 	 * @return
 	 *   Whether unboxing the given semantic value is possible.
 	 */
 	fun L2ValueManifest.canUnboxInt(
-		semanticValue: L2SemanticValue
+		semanticValue: L2SemanticValue,
+		range: A_Type = i32
 	): Boolean
 	{
 		if (hasSemanticValue(semanticValue))
-			return restrictionFor(semanticValue).intersectsType(i32)
+			return restrictionFor(semanticValue).intersectsType(range)
 		equivalentSemanticValue(semanticValue)?.let {
-			return restrictionFor(it).intersectsType(i32)
+			return restrictionFor(it).intersectsType(range)
 		}
 		return false
 	}

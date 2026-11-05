@@ -66,9 +66,22 @@ ints.  `JVMTranslator` offers two views: `load`/`store` (the int view, with
 ### Long view (done)
 
 Unbox, box, int and constant moves, add, subtract, multiply, divide,
-compare, bit logic, chunk entry, the register dump, and the L2 trace.  The
-bit-logic operations still reproduce 32-bit results (`wrapsTo32Bits`, 5-bit
-shift counts, `ushr32`), as do their folders.
+compare, bit logic, chunk entry, the register dump, and the L2 trace.
+
+Add, subtract and multiply are 64-bit (done): `_+_`, `_-_` and `_×_` unbox
+operands in `i64`.  The checked operations test for `long` overflow, and are
+only emitted when that overflow is possible; otherwise the exact bit-logic
+`Add`, `Sub` and `Mul` are used.  The other bit-logic operations still
+reproduce 32-bit results (5-bit shift counts, `ushr32`), as do their folders,
+and rules that produce `Shl` require the result to fit an `Int`.
+
+`readInt`, `readTwoInts`, `canUnboxInt`, `readAsTwoInts` and
+`attemptToGenerateTwoIntToIntPrimitive` take a `range` that defaults to
+`i32`; only the callers that read int registers as longs pass `i64`.
+
+The split conditions (`L2SplitCondition.unboxedIntConditions` and
+`constantConditions`) still seed int registers with `i32Restriction`.  That's
+a splitting heuristic, not a claim about the value, so it's left for now.
 
 ### Int view, permanently 32-bit
 
@@ -94,10 +107,7 @@ above calls `L2ReadIntOperand.assertInt32` when it is added, and
 
 ### Remaining steps
 
-1. Add, subtract, multiply: check 64-bit overflow instead of `i32` range;
-   widen `L2_UNBOX_INT`'s assertion, `canUnboxInt` and `readAsTwoInts` to
-   `i64`.
-2. Bit logic: widen `generateBinaryIntOperation`; drop `wrapsTo32Bits`,
-   `ushr32` and the 5-bit shift masks; shifts become 0..63; bounds use
-   `extractLong`; rule shift limits become 0..63.
-3. Primitive fast paths still restricted to `i32`, by primitive family.
+1. Bit logic: widen `generateBinaryIntOperation` (and, or, xor, max, min);
+   division and modulus; shifts (drop `ushr32` and the 5-bit masks, counts
+   become 0..63, rule shift limits become 0..63); bounds use `extractLong`.
+2. Primitive fast paths still restricted to `i32`, by primitive family.

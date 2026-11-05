@@ -112,6 +112,7 @@ import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
@@ -587,12 +588,13 @@ constructor(
 	{
 		assert(currentlyReachable())
 		val restriction = currentManifest.restrictionFor(semanticValue)
-		// The current design (2026.09) is supposed to ensure this value
-		// definitely fits in an i32, performing explicit tests if necessary.
-		assert(restriction.containedByType(i32)) {
-			"Value should have been constrained to an i32"
+		// The caller ensures this value fits in the range it requested, at
+		// most an i64, performing explicit tests if necessary.  Don't narrow
+		// the value any further here.
+		assert(restriction.containedByType(i64)) {
+			"Value should have been constrained to an i64"
 		}
-		return currentManifest.readInt(semanticValue)
+		return currentManifest.readInt(semanticValue, i64Restriction)
 	}
 
 	/**

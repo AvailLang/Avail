@@ -46,6 +46,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
+import avail.descriptor.representation.A_Number.Companion.asBigInteger
 import avail.descriptor.representation.A_Number.Companion.bitShift
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
@@ -53,6 +54,7 @@ import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -133,9 +135,14 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
@@ -212,6 +219,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertNotNull
+import java.math.BigInteger
 
 class SimpleOptimizerTest
 {
@@ -600,6 +608,102 @@ class SimpleOptimizerTest
 
 		val result2 = helper.executeRawFunction(rawFunction)
 		assertEquals(seven, result2)
+	}
+
+	/**
+	 * Check that optimized addition, subtraction, and multiplication give exact
+	 * results for operands beyond 32 bits.  The wide operand ranges force the
+	 * checked operations, which fall back to boxed arithmetic when the result
+	 * overflows a long.  The narrower ranges let the unchecked operations be
+	 * used, since the result always fits in a long.
+	 */
+	@Test
+	fun testLongArithmeticBeyondInt()
+	{
+		val wide = inclusive(Long.MIN_VALUE, Long.MAX_VALUE)
+		val wideSamples = listOf(
+			Long.MIN_VALUE, Long.MIN_VALUE + 1, -(1L shl 40) - 7, -1L, 0L, 1L,
+			1L shl 31, 1L shl 32, (1L shl 41) + 3, Long.MAX_VALUE - 1,
+			Long.MAX_VALUE)
+		val narrow = inclusive(-(1L shl 40), 1L shl 40)
+		val narrowSamples = listOf(
+			-(1L shl 40), -(1L shl 33) + 5, -1L, 0L, 7L, 1L shl 32, 1L shl 40)
+		val forProduct = inclusive(-(1L shl 30), 1L shl 30)
+		val productSamples =
+			listOf(-(1L shl 30), -12345L, 0L, 99999L, 1L shl 30)
+
+		fun check(
+			name: String,
+			range: A_Type,
+			samples: List<Long>,
+			expectedInstruction: (L2Instruction) -> Boolean,
+			expected: (BigInteger, BigInteger) -> BigInteger)
+		{
+			val rawFunction = helper.rawFunction(integers) {
+				argumentTypes(range, range)
+				val a = declareName("a")
+				val b = declareName("b")
+				L1_doPushLastLocal(a)
+				L1_doPushLastLocal(b)
+				call(name, integers)
+			}
+			helper.testOptimize(rawFunction)
+			// Make sure the arithmetic happens in int registers.
+			assertTrue(
+				rawFunction.startingChunk.instructions.any {
+					it is L2Instruction && expectedInstruction(it)
+				},
+				"Expected unboxed arithmetic for $name on $range")
+			for (x in samples)
+			{
+				for (y in samples)
+				{
+					val result = helper.executeRawFunction(
+						rawFunction, listOf(fromLong(x), fromLong(y)))
+					assertEquals(
+						expected(BigInteger.valueOf(x), BigInteger.valueOf(y)),
+						result.asBigInteger(),
+						"$x $name $y")
+				}
+			}
+		}
+
+		check(
+			"_+_",
+			wide,
+			wideSamples,
+			{ it is L2_ADD_INT_TO_INT },
+			BigInteger::add)
+		check(
+			"_-_",
+			wide,
+			wideSamples,
+			{ it is L2_SUBTRACT_INT_MINUS_INT },
+			BigInteger::subtract)
+		check(
+			"_×_",
+			wide,
+			wideSamples,
+			{ it is L2_MULTIPLY_INT_BY_INT },
+			BigInteger::multiply)
+		check(
+			"_+_",
+			narrow,
+			narrowSamples,
+			{ it.isBitLogicOperation(Add) },
+			BigInteger::add)
+		check(
+			"_-_",
+			narrow,
+			narrowSamples,
+			{ it.isBitLogicOperation(Sub) },
+			BigInteger::subtract)
+		check(
+			"_×_",
+			forProduct,
+			productSamples,
+			{ it.isBitLogicOperation(Mul) },
+			BigInteger::multiply)
 	}
 
 	/**

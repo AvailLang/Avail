@@ -161,9 +161,12 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 	override fun L2GeneratorInterface.readAsTwoInts(
 		semanticValue1: L2SemanticValue,
 		semanticValue2: L2SemanticValue,
-		onFailure: L2BasicBlock
+		onFailure: L2BasicBlock,
+		range: A_Type
 	): Pair<L2ReadIntOperand, L2ReadIntOperand>?
 	{
+		// Bitwise and is still a 32-bit operation.
+		assert(range.equals(i32))
 		readTwoInts(semanticValue1, semanticValue2, onFailure)
 			?.let { return it }
 		val type1 = restrictionFor(semanticValue1).type

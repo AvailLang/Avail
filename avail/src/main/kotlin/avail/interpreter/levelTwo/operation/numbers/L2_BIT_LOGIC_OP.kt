@@ -233,6 +233,20 @@ constructor(
 		val L2ReadIntOperand.type: A_Type get() = typesMap[this]!!
 		val L2ReadIntOperand.low: Long get() = type.lowerBound.extractLong
 		val L2ReadIntOperand.high: Long get() = type.upperBound.extractLong
+
+		/**
+		 * Whether shifting every possible value of this read left by [shift]
+		 * stays within an [Int], as the 32-bit [BitOperation.Shl] requires.
+		 *
+		 * @param shift
+		 *   The number of bit positions to shift left.
+		 * @return
+		 *   Whether the shift is in 0..31 and can't overflow an [Int].
+		 */
+		fun L2ReadIntOperand.shlFitsInt(shift: Int): Boolean =
+			shift in 0..31
+				&& low >= Int.MIN_VALUE.toLong() shr shift
+				&& high <= Int.MAX_VALUE.toLong() shr shift
 	}
 
 	/**
@@ -243,10 +257,12 @@ constructor(
 	 *   Create a new [BitOperation] enumeration value.
 	 * @property jvmGenerator
 	 *   A function that emits JVM code to process the two `long` values that
-	 *   have already been pushed.  Each holds a sign-extended int.  It should
-	 *   have the effect of removing them from the JVM operand stack and
-	 *   leaving a single `long` as the result, holding the sign-extended int
-	 *   that the 32-bit version of the operation would produce.
+	 *   have already been pushed.  It should have the effect of removing them
+	 *   from the JVM operand stack and leaving a single `long` as the result.
+	 *   [Add], [Sub], and [Mul] produce the exact result, which must be known
+	 *   to fit in a `long`.  The remaining operations still have 32-bit
+	 *   semantics, so their inputs are sign-extended ints, and their result is
+	 *   the sign-extended int that the 32-bit operation would produce.
 	 * @property folder
 	 *   A function that folds this operation on two constants, each a
 	 *   sign-extended int.  It must produce the same value as the code that
@@ -309,8 +325,8 @@ constructor(
 		}),
 
 		/**
-		 * Compute the bit-wise sum of two [Int]s, wrapping around with 2's
-		 * complement semantics as needed.
+		 * Compute the sum of two integers.  This must only be used where the
+		 * sum is known to fit in a [Long].
 		 */
 		Add(Opcodes.LADD, Long::plus, P_Addition::binaryBound, {
 			rule(C(0), X) { X }
@@ -323,7 +339,8 @@ constructor(
 			rule(Add(X, K1), K2, {!addOrSubtractOverflows(k1, k2)}) {
 				Add(X, C(k1 + k2))
 			}
-			rule(X, X) { Shl(X, C(1)) }
+			// Shl is still a 32-bit operation.
+			rule(X, X, {x.shlFitsInt(1)}) { Shl(X, C(1)) }
 			rule(X, Mul(X, K1), {!addOrSubtractOverflows(k1, 1)}) {
 				Mul(X, C(k1 + 1))
 			}
@@ -333,11 +350,12 @@ constructor(
 			rule(Mul(X, K1), Mul(X, K2), {!addOrSubtractOverflows(k1, k2)}) {
 				Mul(X, C(k1 + k2))
 			}
-		}, wrapsTo32Bits = true),
+		}),
 
 		/**
-		 * Compute the difference of two [Int]s (the first minus the second),
-		 * wrapping around with 2's complement semantics as needed.
+		 * Compute the difference of two integers (the first minus the second).
+		 * This must only be used where the difference is known to fit in a
+		 * [Long].
 		 */
 		Sub(Opcodes.LSUB, Long::minus, P_Subtraction::binaryBound, {
 			rule(X, C(0)) { X }
@@ -379,11 +397,11 @@ constructor(
 			// x - (y * (x / y))  --> x mod y
 			rule(X, Mul(Y, Div(X, Y))) { Mod(X, Y) }
 			rule(X, Mul(Div(X, Y), Y)) { Mod(X, Y) }
-		}, wrapsTo32Bits = true),
+		}),
 
 		/**
-		 * Compute the product of two [Int]s, wrapping around with 2's
-		 * complement semantics as needed.
+		 * Compute the product of two integers.  This must only be used where
+		 * the product is known to fit in a [Long].
 		 */
 		Mul(Opcodes.LMUL, Long::times, P_Multiplication::binaryBound, {
 			rule(X, C(-1)) { Sub(C(0), X) }
@@ -394,13 +412,28 @@ constructor(
 			rule(C(1), X) { X }
 			// Only positive powers of two.  Zero has no set bit to count, and
 			// the most negative value is only a power of two by wrapping.
-			rule(K1, X, {k1 > 0 && k1.takeLowestOneBit() == k1}) {
+			// Shl is still a 32-bit operation, so the result must fit.
+			rule(
+				K1,
+				X,
+				{
+					k1 > 0 && k1.takeLowestOneBit() == k1
+						&& x.shlFitsInt(k1.countTrailingZeroBits())
+				}
+			) {
 				Shl(X, C(k1.countTrailingZeroBits().toLong()))
 			}
-			rule(X, K1, {k1 > 0 && k1.takeLowestOneBit() == k1}) {
+			rule(
+				X,
+				K1,
+				{
+					k1 > 0 && k1.takeLowestOneBit() == k1
+						&& x.shlFitsInt(k1.countTrailingZeroBits())
+				}
+			) {
 				Shl(X, C(k1.countTrailingZeroBits().toLong()))
 			}
-		}, wrapsTo32Bits = true),
+		}),
 
 		/**
 		 * Compute the ratio of two [Int]s (i.e., intA / intB), wrapping around
@@ -594,27 +627,15 @@ constructor(
 		 *   A lambda that is able to produce rules, via [RulesSyntax], once all
 		 *   the enum values have been created, since rules for an operation
 		 *   refer to other operations, sometimes cyclically.
-		 * @param wrapsTo32Bits
-		 *   Whether the 32-bit version of the operation can wrap, so that the
-		 *   `long` result, whether generated or folded, must be reduced to its
-		 *   sign-extended low 32 bits.
 		 */
 		private constructor(
 			jvmOpcode: Int,
 			folder: (Long, Long)->Long,
 			bounder: (A_Type, A_Type)->A_Type,
-			ruleCreator: RulesSyntax.()->Unit,
-			wrapsTo32Bits: Boolean = false
+			ruleCreator: RulesSyntax.()->Unit
 		) : this(
-			{
-				method.visitInsn(jvmOpcode)
-				if (wrapsTo32Bits) wrapTo32Bits()
-			},
-			when
-			{
-				wrapsTo32Bits -> { a, b -> folder(a, b).toInt().toLong() }
-				else -> folder
-			},
+			{ method.visitInsn(jvmOpcode) },
+			folder,
 			bounder,
 			ruleCreator)
 

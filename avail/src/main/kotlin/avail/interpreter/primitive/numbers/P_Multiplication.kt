@@ -58,6 +58,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
@@ -310,7 +311,8 @@ object P_Multiplication : Primitive2(CanFold, CanInline)
 				product = intWrite,
 				inRange = edgeTo(intSuccess),
 				outOfRange = edgeTo(intFailure))
-		})
+		},
+		range = i64)
 
 	override fun propagateManifestRestrictions(
 		arguments: List<L2SemanticValue>,

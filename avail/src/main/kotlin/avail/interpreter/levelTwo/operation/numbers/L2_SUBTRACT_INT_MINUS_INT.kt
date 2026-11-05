@@ -32,9 +32,12 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -43,7 +46,7 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.primitive.numbers.P_Subtraction
@@ -56,7 +59,7 @@ import org.objectweb.asm.Type
 
 /**
  * Subtract the subtrahend from the minuend, jumping to the specified target if
- * the result does not fit in an int.
+ * the result does not fit in a long.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -69,7 +72,7 @@ class L2_SUBTRACT_INT_MINUS_INT(
 	@On(SUCCESS) var inRange: L2PcOperand
 ): L2ControlFlowInstruction()
 {
-	// It jumps if the result doesn't fit in an int.
+	// It jumps if the result doesn't fit in a long.
 	override val hasSideEffect: Boolean get() = true
 
 	override fun StringBuilder.appendToWithWarnings(
@@ -91,18 +94,18 @@ class L2_SUBTRACT_INT_MINUS_INT(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest
 	): Unit = manifest.run {
-		difference.restrict { restrictionForType(i32) }
+		difference.restrict { i64Restriction }
 		super.instructionWasAdded(manifest)
 		minuend.constantOrNull?.let { minuendValue ->
 			// By virtue of the overflow and the fact that the minuend is
 			// constant, we can compute a tighter constraint on the subtrahend.
 			outOfRange.manifest().updateRestriction(subtrahend.semanticValue()) {
-				// m-s is not in i32, and m is constant, so s-m is not in -i32,
-				// so s is not in m-i32
+				// m-s is not in i64, and m is constant, so s-m is not in -i64,
+				// so s is not in m-i64
 				minusType(
 					inclusive(
-						minuendValue.extractLong - Int.MAX_VALUE.toLong(),
-						minuendValue.extractLong - Int.MIN_VALUE.toLong()))
+						minuendValue.minusCanDestroy(i64.upperBound, false),
+						minuendValue.minusCanDestroy(i64.lowerBound, false)))
 			}
 		}
 		subtrahend.constantOrNull?.let { subtrahendValue ->
@@ -110,11 +113,11 @@ class L2_SUBTRACT_INT_MINUS_INT(
 			// subtrahend is constant, we can compute a tighter constraint on
 			// the minuend.
 			outOfRange.manifest().updateRestriction(minuend.semanticValue()) {
-				// m-s is not in i32, and s is constant, so m is not in i32+s.
+				// m-s is not in i64, and s is constant, so m is not in i64+s.
 				minusType(
 					inclusive(
-						Int.MIN_VALUE.toLong() + subtrahendValue.extractLong,
-						Int.MAX_VALUE.toLong() + subtrahendValue.extractLong))
+						i64.lowerBound.plusCanDestroy(subtrahendValue, false),
+						i64.upperBound.plusCanDestroy(subtrahendValue, false)))
 			}
 		}
 	}
@@ -123,8 +126,9 @@ class L2_SUBTRACT_INT_MINUS_INT(
 	{
 		val outputRange = P_Subtraction.returnTypeGuaranteedByVM(
 			null, listOf(minuend.type, subtrahend.type))
-		if (outputRange.isSubtypeOf(i32))
+		if (outputRange.isSubtypeOf(i64))
 		{
+			// It can't overflow, so use the unchecked subtraction.
 			+L2_BIT_LOGIC_OP(Sub, minuend, subtrahend, difference)
 			jumpTo(inRange.targetBlock())
 			return
@@ -134,7 +138,7 @@ class L2_SUBTRACT_INT_MINUS_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: longDifference = (long) minuend - (long) subtrahend;
+		// :: longDifference = minuend - subtrahend;
 		loadLong(minuend)
 		loadLong(subtrahend)
 		method.visitInsn(Opcodes.LSUB)
@@ -150,15 +154,22 @@ class L2_SUBTRACT_INT_MINUS_INT(
 			longDifferenceLocal)
 		method.visitVarInsn(Opcodes.LSTORE, longDifferenceLocal)
 		method.visitLabel(longDifferenceStart)
-		// :: if (longDifference != intDifference) goto outOfRange;
+		// The difference overflowed exactly when the operands have different
+		// signs and the difference's sign differs from the minuend's.
+		// :: if (((minuend ^ subtrahend) & (minuend ^ longDifference)) < 0)
+		// ::    goto outOfRange;
+		loadLong(minuend)
+		loadLong(subtrahend)
+		method.visitInsn(Opcodes.LXOR)
+		loadLong(minuend)
 		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.I2L)
-		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
+		method.visitInsn(Opcodes.LXOR)
+		method.visitInsn(Opcodes.LAND)
+		method.visitInsn(Opcodes.LCONST_0)
 		method.visitInsn(Opcodes.LCMP)
-		jumpIf(Opcodes.IFNE, outOfRange)
+		jumpIf(Opcodes.IFLT, outOfRange)
 		// :: else {
-		// ::    sum = (int)longDifference;
+		// ::    difference = longDifference;
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
