@@ -109,6 +109,7 @@ constructor(
 
 		// Note: Instructions that add multi-way jumps always set up the
 		// manifests in the edges.
+		value.assertInt32(manifest)
 		value.instructionWasAdded(manifest)
 		branchEdges.edges.forEach { edge ->
 			// Feed each edge the base manifest, but allow the splitter to fix

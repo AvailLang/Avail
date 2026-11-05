@@ -52,6 +52,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -132,6 +133,12 @@ constructor (
 			::slotValues,
 			::levelOneStackp,
 			::caller)
+	}
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		labelAddress.assertInt32(manifest)
+		super.instructionWasAdded(manifest)
 	}
 
 	override fun JVMTranslator.translateToJVM()

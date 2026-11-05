@@ -1988,16 +1988,25 @@ class JVMTranslator constructor(
 		val transferPairs = (inputs zip outputs)
 			.filter { (read, write) -> read.finalIndex != write.finalIndex }
 		// It's possible that the read registers and write registers overlap
-		// with each other, so use the JVM operand stack as temp storage.
+		// with each other, so use the JVM operand stack as temp storage.  Int
+		// registers move as whole longs, never through the int view.
 		if (transferPairs.isNotEmpty())
 		{
 			// First push each (non-elided) read.
 			transferPairs.forEach { (read, _) ->
-				loadRegister(read)
+				when (read.kind)
+				{
+					INTEGER_KIND -> loadLongRegister(read)
+					else -> loadRegister(read)
+				}
 			}
 			// Now pop into each corresponding write register in reverse order.
 			transferPairs.reversed().forEach { (_,  write) ->
-				store(write)
+				when (write.kind)
+				{
+					INTEGER_KIND -> storeLong(write)
+					else -> store(write)
+				}
 			}
 		}
 

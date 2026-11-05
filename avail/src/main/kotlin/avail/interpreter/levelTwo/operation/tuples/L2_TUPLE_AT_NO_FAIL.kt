@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Extract an element at a subscript from a [tuple][TupleDescriptor] that
@@ -102,6 +103,12 @@ class L2_TUPLE_AT_NO_FAIL(
 			// already immutable.
 			return
 		}
+	}
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		subscript.assertInt32(manifest)
+		super.instructionWasAdded(manifest)
 	}
 
 	override fun JVMTranslator.translateToJVM()

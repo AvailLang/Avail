@@ -86,6 +86,7 @@ class L2_CODEPOINT_TO_CHARACTER(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest
 	) = manifest.run {
+		source.assertInt32(manifest)
 		destination.restrict { characterRestriction }
 		val codepointRestriction = source.restriction
 		val codepoints = codepointRestriction.type

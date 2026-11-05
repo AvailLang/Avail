@@ -88,9 +88,9 @@ or 32-bit identities.
 
 Today every int register holds an int, so an int-view read never truncates.
 Once arithmetic results may exceed 32 bits, an int-view read is only safe on a
-register whose restriction lies within `i32`.  Before widening, confirm that
-each int-view consumer above only receives `i32`-restricted registers, and
-assert it where the operation is added.
+register whose restriction lies within `i32`.  Done: each int-view reader
+above calls `L2ReadIntOperand.assertInt32` when it is added, and
+`JVMTranslator.transferPairwise` moves int registers as whole longs.
 
 ### Remaining steps
 

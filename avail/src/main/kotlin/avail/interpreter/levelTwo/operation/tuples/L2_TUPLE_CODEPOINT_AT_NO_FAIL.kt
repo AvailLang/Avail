@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Extract an [i32] representing the codepoint of the character at a subscript,
@@ -71,6 +72,12 @@ class L2_TUPLE_CODEPOINT_AT_NO_FAIL(
 
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
 		get() = emptyList()
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		subscript.assertInt32(manifest)
+		super.instructionWasAdded(manifest)
+	}
 
 	override fun JVMTranslator.translateToJVM()
 	{

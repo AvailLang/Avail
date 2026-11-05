@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Extract an [i32] at a subscript from a [tuple][TupleDescriptor] that is known
@@ -70,6 +71,12 @@ class L2_TUPLE_INT_AT_NO_FAIL(
 
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
 		get() = emptyList()
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		subscript.assertInt32(manifest)
+		super.instructionWasAdded(manifest)
+	}
 
 	override fun JVMTranslator.translateToJVM()
 	{
