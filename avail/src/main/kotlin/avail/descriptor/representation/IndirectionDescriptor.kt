@@ -312,10 +312,6 @@ import avail.descriptor.representation.A_Number.Companion.numericCompareToDouble
 import avail.descriptor.representation.A_Number.Companion.numericCompareToInfinity
 import avail.descriptor.representation.A_Number.Companion.numericCompareToInteger
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAtPut
-import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAt
-import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAtPut
 import avail.descriptor.representation.A_Number.Companion.subtractFromDoubleCanDestroy
 import avail.descriptor.representation.A_Number.Companion.subtractFromFloatCanDestroy
 import avail.descriptor.representation.A_Number.Companion.subtractFromInfinityCanDestroy
@@ -1750,26 +1746,6 @@ class IndirectionDescriptor private constructor(
 		index: Int
 	): Short = self { rawByteForCharacterAt(index) }
 
-	override fun o_RawSignedIntegerAt(self: AvailObject, index: Int): Int =
-		self { rawSignedIntegerAt(index) }
-
-	override fun o_RawSignedIntegerAtPut(
-		self: AvailObject,
-		index: Int,
-		value: Int
-	) = self { rawSignedIntegerAtPut(index, value) }
-
-	override fun o_RawUnsignedIntegerAt(
-		self: AvailObject,
-		index: Int
-	): Long = self { rawUnsignedIntegerAt(index) }
-
-	override fun o_RawUnsignedIntegerAtPut(
-		self: AvailObject,
-		index: Int,
-		value: Int
-	) = self { rawUnsignedIntegerAtPut(index, value) }
-
 	override fun o_RemoveDependentChunk(
 		self: AvailObject,
 		chunk: L2Chunk
@@ -3067,12 +3043,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_BitTest(
 		self: AvailObject,
-		bitPosition: Int
+		bitPosition: Long
 	): Boolean = self { bitTest(bitPosition) }
 
 	override fun o_BitSet(
 		self: AvailObject,
-		bitPosition: Int,
+		bitPosition: Long,
 		value: Boolean,
 		canDestroy: Boolean
 	) : A_Number = self { bitSet(bitPosition, value, canDestroy) }

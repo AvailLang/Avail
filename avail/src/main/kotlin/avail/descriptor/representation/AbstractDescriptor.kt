@@ -1780,20 +1780,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_RawByteForCharacterAt (self: AvailObject, index: Int): Short
 
-	abstract fun o_RawSignedIntegerAt (self: AvailObject, index: Int): Int
-
-	abstract fun o_RawSignedIntegerAtPut (
-		self: AvailObject,
-		index: Int,
-		value: Int)
-
-	abstract fun o_RawUnsignedIntegerAt (self: AvailObject, index: Int): Long
-
-	abstract fun o_RawUnsignedIntegerAtPut (
-		self: AvailObject,
-		index: Int,
-		value: Int)
-
 	abstract fun o_ReleaseFromDebugger(self: AvailObject)
 
 	abstract fun o_RemoveDependentChunk (self: AvailObject, chunk: L2Chunk)
@@ -3420,12 +3406,12 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_BitTest(
 		self: AvailObject,
-		bitPosition: Int
+		bitPosition: Long
 	): Boolean
 
 	abstract fun o_BitSet(
 		self: AvailObject,
-		bitPosition: Int,
+		bitPosition: Long,
 		value: Boolean,
 		canDestroy: Boolean
 	) : A_Number

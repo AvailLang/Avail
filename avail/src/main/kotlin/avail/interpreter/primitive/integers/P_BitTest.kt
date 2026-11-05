@@ -35,14 +35,14 @@ package avail.interpreter.primitive.integers
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
+import avail.descriptor.numbers.IntegerDescriptor.Companion.longCount
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.bitShift
 import avail.descriptor.representation.A_Number.Companion.bitTest
 import avail.descriptor.representation.A_Number.Companion.equalsInt
-import avail.descriptor.representation.A_Number.Companion.extractInt
-import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
@@ -98,12 +98,13 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 		a: AvailObject,
 		b: AvailObject
 	): A_BasicObject? = interpreter.run {
-		val bInt = when
+		// A position beyond the integer's storage reads the sign bit.
+		val bLong = when
 		{
-			b.isInt -> b.extractInt
-			else -> Integer.MAX_VALUE
+			b.isLong -> b.extractLong
+			else -> Long.MAX_VALUE
 		}
-		return objectFromBoolean(a.bitTest(bInt))
+		return objectFromBoolean(a.bitTest(bLong))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -137,13 +138,13 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 			{
 				// Check the other potential bits.  No need to check bits left
 				// of the shifted representation.
-				val limit = intCount(shiftedLow.traversed()) shl 5
+				val limit = longCount(shiftedLow.traversed()).toLong() shl 6
 				val maxShiftedBit =
 					bRange.upperBound.minusCanDestroy(bLowValue, false)
-				val maxShiftedBitInt =
-					if (maxShiftedBit.isInt) maxShiftedBit.extractInt
+				val maxShiftedBitLong =
+					if (maxShiftedBit.isLong) maxShiftedBit.extractLong
 					else limit
-				for (i in 1 .. min(maxShiftedBitInt, limit))
+				for (i in 1L .. min(maxShiftedBitLong, limit))
 				{
 					if (shiftedLow.bitTest(i) != firstBit) return booleanType
 				}

@@ -682,22 +682,6 @@ protected constructor (
 		self: AvailObject,
 		index: Int): Short = unsupported
 
-	override fun o_RawSignedIntegerAt (self: AvailObject, index: Int): Int =
-		unsupported
-
-	override fun o_RawSignedIntegerAtPut (
-		self: AvailObject,
-		index: Int,
-		value: Int): Unit = unsupported
-
-	override fun o_RawUnsignedIntegerAt (self: AvailObject, index: Int): Long =
-		unsupported
-
-	override fun o_RawUnsignedIntegerAtPut (
-		self: AvailObject,
-		index: Int,
-		value: Int): Unit = unsupported
-
 	override fun o_ReleaseFromDebugger(self: AvailObject): Unit = unsupported
 
 	override fun o_RemoveDependentChunk (
@@ -2007,12 +1991,12 @@ protected constructor (
 
 	override fun o_BitTest(
 		self: AvailObject,
-		bitPosition: Int
+		bitPosition: Long
 	): Boolean = unsupported
 
 	override fun o_BitSet(
 		self: AvailObject,
-		bitPosition: Int,
+		bitPosition: Long,
 		value: Boolean,
 		canDestroy: Boolean
 	) : A_Number = unsupported

@@ -38,10 +38,13 @@ import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.asBigInteger
 import avail.descriptor.representation.A_Number.Companion.bitShift
+import avail.descriptor.representation.A_Number.Companion.bitSet
+import avail.descriptor.representation.A_Number.Companion.bitTest
 import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
 import avail.descriptor.representation.A_Number.Companion.extractFloat
 import avail.descriptor.representation.A_Number.Companion.extractLong
@@ -53,6 +56,7 @@ import avail.descriptor.representation.A_Number.Companion.numericCompare
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.AvailObject
+import avail.exceptions.AvailSystemLimitException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
@@ -112,6 +116,38 @@ class ArithmeticTest
 				assert(lower.lessOrEqual(availInt)
 							&& availInt.lessOrEqual(upper))
 			}
+		}
+	}
+
+	/**
+	 * Check that an integer one word beyond [IntegerDescriptor.MAX_LONG_COUNT]
+	 * is refused before any storage is allocated, as a system-limit panic.
+	 */
+	@Test
+	fun testLongCountLimit()
+	{
+		Assertions.assertThrows(AvailSystemLimitException::class.java) {
+			IntegerDescriptor.createUninitializedLongInteger(
+				IntegerDescriptor.MAX_LONG_COUNT + 1)
+		}
+	}
+
+	/**
+	 * Check that bit positions beyond the `int` range are answered from the
+	 * integer's sign, and that a position too large to store is rejected.
+	 */
+	@Test
+	fun testBitPositionsBeyondIntRange()
+	{
+		val bigPositive = fromLong(1L shl 40)
+		val bigNegative = fromLong(-(1L shl 40))
+		Assertions.assertTrue(fromLong(-1L).bitTest(Long.MAX_VALUE))
+		Assertions.assertFalse(bigPositive.bitTest(Long.MAX_VALUE))
+		Assertions.assertTrue(bigNegative.bitTest(Long.MAX_VALUE))
+		Assertions.assertTrue(bigPositive.bitTest(40L))
+		Assertions.assertFalse(bigPositive.bitTest(41L))
+		Assertions.assertThrows(AvailSystemLimitException::class.java) {
+			fromInt(0).bitSet(1L shl 40, true, false)
 		}
 	}
 

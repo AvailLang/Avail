@@ -69,7 +69,6 @@ import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.numericCompareToInteger
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
 import avail.descriptor.representation.A_Number.Companion.subtractFromIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.A_Number.Companion.trimExcessInts
@@ -94,6 +93,7 @@ import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
+import avail.exceptions.AvailSystemLimitException
 import avail.exceptions.MarshalingException
 import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
@@ -222,15 +222,6 @@ class IntegerDescriptor private constructor(
 		self.isLong -> emptyArray()
 		else -> super.o_DescribeForDebugger(self)
 	}
-
-	override fun o_RawSignedIntegerAt(self: AvailObject, index: Int): Int =
-		self.intSlot(RAW_LONG_SLOTS_, index)
-
-	override fun o_RawSignedIntegerAtPut(
-		self: AvailObject,
-		index: Int,
-		value: Int
-	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		(another as A_Number).equalsInteger(self)
@@ -390,30 +381,6 @@ class IntegerDescriptor private constructor(
 
 	override fun o_ExtractDouble(self: AvailObject): Double =
 		extractDoubleScaled(self, 0)
-
-	/**
-	 * Manually constructed accessor method.  Access the quad-byte using the
-	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
-	 * least significant quad comes first).
-	 */
-	override fun o_RawUnsignedIntegerAt(
-		self: AvailObject,
-		index: Int
-	): Long {
-		val signedInt = self.intSlot(RAW_LONG_SLOTS_, index)
-		return (signedInt.toLong() and 0xFFFFFFFFL)
-	}
-
-	/**
-	 * Manually constructed accessor method.  Overwrite the quad-byte using the
-	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
-	 * least significant quad comes first).
-	 */
-	override fun o_RawUnsignedIntegerAtPut(
-		self: AvailObject,
-		index: Int,
-		value: Int
-	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
 
 	override fun o_TrimExcessInts(self: AvailObject) {
 		// Remove any redundant top longs.  A top long that is just the sign
@@ -582,6 +549,7 @@ class IntegerDescriptor private constructor(
 		{
 			// Grow by one word.  The copied top word is now unsigned, so the
 			// new top word is the extension itself.
+			checkLongCount(words + 1)
 			val grown = newLike(mutable, output, 0, 1)
 			grown.setLongSlot(RAW_LONG_SLOTS_, words + 1, extension)
 			grown.trimExcessInts()
@@ -1029,29 +997,38 @@ class IntegerDescriptor private constructor(
 
 	override fun o_BitTest(
 		self: AvailObject,
-		bitPosition: Int
+		bitPosition: Long
 	): Boolean
 	{
 		assert (bitPosition >= 0)
 		// Beyond the stored longs, the sign bit of the top long is the bit.
 		val boundedBitPosition =
-			min(bitPosition, (longCount(self) shl 6) - 1)
-		val longValue =
-			self.longSlot(RAW_LONG_SLOTS_, (boundedBitPosition ushr 6) + 1)
-		return (longValue and (1L shl (boundedBitPosition and 63))) != 0L
+			min(bitPosition, (longCount(self).toLong() shl 6) - 1)
+		val longValue = self.longSlot(
+			RAW_LONG_SLOTS_, (boundedBitPosition ushr 6).toInt() + 1)
+		val bit = (boundedBitPosition and 63L).toInt()
+		return (longValue and (1L shl bit)) != 0L
 	}
 
 	override fun o_BitSet(
 		self: AvailObject,
-		bitPosition: Int,
+		bitPosition: Long,
 		value: Boolean,
 		canDestroy: Boolean
 	) : A_Number
 	{
 		assert (bitPosition >= 0)
-		val longIndex = (bitPosition ushr 6) + 1
+		// Longs are addressed by an Int, so a bit beyond the largest integer
+		// can't be represented.
+		val longIndexLong = (bitPosition ushr 6) + 1
+		if (longIndexLong > MAX_LONG_COUNT)
+		{
+			throw AvailSystemLimitException(
+				"Bit position $bitPosition is beyond the largest integer")
+		}
+		val longIndex = longIndexLong.toInt()
 		val oldLongCount = longCount(self)
-		val mask = 1L shl (bitPosition and 63)
+		val mask = 1L shl (bitPosition and 63L).toInt()
 		val oldLong = when
 		{
 			longIndex <= oldLongCount -> self.longSlot(RAW_LONG_SLOTS_, longIndex)
@@ -1080,6 +1057,7 @@ class IntegerDescriptor private constructor(
 			return self
 		}
 		// It must be copied.
+		checkLongCount(newLongCount)
 		val result = newLike(mutable, self, 0, newLongCount - oldLongCount)
 		if (self.lessThan(zero))
 		{
@@ -1908,7 +1886,7 @@ class IntegerDescriptor private constructor(
 		 *   An uninitialized, mutable integer.
 		 */
 		fun createUninitializedInteger(size: Int): AvailObject =
-			mutable.create(size + 1 shr 1)
+			mutable.create(checkLongCount(size + 1 shr 1))
 
 		/**
 		 * Create a mutable Avail integer with the specified number of
@@ -1920,7 +1898,35 @@ class IntegerDescriptor private constructor(
 		 *   An uninitialized, mutable integer.
 		 */
 		fun createUninitializedLongInteger(longCount: Int): AvailObject =
-			mutable.create(longCount)
+			mutable.create(checkLongCount(longCount))
+
+		/**
+		 * The largest number of [Long] words that an integer may occupy.  It is
+		 * below the JVM's array length limit, and it keeps every bit position
+		 * within a [Long]: such an integer has fewer than 2^37 bits.
+		 */
+		const val MAX_LONG_COUNT = Int.MAX_VALUE - 8
+
+		/**
+		 * Check that an integer may occupy the given number of [Long] words.
+		 *
+		 * @param longCount
+		 *   The proposed number of [Long] words.
+		 * @return
+		 *   The same number, for convenience.
+		 * @throws AvailSystemLimitException
+		 *   If the number of words exceeds [MAX_LONG_COUNT].
+		 */
+		fun checkLongCount(longCount: Int): Int
+		{
+			if (longCount > MAX_LONG_COUNT)
+			{
+				throw AvailSystemLimitException(
+					"Integer would need $longCount longs, beyond the limit of " +
+						"$MAX_LONG_COUNT")
+			}
+			return longCount
+		}
 
 		/**
 		 * Create an integer object with the given number of [Long] slots,
@@ -1939,7 +1945,7 @@ class IntegerDescriptor private constructor(
 		fun generateIntegerFromLimbs(
 			longCount: Int,
 			generator: (Int) -> Long
-		): AvailObject = mutable.create(longCount) {
+		): AvailObject = mutable.create(checkLongCount(longCount)) {
 			for (i in 1..longCount)
 			{
 				setLongSlot(RAW_LONG_SLOTS_, i, generator(i))

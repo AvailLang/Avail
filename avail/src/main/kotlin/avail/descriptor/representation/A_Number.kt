@@ -209,62 +209,6 @@ interface A_Number : A_BasicObject
 		}
 
 		/**
-		 * Extract an unsigned base 2^32 digit from the integer.  The index must
-		 * be in range for the integer's representation.
-		 *
-		 * @param index
-		 *   The one-based, little-endian index of the digit to extract.  It
-		 *   must be between 1 and the number of digits present.
-		 * @return
-		 *   The unsigned base 2^32 digit as a signed [Long] to avoid
-		 *   misinterpreting the sign.
-		 */
-		fun A_Number.rawUnsignedIntegerAt(index: Int): Long =
-			dispatch { o_RawUnsignedIntegerAt(it, index) }
-
-		/**
-		 * Replace an unsigned base 2^32 digit of the integer.  The index must
-		 * be in range for the integer's representation, and the receiver must
-		 * be mutable.
-		 *
-		 * @param index
-		 *   The one-based, little-endian index of the digit to replace.  It
-		 *   must be between 1 and the number of digits present.
-		 * @param value
-		 *   The replacement base 2^32 digit as an [Int].  This does the same
-		 *   thing as [rawSignedIntegerAtPut].
-		 */
-		fun A_Number.rawUnsignedIntegerAtPut(index: Int, value: Int) =
-			dispatch { o_RawUnsignedIntegerAtPut(it, index, value) }
-
-		/**
-		 * Replace a (signed) base 2^32 digit of the integer.  The index must be
-		 * in range for the integer's representation, and the receiver must be
-		 * mutable.
-		 *
-		 * @param index
-		 *   The one-based, little-endian index of the digit to replace.  It
-		 *   must be between 1 and the number of digits present.
-		 * @param value
-		 *   The replacement base 2^32 digit as a signed [Int].
-		 */
-		fun A_Number.rawSignedIntegerAtPut(index: Int, value: Int) =
-			dispatch { o_RawSignedIntegerAtPut(it, index, value) }
-
-		/**
-		 * Extract a (signed) base 2^32 digit from the integer.  The index must
-		 * be in range for the integer's representation.
-		 *
-		 * @param index
-		 *   The one-based, little-endian index of the digit to extract.  It
-		 *   must be between 1 and the number of digits present.
-		 * @return
-		 *   The base 2^32 digit as a signed [Int].
-		 */
-		fun A_Number.rawSignedIntegerAt(index: Int): Int =
-			dispatch { o_RawSignedIntegerAt(it, index) }
-
-		/**
 		 * Add the receiver and the argument `aNumber` and answer the
 		 * [result][AvailObject].
 		 *
@@ -949,8 +893,20 @@ interface A_Number : A_BasicObject
 		 *   True if the indicated bit was set, otherwise false.
 		 */
 		fun A_Number.bitTest(
-			bitPosition: Int
+			bitPosition: Long
 		): Boolean = dispatch { o_BitTest(it, bitPosition) }
+
+		/**
+		 * Answer whether the bit at the given [Int] position is set.  See the
+		 * [Long] variant of this function.
+		 *
+		 * @param bitPosition
+		 *   The non-negative bit position to query.
+		 * @return
+		 *   True if the indicated bit was set, otherwise false.
+		 */
+		fun A_Number.bitTest(bitPosition: Int): Boolean =
+			bitTest(bitPosition.toLong())
 
 		/**
 		 * Produce an integer like the receiver, but with the bit corresponding
@@ -973,10 +929,31 @@ interface A_Number : A_BasicObject
 		 *   The resulting integer.
 		 */
 		fun A_Number.bitSet(
-			bitPosition: Int,
+			bitPosition: Long,
 			value: Boolean,
 			canDestroy: Boolean
 		): A_Number = dispatch { o_BitSet(it, bitPosition, value, canDestroy) }
+
+		/**
+		 * Produce an integer like the receiver, but with the bit at the given
+		 * [Int] position either set or cleared.  See the [Long] variant of this
+		 * function.
+		 *
+		 * @param bitPosition
+		 *   The non-negative bit position to update.
+		 * @param value
+		 *   If true, set the indicated bit in the result, otherwise clear it.
+		 * @param canDestroy
+		 *   If true, the receiver may be recycled or destroyed if it happens to
+		 *   be mutable.
+		 * @return
+		 *   The resulting integer.
+		 */
+		fun A_Number.bitSet(
+			bitPosition: Int,
+			value: Boolean,
+			canDestroy: Boolean
+		): A_Number = bitSet(bitPosition.toLong(), value, canDestroy)
 
 		/**
 		 * Shift the non-negative integer to the left by the specified number of

@@ -60,7 +60,6 @@ import avail.descriptor.representation.A_Number.Companion.multiplyByDoubleCanDes
 import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.numericCompare
 import avail.descriptor.representation.A_Number.Companion.numericCompareToDouble
-import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAtPut
 import avail.descriptor.representation.A_Number.Companion.subtractFromDoubleCanDestroy
 import avail.descriptor.representation.A_Number.Companion.trimExcessInts
 import avail.descriptor.representation.A_Type
