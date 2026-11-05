@@ -104,6 +104,7 @@ import avail.utility.carryOut
 import avail.utility.isInt
 import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
+import java.lang.Double.doubleToRawLongBits
 import java.lang.Double.isInfinite
 import java.lang.Math.getExponent
 import java.lang.Math.scalb
@@ -415,44 +416,23 @@ class IntegerDescriptor private constructor(
 	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
 
 	override fun o_TrimExcessInts(self: AvailObject) {
-		// Remove any redundant ints from my end.  Since I'm stored in Little
-		// Endian representation, I can simply be truncated with no need to
-		// shift data around.
+		// Remove any redundant top longs.  A top long that is just the sign
+		// word of the long below it adds nothing, so the storage can simply be
+		// truncated, with no need to shift data around.
 		assert(isMutable)
-		val originalSize = intCount(self)
-		var size = originalSize
-		if (size > 1)
+		val originalLongs = longCount(self)
+		var longs = originalLongs
+		while (longs > 1
+			&& self.longSlot(RAW_LONG_SLOTS_, longs)
+				== self.longSlot(RAW_LONG_SLOTS_, longs - 1) shr 63)
 		{
-			if (self.intSlot(RAW_LONG_SLOTS_, size) >= 0)
-			{
-				while (size > 1
-					&& self.intSlot(RAW_LONG_SLOTS_, size) == 0
-					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) >= 0)
-				{
-					size--
-				}
-			}
-			else
-			{
-				while (size > 1
-					&& self.intSlot(RAW_LONG_SLOTS_, size) == -1
-					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) < 0)
-				{
-					size--
-				}
-			}
-			if (size < originalSize)
-			{
-				if (size + 1 shr 1 != originalSize + 1 shr 1)
-				{
-					// Remove some longs.
-					self.truncateWithFillerForNewIntegerSlotsCount(
-						size + 1 shr 1)
-				}
-				self.descriptor = mutable
-			}
+			longs--
 		}
-		normalizeSpareInt(self, size)
+		if (longs < originalLongs)
+		{
+			self.truncateWithFillerForNewIntegerSlotsCount(longs)
+			self.descriptor = mutable
+		}
 	}
 
 	override fun o_AddToInfinityCanDestroy(
@@ -539,28 +519,6 @@ class IntegerDescriptor private constructor(
 		if (i <= words) integer.longSlot(RAW_LONG_SLOTS_, i)
 		else integer.longSlot(RAW_LONG_SLOTS_, words) shr 63
 
-	/**
-	 * Answer [a] + [b] when [subtract] is false, or [a] - [b] when it is true,
-	 * computed as a chain of unsigned 64-bit word additions.  A difference adds
-	 * the complement of each word of [b] with an initial carry of 1, which is
-	 * `a + ~b + 1`.
-	 *
-	 * The operands are sign-extended to the longer word count.  The result has
-	 * that many words, and it grows by one word only when the final carry
-	 * disagrees with the sign bits of the operands and result.  That rare
-	 * growth is fixed up by copying into an object with one more word, whose
-	 * new top word is the sign extension.
-	 *
-	 * @param a
-	 *   The minuend, or the first summand.
-	 * @param b
-	 *   The subtrahend, or the second summand.
-	 * @param complementMask
-	 *   0 to compute [a] + [b], or -1 to compute [a] - [b].  Each word of [b]
-	 *   is xored with this mask, and the initial carry is its low bit.
-	 * @return
-	 *   The sum or difference, in canonical form.
-	 */
 	/**
 	 * Answer an object to hold a result of [words] 64-bit words.  That's one of
 	 * the operands if [canDestroy] allows it, the operand is mutable, and it
@@ -1549,44 +1507,6 @@ class IntegerDescriptor private constructor(
 		fun longCount(self: AvailObject): Int = self.integerSlotsCount()
 
 		/**
-		 * If [count] is odd, make the receiver's unused upper int hold the sign
-		 * extension of its top int.  Equality compares the raw longs, so this
-		 * keeps equal values' storage identical.  The count must be given
-		 * explicitly, since [intCount] depends on this very invariant.
-		 *
-		 * @param self
-		 *   The mutable integer object to normalize.
-		 * @param count
-		 *   The number of ints that the receiver is about to hold.
-		 */
-		private fun normalizeSpareInt(self: AvailObject, count: Int)
-		{
-			if (count and 1 == 1)
-			{
-				self.setIntSlot(
-					RAW_LONG_SLOTS_,
-					count + 1,
-					self.rawSignedIntegerAt(count) shr 31)
-			}
-		}
-
-		/**
-		 * Normalize the receiver's spare half for a result of [count] ints, then
-		 * trim any redundant top ints.  Writers must call this, rather than
-		 * [trimExcessInts] alone, because trimming reads the count from content.
-		 *
-		 * @param self
-		 *   The mutable integer object to finish.
-		 * @param count
-		 *   The number of ints that the receiver holds before trimming.
-		 */
-		fun trimSized(self: A_Number, count: Int)
-		{
-			normalizeSpareInt(self as AvailObject, count)
-			self.trimExcessInts()
-		}
-
-		/**
 		 * A helper function for printing very large integers.
 		 *
 		 * @param magnitude
@@ -1730,7 +1650,6 @@ class IntegerDescriptor private constructor(
 		{
 			if (!canDestroy) return fromLong(aLong)
 			if (aLong in 0 until smallIntegerLimit) return fromLong(aLong)
-			val intCount = if (aLong.toInt().toLong() == aLong) 1 else 2
 			val output = when
 			{
 				(recyclable1.descriptor.isMutable
@@ -1778,9 +1697,17 @@ class IntegerDescriptor private constructor(
 				}
 				result.setLongSlot(RAW_LONG_SLOTS_, i, word)
 			}
-			trimSized(result, wordCount * 2)
+			result.trimExcessInts()
 			return result
 		}
+
+		/**
+		 * The exact `double` value 2^63, one more than [Long.MAX_VALUE].
+		 * [Long.MAX_VALUE] itself converts to this value, so a `double` that
+		 * fits in a `long` must be compared against this constant, not against
+		 * the converted [Long] bounds.
+		 */
+		const val TWO_TO_THE_63 = 9.223372036854775808E18
 
 		/**
 		 * Answer an Avail integer that holds the truncation of the `double`
@@ -1793,30 +1720,53 @@ class IntegerDescriptor private constructor(
 		 */
 		fun truncatedFromDouble(aDouble: Double): A_Number
 		{
-			// Extract the top three 32-bit sections.  That guarantees 65 bits
-			// of mantissa, which is more than a double actually captures.
-			var truncated = aDouble
-			if (truncated >= Long.MIN_VALUE && truncated <= Long.MAX_VALUE) {
+			if (aDouble >= -TWO_TO_THE_63 && aDouble < TWO_TO_THE_63)
+			{
 				// Common case -- it fits in a long.
-				return fromLong(truncated.toLong())
+				return fromLong(aDouble.toLong())
 			}
-			val neg = truncated < 0.0
-			truncated = abs(truncated)
-			val exponent = getExponent(truncated)
-			val slots = exponent + 31 shr 5 // probably needs work
-			val out = createUninitializedInteger(slots)
-			truncated = scalb(truncated, (1 - slots) shl 5)
-			for (i in slots downTo 1) {
-				val intSlice: Int = truncated.toInt()
-				out.setIntSlot(RAW_LONG_SLOTS_, i, intSlice)
-				truncated -= intSlice.toDouble()
-				truncated = scalb(truncated, 32)
-			}
-			trimSized(out, slots)
+			val magnitude = fromLargeDoubleMagnitude(abs(aDouble))
 			return when {
-				neg -> zero.noFailMinusCanDestroy(out, true)
-				else -> out
+				aDouble < 0.0 -> zero.noFailMinusCanDestroy(magnitude, true)
+				else -> magnitude
 			}
+		}
+
+		/**
+		 * Convert a finite, nonnegative `double` of at least 2^63 into an Avail
+		 * integer.  Such a `double` is exactly a 53-bit mantissa times a power
+		 * of two, so its 64-bit words are formed by shifting the mantissa into
+		 * place.  No rounding or 32-bit digits are involved.
+		 *
+		 * @param magnitude
+		 *   The finite, nonnegative `double`, at least 2^63.
+		 * @return
+		 *   An Avail integer equal to the `double`'s integral value.
+		 */
+		fun fromLargeDoubleMagnitude(magnitude: Double): A_Number
+		{
+			assert(magnitude.isFinite() && magnitude >= TWO_TO_THE_63)
+			val bits = doubleToRawLongBits(magnitude)
+			// Restore the implicit leading bit above the 52 stored fraction bits.
+			val mantissa = (bits and ((1L shl 52) - 1)) or (1L shl 52)
+			val exponent = getExponent(magnitude)
+			// The mantissa's lowest bit has weight 2^shift, and shift >= 11.
+			val shift = exponent - 52
+			// Room for the top bit and a sign bit, rounded up to whole words.
+			val wordCount = exponent + 65 shr 6
+			val out = createUninitializedLongInteger(wordCount)
+			for (i in 1..wordCount) {
+				out.setLongSlot(RAW_LONG_SLOTS_, i, 0L)
+			}
+			val low = shift ushr 6
+			val bitOffset = shift and 63
+			out.setLongSlot(RAW_LONG_SLOTS_, low + 1, mantissa shl bitOffset)
+			val high = if (bitOffset == 0) 0L else mantissa ushr (64 - bitOffset)
+			if (high != 0L) {
+				out.setLongSlot(RAW_LONG_SLOTS_, low + 2, high)
+			}
+			out.trimExcessInts()
+			return out
 		}
 
 		/** The [CheckedMethod] for [fromInt]. */
@@ -1977,7 +1927,7 @@ class IntegerDescriptor private constructor(
 		 * initialized in little-Endian order with values produced by the
 		 * [generator].
 		 *
-		 * @param size
+		 * @param longCount
 		 *   The number of [Long] slots to allocate in the boxed integer.
 		 * @param generator
 		 *   A generator to provide [Long]s to store, starting with the least

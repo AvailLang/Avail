@@ -64,6 +64,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.support.ParameterDeclarations
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -111,6 +112,35 @@ class ArithmeticTest
 				assert(lower.lessOrEqual(availInt)
 							&& availInt.lessOrEqual(upper))
 			}
+		}
+	}
+
+	/**
+	 * Check that doubles at and around the `long` boundaries truncate to the
+	 * exact integer value, computed independently via [BigDecimal].
+	 */
+	@Test
+	fun testDoubleTruncationAtLongBounds()
+	{
+		val two63 = 2.0.pow(63)
+		val samples = listOf(
+			two63,
+			-two63,
+			Math.nextDown(two63),
+			Math.nextUp(-two63),
+			two63 + 2048.0,
+			-two63 - 2048.0,
+			two63 * 2.0,
+			1.5e30,
+			-1.5e30,
+			-2.75 * two63)
+		for (d in samples)
+		{
+			val expected = BigDecimal(d).toBigInteger()
+			assertEquals(
+				expected,
+				doubleTruncatedToExtendedInteger(d).asBigInteger(),
+				"truncation of $d")
 		}
 	}
 

@@ -40,9 +40,9 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.DoubleDescriptor.IntegerSlots.LONG_BITS
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
-import avail.descriptor.numbers.IntegerDescriptor.Companion.trimSized
+import avail.descriptor.numbers.IntegerDescriptor.Companion.TWO_TO_THE_63
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLargeDoubleMagnitude
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.truncatedFromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -639,7 +639,8 @@ class DoubleDescriptor private constructor(
 		): A_Number
 		{
 			assert(!isNaN(inputD))
-			if (inputD >= Long.MIN_VALUE && inputD <= Long.MAX_VALUE) {
+			if (inputD >= -TWO_TO_THE_63 && inputD < TWO_TO_THE_63)
+			{
 				// Common case -- it fits in a long.
 				return fromLong(inputD.toLong())
 			}
@@ -648,25 +649,11 @@ class DoubleDescriptor private constructor(
 				// Return the corresponding integral infinity.
 				return if (neg) negativeInfinity else positiveInfinity
 			}
-			var d = abs(inputD)
-			val exponent = getExponent(d)
-			val slots = exponent + 33 shr 5 // probably needs work
-			var out: A_Number = createUninitializedInteger(slots)
-			d = scalb(d, 1 - slots shl 5)
-			// In theory we could extract just the top three 32-bit sections.
-			// That would guarantee 65 bits of mantissa, which is more than a
-			// double actually captures.
-			for (i in slots downTo 1) {
-				val unsignedIntSlice = d.toLong()
-				out.rawUnsignedIntegerAtPut(i, unsignedIntSlice.toInt())
-				d -= unsignedIntSlice.toDouble()
-				d = scalb(d, 32)
+			val magnitude = fromLargeDoubleMagnitude(abs(inputD))
+			return when {
+				neg -> zero.noFailMinusCanDestroy(magnitude, true)
+				else -> magnitude
 			}
-			trimSized(out, slots)
-			if (neg) {
-				out = zero.noFailMinusCanDestroy(out, true)
-			}
-			return out
 		}
 
 		/**
