@@ -416,9 +416,12 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	ordinal = 1,
 	kindName = "int",
 	prefix = "i",
-	jvmTypeString = Type.INT_TYPE.descriptor,
-	jvmLoadInstruction = Opcodes.ILOAD,
-	jvmStoreInstruction = Opcodes.ISTORE)
+	// Int registers are stored in 64-bit JVM locals.  Their values are always
+	// sign-extended ints, so consumers see an int after an L2I and producers
+	// widen with an I2L before storing.
+	jvmTypeString = Type.LONG_TYPE.descriptor,
+	jvmLoadInstruction = Opcodes.LLOAD,
+	jvmStoreInstruction = Opcodes.LSTORE)
 {
 	override fun readOperand(
 		semanticValue: L2SemanticValue,

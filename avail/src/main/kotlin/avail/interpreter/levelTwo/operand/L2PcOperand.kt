@@ -448,10 +448,10 @@ constructor (
 			{
 				method.visitInsn(Opcodes.DUP)
 				intConstant(i)
+				// Int registers already hold longs, sign-extended.
 				method.visitVarInsn(
 					INTEGER_KIND.jvmLoadInstruction,
 					localNumberFromRegister(intLocals[i]))
-				method.visitInsn(Opcodes.I2L)
 				method.visitInsn(Opcodes.LASTORE)
 				i++
 			}

@@ -1,6 +1,7 @@
 # Plan: system limits and panics
 
-Status: planned, not implemented. Written down for a later session.
+Status: the cap and panic type are implemented. The items below were reviewed
+and dropped for now; they are recorded so the reasoning isn't lost.
 
 ## Current state
 
@@ -30,39 +31,29 @@ Status: planned, not implemented. Written down for a later session.
   system-limit panic at all. The default answer should be no, because the
   limit is a property of the VM, not of the program.
 
-## Open items
+## Dropped for now
 
-1. **Verify the fiber-termination path end to end.** Build an integer one word
-   past the cap in a running fiber. Confirm that only that fiber terminates,
-   that its failure continuation receives the `AvailSystemLimitException`, and
-   that the runtime stays usable. Unit tests only cover the throw so far.
+- **Fiber-termination test at the cap.** Not planned. The unit tests cover the
+  throw.
+- **Compile-time folding of a panic.** Not planned. Both options, abandoning
+  the whole optimization or only the one fold, were considered.
+- **Parse workers and panics.** Not planned.
+- **Size policy at serialization.** Not planned. Serialization is transactional,
+  so anything that completed serialization already loaded, and fast-loading it
+  should work.
+- **Word-level bit-range check in `P_BitTest`.** Not planned. The bit-by-bit
+  loop costs at most about 64 times more than a word-level check, and the
+  pathological case is unlikely to matter.
+- **Double-based quotient estimate in division.** Dropped. The Java library's
+  division routine is faster, even for dozens of longs.
+- **Serialization version bump on format changes.** Not planned. The format
+  has changed many times since the last commercial release, so one more bump
+  adds nothing. Repository caches are cleared by hand when the format changes.
 
-2. **Compile-time folding.** `CanFold` primitives can run during compilation.
-   Decide what happens when a fold hits a panic. Two options:
-   - (a) The optimizer catches the panic, abandons the whole optimization of
-     that unit, and forces L1 or L2Simple execution for a while, possibly
-     indefinitely.
-   - (b) The folding code catches the panic and abandons only that fold. The
-     operation is then left to run at runtime, with its full consequences.
-   Option (b) is more local and probably the better default. Check how the
-   fold path currently handles `PrimitiveThrownException`, and what the
-   optimizer does with it.
+## Still open
 
-3. **Parse workers.** Compiler parse workers already use
-   `PrimitiveThrownException` to accept or reject a parse immediately. The
-   result goes through a hook function bootstrapped in `Exceptions.avail`.
-   Confirm that a system-limit panic inside a parse worker reaches the compiler
-   as a fiber termination, and that it is not mistaken for a rejected parse.
-
-4. **Size policy.** Confirm that `MAX_LONG_COUNT = Int.MAX_VALUE - 8` is the
-   intended ceiling. Decide whether to enforce it at object creation only, as
-   now, or also at serialization and deserialization.
-
-## Related int-level work still open
-
-- Done: `IntegerDescriptor.intCount` was removed. Its uses now test
-  `longCount` directly, which avoids the `Int` overflow above 2^30 longs.
-- `P_BitTest.returnTypeGuaranteedByVM` checks bits one at a time, so its cost
-  grows with the bit size of the bounds. A word-at-a-time check would bound it.
-- `P_BitTest` still uses `extractLong` and `isLong` on bit positions, which is
-  correct. Keep this in mind if the bit-position type changes again.
+- Audit of 32-bit integer access in integer code: clean. No `intSlot` or
+  `setIntSlot` remains in `descriptor/numbers` or the integer primitives.
+- `intCount` removed; its uses test `longCount` directly.
+- Next major work: widen L2 int registers from 32 to 64 bits. See the notes
+  in the L2 section of the plan once it's written.

@@ -157,6 +157,7 @@ import org.objectweb.asm.Opcodes.IF_ICMPLT
 import org.objectweb.asm.Opcodes.IF_ICMPNE
 import org.objectweb.asm.Opcodes.ILOAD
 import org.objectweb.asm.Opcodes.ISTORE
+import org.objectweb.asm.Opcodes.L2I
 import org.objectweb.asm.Opcodes.LCONST_0
 import org.objectweb.asm.Opcodes.LCONST_1
 import org.objectweb.asm.Opcodes.PUTSTATIC
@@ -534,6 +535,11 @@ class JVMTranslator constructor(
 			method.visitVarInsn(
 				register.kind.jvmLoadInstruction,
 				localNumberFromRegister(register))
+			if (register.kind == INTEGER_KIND)
+			{
+				// Int registers hold longs, but consumers expect an int.
+				method.visitInsn(L2I)
+			}
 		}
 	}
 
@@ -547,6 +553,11 @@ class JVMTranslator constructor(
 	 */
 	fun store(register: L2Register<*>)
 	{
+		if (register.kind == INTEGER_KIND)
+		{
+			// Int registers hold longs.  Widen the int, sign-extending it.
+			method.visitInsn(I2L)
+		}
 		method.visitVarInsn(
 			register.kind.jvmStoreInstruction,
 			localNumberFromRegister(register))
@@ -760,7 +771,7 @@ class JVMTranslator constructor(
 		{
 			if (operand.isConstantRead) return
 			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
+				operand.register().finalIndex) { nextLocal(Type.LONG_TYPE) }
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
@@ -803,7 +814,7 @@ class JVMTranslator constructor(
 		{
 			locals[INTEGER_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex
-			) { nextLocal(Type.INT_TYPE) }
+			) { nextLocal(Type.LONG_TYPE) }
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
@@ -1647,7 +1658,7 @@ class JVMTranslator constructor(
 					when (kind)
 					{
 						BOXED_KIND -> method.visitInsn(ACONST_NULL)
-						INTEGER_KIND -> intConstant(0)
+						INTEGER_KIND -> method.visitInsn(LCONST_0)
 						FLOAT_KIND -> doubleConstant(0.0)
 					}
 					method.visitVarInsn(kind.jvmStoreInstruction, localIndex)
