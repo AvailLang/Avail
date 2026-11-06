@@ -43,7 +43,7 @@ import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -250,9 +250,9 @@ enum class NumericComparator(
 		if (currentManifest.hasLiveSemanticValue(value1, INTEGER_KIND)
 			&& currentManifest.hasLiveSemanticValue(value2, INTEGER_KIND))
 		{
-			// We can compare the int registers instead.
-			assert(restriction1.containedByType(i32))
-			assert(restriction2.containedByType(i32))
+			// We can compare the int registers instead, as longs.
+			assert(restriction1.containedByType(i64))
+			assert(restriction2.containedByType(i64))
 			compareAndBranchInt(
 				this@NumericComparator,
 				readIntNoFail(value1),
@@ -346,8 +346,9 @@ enum class NumericComparator(
 		val restriction1 = int1Reg.restriction
 		val restriction2 = int2Reg.restriction
 
-		assert(restriction1.containedByType(i32))
-		assert(restriction2.containedByType(i32))
+		// Int registers are compared as longs.
+		assert(restriction1.containedByType(i64))
+		assert(restriction2.containedByType(i64))
 		// Restrict both values along both branches.
 		val (rest1, rest2, rest3, rest4) =
 			computeRestrictions(restriction1, restriction2)

@@ -137,8 +137,11 @@ import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
@@ -160,6 +163,7 @@ import avail.interpreter.primitive.general.P_Equality
 import avail.interpreter.primitive.integers.P_BitShiftLeft
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
+import avail.interpreter.primitive.integers.P_BitwiseOr
 import avail.interpreter.primitive.integers.P_BitwiseXor
 import avail.interpreter.primitive.integers.P_LowerBound
 import avail.interpreter.primitive.maps.P_KeyInMap
@@ -243,6 +247,7 @@ class SimpleOptimizerTest
 			"_<<_" to P_BitShiftLeft,
 			"_>>_" to P_BitShiftRight,
 			"_bit∧_" to P_BitwiseAnd,
+			"_bit∨_" to P_BitwiseOr,
 			"_bit⊕_" to P_BitwiseXor,
 			"⌊_⌋" to P_DoubleFloor,
 			"⌊_⌋" to P_FloatFloor,
@@ -610,6 +615,65 @@ class SimpleOptimizerTest
 		assertEquals(seven, result2)
 	}
 
+	/** Boundary and in-between values spanning the whole range of a long. */
+	private val wideLongSamples = listOf(
+		Long.MIN_VALUE, Long.MIN_VALUE + 1, -(1L shl 40) - 7, -1L, 0L, 1L,
+		1L shl 31, 1L shl 32, (1L shl 41) + 3, Long.MAX_VALUE - 1,
+		Long.MAX_VALUE)
+
+	/**
+	 * Optimize a function that applies a binary integer operation to two
+	 * arguments of the given range, check that the optimized code uses an
+	 * expected unboxed instruction, then run it on each pair of the samples,
+	 * comparing against [BigInteger] arithmetic.
+	 *
+	 * @param name
+	 *   The name of the operation's bundle.
+	 * @param range
+	 *   The type of both arguments.
+	 * @param samples
+	 *   The values to try for each argument.
+	 * @param expectedInstruction
+	 *   Whether an instruction is the expected unboxed one.
+	 * @param expected
+	 *   The operation on [BigInteger]s.
+	 */
+	private fun checkBinaryIntegerOperation(
+		name: String,
+		range: A_Type,
+		samples: List<Long>,
+		expectedInstruction: (L2Instruction) -> Boolean,
+		expected: (BigInteger, BigInteger) -> BigInteger)
+	{
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(range, range)
+			val a = declareName("a")
+			val b = declareName("b")
+			L1_doPushLastLocal(a)
+			L1_doPushLastLocal(b)
+			call(name, integers)
+		}
+		helper.testOptimize(rawFunction)
+		// Make sure the operation happens in int registers.
+		assertTrue(
+			rawFunction.startingChunk.instructions.any {
+				it is L2Instruction && expectedInstruction(it)
+			},
+			"Expected unboxed $name on $range")
+		for (x in samples)
+		{
+			for (y in samples)
+			{
+				val result = helper.executeRawFunction(
+					rawFunction, listOf(fromLong(x), fromLong(y)))
+				assertEquals(
+					expected(BigInteger.valueOf(x), BigInteger.valueOf(y)),
+					result.asBigInteger(),
+					"$x $name $y")
+			}
+		}
+	}
+
 	/**
 	 * Check that optimized addition, subtraction, and multiplication give exact
 	 * results for operands beyond 32 bits.  The wide operand ranges force the
@@ -621,52 +685,14 @@ class SimpleOptimizerTest
 	fun testLongArithmeticBeyondInt()
 	{
 		val wide = inclusive(Long.MIN_VALUE, Long.MAX_VALUE)
-		val wideSamples = listOf(
-			Long.MIN_VALUE, Long.MIN_VALUE + 1, -(1L shl 40) - 7, -1L, 0L, 1L,
-			1L shl 31, 1L shl 32, (1L shl 41) + 3, Long.MAX_VALUE - 1,
-			Long.MAX_VALUE)
+		val wideSamples = wideLongSamples
 		val narrow = inclusive(-(1L shl 40), 1L shl 40)
 		val narrowSamples = listOf(
 			-(1L shl 40), -(1L shl 33) + 5, -1L, 0L, 7L, 1L shl 32, 1L shl 40)
 		val forProduct = inclusive(-(1L shl 30), 1L shl 30)
 		val productSamples =
 			listOf(-(1L shl 30), -12345L, 0L, 99999L, 1L shl 30)
-
-		fun check(
-			name: String,
-			range: A_Type,
-			samples: List<Long>,
-			expectedInstruction: (L2Instruction) -> Boolean,
-			expected: (BigInteger, BigInteger) -> BigInteger)
-		{
-			val rawFunction = helper.rawFunction(integers) {
-				argumentTypes(range, range)
-				val a = declareName("a")
-				val b = declareName("b")
-				L1_doPushLastLocal(a)
-				L1_doPushLastLocal(b)
-				call(name, integers)
-			}
-			helper.testOptimize(rawFunction)
-			// Make sure the arithmetic happens in int registers.
-			assertTrue(
-				rawFunction.startingChunk.instructions.any {
-					it is L2Instruction && expectedInstruction(it)
-				},
-				"Expected unboxed arithmetic for $name on $range")
-			for (x in samples)
-			{
-				for (y in samples)
-				{
-					val result = helper.executeRawFunction(
-						rawFunction, listOf(fromLong(x), fromLong(y)))
-					assertEquals(
-						expected(BigInteger.valueOf(x), BigInteger.valueOf(y)),
-						result.asBigInteger(),
-						"$x $name $y")
-				}
-			}
-		}
+		val check = ::checkBinaryIntegerOperation
 
 		check(
 			"_+_",
@@ -704,6 +730,34 @@ class SimpleOptimizerTest
 			productSamples,
 			{ it.isBitLogicOperation(Mul) },
 			BigInteger::multiply)
+	}
+
+	/**
+	 * Check that optimized bitwise and, or, and xor give exact results for
+	 * operands anywhere in the range of a long.
+	 */
+	@Test
+	fun testLongBitwiseBeyondInt()
+	{
+		val wide = inclusive(Long.MIN_VALUE, Long.MAX_VALUE)
+		checkBinaryIntegerOperation(
+			"_bit∧_",
+			wide,
+			wideLongSamples,
+			{ it.isBitLogicOperation(And) },
+			BigInteger::and)
+		checkBinaryIntegerOperation(
+			"_bit∨_",
+			wide,
+			wideLongSamples,
+			{ it.isBitLogicOperation(Or) },
+			BigInteger::or)
+		checkBinaryIntegerOperation(
+			"_bit⊕_",
+			wide,
+			wideLongSamples,
+			{ it.isBitLogicOperation(Xor) },
+			BigInteger::xor)
 	}
 
 	/**

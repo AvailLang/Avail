@@ -181,7 +181,8 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 			fallbackBody = {
 				generateGeneralFunctionInvocation(
 					functionToCallReg, false, callSiteHelper, arguments)
-			})
+			},
+			range = i64)
 	}
 
 	override val semanticInfixOperatorString: String? get() = "Xor"

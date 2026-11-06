@@ -260,9 +260,11 @@ constructor(
 	 *   have already been pushed.  It should have the effect of removing them
 	 *   from the JVM operand stack and leaving a single `long` as the result.
 	 *   [Add], [Sub], and [Mul] produce the exact result, which must be known
-	 *   to fit in a `long`.  The remaining operations still have 32-bit
-	 *   semantics, so their inputs are sign-extended ints, and their result is
-	 *   the sign-extended int that the 32-bit operation would produce.
+	 *   to fit in a `long`.  [And], [Or], [Xor], [Max], [Min], and [SelectBit]
+	 *   produce the exact result for any `long` inputs.  The remaining
+	 *   operations still have 32-bit semantics, so their inputs are
+	 *   sign-extended ints, and their result is the sign-extended int that the
+	 *   32-bit operation would produce.
 	 * @property folder
 	 *   A function that folds this operation on two constants, each a
 	 *   sign-extended int.  It must produce the same value as the code that
@@ -677,7 +679,11 @@ constructor(
 		 *   A lambda that produces an output type bound, given two input types.
 		 * @param fallbackBody
 		 *   How to generate the boxed form of this call along a path where the
-		 *   inputs could not both be unboxed to [i32] values.
+		 *   inputs could not both be unboxed to values in the [range].
+		 * @param range
+		 *   The range of integers to unbox the inputs into.  This operation
+		 *   must always produce a result in the range when given inputs in the
+		 *   range, as bitwise and, or, and xor do.
 		 * @return
 		 *   Whether any code was output.  If no code was output, the caller is
 		 *   responsible for producing a more general primitive invocation or
@@ -689,15 +695,16 @@ constructor(
 			argumentTypes: List<A_Type>,
 			callSiteHelper: CallSiteHelper,
 			typeGuaranteeFunction: (List<A_Type>) -> A_Type,
-			fallbackBody: L1Translator.() -> Unit
+			fallbackBody: L1Translator.() -> Unit,
+			range: A_Type = i32
 		): Boolean
 		{
 			val (a, b) = arguments
 			val (aType, bType) = argumentTypes
-			// If either of the argument types does not intersect with int32,
-			// then fall back to the primitive invocation.
-			if (aType.typeIntersection(i32).isBottom
-				|| bType.typeIntersection(i32).isBottom)
+			// If either of the argument types does not intersect with the
+			// range, then fall back to the primitive invocation.
+			if (aType.typeIntersection(range).isBottom
+				|| bType.typeIntersection(range).isBottom)
 			{
 				return false
 			}
@@ -710,19 +717,21 @@ constructor(
 					readAsTwoInts(
 						a.semanticValue(),
 						b.semanticValue(),
-						fallback
+						fallback,
+						range
 					) ?: return false
 				}
 				if (currentlyReachable())
 				{
 					// The happy path is reachable.  In this region, the output
-					// is guaranteed to be an Int.
+					// is guaranteed to be in the range.
 					val semanticPrimitive = primitive.semanticInvocation(
 						a.semanticValue(), b.semanticValue())
 					val typeGuarantee = typeGuaranteeFunction(
 						listOf(
-							aType.typeIntersection(i32),
-							bType.typeIntersection(i32)))
+							aType.typeIntersection(range),
+							bType.typeIntersection(range))
+					).typeIntersection(range)
 					// See if we've already computed an equivalent value in
 					// either the boxed or unboxed form.
 					currentManifest.equivalentSemanticValue(
@@ -882,10 +891,10 @@ constructor(
 		 */
 		fun maxBound(a: A_Type, b: A_Type): A_Type
 		{
-			val aLow = a.lowerBound.extractInt
-			val aHigh = a.upperBound.extractInt
-			var bLow = b.lowerBound.extractInt
-			var bHigh = b.upperBound.extractInt
+			val aLow = a.lowerBound.extractLong
+			val aHigh = a.upperBound.extractLong
+			val bLow = b.lowerBound.extractLong
+			val bHigh = b.upperBound.extractLong
 			return inclusive(max(aLow, bLow), max(aHigh, bHigh))
 		}
 
@@ -894,11 +903,10 @@ constructor(
 		 */
 		fun minBound(a: A_Type, b: A_Type): A_Type
 		{
-			val aLow = a.lowerBound.extractInt
-			val aHigh = a.upperBound.extractInt
-			var bLow = b.lowerBound.extractInt
-			var bHigh = b.upperBound.extractInt
-
+			val aLow = a.lowerBound.extractLong
+			val aHigh = a.upperBound.extractLong
+			val bLow = b.lowerBound.extractLong
+			val bHigh = b.upperBound.extractLong
 			return inclusive(min(aLow, bLow), min(aHigh, bHigh))
 		}
 	}

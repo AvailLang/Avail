@@ -411,16 +411,28 @@ interface L2GeneratorInterface : L2Visualizable
 	fun boxedConstant(value: A_BasicObject): L2ReadBoxedOperand
 
 	/**
-	 * Generate code to move the given [Int] constant into an [L2IntRegister],
-	 * if it's not already known to be in such a register.  Answer an
-	 * [L2ReadIntOperand] to retrieve this value.
+	 * Generate code to move the given [Long] constant into an
+	 * [L2IntRegister], if it's not already known to be in such a register.
+	 * Answer an [L2ReadIntOperand] to retrieve this value.
+	 *
+	 * @param value
+	 *   The constant [Long] to write to an [L2IntRegister].
+	 * @return
+	 *   The [L2ReadIntOperand] that retrieves the value.
+	 */
+	fun unboxedIntConstant(value: Long): L2ReadIntOperand
+
+	/**
+	 * Generate code to move the given [Int] constant into an [L2IntRegister].
+	 * See the [Long] variant.
 	 *
 	 * @param value
 	 *   The constant [Int] to write to an [L2IntRegister].
 	 * @return
 	 *   The [L2ReadIntOperand] that retrieves the value.
 	 */
-	fun unboxedIntConstant(value: Int): L2ReadIntOperand
+	fun unboxedIntConstant(value: Int): L2ReadIntOperand =
+		unboxedIntConstant(value.toLong())
 
 	/**
 	 * Generate code to move the given [Double] constant into an
@@ -468,9 +480,10 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
-	 * [TypeRestriction] to an [i32] must have been proven by the VM.  If the
-	 * semantic value only has a boxed form, generate code to unbox it.
-]	 *
+	 * [TypeRestriction] to the range that the caller requires, at most an
+	 * [i64], must have been proven by the VM.  If the semantic value only has
+	 * a boxed form, generate code to unbox it.
+	 *
 	 * In any case, the generation position after this call is along the
 	 * success path.  This may itself be unreachable in the event that the
 	 * unboxing will *always* fail.

@@ -34,9 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
@@ -135,14 +138,14 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			jumpTo(ifNotEqual.targetBlock())
 			return
 		}
-		if (constant.constant.isInt
-			&& value.restriction.containedByType(i32))
+		if (constant.constant.isLong
+			&& value.restriction.containedByType(i64))
 		{
-			// Do the comparison as ints, if possible.
+			// Do the comparison in int registers, if possible.
 			compareAndBranchInt(
 				NumericComparator.Equal,
 				readIntNoFail(value.semanticValue()),
-				unboxedIntConstant(constant.constant.extractInt),
+				unboxedIntConstant(constant.constant.extractLong),
 				ifEqual,
 				ifNotEqual)
 			return

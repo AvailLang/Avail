@@ -51,6 +51,7 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -59,6 +60,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -165,30 +167,30 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 		range: A_Type
 	): Pair<L2ReadIntOperand, L2ReadIntOperand>?
 	{
-		// Bitwise and is still a 32-bit operation.
-		assert(range.equals(i32))
-		readTwoInts(semanticValue1, semanticValue2, onFailure)
+		readTwoInts(semanticValue1, semanticValue2, onFailure, range)
 			?.let { return it }
 		val type1 = restrictionFor(semanticValue1).type
 		val type2 = restrictionFor(semanticValue2).type
-		// Special case.  If type1 is ≥ 0 and type2 is any integer constant, we
-		// can pre-mask type2 with Int.MAX_VALUE and use that constant as an int
-		// argument instead.
-		if (type1.isSubtypeOf(wholeNumbers)
+		// Special case.  If type1 is a non-negative value in the range, it has
+		// no bits at or above the range's sign bit.  So if type2 is any integer
+		// constant, we can pre-mask it with the range's upper bound and use
+		// that constant as an int argument instead.
+		val nonnegativeRange = range.typeIntersection(wholeNumbers)
+		if (type1.isSubtypeOf(nonnegativeRange)
 			&& type2.run { lowerBound == upperBound })
 		{
-			val masked = type2.upperBound.bitwiseAnd(i31.upperBound, false)
-				.extractInt
+			val masked = type2.upperBound.bitwiseAnd(range.upperBound, false)
+				.extractLong
 			return Pair(
 				readIntNoFail(semanticValue1),
 				unboxedIntConstant(masked))
 		}
 		// And the same thing where the first argument is the constant.
-		if (type2.isSubtypeOf(wholeNumbers)
+		if (type2.isSubtypeOf(nonnegativeRange)
 			&& type1.run { lowerBound == upperBound })
 		{
-			val masked = type1.upperBound.bitwiseAnd(i31.upperBound, false)
-				.extractInt
+			val masked = type1.upperBound.bitwiseAnd(range.upperBound, false)
+				.extractLong
 			return Pair(
 				unboxedIntConstant(masked),
 				readIntNoFail(semanticValue2))
@@ -258,7 +260,8 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 				fallbackBody = {
 					generateGeneralFunctionInvocation(
 						functionToCallReg, false, callSiteHelper, arguments)
-				})
+				},
+				range = i64)
 		}
 	}
 

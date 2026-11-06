@@ -36,7 +36,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.numericComparator
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Character.Companion.codePoint
@@ -48,6 +48,7 @@ import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.isDouble
 import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
@@ -312,9 +313,9 @@ constructor(
 		return L2ReadBoxedOperand(constant)
 	}
 
-	override fun unboxedIntConstant(value: Int): L2ReadIntOperand
+	override fun unboxedIntConstant(value: Long): L2ReadIntOperand
 	{
-		val constant = constant(fromInt(value))
+		val constant = constant(fromLong(value))
 		val restriction = constant.defaultRestriction
 		currentManifest.agglomerateSynonym(setOf(constant), restriction)
 		return L2ReadIntOperand(constant)
@@ -613,16 +614,18 @@ constructor(
 	): L2ReadIntOperand
 	{
 		val restriction = currentManifest.restrictionFor(semanticValue)
-		assert(restriction.containedByType(i32))
+		// Int registers hold up to an i64.  Consumers that need an i32 assert
+		// it themselves.  Don't narrow the value any further here.
+		assert(restriction.containedByType(i64))
 		if (currentManifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		{
 			// It already exists in an unboxed int register.
-			return currentManifest.readInt(semanticValue)
+			return currentManifest.readInt(semanticValue, i64Restriction)
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
 			// Make it available as a constant in an int register.
-			return unboxedIntConstant(constant.extractInt)
+			return unboxedIntConstant(constant.extractLong)
 		}
 		currentManifest.removePostponedInstructionFor(
 			semanticValue, INTEGER_KIND
@@ -635,7 +638,7 @@ constructor(
 			assert(currentManifest
 				.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		}
-		return currentManifest.readInt(semanticValue)
+		return currentManifest.readInt(semanticValue, i64Restriction)
 	}
 
 	/**
@@ -1285,20 +1288,20 @@ constructor(
 		// value to be visible in a register.
 		val innerPass = L2BasicBlock("strengthen to constant")
 		val constantValueStrong = constantValue as AvailObject
-		if (constantValueStrong.isInt
-			&& readToTest.restriction.containedByType(i32))
+		if (constantValueStrong.isLong
+			&& readToTest.restriction.containedByType(i64))
 		{
-			// The constant and the value are both int32s.  Use the quicker int
-			// test, unboxing the int register if needed.
+			// The constant and the value both fit in a long.  Use the quicker
+			// int register test, unboxing the value if needed.
 			compareAndBranchInt(
 				NumericComparator.Equal,
-				readInt(readToTest.semanticValue(), failBlock) {
-					// It wasn't really an int, so it can't equal the constant
-					// int.  We've already jumped to failBlock in that case, so
-					// we're done rewriting the branch.
+				readInt(readToTest.semanticValue(), failBlock, i64) {
+					// It wasn't really a long, so it can't equal the constant.
+					// We've already jumped to failBlock in that case, so we're
+					// done rewriting the branch.
 					return
 				},
-				unboxedIntConstant(constantValueStrong.extractInt),
+				unboxedIntConstant(constantValueStrong.extractLong),
 				edgeTo(innerPass),
 				edgeTo(failBlock))
 		}

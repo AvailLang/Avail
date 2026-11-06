@@ -46,6 +46,7 @@ import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -132,7 +133,8 @@ object P_BitwiseOr : Primitive2(CannotFail, CanFold, CanInline)
 			fallbackBody = {
 				generateGeneralFunctionInvocation(
 					functionToCallReg, false, callSiteHelper, arguments)
-			})
+			},
+			range = i64)
 	}
 
 	override val semanticInfixOperatorString: String? get() = "Or"

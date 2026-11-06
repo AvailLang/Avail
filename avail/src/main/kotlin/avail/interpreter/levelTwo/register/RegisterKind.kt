@@ -461,7 +461,7 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	override fun readConstant(
 		generator: L2GeneratorInterface,
 		boxedValue: AvailObject
-	): L2ReadIntOperand = generator.unboxedIntConstant(boxedValue.extractInt)
+	): L2ReadIntOperand = generator.unboxedIntConstant(boxedValue.extractLong)
 
 	override fun createPhi(
 		sources: L2ReadVectorOperand<L2ReadOperand<INTEGER_KIND>>,

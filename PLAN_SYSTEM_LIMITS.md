@@ -107,7 +107,17 @@ above calls `L2ReadIntOperand.assertInt32` when it is added, and
 
 ### Remaining steps
 
-1. Bit logic: widen `generateBinaryIntOperation` (and, or, xor, max, min);
-   division and modulus; shifts (drop `ushr32` and the 5-bit masks, counts
-   become 0..63, rule shift limits become 0..63); bounds use `extractLong`.
-2. Primitive fast paths still restricted to `i32`, by primitive family.
+1. Done: bitwise and, or, xor unbox in `i64` (`generateBinaryIntOperation`
+   takes a `range`); `Max`/`Min` bounds use longs; comparisons and
+   equality-with-constant accept `i64`; `readIntNoFail` and
+   `unboxedIntConstant` handle longs.
+2. Division and modulus.
+3. Shifts: `Shl` and `Shr` become 64-bit (counts 0..63, rule shift limits
+   0..63).  `Ushr` stays a 32-bit operation for good: its only producer is
+   hash dispatch, which needs the 32-bit unsigned shift of an int hash.
+4. Primitive fast paths still restricted to `i32`, by primitive family.
+5. Conservative `i32` checks that could widen for speed, not correctness:
+   phi kinds at merges (`L2ValueManifest`), boxed-integer recycling
+   (`L2Optimizer`), int-compare fast paths in `L2Generator`,
+   `L2_JUMP_IF_KIND_OF_OBJECT` and `L2_JUMP_IF_OBJECTS_EQUAL`, and the split
+   conditions.
