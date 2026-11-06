@@ -111,7 +111,9 @@ above calls `L2ReadIntOperand.assertInt32` when it is added, and
    takes a `range`); `Max`/`Min` bounds use longs; comparisons and
    equality-with-constant accept `i64`; `readIntNoFail` and
    `unboxedIntConstant` handle longs.
-2. Division and modulus.
+2. Done: division unboxes in `i64`; `L2_DIVIDE_INT_BY_INT` bounds its
+   quotient with longs; `Div`/`Mod` are exact for a non-negative dividend and
+   positive divisor; `modBound` uses longs.
 3. Shifts: `Shl` and `Shr` become 64-bit (counts 0..63, rule shift limits
    0..63).  `Ushr` stays a 32-bit operation for good: its only producer is
    hash dispatch, which needs the 32-bit unsigned shift of an int hash.

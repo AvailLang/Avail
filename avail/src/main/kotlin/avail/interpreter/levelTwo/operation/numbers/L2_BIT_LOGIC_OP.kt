@@ -261,7 +261,8 @@ constructor(
 	 *   from the JVM operand stack and leaving a single `long` as the result.
 	 *   [Add], [Sub], and [Mul] produce the exact result, which must be known
 	 *   to fit in a `long`.  [And], [Or], [Xor], [Max], [Min], and [SelectBit]
-	 *   produce the exact result for any `long` inputs.  The remaining
+	 *   produce the exact result for any `long` inputs, as do [Div] and [Mod]
+	 *   for a non-negative dividend and a positive divisor.  The remaining
 	 *   operations still have 32-bit semantics, so their inputs are
 	 *   sign-extended ints, and their result is the sign-extended int that the
 	 *   32-bit operation would produce.
@@ -823,15 +824,15 @@ constructor(
 		val ushr32Method = staticMethod(::ushr32, long, long)
 
 		/**
-		 * Colculate a type bound for `a mod b`, given the types for a and b.
-		 * A must be ≥ 0, and b must be > 0.  Both must be < 2^31.
+		 * Calculate a type bound for `a mod b`, given the types for a and b.
+		 * A must be ≥ 0, and b must be > 0.  Both must be < 2^63.
 		 */
 		fun modBound(a: A_Type, b: A_Type): A_Type
 		{
-			val aLow = a.lowerBound.extractInt
-			val aHigh = a.upperBound.extractInt
-			val bLow = b.lowerBound.extractInt
-			val bHigh = b.upperBound.extractInt
+			val aLow = a.lowerBound.extractLong
+			val aHigh = a.upperBound.extractLong
+			val bLow = b.lowerBound.extractLong
+			val bHigh = b.upperBound.extractLong
 			assert(aLow >= 0)
 			assert(bLow > 0)
 
@@ -848,7 +849,7 @@ constructor(
 				// The modulus wraps past the denominator (to 0), so we have to
 				// say the modulus is between 0 and one less than the largest
 				// denominator.
-				inclusive(0, bHigh - 1)
+				inclusive(0L, bHigh - 1)
 			}
 		}
 

@@ -32,12 +32,10 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.upperBound
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -49,15 +47,13 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
-import avail.interpreter.primitive.numbers.P_Division
-import avail.interpreter.primitive.numbers.P_Division.positiveI31
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Opcodes
 
 /**
- * If [dividend] is ≥ 0 and [divisor] is > 0, perform an [Int] division of
+ * If [dividend] is ≥ 0 and [divisor] is > 0, perform a [Long] division of
  * dividend/divisor, write the result to [quotient], and jump to [success].
  * Otherwise jump to [outOfRangeOrZeroDiv] without writing to [quotient].
  *
@@ -103,17 +99,24 @@ class L2_DIVIDE_INT_BY_INT(
 		val initialDenominator = divisor.restriction.intersection(
 			manifest.restrictionFor(divisor.semanticValue()))
 		success.manifest().run {
-			val successNumerator = initialNumerator.intersectionWithType(i31)
+			val successNumerator =
+				initialNumerator.intersectionWithType(nonnegativeLongs)
 			val successDenominator =
-				initialDenominator.intersectionWithType(positiveI31)
+				initialDenominator.intersectionWithType(positiveLongs)
 			setRestriction(dividend.semanticValue(), successNumerator)
 			setRestriction(divisor.semanticValue(), successDenominator)
+			// If the division can't succeed, the success path is dead, and
+			// there are no bounds to compute for the quotient.
+			if (successNumerator.isImpossible || successDenominator.isImpossible)
+			{
+				return@run
+			}
 			val numeratorRange = successNumerator.type
 			val denominatorRange = successDenominator.type
-			val lowQuotient = numeratorRange.lowerBound.extractInt /
-				denominatorRange.upperBound.extractInt
-			val highQuotient = numeratorRange.upperBound.extractInt /
-				denominatorRange.lowerBound.extractInt
+			val lowQuotient = numeratorRange.lowerBound.extractLong /
+				denominatorRange.upperBound.extractLong
+			val highQuotient = numeratorRange.upperBound.extractLong /
+				denominatorRange.lowerBound.extractLong
 			setRestriction(
 				quotient.pickSemanticValue(),
 				restrictionForType(inclusive(lowQuotient, highQuotient)))
@@ -122,9 +125,11 @@ class L2_DIVIDE_INT_BY_INT(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val outputRange = P_Division.returnTypeGuaranteedByVM(
-			null, listOf(dividend.type, divisor.type))
-		if (outputRange.isSubtypeOf(i32))
+		// The unchecked division truncates, which only agrees with Avail's
+		// rounding toward negative infinity when the dividend is non-negative
+		// and the divisor is positive.
+		if (dividend.type.isSubtypeOf(nonnegativeLongs)
+			&& divisor.type.isSubtypeOf(positiveLongs))
 		{
 			+L2_BIT_LOGIC_OP(Div, dividend, divisor, quotient)
 			jumpTo(success.targetBlock())
@@ -155,5 +160,14 @@ class L2_DIVIDE_INT_BY_INT(
 		storeLong(quotient.register())
 		// ::
 		jump(success)
+	}
+
+	companion object
+	{
+		/** The non-negative [Long]s, the dividends this division handles. */
+		private val nonnegativeLongs = inclusive(0L, Long.MAX_VALUE)
+
+		/** The positive [Long]s, the divisors this division handles. */
+		private val positiveLongs = inclusive(1L, Long.MAX_VALUE)
 	}
 }

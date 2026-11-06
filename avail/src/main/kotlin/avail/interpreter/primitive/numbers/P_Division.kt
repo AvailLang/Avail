@@ -60,6 +60,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
@@ -277,13 +278,25 @@ object P_Division : Primitive2(CanFold, CanInline)
 					restrictionForType(strongerType)))
 		},
 		ifOutputIsPossiblyInt = {
+			// The unboxed division only handles a non-negative dividend and a
+			// positive divisor.  If that's impossible, just use the boxed
+			// division.
+			if (!currentManifest.restrictionFor(intA)
+					.intersectsType(inclusive(0L, Long.MAX_VALUE))
+				|| !currentManifest.restrictionFor(intB)
+					.intersectsType(inclusive(1L, Long.MAX_VALUE)))
+			{
+				jumpTo(intFailure)
+				return@attemptToGenerateTwoIntToIntPrimitive
+			}
 			+L2_DIVIDE_INT_BY_INT(
 				dividend = intA,
 				divisor = intB,
 				quotient = intWrite,
 				outOfRangeOrZeroDiv = edgeTo(intFailure),
 				success = edgeTo(intSuccess))
-		})
+		},
+		range = i64)
 
 	override fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>

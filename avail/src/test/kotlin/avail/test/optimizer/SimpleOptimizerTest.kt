@@ -138,11 +138,13 @@ import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_DIVIDE_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
@@ -634,19 +636,26 @@ class SimpleOptimizerTest
 	 * @param samples
 	 *   The values to try for each argument.
 	 * @param expectedInstruction
-	 *   Whether an instruction is the expected unboxed one.
+	 *   Whether an instruction is the expected unboxed one, or `null` if the
+	 *   operation isn't expected to be unboxed.
 	 * @param expected
 	 *   The operation on [BigInteger]s.
+	 * @param range2
+	 *   The type of the second argument, if different.
+	 * @param samples2
+	 *   The values to try for the second argument, if different.
 	 */
 	private fun checkBinaryIntegerOperation(
 		name: String,
 		range: A_Type,
 		samples: List<Long>,
-		expectedInstruction: (L2Instruction) -> Boolean,
-		expected: (BigInteger, BigInteger) -> BigInteger)
+		expectedInstruction: ((L2Instruction) -> Boolean)?,
+		expected: (BigInteger, BigInteger) -> BigInteger,
+		range2: A_Type = range,
+		samples2: List<Long> = samples)
 	{
 		val rawFunction = helper.rawFunction(integers) {
-			argumentTypes(range, range)
+			argumentTypes(range, range2)
 			val a = declareName("a")
 			val b = declareName("b")
 			L1_doPushLastLocal(a)
@@ -655,14 +664,16 @@ class SimpleOptimizerTest
 		}
 		helper.testOptimize(rawFunction)
 		// Make sure the operation happens in int registers.
-		assertTrue(
-			rawFunction.startingChunk.instructions.any {
-				it is L2Instruction && expectedInstruction(it)
-			},
-			"Expected unboxed $name on $range")
+		expectedInstruction?.let { isExpected ->
+			assertTrue(
+				rawFunction.startingChunk.instructions.any {
+					it is L2Instruction && isExpected(it)
+				},
+				"Expected unboxed $name on $range")
+		}
 		for (x in samples)
 		{
-			for (y in samples)
+			for (y in samples2)
 			{
 				val result = helper.executeRawFunction(
 					rawFunction, listOf(fromLong(x), fromLong(y)))
@@ -692,39 +703,37 @@ class SimpleOptimizerTest
 		val forProduct = inclusive(-(1L shl 30), 1L shl 30)
 		val productSamples =
 			listOf(-(1L shl 30), -12345L, 0L, 99999L, 1L shl 30)
-		val check = ::checkBinaryIntegerOperation
-
-		check(
+		checkBinaryIntegerOperation(
 			"_+_",
 			wide,
 			wideSamples,
 			{ it is L2_ADD_INT_TO_INT },
 			BigInteger::add)
-		check(
+		checkBinaryIntegerOperation(
 			"_-_",
 			wide,
 			wideSamples,
 			{ it is L2_SUBTRACT_INT_MINUS_INT },
 			BigInteger::subtract)
-		check(
+		checkBinaryIntegerOperation(
 			"_×_",
 			wide,
 			wideSamples,
 			{ it is L2_MULTIPLY_INT_BY_INT },
 			BigInteger::multiply)
-		check(
+		checkBinaryIntegerOperation(
 			"_+_",
 			narrow,
 			narrowSamples,
 			{ it.isBitLogicOperation(Add) },
 			BigInteger::add)
-		check(
+		checkBinaryIntegerOperation(
 			"_-_",
 			narrow,
 			narrowSamples,
 			{ it.isBitLogicOperation(Sub) },
 			BigInteger::subtract)
-		check(
+		checkBinaryIntegerOperation(
 			"_×_",
 			forProduct,
 			productSamples,
@@ -758,6 +767,52 @@ class SimpleOptimizerTest
 			wideLongSamples,
 			{ it.isBitLogicOperation(Xor) },
 			BigInteger::xor)
+	}
+
+	/**
+	 * Check that optimized division gives Avail's quotient, rounded toward
+	 * negative infinity, for operands beyond 32 bits.  A positive divisor lets
+	 * the unchecked division be used after sign checks, with negative dividends
+	 * falling back to boxed arithmetic.  A divisor that might be -1 could
+	 * produce 2^63, which needs the checked division.  A divisor that is always
+	 * negative can't use the unboxed division at all.
+	 */
+	@Test
+	fun testLongDivisionBeyondInt()
+	{
+		val floorDivide = { a: BigInteger, b: BigInteger ->
+			val (quotient, remainder) = a.divideAndRemainder(b)
+			when
+			{
+				remainder.signum() != 0 && remainder.signum() != b.signum() ->
+					quotient - BigInteger.ONE
+				else -> quotient
+			}
+		}
+		checkBinaryIntegerOperation(
+			"_÷_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			{ it.isBitLogicOperation(Div) },
+			floorDivide,
+			range2 = inclusive(1L, Long.MAX_VALUE),
+			samples2 = listOf(1L, 2L, 3L, 7L, 1L shl 32, Long.MAX_VALUE))
+		checkBinaryIntegerOperation(
+			"_÷_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			{ it is L2_DIVIDE_INT_BY_INT },
+			floorDivide,
+			range2 = inclusive(-1L, 1L shl 40),
+			samples2 = listOf(-1L, 1L, 3L, 1L shl 40))
+		checkBinaryIntegerOperation(
+			"_÷_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			null,
+			floorDivide,
+			range2 = inclusive(Long.MIN_VALUE, -1L),
+			samples2 = listOf(Long.MIN_VALUE, -(1L shl 40), -3L, -1L))
 	}
 
 	/**
