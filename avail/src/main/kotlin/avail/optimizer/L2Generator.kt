@@ -37,6 +37,7 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.numericComparator
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Character.Companion.codePoint
@@ -50,6 +51,7 @@ import avail.descriptor.representation.A_Number.Companion.isDouble
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.descriptor.representation.A_Set.Companion.setSize
@@ -1405,15 +1407,20 @@ constructor(
 			.equivalentPopulatedSemanticValue(semanticValue, BOXED_KIND)
 		if (equivalentUnboxed != null
 			&& currentManifest.restrictionFor(semanticValue)
-				.containedByType(i32))
+				.containedByType(i64))
 		{
-			// The value is definitely an i32, and we have the value in an
-			// equivarent int.  Use it.
-			val constantIntType = expectedType.typeIntersection(i32)
-			val low = constantIntType.lowerBound.extractInt
-			val high = constantIntType.upperBound.extractInt
+			// The value is definitely an i64, and we have the value in an
+			// equivalent int.  Use it.
+			val constantIntType = expectedType.typeIntersection(i64)
+			val low = constantIntType.lowerBound.extractLong
+			val high = constantIntType.upperBound.extractLong
+			// Count the range's values exactly, since high - low + 1 can
+			// overflow a long.
 			val isContiguous = !constantIntType.isEnumeration
-				|| constantIntType.instanceCount.equalsInt(high - low + 1)
+				|| constantIntType.instanceCount.equals(
+					constantIntType.upperBound
+						.minusCanDestroy(constantIntType.lowerBound, false)
+						.plusCanDestroy(one, false))
 			if (isContiguous)
 			{
 				val firstSuccess = L2BasicBlock("low bound ok")

@@ -34,7 +34,7 @@ package avail.optimizer
 import avail.AvailRuntimeSupport
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RegisterDump
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
@@ -1303,10 +1303,12 @@ class L2Optimizer internal constructor(
 						// The captured restrictions say what the value would be, or
 						// will be, at some point in this block or downstream, so
 						// the entry for every read's semantic value is present.
-						val isInt = block.postPhiData!![read.semanticValue()]
-							.containedByType(i32)
+						// The recycle pool takes integers of a single long.
+						val fitsInOneWord =
+							block.postPhiData!![read.semanticValue()]
+								.containedByType(i64)
 						if (readReg in mutables
-							&& isInt
+							&& fitsInOneWord
 							&& !read.isImmutableForEmittedInstruction())
 						{
 							pureLastReads[readReg] = index to read

@@ -131,6 +131,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
@@ -713,6 +714,14 @@ class SimpleOptimizerTest
 			wide,
 			wideSamples,
 			{ it is L2_ADD_INT_TO_INT },
+			BigInteger::add)
+		// Operands of any integer type need a dynamic test that they're longs
+		// before they can be unboxed.
+		checkBinaryIntegerOperation(
+			"_+_",
+			integers,
+			wideSamples,
+			{ it is L2_JUMP_IF_KIND_OF_OBJECT },
 			BigInteger::add)
 		checkBinaryIntegerOperation(
 			"_-_",

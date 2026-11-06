@@ -32,14 +32,13 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
@@ -116,19 +115,20 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 			jumpTo(ifEqual.targetBlock())
 			return
 		}
-		if (!first.restriction.containedByType(i32)
-			|| !second.restriction.containedByType(i32))
+		if (!first.restriction.containedByType(i64)
+			|| !second.restriction.containedByType(i64))
 		{
 			+this@L2_JUMP_IF_OBJECTS_EQUAL
 			return
 		}
-		// The values are definitely ints, even if they're not necessarily both
+		// The values are definitely longs, even if they're not necessarily both
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
 		val (int1Read, int2Read) = readTwoInts(
 			first.semanticValue(),
 			second.semanticValue(),
-			unreachable
+			unreachable,
+			i64
 		) ?: run {
 			+this@L2_JUMP_IF_OBJECTS_EQUAL
 			return
@@ -159,13 +159,11 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 				listOf(second.register())))
 		// If the values are both available as ints, we can do the comparison
 		// more efficiently, perhaps avoiding boxing entirely.
-		if (first.restriction.intersectsType(i32)
-			&& second.restriction.intersectsType(i32))
+		if (first.restriction.intersectsType(i64)
+			&& second.restriction.intersectsType(i64))
 		{
-			addAll(
-				unboxedIntConditions(listOf(first.register()), i32Restriction))
-			addAll(
-				unboxedIntConditions(listOf(second.register()), i32Restriction))
+			addAll(unboxedIntConditions(listOf(first.register())))
+			addAll(unboxedIntConditions(listOf(second.register())))
 		}
 	}
 

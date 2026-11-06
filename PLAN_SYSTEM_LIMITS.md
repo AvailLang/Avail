@@ -126,10 +126,14 @@ above calls `L2ReadIntOperand.assertInt32` when it is added, and
    `P_TupleAt`, `P_ExtractSubtuple`, `P_FloatToIntBits`, `P_FloatFromIntBits`.
 5. Done: split conditions.  `unboxedIntConditions` takes the range the
    consumer can unbox (default `i64`); `constantConditions` starts int
-   registers at `i64`.  The comparison and division primitives use `i64`
-   ranges; `L2_JUMP_IF_OBJECTS_EQUAL`, `L2_JUMP_IF_KIND_OF_OBJECT` and
-   `L2_EXTRACT_TAG_ORDINAL` keep `i32`.
-6. Conservative `i32` checks that could widen for speed, not correctness:
-   phi kinds at merges (`L2ValueManifest`), boxed-integer recycling
-   (`L2Optimizer`), and the int fast paths in `L2Generator`'s type check,
-   `L2_JUMP_IF_KIND_OF_OBJECT` and `L2_JUMP_IF_OBJECTS_EQUAL`.
+   registers at `i64`.  Only `L2_EXTRACT_TAG_ORDINAL`, whose values are ints
+   by nature, keeps `i32`.
+6. Done: phi kinds at merges, boxed-integer recycling, and the int fast
+   paths in `L2Generator`'s type check and `L2_JUMP_IF_OBJECTS_EQUAL` use
+   `i64`.  `L2_JUMP_IF_KIND_OF_OBJECT` tests an exact `i64` with `isLong`, as
+   it tests an exact `i32` with `isInt`, so the dynamic checks before
+   unboxing a long are cheap.  The manifest's `readInt` defaults to
+   `i64Restriction`, so it never narrows a value.
+
+The 32-bit to 64-bit widening of L2 int registers is complete, apart from the
+values that are ints by nature (listed above).

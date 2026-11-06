@@ -1281,6 +1281,16 @@ interface A_Number : A_BasicObject
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
+		fun isLongStatic(self: AvailObject): Boolean =
+			self.descriptor.o_IsLong(self)
+
+		/** The [CheckedMethod] for [isLong]. */
+		val isLongMethod = staticMethod(
+			::isLongStatic,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun equalsIntStatic(self: AvailObject, intValue: Int): Boolean =
 			self.descriptor.o_EqualsLong(self, intValue.toLong())
 
