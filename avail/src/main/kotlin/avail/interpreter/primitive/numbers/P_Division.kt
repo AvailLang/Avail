@@ -59,7 +59,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -285,7 +284,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 			if (!currentManifest.restrictionFor(intA)
 					.intersectsType(i63)
 				|| !currentManifest.restrictionFor(intB)
-					.intersectsType(inclusive(1L, Long.MAX_VALUE)))
+					.intersectsType(positiveI63))
 			{
 				jumpTo(intFailure)
 				return@attemptToGenerateTwoIntToIntPrimitive
@@ -303,22 +302,22 @@ object P_Division : Primitive2(CanFold, CanInline)
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (aRead, bRead) = readBoxedOperands
-		if (!aRead.restriction.intersectsType(i31)) return emptyList()
-		if (!bRead.restriction.intersectsType(positiveI31)) return emptyList()
-		// The division is possible in 32-bit math.
-		if (!aRead.restriction.containedByType(i31))
+		if (!aRead.restriction.intersectsType(i63)) return emptyList()
+		if (!bRead.restriction.intersectsType(positiveI63)) return emptyList()
+		// The division is possible in 64-bit math.
+		if (!aRead.restriction.containedByType(i63))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(aRead.register()),
-					restrictionForType(i31)))
+					restrictionForType(i63)))
 		}
-		if (!bRead.restriction.containedByType(positiveI31))
+		if (!bRead.restriction.containedByType(positiveI63))
 		{
 			addAll(
 				typeRestrictionConditions(
 					setOf(bRead.register()),
-					restrictionForType(positiveI31)))
+					restrictionForType(positiveI63)))
 		}
 		// Since we've already excluded the case that the values are always
 		// out of range, we can still wish for the values to be in int
@@ -328,8 +327,8 @@ object P_Division : Primitive2(CanFold, CanInline)
 		addAll(unboxedIntConditions(listOf(bRead.register())))
 	}
 
-	/** The type for strictly positive 32-bit integers. */
-	val positiveI31 = inclusive(1, Int.MAX_VALUE)
+	/** The type for strictly positive 64-bit integers. */
+	val positiveI63 = inclusive(1L, Long.MAX_VALUE)
 
 	override val semanticInfixOperatorString: String? get() = "Div"
 }

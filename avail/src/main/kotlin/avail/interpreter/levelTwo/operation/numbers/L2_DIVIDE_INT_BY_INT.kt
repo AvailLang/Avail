@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
+import avail.interpreter.primitive.numbers.P_Division.positiveI63
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -101,9 +102,9 @@ class L2_DIVIDE_INT_BY_INT(
 			manifest.restrictionFor(divisor.semanticValue()))
 		success.manifest().run {
 			val successNumerator =
-				initialNumerator.intersectionWithType(nonnegativeLongs)
+				initialNumerator.intersectionWithType(i63)
 			val successDenominator =
-				initialDenominator.intersectionWithType(positiveLongs)
+				initialDenominator.intersectionWithType(positiveI63)
 			setRestriction(dividend.semanticValue(), successNumerator)
 			setRestriction(divisor.semanticValue(), successDenominator)
 			// If the division can't succeed, the success path is dead, and
@@ -129,8 +130,8 @@ class L2_DIVIDE_INT_BY_INT(
 		// The unchecked division truncates, which only agrees with Avail's
 		// rounding toward negative infinity when the dividend is non-negative
 		// and the divisor is positive.
-		if (dividend.type.isSubtypeOf(nonnegativeLongs)
-			&& divisor.type.isSubtypeOf(positiveLongs))
+		if (dividend.type.isSubtypeOf(i63)
+			&& divisor.type.isSubtypeOf(positiveI63))
 		{
 			+L2_BIT_LOGIC_OP(Div, dividend, divisor, quotient)
 			jumpTo(success.targetBlock())
@@ -161,14 +162,5 @@ class L2_DIVIDE_INT_BY_INT(
 		storeLong(quotient.register())
 		// ::
 		jump(success)
-	}
-
-	companion object
-	{
-		/** The non-negative [Long]s, the dividends this division handles. */
-		private val nonnegativeLongs = i63
-
-		/** The positive [Long]s, the divisors this division handles. */
-		private val positiveLongs = inclusive(1L, Long.MAX_VALUE)
 	}
 }

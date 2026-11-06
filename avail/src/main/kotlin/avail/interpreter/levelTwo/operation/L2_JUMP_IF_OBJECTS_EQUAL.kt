@@ -39,6 +39,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
@@ -161,8 +162,10 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		if (first.restriction.intersectsType(i32)
 			&& second.restriction.intersectsType(i32))
 		{
-			addAll(unboxedIntConditions(listOf(first.register())))
-			addAll(unboxedIntConditions(listOf(second.register())))
+			addAll(
+				unboxedIntConditions(listOf(first.register()), i32Restriction))
+			addAll(
+				unboxedIntConditions(listOf(second.register()), i32Restriction))
 		}
 	}
 

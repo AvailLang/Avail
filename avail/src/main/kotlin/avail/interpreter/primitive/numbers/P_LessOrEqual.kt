@@ -49,7 +49,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -107,8 +107,8 @@ object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = buildList {
 		val (arg1, arg2) = readBoxedOperands
-		if (arg1.restriction.intersectsType(i32)
-			&& arg2.restriction.intersectsType(i32))
+		if (arg1.restriction.intersectsType(i64)
+			&& arg2.restriction.intersectsType(i64))
 		{
 			addAll(unboxedIntConditions(listOf(arg1.register())))
 			addAll(unboxedIntConditions(listOf(arg2.register())))

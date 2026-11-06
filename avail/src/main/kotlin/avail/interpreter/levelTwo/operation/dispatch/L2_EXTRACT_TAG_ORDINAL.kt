@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
@@ -80,7 +81,8 @@ constructor (
 
 	override fun PostPhiData.interestingConditions() = buildList {
 		// Don't merge in the past if one of the paths knew the tag ordinal.
-		addAll(unboxedIntConditions(listOf(tagOrdinal.register())))
+		addAll(
+			unboxedIntConditions(listOf(tagOrdinal.register()), i32Restriction))
 		// Don't merge in the past if the tag ordinal was known exactly.
 		addAll(constantConditions(listOf(tagOrdinal.register())))
 	}

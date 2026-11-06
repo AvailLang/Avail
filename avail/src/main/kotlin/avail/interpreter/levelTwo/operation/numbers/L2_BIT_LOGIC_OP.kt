@@ -79,6 +79,7 @@ import avail.interpreter.primitive.integers.P_BitwiseOr
 import avail.interpreter.primitive.integers.P_BitwiseXor
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.interpreter.primitive.numbers.P_Division
+import avail.interpreter.primitive.numbers.P_Division.positiveI63
 import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.optimizer.CallSiteHelper
@@ -1028,7 +1029,7 @@ private fun L2ValueManifest.assertNonnegativeDividendAndPositiveDivisor(
 	{
 		"Dividend might be negative: ${dividend.restriction}"
 	}
-	assert(divisor.restriction.containedByType(inclusive(1L, Long.MAX_VALUE)))
+	assert(divisor.restriction.containedByType(positiveI63))
 	{
 		"Divisor might not be positive: ${divisor.restriction}"
 	}

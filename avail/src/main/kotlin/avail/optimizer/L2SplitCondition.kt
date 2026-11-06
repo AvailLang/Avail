@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.floatRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -318,21 +318,27 @@ sealed class L2SplitCondition
 	{
 		/**
 		 * Create [L2ExistsCondition]s that are true at a point where any of
-		 * the ancestors of the given registers were in an unboxed [Int] form.
+		 * the ancestors of the given registers were in an unboxed form in an
+		 * int register.
 		 *
 		 * @param startingRegisters
 		 *   The list of registers from which to search for ancestors.
+		 * @param range
+		 *   The restriction that the consumer can unbox into an int register.
+		 *   Int registers hold up to an i64, but some consumers only handle an
+		 *   i32.
 		 * @return
 		 *   The [L2ExistsCondition], or `null` if only semantic constants were
 		 *   provided.
 		 */
 		fun <K: RegisterKind<K>> unboxedIntConditions(
-			startingRegisters: List<L2Register<K>>
+			startingRegisters: List<L2Register<K>>,
+			range: TypeRestriction = i64Restriction
 		): Set<L2SplitCondition?> = buildSet {
 			// First do a trace to collect relevant ancestors.
 			val tracer = RestrictionTracer(
 				initialRegisters = startingRegisters,
-				initialRestriction = i32Restriction,
+				initialRestriction = range,
 				traceVariants = false,
 				traceTags = false,
 				traceArithmetic = false)
@@ -390,7 +396,7 @@ sealed class L2SplitCondition
 			val startingRestriction = when (startingRegisters.first().kind)
 			{
 				BOXED_KIND -> anyRestriction
-				INTEGER_KIND -> i32Restriction
+				INTEGER_KIND -> i64Restriction
 				FLOAT_KIND -> floatRestriction
 			}
 			val tracer = RestrictionTracer(startingRegisters, startingRestriction)

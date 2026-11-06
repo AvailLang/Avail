@@ -46,6 +46,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
@@ -123,7 +124,9 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 			val constantTypeWhenInt = constantType.typeIntersection(i32)
 			if (!constantTypeWhenInt.isVacuousType)
 			{
-				addAll(unboxedIntConditions(listOf(value.register())))
+				addAll(
+					unboxedIntConditions(
+						listOf(value.register()), i32Restriction))
 			}
 			addAll(
 				typeRestrictionConditions(

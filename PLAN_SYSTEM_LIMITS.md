@@ -120,9 +120,16 @@ above calls `L2ReadIntOperand.assertInt32` when it is added, and
    operation for good: its only producer is hash dispatch, which needs the
    32-bit unsigned shift of an int hash.  `P_BitTest`'s `SelectBit` path is
    still `i32` (see the next item).
-4. Primitive fast paths still restricted to `i32`, by primitive family.
-5. Conservative `i32` checks that could widen for speed, not correctness:
+4. Done: `P_BitTest`, and the infallible rewrites in `P_Addition` and
+   `P_BitwiseAnd`, use `i64`.  The primitives that still unbox only `i32` do
+   so because their values are ints by nature: `P_Hash`, `P_MapSize`,
+   `P_TupleAt`, `P_ExtractSubtuple`, `P_FloatToIntBits`, `P_FloatFromIntBits`.
+5. Done: split conditions.  `unboxedIntConditions` takes the range the
+   consumer can unbox (default `i64`); `constantConditions` starts int
+   registers at `i64`.  The comparison and division primitives use `i64`
+   ranges; `L2_JUMP_IF_OBJECTS_EQUAL`, `L2_JUMP_IF_KIND_OF_OBJECT` and
+   `L2_EXTRACT_TAG_ORDINAL` keep `i32`.
+6. Conservative `i32` checks that could widen for speed, not correctness:
    phi kinds at merges (`L2ValueManifest`), boxed-integer recycling
-   (`L2Optimizer`), int-compare fast paths in `L2Generator`,
-   `L2_JUMP_IF_KIND_OF_OBJECT` and `L2_JUMP_IF_OBJECTS_EQUAL`, and the split
-   conditions.
+   (`L2Optimizer`), and the int fast paths in `L2Generator`'s type check,
+   `L2_JUMP_IF_KIND_OF_OBJECT` and `L2_JUMP_IF_OBJECTS_EQUAL`.
