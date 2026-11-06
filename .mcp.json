@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "avail-docs": {
+      "type": "stdio",
+      "command": ".wovenspec/mcp/launch.sh",
+      "args": []
+    }
+  }
+}

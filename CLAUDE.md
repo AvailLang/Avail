@@ -119,3 +119,156 @@ All UI mutations must happen on the EDT. The codebase uses `SwingUtilities.isEve
 - **Primitive naming**: `P_<ConceptName>` in `interpreter/primitive/<category>/`.
 - **Bootstrap**: Adding a primitive or special object requires running `generateAllNames` to regenerate the `.properties` files consumed by the Avail bootstrap modules.
 - **L2 operations**: New L2 ops go in `interpreter/levelTwo/operation/`, implementing `L2Operation`. Register types and read/write semantics must be declared precisely for the register allocator.
+
+## Relation to the User-Level Guidance
+
+Mark's user-level `~/.claude/CLAUDE.md` holds the working agreement — approval cycle, documentation and error discipline, branches, beads, changelog fragments. This file adds what is particular to Avail, and wins where the two disagree.
+
+## Verifying a Change
+
+From `avail/`:
+
+```bash
+./gradlew build                         # compile + Kotlin tests
+echo "EXIT=$?"
+./gradlew dokkaGeneratePublicationHtml  # resolve every KDoc link
+```
+
+The Kotlin tests include the Avail-language test suites, run through the VM. Run a single class with `--tests` while iterating; run the whole `build` once before presenting a changeset. A change that adds a primitive or special object is not verified until `generateAllNames` has regenerated the bootstrap names and the build has passed after it.
+
+## Kotlin House Style
+
+The user-level rules apply in full; the checked-in `avail/.idea/codeStyles/Project.xml` is the mechanical authority. What is particular to this codebase:
+
+- **License header.** Every `.kt` file opens with the Avail Foundation BSD header, copied from a neighboring file. Its first line is the file's own name, and the copyright range ends in the current year (`Copyright © 1993-2026, The Avail Foundation, LLC.`). When a file is renamed, its header's name line changes with it.
+- **Authorship.** A class's KDoc names its author: `@author Mark van Gulik &lt;mark@availlang.org&gt;` for anything written in Mark's sessions. An existing `@author` line is never removed; a substantial rework adds a second line beneath it.
+- **Naming prefixes are part of the vocabulary**, not decoration:
+  - `A_Foo` — the protocol interface for a kind of Avail object (`A_Tuple`, `A_Function`). New operations are declared here first, then implemented in the relevant descriptors, with a default `unsupported` implementation in `AbstractDescriptor`.
+  - `FooDescriptor` — the behavior of one representation of a kind.
+  - `P_Foo` — a primitive, as an `object`, in `interpreter/primitive/<category>/`.
+  - `L2_FOO_BAR` — a Level Two operation, in `interpreter/levelTwo/operation/`, in screaming snake case after the prefix.
+  - `L2Simple_FooBar` — a Level Two Simple instruction, in `interpreter/levelTwoSimple/instructions/`.
+  - `E_FOO` — an `AvailErrorCode` entry.
+- **Primitive KDoc begins `**Primitive:**`**, then states what the primitive does in Avail terms and how it fails.
+- **Companion-object factories and members are imported by name** (`import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt`), so call sites read `fromInt(5)`, never `IntegerDescriptor.fromInt(5)`.
+- **Explicit backing fields** (`val x: Set<T>` over `field = mutableSetOf()`) are the idiom for a property that is read-only to clients and mutable within the class. Prefer them to a private `_x` twin.
+- **Slot layout** is declared by enums annotated `@IntegerSlotsEnum` / `@ObjectSlotsEnum`, nested in their descriptor. Each slot is documented individually, including what it holds when the object is mutable versus immutable or shared, when that differs.
+- **UI code** asserts it is on the EDT (`assert(SwingUtilities.isEventDispatchThread())`) at every entry point that mutates Swing state.
+
+## Errors in the VM
+
+- **A primitive fails by answering `interpreter.primitiveFailure(E_…)`**, never by throwing. Its `privateFailureVariableType()` names exactly the error codes it can produce, as an enumeration; adding a failure path means adding its code there.
+- **A new error code** is an `AvailErrorCode` entry with its own KDoc saying when it arises, and is named in the Avail library (`Error Codes.avail`) so Avail code can test for it.
+- **Kotlin exceptions are for the Kotlin side** — the builder, the repository, Anvil, the server. They follow the user-level rules: typed, carrying their locators (module name, source position, file path), causes wrapped rather than discarded.
+- **A parse rejection is a diagnostic, not an exception.** A semantic restriction reports an impossible or pointless call with `Reject parse, expected:` and a message completing the sentence "expected …", quoting types with “①”/“②” substitution.
+
+## Avail Source Style
+
+Avail source lives in `avail/distro/src/avail/` and is held to the same standard as the Kotlin. Read the module you are editing, and its neighbors, before writing a line; the standard library is the style reference.
+
+### Files and modules
+
+- **A module's file name is its name**, spaces and all (`Early Tuples.avail`). A **package** is a directory `Name.avail/` containing a representative module `Name.avail`, which `Extends` the package's members to present its surface.
+- **Every module opens with the license header** in a `/* … */` block whose first line is the module's file name, as in the Kotlin.
+- **The header is written in fixed order** — `Module`, `Versions`, `Uses` and/or `Extends`, `Names`, then `Body` — each keyword at column 0 and its entries indented one tab:
+  ```avail
+  Module "Casts"
+  Versions
+  	"Avail-1.6.1"
+  Uses
+  	"Assertions",
+  	"Control Structures" =
+  	(
+  		"For each…from_to_§do_",
+  		"If|if_then_«else if_then_»«else_»?"
+  	),
+  	"Definers"
+  Names
+  	/* Casts. */
+  	"Cast|cast_into_",
+  	"Cast|cast_into_else_",
+
+  	/* Exception types. */
+  	"bad-cast exception"
+  Body
+  ```
+- **`Uses` entries are alphabetical.** An entry that imports selectively lists the names in a parenthesized block, one per line.
+- **`Names` are grouped** by a `/* Group. */` comment, a blank line between groups, alphabetical within each group.
+- **Layering is strict.** The module graph is acyclic, and the bootstrap's `Early …` modules exist because the later ones depend on them; a method needed earlier than its natural module is defined early and extended later, never by introducing a cycle.
+
+### Code
+
+- **Hard tabs, 80 columns, two spaces after sentences** — as in the Kotlin.
+- **Blocks** open with `[` on its own line at the indentation of the statement that owns them, and close with `]` there. A block whose parameters do not fit on one line lists them one per line, then `|` alone on a line before the body:
+  ```avail
+  Public method "Cast|cast_into_" is
+  [
+  	value : any,
+  	accept : [⊥]→⊤
+  |
+  	Primitive CastInto (failureCode : natural number);
+  	Raise a bad-cast exception with
+  		source type ::= value's type,
+  		destination type ::= accept's type[1]
+  ] : ⊤
+  styled by conditional styler;
+  ```
+  A short block fits on one line: `[n : natural number | n × 2]`.
+- **`::=` binds a constant, `:=` declares or assigns a variable.** Prefer constants; reach for a variable only where a value genuinely changes.
+- **`// TODO:` comments are welcome** where a known gap sits, saying what is missing and why. They are the one plan-shaped thing allowed in source; the bead still tracks the work.
+- **Use the library's own notation.** Append with `+=` (not `++= <x>`), mathematical operators in their Unicode spelling (`⊆`, `∩`, `∪`, `∈`, `¬`, `×`, `→`, `⊥`, `⊤`), and curly quotes in message text (“…”). These are the canonical spellings, not ornaments with ASCII equivalents.
+- **Message names are patterns**, and their metacharacters are the method's grammar: `_` an argument, `«…»` a repeated or optional group, `‡` a separator, `|` a case alternative (`Cast|cast`), `§` a section checkpoint, `†` a literal-only argument, `…` a token. Choose a name for how its call sites will read as prose.
+- **Every public method with a non-trivial return type has a semantic restriction** that narrows the result from its argument types and rejects calls it can prove pointless or impossible.
+- **Field atoms** are declared at the top of `Body`: `"source type" is a new field atom constrained to type;`.
+
+### Documentation
+
+Every public method, semantic restriction, class, field atom, and global gets a `/** … */` comment. Avail's tags quote their arguments, and their descriptions begin on the next line, aligned with the neighboring descriptions:
+
+```avail
+/**
+ * If the function {@param "accept"} accepts {@param "value"} as an argument
+ * (based on its runtime type), then invoke {@param "accept"} with {@param
+ * "value"}.  Otherwise, raise a {@type "bad-cast exception"}.
+ *
+ * @method "Cast|cast_into_"
+ * @param "value" "any"
+ *        A value.
+ * @param "accept" "[⊥]→⊤"
+ *        The function to invoke if {@param "value"} is an instance of its
+ *        parameter type.
+ * @returns "any"
+ *        The result of {@param "accept"}.
+ * @raises "bad-cast exception"
+ *         If {@param "value"} is not an instance of {@param "accept"}'s
+ *         parameter type.
+ * @category "Casts" "Control Structures"
+ */
+```
+
+- **`@method`** names the message exactly; **`@param "name" "type"`**, **`@returns "type"`**, and **`@raises "type"`** each carry a description; **`@category`** places the method in one or more documentation categories.
+- **A semantic restriction** is documented with `@method` and one `@restricts "type"` per argument type it receives.
+- **A class** carries `@type`, `@supertype`, and `@category`, and documents each field.
+- **Inline references** use `{@method "…"}`, `{@param "…"}`, and `{@type "…"}`.
+
+### Tests
+
+- **Avail tests live under `Tests.avail/`**, mirroring the library's structure, one module per area (`Foundation Tests.avail/Tuple Tests.avail`). Each primitive also gets a coverage module under `Primitive Coverage Tests.avail/`.
+- **A test** is `Test "name" in <suite> test suite is [ … ];`, asserting with `Require:`. A test's name says the behavior it pins, in lowercase prose.
+- **A new library method gets tests in the same changeset**, and a new primitive gets both its coverage module and a test of the library method that binds it.
+
+## Kotlin–Avail Parity
+
+The VM and the library are one system. A new primitive is not finished until the library binds it (in `Bootstrap.avail` or the module that owns the concept, with its semantic restriction and documentation), `generateAllNames` has been run, and Avail tests exercise it. A new `AvailErrorCode` is not finished until the library names it. A new special object is not finished until it is registered and its bootstrap name regenerated. Kotlin-side tests alone never verify a change Avail code can observe.
+
+## Design Docs
+
+Avail's design docs live under `avail/doc/`, and are served by the Wovenspec MCP server `avail-docs` (registered in `.mcp.json`; configured by `wovenspec.toml`; tools prefixed `avail_`). Its build has no embedding stack, since ONNX Runtime has no prebuilt x86_64 macOS library, so it serves no search: find a topic with `avail_spec_roots` / `avail_spec_subsections`, or by grepping the source paths `avail_start_here` lists, then read it with `avail_spec_lookup`. A new design doc is added as a `[[spec_source]]` in `wovenspec.toml`, then `wovenspec ingest --all`. They describe the VM, optimizer, repository, and packaging as they are. Session notes, debugging logs, and integration plans are discussion and plan, not design: they belong in `bd` (as bead notes or decisions), never as new files under `doc/`.
+
+## Changelog
+
+The changelog is `avail/CHANGELOG.md`, and fragments live in `avail/changelog.d/`. **The changelog documents its own conventions** — group order, entry shape, the bead sections, how a release assembles the fragments — in its header and its `### Section template` block. Read that header before writing a fragment; the template block is the canonical group list, so this file does not repeat it. Versions are the build's own (`version` in `avail/build.gradle.kts`).
+
+## The Working Branch
+
+Mark's working branch is **`development`**. Every changeset is committed and pushed there; it reaches `main` through a PR when Mark calls for one, and continues after each merge. The repository does not delete a branch when its PR merges, and that is relied on: never pass `--delete-branch`, and never delete `development` locally or on the remote.
