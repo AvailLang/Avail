@@ -141,6 +141,8 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shl
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shr
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
@@ -813,6 +815,31 @@ class SimpleOptimizerTest
 			floorDivide,
 			range2 = inclusive(Long.MIN_VALUE, -1L),
 			samples2 = listOf(Long.MIN_VALUE, -(1L shl 40), -3L, -1L))
+	}
+
+	/**
+	 * Check that optimized shifts use 64-bit shift counts: right shifts across
+	 * the whole range of a long, and left shifts whose results fit in a long.
+	 */
+	@Test
+	fun testLongShiftsBeyondInt()
+	{
+		checkBinaryIntegerOperation(
+			"_>>_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			{ it.isBitLogicOperation(Shr) },
+			{ a, b -> a.shiftRight(b.toInt()) },
+			range2 = inclusive(0L, 63L),
+			samples2 = listOf(0L, 1L, 31L, 32L, 33L, 63L))
+		checkBinaryIntegerOperation(
+			"_<<_",
+			inclusive(-(1L shl 20), 1L shl 20),
+			listOf(-(1L shl 20), -12345L, -1L, 0L, 1L, 99999L, 1L shl 20),
+			{ it.isBitLogicOperation(Shl) },
+			{ a, b -> a.shiftLeft(b.toInt()) },
+			range2 = inclusive(0L, 40L),
+			samples2 = listOf(0L, 1L, 31L, 32L, 40L))
 	}
 
 	/**

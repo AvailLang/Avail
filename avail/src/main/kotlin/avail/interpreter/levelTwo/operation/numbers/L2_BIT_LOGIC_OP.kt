@@ -236,17 +236,17 @@ constructor(
 
 		/**
 		 * Whether shifting every possible value of this read left by [shift]
-		 * stays within an [Int], as the 32-bit [BitOperation.Shl] requires.
+		 * stays within a [Long], as [BitOperation.Shl] requires.
 		 *
 		 * @param shift
 		 *   The number of bit positions to shift left.
 		 * @return
-		 *   Whether the shift is in 0..31 and can't overflow an [Int].
+		 *   Whether the shift is in 0..63 and can't overflow a [Long].
 		 */
-		fun L2ReadIntOperand.shlFitsInt(shift: Int): Boolean =
-			shift in 0..31
-				&& low >= Int.MIN_VALUE.toLong() shr shift
-				&& high <= Int.MAX_VALUE.toLong() shr shift
+		fun L2ReadIntOperand.shlFitsLong(shift: Int): Boolean =
+			shift in 0..63
+				&& low >= Long.MIN_VALUE shr shift
+				&& high <= Long.MAX_VALUE shr shift
 	}
 
 	/**
@@ -259,13 +259,13 @@ constructor(
 	 *   A function that emits JVM code to process the two `long` values that
 	 *   have already been pushed.  It should have the effect of removing them
 	 *   from the JVM operand stack and leaving a single `long` as the result.
-	 *   [Add], [Sub], and [Mul] produce the exact result, which must be known
-	 *   to fit in a `long`.  [And], [Or], [Xor], [Max], [Min], and [SelectBit]
-	 *   produce the exact result for any `long` inputs, as do [Div] and [Mod]
-	 *   for a non-negative dividend and a positive divisor.  The remaining
-	 *   operations still have 32-bit semantics, so their inputs are
-	 *   sign-extended ints, and their result is the sign-extended int that the
-	 *   32-bit operation would produce.
+	 *   [Add], [Sub], [Mul], and [Shl] produce the exact result, which must be
+	 *   known to fit in a `long`.  [And], [Or], [Xor], [Max], [Min], [Shr],
+	 *   and [SelectBit] produce the exact result for any `long` inputs, as do
+	 *   [Div] and [Mod] for a non-negative dividend and a positive divisor.
+	 *   Only [Ushr] has 32-bit semantics: its first input is a sign-extended
+	 *   int, and its result is the sign-extended int that the 32-bit unsigned
+	 *   shift produces.
 	 * @property folder
 	 *   A function that folds this operation on two constants, each a
 	 *   sign-extended int.  It must produce the same value as the code that
@@ -342,8 +342,7 @@ constructor(
 			rule(Add(X, K1), K2, {!addOrSubtractOverflows(k1, k2)}) {
 				Add(X, C(k1 + k2))
 			}
-			// Shl is still a 32-bit operation.
-			rule(X, X, {x.shlFitsInt(1)}) { Shl(X, C(1)) }
+			rule(X, X, {x.shlFitsLong(1)}) { Shl(X, C(1)) }
 			rule(X, Mul(X, K1), {!addOrSubtractOverflows(k1, 1)}) {
 				Mul(X, C(k1 + 1))
 			}
@@ -415,13 +414,13 @@ constructor(
 			rule(C(1), X) { X }
 			// Only positive powers of two.  Zero has no set bit to count, and
 			// the most negative value is only a power of two by wrapping.
-			// Shl is still a 32-bit operation, so the result must fit.
+			// The shifted result must fit in a long, as Shl requires.
 			rule(
 				K1,
 				X,
 				{
 					k1 > 0 && k1.takeLowestOneBit() == k1
-						&& x.shlFitsInt(k1.countTrailingZeroBits())
+						&& x.shlFitsLong(k1.countTrailingZeroBits())
 				}
 			) {
 				Shl(X, C(k1.countTrailingZeroBits().toLong()))
@@ -431,7 +430,7 @@ constructor(
 				K1,
 				{
 					k1 > 0 && k1.takeLowestOneBit() == k1
-						&& x.shlFitsInt(k1.countTrailingZeroBits())
+						&& x.shlFitsLong(k1.countTrailingZeroBits())
 				}
 			) {
 				Shl(X, C(k1.countTrailingZeroBits().toLong()))
@@ -504,21 +503,21 @@ constructor(
 			}),
 
 		/**
-		 * Shift an [Int] rightward by the specified number of bit positions,
-		 * respecting its sign.  The second operand should be between 0 and 31,
-		 * otherwise only the bottom five bits will be used.
+		 * Shift a [Long] rightward by the specified number of bit positions,
+		 * respecting its sign.  The second operand should be between 0 and 63,
+		 * otherwise only the bottom six bits will be used.
 		 */
 		Shr(
-			jvmGenerator = { shiftBy32BitCount(Opcodes.LSHR) },
-			folder = { a, b -> a shr (b.toInt() and 31) },
+			jvmGenerator = { shiftLong(Opcodes.LSHR) },
+			folder = { a, b -> a shr (b.toInt() and 63) },
 			bounder = P_BitShiftRight::binaryBound,
 			ruleCreator = {
-				// Shift amounts outside 0..31 would be masked, so exclude them.
+				// Shift amounts outside 0..63 would be masked, so exclude them.
 				rule(X, C(0)) { X }
 				rule(
 					Shr(X, K1),
 					K2,
-					{k1 in 0L..31L && k2 in 0L..31L && k1 + k2 <= 31}
+					{k1 in 0L..63L && k2 in 0L..63L && k1 + k2 <= 63}
 				) {
 					Shr(X, C(k1 + k2))
 				}
@@ -526,34 +525,32 @@ constructor(
 			}),
 
 		/**
-		 * Shift an [Int] leftward by the specified number of bit positions,
-		 * respecting its sign.  The second operand should be between 0 and 31,
-		 * otherwise only the bottom five bits will be used.
+		 * Shift a [Long] leftward by the specified number of bit positions.
+		 * The second operand should be between 0 and 63, otherwise only the
+		 * bottom six bits will be used.  This must only be used where the
+		 * result is known to fit in a [Long].
 		 */
 		Shl(
-			jvmGenerator = {
-				shiftBy32BitCount(Opcodes.LSHL)
-				wrapTo32Bits()
-			},
-			folder = { a, b ->
-				(a shl (b.toInt() and 31)).toInt().toLong()
-			},
+			jvmGenerator = { shiftLong(Opcodes.LSHL) },
+			folder = { a, b -> a shl (b.toInt() and 63) },
 			bounder = P_BitShiftLeft::binaryBound,
 			ruleCreator = {
-				// Shift amounts outside 0..31 would be masked, so exclude them.
+				// Shift amounts outside 0..63 would be masked, so exclude them.
 				rule(X, C(0)) { X }
 				rule(
 					Shl(X, K1),
 					K2,
-					{k1 in 0L..31L && k2 in 0L..31L && k1 + k2 <= 31}
+					{k1 in 0L..63L && k2 in 0L..63L && k1 + k2 <= 63}
 				) {
 					Shl(X, C(k1 + k2))
 				}
-				rule(Shr(X, K1), K1, {k1 in 0L..31L}) {
+				rule(Shr(X, K1), K1, {k1 in 0L..63L}) {
 					And(X, C(-1L shl k1.toInt()))
 				}
-				rule(Ushr(X, K1), K1, {k1 in 0L..31L}) {
-					And(X, C(-1L shl k1.toInt()))
+				// Ushr is a 32-bit operation, so it leaves only the low 32 bits
+				// of X, zero-extended.  A shift of 0 is handled by Ushr's rule.
+				rule(Ushr(X, K1), K1, {k1 in 1L..31L}) {
+					And(X, C(0xFFFF_FFFFL and (-1L shl k1.toInt())))
 				}
 				// Only zero is unchanged by a left shift.  (-1 shl y is -2^y.)
 				rule(X, Y, {x.type.isSubtypeOf(inclusive(0, 0))}) { X }
@@ -975,29 +972,17 @@ constructor(
 }
 
 /**
- * Reduce the `long` on top of the stack to its low 32 bits, sign-extended,
- * which is what the 32-bit version of a wrapping operation would produce.
- */
-private fun JVMTranslator.wrapTo32Bits()
-{
-	method.visitInsn(Opcodes.L2I)
-	method.visitInsn(Opcodes.I2L)
-}
-
-/**
  * Given a `long` value and a `long` shift amount on the stack, emit the
- * [opcode] (a `long` shift) using only the bottom five bits of the amount, as
- * the 32-bit shift would.
+ * [opcode] (a `long` shift).  The JVM uses only the bottom six bits of the
+ * amount.
  *
  * @param opcode
  *   The `long` shift opcode, which takes an `int` shift amount.
  */
-private fun JVMTranslator.shiftBy32BitCount(opcode: Int)
+private fun JVMTranslator.shiftLong(opcode: Int)
 {
 	// :: value, amount
 	method.visitInsn(Opcodes.L2I)
-	intConstant(31)
-	method.visitInsn(Opcodes.IAND)
-	// :: value, amount & 31
+	// :: value, (int) amount
 	method.visitInsn(opcode)
 }

@@ -54,9 +54,9 @@ import kotlin.random.Random
 
 /**
  * Check each [BitOperation]'s `long` folder, applied to sign-extended ints.
- * [Add], [Sub], and [Mul] produce the exact result, and the other operations
- * produce the sign-extended result of the 32-bit operation.  The folder must
- * agree with the JVM code that the operation generates.
+ * Every operation except [Ushr] produces the exact `long` result, and [Ushr]
+ * produces the sign-extended result of the 32-bit unsigned shift.  The folder
+ * must agree with the JVM code that the operation generates.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -103,20 +103,22 @@ class BitOperationFolderTest
 	fun testFolders()
 	{
 		val shifts = (0 .. 40).toList()
+		val longShifts = (0 .. 63).toList()
 		val positive: (Int, Int) -> Boolean = { a, b -> a >= 0 && b > 0 }
 		// The exact operations.  Products of ints always fit in a long.
 		check(Add) { a, b -> a.toLong() + b }
 		check(Sub) { a, b -> a.toLong() - b }
 		check(Mul) { a, b -> a.toLong() * b }
-		// The 32-bit operations.
+		// On sign-extended ints, these agree with the 32-bit operations.
 		check(And) { a, b -> (a and b).toLong() }
 		check(Or) { a, b -> (a or b).toLong() }
 		check(Xor) { a, b -> (a xor b).toLong() }
 		check(Div, precondition = positive) { a, b -> (a / b).toLong() }
 		check(Mod, precondition = positive) { a, b -> (a % b).toLong() }
+		// Ushr is a 32-bit operation; Shr and Shl are 64-bit.
 		check(Ushr, shifts) { a, b -> (a ushr b).toLong() }
-		check(Shr, shifts) { a, b -> (a shr b).toLong() }
-		check(Shl, shifts) { a, b -> (a shl b).toLong() }
+		check(Shr, longShifts) { a, b -> a.toLong() shr b }
+		check(Shl, longShifts) { a, b -> a.toLong() shl b }
 		check(Max) { a, b -> max(a, b).toLong() }
 		check(Min) { a, b -> min(a, b).toLong() }
 		check(SelectBit, (0 .. 100).toList()) { a, b ->

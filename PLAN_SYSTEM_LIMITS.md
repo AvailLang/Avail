@@ -68,12 +68,13 @@ ints.  `JVMTranslator` offers two views: `load`/`store` (the int view, with
 Unbox, box, int and constant moves, add, subtract, multiply, divide,
 compare, bit logic, chunk entry, the register dump, and the L2 trace.
 
-Add, subtract and multiply are 64-bit (done): `_+_`, `_-_` and `_×_` unbox
-operands in `i64`.  The checked operations test for `long` overflow, and are
-only emitted when that overflow is possible; otherwise the exact bit-logic
-`Add`, `Sub` and `Mul` are used.  The other bit-logic operations still
-reproduce 32-bit results (5-bit shift counts, `ushr32`), as do their folders,
-and rules that produce `Shl` require the result to fit an `Int`.
+Arithmetic is 64-bit (done): `_+_`, `_-_`, `_×_`, `_÷_`, `_bit∧_`,
+`_bit∨_`, `_bit⊕_`, `_<<_` and `_>>_` unbox operands in `i64`.  The checked
+operations test for `long` overflow, and are only emitted when that overflow
+is possible; otherwise the exact bit-logic operations are used.  Every
+bit-logic operation is exact on longs except `Ushr`, which reproduces the
+32-bit unsigned shift (`ushr32`) for hash dispatch.  Rules that produce `Shl`
+require the result to fit a `Long`.
 
 `readInt`, `readTwoInts`, `canUnboxInt`, `readAsTwoInts` and
 `attemptToGenerateTwoIntToIntPrimitive` take a `range` that defaults to
@@ -114,9 +115,11 @@ above calls `L2ReadIntOperand.assertInt32` when it is added, and
 2. Done: division unboxes in `i64`; `L2_DIVIDE_INT_BY_INT` bounds its
    quotient with longs; `Div`/`Mod` are exact for a non-negative dividend and
    positive divisor; `modBound` uses longs.
-3. Shifts: `Shl` and `Shr` become 64-bit (counts 0..63, rule shift limits
-   0..63).  `Ushr` stays a 32-bit operation for good: its only producer is
-   hash dispatch, which needs the 32-bit unsigned shift of an int hash.
+3. Done: `Shl` and `Shr` are 64-bit (counts 0..63, rule shift limits
+   0..63), and `_<<_` and `_>>_` unbox in `i64`.  `Ushr` stays a 32-bit
+   operation for good: its only producer is hash dispatch, which needs the
+   32-bit unsigned shift of an int hash.  `P_BitTest`'s `SelectBit` path is
+   still `i32` (see the next item).
 4. Primitive fast paths still restricted to `i32`, by primitive family.
 5. Conservative `i32` checks that could widen for speed, not correctness:
    phi kinds at merges (`L2ValueManifest`), boxed-integer recycling

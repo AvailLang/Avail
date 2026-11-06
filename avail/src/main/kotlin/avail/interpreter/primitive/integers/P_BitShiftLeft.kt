@@ -42,7 +42,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.bitShift
-import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.greaterThan
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Number.Companion.lessOrEqual
@@ -228,7 +228,7 @@ object P_BitShiftLeft : Primitive2(CanFold, CanInline)
 				{
 					// The resulting value is known precisely.
 					moveConstant(
-						outputType.lowerBound.extractInt,
+						outputType.lowerBound,
 						intWrite.semanticValues())
 				}
 				intA.type.isSubtypeOf(inclusive(-1, 0)) ||
@@ -240,38 +240,39 @@ object P_BitShiftLeft : Primitive2(CanFold, CanInline)
 					//   2. The shift is always zero, likewise having no effect.
 					move(intA.semanticValue(), intWrite.semanticValues())
 				}
-				intB.type.isSubtypeOf(inclusive(0, 31)) ->
+				intB.type.isSubtypeOf(inclusive(0, 63)) ->
 				{
-					// The shift is in [0..31], so the JVM can directly handle
+					// The shift is in [0..63], so the JVM can directly handle
 					// it.
 					+L2_BIT_LOGIC_OP(Shl, intA, intB, intWrite)
 				}
-				intB.constantOrNull.notNullAnd { extractInt in -31..0 } ->
+				intB.constantOrNull.notNullAnd { extractLong in -63L..0L } ->
 				{
-					// The shift is a constant in [-31..0], so we can convert it
+					// The shift is a constant in [-63..0], so we can convert it
 					// to a constant right shift that the JVM can handle.
 					+L2_BIT_LOGIC_OP(
 						Shr,
 						intA,
-						unboxedIntConstant(-intB.constantOrNull!!.extractInt),
+						unboxedIntConstant(-intB.constantOrNull!!.extractLong),
 						intWrite)
 				}
 				else ->
 				{
 					// This is already a rare situation, so just fall back, even
-					// though we know the value would fit in an i32.  If we ever
+					// though we know the value would fit in an i64.  If we ever
 					// need to optimize the remaining case, we'll have to emit
-					// tests for the shift factors falling into [MIN_INT..-32],
-					// [-31..-1], [0..31], and [32..MAX_INT], and generate
+					// tests for the shift factors falling into [MIN_LONG..-64],
+					// [-63..-1], [0..63], and [64..MAX_LONG], and generate
 					// separate code to handle each reachable case separately.
 					jumpTo(this.intFailure)
 				}
 			}
 		},
 		ifOutputIsPossiblyInt = {
-			// Fall back completely if the shift could overflow an i32.
+			// Fall back completely if the shift could overflow an i64.
 			jumpTo(intFailure)
-		})
+		},
+		range = i64)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
