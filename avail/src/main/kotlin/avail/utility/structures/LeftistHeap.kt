@@ -60,6 +60,8 @@ sealed class LeftistHeap<Value : Comparable<Value>>(
 	val rank: Int,
 	val size: Int)
 {
+	override fun toString() = "${javaClass.simpleName}($size)"
+
 	/** Whether this heap is empty. */
 	val isEmpty: Boolean get() = this === TheLeftistLeaf
 

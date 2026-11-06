@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.register
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.extractDouble
 import avail.descriptor.representation.A_Number.Companion.extractInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -416,9 +417,12 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	ordinal = 1,
 	kindName = "int",
 	prefix = "i",
-	jvmTypeString = Type.INT_TYPE.descriptor,
-	jvmLoadInstruction = Opcodes.ILOAD,
-	jvmStoreInstruction = Opcodes.ISTORE)
+	// Int registers are stored in 64-bit JVM locals.  Their values are always
+	// sign-extended ints, so consumers see an int after an L2I and producers
+	// widen with an I2L before storing.
+	jvmTypeString = Type.LONG_TYPE.descriptor,
+	jvmLoadInstruction = Opcodes.LLOAD,
+	jvmStoreInstruction = Opcodes.LSTORE)
 {
 	override fun readOperand(
 		semanticValue: L2SemanticValue,
@@ -449,7 +453,7 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		boxedValue: A_BasicObject,
 		destinations: Iterable<L2SemanticValue>
 	) = L2_MOVE_CONSTANT_INT(
-		L2IntImmediateOperand((boxedValue as AvailObject).extractInt),
+		L2IntImmediateOperand((boxedValue as AvailObject).extractLong),
 		L2WriteIntOperand(
 			destinations.toSet(),
 			restrictionForConstant(boxedValue)))
@@ -457,7 +461,7 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	override fun readConstant(
 		generator: L2GeneratorInterface,
 		boxedValue: AvailObject
-	): L2ReadIntOperand = generator.unboxedIntConstant(boxedValue.extractInt)
+	): L2ReadIntOperand = generator.unboxedIntConstant(boxedValue.extractLong)
 
 	override fun createPhi(
 		sources: L2ReadVectorOperand<L2ReadOperand<INTEGER_KIND>>,

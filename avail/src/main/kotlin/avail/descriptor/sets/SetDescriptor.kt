@@ -67,7 +67,6 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.ObjectSlots.ROOT_BIN
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple

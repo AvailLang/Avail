@@ -35,6 +35,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.optimizer.L2SplitCondition.Companion.constantConditions
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.Opcodes
@@ -61,6 +63,17 @@ class L2_RETURN(
 		renderPreamble()
 		append(' ')
 		append(returnValue.registerString())
+	}
+
+	override fun PostPhiData.interestingConditions() = buildList {
+		// If other instructions have ended up in the same block as the return,
+		// avoid replicaating it.  Otherwise, split it for constant returns.
+		if (basicBlock().instructions().all {
+			it is L2_PHI<*> || it is L2_NOP || it is L2_RETURN
+		})
+		{
+			addAll(constantConditions(listOf(returnValue.register())))
+		}
 	}
 
 	/**

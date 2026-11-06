@@ -318,10 +318,8 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 		val (lowInt, highInt) = readTwoInts(
 			low.semanticValue(),
 			high.semanticValue(),
-			outOfRange)
-		{
-			return false
-		}
+			outOfRange
+		) ?: return false
 		assert(lowInt.type.isSubtypeOf(naturalNumbers))
 		assert(highInt.type.isSubtypeOf(wholeNumbers))
 

@@ -336,7 +336,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				}
 			}
 			// We now have the collection of registers which tie for having the
-			// fewest remaining neighbours interfering with them.  Push them,
+			// fewest remaining neighbors interfering with them.  Push them,
 			// removing them from the graphCopy, along with their connected
 			// edges.  This reduces the cardinality of connected nodes.
 			stack.addAll(withFewest)

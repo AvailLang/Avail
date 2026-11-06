@@ -75,11 +75,11 @@ value class Offset(val value: Int)
 		val REIFY_NOW = Offset(REIFY_NOW_int)
 
 		/**
-		 * A sentinel value returned by an instruction's [step] to indicate
-		 * the current [A_Function] should return immediately, answering the value
-		 * in the highest numbered register.  Note that instructions that run
-		 * a [P_ExitContinuationIf] or such must clobber that register slot,
-		 * even if they wouldn't normally push their result there.
+		 * A sentinel value returned by an instruction's [step] to indicate the
+		 * current [A_Function] should return immediately, answering the value
+		 * in the highest numbered register.  Note that instructions that run a
+		 * [P_ExitContinuationIf] or such must clobber that register slot, even
+		 * if they wouldn't normally push their result there.
 		 */
 		const val RETURN_NOW_int = Int.MAX_VALUE
 

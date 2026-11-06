@@ -35,6 +35,8 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * An [ExecutableChunk] represents an optimized implementation of a
@@ -73,5 +75,15 @@ interface ExecutableChunk
 	 *   The returned value if returning normally, otherwise `null` to indicate
 	 *   the [Interpreter.currentReifier] has been set for reification.
 	 */
+	@ReferencedInGeneratedCode
 	fun runChunk(interpreter: Interpreter, offset: Int): AvailObject?
+
+	companion object
+	{
+		/** The checked instance method for [runChunk]. */
+		val runChunkMethod = CheckedMethod.instanceMethod(
+			ExecutableChunk::runChunk,
+			Interpreter::class.java,
+			Int::class.javaPrimitiveType!!)
+	}
 }

@@ -33,6 +33,7 @@
 package avail.exceptions
 
 import avail.descriptor.representation.A_Variable.Companion.setValue
+import kotlin.Throwable
 
 /**
  * `VariableSetException` is thrown when [setValue] fails for any reason.
@@ -55,8 +56,7 @@ class VariableSetException : AvailRuntimeException
 	 * @param errorCode
 	 *   An [error&#32;code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the
-	 *   [exception][VariableSetException].
+	 *   The proximal cause of the [exception][VariableSetException].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)

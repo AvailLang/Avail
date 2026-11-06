@@ -43,7 +43,6 @@ import avail.descriptor.representation.A_Phrase.Companion.phraseKind
 import avail.descriptor.representation.A_Phrase.Companion.sequence
 import avail.descriptor.representation.A_Phrase.Companion.superUnionType
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum

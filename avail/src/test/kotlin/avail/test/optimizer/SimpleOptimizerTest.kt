@@ -46,6 +46,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
+import avail.descriptor.representation.A_Number.Companion.asBigInteger
 import avail.descriptor.representation.A_Number.Companion.bitShift
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
@@ -53,11 +54,13 @@ import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
@@ -75,6 +78,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -129,14 +133,29 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.SelectBit
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shl
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shr
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_DIVIDE_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
+import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_LONG_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_IfFalseThenElse
@@ -152,7 +171,9 @@ import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.general.P_Equality
 import avail.interpreter.primitive.integers.P_BitShiftLeft
 import avail.interpreter.primitive.integers.P_BitShiftRight
+import avail.interpreter.primitive.integers.P_BitTest
 import avail.interpreter.primitive.integers.P_BitwiseAnd
+import avail.interpreter.primitive.integers.P_BitwiseOr
 import avail.interpreter.primitive.integers.P_BitwiseXor
 import avail.interpreter.primitive.integers.P_LowerBound
 import avail.interpreter.primitive.maps.P_KeyInMap
@@ -212,6 +233,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertNotNull
+import java.math.BigInteger
 
 class SimpleOptimizerTest
 {
@@ -235,7 +257,9 @@ class SimpleOptimizerTest
 			"_<<_" to P_BitShiftLeft,
 			"_>>_" to P_BitShiftRight,
 			"_bit∧_" to P_BitwiseAnd,
+			"_bit∨_" to P_BitwiseOr,
 			"_bit⊕_" to P_BitwiseXor,
+			"_bit_" to P_BitTest,
 			"⌊_⌋" to P_DoubleFloor,
 			"⌊_⌋" to P_FloatFloor,
 			"_'s⁇genuine lower bound" to P_LowerBound,
@@ -600,6 +624,306 @@ class SimpleOptimizerTest
 
 		val result2 = helper.executeRawFunction(rawFunction)
 		assertEquals(seven, result2)
+	}
+
+	/** Boundary and in-between values spanning the whole range of a long. */
+	private val wideLongSamples = listOf(
+		Long.MIN_VALUE, Long.MIN_VALUE + 1, -(1L shl 40) - 7, -1L, 0L, 1L,
+		1L shl 31, 1L shl 32, (1L shl 41) + 3, Long.MAX_VALUE - 1,
+		Long.MAX_VALUE)
+
+	/**
+	 * Optimize a function that applies a binary integer operation to two
+	 * arguments of the given range, check that the optimized code uses an
+	 * expected unboxed instruction, then run it on each pair of the samples,
+	 * comparing against [BigInteger] arithmetic.
+	 *
+	 * @param name
+	 *   The name of the operation's bundle.
+	 * @param range
+	 *   The type of both arguments.
+	 * @param samples
+	 *   The values to try for each argument.
+	 * @param expectedInstruction
+	 *   Whether an instruction is the expected unboxed one, or `null` if the
+	 *   operation isn't expected to be unboxed.
+	 * @param expected
+	 *   The operation on [BigInteger]s.
+	 * @param range2
+	 *   The type of the second argument, if different.
+	 * @param samples2
+	 *   The values to try for the second argument, if different.
+	 */
+	private fun checkBinaryIntegerOperation(
+		name: String,
+		range: A_Type,
+		samples: List<Long>,
+		expectedInstruction: ((L2Instruction) -> Boolean)?,
+		expected: (BigInteger, BigInteger) -> BigInteger,
+		range2: A_Type = range,
+		samples2: List<Long> = samples)
+	{
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(range, range2)
+			val a = declareName("a")
+			val b = declareName("b")
+			L1_doPushLastLocal(a)
+			L1_doPushLastLocal(b)
+			call(name, integers)
+		}
+		helper.testOptimize(rawFunction)
+		// Make sure the operation happens in int registers.
+		expectedInstruction?.let { isExpected ->
+			assertTrue(
+				rawFunction.startingChunk.instructions.any {
+					it is L2Instruction && isExpected(it)
+				},
+				"Expected unboxed $name on $range")
+		}
+		for (x in samples)
+		{
+			for (y in samples2)
+			{
+				val result = helper.executeRawFunction(
+					rawFunction, listOf(fromLong(x), fromLong(y)))
+				assertEquals(
+					expected(BigInteger.valueOf(x), BigInteger.valueOf(y)),
+					result.asBigInteger(),
+					"$x $name $y")
+			}
+		}
+	}
+
+	/**
+	 * Check that optimized addition, subtraction, and multiplication give exact
+	 * results for operands beyond 32 bits.  The wide operand ranges force the
+	 * checked operations, which fall back to boxed arithmetic when the result
+	 * overflows a long.  The narrower ranges let the unchecked operations be
+	 * used, since the result always fits in a long.
+	 */
+	@Test
+	fun testLongArithmeticBeyondInt()
+	{
+		val wide = inclusive(Long.MIN_VALUE, Long.MAX_VALUE)
+		val wideSamples = wideLongSamples
+		val narrow = inclusive(-(1L shl 40), 1L shl 40)
+		val narrowSamples = listOf(
+			-(1L shl 40), -(1L shl 33) + 5, -1L, 0L, 7L, 1L shl 32, 1L shl 40)
+		val forProduct = inclusive(-(1L shl 30), 1L shl 30)
+		val productSamples =
+			listOf(-(1L shl 30), -12345L, 0L, 99999L, 1L shl 30)
+		checkBinaryIntegerOperation(
+			"_+_",
+			wide,
+			wideSamples,
+			{ it is L2_ADD_INT_TO_INT },
+			BigInteger::add)
+		// Operands of any integer type need a dynamic test that they're longs
+		// before they can be unboxed.
+		checkBinaryIntegerOperation(
+			"_+_",
+			integers,
+			wideSamples,
+			{ it is L2_JUMP_IF_KIND_OF_OBJECT },
+			BigInteger::add)
+		checkBinaryIntegerOperation(
+			"_-_",
+			wide,
+			wideSamples,
+			{ it is L2_SUBTRACT_INT_MINUS_INT },
+			BigInteger::subtract)
+		checkBinaryIntegerOperation(
+			"_×_",
+			wide,
+			wideSamples,
+			{ it is L2_MULTIPLY_INT_BY_INT },
+			BigInteger::multiply)
+		checkBinaryIntegerOperation(
+			"_+_",
+			narrow,
+			narrowSamples,
+			{ it.isBitLogicOperation(Add) },
+			BigInteger::add)
+		checkBinaryIntegerOperation(
+			"_-_",
+			narrow,
+			narrowSamples,
+			{ it.isBitLogicOperation(Sub) },
+			BigInteger::subtract)
+		checkBinaryIntegerOperation(
+			"_×_",
+			forProduct,
+			productSamples,
+			{ it.isBitLogicOperation(Mul) },
+			BigInteger::multiply)
+	}
+
+	/**
+	 * Check that optimized bitwise and, or, and xor give exact results for
+	 * operands anywhere in the range of a long.
+	 */
+	@Test
+	fun testLongBitwiseBeyondInt()
+	{
+		val wide = inclusive(Long.MIN_VALUE, Long.MAX_VALUE)
+		checkBinaryIntegerOperation(
+			"_bit∧_",
+			wide,
+			wideLongSamples,
+			{ it.isBitLogicOperation(And) },
+			BigInteger::and)
+		checkBinaryIntegerOperation(
+			"_bit∨_",
+			wide,
+			wideLongSamples,
+			{ it.isBitLogicOperation(Or) },
+			BigInteger::or)
+		checkBinaryIntegerOperation(
+			"_bit⊕_",
+			wide,
+			wideLongSamples,
+			{ it.isBitLogicOperation(Xor) },
+			BigInteger::xor)
+	}
+
+	/**
+	 * Check that optimized division gives Avail's quotient, rounded toward
+	 * negative infinity, for operands beyond 32 bits.  A positive divisor lets
+	 * the unchecked division be used after sign checks, with negative dividends
+	 * falling back to boxed arithmetic.  A divisor that might be -1 could
+	 * produce 2^63, which needs the checked division.  A divisor that is always
+	 * negative can't use the unboxed division at all.
+	 */
+	@Test
+	fun testLongDivisionBeyondInt()
+	{
+		val floorDivide = { a: BigInteger, b: BigInteger ->
+			val (quotient, remainder) = a.divideAndRemainder(b)
+			when
+			{
+				remainder.signum() != 0 && remainder.signum() != b.signum() ->
+					quotient - BigInteger.ONE
+				else -> quotient
+			}
+		}
+		checkBinaryIntegerOperation(
+			"_÷_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			{ it.isBitLogicOperation(Div) },
+			floorDivide,
+			range2 = inclusive(1L, Long.MAX_VALUE),
+			samples2 = listOf(1L, 2L, 3L, 7L, 1L shl 32, Long.MAX_VALUE))
+		checkBinaryIntegerOperation(
+			"_÷_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			{ it is L2_DIVIDE_INT_BY_INT },
+			floorDivide,
+			range2 = inclusive(-1L, 1L shl 40),
+			samples2 = listOf(-1L, 1L, 3L, 1L shl 40))
+		checkBinaryIntegerOperation(
+			"_÷_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			null,
+			floorDivide,
+			range2 = inclusive(Long.MIN_VALUE, -1L),
+			samples2 = listOf(Long.MIN_VALUE, -(1L shl 40), -3L, -1L))
+	}
+
+	/**
+	 * Check that optimized shifts use 64-bit shift counts: right shifts across
+	 * the whole range of a long, and left shifts whose results fit in a long.
+	 */
+	@Test
+	fun testLongShiftsBeyondInt()
+	{
+		checkBinaryIntegerOperation(
+			"_>>_",
+			inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+			wideLongSamples,
+			{ it.isBitLogicOperation(Shr) },
+			{ a, b -> a.shiftRight(b.toInt()) },
+			range2 = inclusive(0L, 63L),
+			samples2 = listOf(0L, 1L, 31L, 32L, 33L, 63L))
+		checkBinaryIntegerOperation(
+			"_<<_",
+			inclusive(-(1L shl 20), 1L shl 20),
+			listOf(-(1L shl 20), -12345L, -1L, 0L, 1L, 99999L, 1L shl 20),
+			{ it.isBitLogicOperation(Shl) },
+			{ a, b -> a.shiftLeft(b.toInt()) },
+			range2 = inclusive(0L, 40L),
+			samples2 = listOf(0L, 1L, 31L, 32L, 40L))
+	}
+
+	/**
+	 * Check that an optimized tuple subscript extracts long elements beyond 32
+	 * bits into an int register.
+	 */
+	@Test
+	fun testTupleLongAtBeyondInt()
+	{
+		val elements = listOf(
+			Long.MIN_VALUE, -(1L shl 40), -1L, 0L, 1L shl 31, Long.MAX_VALUE)
+		val rawFunction = helper.rawFunction(i64) {
+			argumentTypes(zeroOrMoreOf(i64), inclusive(1, elements.size))
+			val t = declareName("t")
+			val i = declareName("i")
+			L1_doPushLastLocal(t)
+			L1_doPushLastLocal(i)
+			call("_[_]", i64)
+		}
+		helper.testOptimize(rawFunction)
+		assertTrue(
+			rawFunction.startingChunk.instructions.any {
+				it is L2_TUPLE_LONG_AT_NO_FAIL
+			},
+			"Expected the element to be extracted as a long")
+		val tupleOfLongs =
+			tupleFromArray(*elements.map(::fromLong).toTypedArray())
+		elements.forEachIndexed { zeroIndex, element ->
+			val result = helper.executeRawFunction(
+				rawFunction, listOf(tupleOfLongs, fromInt(zeroIndex + 1)))
+			assertEquals(BigInteger.valueOf(element), result.asBigInteger())
+		}
+	}
+
+	/**
+	 * Check that an optimized bit test selects the right bit of any long,
+	 * including the replicated sign bit at positions of 63 and beyond.
+	 */
+	@Test
+	fun testLongBitTestBeyondInt()
+	{
+		val rawFunction = helper.rawFunction(booleanType) {
+			argumentTypes(
+				inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+				inclusive(0L, 100L))
+			val a = declareName("a")
+			val b = declareName("b")
+			L1_doPushLastLocal(a)
+			L1_doPushLastLocal(b)
+			call("_bit_", booleanType)
+		}
+		helper.testOptimize(rawFunction)
+		assertTrue(
+			rawFunction.startingChunk.instructions.any {
+				it is L2Instruction && it.isBitLogicOperation(SelectBit)
+			},
+			"Expected an unboxed bit selection")
+		for (x in wideLongSamples)
+		{
+			for (y in listOf(0L, 1L, 31L, 32L, 62L, 63L, 64L, 100L))
+			{
+				val result = helper.executeRawFunction(
+					rawFunction, listOf(fromLong(x), fromLong(y)))
+				assertEquals(
+					BigInteger.valueOf(x).testBit(y.toInt()),
+					result.equals(trueObject),
+					"bit $y of $x")
+			}
+		}
 	}
 
 	/**

@@ -445,18 +445,22 @@ class OptimizerTestHelper(
 	 * is thrown and captured by the fiber's handler while executing.
 	 *
 	 * @param rawFunction
-	 *   The [A_RawFunction] to execute.  It must take no arguments and have no
-	 *   outers.
+	 *   The [A_RawFunction] to execute.  It must have no outers.
+	 * @param arguments
+	 *   The arguments to pass, one for each of the function's parameters.
 	 * @return
 	 *   The result of executing the function.
 	 * @throws InterruptedException
 	 *   If the current thread is interrupted while waiting for the function to
 	 *   complete.
 	 */
-	fun executeRawFunction(rawFunction: A_RawFunction): AvailObject
+	fun executeRawFunction(
+		rawFunction: A_RawFunction,
+		arguments: List<A_BasicObject> = emptyList()
+	): AvailObject
 	{
 		assert(rawFunction.numOuters == 0)
-		assert(rawFunction.numArgs() == 0)
+		assert(rawFunction.numArgs() == arguments.size)
 		val fiber = createFiber(
 			TOP(),
 			runtime,
@@ -489,7 +493,7 @@ class OptimizerTestHelper(
 		val function = createFunction(rawFunction, emptyTuple)
 		val result = try
 		{
-			runtime.runOutermostFunction(fiber, function, emptyList(), false)
+			runtime.runOutermostFunction(fiber, function, arguments, false)
 			queue.take()
 		}
 		finally

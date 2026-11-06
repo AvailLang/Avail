@@ -159,14 +159,14 @@ import avail.descriptor.representation.A_Module.Companion.addVariableBinding
 import avail.descriptor.representation.A_Module.Companion.constantBindings
 import avail.descriptor.representation.A_Module.Companion.exportedNames
 import avail.descriptor.representation.A_Module.Companion.hasAncestor
-import avail.descriptor.representation.A_Module.Companion.importedNames
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleNameNative
-import avail.descriptor.representation.A_Module.Companion.privateNames
 import avail.descriptor.representation.A_Module.Companion.removeFrom
 import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.representation.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.representation.A_Module.Companion.variableBindings
+import avail.descriptor.representation.A_Module.Companion.withImportedNames
+import avail.descriptor.representation.A_Module.Companion.withPrivateNames
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.nameHighlightingPc
 import avail.descriptor.representation.A_ParsingPlanInProgress.Companion.parsingPc
@@ -4217,19 +4217,22 @@ class AvailCompiler constructor(
 	private fun serializePublicationFunction(isPublic: Boolean)
 	{
 		// Output a function that publishes the initial public set of atoms.
-		val sourceNames =
-			if (isPublic)
-				compilationContext.module.importedNames
-			else
-				compilationContext.module.privateNames
 		// A map from module to set of atoms imported from that module.
 		var namesByModule = emptyMap
-		sourceNames.forEachInMap { _, atoms ->
-			namesByModule = namesByModule.mapAtEachReplacingCanDestroy(
-				atoms.iterator(), {it.issuingModule}, emptySet, true
-			) { atom, _, set ->
-				set.setWithElementCanDestroy(atom, true)
+		val action = { map: Map<A_String, Array<AvailObject>> ->
+			for (atoms in map.values)
+			{
+				namesByModule = namesByModule.mapAtEachReplacingCanDestroy(
+					atoms.iterator(), {it.issuingModule}, emptySet, true
+				) { atom, _, set ->
+					set.setWithElementCanDestroy(atom, true)
+				}
 			}
+		}
+		when
+		{
+			isPublic -> compilationContext.module.withImportedNames(action)
+			else -> compilationContext.module.withPrivateNames(action)
 		}
 		var completeModuleNames = emptySet
 		var leftovers = emptySet

@@ -108,13 +108,13 @@ import avail.descriptor.representation.A_Method.Companion.removeDefinition
 import avail.descriptor.representation.A_Method.Companion.removeSealedArgumentsType
 import avail.descriptor.representation.A_Method.Companion.removeSemanticRestriction
 import avail.descriptor.representation.A_Module
-import avail.descriptor.representation.A_Module.Companion.importedNames
 import avail.descriptor.representation.A_Module.Companion.methodDefinitions
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleState
 import avail.descriptor.representation.A_Module.Companion.newNames
-import avail.descriptor.representation.A_Module.Companion.privateNames
 import avail.descriptor.representation.A_Module.Companion.visibleNames
+import avail.descriptor.representation.A_Module.Companion.withImportedNames
+import avail.descriptor.representation.A_Module.Companion.withPrivateNames
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.decreaseCountdownToReoptimizeFromPoll
@@ -126,7 +126,6 @@ import avail.descriptor.representation.A_Sendable
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple
-import avail.descriptor.representation.A_Tuple.Companion.concatenateWith
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
@@ -394,12 +393,11 @@ class AvailRuntime constructor(
 			modules.forEachInMap { _, module ->
 				atoms.addAll(module.newNames.valuesAsTuple)
 				atoms.addAll(module.visibleNames)
-				var atomSets = module.importedNames.valuesAsTuple
-				atomSets = atomSets.concatenateWith(
-					module.privateNames.valuesAsTuple, true)
-				for (atomSet in atomSets)
-				{
-					atoms.addAll(atomSet)
+				module.withImportedNames { map ->
+					map.values.forEach(atoms::addAll)
+				}
+				module.withPrivateNames { map ->
+					map.values.forEach(atoms::addAll)
 				}
 				for (definition in module.methodDefinitions)
 				{

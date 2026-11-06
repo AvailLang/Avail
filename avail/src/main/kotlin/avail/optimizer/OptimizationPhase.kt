@@ -39,6 +39,7 @@ import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
+import avail.interpreter.levelTwo.operation.numbers.L2_RECYCLE_IF_MUTABLE
 import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
@@ -267,7 +268,8 @@ internal enum class OptimizationPhase constructor(
 	/**
 	 * Insert an [L2_MAKE_IMMUTABLE] instruction just prior to any use of a
 	 * register that is not already provably immutable and may be used again
-	 * later.
+	 * later.  Also insert an [L2_RECYCLE_IF_MUTABLE] after a last use of a
+	 * mutable boxed int, so its object can be reused.
 	 */
 	INSERT_MAKE_IMMUTABLES(L2Optimizer::insertMakeImmutable),
 

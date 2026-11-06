@@ -34,18 +34,14 @@ package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import avail.descriptor.representation.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Module.Companion.addImportedNames
 import avail.descriptor.representation.A_Module.Companion.addPrivateNames
 import avail.descriptor.representation.A_Module.Companion.exportedNames
-import avail.descriptor.representation.A_Set.Companion.setSize
-import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -64,10 +60,9 @@ import avail.interpreter.primitive.Primitive2
  * **Primitive:** This private primitive is used to ensure that a module can
  * deserialize correctly. It's given a set of fully qualified module names, and
  * each such module should have all of its exported names included in the
- * current module's [public&nbsp;names][ObjectSlots.IMPORTED_NAMES] or
- * [private&nbsp;names][ObjectSlots.PRIVATE_NAMES], depending on the value of
- * the supplied [boolean][booleanType] ([true][trueObject] for public,
- * [false][falseObject] for private).
+ * current module's imported names or private names., depending on the value of
+ * the supplied [booleanType] ([trueObject] for public, [falseObject] for
+ * private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -82,15 +77,15 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive2(
 	): A_BasicObject? = interpreter.run {
 		val module = module()
 		assert(module.notNil)
-		val sets = importedModuleNames.map { importedModuleName ->
-			runtime.moduleAt(importedModuleName).exportedNames
-		}.sortedByDescending { it.setSize }
-		val union = sets.fold(emptySet) { union, nextSet ->
-			union.setUnionCanDestroy(nextSet, true)
+		val union = buildSet {
+			importedModuleNames.forEach { importedModuleName ->
+				addAll(runtime.moduleAt(importedModuleName).exportedNames)
+			}
 		}
+		union.forEach(AvailObject::makeShared)
 		when (isPublic.extractBoolean) {
-			true -> module.addImportedNames(union.makeShared())
-			else -> module.addPrivateNames(union.makeShared())
+			true -> module.addImportedNames(union)
+			else -> module.addPrivateNames(union)
 		}
 		return nil
 	}

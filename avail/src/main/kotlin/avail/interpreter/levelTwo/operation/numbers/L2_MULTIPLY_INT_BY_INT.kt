@@ -33,15 +33,17 @@
 package avail.interpreter.levelTwo.operation.numbers
 
 import avail.descriptor.representation.A_Number.Companion.extractInt
-import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.interpreter.JavaLibrary.longMultiplyHighMethod
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -66,8 +68,8 @@ import org.objectweb.asm.Type
 
 /**
  * Multiply the value in one int register by the value in another int register,
- * storing back in the second if the result fits in an int without overflow.
- * Otherwise jump to the specified target.
+ * storing the product if it fits in a long without overflow.  Otherwise jump to
+ * the specified target.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -76,8 +78,8 @@ class L2_MULTIPLY_INT_BY_INT(
 	var multiplicand: L2ReadIntOperand,
 	var multiplier: L2ReadIntOperand,
 	@On(SUCCESS) var product: L2WriteIntOperand,
-	@On(FAILURE) var outOfRange: L2PcOperand,
-	@On(SUCCESS) var inRange: L2PcOperand
+	@On(SUCCESS) var inRange: L2PcOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand
 ): L2ControlFlowInstruction()
 {
 	// It jumps if the result doesn't fit in an int.
@@ -110,14 +112,13 @@ class L2_MULTIPLY_INT_BY_INT(
 			val constantProduct =
 				multiplicand.constantOrNull!!.timesCanDestroy(
 					multiplier.constantOrNull!!, false)
-			if (constantProduct.isInt)
+			if (constantProduct.isLong)
 			{
-				val constantInt = constantProduct.extractInt
 				+L2_MOVE_CONSTANT_INT(
-					L2IntImmediateOperand(constantInt),
+					L2IntImmediateOperand(constantProduct.extractLong),
 					L2WriteIntOperand(
 						product.semanticValues(),
-						restrictionForConstant(constantInt),
+						restrictionForConstant(constantProduct),
 						product.register()))
 				jumpTo(inRange.targetBlock())
 				return
@@ -200,20 +201,21 @@ class L2_MULTIPLY_INT_BY_INT(
 					restrictionForConstant(range.upperBound)
 				}
 				// The result is a constant.
-				if (range.isSubtypeOf(i32))
+				if (range.isSubtypeOf(i64))
 				{
-					// The result is an int constant.
+					// The result is a long constant.
 					jumpTo(inRange.targetBlock())
 				}
 				else
 				{
-					// The result is an integer constant outside i32.
+					// The result is an integer constant outside i64.
 					jumpTo(outOfRange.targetBlock())
 				}
 			}
-			range.isSubtypeOf(i32) ->
+			range.isSubtypeOf(i64) ->
 			{
-				// The result of this multiplication will not overflow i31.
+				// The result of this multiplication will not overflow i64, so
+				// the unchecked multiply suffices.
 				+L2_BIT_LOGIC_OP(
 					Mul,
 					multiplicand,
@@ -223,16 +225,18 @@ class L2_MULTIPLY_INT_BY_INT(
 						restrictionForType(range)))
 				jumpTo(inRange.targetBlock())
 			}
-			range.typeIntersection(i32).isVacuousType ->
+			range.typeIntersection(i64).isVacuousType ->
 			{
-				// The result definitely will not fit in an int.
+				// The result definitely will not fit in a long.
 				jumpTo(outOfRange.targetBlock())
 			}
 			else ->
 			{
-				// It's still unknown whether the result will fit in an int.
+				// It's still unknown whether the result will fit in a long.
 				// But at least we can narrow the restriction.
-				product.restrict { restrictionForType(range) }
+				product.restrict {
+					restrictionForType(range.typeIntersection(i64))
+				}
 				+this@L2_MULTIPLY_INT_BY_INT
 			}
 		}
@@ -240,11 +244,9 @@ class L2_MULTIPLY_INT_BY_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: longProduct = (long) multiplicand * (long) multiplier;
-		load(multiplicand)
-		method.visitInsn(Opcodes.I2L)
-		load(multiplier)
-		method.visitInsn(Opcodes.I2L)
+		// :: longProduct = multiplicand * multiplier;
+		loadLong(multiplicand)
+		loadLong(multiplier)
 		method.visitInsn(Opcodes.LMUL)
 		val longProductStart = Label()
 		val longProductEnd = Label()
@@ -258,20 +260,25 @@ class L2_MULTIPLY_INT_BY_INT(
 			longProductLocal)
 		method.visitVarInsn(Opcodes.LSTORE, longProductLocal)
 		method.visitLabel(longProductStart)
-		// :: if (longProduct != intProduct) goto outOfRange;
+		// The product fits in a long exactly when the high 64 bits of the
+		// 128-bit product are the sign extension of the low 64 bits.
+		// :: if (Math.multiplyHigh(multiplicand, multiplier)
+		// ::       != longProduct >> 63)
+		// ::    goto outOfRange;
+		loadLong(multiplicand)
+		loadLong(multiplier)
+		longMultiplyHighMethod.generateCall(this)
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.I2L)
-		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
+		intConstant(63)
+		method.visitInsn(Opcodes.LSHR)
 		method.visitInsn(Opcodes.LCMP)
 		jumpIf(Opcodes.IFNE, outOfRange)
 		// :: else {
-		// ::    product = (int)longProduct;
+		// ::    product = longProduct;
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
-		method.visitInsn(Opcodes.L2I)
-		store(product.register())
+		storeLong(product.register())
 		jump(inRange)
 		method.visitLabel(longProductEnd)
 		endLocal(longProductLocal, Type.LONG_TYPE)

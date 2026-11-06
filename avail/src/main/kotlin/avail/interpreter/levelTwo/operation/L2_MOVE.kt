@@ -319,6 +319,16 @@ constructor(
 	override val source: L2ReadIntOperand get() = moveSource
 
 	override val destination: L2WriteIntOperand get() = moveDestination
+
+	override fun JVMTranslator.translateToJVM()
+	{
+		assert(source.register() != destination.register()) {
+			"vacuous move should have been skipped by shouldEmit."
+		}
+		// :: destination = source;
+		loadLong(source)
+		storeLong(destination.register())
+	}
 }
 
 class L2_MOVE_FLOAT

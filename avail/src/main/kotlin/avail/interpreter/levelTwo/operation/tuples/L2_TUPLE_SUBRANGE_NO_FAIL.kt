@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Extract a tuple in specified range of subscripts from a
@@ -105,6 +106,13 @@ class L2_TUPLE_SUBRANGE_NO_FAIL(
 			// already immutable.
 			return
 		}
+	}
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		lowSubscript.assertInt32(manifest)
+		highSubscript.assertInt32(manifest)
+		super.instructionWasAdded(manifest)
 	}
 
 	override fun JVMTranslator.translateToJVM()

@@ -803,6 +803,10 @@ private constructor(
 		val i32: A_Type =
 			inclusive(Int.MIN_VALUE, Int.MAX_VALUE).makeShared()
 
+		/** The non-negative part of the range of int64s, `[0..2^63)`. */
+		val i63: A_Type =
+			inclusive(0L, Long.MAX_VALUE).makeShared()
+
 		/** The range of an unsigned 64-bit `long`, `[0..2^64)`. */
 		val u64: A_Type = inclusive(
 			zero,

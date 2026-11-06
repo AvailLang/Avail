@@ -357,7 +357,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val localIndex = getOperand()
 					val local = frame[localIndex]
-											assert(local.notNil)
+					assert(local.notNil)
 					frame[localIndex] = nil
 					frame[--stackp] = local
 				}

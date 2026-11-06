@@ -32,6 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_Number.Companion.extractInt
@@ -44,9 +45,11 @@ import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.interpreter.JavaLibrary.intMaxMethod
-import avail.interpreter.JavaLibrary.intMinMethod
+import avail.interpreter.JavaLibrary.long
+import avail.interpreter.JavaLibrary.longMaxMethod
+import avail.interpreter.JavaLibrary.longMinMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -76,15 +79,20 @@ import avail.interpreter.primitive.integers.P_BitwiseOr
 import avail.interpreter.primitive.integers.P_BitwiseXor
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.interpreter.primitive.numbers.P_Division
+import avail.interpreter.primitive.numbers.P_Division.positiveI63
 import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue.Companion.constant
+import avail.utility.addOrSubtractOverflows
 import org.objectweb.asm.Opcodes
 import kotlin.math.max
 import kotlin.math.min
@@ -137,6 +145,14 @@ constructor(
 	override fun isBitLogicOperation(op: BitOperation) =
 		bitOperation.constant == op
 
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		bitOperation.constant.run {
+			manifest.assertInputsAreValid(input1, input2)
+		}
+		super.instructionWasAdded(manifest)
+	}
+
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		// Handle fresh folding opportunities that arise from passes like code
@@ -145,11 +161,11 @@ constructor(
 			input2.constantOrNull?.let { constant2 ->
 				// Calculate it now (i.e., fold the constants).
 				val folded = bitOperation.constant.folder(
-					constant1.extractInt,
-					constant2.extractInt)
+					constant1.extractLong,
+					constant2.extractLong)
 				currentManifest.agglomerateSynonym(
 					output.semanticValues(),
-					restrictionForConstant(folded))
+					restrictionForConstant(fromLong(folded)))
 				return
 			}
 		}
@@ -167,10 +183,10 @@ constructor(
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: output = input1 op input2;
-		load(input1)
-		load(input2)
+		loadLong(input1)
+		loadLong(input2)
 		bitOperation.constant.jvmGenerator(this)
-		store(output.register())
+		storeLong(output.register())
 	}
 
 	class RulesSyntax constructor(
@@ -184,7 +200,7 @@ constructor(
 			producer: RuleEvaluationContext.() -> Pattern)
 		{
 			val pattern = thisOperation(left, right)
-			rules.add(Rule(pattern, producer))
+			rules.add(Rule(pattern, condition, producer))
 		}
 	}
 
@@ -192,9 +208,9 @@ constructor(
 	 * A [RuleEvaluationContext] is created when attempting to apply rules to an
 	 * actual control flow graph.  The corresponding matched [Pattern] is used
 	 * to determine the sources ([L2ReadIntOperand]s) of [Variable]s, and the
-	 * [Int] values of [Constant]s.  This context is then used as an implied
+	 * [Long] values of [Constant]s.  This context is then used as an implied
 	 * receiver during the rule evaluation, allowing access to [k1]..[k4] for
-	 * the int values that were captured due to appearing as [K1]..[K4] in the
+	 * the values that were captured due to appearing as [K1]..[K4] in the
 	 * match [Pattern], as well as the analagous [L2ReadIntOperand]s in [w]..[z]
 	 * corresponding with variables [W]..[Z] in the pattern.  The rule lambda
 	 * then produces a new transformed [Pattern], or `null` if it was determined
@@ -209,25 +225,39 @@ constructor(
 	 *   A [Map] from [Variable] to [L2ReadIntOperand], populated for all
 	 *   [Variable]s that occured in the match [Pattern].
 	 * @property constantsMap
-	 *   A [Map] from [Constant] to [Int] from the actual [L2ControlFlowGraph],
+	 *   A [Map] from [Constant] to [Long] from the actual [L2ControlFlowGraph],
 	 *   populated for each [Constant] that occured in the match [Pattern].
 	 */
 	class RuleEvaluationContext(
 		private val variablesMap: Map<Variable, L2ReadIntOperand>,
-		private val constantsMap: Map<Constant, Int>,
+		private val constantsMap: Map<Constant, Long>,
 		private val typesMap: Map<L2ReadIntOperand, A_Type>)
 	{
-		val k1: Int get() = constantsMap[K1]!!
-		val k2: Int get() = constantsMap[K2]!!
-		val k3: Int get() = constantsMap[K3]!!
-		val k4: Int get() = constantsMap[K4]!!
+		val k1: Long get() = constantsMap[K1]!!
+		val k2: Long get() = constantsMap[K2]!!
+		val k3: Long get() = constantsMap[K3]!!
+		val k4: Long get() = constantsMap[K4]!!
 		val w: L2ReadIntOperand get() = variablesMap[W]!!
 		val x: L2ReadIntOperand get() = variablesMap[X]!!
 		val y: L2ReadIntOperand get() = variablesMap[Y]!!
 		val z: L2ReadIntOperand get() = variablesMap[Z]!!
 		val L2ReadIntOperand.type: A_Type get() = typesMap[this]!!
-		val L2ReadIntOperand.low: Int get() = type.lowerBound.extractInt
-		val L2ReadIntOperand.high: Int get() = type.upperBound.extractInt
+		val L2ReadIntOperand.low: Long get() = type.lowerBound.extractLong
+		val L2ReadIntOperand.high: Long get() = type.upperBound.extractLong
+
+		/**
+		 * Whether shifting every possible value of this read left by [shift]
+		 * stays within a [Long], as [BitOperation.Shl] requires.
+		 *
+		 * @param shift
+		 *   The number of bit positions to shift left.
+		 * @return
+		 *   Whether the shift is in 0..63 and can't overflow a [Long].
+		 */
+		fun L2ReadIntOperand.shlFitsLong(shift: Int): Boolean =
+			shift in 0..63
+				&& low >= Long.MIN_VALUE shr shift
+				&& high <= Long.MAX_VALUE shr shift
 	}
 
 	/**
@@ -237,11 +267,20 @@ constructor(
 	 * @constructor
 	 *   Create a new [BitOperation] enumeration value.
 	 * @property jvmGenerator
-	 *   A function that emits JVM code to process the two int values that have
-	 *   already been pushed.  It should have the effect of removing them from
-	 *   the JVM operand stack and leaving a single int as the result.
+	 *   A function that emits JVM code to process the two `long` values that
+	 *   have already been pushed.  It should have the effect of removing them
+	 *   from the JVM operand stack and leaving a single `long` as the result.
+	 *   [Add], [Sub], [Mul], and [Shl] produce the exact result, which must be
+	 *   known to fit in a `long`.  [And], [Or], [Xor], [Max], [Min], [Shr],
+	 *   and [SelectBit] produce the exact result for any `long` inputs, as do
+	 *   [Div] and [Mod] for a non-negative dividend and a positive divisor.
+	 *   Only [Ushr] has 32-bit semantics: its first input is a sign-extended
+	 *   int, and its result is the sign-extended int that the 32-bit unsigned
+	 *   shift produces.
 	 * @property folder
-	 *   A function that folds this operation on two constants.
+	 *   A function that folds this operation on two constants, each a
+	 *   sign-extended int.  It must produce the same value as the code that
+	 *   [jvmGenerator] emits.
 	 * @property bounder
 	 *   A function for computing a type bound on the result, given type bounds
 	 *   for the two arguments.
@@ -252,14 +291,14 @@ constructor(
 	 */
 	enum class BitOperation private constructor(
 		val jvmGenerator: JVMTranslator.()->Unit,
-		val folder: (Int, Int)->Int,
+		val folder: (Long, Long)->Long,
 		val bounder: (A_Type, A_Type)->A_Type,
 		private val ruleCreator: RulesSyntax.()->Unit)
 	{
 		/**
 		 * Compute the bit-wise [Int.and] of two [Int]s.
 		 */
-		And(Opcodes.IAND, Int::and, P_BitwiseAnd::binaryBound, {
+		And(Opcodes.LAND, Long::and, P_BitwiseAnd::binaryBound, {
 			rule(C(0), X) { C(0) }
 			rule(X, C(0)) { C(0) }
 			rule(C(-1), X) { X }
@@ -274,7 +313,7 @@ constructor(
 		/**
 		 * Compute the bit-wise [Int.or] of two [Int]s.
 		 */
-		Or(Opcodes.IOR, Int::or, P_BitwiseOr::binaryBound, {
+		Or(Opcodes.LOR, Long::or, P_BitwiseOr::binaryBound, {
 			rule(C(0), X) { X }
 			rule(X, C(0)) { X }
 			rule(C(-1), X) { C(-1) }
@@ -289,7 +328,7 @@ constructor(
 		/**
 		 * Compute the bit-wise [Int.xor] of two [Int]s.
 		 */
-		Xor(Opcodes.IXOR, Int::xor, P_BitwiseXor::binaryBound, {
+		Xor(Opcodes.LXOR, Long::xor, P_BitwiseXor::binaryBound, {
 			rule(C(0), X) { X }
 			rule(X, C(0)) { X }
 			rule(X, X) { C(0) }
@@ -300,87 +339,161 @@ constructor(
 		}),
 
 		/**
-		 * Compute the bit-wise sum of two [Int]s, wrapping around with 2's
-		 * complement semantics as needed.
+		 * Compute the sum of two integers.  This must only be used where the
+		 * sum is known to fit in a [Long].
 		 */
-		Add(Opcodes.IADD, Int::plus, P_Addition::binaryBound, {
+		Add(Opcodes.LADD, Long::plus, P_Addition::binaryBound, {
 			rule(C(0), X) { X }
 			rule(X, C(0)) { X }
-			// Bring together constants.
-			rule(K1, Add(X, K2)) { Add(X, C(k1 + k2)) }
-			rule(Add(X, K1), K2) { Add(X, C(k1 + k2)) }
-			rule(X, X) { Shl(X, C(1)) }
-			rule(X, Mul(X, K1)) { Mul(X, C(k1 + 1)) }
-			rule(Mul(X, K1), X) { Mul(X, C(k1 + 1)) }
-			rule(Mul(X, K1), Mul(X, K2)) { Mul(X, C(k1 + k2)) }
+			// Bring together constants, unless the combined constant would
+			// overflow.
+			rule(K1, Add(X, K2), {!addOrSubtractOverflows(k1, k2)}) {
+				Add(X, C(k1 + k2))
+			}
+			rule(Add(X, K1), K2, {!addOrSubtractOverflows(k1, k2)}) {
+				Add(X, C(k1 + k2))
+			}
+			rule(X, X, {x.shlFitsLong(1)}) { Shl(X, C(1)) }
+			rule(X, Mul(X, K1), {!addOrSubtractOverflows(k1, 1)}) {
+				Mul(X, C(k1 + 1))
+			}
+			rule(Mul(X, K1), X, {!addOrSubtractOverflows(k1, 1)}) {
+				Mul(X, C(k1 + 1))
+			}
+			rule(Mul(X, K1), Mul(X, K2), {!addOrSubtractOverflows(k1, k2)}) {
+				Mul(X, C(k1 + k2))
+			}
 		}),
 
 		/**
-		 * Compute the difference of two [Int]s (the first minus the second),
-		 * wrapping around with 2's complement semantics as needed.
+		 * Compute the difference of two integers (the first minus the second).
+		 * This must only be used where the difference is known to fit in a
+		 * [Long].
 		 */
-		Sub(Opcodes.ISUB, Int::minus, P_Subtraction::binaryBound, {
+		Sub(Opcodes.LSUB, Long::minus, P_Subtraction::binaryBound, {
 			rule(X, C(0)) { X }
-			rule(X, K1) { Add(X, C(-k1)) }
-			rule(Sub(X, K1), K2) { Add(X, C(-k1 - k2)) }
-			rule(Add(X, K1), K2) { Add(X, C(k1 - k2)) }
-			rule(K1, Sub(X, K2)) { Sub(C(k1 + k2), X) }
-			rule(K1, Add(X, K2)) { Sub(C(k1 - k2), X) }
-			rule(X, Sub(Y, Z)) { Sub(Add(X, Z), Y) }
+			// Negating the most negative value overflows.
+			rule(X, K1, {!addOrSubtractOverflows(0, k1, -1)}) {
+				Add(X, C(-k1))
+			}
+			rule(
+				Sub(X, K1),
+				K2,
+				{
+					!addOrSubtractOverflows(0, k1, -1)
+						&& !addOrSubtractOverflows(-k1, k2, -1)
+				}
+			) {
+				Add(X, C(-k1 - k2))
+			}
+			rule(Add(X, K1), K2, {!addOrSubtractOverflows(k1, k2, -1)}) {
+				Add(X, C(k1 - k2))
+			}
+			rule(K1, Sub(X, K2), {!addOrSubtractOverflows(k1, k2)}) {
+				Sub(C(k1 + k2), X)
+			}
+			rule(K1, Add(X, K2), {!addOrSubtractOverflows(k1, k2, -1)}) {
+				Sub(C(k1 - k2), X)
+			}
+			// The new intermediate X + Z must not overflow, even though the
+			// original intermediate Y - Z didn't.
+			rule(
+				X,
+				Sub(Y, Z),
+				{
+					!addOrSubtractOverflows(x.low, z.low)
+						&& !addOrSubtractOverflows(x.high, z.high)
+				}
+			) {
+				Sub(Add(X, Z), Y)
+			}
 			// x - (y * (x / y))  --> x mod y
 			rule(X, Mul(Y, Div(X, Y))) { Mod(X, Y) }
 			rule(X, Mul(Div(X, Y), Y)) { Mod(X, Y) }
 		}),
 
 		/**
-		 * Compute the product of two [Int]s, wrapping around with 2's
-		 * complement semantics as needed.
+		 * Compute the product of two integers.  This must only be used where
+		 * the product is known to fit in a [Long].
 		 */
-		Mul(Opcodes.IMUL, Int::times, P_Multiplication::binaryBound, {
+		Mul(Opcodes.LMUL, Long::times, P_Multiplication::binaryBound, {
 			rule(X, C(-1)) { Sub(C(0), X) }
 			rule(C(-1), X) { Sub(C(0), X) }
 			rule(X, C(0)) { C(0) }
 			rule(C(0), X) { C(0) }
 			rule(X, C(1)) { X }
 			rule(C(1), X) { X }
-			rule(K1, X, {k1.takeLowestOneBit() == k1}) {
-				Shl(X, C(k1.countTrailingZeroBits()))
+			// Only positive powers of two.  Zero has no set bit to count, and
+			// the most negative value is only a power of two by wrapping.
+			// The shifted result must fit in a long, as Shl requires.
+			rule(
+				K1,
+				X,
+				{
+					k1 > 0 && k1.takeLowestOneBit() == k1
+						&& x.shlFitsLong(k1.countTrailingZeroBits())
+				}
+			) {
+				Shl(X, C(k1.countTrailingZeroBits().toLong()))
 			}
-			rule(X, K1, {k1.takeLowestOneBit() == k1}) {
-				Shl(X, C(k1.countTrailingZeroBits()))
+			rule(
+				X,
+				K1,
+				{
+					k1 > 0 && k1.takeLowestOneBit() == k1
+						&& x.shlFitsLong(k1.countTrailingZeroBits())
+				}
+			) {
+				Shl(X, C(k1.countTrailingZeroBits().toLong()))
 			}
 		}),
 
 		/**
-		 * Compute the ratio of two [Int]s (i.e., intA / intB), wrapping around
-		 * with 2's complement semantics as needed.  The numerator must be ≥ 0,
-		 * and the denominator must be > 0.
+		 * Compute the ratio of two [Long]s (i.e., a / b).  The numerator must
+		 * be ≥ 0, and the denominator must be > 0, since the JVM's division
+		 * truncates, but Avail's rounds toward negative infinity.  These
+		 * agree only when neither operand is negative.
 		 */
-		Div(Opcodes.IDIV, Int::div, P_Division::binaryBound, {
+		Div(Opcodes.LDIV, Long::div, P_Division::binaryBound, {
 			rule(C(0), X) { C(0) }
 			rule(X, C(1)) { X }
-			rule(X, K1, {k1.takeLowestOneBit() == k1}) {
-				Shr(X, C(k1.countTrailingZeroBits()))
+			rule(X, K1, {k1 > 0 && k1.takeLowestOneBit() == k1}) {
+				Shr(X, C(k1.countTrailingZeroBits().toLong()))
 			}
-		}),
+		})
+		{
+			override fun L2ValueManifest.assertInputsAreValid(
+				input1: L2ReadIntOperand,
+				input2: L2ReadIntOperand
+			) = assertNonnegativeDividendAndPositiveDivisor(input1, input2)
+		},
 
 		/**
-		 * Compute the remainder after dividng two [Int]s (i.e., `intA - (intA /
-		 * intB)`), wrapping around with 2's complement semantics as needed.
-		 * The numerator must be ≥ 0, and the denominator must be > 0.
+		 * Compute the remainder after dividing two [Long]s (i.e., `a - b *
+		 * (a / b)`).  The numerator must be ≥ 0, and the denominator must be >
+		 * 0, as for [Div].
 		 */
-		Mod(Opcodes.IREM, Int::mod, ::modBound, {
+		Mod(Opcodes.LREM, Long::rem, ::modBound, {
 			rule(C(0), X) { C(0) }
-			rule(C(1), X) { C(1) }
+			// 1 mod 1 is 0, so the divisor must exceed 1.
+			rule(C(1), X, {x.low > 1}) { C(1) }
 			rule(X, X) { C(0) }
 			rule(Mul(X, Y), X) { C(0) }
 			rule(Mul(Y, X), X) { C(0) }
-			rule(X, K1, {k1.takeLowestOneBit() == k1}) { And(X, C(k1 - 1)) }
+			rule(X, K1, {k1 > 0 && k1.takeLowestOneBit() == k1}) {
+				And(X, C(k1 - 1))
+			}
 			// X mod (k<<z) where k=2^n --> X & ((k<<z)-1)
-			rule(X, Shl(K1, Z), {k1.takeLowestOneBit() == k1}) {
+			rule(X, Shl(K1, Z), {k1 > 0 && k1.takeLowestOneBit() == k1}) {
 				And(X, Sub(Shl(K1, Z), C(1)))
 			}
-		}),
+		})
+		{
+			override fun L2ValueManifest.assertInputsAreValid(
+				input1: L2ReadIntOperand,
+				input2: L2ReadIntOperand
+			) = assertNonnegativeDividendAndPositiveDivisor(input1, input2)
+		},
 
 		/**
 		 * Shift an [Int] rightward by the specified number of bit positions,
@@ -388,40 +501,89 @@ constructor(
 		 * 31, otherwise only the bottom five bits will be used.  The result can
 		 * be negative if the first argument is negative and the shift is zero.
 		 */
-		Ushr(Opcodes.IUSHR, Int::ushr, ::ushrBound, {
-			rule(X, C(0)) { X }
-			rule(Ushr(X, K1), K2, {k1 + k2 <= 31}) { Ushr(X, C(k1 + k2)) }
-			rule(Ushr(X, K1), K2, {k1 + k2 > 31}) { C(0) }
-		}),
+		Ushr(
+			// The 32-bit unsigned shift needs the value zero-extended, but it
+			// lies under the shift count on the stack, so use a helper.
+			jvmGenerator = { ushr32Method.generateCall(this) },
+			folder = ::ushr32,
+			bounder = ::ushrBound,
+			ruleCreator = {
+				// Shift amounts outside 0..31 would be masked, so exclude them.
+				rule(X, C(0)) { X }
+				rule(
+					Ushr(X, K1),
+					K2,
+					{k1 in 0L..31L && k2 in 0L..31L && k1 + k2 <= 31}
+				) {
+					Ushr(X, C(k1 + k2))
+				}
+				rule(
+					Ushr(X, K1),
+					K2,
+					{k1 in 0L..31L && k2 in 0L..31L && k1 + k2 > 31}
+				) {
+					C(0)
+				}
+			}),
 
 		/**
-		 * Shift an [Int] rightward by the specified number of bit positions,
-		 * respecting its sign.  The second operand should be between 0 and 31,
-		 * otherwise only the bottom five bits will be used.
+		 * Shift a [Long] rightward by the specified number of bit positions,
+		 * respecting its sign.  The second operand should be between 0 and 63,
+		 * otherwise only the bottom six bits will be used.
 		 */
-		Shr(Opcodes.ISHR, Int::shr, P_BitShiftRight::binaryBound, {
-			rule(X, C(0)) { X }
-			rule(Shr(X, K1), K2, {k1 + k2 <= 31}) { Shr(X, C(k1 + k2)) }
-			rule(X, Y, {x.type.isSubtypeOf(inclusive(-1, 0))}) { X }
-		}),
+		Shr(
+			jvmGenerator = { shiftLong(Opcodes.LSHR) },
+			folder = { a, b -> a shr (b.toInt() and 63) },
+			bounder = P_BitShiftRight::binaryBound,
+			ruleCreator = {
+				// Shift amounts outside 0..63 would be masked, so exclude them.
+				rule(X, C(0)) { X }
+				rule(
+					Shr(X, K1),
+					K2,
+					{k1 in 0L..63L && k2 in 0L..63L && k1 + k2 <= 63}
+				) {
+					Shr(X, C(k1 + k2))
+				}
+				rule(X, Y, {x.type.isSubtypeOf(inclusive(-1, 0))}) { X }
+			}),
 
 		/**
-		 * Shift an [Int] leftward by the specified number of bit positions,
-		 * respecting its sign.  The second operand should be between 0 and 31,
-		 * otherwise only the bottom five bits will be used.
+		 * Shift a [Long] leftward by the specified number of bit positions.
+		 * The second operand should be between 0 and 63, otherwise only the
+		 * bottom six bits will be used.  This must only be used where the
+		 * result is known to fit in a [Long].
 		 */
-		Shl(Opcodes.ISHL, Int::shl, P_BitShiftLeft::binaryBound, {
-			rule(X, C(0)) { X }
-			rule(Shl(X, K1), K2, {k1 + k2 <= 31}) { Shl(X, C(k1 + k2)) }
-			rule(Shr(X, K1), K1) { And(X, C(-1 shl k1)) }
-			rule(Ushr(X, K1), K1) { And(X, C(-1 shl k1)) }
-			rule(X, Y, {x.type.isSubtypeOf(inclusive(-1, 0))}) { X }
-		}),
+		Shl(
+			jvmGenerator = { shiftLong(Opcodes.LSHL) },
+			folder = { a, b -> a shl (b.toInt() and 63) },
+			bounder = P_BitShiftLeft::binaryBound,
+			ruleCreator = {
+				// Shift amounts outside 0..63 would be masked, so exclude them.
+				rule(X, C(0)) { X }
+				rule(
+					Shl(X, K1),
+					K2,
+					{k1 in 0L..63L && k2 in 0L..63L && k1 + k2 <= 63}
+				) {
+					Shl(X, C(k1 + k2))
+				}
+				rule(Shr(X, K1), K1, {k1 in 0L..63L}) {
+					And(X, C(-1L shl k1.toInt()))
+				}
+				// Ushr is a 32-bit operation, so it leaves only the low 32 bits
+				// of X, zero-extended.  A shift of 0 is handled by Ushr's rule.
+				rule(Ushr(X, K1), K1, {k1 in 1L..31L}) {
+					And(X, C(0xFFFF_FFFFL and (-1L shl k1.toInt())))
+				}
+				// Only zero is unchanged by a left shift.  (-1 shl y is -2^y.)
+				rule(X, Y, {x.type.isSubtypeOf(inclusive(0, 0))}) { X }
+			}),
 
 		/**
 		 * Select the larger of the two [Int]s.
 		 */
-		Max(intMaxMethod::generateCall, Math::max, ::maxBound, {
+		Max(longMaxMethod::generateCall, Math::max, ::maxBound, {
 			rule(X, X) { X }
 			rule(K1, K2) { C(max(k1, k2)) }
 			rule(X, Y, {x.high <= y.low}) { Y }
@@ -431,7 +593,7 @@ constructor(
 		/**
 		 * Select the smaller of the two [Int]s.
 		 */
-		Min(intMinMethod::generateCall, Math::min, ::minBound, {
+		Min(longMinMethod::generateCall, Math::min, ::minBound, {
 			rule(X, X) { X }
 			rule(K1, K2) { C(min(k1, k2)) }
 			rule(X, Y, {x.high <= y.low}) { X }
@@ -441,23 +603,27 @@ constructor(
 		/**
 		 * Select a single bit into either 0 or 1 as the output.  This is done
 		 * as a shift and mask.  B must be non-negative, but may exceed 31, at
-		 * which point the replicated sign bit of A is used.
+		 * which point the replicated sign bit of A is used.  Since A is
+		 * sign-extended to a `long`, clamping B to 63 selects the same bit as
+		 * clamping it to 31.
 		 */
 		SelectBit(
 			jvmGenerator = {
 				// :: a, b
-				method.visitLdcInsn(31)
-				// :: a, b, 31
-				intMinMethod.generateCall(this)
-				// :: a, min(b,31)
-				method.visitInsn(Opcodes.IUSHR)
-				// :: a>>min(b,31)
-				method.visitLdcInsn(1)
-				// :: a>>min(b,31), 1
-				method.visitInsn(Opcodes.IAND)
-				// :: (a>>min(b,31)) & 1
+				method.visitLdcInsn(63L)
+				// :: a, b, 63
+				longMinMethod.generateCall(this)
+				// :: a, min(b,63)
+				method.visitInsn(Opcodes.L2I)
+				// :: a, (int) min(b,63)
+				method.visitInsn(Opcodes.LUSHR)
+				// :: a>>>min(b,63)
+				method.visitInsn(Opcodes.LCONST_1)
+				// :: a>>>min(b,63), 1
+				method.visitInsn(Opcodes.LAND)
+				// :: (a>>>min(b,63)) & 1
 			},
-			folder = { a, b -> (a ushr min(b, 31)) and 1 },
+			folder = { a, b -> (a ushr min(b, 63L).toInt()) and 1L },
 			bounder = { a, b -> enumerationWith(set(zero, one)) },
 			ruleCreator = {
 				rule(X, C(0)) { And(X, C(1)) }
@@ -471,12 +637,13 @@ constructor(
 		 * @constructor
 		 *   Create a new [BitOperation] enumeration value.
 		 * @param jvmOpcode
-		 *   An Int opcode to emit for this logic operation, once the two int
-		 *   values have been pushed.  It should have the effect of removing
-		 *   them from the JVM operand stack and leaving a single int as the
-		 *   result.
+		 *   A `long` opcode to emit for this logic operation, once the two
+		 *   `long` values have been pushed.  It should have the effect of
+		 *   removing them from the JVM operand stack and leaving a single
+		 *   `long` as the result.
 		 * @param folder
-		 *   A function that folds this operation on two constants.
+		 *   A function that folds this operation on two constants, matching
+		 *   the [jvmOpcode].
 		 * @param bounder
 		 *   A function for computing a type bound on the result, given type
 		 *   bounds for the two arguments.
@@ -487,7 +654,7 @@ constructor(
 		 */
 		private constructor(
 			jvmOpcode: Int,
-			folder: (Int, Int)->Int,
+			folder: (Long, Long)->Long,
 			bounder: (A_Type, A_Type)->A_Type,
 			ruleCreator: RulesSyntax.()->Unit
 		) : this(
@@ -517,6 +684,22 @@ constructor(
 			BinaryOp(this, left, right)
 
 		/**
+		 * Assert that the inputs of an [L2_BIT_LOGIC_OP] using this operation
+		 * meet the operation's preconditions on its inputs, according to the
+		 * receiver, the [L2ValueManifest] where the instruction is being added.
+		 * Operations with no such preconditions do nothing.
+		 *
+		 * @param input1
+		 *   The first input.
+		 * @param input2
+		 *   The second input.
+		 */
+		open fun L2ValueManifest.assertInputsAreValid(
+			input1: L2ReadIntOperand,
+			input2: L2ReadIntOperand
+		) = Unit
+
+		/**
 		 * Generate code (via the [callSiteHelper] that performs this operation,
 		 * and ensures the boxed form of the result is available as the result
 		 * of the call site.
@@ -534,7 +717,11 @@ constructor(
 		 *   A lambda that produces an output type bound, given two input types.
 		 * @param fallbackBody
 		 *   How to generate the boxed form of this call along a path where the
-		 *   inputs could not both be unboxed to [i32] values.
+		 *   inputs could not both be unboxed to values in the [range].
+		 * @param range
+		 *   The range of integers to unbox the inputs into.  This operation
+		 *   must always produce a result in the range when given inputs in the
+		 *   range, as bitwise and, or, and xor do.
 		 * @return
 		 *   Whether any code was output.  If no code was output, the caller is
 		 *   responsible for producing a more general primitive invocation or
@@ -546,15 +733,16 @@ constructor(
 			argumentTypes: List<A_Type>,
 			callSiteHelper: CallSiteHelper,
 			typeGuaranteeFunction: (List<A_Type>) -> A_Type,
-			fallbackBody: L1Translator.() -> Unit
+			fallbackBody: L1Translator.() -> Unit,
+			range: A_Type = i32
 		): Boolean
 		{
 			val (a, b) = arguments
 			val (aType, bType) = argumentTypes
-			// If either of the argument types does not intersect with int32,
-			// then fall back to the primitive invocation.
-			if (aType.typeIntersection(i32).isBottom
-				|| bType.typeIntersection(i32).isBottom)
+			// If either of the argument types does not intersect with the
+			// range, then fall back to the primitive invocation.
+			if (aType.typeIntersection(range).isBottom
+				|| bType.typeIntersection(range).isBottom)
 			{
 				return false
 			}
@@ -563,23 +751,25 @@ constructor(
 			val fallback = createBasicBlock("fall back to boxed logic")
 			try
 			{
-				val (intA, intB) = readTwoInts(
-					a.semanticValue(),
-					b.semanticValue(),
-					fallback)
-				{
-					return false
+				val (intA, intB) = primitive.run {
+					readAsTwoInts(
+						a.semanticValue(),
+						b.semanticValue(),
+						fallback,
+						range
+					) ?: return false
 				}
 				if (currentlyReachable())
 				{
 					// The happy path is reachable.  In this region, the output
-					// is guaranteed to be an Int.
+					// is guaranteed to be in the range.
 					val semanticPrimitive = primitive.semanticInvocation(
 						a.semanticValue(), b.semanticValue())
 					val typeGuarantee = typeGuaranteeFunction(
 						listOf(
-							aType.typeIntersection(i32),
-							bType.typeIntersection(i32)))
+							aType.typeIntersection(range),
+							bType.typeIntersection(range))
+					).typeIntersection(range)
 					// See if we've already computed an equivalent value in
 					// either the boxed or unboxed form.
 					currentManifest.equivalentSemanticValue(
@@ -651,15 +841,35 @@ constructor(
 	companion object
 	{
 		/**
-		 * Colculate a type bound for `a mod b`, given the types for a and b.
-		 * A must be ≥ 0, and b must be > 0.  Both must be < 2^31.
+		 * Shift the 32-bit value in [a] rightward by [b] bit positions,
+		 * treating it as unsigned, exactly as [Int.ushr] would.  Both
+		 * arguments and the result are sign-extended ints.
+		 *
+		 * @param a
+		 *   The value to shift, a sign-extended int.
+		 * @param b
+		 *   The shift amount.  Only its bottom five bits are used.
+		 * @return
+		 *   The shifted value, as a sign-extended int.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun ushr32(a: Long, b: Long): Long =
+			(a.toInt() ushr b.toInt()).toLong()
+
+		/** The [CheckedMethod] for [ushr32]. */
+		val ushr32Method = staticMethod(::ushr32, long, long)
+
+		/**
+		 * Calculate a type bound for `a mod b`, given the types for a and b.
+		 * A must be ≥ 0, and b must be > 0.  Both must be < 2^63.
 		 */
 		fun modBound(a: A_Type, b: A_Type): A_Type
 		{
-			val aLow = a.lowerBound.extractInt
-			val aHigh = a.upperBound.extractInt
-			val bLow = b.lowerBound.extractInt
-			val bHigh = b.upperBound.extractInt
+			val aLow = a.lowerBound.extractLong
+			val aHigh = a.upperBound.extractLong
+			val bLow = b.lowerBound.extractLong
+			val bHigh = b.upperBound.extractLong
 			assert(aLow >= 0)
 			assert(bLow > 0)
 
@@ -676,7 +886,7 @@ constructor(
 				// The modulus wraps past the denominator (to 0), so we have to
 				// say the modulus is between 0 and one less than the largest
 				// denominator.
-				inclusive(0, bHigh - 1)
+				inclusive(0L, bHigh - 1)
 			}
 		}
 
@@ -719,10 +929,10 @@ constructor(
 		 */
 		fun maxBound(a: A_Type, b: A_Type): A_Type
 		{
-			val aLow = a.lowerBound.extractInt
-			val aHigh = a.upperBound.extractInt
-			var bLow = b.lowerBound.extractInt
-			var bHigh = b.upperBound.extractInt
+			val aLow = a.lowerBound.extractLong
+			val aHigh = a.upperBound.extractLong
+			val bLow = b.lowerBound.extractLong
+			val bHigh = b.upperBound.extractLong
 			return inclusive(max(aLow, bLow), max(aHigh, bHigh))
 		}
 
@@ -731,16 +941,16 @@ constructor(
 		 */
 		fun minBound(a: A_Type, b: A_Type): A_Type
 		{
-			val aLow = a.lowerBound.extractInt
-			val aHigh = a.upperBound.extractInt
-			var bLow = b.lowerBound.extractInt
-			var bHigh = b.upperBound.extractInt
-
+			val aLow = a.lowerBound.extractLong
+			val aHigh = a.upperBound.extractLong
+			val bLow = b.lowerBound.extractLong
+			val bHigh = b.upperBound.extractLong
 			return inclusive(min(aLow, bLow), min(aHigh, bHigh))
 		}
 	}
 	class Rule(
 		val pattern: Pattern,
+		val condition: RuleEvaluationContext.()->Boolean,
 		val producer: RuleEvaluationContext.()->Pattern)
 
 	sealed class Pattern
@@ -764,7 +974,7 @@ constructor(
 		}
 
 		/** A *specific* constant value. */
-		class C(val n: Int): Pattern()
+		class C(val n: Long): Pattern()
 		{
 			override fun toString() = n.toString()
 		}
@@ -799,4 +1009,44 @@ constructor(
 				get() = arg1.allConstants + arg2.allConstants
 		}
 	}
+}
+
+/**
+ * Assert that, according to the receiver, the [dividend] is non-negative and
+ * the [divisor] is positive, as [BitOperation.Div] and [BitOperation.Mod]
+ * require.
+ *
+ * @param dividend
+ *   The dividend's [L2ReadIntOperand].
+ * @param divisor
+ *   The divisor's [L2ReadIntOperand].
+ */
+private fun L2ValueManifest.assertNonnegativeDividendAndPositiveDivisor(
+	dividend: L2ReadIntOperand,
+	divisor: L2ReadIntOperand)
+{
+	assert(dividend.restriction.containedByType(i63))
+	{
+		"Dividend might be negative: ${dividend.restriction}"
+	}
+	assert(divisor.restriction.containedByType(positiveI63))
+	{
+		"Divisor might not be positive: ${divisor.restriction}"
+	}
+}
+
+/**
+ * Given a `long` value and a `long` shift amount on the stack, emit the
+ * [opcode] (a `long` shift).  The JVM uses only the bottom six bits of the
+ * amount.
+ *
+ * @param opcode
+ *   The `long` shift opcode, which takes an `int` shift amount.
+ */
+private fun JVMTranslator.shiftLong(opcode: Int)
+{
+	// :: value, amount
+	method.visitInsn(Opcodes.L2I)
+	// :: value, (int) amount
+	method.visitInsn(opcode)
 }

@@ -36,7 +36,8 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.numericComparator
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Character.Companion.codePoint
@@ -48,7 +49,9 @@ import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.isDouble
 import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.descriptor.representation.A_Set.Companion.setSize
@@ -112,6 +115,7 @@ import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
@@ -311,9 +315,9 @@ constructor(
 		return L2ReadBoxedOperand(constant)
 	}
 
-	override fun unboxedIntConstant(value: Int): L2ReadIntOperand
+	override fun unboxedIntConstant(value: Long): L2ReadIntOperand
 	{
-		val constant = constant(fromInt(value))
+		val constant = constant(fromLong(value))
 		val restriction = constant.defaultRestriction
 		currentManifest.agglomerateSynonym(setOf(constant), restriction)
 		return L2ReadIntOperand(constant)
@@ -586,60 +590,14 @@ constructor(
 	): L2ReadOperand<INTEGER_KIND>
 	{
 		assert(currentlyReachable())
-		val state = currentManifest.stateOrNull(semanticValue)!!
-		val restriction = state.restriction
-		// The current design (2026.09) is supposed to ensure this value
-		// definitely fits in an i32, performing explicit tests if necessary.
-		assert(restriction.containedByType(i32)) {
-			"Value should have been constrained to an i32"
+		val restriction = currentManifest.restrictionFor(semanticValue)
+		// The caller ensures this value fits in the range it requested, at
+		// most an i64, performing explicit tests if necessary.  Don't narrow
+		// the value any further here.
+		assert(restriction.containedByType(i64)) {
+			"Value should have been constrained to an i64"
 		}
-//		// There must be a postponed instruction.  Check for an int-producing
-//		// instruction first.
-//		val values = state.members
-//		if (currentManifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
-//		{
-//			// It already exists in an unboxed int register.
-//			return currentManifest.readInt(semanticValue)
-//		}
-//		if (currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
-//		{
-//			// It already exists in a boxed register, so unbox it, *even if*
-//			// there's a postponed int-producing instruction.
-//			val readBoxed = currentManifest.readBoxed(semanticValue)
-//			addInstruction(
-//				L2_UNBOX_INT(readBoxed.cast(), intWrite(values, restriction)))
-//			return currentManifest.readInt(semanticValue)
-//		}
-//		// Check for constant.  It can be infallibly converted.
-//		restriction.constantOrNull?.let { constant ->
-//			// Make it available as a constant in an int register.
-//			return unboxedIntConstant(constant.extractInt)
-//		}
-//		// See if we can use an equivalent int value.
-//		values.forEach { value ->
-//			val equivalentUnboxed = currentManifest
-//				.equivalentPopulatedSemanticValue(value, INTEGER_KIND)
-//			if (equivalentUnboxed !== null)
-//			{
-//				move(equivalentUnboxed, values)
-//				return currentManifest.readInt(semanticValue)
-//			}
-//		}
-//		when {
-//			!state.intRepresentation.isAbsent ->
-//				ensureDefinedOrEmitMove(semanticValue, INTEGER_KIND)
-//			!state.boxedRepresentation.isAbsent ->
-//			{
-//				ensureDefinedOrEmitMove(semanticValue, BOXED_KIND)
-//				addInstruction(
-//					L2_UNBOX_INT(
-//						readBoxed(semanticValue),
-//						intWrite(values, restriction)))
-//			}
-//			else ->
-//				error("Unable to read int value")
-//		}
-		return currentManifest.readInt(semanticValue)
+		return currentManifest.readInt(semanticValue, i64Restriction)
 	}
 
 	/**
@@ -658,16 +616,18 @@ constructor(
 	): L2ReadIntOperand
 	{
 		val restriction = currentManifest.restrictionFor(semanticValue)
-		assert(restriction.containedByType(i32))
+		// Int registers hold up to an i64.  Consumers that need an i32 assert
+		// it themselves.  Don't narrow the value any further here.
+		assert(restriction.containedByType(i64))
 		if (currentManifest.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		{
 			// It already exists in an unboxed int register.
-			return currentManifest.readInt(semanticValue)
+			return currentManifest.readInt(semanticValue, i64Restriction)
 		}
 		// Check for constant.  It can be infallibly converted.
 		restriction.constantOrNull?.let { constant ->
 			// Make it available as a constant in an int register.
-			return unboxedIntConstant(constant.extractInt)
+			return unboxedIntConstant(constant.extractLong)
 		}
 		currentManifest.removePostponedInstructionFor(
 			semanticValue, INTEGER_KIND
@@ -680,21 +640,7 @@ constructor(
 			assert(currentManifest
 				.hasLiveSemanticValue(semanticValue, INTEGER_KIND))
 		}
-//TODO remove
-//		// Re-check for boxed kind, in case the postponed int-producing
-//		// instruction generated a boxed form somehow.
-//
-//		if (!currentManifest.hasLiveSemanticValue(semanticValue, BOXED_KIND))
-//		{
-//			// Simply unbox it.
-//			+L2_UNBOX_INT(
-//				currentManifest.readBoxed(semanticValue),
-//				L2WriteIntOperand(
-//					setOf(semanticValue),
-//					restriction,
-//					L2IntRegister(nextUnique())))
-//		}
-		return currentManifest.readInt(semanticValue)
+		return currentManifest.readInt(semanticValue, i64Restriction)
 	}
 
 	/**
@@ -813,6 +759,24 @@ constructor(
 		currentManifest.agglomerateSynonym(
 			targetSemanticValues + sourceSemanticValue,
 			currentManifest.restrictionFor(sourceSemanticValue))
+	}
+
+	override fun moveConstant(
+		constant: A_BasicObject,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+	{
+		move(
+			constant(constant),
+			targetSemanticValues)
+	}
+
+	override fun moveConstant(
+		integer: Int,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+	{
+		move(
+			constant(integer),
+			targetSemanticValues)
 	}
 
 	override fun createTuple(
@@ -1326,20 +1290,20 @@ constructor(
 		// value to be visible in a register.
 		val innerPass = L2BasicBlock("strengthen to constant")
 		val constantValueStrong = constantValue as AvailObject
-		if (constantValueStrong.isInt
-			&& readToTest.restriction.containedByType(i32))
+		if (constantValueStrong.isLong
+			&& readToTest.restriction.containedByType(i64))
 		{
-			// The constant and the value are both int32s.  Use the quicker int
-			// test, unboxing the int register if needed.
+			// The constant and the value both fit in a long.  Use the quicker
+			// int register test, unboxing the value if needed.
 			compareAndBranchInt(
 				NumericComparator.Equal,
-				readInt(readToTest.semanticValue(), failBlock) {
-					// It wasn't really an int, so it can't equal the constant
-					// int.  We've already jumped to failBlock in that case, so
-					// we're done rewriting the branch.
+				readInt(readToTest.semanticValue(), failBlock, i64) {
+					// It wasn't really a long, so it can't equal the constant.
+					// We've already jumped to failBlock in that case, so we're
+					// done rewriting the branch.
 					return
 				},
-				unboxedIntConstant(constantValueStrong.extractInt),
+				unboxedIntConstant(constantValueStrong.extractLong),
 				edgeTo(innerPass),
 				edgeTo(failBlock))
 		}
@@ -1443,15 +1407,20 @@ constructor(
 			.equivalentPopulatedSemanticValue(semanticValue, BOXED_KIND)
 		if (equivalentUnboxed != null
 			&& currentManifest.restrictionFor(semanticValue)
-				.containedByType(i32))
+				.containedByType(i64))
 		{
-			// The value is definitely an i32, and we have the value in an
-			// equivarent int.  Use it.
-			val constantIntType = expectedType.typeIntersection(i32)
-			val low = constantIntType.lowerBound.extractInt
-			val high = constantIntType.upperBound.extractInt
+			// The value is definitely an i64, and we have the value in an
+			// equivalent int.  Use it.
+			val constantIntType = expectedType.typeIntersection(i64)
+			val low = constantIntType.lowerBound.extractLong
+			val high = constantIntType.upperBound.extractLong
+			// Count the range's values exactly, since high - low + 1 can
+			// overflow a long.
 			val isContiguous = !constantIntType.isEnumeration
-				|| constantIntType.instanceCount.equalsInt(high - low + 1)
+				|| constantIntType.instanceCount.equals(
+					constantIntType.upperBound
+						.minusCanDestroy(constantIntType.lowerBound, false)
+						.plusCanDestroy(one, false))
 			if (isContiguous)
 			{
 				val firstSuccess = L2BasicBlock("low bound ok")

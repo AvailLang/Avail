@@ -59,6 +59,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeDescriptor
@@ -1391,16 +1392,21 @@ constructor(
 	 *   The known static types of the [arguments].
 	 * @param ifOutputIsInt
 	 *   A lambda with [BinaryIntGeneratorHelper] as receiver, that generates
-	 *   code to handle the case that the values are both [i32]s in int
-	 *   registers, and the result, if performed, would also be an [i32].
+	 *   code to handle the case that the values are both in the [range] in int
+	 *   registers, and the result, if performed, would also be in the [range].
 	 * @param ifOutputIsPossiblyInt
 	 *   A lambda with [BinaryIntGeneratorHelper] as receiver, that generates
-	 *   code to handle the case that the values are both [i32]s in int
-	 *   registers, and the result is not known to also be an [i32].
+	 *   code to handle the case that the values are both in the [range] in int
+	 *   registers, and the result is not known to be in the [range].  It must
+	 *   check that the result is within the [range].
 	 * @param fallback
 	 *   A lambda with [BinaryNonIntGeneratorHelper] as receiver, that generates
-	 *   code to handle the case that the inputs can't be converted into [i32]s,
-	 *   or the result is known always to be out of range of an [i32].
+	 *   code to handle the case that the inputs can't be converted into the
+	 *   [range], or the result is known always to be out of the [range].
+	 * @param range
+	 *   The range of integers to unbox the arguments into, and to which the
+	 *   unboxed result is restricted.  This is [i32] unless both lambdas read
+	 *   their int registers as `long`s, in which case it may be [i64].
 	 */
 	fun attemptToGenerateTwoIntToIntPrimitive(
 		callSiteHelper: CallSiteHelper,
@@ -1414,39 +1420,42 @@ constructor(
 			{
 				translator.generateGeneralFunctionInvocation(
 					functionToCallReg, false, callSiteHelper, arguments)
-			}
+			},
+		range: A_Type = i32
 	): Boolean = callSiteHelper.translator.run {
 		val (boxedA, boxedB) = arguments
 		val (aType, bType) = argumentTypes
 
-		val aIntersectInt32 = boxedA.restriction
-			.intersectionWithType(aType.typeIntersection(i32))
-		val bIntersectInt32 = boxedB.restriction
-			.intersectionWithType(bType.typeIntersection(i32))
-		if (aIntersectInt32.isImpossible || bIntersectInt32.isImpossible)
+		val aInRange = boxedA.restriction
+			.intersectionWithType(aType.typeIntersection(range))
+		val bInRange = boxedB.restriction
+			.intersectionWithType(bType.typeIntersection(range))
+		if (aInRange.isImpossible || bInRange.isImpossible)
 		{
-			// They can't both be an i32, so tell the caller to fall back.
+			// They can't both be in range, so tell the caller to fall back.
 			return false
 		}
 
 		// Attempt to unbox the arguments.
 		val valueA = boxedA.semanticValue()
 		val valueB = boxedB.semanticValue()
-		val intSuccess = createBasicBlock("output is i32")
+		val intSuccess = createBasicBlock("output is in $range")
 		val intFallback = createBasicBlock("fall back to boxed")
-		val (intA, intB) = readTwoInts(valueA, valueB, intFallback)
-		{
-			return false
-		}
+		val (intA, intB) = readAsTwoInts(
+			valueA,
+			valueB,
+			intFallback,
+			range
+		) ?: return false
 		assert(currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
-			rawFunction, listOf(aIntersectInt32.type, bIntersectInt32.type))
+			rawFunction, listOf(aInRange.type, bInRange.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
 		val intWriter = intWrite(
 			setOf(semanticPrimitive),
-			restrictionForType(returnTypeIfInts.typeIntersection(i32)))
+			restrictionForType(returnTypeIfInts.typeIntersection(range)))
 		val boxedWrite = boxedWrite(
 			setOf(semanticPrimitive),
 			restrictionForType(returnTypeIfInts))
@@ -1458,7 +1467,7 @@ constructor(
 			intSuccess = intSuccess,
 			intFailure = intFallback,
 			translator = this)
-		if (returnTypeIfInts.isSubtypeOf(i32))
+		if (returnTypeIfInts.isSubtypeOf(range))
 		{
 			// The result is guaranteed not to overflow, so emit an instruction
 			// that won't bother with an overflow check.  Note that both the
@@ -1482,7 +1491,7 @@ constructor(
 		}
 		else
 		{
-			// The result could exceed an int32.
+			// The result could exceed the range.
 			helper.ifOutputIsPossiblyInt()
 			startBlock(intSuccess)
 		}
@@ -1508,6 +1517,38 @@ constructor(
 		}
 		return true
 	}
+
+	/**
+	 * Generate code to extract two boxed values into int registers.  If
+	 * there's a path where they both succeed, return the [Pair] of
+	 * [L2ReadIntOperand]s, with the generator positioned at the success
+	 * path.  If there was a way for one or the other extraction to fail,
+	 * there will be a path to the supplied onFailure [L2BasicBlock].  If
+	 * one of the extractions *cannot* succeed, return `null`.
+	 *
+	 * @param semanticValue1
+	 *   The first [L2SemanticValue] to read as an unboxed int.
+	 * @param semanticValue2
+	 *   The second [L2SemanticValue] to read as an unboxed int.
+	 * @param onFailure
+	 *   Where to jump in the event that a dynamic type test against the
+	 *   [range] fails. The manifest at this location will not contain bindings
+	 *   for the unboxed `int` (since unboxing was not possible).
+	 * @param range
+	 *   The integer range that each unboxed value must lie within, at most
+	 *   [i64].
+	 * @return
+	 *   If the two unboxings are both possible, the [Pair] of unboxed
+	 *   [L2ReadIntOperand]s, with this generator set to the success path,
+	 *   otherwise `null`.
+	 */
+	open fun L2GeneratorInterface.readAsTwoInts(
+		semanticValue1: L2SemanticValue,
+		semanticValue2: L2SemanticValue,
+		onFailure: L2BasicBlock,
+		range: A_Type = i32
+	): Pair<L2ReadIntOperand, L2ReadIntOperand>? =
+		readTwoInts(semanticValue1, semanticValue2, onFailure, range)
 
 	/**
 	 * Write a JVM invocation of this primitive, *under the assumption that the

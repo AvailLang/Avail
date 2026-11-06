@@ -32,12 +32,14 @@
 package avail.interpreter.levelTwo.operand
 
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
@@ -74,4 +76,21 @@ constructor(
 		dispatcher.doOperand(this)
 
 	override val kind get() = INTEGER_KIND
+
+	/**
+	 * Assert that, in the given [manifest], this read is restricted to [i32].
+	 * An instruction that reads an int register through the int view (which
+	 * narrows the register's `long` with `l2i`) must only receive such reads,
+	 * or the narrowing would silently truncate the value.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] in effect where the instruction is added.
+	 */
+	fun assertInt32(manifest: L2ValueManifest) = manifest.run {
+		val restriction = this@L2ReadIntOperand.restriction
+		assert(restriction.containedByType(i32)) {
+			"Int-view read of ${this@L2ReadIntOperand} is not restricted to " +
+				"i32: $restriction"
+		}
+	}
 }

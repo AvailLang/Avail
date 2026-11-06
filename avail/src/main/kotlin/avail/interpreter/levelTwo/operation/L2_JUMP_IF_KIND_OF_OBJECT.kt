@@ -34,10 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.isDoubleMethod
 import avail.descriptor.representation.A_Number.Companion.isIntMethod
+import avail.descriptor.representation.A_Number.Companion.isLongMethod
 import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
@@ -120,7 +122,7 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		{
 			// The ifKind target is warm, so allow a split back to a point where
 			// the value is known to be of the requested kind.
-			val constantTypeWhenInt = constantType.typeIntersection(i32)
+			val constantTypeWhenInt = constantType.typeIntersection(i64)
 			if (!constantTypeWhenInt.isVacuousType)
 			{
 				addAll(unboxedIntConditions(listOf(value.register())))
@@ -163,6 +165,19 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 				// :: (value.isInt)
 				load(value)
 				generateCall(isIntMethod)
+			}
+
+			// Same, but for the i64 range, which int registers can hold.
+			type.register().constant.notNullAnd {
+				val valueType = value.restriction.type
+				isSubtypeOf(i64)
+					&& !isEnumeration
+					&& valueType.typeIntersection(this).equals(
+						valueType.typeIntersection(i64)) } ->
+			{
+				// :: (value.isLong)
+				load(value)
+				generateCall(isLongMethod)
 			}
 
 			// Same, but for doubles.

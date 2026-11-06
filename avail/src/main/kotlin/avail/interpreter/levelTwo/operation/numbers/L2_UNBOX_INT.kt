@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation.numbers
 
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -49,7 +49,7 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 
 /**
- * Unbox an [Int] from an [AvailObject].
+ * Unbox an [i64] from an [AvailObject] into an int register.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -73,9 +73,9 @@ class L2_UNBOX_INT(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest
 	) = manifest.run {
-		assert(source.restriction.containedByType(i32))
+		assert(source.restriction.containedByType(i64))
 		{
-			"L2_UNBOX_INT source was not proven to be an i32: " +
+			"L2_UNBOX_INT source was not proven to be an i64: " +
 				source.restriction
 		}
 		destination.restrict { source.restriction }
@@ -90,10 +90,10 @@ class L2_UNBOX_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = source.extractInt();
+		// :: destination = source.extractLong();
 		load(source)
-		generateCall(A_Number.extractIntStaticMethod)
-		store(destination.register())
+		generateCall(A_Number.extractLongStaticMethod)
+		storeLong(destination.register())
 	}
 
 	override fun PostPhiData.interestingConditions() = buildList {

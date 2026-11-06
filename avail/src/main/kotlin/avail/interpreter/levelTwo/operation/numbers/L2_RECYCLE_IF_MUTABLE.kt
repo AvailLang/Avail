@@ -1,5 +1,5 @@
 /*
- * L2_TUPLE_INT_AT_NO_FAIL.kt
+ * L2_RECYCLE_IF_MUTABLE.kt
  * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,29 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.levelTwo.operation.tuples
+package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.numbers.IntegerDescriptor.RecyclePool
+import avail.descriptor.representation.AvailObject
+import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.jvm.CheckedField
+import avail.optimizer.jvm.CheckedField.Companion.instanceField
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Opcodes.ACONST_NULL
 
 /**
- * Extract an [i32] at a subscript from a [tuple][TupleDescriptor] that is known
- * to be within bounds, writing the element into an [L2WriteIntOperand].
+ * Offer the boxed [Int] in [source] to the current [Interpreter]'s
+ * [RecyclePool], if it's mutable.  This is only inserted at a last use of a
+ * register that holds a boxed integer, with no other live reference to the
+ * object.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * After the offer, the JVM local for [source] is nulled.  Nothing may read the
+ * register again, so any such read fails fast instead of observing a recycled
+ * object.
  */
-class L2_TUPLE_INT_AT_NO_FAIL(
-	var tuple: L2ReadBoxedOperand,
-	var subscript: L2ReadIntOperand,
-	var destination: L2WriteIntOperand
+class L2_RECYCLE_IF_MUTABLE(
+	var source: L2ReadBoxedOperand
 ): L2Instruction()
 {
+	override val hasSideEffect: Boolean get() = true
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,
@@ -60,23 +69,37 @@ class L2_TUPLE_INT_AT_NO_FAIL(
 	{
 		renderPreamble()
 		append(' ')
-		append(destination.registerString())
-		append(" ← ")
-		append(tuple.registerString())
-		append("(no fail)[")
-		append(subscript)
-		append("] (int)")
+		append(source.registerString())
 	}
 
-	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
-		get() = emptyList()
+	override fun L2GeneratorInterface.emitTransformedInstruction()
+	{
+		// The recycle instruction should only be inserted after all
+		// optimization passes that use graph regeneration.
+		throw AssertionError("Should not reach this")
+	}
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = tuple.tupleAt(subscript);
-		load(tuple)
-		load(subscript)
-		generateCall(TupleDescriptor.tupleIntAtMethod)
-		store(destination.register())
+		// :: interpreter.integerPool.recycleIfMutable(source);
+		// :: source = null;
+		loadInterpreter()
+		load(integerPoolField)
+		load(source)
+		generateCall(recycleIfMutableMethod)
+		method.visitInsn(ACONST_NULL)
+		store(source.register())
+	}
+
+	companion object
+	{
+		/** The [CheckedField] for [Interpreter.integerPool]. */
+		val integerPoolField: CheckedField =
+			instanceField(Interpreter::integerPool)
+
+		/** The [CheckedMethod] for [RecyclePool.recycleIfMutable]. */
+		val recycleIfMutableMethod: CheckedMethod = instanceMethod(
+			RecyclePool::recycleIfMutable,
+			AvailObject::class.java)
 	}
 }

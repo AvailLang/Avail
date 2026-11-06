@@ -37,7 +37,7 @@ import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
@@ -50,7 +50,7 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.topRestriction
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_MOVE
@@ -1083,11 +1083,11 @@ class L2ValueManifest
 				val synonym = state.synonym
 				val narrowedClone = postponed.narrowedForManifest(this, synonym)
 				if (narrowedClone === null) return@inner
-				val write = narrowedClone.writeOperands.single()
-				// Compute what the write restriction should be based on narrowed reads,
-				// but don't restrict the operand (to avoid staleness issues).
+				// Compute what the write restriction should be based on
+				// narrowed reads, but don't restrict the operand (to avoid
+				// staleness issues).
 				val implied = narrowedClone.impliedWriteRestriction(
-					narrowedClone.readOperands.map { read -> this.restrictionFor(read) })
+					narrowedClone.readOperands.map(::restrictionFor))
 				val target = synonym.pickSemanticValue()
 				updateRepresentation(synonym, kind.cast()) {
 					postponedInstruction = narrowedClone
@@ -3152,10 +3152,14 @@ class L2ValueManifest
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to read as an [L2ReadIntOperand].
+	 * @param optionalRestriction
+	 *   A restriction known to hold for the value, which is intersected into
+	 *   its synonym's restriction.  It defaults to [i64], which is everything
+	 *   an int register can hold, so it doesn't narrow the value.
 	 */
 	fun readInt(
 		semanticValue: L2SemanticValue,
-		optionalRestriction: TypeRestriction = i32Restriction,
+		optionalRestriction: TypeRestriction = i64Restriction,
 		register: L2IntRegister? = null
 	): L2ReadIntOperand
 	{
@@ -3278,27 +3282,37 @@ class L2ValueManifest
 				}
 				val pick = relatedSemanticValues[0]
 
-				// If forcing phis (loop heads), use BOXED. Otherwise, prefer any kind
-				// that has common registers in all input edges to avoid phi creation.
+				val unionType = manifests
+					.map { it.restrictionFor(pick).type }
+					.reduce { a, b -> a.typeUnion(b) }
+				// If forcing phis (loop heads), use BOXED. Otherwise, prefer
+				// any kind that has common registers in all input edges to
+				// avoid phi creation.  If the result is int and *some* edges
+				// have it already unboxed, force the other edges to unbox.
 				val kind = when {
 					forcePhis -> BOXED_KIND
-					manifests.all { it.hasLiveSemanticValue(pick, INTEGER_KIND) } ->
-						INTEGER_KIND
-					manifests.all { it.hasLiveSemanticValue(pick, FLOAT_KIND) } ->
-						FLOAT_KIND
-					manifests.all { it.hasLiveSemanticValue(pick, BOXED_KIND) } ->
-						BOXED_KIND
-					else -> {
-						// No common registers; choose based on union type.
-						val unionType = manifests
-							.map { it.restrictionFor(pick).type }
-							.reduce { a, b -> a.typeUnion(b) }
-						when {
-							unionType.isSubtypeOf(i32) -> INTEGER_KIND
-							unionType.isSubtypeOf(FLOAT()) -> FLOAT_KIND
-							else -> BOXED_KIND
-						}
-					}
+					// It's in int registers in all edges.
+					manifests.all {
+						it.hasLiveSemanticValue(pick, INTEGER_KIND)
+					} -> INTEGER_KIND
+					// It's in float registers in all edges.
+					manifests.all {
+						it.hasLiveSemanticValue(pick, FLOAT_KIND)
+					} -> FLOAT_KIND
+					// It's int, and available in int registers in some edges,
+					// so force the remaining edges to unbox to int.  This
+					// reduces occurrences of unnecessary reboxing.
+					unionType.isSubtypeOf(i64) && manifests.any {
+						it.hasLiveSemanticValue(pick, INTEGER_KIND)
+					} -> INTEGER_KIND
+					// It's in boxed registers in all edges.
+					manifests.all {
+						it.hasLiveSemanticValue(pick, BOXED_KIND)
+					} -> BOXED_KIND
+					// No common registers; choose based on union type.
+					unionType.isSubtypeOf(i64) -> INTEGER_KIND
+					unionType.isSubtypeOf(FLOAT()) -> FLOAT_KIND
+					else -> BOXED_KIND
 				}
 				populateOneSynonym(
 					kind.cast(),

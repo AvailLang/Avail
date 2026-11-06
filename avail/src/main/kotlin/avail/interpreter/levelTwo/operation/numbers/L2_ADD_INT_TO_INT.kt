@@ -32,9 +32,11 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
-import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -43,7 +45,7 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.primitive.numbers.P_Addition
@@ -56,7 +58,7 @@ import org.objectweb.asm.Type
 
 /**
  * Add the value in one int register to another int register, jumping to the
- * specified target if the result does not fit in an int.
+ * specified target if the result does not fit in a long.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -72,39 +74,41 @@ class L2_ADD_INT_TO_INT(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest
 	): Unit = manifest.run {
-		sum.restrict { restrictionForType(i32) }
+		sum.restrict { i64Restriction }
 		super.instructionWasAdded(manifest)
 		addend.constantOrNull?.let { addendValue ->
 			// By virtue of the overflow and the fact that the addend is
-			// constant, we can compute a tighter constraint on the augend.
+			// constant, we can compute a tighter constraint on the augend: it
+			// is not in i64 - addend.
 			outOfRange.manifest().updateRestriction(augend.semanticValue()) {
 				minusType(
 					inclusive(
-						Int.MIN_VALUE.toLong() - addendValue.extractLong,
-						Int.MAX_VALUE.toLong() - addendValue.extractLong))
+						i64.lowerBound.minusCanDestroy(addendValue, false),
+						i64.upperBound.minusCanDestroy(addendValue, false)))
 			}
 		}
 		augend.constantOrNull?.let { augendValue ->
 			// Similarly, by virtue of the overflow and the fact that the augend
-			// is constant, we can compute a tighter constraint on the addend.
+			// is constant, the addend is not in i64 - augend.
 			outOfRange.manifest().updateRestriction(addend.semanticValue()) {
 				minusType(
 					inclusive(
-						Int.MIN_VALUE.toLong() - augendValue.extractLong,
-						Int.MAX_VALUE.toLong() - augendValue.extractLong))
+						i64.lowerBound.minusCanDestroy(augendValue, false),
+						i64.upperBound.minusCanDestroy(augendValue, false)))
 			}
 		}
 	}
 
-	// It jumps if the result doesn't fit in an int.
+	// It jumps if the result doesn't fit in a long.
 	override val hasSideEffect get() = true
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val outputRange = P_Addition.returnTypeGuaranteedByVM(
 			null, listOf(augend.type, addend.type))
-		if (outputRange.isSubtypeOf(i32))
+		if (outputRange.isSubtypeOf(i64))
 		{
+			// It can't overflow, so use the unchecked addition.
 			+L2_BIT_LOGIC_OP(Add, augend, addend, sum)
 			jumpTo(inRange.targetBlock())
 			return
@@ -133,11 +137,9 @@ class L2_ADD_INT_TO_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: longSum = (long) augend + (long) addend;
-		load(augend)
-		method.visitInsn(Opcodes.I2L)
-		load(addend)
-		method.visitInsn(Opcodes.I2L)
+		// :: longSum = augend + addend;
+		loadLong(augend)
+		loadLong(addend)
 		method.visitInsn(Opcodes.LADD)
 		val longSumStart = Label()
 		val longSumEnd = Label()
@@ -151,20 +153,26 @@ class L2_ADD_INT_TO_INT(
 			longSumLocal)
 		method.visitVarInsn(Opcodes.LSTORE, longSumLocal)
 		method.visitLabel(longSumStart)
-		// :: if ((long) (int) longSum != longSum) goto outOfRange;
+		// The sum overflowed exactly when both addends have the same sign and
+		// the sum's sign differs from it.
+		// :: if (((augend ^ longSum) & (addend ^ longSum)) < 0)
+		// ::    goto outOfRange;
+		loadLong(augend)
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LXOR)
+		loadLong(addend)
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
+		method.visitInsn(Opcodes.LXOR)
+		method.visitInsn(Opcodes.LAND)
+		method.visitInsn(Opcodes.LCONST_0)
 		method.visitInsn(Opcodes.LCMP)
-		jumpIf(Opcodes.IFNE, outOfRange)
+		jumpIf(Opcodes.IFLT, outOfRange)
 		// :: else {
-		// ::    sum = (int)longSum;
+		// ::    sum = longSum;
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
-		method.visitInsn(Opcodes.L2I)
-		store(sum.register())
+		storeLong(sum.register())
 		jump(inRange)
 		method.visitLabel(longSumEnd)
 		endLocal(longSumLocal, Type.LONG_TYPE)

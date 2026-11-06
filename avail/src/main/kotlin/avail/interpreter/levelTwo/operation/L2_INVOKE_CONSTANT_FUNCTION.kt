@@ -54,9 +54,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive.Flag.Unknown
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -203,15 +203,19 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 	override fun JVMTranslator.translateToJVM()
 	{
 		loadInterpreter()
-		// :: [interpreter]
+		// :: interpreter
 		loadInterpreter()
-		// :: [interpreter, interpreter]
+		// :: interpreter, interpreter
 		load(Interpreter.chunkField)
-		// :: [interpreter, callingChunk]
+		// :: interpreter, callingChunk
 		loadInterpreter()
-		// :: [interpreter, callingChunk, interpreter]
+		// :: interpreter, callingChunk, interpreter
+		load(Interpreter.interpreterFunctionField)
+		// :: interpreter, callingChunk, callingFn
+		loadInterpreter()
+		// :: [interpreter, callingChunk, callingFn, interpreter
 		loadLiteralObject(constantFunction.constant)
-		// :: [interpreter, callingChunk, interpreter, function]
+		// :: [interpreter, callingChunk, callingFn, interpreter, calledFn
 		L2_INVOKE.run {
 			generatePushArgumentsAndInvoke(
 				arguments.elements,

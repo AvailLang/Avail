@@ -37,9 +37,10 @@ import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import avail.descriptor.numbers.IntegerDescriptor.Companion.combineWord
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfIntegerObject
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashesOfSmallIntegers
-import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegerLimit
+import avail.descriptor.numbers.IntegerDescriptor.Companion.integerHashSalt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.smallIntegers
 import avail.descriptor.numbers.IntegerDescriptor.Companion.squaresOfQuintillionLock
 import avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_
@@ -48,7 +49,6 @@ import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.addToIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.asBigInteger
 import avail.descriptor.representation.A_Number.Companion.bitShift
-import avail.descriptor.representation.A_Number.Companion.bitwiseXor
 import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
 import avail.descriptor.representation.A_Number.Companion.divideIntoIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.equalsInteger
@@ -69,9 +69,6 @@ import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.multiplyByIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.numericCompareToInteger
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAt
-import avail.descriptor.representation.A_Number.Companion.rawSignedIntegerAtPut
-import avail.descriptor.representation.A_Number.Companion.rawUnsignedIntegerAt
 import avail.descriptor.representation.A_Number.Companion.subtractFromIntegerCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.A_Number.Companion.trimExcessInts
@@ -83,15 +80,12 @@ import avail.descriptor.representation.A_Type.Companion.lowerInclusive
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.multiplier
+import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.IntegerSlotsEnum.Companion.describeLong
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.Mutability.IMMUTABLE
-import avail.descriptor.representation.Mutability.MUTABLE
-import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
@@ -99,15 +93,18 @@ import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
+import avail.exceptions.AvailSystemLimitException
 import avail.exceptions.MarshalingException
 import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.carryOut
+import avail.utility.isInt
 import avail.utility.safeWrite
-import avail.utility.structures.EnumMap
 import org.availlang.json.JSONWriter
+import java.lang.Double.doubleToRawLongBits
 import java.lang.Double.isInfinite
 import java.lang.Math.getExponent
 import java.lang.Math.scalb
@@ -119,7 +116,6 @@ import kotlin.concurrent.read
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 /**
  * An Avail [integer][IntegerDescriptor] is represented by a little endian
@@ -145,25 +141,17 @@ import kotlin.random.Random
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
- * @param unusedIntsOfLastLong
- *   The number of unused [Int]s in the last `long`.  Must be 0 or 1.
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class IntegerDescriptor private constructor(
-	mutability: Mutability,
-	val unusedIntsOfLastLong: Int
+	mutability: Mutability
 ) : ExtendedIntegerDescriptor(
 	mutability,
 	TypeTag.UNKNOWN_TAG,
 	null,
 	IntegerSlots::class.java)
 {
-	init {
-		assert((unusedIntsOfLastLong and 1.inv()) == 0)
-	}
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -216,7 +204,7 @@ class IntegerDescriptor private constructor(
 				val longValue = self.extractLong
 				describeLong(
 					longValue,
-					if (intCount(self) == 1) 32 else 64,
+					if (self.isInt) 32 else 64,
 					this)
 				append(" = ")
 				append(longValue)
@@ -235,15 +223,6 @@ class IntegerDescriptor private constructor(
 		else -> super.o_DescribeForDebugger(self)
 	}
 
-	override fun o_RawSignedIntegerAt(self: AvailObject, index: Int): Int =
-		self.intSlot(RAW_LONG_SLOTS_, index)
-
-	override fun o_RawSignedIntegerAtPut(
-		self: AvailObject,
-		index: Int,
-		value: Int
-	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
-
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		(another as A_Number).equalsInteger(self)
 
@@ -254,9 +233,8 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anAvailInteger: AvailObject
 	): Boolean {
-		val intCount = intCount(self)
 		// Assume integers being compared are always normalized (trimmed).
-		if (intCount != intCount(anAvailInteger)) return false
+		if (longCount(self) != longCount(anAvailInteger)) return false
 		return self.compareLongSlots(
 			RAW_LONG_SLOTS_,
 			1,
@@ -272,7 +250,7 @@ class IntegerDescriptor private constructor(
 	override fun o_EqualsLong(
 		self: AvailObject,
 		theLong: Long
-	) = intCount(self) <= 2 && self.extractLong == theLong
+	) = longCount(self) == 1 && self.extractLong == theLong
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -326,79 +304,75 @@ class IntegerDescriptor private constructor(
 	): A_Number = aNumber.multiplyByIntegerCanDestroy(self, canDestroy)
 
 	override fun o_IsNybble(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in 0..15
+		self.isLong && self.extractLong in 0L..15L
 
 	override fun o_IsSignedByte(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in -128..127
+		self.isLong && self.extractLong in -128L..127L
 
 	override fun o_IsUnsignedByte(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in 0..255
+		self.isLong && self.extractLong in 0L..255L
 
 	override fun o_IsSignedShort(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in -32768..32767
+		self.isLong && self.extractLong in -32768L..32767L
 
 	override fun o_IsUnsignedShort(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt in 0..65535
+		self.isLong && self.extractLong in 0L..65535L
 
-	override fun o_IsInt(self: AvailObject) = intCount(self) == 1
+	override fun o_IsInt(self: AvailObject) =
+		self.isLong && self.extractLong.isInt
 
-	override fun o_IsLong(self: AvailObject) = intCount(self) <= 2
+	override fun o_IsLong(self: AvailObject) = longCount(self) == 1
 
 	override fun o_ExtractNybble(self: AvailObject): Byte {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value and 15) { "Value is out of range for a nybble" }
+		val value = self.extractLong
+		assert(value == value and 15L) { "Value is out of range for a nybble" }
 		return value.toByte()
 	}
 
 	override fun o_ExtractSignedByte(self: AvailObject): Byte {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value.toByte().toInt()) {
+		val value = self.extractLong
+		assert(value == value.toByte().toLong()) {
 			"Value is out of range for a signed byte"
 		}
 		return value.toByte()
 	}
 
 	override fun o_ExtractUnsignedByte(self: AvailObject): Short {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value and 255) {
+		val value = self.extractLong
+		assert(value == value and 255L) {
 			"Value is out of range for an unsigned byte"
 		}
 		return value.toShort()
 	}
 
 	override fun o_ExtractSignedShort(self: AvailObject): Short {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value.toShort().toInt()) {
+		val value = self.extractLong
+		assert(value == value.toShort().toLong()) {
 			"Value is out of range for a signed short"
 		}
 		return value.toShort()
 	}
 
 	override fun o_ExtractUnsignedShort(self: AvailObject): Int {
-		assert(intCount(self) == 1)
-		val value = self.rawSignedIntegerAt(1)
-		assert(value == value and 65535) {
+		val value = self.extractLong
+		assert(value == value and 65535L) {
 			"Value is out of range for an unsigned short"
 		}
-		return value
+		return value.toInt()
 	}
 
 	override fun o_ExtractInt(self: AvailObject): Int {
-		assert(intCount(self) == 1) { "Integer value out of bounds" }
-		return self.rawSignedIntegerAt(1)
+		assert(longCount(self) == 1) { "Integer value out of bounds" }
+		val value = self.extractLong
+		val truncated = (value shl 32) shr 32
+		assert(value == truncated) { "Integer value out of bounds" }
+		return truncated.toInt()
 	}
 
 	override fun o_ExtractLong(self: AvailObject): Long {
-		assert(intCount(self) <= 2) { "Integer value out of bounds" }
-		if (intCount(self) == 1) {
-			return self.rawSignedIntegerAt(1).toLong()
-		}
-		val low = self.rawSignedIntegerAt(1).toLong() and 0xffffffffL
-		return low or (self.rawSignedIntegerAt(2).toLong() shl 32)
+		assert(longCount(self) == 1) { "Integer value out of bounds" }
+		// A value in long range is a single, canonical long.
+		return self.longSlot(RAW_LONG_SLOTS_, 1)
 	}
 
 	override fun o_ExtractFloat(self: AvailObject): Float =
@@ -407,72 +381,23 @@ class IntegerDescriptor private constructor(
 	override fun o_ExtractDouble(self: AvailObject): Double =
 		extractDoubleScaled(self, 0)
 
-	/**
-	 * Manually constructed accessor method.  Access the quad-byte using the
-	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
-	 * least significant quad comes first).
-	 */
-	override fun o_RawUnsignedIntegerAt(
-		self: AvailObject,
-		index: Int
-	): Long {
-		val signedInt = self.intSlot(RAW_LONG_SLOTS_, index)
-		return (signedInt.toLong() and 0xFFFFFFFFL)
-	}
-
-	/**
-	 * Manually constructed accessor method.  Overwrite the quad-byte using the
-	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
-	 * least significant quad comes first).
-	 */
-	override fun o_RawUnsignedIntegerAtPut(
-		self: AvailObject,
-		index: Int,
-		value: Int
-	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
-
 	override fun o_TrimExcessInts(self: AvailObject) {
-		// Remove any redundant ints from my end.  Since I'm stored in Little
-		// Endian representation, I can simply be truncated with no need to
-		// shift data around.
+		// Remove any redundant top longs.  A top long that is just the sign
+		// word of the long below it adds nothing, so the storage can simply be
+		// truncated, with no need to shift data around.
 		assert(isMutable)
-		val originalSize = intCount(self)
-		var size = originalSize
-		if (size > 1)
+		val originalLongs = longCount(self)
+		var longs = originalLongs
+		while (longs > 1
+			&& self.longSlot(RAW_LONG_SLOTS_, longs)
+				== self.longSlot(RAW_LONG_SLOTS_, longs - 1) shr 63)
 		{
-			if (self.intSlot(RAW_LONG_SLOTS_, size) >= 0)
-			{
-				while (size > 1
-					&& self.intSlot(RAW_LONG_SLOTS_, size) == 0
-					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) >= 0)
-				{
-					size--
-				}
-			}
-			else
-			{
-				while (size > 1
-					&& self.intSlot(RAW_LONG_SLOTS_, size) == -1
-					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) < 0)
-				{
-					size--
-				}
-			}
-			if (size < originalSize)
-			{
-				if (size + 1 shr 1 != originalSize + 1 shr 1)
-				{
-					// Remove some longs.
-					self.truncateWithFillerForNewIntegerSlotsCount(
-						size + 1 shr 1)
-				}
-				if (size and 1 == 1)
-				{
-					// Safety: Zero the bytes if the size is now odd.
-					self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
-				}
-				self.descriptor = mutableFor(size)
-			}
+			longs--
+		}
+		if (longs < originalLongs)
+		{
+			self.truncateWithFillerForNewIntegerSlotsCount(longs)
+			self.descriptor = mutable
 		}
 	}
 
@@ -486,43 +411,6 @@ class IntegerDescriptor private constructor(
 		else negativeInfinity
 	}
 
-	/**
-	 * Choose the most spacious mutable [argument][AvailObject].
-	 *
-	 * @param self
-	 *   An Avail integer.
-	 * @param another
-	 *   The number of ints in the representation of object.
-	 * @param selfIntCount
-	 *   The size of self in ints.
-	 * @param anotherIntCount
-	 *   The number of ints in the representation of another.
-	 * @param canDestroy
-	 *   A boolean indicating whether one of the arguments can actually be
-	 *   reused if it's mutable.
-	 * @return
-	 *   One of the arguments, or `null` if neither argument was suitable.
-	 */
-	private fun largerMutableOf(
-		self: AvailObject,
-		another: AvailObject,
-		selfIntCount: Int,
-		anotherIntCount: Int,
-		canDestroy: Boolean
-	): AvailObject? {
-		return when {
-			!canDestroy -> null
-			selfIntCount == anotherIntCount -> when {
-				isMutable -> self
-				another.descriptor.isMutable -> another
-				else -> null
-			}
-			selfIntCount > anotherIntCount -> if (isMutable) self else null
-			another.descriptor.isMutable -> another
-			else -> null
-		}
-	}
-
 	override fun o_AddToIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -534,70 +422,100 @@ class IntegerDescriptor private constructor(
 			val x = anInteger.extractLong
 			val y = self.extractLong
 			val sum = x + y
-			// Detect 64-bit overflow for addition.
+			// Detect 64-bit overflow for addition.  It occurs only when both
+			// inputs have the same sign and the sum's sign differs.
 			if (((x xor sum) and (y xor sum)) >= 0)
 				return fromLongRecycling(sum, self, anInteger, canDestroy)
 		}
- 		val objectSize = intCount(self)
-		val anIntegerSize = intCount(anInteger)
-		var output = largerMutableOf(
-			self, anInteger, objectSize, anIntegerSize, canDestroy)
-		if (objectSize == 1 && anIntegerSize == 1) {
-			// See if the (signed) sum will fit in 32 bits, the most common case
-			// by far.
-			val sum = self.extractLong + anInteger.extractLong
-			if (sum == sum.toInt().toLong()) {
-				// Yes, it fits.  Clobber one of the inputs, or create a new
-				// object if they were both immutable...
-				output = output ?: createUninitializedInteger(1)
-				assert(intCount(output) == 1)
-				output.rawSignedIntegerAtPut(1, sum.toInt())
-				return output
-			}
-			// Doesn't fit in 32 bits; use two 32-bit words.
-			return fromLong(sum)
-		}
-		// Set estimatedSize to the max of the input sizes. There will only
-		// rarely be an overflow and at most by one cell. Underflows should also
-		// be pretty rare, and they're handled by output.trimExcessInts().
-		output = output ?:
-			createUninitializedInteger(max(objectSize, anIntegerSize))
+		// At least one input is beyond the long range, or the sum overflows.
+		return chainedAddOrSubtract(self, anInteger, 0L, canDestroy)
+	}
 
-		val outputSize = intCount(output)
-		val extendedObject =
-			((self.rawSignedIntegerAt(objectSize) shr 31).toLong()
-				and 0xFFFFFFFFL)
-		val extendedAnInteger =
-			((anInteger.rawSignedIntegerAt(anIntegerSize) shr 31).toLong()
-				and 0xFFFFFFFFL)
-		var partial: Long = 0
-		var lastInt = 0
-		// The object is always big enough to store the max of the number of
-		// quads from each input, so after the loop we can check partial and the
-		// upper bit of the result to see if another quad needs to be appended.
-		for (i in 1..outputSize) {
-			partial += if (i > objectSize) extendedObject
-				else self.rawUnsignedIntegerAt(i)
-			partial += if (i > anIntegerSize) extendedAnInteger
-				else anInteger.rawUnsignedIntegerAt(i)
-			lastInt = partial.toInt()
-			output.rawSignedIntegerAtPut(i, lastInt)
-			partial = partial ushr 32
+	/**
+	 * Answer the `i`th 64-bit word of the [integer], which has [words] words.
+	 * Beyond its last word, the value is sign-extended.
+	 *
+	 * @param integer
+	 *   The integer whose word is wanted.
+	 * @param words
+	 *   The number of 64-bit words that [integer] holds.
+	 * @param i
+	 *   The one-based index of the word.
+	 * @return
+	 *   The word, as a signed [Long].
+	 */
+	private fun longWordOrSign(integer: AvailObject, words: Int, i: Int): Long =
+		if (i <= words) integer.longSlot(RAW_LONG_SLOTS_, i)
+		else integer.longSlot(RAW_LONG_SLOTS_, words) shr 63
+
+	/**
+	 * Answer an object to hold a result of [words] 64-bit words.  That's one of
+	 * the operands if [canDestroy] allows it, the operand is mutable, and it
+	 * already has exactly [words] words.  Otherwise, it's a fresh object.
+	 *
+	 * @param a
+	 *   The first operand.
+	 * @param b
+	 *   The second operand.
+	 * @param words
+	 *   The number of 64-bit words in the result.
+	 * @param canDestroy
+	 *   Whether an operand may be overwritten.
+	 * @return
+	 *   A mutable integer with room for [words] words.
+	 */
+	private fun outputFor(
+		a: AvailObject,
+		b: AvailObject,
+		words: Int,
+		canDestroy: Boolean
+	): AvailObject = when {
+		canDestroy && a.descriptor.isMutable && a.integerSlotsCount() == words
+			-> a
+		canDestroy && b.descriptor.isMutable && b.integerSlotsCount() == words
+			-> b
+		else -> createUninitializedLongInteger(words)
+	}
+
+	private fun chainedAddOrSubtract(
+		a: AvailObject,
+		b: AvailObject,
+		complementMask: Long,
+		canDestroy: Boolean
+	): AvailObject
+	{
+		val aWords = a.integerSlotsCount()
+		val bWords = b.integerSlotsCount()
+		val words = max(aWords, bWords)
+		// The operands' top words are read before the output is written, since
+		// the output may be one of the operands.
+		val aTop = longWordOrSign(a, aWords, words)
+		val bTop = longWordOrSign(b, bWords, words) xor complementMask
+		val output = outputFor(a, b, words, canDestroy)
+		var carry = complementMask and 1L
+		for (i in 1..words) {
+			val x = longWordOrSign(a, aWords, i)
+			val y = longWordOrSign(b, bWords, i) xor complementMask
+			output.setLongSlot(RAW_LONG_SLOTS_, i, x + y + carry)
+			carry = carryOut(x, y, carry)
 		}
-		partial += extendedObject + extendedAnInteger
-		if (lastInt shr 31 != partial.toInt()) {
-			// Top bit of last word no longer agrees with sign of result. Extend
-			// it.
-			val newOutput = createUninitializedInteger(outputSize + 1)
-			for (i in 1..outputSize) {
-				newOutput.setIntSlot(
-					RAW_LONG_SLOTS_,
-					i,
-					output.intSlot(RAW_LONG_SLOTS_, i))
-			}
-			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			// No need to truncate it in this case.
-			return newOutput
+		// The true value is the unsigned words plus (carry - aSign - bSign)
+		// times 2^(64*words), where aSign and bSign are the sign bits of the
+		// operands' top words (after complementing b).  The result's top word
+		// is read as signed, so the value needs growth exactly when that
+		// extension differs from the top word's sign bit.  The extension is
+		// always -1, 0, or 1.
+		val resultTop = output.longSlot(RAW_LONG_SLOTS_, words)
+		val extension = carry - (aTop ushr 63) - (bTop ushr 63)
+		if (extension != resultTop shr 63)
+		{
+			// Grow by one word.  The copied top word is now unsigned, so the
+			// new top word is the extension itself.
+			checkLongCount(words + 1)
+			val grown = newLike(mutable, output, 0, 1)
+			grown.setLongSlot(RAW_LONG_SLOTS_, words + 1, extension)
+			grown.trimExcessInts()
+			return grown
 		}
 		output.trimExcessInts()
 		return output
@@ -685,39 +603,21 @@ class IntegerDescriptor private constructor(
 				}
 			}
 		}
-		// Rare - fall back to slower math.
-		var numerator: A_Number = anInteger
-		var denominator: A_Number = self
-		if (denominator.lessThan(zero))
+		// Longs won't suffice, so fall back to BigInteger.  Its division
+		// truncates toward zero, so round toward negative infinity by hand: a
+		// nonzero remainder with the opposite sign of the divisor means the
+		// truncated quotient is one too large.  The divisor is nonzero here,
+		// since a zero divisor is always a long.
+		val denominatorBigInt = self.asBigInteger()
+		val qr = anInteger.asBigInteger().divideAndRemainder(denominatorBigInt)
+		val remainderSign = qr[1].signum()
+		val quotient = if (remainderSign != 0
+			&& remainderSign != denominatorBigInt.signum())
 		{
-			// n/d for d<0:  Compute (-n/-d) instead.
-			numerator =
-				numerator.subtractFromIntegerCanDestroy(zero, canDestroy)
-			denominator =
-				denominator.subtractFromIntegerCanDestroy(zero, canDestroy)
+			qr[0].subtract(BigInteger.ONE)
 		}
-		var invertResult = false
-		if (numerator.lessThan(zero))
-		{
-			// n/d for n<0, d>0:  use -1-(-1-n)/d
-			// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
-			// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
-			// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
-			numerator = numerator.bitwiseXor(negativeOne, canDestroy)
-			invertResult = true
-		}
-		// At this point, neither numerator nor denominator is negative.
-		// For simplicity and efficiency, fall back on Java's BigInteger
-		// implementation.
-		val numeratorBigInt = numerator.asBigInteger()
-		val denominatorBigInt = denominator.asBigInteger()
-		val quotient = numeratorBigInt.divide(denominatorBigInt)
-		var result = fromBigInteger(quotient)
-		if (invertResult)
-		{
-			result = result.bitwiseXor(negativeOne, true)
-		}
-		return result
+		else qr[0]
+		return fromBigInteger(quotient)
 	}
 
 	override fun o_DivideIntoDoubleCanDestroy(
@@ -731,7 +631,7 @@ class IntegerDescriptor private constructor(
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledQuotient = doubleObject.extractDouble / scaledIntAsDouble
@@ -751,7 +651,7 @@ class IntegerDescriptor private constructor(
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledQuotient = floatObject.extractDouble / scaledIntAsDouble
@@ -777,7 +677,6 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number
 	{
-		var output: AvailObject?
 		if (self.isLong && anInteger.isLong)
 		{
 			val x = self.extractLong
@@ -789,83 +688,72 @@ class IntegerDescriptor private constructor(
 				// High is just a repetition of low's sign bit.
 				return fromLongRecycling(low, self, anInteger, canDestroy)
 			}
+			// We know it fits in two longs, so go ahead and use that knowledge.
+			return createUninitializedLongInteger(2).apply {
+				setLongSlot(RAW_LONG_SLOTS_, 1, low)
+				setLongSlot(RAW_LONG_SLOTS_, 2, high)
+			}
 		}
 		if (self.equals(zero) || anInteger.equals(zero)) return zero
 		var shift = self.whichPowerOfTwo
 		if (shift >= 0) return anInteger.bitShift(fromInt(shift), canDestroy)
 		shift = anInteger.whichPowerOfTwo
 		if (shift >= 0) return self.bitShift(fromInt(shift), canDestroy)
-		val size1 = intCount(self)
-		val size2 = intCount(anInteger)
-		//TODO Tune this threshold, which is the number of `int*int`
-		// multiplications required with the naive method, which avoids the
-		// (linear) cost of conversion to BigIntegers.  BigInteger uses
-		// essentially the same algorithm if either operand is under 80, but its
-		// use of int arrays is undoubtedly more efficient than Avail's.
-		if (size1 > 40 && size2 > 40)
+		//TODO Tune this threshold, which is the number of word multiplications
+		// required with the naive method, which avoids the (linear) cost of
+		// conversion to BigIntegers.
+		if (self.integerSlotsCount() > 20 && anInteger.integerSlotsCount() > 20)
 		{
 			return fromBigInteger(
 				self.asBigInteger() * anInteger.asBigInteger())
 		}
-		// The following is a safe upper bound.  See below.
-		val targetSize = size1 + size2
-		output = createUninitializedInteger(targetSize)
-		val extension1 =
-			self.rawSignedIntegerAt(size1).toLong() shr 31 and 0xFFFFFFFFL
-		val extension2 =
-			anInteger.rawSignedIntegerAt(size2).toLong() shr 31 and 0xFFFFFFFFL
+		return multiplyWords(self, anInteger)
+	}
 
-		// We can't recycle storage quite as easily here as we did for addition
-		// and subtraction, because the intermediate sum would be clobbering one
-		// of the multiplicands that we (may) need to scan again.  So always
-		// allocate the new object.  The product will always fit in N+M cells if
-		// the multiplicands fit in sizes N and M cells.  For proof, consider
-		// the worst case (using bytes for the example).  In hex,
-		// -80 * -80 = +4000, which fits.  Also, 7F*7F = 3F01, and
-		// 7F*-80 = -3F80.  So no additional padding is necessary.  The scheme
-		// we will use is to compute each word of the result, low to high, using
-		// a carry of two words.  All quantities are treated as unsigned, but
-		// the multiplicands are sign-extended as needed.  Multiplying two
-		// one-word multiplicands yields a two word result, so we need to use
-		// three words to properly hold the carry (it would take more than four
-		// billion words to overflow this, and only one billion words are
-		// addressable on a 32-bit machine).  The three-word intermediate value
-		// is handled as two two-word accumulators, A and B.  B is considered
-		// shifted by a word (to the left).  The high word of A is added to the
-		// low word of B (with carry to the high word of B), and then the high
-		// word of A is cleared.  This "shifts the load" to B for holding big
-		// numbers without affecting their sum.  When a new two-word value needs
-		// to be added in, this trick is employed, followed by directly adding
-		// the two-word value to A, as long as we can ensure the *addition*
-		// won't overflow, which is the case if the two-word value is an
-		// unsigned product of two one-word values.  Since FF*FF=FE01, we can
-		// safely add this to 00FF (getting FF00) without overflow.  Pretty
-		// slick, huh?
-		var low: Long = 0
-		var high: Long = 0
-		for (i in 1..targetSize) {
-			var k = 1
-			var m = i
-			while (k <= i) {
-				val multiplicand1 =
-					if (k > size1) extension1
-					else self.rawUnsignedIntegerAt(k)
-				val multiplicand2 =
-					if (m > size2) extension2
-					else anInteger.rawUnsignedIntegerAt(m)
-				low += multiplicand1 * multiplicand2
-				// Add upper of low to high.
-				high += low ushr 32
-				// Subtract the same amount from low (clear upper word).
-				low = low and 0xFFFFFFFFL
-				k++
-				m--
+	/**
+	 * Answer the product of the two integers, computed column by column over
+	 * 64-bit words.  The product of an m-word and an n-word integer fits in m+n
+	 * words, so both operands are sign-extended to that many words and the
+	 * product is taken modulo 2^(64(m+n)).  Each column adds the 128-bit
+	 * products of its word pairs into a 192-bit accumulator.
+	 *
+	 * @param a
+	 *   The first integer.
+	 * @param b
+	 *   The second integer.
+	 * @return
+	 *   The product, in canonical form.
+	 */
+	private fun multiplyWords(a: AvailObject, b: AvailObject): AvailObject
+	{
+		val aWords = a.integerSlotsCount()
+		val bWords = b.integerSlotsCount()
+		val words = aWords + bWords
+		val output = createUninitializedLongInteger(words)
+		// The 192-bit accumulator for the current column is low, mid, high.
+		var low = 0L
+		var mid = 0L
+		var high = 0L
+		for (k in 1..words)
+		{
+			// Column k collects the word pairs (i, j) with i + j = k + 1.
+			for (i in 1..k)
+			{
+				val x = longWordOrSign(a, aWords, i)
+				val y = longWordOrSign(b, bWords, k + 1 - i)
+				val product = x * y
+				val productHigh = Math.unsignedMultiplyHigh(x, y)
+				val carryLow = carryOut(low, product, 0L)
+				low += product
+				val carryMid = carryOut(mid, productHigh, carryLow)
+				mid += productHigh + carryLow
+				high += carryMid
 			}
-			output.rawSignedIntegerAtPut(i, low.toInt())
-			low = high and 0xFFFFFFFFL
-			high = high ushr 32
+			output.setLongSlot(RAW_LONG_SLOTS_, k, low)
+			low = mid
+			mid = high
+			high = 0L
 		}
-		// We can safely ignore any remaining bits from the partial products.
 		output.trimExcessInts()
 		return output
 	}
@@ -881,7 +769,7 @@ class IntegerDescriptor private constructor(
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledProduct = doubleObject.extractDouble * scaledIntAsDouble
@@ -901,7 +789,7 @@ class IntegerDescriptor private constructor(
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		val scale = max(intCount(self) - 4, 0) shl 5
+		val scale = max(longCount(self) - 2, 0) shl 6
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
 		val scaledProduct = floatObject.extractDouble * scaledIntAsDouble
@@ -931,71 +819,9 @@ class IntegerDescriptor private constructor(
 			if (((x xor y) and (x xor diff)) >= 0)
 				return fromLongRecycling(diff, self, anInteger, canDestroy)
 		}
-		val objectSize = intCount(self)
-		val anIntegerSize = intCount(anInteger)
-		var output = largerMutableOf(
-			self, anInteger, objectSize, anIntegerSize, canDestroy)
-		if (objectSize == 1 && anIntegerSize == 1)
-		{
-			// See if the (signed) difference will fit in 32 bits, the most
-			// common case by far.
-			val diff = anInteger.extractLong - self.extractLong
-			if (diff == diff.toInt().toLong())
-			{
-				// Yes, it fits. Clobber one of the inputs, or create a new
-				// object if they were both immutable...
-				output = output ?: createUninitializedInteger(1)
-				assert(intCount(output) == 1)
-				output.rawSignedIntegerAtPut(1, diff.toInt())
-				return output
-			}
-			// Doesn't fit in 32 bits; use two 32-bit words.
-			output = createUninitializedInteger(2)
-			output.rawSignedIntegerAtPut(1, diff.toInt())
-			output.rawSignedIntegerAtPut(2, (diff shr 32).toInt())
-			return output
-		}
-		// Set estimatedSize to the max of the input sizes. There will only
-		// rarely be an overflow and at most by one cell. Underflows should also
-		// be pretty rare, and they're handled by output.trimExcessInts().
-		output = output ?:
-			createUninitializedInteger(max(objectSize, anIntegerSize))
-		val outputSize = intCount(output)
-		val extendedObject =
-			self.rawSignedIntegerAt(objectSize).toLong() shr 31 and 0xFFFFFFFFL
-		val extendedAnInteger =
-			(anInteger.rawSignedIntegerAt(anIntegerSize).toLong() shr 31
-				and 0xFFFFFFFFL)
-		var partial: Long = 1
-		var lastInt = 0
-		// The object is always big enough to store the max of the number of
-		// quads from each input, so after the loop we can check partial and the
-		// upper bit of the result to see if another quad needs to be appended.
-		for (i in 1..outputSize) {
-			partial +=
-				if (i > anIntegerSize) extendedAnInteger
-				else anInteger.rawUnsignedIntegerAt(i)
-			partial += 0xFFFFFFFFL xor
-				if (i > objectSize) extendedObject
-				else self.rawUnsignedIntegerAt(i)
-			lastInt = partial.toInt()
-			output.rawSignedIntegerAtPut(i, lastInt)
-			partial = partial ushr 32
-		}
-		partial += extendedAnInteger + (extendedObject xor 0xFFFFFFFFL)
-		if (lastInt shr 31 != partial.toInt()) {
-			// Top bit of last word no longer agrees with sign of result.
-			// Extend it.
-			val newOutput = createUninitializedInteger(outputSize + 1)
-			for (i in 1..outputSize) {
-				newOutput.rawSignedIntegerAtPut(i, output.rawSignedIntegerAt(i))
-			}
-			newOutput.rawSignedIntegerAtPut(outputSize + 1, partial.toInt())
-			// No need to truncate it in this case.
-			return newOutput
-		}
-		output.trimExcessInts()
-		return output
+		// At least one input is beyond the long range, or the difference
+		// overflows.  The result is anInteger - self.
+		return chainedAddOrSubtract(anInteger, self, -1L, canDestroy)
 	}
 
 	override fun o_SubtractFromDoubleCanDestroy(
@@ -1028,29 +854,22 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject
 	): Order {
-		val size1 = intCount(self)
-		val size2 = intCount(anInteger)
-		val high1 = self.intSlot(RAW_LONG_SLOTS_, size1)
-		val high2 = anInteger.rawSignedIntegerAt(size2)
-		val composite1 = if (high1 >= 0) size1 else -size1
-		val composite2 = if (high2 >= 0) size2 else -size2
-		if (composite1 != composite2) {
-			return if (composite1 < composite2) Order.LESS else Order.MORE
+		val selfWords = self.integerSlotsCount()
+		val anIntegerWords = anInteger.integerSlotsCount()
+		val words = max(selfWords, anIntegerWords)
+		// The top word is signed, so it's compared on its own.
+		val selfTop = longWordOrSign(self, selfWords, words)
+		val anIntegerTop = longWordOrSign(anInteger, anIntegerWords, words)
+		if (selfTop != anIntegerTop) {
+			return if (selfTop < anIntegerTop) Order.LESS else Order.MORE
 		}
-		assert(size1 == size2)
-		assert(high1 >= 0 == high2 >= 0)
-		if (high1 != high2) {
-			return if (high1 < high2) Order.LESS else Order.MORE
-		}
-		for (i in size1 - 1 downTo 1) {
-			val a = self.intSlot(RAW_LONG_SLOTS_, i)
-			val b = anInteger.rawSignedIntegerAt(i)
+		// The lower words are unsigned.
+		for (i in words - 1 downTo 1) {
+			val a = longWordOrSign(self, selfWords, i)
+			val b = longWordOrSign(anInteger, anIntegerWords, i)
 			if (a != b) {
-				return when {
-					a.toLong() and 0xFFFFFFFFL < b.toLong() and 0xFFFFFFFFL ->
-						Order.LESS
-					else -> Order.MORE
-				}
+				return if (java.lang.Long.compareUnsigned(a, b) < 0) Order.LESS
+					else Order.MORE
 			}
 		}
 		return Order.EQUAL
@@ -1069,57 +888,52 @@ class IntegerDescriptor private constructor(
 	): Order = compareDoubleAndInteger(aDouble, self).reverse()
 
 	/**
-	 * A helper function for bitwise operations.  Perform the given operation on
-	 * [Int]s from the incoming operands, writing the resulting [Int] to the
-	 * resulting object, which is either one of the operands if large enough and
-	 * mutable and [canDestroy], or a new object.
+	 * A helper function for bitwise operations.  Apply the given operation to
+	 * the 64-bit words of the two operands, sign-extending the shorter one.  A
+	 * bitwise operation never grows its result past the longer operand, so no
+	 * fixup is needed.  If both operands are in long range, the result is a
+	 * single long, and [canDestroy] allows recycling an operand.
+	 *
+	 * @param self
+	 *   The receiver.
+	 * @param anInteger
+	 *   The other operand.
+	 * @param canDestroy
+	 *   Whether an operand may be clobbered by the result.
+	 * @param operation
+	 *   The bitwise operation to apply to each pair of words.
+	 * @return
+	 *   The result, in canonical form.
 	 */
-	private fun bitwiseOperation(
+	private inline fun bitwiseOperation(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean,
-		operation: (Int, Int) -> Int
-	): AvailObject {
-		val objectSize = intCount(self)
-		val anIntegerTraversed = anInteger.traversed()
-		val anIntegerSize = intCount(anIntegerTraversed)
-		var output = largerMutableOf(
-			self, anIntegerTraversed, objectSize, anIntegerSize, canDestroy)
-		// Both integers are 32 bits. This is by far the most common case.
-		if (objectSize == 1 && anIntegerSize == 1) {
-			val result = operation(
-				self.rawSignedIntegerAt(1),
-				anIntegerTraversed.rawSignedIntegerAt(1))
-			output = output ?: createUninitializedInteger(1)
-			output.rawSignedIntegerAtPut(1, result)
-			return output
+		operation: (Long, Long) -> Long
+	): AvailObject
+	{
+		val other = anInteger.traversed()
+		if (self.isLong && other.isLong)
+		{
+			return fromLongRecycling(
+				operation(self.extractLong, other.extractLong),
+				self,
+				other,
+				canDestroy)
 		}
-		// If neither of the inputs were suitable for destruction, then allocate
-		// a new one whose size is that of the larger input.
-		output = output ?: createUninitializedInteger(
-			max(objectSize, anIntegerSize))
-		// Handle larger integers.
-		val outputSize = intCount(output)
-		val extendedObject = self.rawSignedIntegerAt(objectSize) shr 31
-		val extendedAnInteger =
-			anIntegerTraversed.rawSignedIntegerAt(anIntegerSize) shr 31
-		for (i in 1..outputSize) {
-			val objectWord = if (i > objectSize) {
-				extendedObject
-			}
-			else
-			{
-				self.rawSignedIntegerAt(i)
-			}
-			val anIntegerWord = if (i > anIntegerSize) {
-				extendedAnInteger
-			}
-			else
-			{
-				anIntegerTraversed.rawSignedIntegerAt(i)
-			}
-			val result = operation(objectWord, anIntegerWord)
-			output.rawSignedIntegerAtPut(i, result)
+		val selfWords = self.integerSlotsCount()
+		val otherWords = other.integerSlotsCount()
+		val words = max(selfWords, otherWords)
+		// Each word is read before the same index of the output is written.
+		val output = outputFor(self, other, words, canDestroy)
+		for (i in 1..words)
+		{
+			output.setLongSlot(
+				RAW_LONG_SLOTS_,
+				i,
+				operation(
+					longWordOrSign(self, selfWords, i),
+					longWordOrSign(other, otherWords, i)))
 		}
 		output.trimExcessInts()
 		return output
@@ -1129,85 +943,92 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::and)
+	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Long::and)
 
 	override fun o_BitwiseOr(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::or)
+	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Long::or)
 
 	override fun o_BitwiseXor(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
-	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::xor)
+	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Long::xor)
 
 	override fun o_BitTest(
 		self: AvailObject,
-		bitPosition: Int
+		bitPosition: Long
 	): Boolean
 	{
 		assert (bitPosition >= 0)
-		val intIndex = (bitPosition ushr 5) + 1
-		if (intIndex > intCount(self))
-		{
-			// Treat the receiver as two's complement.
-			return self.lessThan(zero)
-		}
-		val intValue = self.rawSignedIntegerAt(intIndex)
-		return (intValue and (1 shl (bitPosition and 31))) != 0
+		// Beyond the stored longs, the sign bit of the top long is the bit.
+		val boundedBitPosition =
+			min(bitPosition, (longCount(self).toLong() shl 6) - 1)
+		val longValue = self.longSlot(
+			RAW_LONG_SLOTS_, (boundedBitPosition ushr 6).toInt() + 1)
+		val bit = (boundedBitPosition and 63L).toInt()
+		return (longValue and (1L shl bit)) != 0L
 	}
 
 	override fun o_BitSet(
 		self: AvailObject,
-		bitPosition: Int,
+		bitPosition: Long,
 		value: Boolean,
 		canDestroy: Boolean
 	) : A_Number
 	{
 		assert (bitPosition >= 0)
-		val intIndex = (bitPosition ushr 5) + 1
-		val oldIntCount = intCount(self)
-		val mask = 1 shl (bitPosition and 31)
-		val oldInt = when
+		// Longs are addressed by an Int, so a bit beyond the largest integer
+		// can't be represented.
+		val longIndexLong = (bitPosition ushr 6) + 1
+		if (longIndexLong > MAX_LONG_COUNT)
 		{
-			intIndex <= oldIntCount -> self.rawSignedIntegerAt(intIndex)
-			self.lessThan(zero) -> -1
-			else -> 0
+			throw AvailSystemLimitException(
+				"Bit position $bitPosition is beyond the largest integer")
 		}
-		val newInt = when
+		val longIndex = longIndexLong.toInt()
+		val oldLongCount = longCount(self)
+		val mask = 1L shl (bitPosition and 63L).toInt()
+		val oldLong = when
 		{
-			value -> oldInt or mask
-			else -> oldInt and mask.inv()
+			longIndex <= oldLongCount -> self.longSlot(RAW_LONG_SLOTS_, longIndex)
+			self.lessThan(zero) -> -1L
+			else -> 0L
 		}
-		if (oldInt == newInt)
+		val newLong = when
+		{
+			value -> oldLong or mask
+			else -> oldLong and mask.inv()
+		}
+		if (oldLong == newLong)
 		{
 			// No change.
 			if (isMutable && !canDestroy) self.makeImmutable()
 			return self
 		}
-		// The bit changed.  If the sign bit is what changed, add an int
-		// (the bitPosition + 1, below).
-		val newIntCount = max(oldIntCount, ((bitPosition + 1) ushr 5) + 1)
-		if (oldIntCount == newIntCount && isMutable && canDestroy)
+		// The bit changed.  If it's beyond the stored longs, add a long.
+		val newLongCount = max(oldLongCount, longIndex)
+		if (oldLongCount == newLongCount && isMutable && canDestroy)
 		{
-			// Clobber it in place.
-			self.rawSignedIntegerAtPut(intIndex, newInt)
-			// Representation might need to shrink.
+			// Clobber it in place.  Writing a whole long keeps the spare half
+			// of any odd int count canonical, so only the length may change.
+			self.setLongSlot(RAW_LONG_SLOTS_, longIndex, newLong)
 			self.trimExcessInts()
 			return self
 		}
 		// It must be copied.
-		val result = newLike(mutableFor(newIntCount), self, 0, 0)
+		checkLongCount(newLongCount)
+		val result = newLike(mutable, self, 0, newLongCount - oldLongCount)
 		if (self.lessThan(zero))
 		{
-			for (i in oldIntCount + 1 .. newIntCount)
+			for (i in oldLongCount + 1 .. newLongCount)
 			{
-				result.rawSignedIntegerAtPut(i, -1)
+				result.setLongSlot(RAW_LONG_SLOTS_, i, -1L)
 			}
 		}
-		result.rawSignedIntegerAtPut(intIndex, newInt)
+		result.setLongSlot(RAW_LONG_SLOTS_, longIndex, newLong)
 		result.trimExcessInts()
 		return result
 	}
@@ -1265,85 +1086,21 @@ class IntegerDescriptor private constructor(
 			return zero
 		}
 		val shiftInt = shiftFactor.extractInt
-		if (self.isLong) {
-			val baseLong = self.extractLong
-			val shiftedLong = bitShiftLong(baseLong, shiftInt)
-			if (shiftInt < 0
-				|| truncationInt < 64
-				|| bitShiftLong(shiftedLong, -shiftInt) == baseLong)
+		if (self.isLong && truncationInt < 63)
+		{
+			// The low 64 bits of an arithmetic shift are exact, so the low
+			// truncationInt bits are too.  Zero bits gives zero.
+			val resultLong = arithmeticBitShiftLong(self.extractLong, shiftInt) and
+				((1L shl truncationInt) - 1)
+			if (canDestroy && isMutable && self.integerSlotsCount() == 1)
 			{
-				// Either a right shift, or a left shift that didn't lose bits,
-				// or a left shift that will fit in a long after the truncation.
-				// In these cases the result will still be a long.
-				var resultLong = shiftedLong
-				if (truncationInt < 64)
-				{
-					resultLong = resultLong and (1L shl truncationInt) - 1
-				}
-				if (canDestroy && isMutable)
-				{
-					if (resultLong == resultLong.toInt().toLong())
-					{
-						// Fits in an int.  Try to recycle.
-						if (intCount(self) == 1)
-						{
-							self.rawSignedIntegerAtPut(1, resultLong.toInt())
-							return self
-						}
-					}
-					else
-					{
-						// *Fills* a long.  Try to recycle.
-						if (intCount(self) == 2)
-						{
-							self.rawSignedIntegerAtPut(
-								1, resultLong.toInt())
-							self.rawSignedIntegerAtPut(
-								2, (resultLong shr 32).toInt())
-							return self
-						}
-					}
-				}
-				// Fall back and create a new integer object.
-				return fromLong(resultLong)
+				self.setLongSlot(RAW_LONG_SLOTS_, 1, resultLong)
+				return self
 			}
+			return fromLong(resultLong)
 		}
-		// Answer doesn't (necessarily) fit in a long.
-		val sourceSlots = intCount(self)
-		var estimatedBits = (sourceSlots shl 5) + shiftInt
-		estimatedBits = min(estimatedBits, truncationInt + 1)
-		estimatedBits = max(estimatedBits, 1)
-		val slotCount = estimatedBits + 31 shr 5
-		val result: A_Number = createUninitializedInteger(slotCount)
-		val shortShift = shiftInt and 31
-		var sourceIndex = slotCount - (shiftInt shr 5)
-		var accumulator = 0x5EADCAFEBABEBEEFL
-		// We range from slotCount+1 to 1 to pre-load the accumulator.
-		for (destIndex in slotCount + 1 downTo 1) {
-			val nextWord = if (sourceIndex in 1..sourceSlots)
-			{
-				self.rawSignedIntegerAt(sourceIndex)
-			}
-			else 0
-			accumulator = accumulator shl 32
-			accumulator = accumulator or (nextWord.toLong() shl shortShift)
-			if (destIndex <= slotCount) {
-				result.rawSignedIntegerAtPut(
-					destIndex,
-					(accumulator shr 32).toInt())
-			}
-			sourceIndex--
-		}
-		// Mask it if necessary to truncate some upper bits.
-		var mask = (1 shl (truncationInt and 31)) - 1
-		for (destIndex in (truncationInt shr 5)..slotCount) {
-			result.rawSignedIntegerAtPut(
-				destIndex, result.rawSignedIntegerAt(destIndex) and mask)
-			// Completely wipe any higher ints.
-			mask = 0
-		}
-		result.trimExcessInts()
-		return result
+		if (truncationInt == 0) return zero
+		return truncatedShift(self, shiftInt, truncationInt)
 	}
 
 	/**
@@ -1384,76 +1141,152 @@ class IntegerDescriptor private constructor(
 				// e.g., 123 >> 999999999999999999 is 0
 				self.numericCompareToInteger(zero) -> zero
 				// e.g., -123 >> 999999999999999999 is -1
-				else -> negativeOne()
+				else -> negativeOne
 			}
 		}
 		val shiftInt = shiftFactor.extractInt
 		if (self.isLong) {
 			val baseLong = self.extractLong
 			val shiftedLong = arithmeticBitShiftLong(baseLong, shiftInt)
+			// Either a right shift, or a left shift that didn't lose bits, so the
+			// result is still a long.
 			if (shiftInt < 0
 				|| arithmeticBitShiftLong(shiftedLong, -shiftInt) == baseLong)
 			{
-				// Either a right shift, or a left shift that didn't lose bits.
-				// In these cases the result will still be a long.
-				if (canDestroy && isMutable)
+				if (canDestroy && isMutable && self.integerSlotsCount() == 1)
 				{
-					if (shiftedLong == shiftedLong.toInt().toLong())
-					{
-						// Fits in an int.  Try to recycle.
-						if (intCount(self) == 1)
-						{
-							self.rawSignedIntegerAtPut(1, shiftedLong.toInt())
-							return self
-						}
-					}
-					else
-					{
-						// *Fills* a long.  Try to recycle.
-						if (intCount(self) == 2)
-						{
-							self.rawSignedIntegerAtPut(
-								1, shiftedLong.toInt())
-							self.rawSignedIntegerAtPut(
-								2, (shiftedLong shr 32).toInt())
-							return self
-						}
-					}
+					self.setLongSlot(RAW_LONG_SLOTS_, 1, shiftedLong)
+					return self
 				}
-				// Fall back and create a new integer object.
 				return fromLong(shiftedLong)
 			}
 		}
-		// Answer doesn't (necessarily) fit in a long.
-		val sourceSlots = intCount(self)
-		val estimatedBits = max((sourceSlots shl 5) + shiftInt, 1)
-		val intSlotCount = estimatedBits + 31 shr 5
-		val result: A_Number = createUninitializedInteger(intSlotCount)
-		val shortShift = shiftInt and 31
-		var sourceIndex = intSlotCount - (shiftInt shr 5)
-		var accumulator = 0x5EADCAFEBABEBEEFL
-		val signExtension = when (Order.LESS) {
-			self.numericCompareToInteger(zero) -> -1
-			else -> 0
+		return arithmeticShift(self, shiftInt)
+	}
+
+	/**
+	 * Answer the one-based [j]th 64-bit word of ⌊[integer] × 2<sup>[shift]</sup>⌋,
+	 * where [integer] holds [wordCount] words.  The result's bit k comes from
+	 * the source bit k − [shift], so each result word combines two adjacent
+	 * source words.  Below the source, bits are zero; above it, they're the
+	 * sign.
+	 *
+	 * @param integer
+	 *   The integer being shifted.
+	 * @param wordCount
+	 *   The number of 64-bit words in [integer].
+	 * @param shift
+	 *   The shift amount, which may be negative for an arithmetic right shift.
+	 * @param j
+	 *   The one-based index of the result word.
+	 * @return
+	 *   The word, as a signed [Long].
+	 */
+	private fun extractShiftedLong(
+		integer: AvailObject,
+		wordCount: Int,
+		shift: Int,
+		j: Int
+	): Long
+	{
+		// The shift is q words and b bits, with 0 ≤ b < 64.  A nonzero b makes
+		// the low source word one further back, and the bit offset r is 64 − b.
+		val q = shift shr 6
+		val b = shift and 63
+		val low = j - q - ((b + 63) ushr 6)
+		val r = (-b) and 63
+		// Shifting in two steps avoids Java's shift-count modulus at r = 0.
+		val lowPart = wordOrZeroOrSign(integer, wordCount, low) ushr r
+		val highPart =
+			(wordOrZeroOrSign(integer, wordCount, low + 1) shl 1) shl (63 - r)
+		return lowPart or highPart
+	}
+
+	/**
+	 * Answer the one-based [i]th 64-bit word of [integer], which holds
+	 * [wordCount] words.  Below the first word the value is zero, and beyond the
+	 * last word it is sign-extended.
+	 *
+	 * @param integer
+	 *   The integer whose word is wanted.
+	 * @param wordCount
+	 *   The number of 64-bit words that [integer] holds.
+	 * @param i
+	 *   The one-based index of the word.
+	 * @return
+	 *   The word, as a signed [Long].
+	 */
+	private fun wordOrZeroOrSign(
+		integer: AvailObject,
+		wordCount: Int,
+		i: Int
+	): Long
+	{
+		if (i < 1) return 0L
+		if (i <= wordCount) return integer.longSlot(RAW_LONG_SLOTS_, i)
+		return integer.longSlot(RAW_LONG_SLOTS_, wordCount) shr 63
+	}
+
+	/**
+	 * Answer ⌊[self] × 2<sup>[shift]</sup>⌋ in canonical form, computed over
+	 * 64-bit words.  The shift may be negative for an arithmetic right shift.
+	 *
+	 * @param self
+	 *   The integer to shift.
+	 * @param shift
+	 *   The shift amount.
+	 * @return
+	 *   The shifted integer.
+	 */
+	private fun arithmeticShift(self: AvailObject, shift: Int): A_Number
+	{
+		val words = self.integerSlotsCount()
+		val resultWords = max(words + (shift shr 6) + 1, 1)
+		val output = createUninitializedLongInteger(resultWords)
+		for (j in 1..resultWords)
+		{
+			output.setLongSlot(
+				RAW_LONG_SLOTS_, j, extractShiftedLong(self, words, shift, j))
 		}
-		// We range from slotCount+1 to 1 to pre-load the accumulator.
-		for (destIndex in intSlotCount + 1 downTo 1) {
-			val nextWord = when {
-				sourceIndex < 1 -> 0
-				sourceIndex > sourceSlots -> signExtension
-				else -> self.rawSignedIntegerAt(sourceIndex)
-			}
-			accumulator = accumulator shl 32
-			accumulator = accumulator or
-				(nextWord.toLong() and 0xFFFFFFFFL shl shortShift)
-			if (destIndex <= intSlotCount) {
-				result.rawSignedIntegerAtPut(
-					destIndex, (accumulator shr 32).toInt())
-			}
-			sourceIndex--
+		output.trimExcessInts()
+		return output
+	}
+
+	/**
+	 * Answer [self] × 2<sup>[shift]</sup>, truncated to the low [bits] bits, so
+	 * the result is in `[0, 2^bits)`.  The shift is applied as an arithmetic
+	 * shift first, so the truncated bits are those of the infinite two's
+	 * complement value.
+	 *
+	 * @param self
+	 *   The integer to shift.
+	 * @param shift
+	 *   The shift amount.
+	 * @param bits
+	 *   The number of low bits to keep, which must be positive.
+	 * @return
+	 *   The truncated result, in canonical form.
+	 */
+	private fun truncatedShift(self: AvailObject, shift: Int, bits: Int): A_Number
+	{
+		val words = self.integerSlotsCount()
+		val topWord = (bits + 63) ushr 6
+		val topBits = bits - 64 * (topWord - 1)
+		val output = createUninitializedLongInteger(topWord + 1)
+		for (j in 1..topWord)
+		{
+			output.setLongSlot(
+				RAW_LONG_SLOTS_, j, extractShiftedLong(self, words, shift, j))
 		}
-		result.trimExcessInts()
-		return result
+		// Keep only the low topBits of the top word, and append a zero word so
+		// the result is nonnegative.
+		output.setLongSlot(
+			RAW_LONG_SLOTS_,
+			topWord,
+			output.longSlot(RAW_LONG_SLOTS_, topWord) and (-1L ushr (64 - topBits)))
+		output.setLongSlot(RAW_LONG_SLOTS_, topWord + 1, 0L)
+		output.trimExcessInts()
+		return output
 	}
 
 	override fun o_SerializerOperation(
@@ -1530,18 +1363,17 @@ class IntegerDescriptor private constructor(
 	 */
 	override fun o_AsBigInteger(self: AvailObject): BigInteger
 	{
-		val integerCount = intCount(self)
-		if (integerCount <= 2) {
+		if (self.isLong) {
 			return BigInteger.valueOf(self.extractLong)
 		}
-		val bytes = ByteArray(integerCount shl 2)
+		val words = self.integerSlotsCount()
+		val bytes = ByteArray(words shl 3)
 		var b = 0
-		for (i in integerCount downTo 1) {
-			val integer = self.intSlot(RAW_LONG_SLOTS_, i)
-			bytes[b++] = (integer shr 24).toByte()
-			bytes[b++] = (integer shr 16).toByte()
-			bytes[b++] = (integer shr 8).toByte()
-			bytes[b++] = integer.toByte()
+		for (i in words downTo 1) {
+			val word = self.longSlot(RAW_LONG_SLOTS_, i)
+			for (shift in 56 downTo 0 step 8) {
+				bytes[b++] = (word shr shift).toByte()
+			}
 		}
 		return BigInteger(bytes)
 	}
@@ -1565,39 +1397,35 @@ class IntegerDescriptor private constructor(
 	{
 		if (self.lessOrEqual(zero)) return -1
 		var nonZeroIndex = 1
-		var theInt: Int
+		var theLong: Long
 		while (true)
 		{
-			theInt = self.rawSignedIntegerAt(nonZeroIndex)
-			if (theInt != 0) break
+			theLong = self.longSlot(RAW_LONG_SLOTS_, nonZeroIndex)
+			if (theLong != 0L) break
 			nonZeroIndex++  // We ensured they can't all be zero.
 		}
-		if (theInt.countOneBits() > 1) return -1
-		// Check that the rest of the ints are zero.
-		if ((nonZeroIndex + 1 .. intCount(self))
-				.any { self.rawSignedIntegerAt(it) != 0 })
+		if (theLong.countOneBits() > 1) return -1
+		// Check that the rest of the longs are zero.
+		if ((nonZeroIndex + 1 .. longCount(self))
+				.any { self.longSlot(RAW_LONG_SLOTS_, it) != 0L })
 		{
 			return -1
 		}
-		return ((nonZeroIndex - 1) shl 5) +
-			Integer.numberOfTrailingZeros(theInt)
+		return ((nonZeroIndex - 1) shl 6) + theLong.countTrailingZeroBits()
 	}
 
 
 	companion object {
 		/**
-		 * Answer the number of int slots in the passed integer object, which
-		 * must not be an indirection.
+		 * Answer the number of 64-bit `long` slots occupied by the given integer
+		 * object.  The receiver must not be an indirection.
 		 *
 		 * @param self
 		 *   The integer object.
 		 * @return
-		 *   The number of occupied int slots in the object.
+		 *   The number of occupied long slots in the object.
 		 */
-		fun intCount(
-			self: AvailObject
-		) = ((self.integerSlotsCount() shl 1)
-			- (self.descriptor as IntegerDescriptor).unusedIntsOfLastLong)
+		fun longCount(self: AvailObject): Int = self.integerSlotsCount()
 
 		/**
 		 * A helper function for printing very large integers.
@@ -1673,16 +1501,34 @@ class IntegerDescriptor private constructor(
 			when (anInteger) {
 				in 0..255 -> smallIntegers[anInteger]!!
 				in 0 until smallIntegerLimit -> smallIntegers[anInteger] ?:
-					createUninitializedInteger(1).apply {
-						setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
-						makeShared()
+					createSharedOfSize(1) {
+						setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
+					}.also {
 						// Harmless race.
-						smallIntegers[anInteger] = this
+						smallIntegers[anInteger] = it
 					}
 				else -> createUninitializedInteger(1).apply {
-					setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
+					setLongSlot(RAW_LONG_SLOTS_, 1, anInteger.toLong())
 				}
 			}
+
+		/**
+		 * Overwrite the mutable [output] so that it holds the given [Long].
+		 *
+		 * @param aLong
+		 *   The [Long] to store.
+		 * @param output
+		 *   A mutable [AvailObject] with an [IntegerDescriptor] and a single
+		 *   long word.
+		 * @return
+		 *   The [output], now holding [aLong].
+		 */
+		private fun recycleLong(aLong: Long, output: AvailObject): AvailObject
+		{
+			output.setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
+			output.descriptor = mutable
+			return output
+		}
 
 		/**
 		 * Convert the specified [Long] into a boxed Avail integer.
@@ -1695,16 +1541,16 @@ class IntegerDescriptor private constructor(
 		fun fromLong(aLong: Long): AvailObject = when (aLong) {
 			in 0..255 -> smallIntegers[aLong.toInt()]!!
 			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
-				createUninitializedInteger(1).apply {
-					setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-					smallIntegers[aLong.toInt()] = makeShared()
+				createSharedOfSize(1) {
+					setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
+				}.also {
+					smallIntegers[aLong.toInt()] = it
 				}
 			aLong.toInt().toLong() -> createUninitializedInteger(1).apply {
-				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
+				setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			}
 			else -> createUninitializedInteger(2).apply {
-				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-				setIntSlot(RAW_LONG_SLOTS_, 2, (aLong shr 32).toInt())
+				setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
 			}
 		}
 
@@ -1712,7 +1558,7 @@ class IntegerDescriptor private constructor(
 		 * Create an Avail boxed integer with the given [Long] as its value. One
 		 * of the two recyclable values, which *must* have an
 		 * [IntegerDescriptor], can be reused to hold the value if it's mutable
-		 * and its [intCount] is <= 2.
+		 * and it holds a single long word.
 		 */
 		fun fromLongRecycling(
 			aLong: Long,
@@ -1723,24 +1569,19 @@ class IntegerDescriptor private constructor(
 		{
 			if (!canDestroy) return fromLong(aLong)
 			if (aLong in 0 until smallIntegerLimit) return fromLong(aLong)
-			val intCount = if (aLong.toInt().toLong() == aLong) 1 else 2
 			val output = when
 			{
 				(recyclable1.descriptor.isMutable
-					&& intCount(recyclable1) <= 2
+					&& longCount(recyclable1) == 1
 				) -> recyclable1
-				(recyclable1.descriptor.isMutable
-					&& intCount(recyclable1) <= 2
+				(recyclable2.descriptor.isMutable
+					&& longCount(recyclable2) == 1
 				) -> recyclable2
 				else -> return fromLong(aLong)
 			}
-			output.setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-			// Ints *require* a spare int slot to be 0.
-			output.setIntSlot(
-				RAW_LONG_SLOTS_,
-				2,
-				if (intCount == 1) 0 else (aLong shr 32).toInt())
-			output.descriptor = mutableFor(intCount)
+			// A whole long already holds the sign extension of a one-int value.
+			output.setLongSlot(RAW_LONG_SLOTS_, 1, aLong)
+			output.descriptor = mutable
 			return output
 		}
 
@@ -1759,38 +1600,33 @@ class IntegerDescriptor private constructor(
 			if (bytes.size <= 8) {
 				return fromLong(bigInteger.toLong())
 			}
-			val intCount = bytes.size + 3 shr 2
-			val result = createUninitializedInteger(intCount)
-			// Start with the least significant bits.
-			var byteIndex = bytes.size
-			var destIndex = 1
-			while (destIndex < intCount) {
-				byteIndex -= 4 // Zero-based index to start of four byte run
-				val intValue: Int = ((bytes[byteIndex].toInt() and 255 shl 24)
-					+ (bytes[byteIndex + 1].toInt() and 255 shl 16)
-					+ (bytes[byteIndex + 2].toInt() and 255 shl 8)
-					+ (bytes[byteIndex + 3].toInt() and 255))
-				result.setIntSlot(RAW_LONG_SLOTS_, destIndex, intValue)
-				destIndex++
+			// Pad at the front, to whole words, with the sign of the value.
+			val wordCount = (bytes.size + 7) ushr 3
+			val padByte: Byte = if (bytes[0] < 0) -1 else 0
+			val padded = ByteArray(wordCount shl 3) { padByte }
+			bytes.copyInto(padded, destinationOffset = padded.size - bytes.size)
+			val result = createUninitializedLongInteger(wordCount)
+			// Word 1 is the least significant, so it comes from the last eight
+			// bytes.
+			for (i in 1..wordCount) {
+				var word = 0L
+				val start = (wordCount - i) shl 3
+				for (k in start until start + 8) {
+					word = (word shl 8) or (padded[k].toLong() and 0xFFL)
+				}
+				result.setLongSlot(RAW_LONG_SLOTS_, i, word)
 			}
-			// There are at least 4 bytes present (<=8 was special-cased), so
-			// create an int from the leading (most significant) 4 bytes.  Some
-			// of these bytes may have already been included in the previous
-			// int, but at least one and at most four bytes will survive to be
-			// written to the most significant int.
-			var highInt: Int = ((bytes[0].toInt() and 255 shl 24)
-				+ (bytes[1].toInt() and 255 shl 16)
-				+ (bytes[2].toInt() and 255 shl 8)
-				+ (bytes[3].toInt() and 255))
-			assert(byteIndex in 1..4)
-			// Now shift away the bytes already consumed.
-			highInt = highInt shr (4 - byteIndex shl 3)
-			result.setIntSlot(RAW_LONG_SLOTS_, destIndex, highInt)
-			// There should be no need to trim it...
 			result.trimExcessInts()
-			assert(intCount(result) == intCount)
 			return result
 		}
+
+		/**
+		 * The exact `double` value 2^63, one more than [Long.MAX_VALUE].
+		 * [Long.MAX_VALUE] itself converts to this value, so a `double` that
+		 * fits in a `long` must be compared against this constant, not against
+		 * the converted [Long] bounds.
+		 */
+		const val TWO_TO_THE_63 = 9.223372036854775808E18
 
 		/**
 		 * Answer an Avail integer that holds the truncation of the `double`
@@ -1803,34 +1639,58 @@ class IntegerDescriptor private constructor(
 		 */
 		fun truncatedFromDouble(aDouble: Double): A_Number
 		{
-			// Extract the top three 32-bit sections.  That guarantees 65 bits
-			// of mantissa, which is more than a double actually captures.
-			var truncated = aDouble
-			if (truncated >= Long.MIN_VALUE && truncated <= Long.MAX_VALUE) {
+			if (aDouble >= -TWO_TO_THE_63 && aDouble < TWO_TO_THE_63)
+			{
 				// Common case -- it fits in a long.
-				return fromLong(truncated.toLong())
+				return fromLong(aDouble.toLong())
 			}
-			val neg = truncated < 0.0
-			truncated = abs(truncated)
-			val exponent = getExponent(truncated)
-			val slots = exponent + 31 shr 5 // probably needs work
-			val out = createUninitializedInteger(slots)
-			truncated = scalb(truncated, (1 - slots) shl 5)
-			for (i in slots downTo 1) {
-				val intSlice: Int = truncated.toInt()
-				out.setIntSlot(RAW_LONG_SLOTS_, i, intSlice)
-				truncated -= intSlice.toDouble()
-				truncated = scalb(truncated, 32)
+			val magnitude = fromLargeDoubleMagnitude(abs(aDouble))
+			return when {
+				aDouble < 0.0 -> zero.noFailMinusCanDestroy(magnitude, true)
+				else -> magnitude
+			}
+		}
+
+		/**
+		 * Convert a finite, nonnegative `double` of at least 2^63 into an Avail
+		 * integer.  Such a `double` is exactly a 53-bit mantissa times a power
+		 * of two, so its 64-bit words are formed by shifting the mantissa into
+		 * place.  No rounding or 32-bit digits are involved.
+		 *
+		 * @param magnitude
+		 *   The finite, nonnegative `double`, at least 2^63.
+		 * @return
+		 *   An Avail integer equal to the `double`'s integral value.
+		 */
+		fun fromLargeDoubleMagnitude(magnitude: Double): A_Number
+		{
+			assert(magnitude.isFinite() && magnitude >= TWO_TO_THE_63)
+			val bits = doubleToRawLongBits(magnitude)
+			// Restore the implicit leading bit above the 52 stored fraction bits.
+			val mantissa = (bits and ((1L shl 52) - 1)) or (1L shl 52)
+			val exponent = getExponent(magnitude)
+			// The mantissa's lowest bit has weight 2^shift, and shift >= 11.
+			val shift = exponent - 52
+			// Room for the top bit and a sign bit, rounded up to whole words.
+			val wordCount = exponent + 65 shr 6
+			val out = createUninitializedLongInteger(wordCount)
+			for (i in 1..wordCount) {
+				out.setLongSlot(RAW_LONG_SLOTS_, i, 0L)
+			}
+			val low = shift ushr 6
+			val bitOffset = shift and 63
+			out.setLongSlot(RAW_LONG_SLOTS_, low + 1, mantissa shl bitOffset)
+			val high = if (bitOffset == 0) 0L else mantissa ushr (64 - bitOffset)
+			if (high != 0L) {
+				out.setLongSlot(RAW_LONG_SLOTS_, low + 2, high)
 			}
 			out.trimExcessInts()
-			return when {
-				neg -> zero.noFailMinusCanDestroy(out, true)
-				else -> out
-			}
+			return out
 		}
 
 		/** The [CheckedMethod] for [fromInt]. */
 		val fromIntMethod = staticMethod(::fromInt, int)
+
 
 		/**
 		 * Convert the specified byte-valued Java `short` into an Avail
@@ -1864,42 +1724,23 @@ class IntegerDescriptor private constructor(
 			self: AvailObject,
 			exponentBias: Int
 		): Double {
-			// Extract and scale the top three ints from anInteger, if
-			// available. This guarantees at least 64 correct upper bits were
-			// extracted (if available), which is better than a double can
-			// represent.
-			val slotsCount = intCount(self)
-			val high = self.rawSignedIntegerAt(slotsCount).toLong()
+			// Extract and scale the top two longs.  Together they hold at least
+			// 64 correct upper bits, which is more than a double can represent.
+			val words = self.integerSlotsCount()
 			var d = scalb(
-				high.toDouble(),
-				(slotsCount - 1 shl 5) - exponentBias)
-			if (slotsCount > 1) {
+				self.longSlot(RAW_LONG_SLOTS_, words).toDouble(),
+				64 * (words - 1) - exponentBias)
+			if (words > 1) {
 				// Don't sign-extend this component, since our initial estimate
 				// can only be too low, never too high.  Adding in the lower
-				// ints should increase the number, even if the first value was
+				// word should increase the number, even if the first was
 				// negative.
-				val med = self.rawUnsignedIntegerAt(slotsCount - 1)
-				d += scalb(
-					med.toDouble(),
-					(slotsCount - 2 shl 5) - exponentBias)
-				if (slotsCount > 2) {
-					// Again, don't sign-extend this component.
-					val low = self.rawUnsignedIntegerAt(slotsCount - 2)
-					d += scalb(
-						low.toDouble(),
-						(slotsCount - 3 shl 5) - exponentBias)
-				}
+				val next = self.longSlot(RAW_LONG_SLOTS_, words - 1)
+					.toULong().toDouble()
+				d += scalb(next, 64 * (words - 2) - exponentBias)
 			}
 			return d
 		}
-
-		/**
-		 * Answer an [AvailObject] representing the integer negative one (-1).
-		 *
-		 * @return
-		 *   The Avail integer negative one (-1).
-		 */
-		fun negativeOne(): A_Number = negativeOne
 
 		/**
 		 * Answer the [Int] hash value of the given [Short] in the range
@@ -1917,51 +1758,6 @@ class IntegerDescriptor private constructor(
 		/** The initialization value for computing the hash of an integer. */
 		private const val initialHashValue = 0x13592884
 
-		/**
-		 * The value to xor with after multiplying by the [multiplier] for each
-		 * [Int] slot of the integer.
-		 */
-		private const val postMultiplyHashToggle = -0x6a004a61
-
-		/**
-		 * The value to add after performing a final extra multiply by
-		 * [multiplier].
-		 */
-		private const val finalHashAddend = 0x5127ee66
-
-		/**
-		 * A table of random values.  This has different content on every run.
-		 */
-		private val byteHashes = IntArray(256) {
-			Random.nextBits(32)
-		}
-
-		private fun combineHash(currentHash: Int, nextInt: Int): Int
-		{
-			var hash = currentHash xor nextInt
-			var index = hash xor (hash shr 16)
-			index -= (index shr 8)
-			hash += byteHashes[index and 0xFF]
-			hash -= byteHashes[(index shr 8) and 0xFF]
-			return hash xor postMultiplyHashToggle
-		}
-
-		/**
-		 * Hash the passed [Int].  Note that it must have the same value as what
-		 * [computeHashOfIntegerObject] would return, given an encoding of the
-		 * [Int] as an Avail integer.
-		 *
-		 * @param anInt
-		 *   The [Int] to hash.
-		 * @return
-		 *   The hash of the given [Int], consistent with Avail integer hashing.
-		 */
-		fun computeHashOfInt(anInt: Int): Int {
-			var output = combineHash(initialHashValue, anInt)
-			output *= multiplier
-			output += finalHashAddend
-			return output
-		}
 
 		/**
 		 * Hash the passed [Long].  Note that it must have the same value as
@@ -1974,42 +1770,50 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   The hash of the given [Long], consistent with Avail integer hashing.
 		 */
-		fun computeHashOfLong(aLong: Long): Int {
-			val lowInt = aLong.toInt()
-			if (aLong == lowInt.toLong()) return computeHashOfInt(lowInt)
-			var output = initialHashValue
-
-			// First unrolled loop iteration (high 32).
-			output = combineHash(output, (aLong shr 32).toInt())
-
-			// Second unrolled loop iteration (low 32)
-			output = combineHash(output, lowInt)
-
-			// After loop.
-			output *= multiplier
-			output += finalHashAddend
-			return output
-		}
+		fun computeHashOfLong(aLong: Long): Int =
+			combineWord(aLong, initialHashValue)
 
 		/**
-		 * Compute the hash of the given Avail integer object.  Note that if the
-		 * input is within the range of an [Int], it should produce the same
-		 * value as the equivalent invocation of [computeHashOfInt].
+		 * Mix one 64-bit word into a running hash, a whole word at a time, using
+		 * [combine4] with [integerHashSalt].  The salt is used only for integers,
+		 * so integer hashes don't systematically collide with other types.
+		 *
+		 * @param aLong
+		 *   The word to mix in.
+		 * @param accumulator
+		 *   The running hash.
+		 * @return
+		 *   The updated running hash.
+		 */
+		private fun combineWord(aLong: Long, accumulator: Int): Int =
+			combine4(
+				aLong.toInt(),
+				(aLong ushr 32).toInt(),
+				accumulator,
+				integerHashSalt)
+
+		/** The salt that [combineWord] uses, reserved for integer hashing. */
+		private const val integerHashSalt = -0x45AC471B
+
+		/**
+		 * Compute the hash of the given Avail integer object, folding its words
+		 * from the top.  A value in long range has a single word, so it hashes
+		 * as [computeHashOfLong] does.
 		 *
 		 * @param anIntegerObject
-		 * An Avail integer to be hashed.
-		 * @return The hash of the given Avail integer.
+		 *   An Avail integer to be hashed.
+		 * @return
+		 *   The hash of the given Avail integer.
 		 */
 		private fun computeHashOfIntegerObject(
 			anIntegerObject: AvailObject
 		): Int {
 			var output = initialHashValue
-			for (i in intCount(anIntegerObject) downTo 1) {
-				output = combineHash(
-					output, anIntegerObject.rawSignedIntegerAt(i))
+			for (i in anIntegerObject.integerSlotsCount() downTo 1)
+			{
+				output = combineWord(
+					anIntegerObject.longSlot(RAW_LONG_SLOTS_, i), output)
 			}
-			output *= multiplier
-			output += finalHashAddend
 			return output
 		}
 
@@ -2023,27 +1827,105 @@ class IntegerDescriptor private constructor(
 		 *   An uninitialized, mutable integer.
 		 */
 		fun createUninitializedInteger(size: Int): AvailObject =
-			mutableFor(size).create(size + 1 shr 1)
+			mutable.create(checkLongCount(size + 1 shr 1))
 
 		/**
-		 * The static list of descriptors of this kind, organized by mutability
-		 * and then the number of unused ints in the last long.  This is mostly
-		 * a vestigial effect of having used 32-bit integer slots in the past.
-		 * There is still some merit to the technique, since for example integer
-		 * multiplication has to use u32 x u32 -> u64 for speed.
+		 * Create a mutable Avail integer with the specified number of
+		 * uninitialized [Long] slots.
+		 *
+		 * @param longCount
+		 *   The number of [Long] slots to have in the result.
+		 * @return
+		 *   An uninitialized, mutable integer.
 		 */
-		private val descriptors = EnumMap.enumMap { mut: Mutability ->
-			Array(2) { unusedInts ->
-				IntegerDescriptor(mut, unusedInts)
+		fun createUninitializedLongInteger(longCount: Int): AvailObject =
+			mutable.create(checkLongCount(longCount))
+
+		/**
+		 * The largest number of [Long] words that an integer may occupy.  It is
+		 * below the JVM's array length limit, and it keeps every bit position
+		 * within a [Long]: such an integer has fewer than 2^37 bits.
+		 */
+		const val MAX_LONG_COUNT = Int.MAX_VALUE - 8
+
+		/**
+		 * Check that an integer may occupy the given number of [Long] words.
+		 *
+		 * @param longCount
+		 *   The proposed number of [Long] words.
+		 * @return
+		 *   The same number, for convenience.
+		 * @throws AvailSystemLimitException
+		 *   If the number of words exceeds [MAX_LONG_COUNT].
+		 */
+		fun checkLongCount(longCount: Int): Int
+		{
+			if (longCount > MAX_LONG_COUNT)
+			{
+				throw AvailSystemLimitException(
+					"Integer would need $longCount longs, beyond the limit of " +
+						"$MAX_LONG_COUNT")
+			}
+			return longCount
+		}
+
+		/**
+		 * Create an integer object with the given number of [Long] slots,
+		 * initialized in little-Endian order with values produced by the
+		 * [generator].
+		 *
+		 * @param longCount
+		 *   The number of [Long] slots to allocate in the boxed integer.
+		 * @param generator
+		 *   A generator to provide [Long]s to store, starting with the least
+		 *   significant one first.  The generator is passed the current long
+		 *   slot's index.
+		 * @return
+		 *   The new boxed integer.
+		 */
+		fun generateIntegerFromLimbs(
+			longCount: Int,
+			generator: (Int) -> Long
+		): AvailObject = mutable.create(checkLongCount(longCount)) {
+			for (i in 1..longCount)
+			{
+				setLongSlot(RAW_LONG_SLOTS_, i, generator(i))
 			}
 		}
+
+		/**
+		 * Answer an iterator over the [Long] slots of an Avail boxed integer,
+		 * starting with the least significant [Long].
+		 */
+		fun limbIterator(
+			integer: AvailObject
+		): Iterator<Long> = object: Iterator<Long>
+		{
+			val limit = longCount(integer)
+
+			var current = 1
+
+			override fun hasNext(): Boolean = current <= limit
+
+			override fun next(): Long =
+				integer.longSlot(RAW_LONG_SLOTS_, current++)
+		}
+
+		/** The mutable [IntegerDescriptor]. */
+		private val mutable = IntegerDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [IntegerDescriptor]. */
+		private val immutable = IntegerDescriptor(Mutability.IMMUTABLE)
+
+		/** The shared [IntegerDescriptor]. */
+		private val shared = IntegerDescriptor(Mutability.SHARED)
 
 		/**
 		 * Values below this limit can be looked up in [smallIntegers], and
 		 * their hashes can also be looked up in [hashesOfSmallIntegers].  This
 		 * value MUST be at least 256.
 		 */
-		private const val smallIntegerLimit = 16384
+		const val smallIntegerLimit = 16384
 
 		/**
 		 * A cache that maps from an index to a corresponding [A_Number].  The
@@ -2057,32 +1939,36 @@ class IntegerDescriptor private constructor(
 		private val smallIntegers =
 			arrayOfNulls<AvailObject>(smallIntegerLimit).also { array ->
 				(0..255).forEach { i ->
-					array[i] = createUninitializedInteger(1).run {
-						rawSignedIntegerAtPut(1, i)
-						makeShared()
+					array[i] = createSharedOfSize(1) {
+						setLongSlot(RAW_LONG_SLOTS_, 1, i.toLong())
 					}
 				}
 			}
 
+
 		/**
-		 * Answer the mutable descriptor that is suitable to describe an integer
-		 * with the given number of int slots.
+		 * Create a mutable integer with the given number of int slots, run the
+		 * setup function on it, and make it shared.
 		 *
 		 * @param size
-		 *   How many int slots are in the large integer to be represented by
-		 *   the descriptor.
+		 *   The number of int slots to reserve.
+		 * @param setup
+		 *   How to initialize the object while it's mutable.
 		 * @return
-		 *   An `IntegerDescriptor` suitable for representing an integer of the
-		 *   given mutability and int slot count.
+		 *   The initialized [AvailObject], made shared.
 		 */
-		private fun mutableFor(size: Int) = descriptors[MUTABLE]!![size and 1]
+		private inline fun createSharedOfSize(
+			size: Int,
+			setup: AvailObject.()->Unit
+		): AvailObject =
+			createUninitializedInteger(size).apply(setup).makeShared()
 
 		/**
 		 * An array of size [smallIntegerLimit] of [Int]s, corresponding to the
 		 * hashes of the integers at the corresponding indices.
 		 */
 		private val hashesOfSmallIntegers =
-			IntArray(smallIntegerLimit, ::computeHashOfInt)
+			IntArray(smallIntegerLimit) { computeHashOfLong(it.toLong()) }
 
 		/** An Avail integer representing zero (0). */
 		val zero: AvailObject = smallIntegers[0]!!
@@ -2094,11 +1980,9 @@ class IntegerDescriptor private constructor(
 		val two: AvailObject = smallIntegers[2]!!
 
 		/** The Avail integer negative one (-1). */
-		var negativeOne: AvailObject =
-			createUninitializedInteger(1).apply {
-				rawSignedIntegerAtPut(1, -1)
-				makeShared()
-			}
+		val negativeOne: AvailObject = createSharedOfSize(1) {
+			setLongSlot(RAW_LONG_SLOTS_, 1, -1L)
+		}
 
 		/**
 		 * One (U.S.) quintillion, which is 10^18.  This is the largest power of
@@ -2157,11 +2041,86 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	override fun mutable() =
-		descriptors[MUTABLE]!![unusedIntsOfLastLong]
+	override fun mutable() = mutable
 
-	override fun immutable() =
-		descriptors[IMMUTABLE]!![unusedIntsOfLastLong]
+	override fun immutable() = immutable
 
-	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong]
+	override fun shared() = shared
+
+	/**
+	 * A stack of dead, mutable boxed integers that may be reused to hold a new
+	 * [Int] value.  The entries live in a circular array, so a push past
+	 * [capacity] overwrites the oldest entry.  A popped slot is nulled, so a
+	 * null top slot means the stack is empty.
+	 *
+	 * @property capacity
+	 *   The number of slots.  Must be a power of two.
+	 */
+	class RecyclePool(private val capacity: Int = 128)
+	{
+		init
+		{
+			assert(capacity > 0 && capacity and (capacity - 1) == 0)
+		}
+
+		/** The mask that wraps an index into [slots]. */
+		private val mask = capacity - 1
+
+		/** The circular storage for the recycled integers. */
+		private val slots = arrayOfNulls<AvailObject>(capacity)
+
+		/** The index of the top entry.  The top slot is null when empty. */
+		private var top = 0
+
+		/**
+		 * Push [anObject] for later reuse, if it's mutable and has room for any
+		 * [Int] value.  The caller must guarantee that nothing else references
+		 * [anObject].
+		 *
+		 * @param anObject
+		 *   A boxed integer that has lost its last reference.
+		 */
+		@ReferencedInGeneratedCode
+		fun recycleIfMutable(anObject: AvailObject)
+		{
+			if (anObject.descriptor.isMutable && longCount(anObject) == 1)
+			{
+				top = (top + 1) and mask
+				slots[top] = anObject
+			}
+		}
+
+		/**
+		 * Answer an [AvailObject] holding [anInteger], reusing the most recently
+		 * recycled one if there is one.
+		 *
+		 * @param anInteger
+		 *   The [Int] to box.
+		 * @return
+		 *   An [AvailObject].
+		 */
+		fun boxInt(anInteger: Int): AvailObject = boxLong(anInteger.toLong())
+
+		/**
+		 * Answer an [AvailObject] holding [aLong], reusing the most recently
+		 * recycled one if there is one.
+		 *
+		 * @param aLong
+		 *   The [Long] to box.
+		 * @return
+		 *   An [AvailObject].
+		 */
+		@ReferencedInGeneratedCode
+		fun boxLong(aLong: Long): AvailObject
+		{
+			if (aLong in 0 until smallIntegerLimit)
+			{
+				return fromLong(aLong)
+			}
+			val recycled = slots[top] ?: return fromLong(aLong)
+			slots[top] = null
+			top = (top - 1) and mask
+			return recycleLong(aLong, recycled)
+		}
+	}
 }

@@ -63,7 +63,6 @@ import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import org.objectweb.asm.Opcodes
@@ -195,7 +194,7 @@ class L2_CREATE_FUNCTION(
 		}
 		val staticFunction = createFunction(
 			code.constant, tupleFromList(constantOuters))
-		move(constant(staticFunction), newFunction.semanticValues())
+		moveConstant(staticFunction, newFunction.semanticValues())
 	}
 
 	override fun JVMTranslator.translateToJVM()

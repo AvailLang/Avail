@@ -62,12 +62,11 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
-import avail.optimizer.values.L2SemanticValue.Companion.constant
+import avail.optimizer.PostPhiData
 
 /**
  * **Primitive:** Obtain the instances of the specified [type][topMeta].
@@ -126,9 +125,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			if (countRange.isSubtypeOf(inclusive(zero, zero)))
 			{
 				// The input must be bottom, so the output should be ∅.
-				move(
-					constant(emptySet),
-					result.semanticValues())
+				moveConstant(emptySet, result.semanticValues())
 				return
 			}
 			if (countRange.upperBound.isFinite)

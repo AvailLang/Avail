@@ -488,6 +488,44 @@ abstract class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Answer the (64-bit signed) [Long] at the given long-index of the receiver.
+	 *
+	 * @param field
+	 *   The enumeration value that identifies the base field.
+	 * @param longIndex
+	 *   The one-based index in longs.
+	 * @return
+	 *   The [Long] stored at the given long-index.
+	 */
+	fun longSlot(
+		field: IntegerSlotsEnum,
+		longIndex: Int): Long
+	{
+		checkSlot(field)
+		return longSlots[field.fieldOrdinal + longIndex - 1]
+	}
+
+	/**
+	 * Store the (64-bit signed) [Long] at the given long-index of the receiver.
+	 *
+	 * @param field
+	 *   The enumeration value that identifies the base field.
+	 * @param longIndex
+	 *   The one-based index in longs.
+	 * @param aLong
+	 *   The [Long] to store at the given long-index.
+	 */
+	fun setLongSlot(
+		field: IntegerSlotsEnum,
+		longIndex: Int,
+		aLong: Long)
+	{
+		checkWriteForField(field)
+		checkSlot(field)
+		longSlots[field.fieldOrdinal + longIndex - 1] = aLong
+	}
+
+	/**
 	 * Answer the number of [Long] slots.
 	 */
 	override fun integerSlotsCount() = longSlots.size

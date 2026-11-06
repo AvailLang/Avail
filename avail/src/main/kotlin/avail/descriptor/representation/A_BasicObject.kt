@@ -52,7 +52,6 @@ import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailException
-import avail.interpreter.JavaLibrary.int
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode

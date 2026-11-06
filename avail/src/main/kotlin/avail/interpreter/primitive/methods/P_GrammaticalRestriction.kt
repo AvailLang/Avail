@@ -34,7 +34,6 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
-import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
@@ -44,6 +43,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
@@ -66,6 +66,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
+import avail.utility.cast
 
 /**
  * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]
@@ -96,24 +97,24 @@ object P_GrammaticalRestriction : Primitive2(Unknown)
 			generateObjectTupleFrom(excludedStringSets.tupleSize) {
 				excludedStringSets.tupleAt(it).fold(emptySet) { set, string ->
 					var atoms = loader.module.trueNamesForStringName(string)
-					if (atoms.setSize == 0)
+					if (atoms.isEmpty())
 					{
 						// Auto-create it if it doesn't exist yet.
-						atoms = set(loader.lookupName(string))
+						atoms = arrayOf(loader.lookupName(string).cast())
 					}
-					set.setUnionCanDestroy(atoms, true)
+					setFromCollection(set + atoms)
 				}
 			}
 		try
 		{
 			val parentAtoms = parentStrings.fold(emptySet) { set, string ->
 				var atoms = loader.module.trueNamesForStringName(string)
-				if (atoms.setSize == 0)
+				if (atoms.isEmpty())
 				{
 					// Auto-create it if it doesn't exist yet.
-					atoms = set(loader.lookupName(string))
+					atoms = arrayOf(loader.lookupName(string).cast())
 				}
-				set.setUnionCanDestroy(atoms, true)
+				setFromCollection(set + atoms)
 			}
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}

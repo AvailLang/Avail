@@ -43,7 +43,7 @@ import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -67,8 +67,9 @@ import org.objectweb.asm.Opcodes
  * @constructor
  * @param comparatorName
  *   The symbolic name of the opcode for this compare-and-branch.
- * @param opcode
- *   The JVM opcode number for the int version of this compare-and-branch.
+ * @param lcmpBranchOpcode
+ *   The JVM branch opcode that tests the result of an `LCMP` against zero,
+ *   for the unboxed (`long`) version of this compare-and-branch.
  * @param reflexive
  *   Whether (x op x) is true for any (and actually all) x.
  * @property comparatorMethod
@@ -89,7 +90,7 @@ import org.objectweb.asm.Opcodes
  */
 enum class NumericComparator(
 	internal val comparatorName: String,
-	internal val opcode: Int,
+	internal val lcmpBranchOpcode: Int,
 	internal val reflexive: Boolean,
 	internal val reversed: ()->NumericComparator,
 	internal val comparatorMethod: CheckedMethod,
@@ -101,7 +102,7 @@ enum class NumericComparator(
 	/** An instance for testing whether a < b. */
 	Less(
 		comparatorName = "<",
-		opcode = Opcodes.IF_ICMPLT,
+		lcmpBranchOpcode = Opcodes.IFLT,
 		reflexive = false,
 		reversed = {Greater},
 		comparatorMethod = A_Number.numericLessThanMethod,
@@ -113,7 +114,7 @@ enum class NumericComparator(
 	/** An instance for testing whether a > b. */
 	Greater(
 		comparatorName = ">",
-		opcode = Opcodes.IF_ICMPGT,
+		lcmpBranchOpcode = Opcodes.IFGT,
 		reflexive = false,
 		reversed = {Less},
 		comparatorMethod = A_Number.numericGreaterThanMethod,
@@ -125,7 +126,7 @@ enum class NumericComparator(
 	/** An instance for testing whether a ≤ b. */
 	LessOrEqual(
 		comparatorName = "≤",
-		opcode = Opcodes.IF_ICMPLE,
+		lcmpBranchOpcode = Opcodes.IFLE,
 		reflexive = true,
 		reversed = {GreaterOrEqual},
 		comparatorMethod = A_Number.numericLessOrEqualMethod,
@@ -137,7 +138,7 @@ enum class NumericComparator(
 	/** An instance for testing whether a ≥ b. */
 	GreaterOrEqual(
 		comparatorName = "≥",
-		opcode = Opcodes.IF_ICMPGE,
+		lcmpBranchOpcode = Opcodes.IFGE,
 		reflexive = true,
 		reversed = {LessOrEqual},
 		comparatorMethod = A_Number.numericGreaterOrEqualMethod,
@@ -155,7 +156,7 @@ enum class NumericComparator(
 	 */
 	Equal(
 		comparatorName = "=",
-		opcode = Opcodes.IF_ICMPEQ,
+		lcmpBranchOpcode = Opcodes.IFEQ,
 		reflexive = true,
 		reversed = {Equal},
 		comparatorMethod = A_Number.numericEqualMethod,
@@ -167,7 +168,7 @@ enum class NumericComparator(
 	/** An instance for testing whether a ≠ b. */
 	NotEqual(
 		comparatorName = "≠",
-		opcode = Opcodes.IF_ICMPNE,
+		lcmpBranchOpcode = Opcodes.IFNE,
 		reflexive = false,
 		reversed = {NotEqual},
 		comparatorMethod = A_Number.numericNotEqualMethod,
@@ -249,9 +250,9 @@ enum class NumericComparator(
 		if (currentManifest.hasLiveSemanticValue(value1, INTEGER_KIND)
 			&& currentManifest.hasLiveSemanticValue(value2, INTEGER_KIND))
 		{
-			// We can compare the int registers instead.
-			assert(restriction1.containedByType(i32))
-			assert(restriction2.containedByType(i32))
+			// We can compare the int registers instead, as longs.
+			assert(restriction1.containedByType(i64))
+			assert(restriction2.containedByType(i64))
 			compareAndBranchInt(
 				this@NumericComparator,
 				readIntNoFail(value1),
@@ -345,8 +346,9 @@ enum class NumericComparator(
 		val restriction1 = int1Reg.restriction
 		val restriction2 = int2Reg.restriction
 
-		assert(restriction1.containedByType(i32))
-		assert(restriction2.containedByType(i32))
+		// Int registers are compared as longs.
+		assert(restriction1.containedByType(i64))
+		assert(restriction2.containedByType(i64))
 		// Restrict both values along both branches.
 		val (rest1, rest2, rest3, rest4) =
 			computeRestrictions(restriction1, restriction2)

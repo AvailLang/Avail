@@ -139,7 +139,7 @@ import avail.descriptor.representation.A_Module.Companion.hasAncestor
 import avail.descriptor.representation.A_Module.Companion.moduleName
 import avail.descriptor.representation.A_Module.Companion.moduleState
 import avail.descriptor.representation.A_Module.Companion.newNames
-import avail.descriptor.representation.A_Module.Companion.privateNames
+import avail.descriptor.representation.A_Module.Companion.privateAtomsForStringName
 import avail.descriptor.representation.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.representation.A_Module.Companion.variableBindings
@@ -196,14 +196,12 @@ import avail.descriptor.representation.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.representation.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.representation.A_Set.Companion.asTuple
-import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.asSet
 import avail.descriptor.representation.A_Tuple.Companion.component1
 import avail.descriptor.representation.A_Tuple.Companion.component2
-import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
@@ -3643,10 +3641,7 @@ enum class SerializerOperation constructor(
 				// An atom in the current module.  Create it if necessary.
 				// Check if it's already defined somewhere...
 				val trueNames = currentModule.trueNamesForStringName(atomName)
-				if (trueNames.setSize == 1)
-				{
-					return trueNames.asTuple.tupleAt(1)
-				}
+				trueNames.singleOrNull()?.let { return it }
 				val atom = AtomWithPropertiesSharedDescriptor.shared
 					.createInitialized(atomName, currentModule, nil, 0)
 				currentModule.addPrivateName(atom)
@@ -3656,18 +3651,12 @@ enum class SerializerOperation constructor(
 			val module = deserializer.moduleNamed(moduleName)
 			val newNames = module.newNames
 			newNames.mapAtOrNull(atomName)?.let { return it }
-			val privateNames = module.privateNames
-			privateNames.mapAtOrNull(atomName)?.let { candidates ->
-				if (candidates.setSize == 1) return candidates.single()
-				if (candidates.setSize > 1)
-				{
-					throw RuntimeException(
-						"Ambiguous atom $atomName in module $module")
-				}
-			}
+			// Look up private atoms directly from mutable structures, avoiding A_Map construction
+			module.privateAtomsForStringName(atomName).singleOrNull()
+				?.let { return it }
 			// This should probably fail more gracefully.
 			throw RuntimeException(
-				"Unknown atom $atomName in module $module")
+				"Ambiguous or missing atom $atomName in module $module")
 		}
 
 		/**

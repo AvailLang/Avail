@@ -34,7 +34,6 @@ package avail.interpreter.primitive.integers
 
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
@@ -52,22 +51,30 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.dispatch.TestForConstantsDecisionStep
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.Flag.CanFold
@@ -77,10 +84,14 @@ import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.general.P_Hash
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
+import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.optimizer.values.PatternBuilder.Companion.pattern
+import avail.utility.notNullAnd
 import kotlin.math.min
 
 /**
@@ -146,7 +157,45 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 			return singleInt(0)
 		}
 		val maxValue = highOneBit - 1 or highOneBit
-		return integerRangeType(zero, true, fromLong(maxValue), true)
+		return inclusive(0L, maxValue)
+	}
+
+	override fun L2GeneratorInterface.readAsTwoInts(
+		semanticValue1: L2SemanticValue,
+		semanticValue2: L2SemanticValue,
+		onFailure: L2BasicBlock,
+		range: A_Type
+	): Pair<L2ReadIntOperand, L2ReadIntOperand>?
+	{
+		readTwoInts(semanticValue1, semanticValue2, onFailure, range)
+			?.let { return it }
+		val type1 = restrictionFor(semanticValue1).type
+		val type2 = restrictionFor(semanticValue2).type
+		// Special case.  If type1 is a non-negative value in the range, it has
+		// no bits at or above the range's sign bit.  So if type2 is any integer
+		// constant, we can pre-mask it with the range's upper bound and use
+		// that constant as an int argument instead.
+		val nonnegativeRange = range.typeIntersection(wholeNumbers)
+		if (type1.isSubtypeOf(nonnegativeRange)
+			&& type2.run { lowerBound == upperBound })
+		{
+			val masked = type2.upperBound.bitwiseAnd(range.upperBound, false)
+				.extractLong
+			return Pair(
+				readIntNoFail(semanticValue1),
+				unboxedIntConstant(masked))
+		}
+		// And the same thing where the first argument is the constant.
+		if (type2.isSubtypeOf(nonnegativeRange)
+			&& type1.run { lowerBound == upperBound })
+		{
+			val masked = type1.upperBound.bitwiseAnd(range.upperBound, false)
+				.extractLong
+			return Pair(
+				unboxedIntConstant(masked),
+				readIntNoFail(semanticValue2))
+		}
+		return null
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
@@ -211,7 +260,54 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 				fallbackBody = {
 					generateGeneralFunctionInvocation(
 						functionToCallReg, false, callSiteHelper, arguments)
-				})
+				},
+				range = i64)
+		}
+	}
+
+	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand)
+	{
+		val (x, y) = arguments.elements
+		when
+		{
+			// x & 0 = 0
+			y.constantOrNull.notNullAnd { equalsInt(0) } ->
+				moveConstant(zero, result.semanticValues())
+			// 0 & y = 0
+			x.constantOrNull.notNullAnd { equalsInt(0) } ->
+				move(y.semanticValue(), result.semanticValues())
+			// x & x = x
+			currentManifest.isEquivalentSemanticValue(
+				x.semanticValue(), y.semanticValue()
+			) -> move(x.semanticValue(), result.semanticValues())
+			// x & k, where x ∈ i63 & k ≥ 0, -> x & (k & maxLong)
+			x.restriction.type.isSubtypeOf(i63)
+				&& y.constantOrNull.notNullAnd { greaterOrEqual(zero) }
+			-> +L2_BIT_LOGIC_OP(
+				And,
+				readIntNoFail(x.semanticValue()),
+				unboxedIntConstant(
+					y.constantOrNull!!.bitwiseAnd(
+						i63.upperBound,
+						true
+					).extractLong),
+				intWrite(result.semanticValues(), x.restriction))
+			// k & y, where y ∈ i63 & k ≥ 0, -> (k & maxLong) & y
+			y.restriction.type.isSubtypeOf(i63)
+				&& x.constantOrNull.notNullAnd { greaterOrEqual(zero) }
+			-> +L2_BIT_LOGIC_OP(
+				And,
+				readIntNoFail(y.semanticValue()),
+				unboxedIntConstant(
+					x.constantOrNull!!.bitwiseAnd(
+						i63.upperBound,
+						true
+					).extractLong),
+				intWrite(result.semanticValues(), y.restriction))
+			else -> emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 		}
 	}
 
@@ -233,8 +329,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 	 * @param arguments
 	 *   The two [L2SemanticValue]s fed to this [P_BitwiseAnd] primitive.
 	 */
-	override fun
-		propagateManifestRestrictions(
+	override fun propagateManifestRestrictions(
 		arguments: List<L2SemanticValue>,
 		manifest: L2ValueManifest,
 		restriction: TypeRestriction)

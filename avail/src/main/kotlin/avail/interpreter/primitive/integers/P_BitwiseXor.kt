@@ -67,7 +67,6 @@ import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.notNullAnd
 import kotlin.math.min
 
@@ -136,7 +135,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 		// Fall back on figuring out whether to reply (-∞..0), [0..∞), or the
 		// union of the two.
 		return integerRangeType(
-			if (canBeNegative) negativeInfinity else negativeOne(),
+			if (canBeNegative) negativeInfinity else negativeOne,
 			false,
 			if (canBePositive) positiveInfinity else zero,
 			false)
@@ -159,7 +158,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 			// x ⊕ x = 0
 			currentManifest.isEquivalentSemanticValue(
 				x.semanticValue(), y.semanticValue()
-			) -> move(constant(zero), result.semanticValues())
+			) -> moveConstant(zero, result.semanticValues())
 			else -> emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 		}
 	}
@@ -182,7 +181,8 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 			fallbackBody = {
 				generateGeneralFunctionInvocation(
 					functionToCallReg, false, callSiteHelper, arguments)
-			})
+			},
+			range = i64)
 	}
 
 	override val semanticInfixOperatorString: String? get() = "Xor"

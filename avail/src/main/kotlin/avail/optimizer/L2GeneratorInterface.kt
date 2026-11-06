@@ -39,6 +39,7 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -267,6 +268,33 @@ interface L2GeneratorInterface : L2Visualizable
 		sourceSemanticValue: L2SemanticValue,
 		targetSemanticValues: Iterable<L2SemanticValue>)
 
+
+	/**
+	 * Ensure the [targetSemanticValues] will get the specified constant value
+	 * moved to them.
+	 *
+	 * @param constant
+	 *   The [A_BasicObject] to move as a constant.
+	 * @param targetSemanticValues
+	 *   Which [L2SemanticValue]s will be assigned the constant.
+	 */
+	fun moveConstant(
+		constant: A_BasicObject,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+
+	/**
+	 * Ensure the [targetSemanticValues] will get the specified constant integer
+	 * moved to them.
+	 *
+	 * @param integer
+	 *   The [Int] to move as a constant.
+	 * @param targetSemanticValues
+	 *   Which [L2SemanticValue]s will be assigned the constant.
+	 */
+	fun moveConstant(
+		integer: Int,
+		targetSemanticValues: Iterable<L2SemanticValue>)
+
 	/**
 	 * Write instructions to extract the current function, and answer an
 	 * [L2ReadBoxedOperand] for the register that will hold the function
@@ -383,16 +411,28 @@ interface L2GeneratorInterface : L2Visualizable
 	fun boxedConstant(value: A_BasicObject): L2ReadBoxedOperand
 
 	/**
-	 * Generate code to move the given [Int] constant into an [L2IntRegister],
-	 * if it's not already known to be in such a register.  Answer an
-	 * [L2ReadIntOperand] to retrieve this value.
+	 * Generate code to move the given [Long] constant into an
+	 * [L2IntRegister], if it's not already known to be in such a register.
+	 * Answer an [L2ReadIntOperand] to retrieve this value.
+	 *
+	 * @param value
+	 *   The constant [Long] to write to an [L2IntRegister].
+	 * @return
+	 *   The [L2ReadIntOperand] that retrieves the value.
+	 */
+	fun unboxedIntConstant(value: Long): L2ReadIntOperand
+
+	/**
+	 * Generate code to move the given [Int] constant into an [L2IntRegister].
+	 * See the [Long] variant.
 	 *
 	 * @param value
 	 *   The constant [Int] to write to an [L2IntRegister].
 	 * @return
 	 *   The [L2ReadIntOperand] that retrieves the value.
 	 */
-	fun unboxedIntConstant(value: Int): L2ReadIntOperand
+	fun unboxedIntConstant(value: Int): L2ReadIntOperand =
+		unboxedIntConstant(value.toLong())
 
 	/**
 	 * Generate code to move the given [Double] constant into an
@@ -440,9 +480,10 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
-	 * [TypeRestriction] to an [i32] must have been proven by the VM.  If the
-	 * semantic value only has a boxed form, generate code to unbox it.
-]	 *
+	 * [TypeRestriction] to the range that the caller requires, at most an
+	 * [i64], must have been proven by the VM.  If the semantic value only has
+	 * a boxed form, generate code to unbox it.
+	 *
 	 * In any case, the generation position after this call is along the
 	 * success path.  This may itself be unreachable in the event that the
 	 * unboxing will *always* fail.
@@ -970,9 +1011,13 @@ interface L2GeneratorInterface : L2Visualizable
 		 * @param semanticValue
 		 *   The [L2SemanticValue] to read as an unboxed int.
 		 * @param onFailure
-		 *   Where to jump in the event that a dynamic type test against [i32]
-		 *   fails. The manifest at this location will not contain bindings for
-		 *   the unboxed `int` (since unboxing was not possible).
+		 *   Where to jump in the event that a dynamic type test against the
+		 *   [range] fails. The manifest at this location will not contain
+		 *   bindings for the unboxed `int` (since unboxing was not possible).
+		 * @param range
+		 *   The integer range that the unboxed value must lie within.  This is
+		 *   [i32] unless the consumer reads the int register as a `long`, in
+		 *   which case it may be as wide as [i64].
 		 * @param ifCannotSucceed
 		 *   What to execute if the unboxing will always fail.  This is
 		 *   evaluated without having affected the initial current block.
@@ -983,71 +1028,71 @@ interface L2GeneratorInterface : L2Visualizable
 		inline fun L2GeneratorInterface.readInt(
 			semanticValue: L2SemanticValue,
 			onFailure: L2BasicBlock,
+			range: A_Type = i32,
 			ifCannotSucceed: ()->Nothing
 		): L2ReadIntOperand
 		{
 			if (!currentlyReachable()) ifCannotSucceed()
 			val restriction = currentManifest.restrictionFor(semanticValue)
-			if (!restriction.intersectsType(i32))
+			if (!restriction.intersectsType(range))
 			{
 				ifCannotSucceed()
 			}
-			if (!restriction.containedByType(i32))
+			if (!restriction.containedByType(range))
 			{
-				// It interects i32, but isn't a subtype.  Use a dynamic test.
-				val isI32 = createBasicBlock("Is i32")
+				// It interects the range, but isn't a subtype.  Use a dynamic
+				// test.
+				val inRange = createBasicBlock("Is in $range")
 				+L2_JUMP_IF_KIND_OF_OBJECT(
 					readBoxed(semanticValue),
-					boxedConstant(i32),
-					ifKind = edgeTo(isI32),
+					boxedConstant(range),
+					ifKind = edgeTo(inRange),
 					ifNotKind = edgeTo(onFailure))
-				startBlock(isI32)
+				startBlock(inRange)
 			}
 			return readIntInternal(semanticValue).cast()
 		}
 
 		/**
 		 * Generate code to extract two boxed values into int registers.  If
-		 * there's a path where they both succeed, return the [Pair] of [L2ReadIntOperand]s,
-		 * with the generator positioned at the success path.  If there was a
-		 * way for one or the other extraction to fail, there will be a path
-		 * to the supplied onFailure [L2BasicBlock].  If one of the extractions
-		 * *cannot* succeed, control flow is merged if necessary (i.e., if this
-		 * is detected during the second extraction), and [ifCannotSucceed] is
-		 * invoked with control flow unaffected.  Since the lambda has a return
-		 * type of [Nothing], the invocation should escape in some way.
+		 * there's a path where they both succeed, return the [Pair] of
+		 * [L2ReadIntOperand]s, with the generator positioned at the success
+		 * path.  If there was a way for one or the other extraction to fail,
+		 * there will be a path to the supplied onFailure [L2BasicBlock].  If
+		 * one of the extractions *cannot* succeed, return `null`.
 		 *
 		 * @param semanticValue1
 		 *   The first [L2SemanticValue] to read as an unboxed int.
 		 * @param semanticValue2
 		 *   The second [L2SemanticValue] to read as an unboxed int.
 		 * @param onFailure
-		 *   Where to jump in the event that a dynamic type test against [i32]
-		 *   fails. The manifest at this location will not contain bindings for
-		 *   the unboxed `int` (since unboxing was not possible).
-		 * @param ifCannotSucceed
-		 *   What to execute if one of the unboxings will always fail.  This
-		 *   is evaluated without having affected the initial current block.
+		 *   Where to jump in the event that a dynamic type test against the
+		 *   [range] fails. The manifest at this location will not contain
+		 *   bindings for the unboxed `int` (since unboxing was not possible).
+		 * @param range
+		 *   The integer range that each unboxed value must lie within, at most
+		 *   [i64].  See [readInt].
 		 * @return
-		 *   The [Pair] of unboxed [L2ReadIntOperand]s, with this generator
-		 *   set to the success path.
+		 *   If the two unboxings are both possible, the [Pair] of unboxed
+		 *   [L2ReadIntOperand]s, with this generator set to the success path,
+		 *   otherwise `null`.
 		 */
-		inline fun L2GeneratorInterface.readTwoInts(
+		fun L2GeneratorInterface.readTwoInts(
 			semanticValue1: L2SemanticValue,
 			semanticValue2: L2SemanticValue,
 			onFailure: L2BasicBlock,
-			ifCannotSucceed: ()->Nothing
-		): Pair<L2ReadIntOperand, L2ReadIntOperand>
+			range: A_Type = i32
+		): Pair<L2ReadIntOperand, L2ReadIntOperand>?
 		{
-			if (!currentManifest.canUnboxInt(semanticValue1)
-				|| !currentManifest.canUnboxInt(semanticValue2))
+			if (!currentManifest.canUnboxInt(semanticValue1, range)
+				|| !currentManifest.canUnboxInt(semanticValue2, range))
 			{
-				ifCannotSucceed()
+				return null
 			}
-			val firstInt = readInt(semanticValue1, onFailure) {
+			val firstInt = readInt(semanticValue1, onFailure, range) {
 				error("First unboxing should have been possible")
 			}
-			val secondInt = readInt(semanticValue2, onFailure) {
+			val secondInt = readInt(semanticValue2, onFailure, range) {
 				error("Second unboxing should have been possible")
 			}
 			return Pair(firstInt, secondInt)
@@ -1056,23 +1101,28 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * Using the manifest in the implied receiver, answer whether it's possible
-	 * to extract a 32-bit integer from the given unboxed semantic value.
+	 * to extract an integer in the given [range] from the given semantic
+	 * value.
 	 *
 	 * @receiver
 	 *   The [L2ValueManifest] to use for checking unboxing possibility.
 	 * @param semanticValue
 	 *   The target [L2SemanticValue] to check for unboxability.
+	 * @param range
+	 *   The integer range to unbox into, at most [i64].  See
+	 *   [Companion.readInt].
 	 * @return
 	 *   Whether unboxing the given semantic value is possible.
 	 */
 	fun L2ValueManifest.canUnboxInt(
-		semanticValue: L2SemanticValue
+		semanticValue: L2SemanticValue,
+		range: A_Type = i32
 	): Boolean
 	{
 		if (hasSemanticValue(semanticValue))
-			return restrictionFor(semanticValue).intersectsType(i32)
+			return restrictionFor(semanticValue).intersectsType(range)
 		equivalentSemanticValue(semanticValue)?.let {
-			return restrictionFor(it).intersectsType(i32)
+			return restrictionFor(it).intersectsType(range)
 		}
 		return false
 	}

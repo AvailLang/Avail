@@ -103,8 +103,9 @@ object P_CreateBlockExpression : PrimitiveN(
 			return fail(E_BLOCK_CONTAINS_INVALID_STATEMENTS)
 		}
 		// Approximate where the block's "first line" is.
-		val allTokens = (argDecls + statements)
-			.flatMapTo(mutableSetOf()) { it.tokens }
+		val allTokens = mutableSetOf<A_Token>()
+		argDecls.flatMapTo(allTokens) { it.tokens }
+		statements.flatMapTo(allTokens) { it.tokens }
 		val earliestLine = allTokens
 			.map(A_Token::lineNumber)
 			.filter { it != 0 }

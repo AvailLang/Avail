@@ -35,14 +35,14 @@ package avail.interpreter.primitive.integers
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
-import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
+import avail.descriptor.numbers.IntegerDescriptor.Companion.longCount
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.bitShift
 import avail.descriptor.representation.A_Number.Companion.bitTest
 import avail.descriptor.representation.A_Number.Companion.equalsInt
-import avail.descriptor.representation.A_Number.Companion.extractInt
-import avail.descriptor.representation.A_Number.Companion.isInt
+import avail.descriptor.representation.A_Number.Companion.extractLong
+import avail.descriptor.representation.A_Number.Companion.isLong
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
@@ -57,7 +57,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
@@ -98,12 +98,13 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 		a: AvailObject,
 		b: AvailObject
 	): A_BasicObject? = interpreter.run {
-		val bInt = when
+		// A position beyond the integer's storage reads the sign bit.
+		val bLong = when
 		{
-			b.isInt -> b.extractInt
-			else -> Integer.MAX_VALUE
+			b.isLong -> b.extractLong
+			else -> Long.MAX_VALUE
 		}
-		return objectFromBoolean(a.bitTest(bInt))
+		return objectFromBoolean(a.bitTest(bLong))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -137,13 +138,13 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 			{
 				// Check the other potential bits.  No need to check bits left
 				// of the shifted representation.
-				val limit = intCount(shiftedLow.traversed()) shl 5
+				val limit = longCount(shiftedLow.traversed()).toLong() shl 6
 				val maxShiftedBit =
 					bRange.upperBound.minusCanDestroy(bLowValue, false)
-				val maxShiftedBitInt =
-					if (maxShiftedBit.isInt) maxShiftedBit.extractInt
+				val maxShiftedBitLong =
+					if (maxShiftedBit.isLong) maxShiftedBit.extractLong
 					else limit
-				for (i in 1 .. min(maxShiftedBitInt, limit))
+				for (i in 1L .. min(maxShiftedBitLong, limit))
 				{
 					if (shiftedLow.bitTest(i) != firstBit) return booleanType
 				}
@@ -167,27 +168,28 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 		val (a, b) = arguments
 		val (aType, bType) = argumentTypes
 
-		// Only bother with specialized code if we know the values are int32's.
-		if (aType.typeIntersection(i32).isBottom
-			|| bType.typeIntersection(inclusive(0, 31)).isBottom)
+		// Only bother with specialized code if the value might be an i64 and
+		// the bit position might be within it.
+		if (aType.typeIntersection(i64).isBottom
+			|| bType.typeIntersection(inclusive(0, 63)).isBottom)
 		{
 			// One of the arguments is never within range, so fall back.
 			return false
 		}
 		val fallback = L2BasicBlock("fallback for bit test")
-		val aInt = readInt(a.semanticValue(), fallback) {
+		val aInt = readInt(a.semanticValue(), fallback, i64) {
 			return false
 		}
-		// At this point we have the i32 under test, and know from the primitive
+		// At this point we have the i64 under test, and know from the primitive
 		// signature that the bit position is >= 0.  If the bit position we're
-		// selecting is >31, it'll just be a copy of the sign bit.
+		// selecting is >63, it'll just be a copy of the sign bit.
 		val bit = intWriteTemp("bit", restrictionForType(u1))
 		val bigShift = L2BasicBlock("shift is huge")
 		val hasBit = L2BasicBlock("bit was extracted")
 		run {
-			val bInt = readInt(b.semanticValue(), bigShift) {
-				// We're shifting by an amount that *always* exceeds an i32, so
-				// we just use the sign bit (31) unconditionally.
+			val bInt = readInt(b.semanticValue(), bigShift, i64) {
+				// We're shifting by an amount that *always* exceeds an i64, so
+				// we just use the sign bit (63) unconditionally.
 				jumpTo(bigShift)
 				return@run
 			}
@@ -207,7 +209,7 @@ object P_BitTest : Primitive2(CannotFail, CanFold, CanInline)
 		startBlock(bigShift)
 		if (currentlyReachable())
 		{
-			+L2_BIT_LOGIC_OP(SelectBit, aInt, unboxedIntConstant(31), bit)
+			+L2_BIT_LOGIC_OP(SelectBit, aInt, unboxedIntConstant(63), bit)
 			jumpTo(hasBit)
 		}
 		assert(!currentlyReachable())

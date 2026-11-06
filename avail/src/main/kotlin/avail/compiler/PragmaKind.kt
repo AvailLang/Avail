@@ -34,7 +34,6 @@ package avail.compiler
 
 import avail.compiler.scanning.LexingState
 import avail.descriptor.representation.A_Module.Companion.trueNamesForStringName
-import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_Token
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
@@ -212,7 +211,7 @@ enum class PragmaKind constructor(val lexeme: String)
 			val availName = stringFrom(lexerName)
 			val module = state.compilationContext.module
 			val atoms = module.trueNamesForStringName(availName)
-			when (atoms.setSize)
+			when (atoms.size)
 			{
 				0 ->
 				{

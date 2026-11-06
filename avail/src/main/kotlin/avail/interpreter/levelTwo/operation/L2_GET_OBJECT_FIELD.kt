@@ -48,7 +48,9 @@ import avail.utility.mapToSet
 import avail.utility.notNullAnd
 
 /**
- * Extract the specified field of the object.
+ * Extract the specified field of the object.  If the object's variant is known
+ * statically at this position in the control flow graph, look up the index of
+ * the field statically.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -88,7 +90,8 @@ class L2_GET_OBJECT_FIELD(
 			sourceObject.restriction.positiveGroup.objectVariants
 				?.singleOrNull()
 				?.let { variant ->
-					val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+					val fieldIndex =
+						variant.fieldToSlotIndex[fieldAtom.constant]!!
 					builder.append("(#$fieldIndex)")
 				}
 		}

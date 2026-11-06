@@ -194,11 +194,21 @@ protected constructor (
 
 	override fun o_AddImportedNames (
 		self: AvailObject,
-		trueNames: A_Set): Unit = unsupported
+		trueNames: Iterable<A_Atom>): Unit = unsupported
 
 	override fun o_AddPrivateName (
 		self: AvailObject,
 		trueName: A_Atom): Unit = unsupported
+
+	override fun o_AtomsForStringName (
+		self: AvailObject,
+		stringName: A_String
+	): Array<AvailObject> = unsupported
+
+	override fun o_PrivateAtomsForStringName (
+		self: AvailObject,
+		stringName: A_String
+	): Array<AvailObject> = unsupported
 
 	override fun o_FrameAt (
 		self: AvailObject,
@@ -284,7 +294,7 @@ protected constructor (
 
 	override fun o_AddPrivateNames (
 		self: AvailObject,
-		trueNames: A_Set): Unit = unsupported
+		trueNames: Iterable<A_Atom>): Unit = unsupported
 
 	@Throws(SignatureException::class)
 	override fun o_MethodAddDefinition (
@@ -672,22 +682,6 @@ protected constructor (
 		self: AvailObject,
 		index: Int): Short = unsupported
 
-	override fun o_RawSignedIntegerAt (self: AvailObject, index: Int): Int =
-		unsupported
-
-	override fun o_RawSignedIntegerAtPut (
-		self: AvailObject,
-		index: Int,
-		value: Int): Unit = unsupported
-
-	override fun o_RawUnsignedIntegerAt (self: AvailObject, index: Int): Long =
-		unsupported
-
-	override fun o_RawUnsignedIntegerAtPut (
-		self: AvailObject,
-		index: Int,
-		value: Int): Unit = unsupported
-
 	override fun o_ReleaseFromDebugger(self: AvailObject): Unit = unsupported
 
 	override fun o_RemoveDependentChunk (
@@ -784,7 +778,8 @@ protected constructor (
 
 	override fun o_TrueNamesForStringName (
 		self: AvailObject,
-		stringName: A_String): A_Set = unsupported
+		stringName: A_String
+	): Array<AvailObject> = unsupported
 
 	override fun o_TupleReverse (self: AvailObject): A_Tuple = unsupported
 
@@ -1090,7 +1085,10 @@ protected constructor (
 
 	override fun o_MethodDefinitions (self: AvailObject): A_Set = unsupported
 
-	override fun o_ImportedNames (self: AvailObject): A_Map = unsupported
+	override fun <T> o_WithImportedNames(
+		self: AvailObject,
+		action: (Map<A_String, Array<AvailObject>>) -> T
+	): T = unsupported
 
 	override fun o_NewNames (self: AvailObject): A_Map = unsupported
 
@@ -1116,7 +1114,10 @@ protected constructor (
 
 	override fun o_Priority (self: AvailObject): Int = unsupported
 
-	override fun o_PrivateNames (self: AvailObject): A_Map = unsupported
+	override fun <T> o_WithPrivateNames(
+		self: AvailObject,
+		action: (Map<A_String, Array<AvailObject>>) -> T
+	): T = unsupported
 
 	override fun o_FiberGlobals (self: AvailObject): A_Map = unsupported
 
@@ -1990,12 +1991,12 @@ protected constructor (
 
 	override fun o_BitTest(
 		self: AvailObject,
-		bitPosition: Int
+		bitPosition: Long
 	): Boolean = unsupported
 
 	override fun o_BitSet(
 		self: AvailObject,
-		bitPosition: Int,
+		bitPosition: Long,
 		value: Boolean,
 		canDestroy: Boolean
 	) : A_Number = unsupported

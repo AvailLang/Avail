@@ -52,6 +52,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -100,7 +101,7 @@ constructor (
 		slotValues.elements.forEachIndexed { zeroIndex, slot ->
 			val slotIndex = zeroIndex + 1
 			append(
-				when (slotIndex == levelOneStackp.value)
+				when (slotIndex == levelOneStackp.intValue)
 				{
 					true -> "\n\t->\t"
 					else -> "\n\t\t"
@@ -134,6 +135,12 @@ constructor (
 			::caller)
 	}
 
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		labelAddress.assertInt32(manifest)
+		super.instructionWasAdded(manifest)
+	}
+
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: continuation = createContinuationExceptFrame(
@@ -147,8 +154,8 @@ constructor (
 		load(function)
 		load(caller)
 		load(registerDump)
-		intConstant(levelOnePc.value)
-		intConstant(levelOneStackp.value)
+		intConstant(levelOnePc.intValue)
+		intConstant(levelOneStackp.intValue)
 		loadInterpreter()
 		load(Interpreter.chunkField)
 		load(labelAddress)

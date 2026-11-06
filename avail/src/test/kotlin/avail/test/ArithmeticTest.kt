@@ -38,10 +38,14 @@ import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLongRecycling
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.asBigInteger
 import avail.descriptor.representation.A_Number.Companion.bitShift
+import avail.descriptor.representation.A_Number.Companion.bitSet
+import avail.descriptor.representation.A_Number.Companion.bitTest
 import avail.descriptor.representation.A_Number.Companion.divideCanDestroy
 import avail.descriptor.representation.A_Number.Companion.extractFloat
 import avail.descriptor.representation.A_Number.Companion.extractLong
@@ -53,6 +57,8 @@ import avail.descriptor.representation.A_Number.Companion.numericCompare
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.AvailObject
+import avail.exceptions.AvailSystemLimitException
+import avail.utility.addOrSubtractOverflows
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
@@ -64,6 +70,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.support.ParameterDeclarations
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -111,6 +118,111 @@ class ArithmeticTest
 				assert(lower.lessOrEqual(availInt)
 							&& availInt.lessOrEqual(upper))
 			}
+		}
+	}
+
+	/**
+	 * Check [addOrSubtractOverflows] against [Math.addExact] and
+	 * [Math.subtractExact], which throw exactly when the result overflows.
+	 */
+	@Test
+	fun testAddOrSubtractOverflows()
+	{
+		val samples = listOf(
+			Long.MIN_VALUE, Long.MIN_VALUE + 1, -2L, -1L, 0L, 1L, 2L,
+			Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong(),
+			Long.MAX_VALUE - 1, Long.MAX_VALUE)
+		for (a in samples)
+		{
+			for (b in samples)
+			{
+				val addOverflows =
+					runCatching { Math.addExact(a, b) }.isFailure
+				val subtractOverflows =
+					runCatching { Math.subtractExact(a, b) }.isFailure
+				assertEquals(
+					addOverflows, addOrSubtractOverflows(a, b), "$a + $b")
+				assertEquals(
+					subtractOverflows,
+					addOrSubtractOverflows(a, b, -1),
+					"$a - $b")
+			}
+		}
+	}
+
+	/**
+	 * Check that [fromLongRecycling] doesn't reuse a mutable multi-word
+	 * integer, since it writes only one word of the output.
+	 */
+	@Test
+	fun testFromLongRecyclingSkipsMultiWordRecyclable()
+	{
+		val unusable =
+			(fromBigInteger(BigInteger.ONE.shiftLeft(70)) as AvailObject)
+				.makeImmutable()
+		val multiWord = fromBigInteger(BigInteger.ONE.shiftLeft(70)) as AvailObject
+		val result = fromLongRecycling(1000L, unusable, multiWord, true)
+		assertEquals(BigInteger.valueOf(1000L), result.asBigInteger())
+	}
+
+	/**
+	 * Check that an integer one word beyond [IntegerDescriptor.MAX_LONG_COUNT]
+	 * is refused before any storage is allocated, as a system-limit panic.
+	 */
+	@Test
+	fun testLongCountLimit()
+	{
+		Assertions.assertThrows(AvailSystemLimitException::class.java) {
+			IntegerDescriptor.createUninitializedLongInteger(
+				IntegerDescriptor.MAX_LONG_COUNT + 1)
+		}
+	}
+
+	/**
+	 * Check that bit positions beyond the `int` range are answered from the
+	 * integer's sign, and that a position too large to store is rejected.
+	 */
+	@Test
+	fun testBitPositionsBeyondIntRange()
+	{
+		val bigPositive = fromLong(1L shl 40)
+		val bigNegative = fromLong(-(1L shl 40))
+		Assertions.assertTrue(fromLong(-1L).bitTest(Long.MAX_VALUE))
+		Assertions.assertFalse(bigPositive.bitTest(Long.MAX_VALUE))
+		Assertions.assertTrue(bigNegative.bitTest(Long.MAX_VALUE))
+		Assertions.assertTrue(bigPositive.bitTest(40L))
+		Assertions.assertFalse(bigPositive.bitTest(41L))
+		Assertions.assertThrows(AvailSystemLimitException::class.java) {
+			fromInt(0).bitSet(1L shl 40, true, false)
+		}
+	}
+
+	/**
+	 * Check that doubles at and around the `long` boundaries truncate to the
+	 * exact integer value, computed independently via [BigDecimal].
+	 */
+	@Test
+	fun testDoubleTruncationAtLongBounds()
+	{
+		val two63 = 2.0.pow(63)
+		val samples = listOf(
+			two63,
+			-two63,
+			Math.nextDown(two63),
+			Math.nextUp(-two63),
+			two63 + 2048.0,
+			-two63 - 2048.0,
+			two63 * 2.0,
+			1.5e30,
+			-1.5e30,
+			-2.75 * two63)
+		for (d in samples)
+		{
+			val expected = BigDecimal(d).toBigInteger()
+			assertEquals(
+				expected,
+				doubleTruncatedToExtendedInteger(d).asBigInteger(),
+				"truncation of $d")
 		}
 	}
 

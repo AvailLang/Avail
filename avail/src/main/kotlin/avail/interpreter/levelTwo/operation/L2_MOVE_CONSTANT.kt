@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
@@ -207,8 +208,8 @@ constructor(
 		synonym: L2Synonym,
 		index: Int,
 		destinationSemanticValues: Set<L2SemanticValue>
-	): Unit = move(
-		constant(constant().constant.tupleAt(index)),
+	): Unit = moveConstant(
+		constant().constant.tupleAt(index),
 		destinationSemanticValues)
 
 	override fun propagateMutability(
@@ -234,10 +235,18 @@ constructor(
 
 	override fun destination(): L2WriteIntOperand = destination
 
-	override fun getConstantSemanticValue() = constant(source.value)
+	override fun getConstantSemanticValue() = constant(fromLong(source.value))
 
+	/** Push the constant as a `long`, the form held by int registers. */
 	override fun JVMTranslator.pushConstant() =
-		intConstant(constant().value)
+		method.visitLdcInsn(constant().value)
+
+	override fun JVMTranslator.translateToJVM()
+	{
+		// :: destination = constant;
+		pushConstant()
+		storeLong(destination().register())
+	}
 }
 
 class L2_MOVE_CONSTANT_FLOAT

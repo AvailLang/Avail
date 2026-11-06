@@ -44,15 +44,15 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.optimizer.PostPhiData
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2SplitCondition.RestrictionTracer
+import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
  * Extract the [TypeTag] of the given object, then extract its
@@ -81,7 +81,8 @@ constructor (
 
 	override fun PostPhiData.interestingConditions() = buildList {
 		// Don't merge in the past if one of the paths knew the tag ordinal.
-		addAll(unboxedIntConditions(listOf(tagOrdinal.register())))
+		addAll(
+			unboxedIntConditions(listOf(tagOrdinal.register()), i32Restriction))
 		// Don't merge in the past if the tag ordinal was known exactly.
 		addAll(constantConditions(listOf(tagOrdinal.register())))
 	}
@@ -121,8 +122,8 @@ constructor (
 				.firstOrNull(currentManifest::hasSemanticValue)
 			when (existingValue)
 			{
-				null -> move(
-					constant(exactTag.ordinal),
+				null -> moveConstant(
+					exactTag.ordinal,
 					tagOrdinal.semanticValues())
 				else ->
 				{

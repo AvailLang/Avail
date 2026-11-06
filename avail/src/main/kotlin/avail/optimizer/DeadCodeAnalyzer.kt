@@ -78,7 +78,6 @@ internal class DeadCodeAnalyzer constructor(
 		controlFlowGraph.basicBlockOrder.deepForEach(
 			L2BasicBlock::predecessorEdges
 		) { edge ->
-			assert(edge.liveness == null)
 			var liveness: L2Liveness? = null
 			if (dataCouplingMode.considersRegisters)
 			{

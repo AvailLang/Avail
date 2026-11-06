@@ -36,6 +36,7 @@ import avail.AvailThread
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
@@ -52,8 +53,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFuncti
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.JavaLibrary.getClassLoader
+import avail.interpreter.JavaLibrary.javaBoxLongMethod
 import avail.interpreter.JavaLibrary.javaUnboxDoubleMethod
-import avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import avail.interpreter.JavaLibrary.longAdderIncrement
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
@@ -157,6 +158,7 @@ import org.objectweb.asm.Opcodes.IF_ICMPLT
 import org.objectweb.asm.Opcodes.IF_ICMPNE
 import org.objectweb.asm.Opcodes.ILOAD
 import org.objectweb.asm.Opcodes.ISTORE
+import org.objectweb.asm.Opcodes.L2I
 import org.objectweb.asm.Opcodes.LCONST_0
 import org.objectweb.asm.Opcodes.LCONST_1
 import org.objectweb.asm.Opcodes.PUTSTATIC
@@ -534,6 +536,11 @@ class JVMTranslator constructor(
 			method.visitVarInsn(
 				register.kind.jvmLoadInstruction,
 				localNumberFromRegister(register))
+			if (register.kind == INTEGER_KIND)
+			{
+				// Int registers hold longs, but consumers expect an int.
+				method.visitInsn(L2I)
+			}
 		}
 	}
 
@@ -547,8 +554,64 @@ class JVMTranslator constructor(
 	 */
 	fun store(register: L2Register<*>)
 	{
+		if (register.kind == INTEGER_KIND)
+		{
+			// Int registers hold longs.  Widen the int, sign-extending it.
+			method.visitInsn(I2L)
+		}
 		method.visitVarInsn(
 			register.kind.jvmStoreInstruction,
+			localNumberFromRegister(register))
+	}
+
+	/**
+	 * Generate a load of the given int register as a Java `long`, without
+	 * narrowing it.  Int registers are 64-bit JVM locals holding sign-extended
+	 * ints, so a consumer that works in `long` can use the value directly.
+	 *
+	 * @param read
+	 *   An [L2ReadOperand] of an int register to push.
+	 */
+	fun loadLong(read: L2ReadOperand<*>)
+	{
+		loadLongRegister(read.register())
+	}
+
+	/**
+	 * Generate a load of the given int register as a Java `long`.  See
+	 * [loadLong].
+	 *
+	 * @param register
+	 *   A bound int `L2Register`.
+	 */
+	fun loadLongRegister(register: L2Register<*>)
+	{
+		assert(register.kind == INTEGER_KIND)
+		if (register.isConstant)
+		{
+			method.visitLdcInsn(register.constant!!.extractLong)
+		}
+		else
+		{
+			method.visitVarInsn(
+				Opcodes.LLOAD,
+				localNumberFromRegister(register))
+		}
+	}
+
+	/**
+	 * Generate a store of the `long` on top of the stack into the local of the
+	 * given int register.  The value must already be a sign-extended int, or
+	 * otherwise in the range that the register is meant to hold.
+	 *
+	 * @param register
+	 *   A bound int `L2Register`.
+	 */
+	fun storeLong(register: L2Register<*>)
+	{
+		assert(register.kind == INTEGER_KIND)
+		method.visitVarInsn(
+			Opcodes.LSTORE,
 			localNumberFromRegister(register))
 	}
 
@@ -760,7 +823,7 @@ class JVMTranslator constructor(
 		{
 			if (operand.isConstantRead) return
 			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
+				operand.register().finalIndex) { nextLocal(Type.LONG_TYPE) }
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
@@ -803,7 +866,7 @@ class JVMTranslator constructor(
 		{
 			locals[INTEGER_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex
-			) { nextLocal(Type.INT_TYPE) }
+			) { nextLocal(Type.LONG_TYPE) }
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
@@ -1099,12 +1162,19 @@ class JVMTranslator constructor(
 		registers.forEachIndexed { i, register ->
 			method.visitInsn(Opcodes.DUP)
 			intConstant(i)
-			loadRegister(register)
 			when (register.kind)
 			{
-				INTEGER_KIND -> generateCall(javaUnboxIntegerMethod)
-				FLOAT_KIND -> generateCall(javaUnboxDoubleMethod)
-				else -> { }
+				INTEGER_KIND ->
+				{
+					loadLongRegister(register)
+					generateCall(javaBoxLongMethod)
+				}
+				FLOAT_KIND ->
+				{
+					loadRegister(register)
+					generateCall(javaUnboxDoubleMethod)
+				}
+				else -> loadRegister(register)
 			}
 			method.visitInsn(Opcodes.AASTORE)
 		}
@@ -1647,7 +1717,7 @@ class JVMTranslator constructor(
 					when (kind)
 					{
 						BOXED_KIND -> method.visitInsn(ACONST_NULL)
-						INTEGER_KIND -> intConstant(0)
+						INTEGER_KIND -> method.visitInsn(LCONST_0)
 						FLOAT_KIND -> doubleConstant(0.0)
 					}
 					method.visitVarInsn(kind.jvmStoreInstruction, localIndex)
@@ -1918,16 +1988,25 @@ class JVMTranslator constructor(
 		val transferPairs = (inputs zip outputs)
 			.filter { (read, write) -> read.finalIndex != write.finalIndex }
 		// It's possible that the read registers and write registers overlap
-		// with each other, so use the JVM operand stack as temp storage.
+		// with each other, so use the JVM operand stack as temp storage.  Int
+		// registers move as whole longs, never through the int view.
 		if (transferPairs.isNotEmpty())
 		{
 			// First push each (non-elided) read.
 			transferPairs.forEach { (read, _) ->
-				loadRegister(read)
+				when (read.kind)
+				{
+					INTEGER_KIND -> loadLongRegister(read)
+					else -> loadRegister(read)
+				}
 			}
 			// Now pop into each corresponding write register in reverse order.
 			transferPairs.reversed().forEach { (_,  write) ->
-				store(write)
+				when (write.kind)
+				{
+					INTEGER_KIND -> storeLong(write)
+					else -> store(write)
+				}
 			}
 		}
 
@@ -1996,7 +2075,7 @@ class JVMTranslator constructor(
 		 * NOTE: This is a feature switch. If you want to enter the area of
 		 * code that is protected by this switch, set the to true.
 		 */
-		const val callTraceL2AfterEveryInstruction = true
+		const val callTraceL2AfterEveryInstruction = false
 
 		/** Helper for stripping "_TAG" from end of tag names. */
 		val tagEndPattern: Pattern = Pattern.compile("_TAG$")
@@ -2024,7 +2103,7 @@ class JVMTranslator constructor(
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
-		var debugJVM = true // TODO false
+		var debugJVM = true  // false
 
 		/**
 		 * Counters for the class prefix names, to avoid name collisions.

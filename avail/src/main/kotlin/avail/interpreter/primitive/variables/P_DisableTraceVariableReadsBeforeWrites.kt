@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_Atom
@@ -60,10 +61,11 @@ import avail.interpreter.primitive.Primitive2
 /**
  * **Primitive:** Disable variable
  * [read-before-write&#32;tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]
- * for the [current&#32;fiber][currentFiber]. To each [variable][A_Variable]
- * that survived tracing, add a [write&#32;reactor][VariableAccessReactor] that
- * wraps the specified [function][FunctionDescriptor], associating it with the
- * specified [atom][A_Atom] (for potential pre-activation removal).
+ * for the [current&#32;fiber][currentFiber]. To each
+ * [variable][A_Variable] that survived tracing, add a
+ * [write&#32;reactor][VariableAccessReactor] that wraps the specified
+ * [function][FunctionDescriptor], associating it with the specified
+ * [atom][A_Atom] (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

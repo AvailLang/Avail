@@ -104,12 +104,12 @@ object JavaLibrary
 		java.lang.Class<*>::getClassLoader.name,
 		ClassLoader::class.java)
 
-	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
-	val javaUnboxIntegerMethod = javaLibraryStaticMethod(
-		intBoxed,
-		disambiguate<(Int)->Int>(JavaInteger::valueOf).name,
-		intBoxed,
-		int)
+	/** The [CheckedMethod] for *Java* [java.lang.Long.valueOf] boxing. */
+	val javaBoxLongMethod = javaLibraryStaticMethod(
+		longBoxed,
+		disambiguate<(Long)->Long>(JavaLong::valueOf).name,
+		longBoxed,
+		long)
 
 	/** The [CheckedMethod] for *Java* [java.lang.Double.valueOf] boxing. */
 	val javaUnboxDoubleMethod = javaLibraryStaticMethod(
@@ -144,19 +144,30 @@ object JavaLibrary
 		LongAdder::increment.name,
 		void)
 
-	/** The [CheckedMethod] for taking the [Math.max] of two [Int]s. */
-	val intMaxMethod = javaLibraryStaticMethod(
+	/** The [CheckedMethod] for taking the [Math.max] of two [Long]s. */
+	val longMaxMethod = javaLibraryStaticMethod(
 		java.lang.Math::class.java,
-		disambiguate<(Int, Int)->Int>(Math::max).name,
-		int,
-		int,
-		int)
+		disambiguate<(Long, Long)->Long>(Math::max).name,
+		long,
+		long,
+		long)
 
-	/** The [CheckedMethod] for taking the [Math.min] of two [Int]s. */
-	val intMinMethod = javaLibraryStaticMethod(
+	/** The [CheckedMethod] for taking the [Math.min] of two [Long]s. */
+	val longMinMethod = javaLibraryStaticMethod(
 		java.lang.Math::class.java,
-		disambiguate<(Int, Int)->Int>(Math::min).name,
-		int,
-		int,
-		int)
+		disambiguate<(Long, Long)->Long>(Math::min).name,
+		long,
+		long,
+		long)
+
+	/**
+	 * The [CheckedMethod] for [Math.multiplyHigh], the high 64 bits of the
+	 * 128-bit product of two [Long]s.
+	 */
+	val longMultiplyHighMethod = javaLibraryStaticMethod(
+		java.lang.Math::class.java,
+		disambiguate<(Long, Long)->Long>(Math::multiplyHigh).name,
+		long,
+		long,
+		long)
 }

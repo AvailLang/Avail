@@ -51,3 +51,60 @@ const val highBitsOfShorts: Long = lowBitsOfShorts.shl(15)
 /** Answer true iff any short of the receiver is zero. */
 fun Long.hasZeroShort(): Boolean =
 	(this - lowBitsOfShorts) and this.inv() and highBitsOfShorts != 0L
+
+/**
+ * Whether this [Long] is the sign extension of its low 32 bits, i.e., it fits
+ * in an [Int].
+ */
+val Long.isInt: Boolean
+	get() = this == (this shl 32) shr 32
+
+/**
+ * Answer the carry out of the unsigned 64-bit addition [a] + [b] + [carryIn],
+ * where [carryIn] is 0 or 1.  The result is 0 or 1.
+ *
+ * The carry out of each bit is the majority of its two inputs and the carry
+ * in, which is the form `(a and b) or ((a or b) and sum.inv())` in the top bit.
+ *
+ * @param a
+ *   The first unsigned word.
+ * @param b
+ *   The second unsigned word.
+ * @param carryIn
+ *   The carry into the low bit, 0 or 1.
+ * @return
+ *   The carry out of the top bit, 0 or 1.
+ */
+fun carryOut(a: Long, b: Long, carryIn: Long): Long
+{
+	val sum = a + b + carryIn
+	return ((a and b) or ((a or b) and sum.inv())) ushr 63
+}
+
+/**
+ * Answer whether the signed 64-bit [a] + [b] (when [complementMask] is 0) or
+ * [a] - [b] (when [complementMask] is -1) overflows a [Long].  Subtraction is
+ * computed as `a + (b xor -1) + 1`.
+ *
+ * Signed overflow happens exactly when the two addends have the same sign and
+ * the sum's sign differs from it.
+ *
+ * @param a
+ *   The first operand.
+ * @param b
+ *   The second operand, to add or subtract.
+ * @param complementMask
+ *   0 to add [b], or -1 to subtract it.
+ * @return
+ *   Whether the true result is outside the range of a [Long].
+ */
+fun addOrSubtractOverflows(
+	a: Long,
+	b: Long,
+	complementMask: Long = 0L
+): Boolean
+{
+	val addend = b xor complementMask
+	val sum = a + addend + (complementMask and 1L)
+	return (a xor sum) and (addend xor sum) < 0
+}

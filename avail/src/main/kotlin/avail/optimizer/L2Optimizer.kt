@@ -34,6 +34,7 @@ package avail.optimizer
 import avail.AvailRuntimeSupport
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
@@ -62,6 +63,7 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.operation.numbers.L2_RECYCLE_IF_MUTABLE
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -806,7 +808,8 @@ class L2Optimizer internal constructor(
 					val movesByEdgeIndex = instruction.targetEdges.map {
 						inserts[it]
 					}
-					addInstruction(basicTransformInstruction(instruction))
+					val transformed = basicTransformInstruction(instruction)
+					addInstruction(transformed)
 					val actualInstruction = activeBlock.instructions().last()
 					// Now that the instruction (and alternative edges) have
 					// been generated, perform any needed edge splits, inserting
@@ -1103,8 +1106,8 @@ class L2Optimizer internal constructor(
 				}
 			}
 		}
-		val registerIdentityMap = allRegisters.associateWithTo(
-			mutableMapOf(), { it })
+		val registerIdentityMap =
+			allRegisters.associateWithTo(mutableMapOf()) { it }
 		// Rewrite the graph with the useless branches replaced by jumps.
 		regenerateGraph(
 			WithFixedRegisterMap(registerIdentityMap),
@@ -1260,6 +1263,11 @@ class L2Optimizer internal constructor(
 	 * Since an append is considered to consume its input, and that append is
 	 * prior to the continuation creation, we know that we must insert an
 	 * [L2_MAKE_IMMUTABLE] for the input tuple inserted before the append.
+	 *
+	 * Also insert an [L2_RECYCLE_IF_MUTABLE] just after the last non-destroying
+	 * read of a register holding a boxed int, when that register is still
+	 * mutable, is dead after the block, and that read isn't the block's final
+	 * instruction.  The recycle offers the object to the interpreter's pool.
 	 */
 	fun insertMakeImmutable()
 	{
@@ -1271,13 +1279,45 @@ class L2Optimizer internal constructor(
 			val firstUses =
 				mutableMapOf<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>()
 			val mutables = mutableSetOf<L2BoxedRegister>()
+			// The last non-destroying read, within this block, of each register
+			// that may hold a mutable boxed int.  Such a read may be followed by
+			// an L2_RECYCLE_IF_MUTABLE if nothing else uses the register.
+			val pureLastReads =
+				mutableMapOf<L2BoxedRegister, Pair<Int, L2ReadBoxedOperand>>()
 			block.predecessorEdges().forEach {
 				if (!it.isBackward) mutables.addAll(mutablesByEdge[it]!!)
 			}
 			val instructions = block.instructions()
-			instructions.forEach { instruction ->
+			instructions.forEachIndexed { index, instruction ->
 				instruction.processForMakeImmutable(
 					firstUses, insertions, mutables, generator::nextUnique)
+				// A destroying read hands its object to the instruction, so only
+				// non-destroying reads may be recycled.  Any destroying read or
+				// write of a register ends its pending recycle candidate.
+				val destroying = instruction.readsThatMightDestroy
+				instruction.readOperands
+					.filterIsInstance<L2ReadBoxedOperand>()
+					.minus(destroying)
+					.forEach { read ->
+						val readReg = read.register()
+						// The captured restrictions say what the value would be, or
+						// will be, at some point in this block or downstream, so
+						// the entry for every read's semantic value is present.
+						// The recycle pool takes integers of a single long.
+						val fitsInOneWord =
+							block.postPhiData!![read.semanticValue()]
+								.containedByType(i64)
+						if (readReg in mutables
+							&& fitsInOneWord
+							&& !read.isImmutableForEmittedInstruction())
+						{
+							pureLastReads[readReg] = index to read
+						}
+					}
+				destroying.forEach { pureLastReads.remove(it.register()) }
+				instruction.destinationRegisters
+					.filterIsInstance<L2BoxedRegister>()
+					.forEach { pureLastReads.remove(it) }
 			}
 			// We've processed the block's instructions.  Now use the live-in
 			// information on the outbound edges as additional uses, to
@@ -1298,20 +1338,43 @@ class L2Optimizer internal constructor(
 					firstUses.remove(readReg)
 				}
 			}
-			// Now insert the L2_MAKE_IMMUTABLE instructions where we indicated,
-			// in descending order to bypass problems with indexing.
-			insertions
+			// A pending recycle candidate is recycled only if its register is
+			// still mutable, is dead after this block, and its last read isn't
+			// the block's final instruction, which is a branch.  No instruction
+			// can be placed after a branch, and the successors' edges are not
+			// split this late, so we accept missing those cases.
+			val recycles = pureLastReads.values.filter { (index, read) ->
+				val readReg = read.register()
+				readReg in mutables
+					&& readReg !in unionOfLive
+					&& index < instructions.lastIndex
+			}
+			// Now insert the L2_MAKE_IMMUTABLE and L2_RECYCLE_IF_MUTABLE
+			// instructions where we indicated, in descending order to bypass
+			// problems with indexing.  A recycle goes just after its last use,
+			// which is the index before the instruction it's inserted before.
+			// A make-immutable and a recycle may land at the same index.  That
+			// tie is safe, since they always concern different registers: a
+			// register with a pending recycle is never made immutable at a
+			// later read, because any such read would have cleared it.
+			val newInstructions: List<Pair<Int, L2Instruction>> =
+				insertions.map { (i, read) ->
+					i to L2_MAKE_IMMUTABLE(
+						read,
+						L2WriteBoxedOperand(
+							setOf(read.semanticValue()),
+							block.postPhiData!![read.semanticValue()],
+							read.register())
+					)
+				} + recycles.map { (index, read) ->
+					index + 1 to L2_RECYCLE_IF_MUTABLE(read)
+				}
+			newInstructions
 				.sortedByDescending(Pair<Int, *>::first)
-				.forEach { (i, read) ->
+				.forEach { (i, instruction) ->
 					block.insertInstruction(
 						i,
-						L2_MAKE_IMMUTABLE(
-							read,
-							L2WriteBoxedOperand(
-								setOf(read.semanticValue()),
-								block.postPhiData!![read.semanticValue()],
-								read.register())
-						).cloneFor(generator, block))
+						instruction.cloneFor(generator, block))
 				}
 			// Add edges for the successor blocks to use.
 			block.successorEdges().forEach { edge ->

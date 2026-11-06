@@ -200,7 +200,8 @@ private constructor(
 		instanceMeta(mostGeneralObjectType)
 	}
 
-	companion object {
+	companion object
+	{
 		/**
 		 * The collection of all variants, indexed by the set of field atoms.
 		 * The key is weak, but it's the canonical, shared set of fields for the

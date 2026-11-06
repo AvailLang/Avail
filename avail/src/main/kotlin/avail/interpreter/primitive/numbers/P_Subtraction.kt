@@ -52,6 +52,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
@@ -193,7 +194,8 @@ object P_Subtraction : Primitive2(CanFold, CanInline)
 				intWrite,
 				edgeTo(intFailure),
 				edgeTo(intSuccess))
-		})
+		},
+		range = i64)
 
 	override val semanticInfixOperatorString: String? get() = "Sub"
 }

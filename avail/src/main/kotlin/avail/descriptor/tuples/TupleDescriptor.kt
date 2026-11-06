@@ -1769,24 +1769,24 @@ protected constructor(
 			int)
 
 		/**
-		 * Answer the specified [Int] element of the tuple.
+		 * Answer the specified [Long] element of the tuple.
 		 *
 		 * @param tuple
-		 *   The tuple from which to extract an [Int].  The tuple *must* contain
-		 *   an [Int] at the specified [index].
+		 *   The tuple from which to extract a [Long].  The tuple *must*
+		 *   contain a [Long] at the specified [index].
 		 * @param index
-		 *   Which element should be extracted as an [Int].
+		 *   Which element should be extracted as a [Long].
 		 * @return
-		 *   The [Int] element of the tuple.
+		 *   The [Long] element of the tuple.
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun staticTupleIntAt(tuple: A_Tuple, index: Int): Int =
-			tuple.tupleIntAt(index)
+		fun staticTupleLongAt(tuple: A_Tuple, index: Int): Long =
+			tuple.tupleLongAt(index)
 
-		/** The [CheckedMethod] for [staticTupleIntAt]. */
-		val tupleIntAtMethod = staticMethod(
-			::staticTupleIntAt,
+		/** The [CheckedMethod] for [staticTupleLongAt]. */
+		val tupleLongAtMethod = staticMethod(
+			::staticTupleLongAt,
 			A_Tuple::class.java,
 			int)
 
