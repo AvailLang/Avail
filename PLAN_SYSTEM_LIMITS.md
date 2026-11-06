@@ -94,8 +94,8 @@ or 32-bit identities.
   `L2_MULTIWAY_JUMP` (`lookupswitch`/`tableswitch`).
 - Program counters: `L2_SAVE_ALL_AND_PC_TO_INT`, `L2_CREATE_CONTINUATION`.
 - Tuples: `L2_TUPLE_SIZE`, `L2_TUPLE_AT_NO_FAIL`,
-  `L2_TUPLE_CODEPOINT_AT_NO_FAIL`, `L2_TUPLE_INT_AT_NO_FAIL`,
-  `L2_TUPLE_SUBRANGE_NO_FAIL`.
+  `L2_TUPLE_CODEPOINT_AT_NO_FAIL`, `L2_TUPLE_SUBRANGE_NO_FAIL`, and the
+  subscript of `L2_TUPLE_LONG_AT_NO_FAIL` (whose element is a long).
 - `L2_CODEPOINT_TO_CHARACTER`.
 
 ### Invariant change needed before widening

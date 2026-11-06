@@ -60,6 +60,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
@@ -77,6 +78,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -153,6 +155,7 @@ import avail.interpreter.levelTwo.operation.numbers.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_LONG_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_IfFalseThenElse
@@ -852,6 +855,38 @@ class SimpleOptimizerTest
 			{ a, b -> a.shiftLeft(b.toInt()) },
 			range2 = inclusive(0L, 40L),
 			samples2 = listOf(0L, 1L, 31L, 32L, 40L))
+	}
+
+	/**
+	 * Check that an optimized tuple subscript extracts long elements beyond 32
+	 * bits into an int register.
+	 */
+	@Test
+	fun testTupleLongAtBeyondInt()
+	{
+		val elements = listOf(
+			Long.MIN_VALUE, -(1L shl 40), -1L, 0L, 1L shl 31, Long.MAX_VALUE)
+		val rawFunction = helper.rawFunction(i64) {
+			argumentTypes(zeroOrMoreOf(i64), inclusive(1, elements.size))
+			val t = declareName("t")
+			val i = declareName("i")
+			L1_doPushLastLocal(t)
+			L1_doPushLastLocal(i)
+			call("_[_]", i64)
+		}
+		helper.testOptimize(rawFunction)
+		assertTrue(
+			rawFunction.startingChunk.instructions.any {
+				it is L2_TUPLE_LONG_AT_NO_FAIL
+			},
+			"Expected the element to be extracted as a long")
+		val tupleOfLongs =
+			tupleFromArray(*elements.map(::fromLong).toTypedArray())
+		elements.forEachIndexed { zeroIndex, element ->
+			val result = helper.executeRawFunction(
+				rawFunction, listOf(tupleOfLongs, fromInt(zeroIndex + 1)))
+			assertEquals(BigInteger.valueOf(element), result.asBigInteger())
+		}
 	}
 
 	/**

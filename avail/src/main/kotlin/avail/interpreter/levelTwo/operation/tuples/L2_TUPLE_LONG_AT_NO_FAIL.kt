@@ -1,5 +1,5 @@
 /*
- * L2_TUPLE_INT_AT_NO_FAIL.kt
+ * L2_TUPLE_LONG_AT_NO_FAIL.kt
  * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package avail.interpreter.levelTwo.operation.tuples
 
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -43,12 +43,12 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 
 /**
- * Extract an [i32] at a subscript from a [tuple][TupleDescriptor] that is known
+ * Extract an [i64] at a subscript from a [tuple][TupleDescriptor] that is known
  * to be within bounds, writing the element into an [L2WriteIntOperand].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_TUPLE_INT_AT_NO_FAIL(
+class L2_TUPLE_LONG_AT_NO_FAIL(
 	var tuple: L2ReadBoxedOperand,
 	var subscript: L2ReadIntOperand,
 	var destination: L2WriteIntOperand
@@ -66,7 +66,7 @@ class L2_TUPLE_INT_AT_NO_FAIL(
 		append(tuple.registerString())
 		append("(no fail)[")
 		append(subscript)
-		append("] (int)")
+		append("] (long)")
 	}
 
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
@@ -80,10 +80,11 @@ class L2_TUPLE_INT_AT_NO_FAIL(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = tuple.tupleAt(subscript);
+		// :: destination = tuple.tupleLongAt(subscript);
 		load(tuple)
+		// The subscript is an int; the element is a long.
 		load(subscript)
-		generateCall(TupleDescriptor.tupleIntAtMethod)
-		store(destination.register())
+		generateCall(TupleDescriptor.tupleLongAtMethod)
+		storeLong(destination.register())
 	}
 }

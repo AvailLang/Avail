@@ -54,7 +54,7 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
@@ -72,7 +72,7 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_CODEPOINT_AT_NO_FAIL
-import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_INT_AT_NO_FAIL
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_LONG_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanFold
@@ -209,13 +209,13 @@ object P_TupleAt : Primitive2(CanFold, CanInline)
 					tupleReg.semanticValue(),
 					subscriptReg.semanticValue())
 				val writeResult = boxedWrite(semanticResult, resultRestriction)
-				if (resultRestriction.containedByType(i32))
+				if (resultRestriction.containedByType(i64))
 				{
-					// Extract it as an Int, then box it.  Further optimizations
+					// Extract it as a Long, then box it.  Further optimizations
 					// may be able to elide the boxing.
 					val writeIntResult =
 						intWrite(setOf(semanticResult), resultRestriction)
-					+L2_TUPLE_INT_AT_NO_FAIL(
+					+L2_TUPLE_LONG_AT_NO_FAIL(
 						tupleReg, readSubscript, writeIntResult)
 					+L2_BOX_INT(
 						readIntNoFail(writeIntResult.pickSemanticValue()),
