@@ -54,7 +54,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
@@ -274,22 +273,23 @@ object P_Addition : Primitive2(CanFold, CanInline)
 			//  constants together, folding them.
 		}
 
-		// Only further optimize if the inputs and output are ints.
-		if (!restriction1.containedByType(i32)
-			|| !restriction2.containedByType(i32)
-			|| !resultRestriction.containedByType(i32))
+		// Only further optimize if the inputs and output fit in longs.
+		if (!restriction1.containedByType(i64)
+			|| !restriction2.containedByType(i64)
+			|| !resultRestriction.containedByType(i64))
 		{
 			emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 			return
 		}
 
-		// Replace with a non-overflowing i32 addition.
+		// Replace with a non-overflowing i64 addition.
 		val unreachable = L2BasicBlock("should not reach")
 		val intWrite = intWrite(result.semanticValues(), resultRestriction)
 		val (int1, int2) = readTwoInts(
 			arg1.semanticValue(),
 			arg2.semanticValue(),
-			unreachable
+			unreachable,
+			i64
 		) ?: return
 		+L2_BIT_LOGIC_OP(Add, int1, int2, intWrite)
 		// Unbox it, in case something needs it unboxed downstream.

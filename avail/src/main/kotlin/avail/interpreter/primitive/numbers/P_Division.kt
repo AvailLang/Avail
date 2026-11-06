@@ -60,6 +60,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -282,7 +283,7 @@ object P_Division : Primitive2(CanFold, CanInline)
 			// positive divisor.  If that's impossible, just use the boxed
 			// division.
 			if (!currentManifest.restrictionFor(intA)
-					.intersectsType(inclusive(0L, Long.MAX_VALUE))
+					.intersectsType(i63)
 				|| !currentManifest.restrictionFor(intB)
 					.intersectsType(inclusive(1L, Long.MAX_VALUE)))
 			{

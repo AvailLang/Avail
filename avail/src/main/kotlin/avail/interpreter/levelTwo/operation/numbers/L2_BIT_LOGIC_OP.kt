@@ -45,6 +45,7 @@ import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.JavaLibrary.long
 import avail.interpreter.JavaLibrary.longMaxMethod
@@ -1023,7 +1024,7 @@ private fun L2ValueManifest.assertNonnegativeDividendAndPositiveDivisor(
 	dividend: L2ReadIntOperand,
 	divisor: L2ReadIntOperand)
 {
-	assert(dividend.restriction.containedByType(inclusive(0L, Long.MAX_VALUE)))
+	assert(dividend.restriction.containedByType(i63))
 	{
 		"Dividend might be negative: ${dividend.restriction}"
 	}

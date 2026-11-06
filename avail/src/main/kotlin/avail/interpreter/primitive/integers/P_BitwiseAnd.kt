@@ -58,8 +58,8 @@ import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
@@ -283,29 +283,29 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 			currentManifest.isEquivalentSemanticValue(
 				x.semanticValue(), y.semanticValue()
 			) -> move(x.semanticValue(), result.semanticValues())
-			// x & k, where x ∈ i31 & k ≥ 0, -> x & (k & maxInt)
-			x.restriction.type.isSubtypeOf(i31)
+			// x & k, where x ∈ i63 & k ≥ 0, -> x & (k & maxLong)
+			x.restriction.type.isSubtypeOf(i63)
 				&& y.constantOrNull.notNullAnd { greaterOrEqual(zero) }
 			-> +L2_BIT_LOGIC_OP(
 				And,
 				readIntNoFail(x.semanticValue()),
 				unboxedIntConstant(
 					y.constantOrNull!!.bitwiseAnd(
-						i31.upperBound,
+						i63.upperBound,
 						true
-					).extractInt),
+					).extractLong),
 				intWrite(result.semanticValues(), x.restriction))
-			// k & y, where y ∈ i31 & k ≥ 0, -> (k & maxInt) & y
-			y.restriction.type.isSubtypeOf(i31)
+			// k & y, where y ∈ i63 & k ≥ 0, -> (k & maxLong) & y
+			y.restriction.type.isSubtypeOf(i63)
 				&& x.constantOrNull.notNullAnd { greaterOrEqual(zero) }
 			-> +L2_BIT_LOGIC_OP(
 				And,
 				readIntNoFail(y.semanticValue()),
 				unboxedIntConstant(
 					x.constantOrNull!!.bitwiseAnd(
-						i31.upperBound,
+						i63.upperBound,
 						true
-					).extractInt),
+					).extractLong),
 				intWrite(result.semanticValues(), y.restriction))
 			else -> emitBasicInfalliblePrimitive(rawFunction, arguments, result)
 		}

@@ -141,6 +141,7 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
+import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.SelectBit
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shl
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shr
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
@@ -166,6 +167,7 @@ import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.general.P_Equality
 import avail.interpreter.primitive.integers.P_BitShiftLeft
 import avail.interpreter.primitive.integers.P_BitShiftRight
+import avail.interpreter.primitive.integers.P_BitTest
 import avail.interpreter.primitive.integers.P_BitwiseAnd
 import avail.interpreter.primitive.integers.P_BitwiseOr
 import avail.interpreter.primitive.integers.P_BitwiseXor
@@ -253,6 +255,7 @@ class SimpleOptimizerTest
 			"_bit∧_" to P_BitwiseAnd,
 			"_bit∨_" to P_BitwiseOr,
 			"_bit⊕_" to P_BitwiseXor,
+			"_bit_" to P_BitTest,
 			"⌊_⌋" to P_DoubleFloor,
 			"⌊_⌋" to P_FloatFloor,
 			"_'s⁇genuine lower bound" to P_LowerBound,
@@ -840,6 +843,43 @@ class SimpleOptimizerTest
 			{ a, b -> a.shiftLeft(b.toInt()) },
 			range2 = inclusive(0L, 40L),
 			samples2 = listOf(0L, 1L, 31L, 32L, 40L))
+	}
+
+	/**
+	 * Check that an optimized bit test selects the right bit of any long,
+	 * including the replicated sign bit at positions of 63 and beyond.
+	 */
+	@Test
+	fun testLongBitTestBeyondInt()
+	{
+		val rawFunction = helper.rawFunction(booleanType) {
+			argumentTypes(
+				inclusive(Long.MIN_VALUE, Long.MAX_VALUE),
+				inclusive(0L, 100L))
+			val a = declareName("a")
+			val b = declareName("b")
+			L1_doPushLastLocal(a)
+			L1_doPushLastLocal(b)
+			call("_bit_", booleanType)
+		}
+		helper.testOptimize(rawFunction)
+		assertTrue(
+			rawFunction.startingChunk.instructions.any {
+				it is L2Instruction && it.isBitLogicOperation(SelectBit)
+			},
+			"Expected an unboxed bit selection")
+		for (x in wideLongSamples)
+		{
+			for (y in listOf(0L, 1L, 31L, 32L, 62L, 63L, 64L, 100L))
+			{
+				val result = helper.executeRawFunction(
+					rawFunction, listOf(fromLong(x), fromLong(y)))
+				assertEquals(
+					BigInteger.valueOf(x).testBit(y.toInt()),
+					result.equals(trueObject),
+					"bit $y of $x")
+			}
+		}
 	}
 
 	/**

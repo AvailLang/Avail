@@ -36,6 +36,7 @@ import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.upperBound
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -165,7 +166,7 @@ class L2_DIVIDE_INT_BY_INT(
 	companion object
 	{
 		/** The non-negative [Long]s, the dividends this division handles. */
-		private val nonnegativeLongs = inclusive(0L, Long.MAX_VALUE)
+		private val nonnegativeLongs = i63
 
 		/** The positive [Long]s, the divisors this division handles. */
 		private val positiveLongs = inclusive(1L, Long.MAX_VALUE)
