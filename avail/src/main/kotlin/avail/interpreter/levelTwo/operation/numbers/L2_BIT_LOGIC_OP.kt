@@ -88,6 +88,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.addOrSubtractOverflows
 import org.objectweb.asm.Opcodes
@@ -141,6 +142,14 @@ constructor(
 
 	override fun isBitLogicOperation(op: BitOperation) =
 		bitOperation.constant == op
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		bitOperation.constant.run {
+			manifest.assertInputsAreValid(input1, input2)
+		}
+		super.instructionWasAdded(manifest)
+	}
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
@@ -438,9 +447,10 @@ constructor(
 		}),
 
 		/**
-		 * Compute the ratio of two [Int]s (i.e., intA / intB), wrapping around
-		 * with 2's complement semantics as needed.  The numerator must be ≥ 0,
-		 * and the denominator must be > 0.
+		 * Compute the ratio of two [Long]s (i.e., a / b).  The numerator must
+		 * be ≥ 0, and the denominator must be > 0, since the JVM's division
+		 * truncates, but Avail's rounds toward negative infinity.  These
+		 * agree only when neither operand is negative.
 		 */
 		Div(Opcodes.LDIV, Long::div, P_Division::binaryBound, {
 			rule(C(0), X) { C(0) }
@@ -448,12 +458,18 @@ constructor(
 			rule(X, K1, {k1 > 0 && k1.takeLowestOneBit() == k1}) {
 				Shr(X, C(k1.countTrailingZeroBits().toLong()))
 			}
-		}),
+		})
+		{
+			override fun L2ValueManifest.assertInputsAreValid(
+				input1: L2ReadIntOperand,
+				input2: L2ReadIntOperand
+			) = assertNonnegativeDividendAndPositiveDivisor(input1, input2)
+		},
 
 		/**
-		 * Compute the remainder after dividng two [Int]s (i.e., `intA - (intA /
-		 * intB)`), wrapping around with 2's complement semantics as needed.
-		 * The numerator must be ≥ 0, and the denominator must be > 0.
+		 * Compute the remainder after dividing two [Long]s (i.e., `a - b *
+		 * (a / b)`).  The numerator must be ≥ 0, and the denominator must be >
+		 * 0, as for [Div].
 		 */
 		Mod(Opcodes.LREM, Long::rem, ::modBound, {
 			rule(C(0), X) { C(0) }
@@ -469,7 +485,13 @@ constructor(
 			rule(X, Shl(K1, Z), {k1 > 0 && k1.takeLowestOneBit() == k1}) {
 				And(X, Sub(Shl(K1, Z), C(1)))
 			}
-		}),
+		})
+		{
+			override fun L2ValueManifest.assertInputsAreValid(
+				input1: L2ReadIntOperand,
+				input2: L2ReadIntOperand
+			) = assertNonnegativeDividendAndPositiveDivisor(input1, input2)
+		},
 
 		/**
 		 * Shift an [Int] rightward by the specified number of bit positions,
@@ -658,6 +680,22 @@ constructor(
 		 */
 		operator fun invoke(left: Pattern, right: Pattern): BinaryOp =
 			BinaryOp(this, left, right)
+
+		/**
+		 * Assert that the inputs of an [L2_BIT_LOGIC_OP] using this operation
+		 * meet the operation's preconditions on its inputs, according to the
+		 * receiver, the [L2ValueManifest] where the instruction is being added.
+		 * Operations with no such preconditions do nothing.
+		 *
+		 * @param input1
+		 *   The first input.
+		 * @param input2
+		 *   The second input.
+		 */
+		open fun L2ValueManifest.assertInputsAreValid(
+			input1: L2ReadIntOperand,
+			input2: L2ReadIntOperand
+		) = Unit
 
 		/**
 		 * Generate code (via the [callSiteHelper] that performs this operation,
@@ -968,6 +1006,30 @@ constructor(
 			override val allConstants
 				get() = arg1.allConstants + arg2.allConstants
 		}
+	}
+}
+
+/**
+ * Assert that, according to the receiver, the [dividend] is non-negative and
+ * the [divisor] is positive, as [BitOperation.Div] and [BitOperation.Mod]
+ * require.
+ *
+ * @param dividend
+ *   The dividend's [L2ReadIntOperand].
+ * @param divisor
+ *   The divisor's [L2ReadIntOperand].
+ */
+private fun L2ValueManifest.assertNonnegativeDividendAndPositiveDivisor(
+	dividend: L2ReadIntOperand,
+	divisor: L2ReadIntOperand)
+{
+	assert(dividend.restriction.containedByType(inclusive(0L, Long.MAX_VALUE)))
+	{
+		"Dividend might be negative: ${dividend.restriction}"
+	}
+	assert(divisor.restriction.containedByType(inclusive(1L, Long.MAX_VALUE)))
+	{
+		"Divisor might not be positive: ${divisor.restriction}"
 	}
 }
 
