@@ -32,6 +32,7 @@
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 import java.time.Instant
@@ -41,13 +42,13 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 plugins {
-	kotlin("jvm") version "2.4.20"
+	kotlin("jvm") version "2.4.21"
 	id("java")
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "2.1.0"
-	id("com.gradleup.shadow") version "9.3.1"
+	id("org.jetbrains.dokka") version "2.3.0"
+	id("com.gradleup.shadow") version "9.6.1"
 }
 
 repositories {
@@ -59,34 +60,28 @@ group = "org.availlang"
 version = "2.0.0.alpha28"
 
 /** The version of Kotlin to be used by Avail. */
-val kotlin = "2.4.20"
-
-/** The `com.gradleup.shadow` version. */
-val shadow = "9.3.1"
+val kotlin = "2.4.21"
 
 /** The `org.jetbrains:annotations` version. */
-val kotlinAnnotations = "26.0.2-1"
+val kotlinAnnotations = "26.1.0"
 
 /** The `org.ow2.asm` version. */
-val asmVersion = "9.9.1"
-
-/** The `com.weblookandfeel:weblaf-ui` version.*/
-val weblafVersion = "1.2.14"
+val asmVersion = "9.11.1"
 
 /** The `io.methvin:directory-watcher` version. */
 val directoryWatcherVersion = "0.19.1"
 
 /** The version of the Apache Commons library to use. */
-val apacheCommonsVersion = "4.5.0"
+val apacheCommonsVersion = "4.6.0"
 
 /** The `com.google.code.findbugs:jsr305` version. */
 val jsrVersion = "3.0.2"
 
 /** The `org.junit.jupiter:junit-jupiter` version. */
-val junitVersion = "6.0.2"
+val junitVersion = "6.1.3"
 
-/** The language version of Kotlin. */
-val kotlinLanguage = "2.4.20"
+/** The Kotlin language and API version. */
+val kotlinLanguage = KotlinVersion.KOTLIN_2_4
 
 /**
  * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
@@ -96,7 +91,7 @@ val kotlinLanguage = "2.4.20"
 val jvmTarget = 26
 
 /**
- * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4.20 supports
+ * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4 supports
  * emitting JVM 26 bytecode on a JDK 26 toolchain, so this matches [jvmTarget].
  */
 val jvmBytecodeTarget = 26
@@ -108,9 +103,6 @@ val jvmTargetString = jvmBytecodeTarget.toString()
  * The list of compile-time arguments to be used during Kotlin compilation.
  */
 val freeCompilerArgs = listOf<String>()
-
-/** The language version of Kotlin. */
-val languageVersion = kotlinLanguage
 
 /**
  * The current time as a String in the format `yyyy-MM-ddTHH:mm:ss.SSSZ`.
@@ -187,7 +179,7 @@ dependencies {
 	api("org.availlang:avail-storage:1.1.1")
 	api(project(":avail-artifact"))
 	api("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
-	implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+	implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
 	implementation("com.google.code.findbugs:jsr305:$jsrVersion")
 	implementation(
 		"org.apache.commons:commons-collections4:$apacheCommonsVersion")
@@ -196,7 +188,7 @@ dependencies {
 	implementation("org.ow2.asm:asm-tree:$asmVersion")
 	implementation("org.ow2.asm:asm-util:$asmVersion")
 	implementation("io.methvin:directory-watcher:$directoryWatcherVersion")
-	implementation("com.formdev:flatlaf:3.7.1")
+	implementation("com.formdev:flatlaf:3.8")
 	implementation("com.thizzer.jtouchbar:jtouchbar:1.0.0")
 	compileOnly("org.jetbrains:annotations:$kotlinAnnotations")
 	testImplementation(platform("org.junit:junit-bom:$junitVersion"))
@@ -216,7 +208,8 @@ tasks {
 	withType<KotlinCompile> {
 		compilerOptions {
 			freeCompilerArgs = listOf()
-			version = kotlinLanguage
+			languageVersion = kotlinLanguage
+			apiVersion = kotlinLanguage
 		}
 	}
 	// Access JavaToolchainService at project level for configuration cache compatibility

@@ -37,12 +37,12 @@ import org.availlang.artifact.environment.location.Scheme.FILE
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 
 plugins {
-	kotlin("jvm") version "2.4.20"
+	kotlin("jvm") version "2.4.21"
 	id("java")
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "2.1.0"
+	id("org.jetbrains.dokka") version "2.3.0"
 	id("org.availlang.avail-plugin") version "2.0.0.alpha20"
 }
 

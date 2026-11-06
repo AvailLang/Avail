@@ -40,7 +40,7 @@ import org.gradle.jvm.tasks.Jar
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal open class AvailJarPackager: Jar()
+internal abstract class AvailJarPackager: Jar()
 {
 	/**
 	 * Expose the [copy] function publicly.

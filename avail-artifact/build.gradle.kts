@@ -6,11 +6,11 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "2.4.20"
+	kotlin("jvm") version "2.4.21"
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka") version "2.1.0"
+	id("org.jetbrains.dokka") version "2.3.0"
 }
 
 group = "org.availlang"
@@ -23,7 +23,8 @@ repositories {
 
 val targetJvm = JvmTarget.JVM_26
 
-val kotlinVersion = KotlinVersion.KOTLIN_2_4
+/** The Kotlin language and API version. */
+val kotlinLanguage = KotlinVersion.KOTLIN_2_4
 
 java {
 	toolchain {
@@ -80,7 +81,8 @@ tasks {
 		compilerOptions {
 			jvmTarget = targetJvm
 			freeCompilerArgs = listOf()
-			languageVersion = kotlinVersion
+			languageVersion = kotlinLanguage
+			apiVersion = kotlinLanguage
 		}
 	}
 

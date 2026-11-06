@@ -30,21 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 buildscript {
-	/** The JVM target version for Kotlin. */
-	val kotlin = "2.4.20"
+	/** The version of the Kotlin Gradle plugin to depend on. */
+	val kotlin = "2.4.21"
 	extensions.add("kotlin_version", kotlin)
 }
 
 plugins {
-	kotlin("jvm") version "2.4.20"
+	kotlin("jvm") version "2.4.21"
 	`kotlin-dsl`
 	id("org.jetbrains.dokka") version "2.1.0"
 	`maven-publish`
@@ -66,8 +67,8 @@ val jvmTarget = 26
 /** The JVM target version for Kotlin. */
 val jvmTargetString = jvmTarget.toString()
 
-/** The language level version of Kotlin. */
-val kotlinLanguage = "2.4"
+/** The Kotlin language and API version. */
+val kotlinLanguage = KotlinVersion.KOTLIN_2_4
 
 /**
  * The location of the properties file that contains the last published
@@ -108,10 +109,11 @@ tasks {
 	}
 
 	withType<KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = jvmTargetString
+		compilerOptions {
+			jvmTarget = JvmTarget.fromTarget(jvmTargetString)
 			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
 			languageVersion = kotlinLanguage
+			apiVersion = kotlinLanguage
 		}
 	}
 	withType<Test> {
@@ -140,14 +142,13 @@ tasks {
 		from(sourceSets["main"].allSource)
 	}
 
-	val dokkaHtml by getting(DokkaTask::class)
 	val javadocJar by creating(Jar::class)
 	{
-		dependsOn(dokkaHtml)
+		dependsOn("dokkaGeneratePublicationHtml")
 		description = "Creates Javadoc JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("javadoc")
-		from(dokkaHtml.outputDirectory)
+		from(layout.buildDirectory.dir("dokka/html"))
 	}
 	jar {
 		doFirst {

@@ -29,13 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 
 plugins {
 	id("java")
-	kotlin("jvm") version "2.4.20"
-	id("com.gradleup.shadow") version "9.3.1"
+	kotlin("jvm") version "2.4.21"
+	id("com.gradleup.shadow") version "9.6.1"
 }
 
 repositories {
@@ -43,8 +44,8 @@ repositories {
 	mavenCentral()
 }
 
-/** The language level version of Kotlin. */
-val kotlinLanguage = "2.4"
+/** The Kotlin language and API version. */
+val kotlinLanguage = KotlinVersion.KOTLIN_2_4
 
 /** The JVM target version for Kotlin. */
 val jvmTarget = 26
@@ -125,7 +126,7 @@ tasks {
 
 tasks.withType<KotlinCompile>().configureEach {
 	compilerOptions {
-		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
-		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
+		languageVersion = kotlinLanguage
+		apiVersion = kotlinLanguage
 	}
 }

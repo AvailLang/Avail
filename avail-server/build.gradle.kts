@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.Instant
 import java.time.ZoneId
@@ -37,8 +38,8 @@ import java.util.Locale
 
 plugins {
 	id("java")
-	kotlin("jvm") version "2.4.20"
-	id("com.gradleup.shadow") version "9.3.1"
+	kotlin("jvm") version "2.4.21"
+	id("com.gradleup.shadow") version "9.6.1"
 }
 
 repositories {
@@ -46,8 +47,8 @@ repositories {
 	mavenCentral()
 }
 
-/** The language level version of Kotlin. */
-val kotlinLanguage = "2.4.20"
+/** The Kotlin language and API version. */
+val kotlinLanguage = KotlinVersion.KOTLIN_2_4
 
 /**
  * The JDK toolchain version. Used for compiling Java/Kotlin, running tests,
@@ -57,7 +58,7 @@ val kotlinLanguage = "2.4.20"
 val jvmTarget = 26
 
 /**
- * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4.20 supports
+ * The bytecode level emitted by `javac` and `kotlinc`. Kotlin 2.4 supports
  * emitting JVM 26 bytecode on a JDK 26 toolchain, so this matches [jvmTarget].
  */
 val jvmBytecodeTarget = 26
@@ -157,7 +158,7 @@ tasks {
 
 tasks.withType<KotlinCompile>().configureEach {
 	compilerOptions {
-		languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
-		apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
+		languageVersion = kotlinLanguage
+		apiVersion = kotlinLanguage
 	}
 }
