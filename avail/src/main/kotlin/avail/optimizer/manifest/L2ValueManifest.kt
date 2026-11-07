@@ -4089,6 +4089,6 @@ class L2ValueManifest
 	companion object
 	{
 		/** Perform deep, slow checks every time a manifest changes. */
-		var deepManifestDebugCheck = true //  DEBUG: false
+		var deepManifestDebugCheck = false
 	}
 }

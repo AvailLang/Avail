@@ -39,7 +39,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RegisterDump
 import avail.descriptor.representation.A_String
@@ -174,12 +173,12 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.IdentityHashMap
-import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.LongAdder
 import java.util.function.Consumer
 import java.util.logging.Level
+import java.util.regex.Matcher
 import java.util.regex.Pattern
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
@@ -242,8 +241,7 @@ class JVMTranslator constructor(
 	val classNode = ClassNode(ASM9)
 
 	/**
-	 * The name of the generated class, formed from a [UUID] to ensure that no
-	 * collisions occur.
+	 * The name of the generated class, as computed by [prepareOutputDirectory].
 	 */
 	val className: String
 
@@ -251,6 +249,20 @@ class JVMTranslator constructor(
 	 * The internal name of the generated class.
 	 */
 	val classInternalName: String
+
+	/**
+	 * The directory into which this class's debug files are written, mirroring
+	 * its package under [baseDirectoryForGraphs].
+	 */
+	private val outputDirectory: Path
+		get() = outputDirectoryFor(classInternalName)
+
+	/**
+	 * The name shared by this class's debug files, before their extensions.
+	 * It is the class's simple name.
+	 */
+	private val outputBaseName: String
+		get() = classInternalName.substringAfterLast('/')
 
 	/** The class file bytes that are produced. */
 	private var classBytes: ByteArray? = null
@@ -907,13 +919,9 @@ class JVMTranslator constructor(
 	private fun dumpTraceToFile(e: Throwable): String? =
 		try
 		{
-			val lastSlash = classInternalName.lastIndexOf('/')
-			val pkg = classInternalName.substring(0, lastSlash)
-			val tempDir = Paths.get("debug", "jvm")
-			val dir = tempDir.resolve(Paths.get(pkg))
+			val dir = outputDirectory
 			Files.createDirectories(dir)
-			val base = classInternalName.substring(lastSlash + 1)
-			val traceFile = dir.resolve("$base.trace")
+			val traceFile = dir.resolve("$outputBaseName.trace")
 			// Make the trace file potentially *much* smaller by truncating the
 			// empty space reserved for per-instruction stack and locals to 5
 			// spaces each.
@@ -1543,10 +1551,9 @@ class JVMTranslator constructor(
 	): String? =
 		try
 		{
-			val lastSlash = classInternalName.lastIndexOf('/')
 			val builder = StringBuilder()
 			val visualizer = L2ControlFlowGraphVisualizer(
-				fileName = classInternalName.substring(lastSlash + 1),
+				fileName = outputBaseName,
 				name = chunkName,
 				charactersPerLine = 80,
 				controlFlowGraph = controlFlowGraph,
@@ -1606,21 +1613,9 @@ class JVMTranslator constructor(
 		var l2LineTableByL2: MutableList<Int>? = null
 		if (debugJVM)
 		{
-			val lastSlash = classInternalName.lastIndexOf('/')
-			val pkg = classInternalName.substring(0, lastSlash)
-			val dir = baseDirectoryForGraphs.resolve(Paths.get(pkg))
+			val dir = outputDirectory
 			runCatching { Files.createDirectories(dir) }
-			var baseFileName = classInternalName.substring(lastSlash + 1)
-			code?.let {
-				baseFileName = "%04d %s".format(
-					it.codeStartingLineNumber,
-					baseFileName)
-			}
-			if (baseFileName.length > 100)
-			{
-				// Protect against overly long filenames.
-				baseFileName = baseFileName.take(100) + "…"
-			}
+			val baseFileName = outputBaseName
 
 			// Note that we have to break the sources up if they are too large
 			// for the constant pool.
@@ -1653,7 +1648,15 @@ class JVMTranslator constructor(
 				dumpL2GraphToFile(
 					false, dir.resolve("$baseFileName.simple.dot"))
 			}
-			val l2TextPath = dir.resolve("$baseFileName.l2")
+			// When dumpL2ListingAsJava is true, the L2 listing is written as a
+			// Java source file that declares this class, with the whole
+			// listing in a comment.  A Java debugger finds a frame's source by
+			// its class name, so this lets it show the L2 instruction at each
+			// frame's line.  The class declaration shares the listing's first
+			// line, which is always a block header, so no line moves.
+			val l2SourcePath = dir.resolve(
+				if (dumpL2ListingAsJava) "$baseFileName.java"
+				else "$baseFileName.l2")
 			l2LineTableByL2 = mutableListOf()
 			var line = 1
 			val builder = StringBuilder()
@@ -1676,10 +1679,16 @@ class JVMTranslator constructor(
 				builder.append(instructionText).append('\n')
 				line += instructionText.count { it == '\n' } + 1
 			}
-			runCatching {
-				l2TextPath.writeText(builder.toString())
-			}
-			classNode.sourceFile = l2TextPath.fileName.toString()
+			val listing =
+				if (dumpL2ListingAsJava)
+				{
+					val packageName = className.substringBeforeLast('.')
+					"package $packageName; final class $outputBaseName { /* " +
+						javaCommentSafe(builder.toString()) + "*/ }\n"
+				}
+				else builder.toString()
+			runCatching { l2SourcePath.writeText(listing) }
+			classNode.sourceFile = l2SourcePath.fileName.toString()
 		}
 		val endLabel = Label()
 		method.visitAnnotation(
@@ -1729,6 +1738,38 @@ class JVMTranslator constructor(
 						endLabel,
 						localIndex)
 				}
+		}
+		else if (debugJVM)
+		{
+			// Name the parameters and the register locals for the whole method,
+			// so that a Java debugger shows each local as the L2 register it
+			// holds.  The locals are not initialized here, so a register not
+			// yet written has no meaningful value.
+			method.visitLocalVariable(
+				"interpreter",
+				Type.getDescriptor(Interpreter::class.java),
+				null,
+				methodHead,
+				endLabel,
+				interpreterLocal())
+			method.visitLocalVariable(
+				"offset",
+				Type.INT_TYPE.descriptor,
+				null,
+				methodHead,
+				endLabel,
+				offsetLocal())
+			locals.forEach { (kind, value) ->
+				value.forEach { (finalIndex, localIndex) ->
+					method.visitLocalVariable(
+						"${kind.prefix}$localIndex@$finalIndex",
+						kind.jvmTypeString,
+						null,
+						methodHead,
+						endLabel,
+						localIndex)
+				}
+			}
 		}
 		method.visitLabel(methodHead)
 		// Emit the lookupswitch instruction to select among the entry points.
@@ -1825,13 +1866,9 @@ class JVMTranslator constructor(
 	{
 		try
 		{
-			val lastSlash = classInternalName.lastIndexOf('/')
-			val pkg = classInternalName.substring(0, lastSlash)
-			val tempDir = Paths.get("debug", "jvm")
-			val dir = tempDir.resolve(Paths.get(pkg))
+			val dir = outputDirectory
 			Files.createDirectories(dir)
-			val base = classInternalName.substring(lastSlash + 1)
-			val classFile = dir.resolve("$base.class")
+			val classFile = dir.resolve("$outputBaseName.class")
 			Files.write(classFile, classBytes!!)
 		}
 		catch (e: IOException)
@@ -2041,8 +2078,19 @@ class JVMTranslator constructor(
 		const val debugNicerJavaDecompilation = false
 
 		/**
+		 * Whether the L2 listing dumped for each generated class, when
+		 * [debugJVM] is enabled, is written as a Java source file
+		 * (`<class>.java`) rather than as plain text (`<class>.l2`).  The Java
+		 * form declares the generated class and holds the listing in a
+		 * comment, without moving any line, so that a Java debugger whose
+		 * source roots include [baseDirectoryForGraphs] finds the listing by
+		 * the class's name and shows the L2 instruction at each frame.
+		 */
+		const val dumpL2ListingAsJava = true
+
+		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
-		 * 'foo_#1#3'.
+		 * '"foo_"_1_3', naming each nested block by its index.
 		 */
 		private val subblockRewriter =
 			Pattern.compile("\\[(\\d+)]")
@@ -2055,18 +2103,95 @@ class JVMTranslator constructor(
 			Pattern.compile("^\"(.*)\"([^\"]*)$")
 
 		/**
-		 * A regex [Pattern] to find runs of characters that are forbidden in a
-		 * class name, and will be replaced with a single `'%'`.
+		 * The reserved words of Java, which cannot serve as identifiers even
+		 * though every character in them is legal.
 		 */
-		private val classNameForbiddenCharacters =
-			Pattern.compile("""[\[\]\\/.:*?;"'<>|\p{Cntrl}]+""")
+		private val javaReservedWords = setOf(
+			"abstract", "assert", "boolean", "break", "byte", "case", "catch",
+			"char", "class", "const", "continue", "default", "do", "double",
+			"else", "enum", "extends", "false", "final", "finally", "float",
+			"for", "goto", "if", "implements", "import", "instanceof", "int",
+			"interface", "long", "native", "new", "null", "package", "private",
+			"protected", "public", "return", "short", "static", "strictfp",
+			"super", "switch", "synchronized", "this", "throw", "throws",
+			"transient", "true", "try", "void", "volatile", "while", "_")
 
 		/**
-		 * A regex [Pattern] to locate things that should be replaced with an
-		 * underscore, after other replacements have happened.
+		 * The longest function name, in characters, that a generated class
+		 * name carries in full.  A longer one keeps only its first and last
+		 * characters, half of [maximumFunctionNameLength] of each.
 		 */
-		private val classNameSpaceReplacement =
-			Pattern.compile("\\s")
+		private const val maximumFunctionNameLength = 50
+
+		/**
+		 * Answer a Java identifier derived from the given text, so that it can
+		 * serve as a package segment or class name that Java tools, such as
+		 * debuggers, accept.  Each run of characters that cannot appear in a
+		 * Java identifier becomes a single `_`, a leading digit gains a `_`
+		 * before it, and a reserved word gains a `_` after it.
+		 *
+		 * @param text
+		 *   The text to convert, such as a module or method name.
+		 * @return
+		 *   A non-empty Java identifier.
+		 */
+		private fun javaIdentifier(text: String): String
+		{
+			val builder = StringBuilder()
+			var inForbiddenRun = false
+			text.forEach { ch ->
+				if (Character.isJavaIdentifierPart(ch)
+					&& !Character.isIdentifierIgnorable(ch)
+					&& ch != '$')
+				{
+					builder.append(ch)
+					inForbiddenRun = false
+				}
+				else if (!inForbiddenRun)
+				{
+					builder.append('_')
+					inForbiddenRun = true
+				}
+			}
+			if (builder.isEmpty()
+				|| !Character.isJavaIdentifierStart(builder[0]))
+			{
+				builder.insert(0, '_')
+			}
+			val identifier = builder.toString()
+			return if (identifier in javaReservedWords) "${identifier}_"
+				else identifier
+		}
+
+		/**
+		 * A regex [Pattern] matching a run of backslashes that is followed by
+		 * a `u`, which Java reads as a Unicode escape, even in a comment, when
+		 * the run has odd length.
+		 */
+		private val unicodeEscapeStart = Pattern.compile("""(\\+)(?=u)""")
+
+		/**
+		 * Answer the given text altered just enough to appear inside a Java
+		 * block comment without ending it or forming a Unicode escape: each
+		 * `*&#47;` becomes `* /`, and each odd-length run of backslashes
+		 * before a `u` gains one more backslash.  No line breaks are added or
+		 * removed, so line numbers within the text are preserved.
+		 *
+		 * @param text
+		 *   The text to place in a block comment.
+		 * @return
+		 *   The safe text.
+		 */
+		private fun javaCommentSafe(text: String): String
+		{
+			val unterminated = text.replace("*/", "* /")
+			val matcher = unicodeEscapeStart.matcher(unterminated)
+			return matcher.replaceAll { match ->
+				val run = match.group(1)
+				Matcher.quoteReplacement(
+					if (run.length % 2 == 1) "$run\\" else run)
+			}
+		}
 
 		/**
 		 * Whether to emit JVM instructions to invoke [Interpreter.traceL2]
@@ -2128,6 +2253,19 @@ class JVMTranslator constructor(
 		 * snapshots, when [L2Optimizer.perPassL2] is `true`) call this method,
 		 * each obtaining their own sibling output directory.
 		 *
+		 * Every segment of the class name is a
+		 * [Java&#32;identifier][javaIdentifier], so that Java tools accept it.
+		 * Each translation of a function gets a package of its own,
+		 * `avail.optimizer.jvm.generated.<module>.L<line>_<function>_v<n>`, in
+		 * which the class is named `<function>`.  The output directory mirrors
+		 * that package under [baseDirectoryForGraphs], and every file written
+		 * there for the class is named `<function>.<extension>`.  In
+		 * particular, the L2 listing that the class's line numbers refer to is
+		 * its `.java` file, a Java source declaring the class with the listing
+		 * inside a comment.  It is also the class's `SourceFile`, so a Java
+		 * debugger, given a source root at [baseDirectoryForGraphs], shows the
+		 * L2 instruction at each frame of the class.
+		 *
 		 * @param pathData
 		 *   The [CodeLoggingPathData] containing the naming fields.
 		 * @return
@@ -2138,46 +2276,43 @@ class JVMTranslator constructor(
 		): Triple<String, Path, String>
 		{
 			val (moduleName, methodName, lineNumber) = pathData
-			var cleanFunctionName =
-				subblockRewriter.matcher(methodName).replaceAll("#$1")
-			cleanFunctionName =
-				classNameUnquoter.matcher(cleanFunctionName).replaceAll("$1$2")
-			cleanFunctionName =
-				classNameForbiddenCharacters.matcher(cleanFunctionName)
-					.replaceAll("\\%")
-			cleanFunctionName =
-				classNameSpaceReplacement.matcher(cleanFunctionName).replaceAll("_")
-			if (cleanFunctionName.length > 50)
+			var functionName =
+				subblockRewriter.matcher(methodName).replaceAll("_$1")
+			functionName =
+				classNameUnquoter.matcher(functionName).replaceAll("$1$2")
+			functionName = javaIdentifier(functionName)
+			if (functionName.length > maximumFunctionNameLength)
 			{
-				cleanFunctionName = cleanFunctionName.take(25) + "%%%" +
-					cleanFunctionName.takeLast(25)
+				val half = maximumFunctionNameLength / 2
+				functionName = functionName.take(half) + "___" +
+					functionName.takeLast(half)
 			}
-			val classDirPrefix =
-				"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
-			val counter = nameCounters
-				.computeIfAbsent(classDirPrefix) { AtomicInteger(1) }
+			val moduleIdentifier = javaIdentifier(moduleName)
+			val counter = nameCounters.computeIfAbsent(
+				"$moduleIdentifier.$functionName") { AtomicInteger(1) }
 			val counterValue = counter.getAndIncrement()
-			val counterString = " ($counterValue)"
-			val lineString = "%04d_".format(lineNumber)
-			val computedClassName = "avail.optimizer.jvm.generated." +
-				"$moduleName.$lineString$cleanFunctionName$counterString." +
-				cleanFunctionName
-			val classInternalName = computedClassName.replace('.', '/')
-			val lastSlash = classInternalName.lastIndexOf('/')
-			val pkg = classInternalName.substring(0, lastSlash)
-			var baseFileName = classInternalName.substring(lastSlash + 1)
-			if (lineNumber != 0)
-			{
-				baseFileName = "%04d %s".format(lineNumber, baseFileName)
-			}
-			if (baseFileName.length > 100)
-			{
-				baseFileName = baseFileName.take(100) + "…"
-			}
-			val dir = baseDirectoryForGraphs.resolve(Paths.get(pkg))
+			val translationPackage =
+				"L%04d_%s_v%d".format(lineNumber, functionName, counterValue)
+			val classInternalName = "avail/optimizer/jvm/generated/" +
+				"$moduleIdentifier/$translationPackage/$functionName"
+			val dir = outputDirectoryFor(classInternalName)
 			if (debugJVM) runCatching { Files.createDirectories(dir) }
-			return Triple(classInternalName, dir, baseFileName)
+			return Triple(classInternalName, dir, functionName)
 		}
+
+		/**
+		 * Answer the directory into which the debug files for the generated
+		 * class with the given internal name are written: the class's package
+		 * path, under [baseDirectoryForGraphs].
+		 *
+		 * @param classInternalName
+		 *   The internal (slash-separated) name of a generated class.
+		 * @return
+		 *   The output directory.
+		 */
+		private fun outputDirectoryFor(classInternalName: String): Path =
+			baseDirectoryForGraphs.resolve(
+				classInternalName.substringBeforeLast('/'))
 
 		/**
 		 * Convenience overload of [prepareOutputDirectory] that builds a
