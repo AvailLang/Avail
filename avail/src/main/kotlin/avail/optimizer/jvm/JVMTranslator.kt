@@ -1648,15 +1648,8 @@ class JVMTranslator constructor(
 				dumpL2GraphToFile(
 					false, dir.resolve("$baseFileName.simple.dot"))
 			}
-			// When dumpL2ListingAsJava is true, the L2 listing is written as a
-			// Java source file that declares this class, with the whole
-			// listing in a comment.  A Java debugger finds a frame's source by
-			// its class name, so this lets it show the L2 instruction at each
-			// frame's line.  The class declaration shares the listing's first
-			// line, which is always a block header, so no line moves.
 			val l2SourcePath = dir.resolve(
-				if (dumpL2ListingAsJava) "$baseFileName.java"
-				else "$baseFileName.l2")
+				"$baseFileName.${l2ListingFormat.extension}")
 			l2LineTableByL2 = mutableListOf()
 			var line = 1
 			val builder = StringBuilder()
@@ -1679,14 +1672,10 @@ class JVMTranslator constructor(
 				builder.append(instructionText).append('\n')
 				line += instructionText.count { it == '\n' } + 1
 			}
-			val listing =
-				if (dumpL2ListingAsJava)
-				{
-					val packageName = className.substringBeforeLast('.')
-					"package $packageName; final class $outputBaseName { /* " +
-						javaCommentSafe(builder.toString()) + "*/ }\n"
-				}
-				else builder.toString()
+			val listing = l2ListingFormat.wrap(
+				className.substringBeforeLast('.'),
+				outputBaseName,
+				builder.toString())
 			runCatching { l2SourcePath.writeText(listing) }
 			classNode.sourceFile = l2SourcePath.fileName.toString()
 		}
@@ -2078,15 +2067,116 @@ class JVMTranslator constructor(
 		const val debugNicerJavaDecompilation = false
 
 		/**
-		 * Whether the L2 listing dumped for each generated class, when
-		 * [debugJVM] is enabled, is written as a Java source file
-		 * (`<class>.java`) rather than as plain text (`<class>.l2`).  The Java
-		 * form declares the generated class and holds the listing in a
-		 * comment, without moving any line, so that a Java debugger whose
-		 * source roots include [baseDirectoryForGraphs] finds the listing by
-		 * the class's name and shows the L2 instruction at each frame.
+		 * The form in which the L2 listing for each generated class is dumped,
+		 * when [debugJVM] is enabled.
 		 */
-		const val dumpL2ListingAsJava = true
+		val l2ListingFormat = L2ListingFormat.KOTLIN
+
+		/**
+		 * The forms in which the L2 listing of a generated class can be
+		 * dumped.  Each form keeps every line of the listing where it is, so
+		 * the class's line numbers, which refer to listing lines, stay valid.
+		 * A source form declares the generated class, in its own package,
+		 * around the listing, which sits inside a block comment; a debugger
+		 * that finds a frame's source by its class name, given a source root
+		 * at [baseDirectoryForGraphs], then shows the L2 instruction at each
+		 * frame.  The declaration shares the listing's first line, which is
+		 * always a block header.
+		 *
+		 * @property extension
+		 *   The file extension of the dumped listing.
+		 * @constructor
+		 *   Create a listing format.
+		 * @param extension
+		 *   The file extension of the dumped listing.
+		 */
+		enum class L2ListingFormat(val extension: String)
+		{
+			/**
+			 * The listing as plain text, `<class>.l2`.  A debugger cannot find
+			 * it by class name.
+			 */
+			TEXT("l2")
+			{
+				override fun wrap(
+					packageName: String,
+					simpleName: String,
+					listing: String
+				): String = listing
+			},
+
+			/**
+			 * The listing as a Java source, `<class>.java`.  This requires
+			 * every segment of the class name to be a Java identifier.
+			 */
+			JAVA("java")
+			{
+				override fun wrap(
+					packageName: String,
+					simpleName: String,
+					listing: String
+				): String =
+					"package $packageName; final class $simpleName { /* " +
+						javaCommentSafe(listing) + "*/ }\n"
+			},
+
+			/**
+			 * The listing as a Kotlin source, `<class>.kt`, with every name
+			 * segment in backticks, so that segments that are not
+			 * identifiers, such as `0000_group_by_#1 (2)`, can still be
+			 * declared.  Kotlin block comments nest, so the listing's `/&#42;`
+			 * and `*&#47;` are both broken apart.
+			 */
+			KOTLIN("kt")
+			{
+				override fun wrap(
+					packageName: String,
+					simpleName: String,
+					listing: String
+				): String
+				{
+					val quotedPackage = packageName
+						.split('.')
+						.joinToString(".") { "`$it`" }
+					val safeListing = listing
+						.replace("/*", "/ *")
+						.replace("*/", "* /")
+					return "package $quotedPackage; class `$simpleName` { /* " +
+						safeListing + "*/ }\n"
+				}
+			};
+
+			/**
+			 * Answer the content of the dumped listing for a generated class.
+			 *
+			 * @param packageName
+			 *   The dotted package name of the generated class.
+			 * @param simpleName
+			 *   The simple name of the generated class.
+			 * @param listing
+			 *   The L2 listing.
+			 * @return
+			 *   The file content, whose lines correspond one to one with the
+			 *   listing's.
+			 */
+			abstract fun wrap(
+				packageName: String,
+				simpleName: String,
+				listing: String
+			): String
+		}
+
+		/**
+		 * Whether generated classes are named for the Avail function they
+		 * translate as closely as the JVM permits, with spaces, `#`, `%`, and
+		 * parentheses, as in the class
+		 * `0000_group_by_#1 (2).group_by_#1` of the package
+		 * `avail.optimizer.jvm.generated.Maps`.  Such names cannot be declared
+		 * in Java, so they need [l2ListingFormat] to be
+		 * [L2ListingFormat.KOTLIN] (or [L2ListingFormat.TEXT]).  When `false`,
+		 * every name segment is a [Java&#32;identifier][javaIdentifier].
+		 */
+		const val useOriginalClassNames = true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -2253,17 +2343,22 @@ class JVMTranslator constructor(
 		 * snapshots, when [L2Optimizer.perPassL2] is `true`) call this method,
 		 * each obtaining their own sibling output directory.
 		 *
-		 * Every segment of the class name is a
-		 * [Java&#32;identifier][javaIdentifier], so that Java tools accept it.
-		 * Each translation of a function gets a package of its own,
-		 * `avail.optimizer.jvm.generated.<module>.L<line>_<function>_v<n>`, in
-		 * which the class is named `<function>`.  The output directory mirrors
-		 * that package under [baseDirectoryForGraphs], and every file written
-		 * there for the class is named `<function>.<extension>`.  In
-		 * particular, the L2 listing that the class's line numbers refer to is
-		 * its `.java` file, a Java source declaring the class with the listing
-		 * inside a comment.  It is also the class's `SourceFile`, so a Java
-		 * debugger, given a source root at [baseDirectoryForGraphs], shows the
+		 * Each translation of a function gets a package of its own, in which
+		 * the class is named for the function.  When [useOriginalClassNames]
+		 * is `true`, that package is
+		 * `avail.optimizer.jvm.generated.<module>.<line>_<function> (<n>)`,
+		 * keeping the function's own spelling wherever the JVM permits it.
+		 * Otherwise it is
+		 * `avail.optimizer.jvm.generated.<module>.L<line>_<function>_v<n>`,
+		 * with every segment a [Java&#32;identifier][javaIdentifier].  Either
+		 * way, an overlong function name keeps only its two ends.
+		 *
+		 * The output directory mirrors the package under
+		 * [baseDirectoryForGraphs], and every file written there for the class
+		 * is named `<function>.<extension>`.  In particular, the L2 listing
+		 * that the class's line numbers refer to is written in the
+		 * [l2ListingFormat], and is also the class's `SourceFile`, so a
+		 * debugger given a source root at [baseDirectoryForGraphs] shows the
 		 * L2 instruction at each frame of the class.
 		 *
 		 * @param pathData
@@ -2276,6 +2371,32 @@ class JVMTranslator constructor(
 		): Triple<String, Path, String>
 		{
 			val (moduleName, methodName, lineNumber) = pathData
+			if (useOriginalClassNames)
+			{
+				// Characters that the JVM or the file system rejects in a name
+				// become '%', and whitespace becomes '_'; everything else,
+				// such as '#' and parentheses, is kept.
+				var clean = subblockRewriter.matcher(methodName)
+					.replaceAll("#$1")
+				clean = classNameUnquoter.matcher(clean).replaceAll("$1$2")
+				clean = clean
+					.replace(Regex("""[\[\]\\/.:*?;"'<>|\p{Cntrl}]+"""), "%")
+					.replace(Regex("\\s"), "_")
+				if (clean.length > maximumFunctionNameLength)
+				{
+					val half = maximumFunctionNameLength / 2
+					clean = clean.take(half) + "%%%" + clean.takeLast(half)
+				}
+				val counter = nameCounters.computeIfAbsent(
+					"$moduleName.$clean") { AtomicInteger(1) }
+				val counterValue = counter.getAndIncrement()
+				val classInternalName = "avail/optimizer/jvm/generated/" +
+					"$moduleName/%04d_%s (%d)/%s".format(
+						lineNumber, clean, counterValue, clean)
+				val dir = outputDirectoryFor(classInternalName)
+				if (debugJVM) runCatching { Files.createDirectories(dir) }
+				return Triple(classInternalName, dir, clean)
+			}
 			var functionName =
 				subblockRewriter.matcher(methodName).replaceAll("_$1")
 			functionName =
