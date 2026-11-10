@@ -201,6 +201,10 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+/** The names of the Avail roots under `distro/src` that the tests load. */
+val testAvailRootNames =
+	listOf("avail", "builder-tests", "examples", "website")
+
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
@@ -269,6 +273,17 @@ tasks {
 		maxHeapSize = "6g"
 		enableAssertions = true
 		systemProperty("availRoots", availRoots)
+		// The tests compile and run the modules of these roots, so every
+		// module source is an input: editing or deleting one must rerun the
+		// tests rather than replay the previous results.
+		testAvailRootNames.forEach { name ->
+			inputs.files(
+				fileTree(systemPath(rootDirPath, distroSrc, name)) {
+					include("**/*.avail")
+				})
+				.withPathSensitivity(PathSensitivity.RELATIVE)
+				.withPropertyName("availRoot.$name")
+		}
 		testLogging {
 			events("passed", "skipped", "failed")
 		}
@@ -775,8 +790,7 @@ fun availRoot(name: String): AvailRoot
  *   The concatenated string of `root=root-path` separated by `;`.
  */
 fun computeAvailRootsForTest (): String =
-	listOf("avail", "builder-tests", "examples", "website")
-		.joinToString(";") { availRoot(it).rootString }
+	testAvailRootNames.joinToString(";") { availRoot(it).rootString }
 
 /**
  * Construct an operating system-specific file path using [File.separator].
