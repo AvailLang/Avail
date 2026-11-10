@@ -1013,8 +1013,8 @@ constructor(
 
 /**
  * Assert that, according to the receiver, the [dividend] is non-negative and
- * the [divisor] is positive, as [BitOperation.Div] and [BitOperation.Mod]
- * require.
+ * the [divisor] is positive, as [L2_BIT_LOGIC_OP.BitOperation.Div] and
+ * [L2_BIT_LOGIC_OP.BitOperation.Mod] require.
  *
  * @param dividend
  *   The dividend's [L2ReadIntOperand].

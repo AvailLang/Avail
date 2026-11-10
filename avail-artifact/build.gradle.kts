@@ -17,7 +17,12 @@ group = "org.availlang"
 version = "2.0.0.alpha22"  // For the next publication.
 
 repositories {
-	mavenLocal()
+	mavenLocal {
+		// Only Avail's own locally published artifacts.  Anything else in
+		// ~/.m2 may be a Maven download without Gradle module metadata, which
+		// Gradle cannot reliably combine with metadata-published modules.
+		content { includeGroupByRegex("org\\.availlang(\\..*)?") }
+	}
 	mavenCentral()
 }
 

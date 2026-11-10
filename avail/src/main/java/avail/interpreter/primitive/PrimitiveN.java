@@ -63,7 +63,7 @@ public abstract class PrimitiveN extends Primitive
 	}
 
 	/**
-	 * Attempt to run a primitive taking the {@link Array} of arguments,
+	 * Attempt to run a primitive taking an array of arguments,
 	 * answering either an {@link AvailObject} if successful, or `null` if the
 	 * primitive could not complete for some reason.  If the primitive reifies,
 	 * the {@link Interpreter#currentReifier} will capture the {@link
@@ -73,7 +73,7 @@ public abstract class PrimitiveN extends Primitive
 	 * @param interpreter
 	 *   The {@link Interpreter} performing the primitive attempt.
 	 * @param args
-	 *   The {@link Array} of arguments to the primitive.
+	 *   The array of arguments to the primitive.
 	 * @return
 	 *   The result of the primitive attempt, or null if it failed or reified.
 	 */

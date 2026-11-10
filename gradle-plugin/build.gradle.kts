@@ -47,7 +47,7 @@ buildscript {
 plugins {
 	kotlin("jvm") version "2.4.21"
 	`kotlin-dsl`
-	id("org.jetbrains.dokka") version "2.1.0"
+	id("org.jetbrains.dokka") version "2.3.0"
 	`maven-publish`
 	id("com.gradle.plugin-publish") version "1.3.0"
 }
@@ -79,7 +79,12 @@ val releaseVersionFile =
 	"src/main/resources/releaseVersion.properties"
 
 repositories {
-	mavenLocal()
+	mavenLocal {
+		// Only Avail's own locally published artifacts.  Anything else in
+		// ~/.m2 may be a Maven download without Gradle module metadata, which
+		// Gradle cannot reliably combine with metadata-published modules.
+		content { includeGroupByRegex("org\\.availlang(\\..*)?") }
+	}
 	mavenCentral()
 }
 
