@@ -1,6 +1,6 @@
 /*
  * WorkStealingQueue.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import avail.utility.structures.LeftistHeap
 import avail.utility.structures.leftistLeaf
 import java.util.AbstractQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
@@ -45,10 +46,39 @@ import java.util.concurrent.atomic.AtomicReference
  * [Interpreter] feeds and consumes a distinct subqueue dedicated to that
  * interpreter thread, ideally without contention from other threads.  When a
  * subqueue is exhausted, the requesting thread will examine the other threads'
- * queues and steal one for itself.  Only at that point will contention occur.
+ * queues and steal some tasks for itself.  Only at that point will contention
+ * occur.
  *
- * Each subqueue is maintained in priority order, but the aggregate collection
- * of queues cannot be considered strictly ordered.
+ * Each subqueue is a persistent [LeftistHeap] maintained in priority order,
+ * but the aggregate collection of queues cannot be considered strictly
+ * ordered.  A thief takes the victim's highest priority task, which it runs,
+ * plus one of the two subheaps under it, which it merges into its own heap.
+ * The other subheap stays with the victim.  The roots of both subheaps are
+ * among the victim's second and third highest priority tasks, so stealing
+ * respects the priority scheme roughly.
+ *
+ * A thread that finds no task anywhere blocks on [idlePermits].  Whenever a
+ * thread makes tasks newly visible to other threads, by [offer]ing one or by
+ * merging a stolen subheap into its own heap, it [signal]s that many permits,
+ * capped at [parallelism] permits available.  A permit is retained even when
+ * no thread is blocked yet, so a thread that has scanned the heaps, found
+ * nothing, and is about to block still gets through and scans again.  That
+ * closes the window in which a stolen subheap is held only in the thief's
+ * locals, invisible to other thieves.  Since a woken thief steals roughly half
+ * of a heap and signals in proportion to what it stole, a burst of tasks
+ * spreads across the idle threads in about log₂([parallelism]) rounds, without
+ * the thread that produced the burst having to wake them all itself.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property parallelism
+ *   The number of subqueues, one per worker thread of the thread pool that
+ *   this queue is plugged into.  It also caps the permits available in
+ *   [idlePermits].
+ * @constructor
+ *   Construct a new [WorkStealingQueue] with the given number of subqueues.
+ * @param parallelism
+ *   The number of subqueues, one per worker thread.
  */
 class WorkStealingQueue<E : Comparable<E>>
 constructor(
@@ -66,13 +96,41 @@ constructor(
 	}
 
 	/**
-	 * A Java [Object] to use as a monitor for threads to block on, waiting for
-	 * a suitable task to become available.
+	 * The [Semaphore] on which a thread blocks when it finds no task in any
+	 * subqueue.  Its permits are released by [signal], and each permit lets one
+	 * thread through to scan the subqueues again.  The semaphore's own queue of
+	 * blocked threads decides which thread, if any, is woken.
 	 */
-	private val monitor = Any()
+	private val idlePermits = Semaphore(0)
 
 	/** Choose the queue on which to add a task. */
 	private val localQueue get() = queues[Interpreter.currentIndexOrZero()]
+
+	/**
+	 * Release up to [count] permits on [idlePermits], one for each task just
+	 * made visible to other threads, but stop once [parallelism] permits are
+	 * available.  At that point, enough threads will pass through
+	 * [idlePermits] without blocking to find the tasks.
+	 *
+	 * Reading the permit count and releasing a permit is not atomic, so
+	 * concurrent signalers can overshoot the cap.  Since each release is
+	 * preceded by its own check, each signaler overshoots by at most one
+	 * permit, so with [parallelism] worker threads signaling, at most
+	 * 2 × [parallelism] permits are available.  The first [parallelism] are
+	 * designed to let each thread scan once more, to catch tasks in flux, such
+	 * as a stolen subheap that is momentarily visible to no other thread.  The
+	 * overshoot costs at most about one more futile scan per thread.
+	 *
+	 * @param count
+	 *   The number of tasks just made visible to other threads.
+	 */
+	private fun signal(count: Int)
+	{
+		repeat(count) {
+			if (idlePermits.availablePermits() >= parallelism) return
+			idlePermits.release()
+		}
+	}
 
 	override val size: Int
 		get() = queues.sumOf { it.get().size }
@@ -124,38 +182,14 @@ constructor(
 	override fun offer(element: E): Boolean
 	{
 		val queue = localQueue
-		lateinit var oldHeap: LeftistHeap<E>
 		while (true)
 		{
-			oldHeap = queue.get()
+			val oldHeap = queue.get()
 			if (queue.compareAndSet(oldHeap, oldHeap.with(element))) break
 		}
-		// When the local queue reaches specific sizes, allow another thread to
-		// wake up, if it's waiting.  If no thread is waiting, this has no
-		// effect.
-		//
-		// The notify is necessary when the queue reaches size 1, since all
-		// threads might be blocked, and we need to wake up one of them to scan
-		// for this newly added task.
-		//
-		// If a task adds items fast enough that a queue gets to 2, we wake
-		// another thread in the hope that it can steal one of these tasks and
-		// start processing the resulting tree of tasks generated from it.
-		//
-		// If the local queue manages to get 5 elements, we wake up two other
-		// threads, to accelerate processing.
-		//
-		// If we've queued about as many items in the local queue as there are
-		// threads, wake them all up.
-		when (oldHeap.size + 1)
-		{
-			1, 2 -> synchronized(monitor) { monitor.javaNotify() }
-			5 -> synchronized(monitor) {
-				monitor.javaNotify()
-				monitor.javaNotify()
-			}
-			parallelism + 1 -> synchronized(monitor) { monitor.javaNotifyAll() }
-		}
+		// The task is now visible to thieves, so let a thread through to find
+		// it.
+		signal(1)
 		return true
 	}
 
@@ -187,14 +221,21 @@ constructor(
 				if (q.compareAndSet(heap, remains))
 				{
 					// We stole `taken` successfully, plus the top value.
+					// Until `taken` is merged into the local heap, no other
+					// thief can see it.
 					val top = heap.first
 					while (true)
 					{
 						val existing = localQueue.get()
 						val replacement = existing.merge(taken)
 						if (localQueue.compareAndSet(existing, replacement))
-							return top
+							break
 					}
+					// The stolen subheap is visible again, so let threads
+					// through to steal from it.  This thread runs `top`
+					// itself.
+					signal(taken.size)
+					return top
 				}
 			}
 		}
@@ -204,35 +245,15 @@ constructor(
 	override fun poll(timeout: Long, unit: TimeUnit): E?
 	{
 		assert(timeout >= 0)
-		// First try it without timeout.
-		poll()?.let { return it }
-		if (timeout == 0L)
-		{
-			synchronized(monitor) {
-				while (true)
-				{
-					monitor.javaWait()
-					// Re-check, because someone woke us up.
-					poll()?.let { return it }
-				}
-			}
-		}
 		val expiry = System.nanoTime() + unit.toNanos(timeout)
-		synchronized(monitor) {
-			while (true)
-			{
-				val nanos = expiry - System.nanoTime()
-				if (nanos <= 0L)
-				{
-					// Actually timed out.
-					return null
-				}
-				monitor.javaWait(
-					nanos / 1_000_000,
-					(nanos % 1_000_000).toInt())
-				// Re-check, even if it just timed out.
-				poll()?.let { return it }
-			}
+		while (true)
+		{
+			poll()?.let { return it }
+			val nanos = expiry - System.nanoTime()
+			if (nanos <= 0L) return null
+			// A permit released after the scan above is retained, so this
+			// cannot miss a task that became visible since then.
+			idlePermits.tryAcquire(nanos, TimeUnit.NANOSECONDS)
 		}
 	}
 
@@ -243,15 +264,12 @@ constructor(
 
 	override fun take(): E
 	{
-		// First try it without timeout.
-		poll()?.let { return it }
-		synchronized(monitor) {
-			while (true)
-			{
-				monitor.javaWait()
-				// Re-check, because someone woke us up.
-				poll()?.let { return it }
-			}
+		while (true)
+		{
+			poll()?.let { return it }
+			// A permit released after the scan above is retained, so this
+			// cannot miss a task that became visible since then.
+			idlePermits.acquire()
 		}
 	}
 

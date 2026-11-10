@@ -1,6 +1,6 @@
 /*
  * DefaultL1ExecutableChunk.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@ import avail.descriptor.representation.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_RawFunction.Companion.numLocals
 import avail.descriptor.representation.A_RawFunction.Companion.numSlots
+import avail.descriptor.representation.A_RawFunction.Companion.reoptimizationCountdown
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -228,8 +229,10 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 			// Post-primitive or no-primitive.  This is the second-most common
 			// path, specifically the no-primitive case, although the
 			// post-primitive path for P_CatchException is also important.
+			val countdown =
+				interpreter.function!!.code().reoptimizationCountdown
 			if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
-				.decrement(interpreter, 0))
+				.decrement(interpreter, countdown, 0))
 			{
 				// Run the new replacement chunk instead.
 				return interpreter.runChunk()

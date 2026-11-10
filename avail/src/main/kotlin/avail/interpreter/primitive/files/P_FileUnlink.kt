@@ -1,6 +1,6 @@
 /*
  * P_FileUnlink.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PARTIAL_SUCCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive4
 import avail.io.IOSystem
@@ -72,9 +72,12 @@ import java.util.EnumSet
 
 /**
  * **Primitive:** Unlink the specified [path][Path] from the file system.
+ *
+ * The unlink runs on the [IOSystem]'s file executor while the calling fiber is
+ * suspended, since changing the file system's metadata can take a long time.
  */
 @Suppress("unused")
-object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
+object P_FileUnlink : Primitive4(CanSuspend, HasSideEffect)
 {
 	override fun attempt4(
 		interpreter: Interpreter,
@@ -93,121 +96,140 @@ object P_FileUnlink : Primitive4(CanInline, HasSideEffect)
 				return fail(E_INVALID_PATH)
 			}
 
-		// Unless the unlink should be recursive, then try unlinking the target
-		// directly.
-		if (!recursive.extractBoolean)
-		{
-			try
+		val isRecursive = recursive.extractBoolean
+		val mustExist = requireExistence.extractBoolean
+		val visitOptions =
+			if (followSymlinks.extractBoolean)
 			{
-				if (requireExistence.extractBoolean)
+				EnumSet.of(FileVisitOption.FOLLOW_LINKS)
+			}
+			else
+			{
+				EnumSet.noneOf(FileVisitOption::class.java)
+			}
+		return suspendThen {
+			// Unlinking changes the file system's metadata, which can block
+			// for a long time, such as while the file system commits a
+			// transaction that a concurrent drive flush has claimed, so it
+			// runs on the I/O system's file executor instead of on an
+			// interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				// Unless the unlink should be recursive, then try unlinking the
+				// target directly.
+				if (!isRecursive)
 				{
-					Files.delete(path)
-				}
-				else
-				{
-					Files.deleteIfExists(path)
-				}
-			}
-			catch (e: SecurityException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: AccessDeniedException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: NoSuchFileException)
-			{
-				return fail(E_NO_FILE)
-			}
-			catch (e: DirectoryNotEmptyException)
-			{
-				return fail(E_DIRECTORY_NOT_EMPTY)
-			}
-			catch (e: IOException)
-			{
-				return fail(E_IO_ERROR)
-			}
-		}
-		else
-		{
-			// Otherwise, perform a recursive unlink.
-			val visitOptions =
-				if (followSymlinks.extractBoolean)
-				{
-					EnumSet.of(FileVisitOption.FOLLOW_LINKS)
-				}
-				else
-				{
-					EnumSet.noneOf(FileVisitOption::class.java)
-				}
-			try
-			{
-				val partialSuccess = Mutable(false)
-				Files.walkFileTree(
-					path,
-					visitOptions,
-					Integer.MAX_VALUE,
-					object : FileVisitor<Path>
+					try
 					{
-						override fun preVisitDirectory(
-							dir: Path,
-							unused: BasicFileAttributes
-						): FileVisitResult
+						if (mustExist)
 						{
-							return CONTINUE
+							Files.delete(path)
 						}
-
-						@Throws(IOException::class)
-						override fun visitFile(
-							file: Path,
-							unused: BasicFileAttributes
-						): FileVisitResult
+						else
 						{
-							Files.deleteIfExists(file)
-							return CONTINUE
+							Files.deleteIfExists(path)
 						}
-
-						override fun visitFileFailed(
-							file: Path,
-							unused: IOException
-						): FileVisitResult
-						{
-							partialSuccess.value = true
-							return CONTINUE
-						}
-
-						@Throws(IOException::class)
-						override fun postVisitDirectory(
-							dir: Path,
-							e: IOException?): FileVisitResult
-						{
-							if (e !== null)
-							{
-								partialSuccess.value = true
-							}
-							else
-							{
-								Files.deleteIfExists(dir)
-							}
-							return CONTINUE
-						}
-					})
-				if (partialSuccess.value)
-				{
-					return fail(E_PARTIAL_SUCCESS)
+					}
+					catch (e: SecurityException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: AccessDeniedException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: NoSuchFileException)
+					{
+						fail(E_NO_FILE)
+						return@executeFileTask
+					}
+					catch (e: DirectoryNotEmptyException)
+					{
+						fail(E_DIRECTORY_NOT_EMPTY)
+						return@executeFileTask
+					}
+					catch (e: IOException)
+					{
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
 				}
-			}
-			catch (e: SecurityException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: IOException)
-			{
-				return fail(E_IO_ERROR)
+				else
+				{
+					// Otherwise, perform a recursive unlink.
+					try
+					{
+						val partialSuccess = Mutable(false)
+						Files.walkFileTree(
+							path,
+							visitOptions,
+							Integer.MAX_VALUE,
+							object : FileVisitor<Path>
+							{
+								override fun preVisitDirectory(
+									dir: Path,
+									unused: BasicFileAttributes
+								): FileVisitResult
+								{
+									return CONTINUE
+								}
+
+								@Throws(IOException::class)
+								override fun visitFile(
+									file: Path,
+									unused: BasicFileAttributes
+								): FileVisitResult
+								{
+									Files.deleteIfExists(file)
+									return CONTINUE
+								}
+
+								override fun visitFileFailed(
+									file: Path,
+									unused: IOException
+								): FileVisitResult
+								{
+									partialSuccess.value = true
+									return CONTINUE
+								}
+
+								@Throws(IOException::class)
+								override fun postVisitDirectory(
+									dir: Path,
+									e: IOException?): FileVisitResult
+								{
+									if (e !== null)
+									{
+										partialSuccess.value = true
+									}
+									else
+									{
+										Files.deleteIfExists(dir)
+									}
+									return CONTINUE
+								}
+							})
+						if (partialSuccess.value)
+						{
+							fail(E_PARTIAL_SUCCESS)
+							return@executeFileTask
+						}
+					}
+					catch (e: SecurityException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: IOException)
+					{
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
+				}
+				succeed(nil)
 			}
 		}
-		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

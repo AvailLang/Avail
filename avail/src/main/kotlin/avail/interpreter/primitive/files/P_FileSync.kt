@@ -1,6 +1,6 @@
 /*
  * P_FileSync.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,28 +33,16 @@ package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
-import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
 import avail.descriptor.representation.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_Fiber.Companion.availLoader
-import avail.descriptor.representation.A_Fiber.Companion.heritableFiberGlobals
-import avail.descriptor.representation.A_Fiber.Companion.textInterface
-import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.returnType
-import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.StringDescriptor
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
@@ -62,9 +50,10 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive4
+import avail.interpreter.primitive.Primitive1
+import avail.io.IOSystem
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
@@ -75,23 +64,20 @@ import java.nio.channels.AsynchronousFileChannel
  * associated with the [handle][AtomDescriptor] to synchronize with the
  * underlying device.
  *
- * Answer a new fiber which, if the sync is eventually successful, will be
- * started to run the success [function][FunctionDescriptor].  If the sync fails
- * with an [IOException], the fiber will be started to apply the failure
- * function to the error code.  The fiber runs at the specified priority.
+ * The calling fiber is suspended while the synchronization runs on the
+ * [IOSystem]'s file executor, since it can take a long time.  The fiber
+ * resumes when the synchronization completes, or fails with
+ * [E_IO_ERROR] if it does not.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileSync : Primitive4(CanInline, HasSideEffect)
+object P_FileSync : Primitive1(CanSuspend, HasSideEffect)
 {
-	override fun attempt4(
+	override fun attempt1(
 		interpreter: Interpreter,
-		atom: AvailObject,
-		succeed: AvailObject,
-		fail: AvailObject,
-		priority: AvailObject
+		atom: AvailObject
 	): A_BasicObject? = interpreter.run {
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
@@ -104,61 +90,33 @@ object P_FileSync : Primitive4(CanInline, HasSideEffect)
 		{
 			return fail(E_NOT_OPEN_FOR_WRITE)
 		}
-
-		// Don't block an execution thread - use the runtime's file executor
-		// pool instead.  That keeps all the execution threads humming, even if
-		// there are several pending blocking I/O operations (like sync).  Note
-		// that the current (2014.06.11) implementation of the file executor
-		// specifies an unbounded queue, so the fiber execution threads will
-		// never be blocked waiting for I/O.
-		val priorityInt = priority.extractInt
-		val current = fiber()
-		val newFiber = newFiber(
-			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			runtime,
-			current.textInterface,
-			priorityInt)
-		{
-			StringDescriptor.stringFrom(
-				"Asynchronous file sync, ${handle.filename}")
-		}
-		newFiber.availLoader = current.availLoader
-		newFiber.heritableFiberGlobals =
-			current.heritableFiberGlobals.makeShared()
-		newFiber.makeShared()
-		succeed.makeShared()
-		fail.makeShared()
-
-		runtime.ioSystem.executeFileTask(
-			Runnable {
+		return suspendThen {
+			// Synchronizing blocks until the device reports that the data is
+			// stored, which can take a long time, so it runs on the I/O
+			// system's file executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
 				try
 				{
 					handle.channel.force(true)
 				}
 				catch (e: IOException)
 				{
-					runtime.runOutermostFunction(
-						newFiber, fail, listOf(E_IO_ERROR.numericCode()), false)
-					return@Runnable
+					fail(E_IO_ERROR)
+					return@executeFileTask
 				}
-				runtime.runOutermostFunction(
-					newFiber, succeed, emptyList(), false)
-			})
-		return newFiber
+				succeed(nil)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(
-				ATOM(),
-				functionType(emptyTuple(), TOP()),
-				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP()),
-				u8),
-			fiberType(TOP()))
+		functionType(tuple(ATOM()), TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
-			set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_NOT_OPEN_FOR_WRITE))
+			set(
+				E_INVALID_HANDLE,
+				E_SPECIAL_ATOM,
+				E_NOT_OPEN_FOR_WRITE,
+				E_IO_ERROR))
 }

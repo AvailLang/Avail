@@ -1,6 +1,6 @@
 /*
  * P_SocketIPv4Connect.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,51 +32,37 @@
 
 package avail.interpreter.primitive.sockets
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
-import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
 import avail.descriptor.representation.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_Fiber.Companion.availLoader
-import avail.descriptor.representation.A_Fiber.Companion.heritableFiberGlobals
-import avail.descriptor.representation.A_Fiber.Companion.textInterface
-import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.representation.A_Number.Companion.extractUnsignedShort
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.returnType
-import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.Primitive3
 import avail.io.SimpleCompletionHandler
 import java.net.Inet4Address
 import java.net.InetAddress.getByAddress
@@ -87,31 +73,21 @@ import java.nio.channels.AsynchronousSocketChannel
 /**
  * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
  * specified [handle][A_Atom] to an [IPv4&#32;address][Inet4Address] and port.
- * Create a new [fiber][FiberDescriptor] to respond to the asynchronous
- * completion of the operation; the fiber will run at the specified
- * [priority][u8]. If the operation succeeds, then eventually start the new
- * fiber to apply the [success&#32;function][FunctionDescriptor]. If the
- * operation fails, then eventually start the new fiber to apply the
- * [failure&#32;function][FunctionDescriptor] to the numeric
- * [error&#32;code][AvailErrorCode]. Answer the new fiber.
+ * The calling fiber is suspended until the connection is established, then
+ * resumed.  If the connection fails, the fiber fails with [E_IO_ERROR], or
+ * with [E_PERMISSION_DENIED] if a security manager forbids it.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
+object P_SocketIPv4Connect : Primitive3(CanSuspend, HasSideEffect)
 {
-	override fun attemptN(
+	override fun attempt3(
 		interpreter: Interpreter,
-		args: Array<AvailObject>
+		handle: AvailObject,
+		addressTuple: AvailObject,
+		port: AvailObject
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(6)
-		val handle = args[0]
-		val addressTuple = args[1]
-		val port = args[2]
-		val succeed = args[3]
-		val fail = args[4]
-		val priority = args[5]
-
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
@@ -136,73 +112,27 @@ object P_SocketIPv4Connect : PrimitiveN(6, CanInline, HasSideEffect)
 			// range of addresses.
 			return fail(E_IO_ERROR)
 		}
-
-		val current = fiber()
-		val newFiber = newFiber(
-			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			runtime,
-			current.textInterface,
-			priority.extractInt)
-		{
-			formatString(
-				"Socket IPv4 connect, %s:%d",
-				addressTuple.toString(),
-				port.extractInt)
-		}
-		// If the current fiber is an Avail fiber, then the new one should be
-		// also.
-		newFiber.availLoader = current.availLoader
-		// Share and inherit any heritable variables.
-		newFiber.heritableFiberGlobals =
-			current.heritableFiberGlobals.makeShared()
-		// Share everything that will potentially be visible to the fiber.
-		newFiber.makeShared()
-		succeed.makeShared()
-		fail.makeShared()
-		// Now start the asynchronous connect.
-		val runtime = currentRuntime()
-		return try
-		{
-			socket.connect(
-				address,
-				Unit,
-				SimpleCompletionHandler(
-					{
-						runtime.runOutermostFunction(
-							newFiber, succeed, emptyList(), false)
-					},
-					{
-						runtime.runOutermostFunction(
-							newFiber,
-							fail,
-							listOf(E_IO_ERROR.numericCode()),
-							false)
-					}))
-			newFiber
-		}
-		catch (e: SecurityException)
-		{
-			fail(E_PERMISSION_DENIED)
+		return suspendThen {
+			// The socket completes the connection asynchronously, and its
+			// completion handler resumes the fiber.
+			SimpleCompletionHandler<Void?>(
+				{ succeed(nil) },
+				{
+					fail(
+						if (throwable is SecurityException) E_PERMISSION_DENIED
+						else E_IO_ERROR)
+				}
+			).guardedDo { socket.connect(address, Unit, handler) }
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tupleFromArray(
+			tuple(
 				ATOM(),
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(4),
-					emptyTuple,
-					u8),
-				u16,
-				functionType(
-					emptyTuple,
-					TOP()),
-				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP()),
-				u8),
-			mostGeneralFiberType())
+				tupleTypeForSizesTypesDefaultType(singleInt(4), emptyTuple, u8),
+				u16),
+			TOP())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

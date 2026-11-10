@@ -1,6 +1,6 @@
 /*
  * P_FileOpen.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive4
 import avail.io.IOSystem
@@ -86,10 +86,15 @@ import java.util.EnumSet
  * **Primitive:** Open an [file][AsynchronousFileChannel]. Answer a
  * [handle][AtomDescriptor] that uniquely identifies the file.
  *
+ * The open itself runs on the [IOSystem]'s file executor while the calling
+ * fiber is suspended, since the operating system can take a long time to
+ * create or open a file.  The fiber resumes with the handle, or fails with the
+ * reason the open failed.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileOpen : Primitive4(CanInline, HasSideEffect)
+object P_FileOpen : Primitive4(CanSuspend, HasSideEffect)
 {
 	override fun attempt4(
 		interpreter: Interpreter,
@@ -128,42 +133,53 @@ object P_FileOpen : Primitive4(CanInline, HasSideEffect)
 				return fail(E_INVALID_PATH)
 			}
 
-		val atom = createAtom(filename, nil)
-		val channel: AsynchronousFileChannel =
-			try
-			{
-				ioSystem.openFile(path, fileOptions, *fileAttributes)
+		return suspendThen {
+			// Opening a file can block for a long time, such as while the file
+			// system commits a transaction that a concurrent drive flush has
+			// claimed, so it runs on the I/O system's file executor instead of
+			// on an interpreter thread.
+			ioSystem.executeFileTask {
+				val channel: AsynchronousFileChannel =
+					try
+					{
+						ioSystem.openFile(path, fileOptions, *fileAttributes)
+					}
+					catch (e: IllegalArgumentException)
+					{
+						fail(E_ILLEGAL_OPTION)
+						return@executeFileTask
+					}
+					catch (e: UnsupportedOperationException)
+					{
+						fail(E_OPERATION_NOT_SUPPORTED)
+						return@executeFileTask
+					}
+					catch (e: SecurityException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: AccessDeniedException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: IOException)
+					{
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
+				val fileHandle = FileHandle(
+					filename,
+					alignmentInt,
+					fileOptions.contains(READ),
+					fileOptions.contains(WRITE),
+					channel)
+				val atom = createAtom(filename, nil)
+				atom.setAtomProperty(FILE_KEY.atom, identityPojo(fileHandle))
+				succeed(atom)
 			}
-			catch (e: IllegalArgumentException)
-			{
-				return fail(E_ILLEGAL_OPTION)
-			}
-			catch (e: UnsupportedOperationException)
-			{
-				return fail(E_OPERATION_NOT_SUPPORTED)
-			}
-			catch (e: SecurityException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: AccessDeniedException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: IOException)
-			{
-				return fail(E_IO_ERROR)
-			}
-
-		val fileHandle = FileHandle(
-			filename,
-			alignmentInt,
-			fileOptions.contains(READ),
-			fileOptions.contains(WRITE),
-			channel)
-		val pojo = identityPojo(fileHandle)
-		atom.setAtomProperty(FILE_KEY.atom, pojo)
-		return atom
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

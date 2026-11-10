@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,16 +71,11 @@ Names
 		\|on success doing_,⁇\
 		\|on failure doing_,⁇\
 		\|«forked at priority_»",
-	"a fiber synchronizing_with file system,then_else_priority_",
-	"a fiber truncating_to_bytes⁇then_else_priority_",
 	"Refresh_with file system",
+	"Synchronize_with file system",
+	"Truncate_to_bytes⁇with file system",
 
 	/* Directory I/O. */
-	"a fiber creating a directory named_\
-		\|«with file access rights_,⁇»\
-		\|then_,⁇\
-		\|else_,⁇\
-		\|«forked at priority_»",
 	"Create a directory named_«with file access rights_»",
 
 	/* File cleanup. */
@@ -394,61 +389,46 @@ Public method "_'s⁇size" is
 	] : whole number (f's handle)
 ] : whole number;
 
-/* Truncate a file. */
-Private method "private truncate_to_then_else_priority_" is
-[
-	fileHandle : atom,
-	newSize : whole number,
-	then : []→⊤,
-	else : [{I/O-error code}ᵀ]→⊤,
-	priority : byte
-|
-	Primitive FileTruncate (e : {
-		invalid-handle code,
-		special-atom code,
-		not-open-for-write code}ᵀ);
-	Raise an exception for e
-] : fiber→⊤;
-
-
 /**
  * Set the size of the specified {@type "writable file"} to {@param "newSize"},
  * if {@param "newSize"} is less than the current size of {@param "f"},
- * otherwise do nothing.  Any data beyond the new size will be destroyed.
+ * otherwise do nothing.  Any data beyond the new size will be destroyed.  The
+ * current fiber is suspended while the truncation takes place, without
+ * blocking an interpreter thread.
  *
- * @method "a fiber truncating_to_bytes⁇then_else_priority_"
+ * @method "Truncate_to_bytes⁇with file system"
  * @param "f" "writable file"
  * @param "newSize" "whole number"
- * @param "success" "[]→⊤"
- * @param "failure" "[{I/O-error code}ᵀ]→⊤"
- * @param "priority" "byte"
- * @returns "fiber"
- * @raises "invalid handle"
+ * @returns "⊤"
+ * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
- * @raises "invalid handle"
+ * @raises "invalid-handle exception"
  *         If {@param "f"} is not a file handle.
- * @raises "special atom"
+ * @raises "special-atom exception"
  *         If {@param "f"} is a special atom.
- * @raises "not open for write"
+ * @raises "not-open-for-write exception"
  *         If {@param "f"} is a valid file handle, but not opened for write.
- * @category "Asynchronous IO" "Files"
+ * @category "Files" "Synchronous IO"
  */
-Public method "a fiber truncating_to_bytes⁇then_else_priority_" is
+Public method "Truncate_to_bytes⁇with file system" is
 [
 	f : writable file,
-	newSize : whole number,
-	success : []→⊤,
-	failure : [{I/O-error code}ᵀ]→⊤,
-	priority : byte
+	newSize : whole number
 |
-	private truncate f's handle
-		to newSize
-		then success
-		else failure
-		priority priority
-] : fiber→⊤;
+	[
+		handle : atom,
+		size : whole number
+	|
+		Primitive FileTruncate (e : {
+			invalid-handle code,
+			special-atom code,
+			not-open-for-write code,
+			I/O-error code}ᵀ);
+		Raise an exception for e
+	] : ⊤ (f's handle, newSize);
+] : ⊤;
 
 Private method
 	"private starting at_read_byte|bytes from_into_else_priority_" is
@@ -536,39 +516,34 @@ Public method
  * Sigh.
  *
  * Fortunately, we have the "fileExecutor" pool of threads in the VM for just
- * that purpose – synchronous I/O operations.  We accommodate opening files,
- * renaming files and directories, and other similarly synchronous operations by
- * using the same dedicated pool.
+ * that purpose – synchronous I/O operations.  The synchronization runs there
+ * while the current fiber is suspended, so no interpreter thread is blocked
+ * waiting for it.
  *
  * @method "Synchronize_with file system"
  * @param "f" "writable file"
- * @returns "fiber"
+ * @returns "⊤"
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
- * @category "Files" "Asynchronous IO"
+ * @category "Files" "Synchronous IO"
  */
-Public method "a fiber synchronizing_with file system,then_else_priority_" is
+Public method "Synchronize_with file system" is
 [
-	f : writable file,
-	succeed : []→⊤,
-	fail : [{I/O-error code}ᵀ]→⊤,
-	priority : byte
+	f : writable file
 |
 	[
-		handle : atom,
-		succeed2 : []→⊤,
-		fail2 : [{I/O-error code}ᵀ]→⊤,
-		priority2 : byte
+		handle : atom
 	|
 		Primitive FileSync (e : {
 			invalid-handle code,
 			special-atom code,
-			not-open-for-write code}ᵀ);
+			not-open-for-write code,
+			I/O-error code}ᵀ);
 		Raise an exception for e
-	] : fiber (f's handle, succeed, fail, priority)
-] : fiber;
+	] : ⊤ (f's handle);
+] : ⊤;
 
 Private method "private refresh_with file system" is
 [
@@ -646,19 +621,18 @@ Semantic restriction "Using|using_,⁇do_" is
 	action's return type
 ];
 
-Private method
-	"private create directory_file access rights_then_else_priority_"
-is
+Private method "private create directory_file access rights_" is
 [
 	fn : string,
-	rights : {[1..9]|},
-	succeed : []→⊤,
-	fail : [{file-exists code, I/O-error code, permission-denied code}ᵀ]→⊤,
-	priority : byte
+	rights : {[1..9]|}
 |
-	Primitive CreateDirectory (e : {invalid-path code}ᵀ);
+	Primitive CreateDirectory (e : {
+		invalid-path code,
+		file-exists code,
+		permission-denied code,
+		I/O-error code}ᵀ);
 	Raise an exception for e
-] : fiber→⊤;
+] : ⊤;
 
 _default_directory_access_rights ::= "rwxr-xr-x"→file access rights;
 
@@ -676,76 +650,23 @@ Public method "default directory access rights" is
 ];
 
 /**
- * Create a new directory asynchronously. If the operation succeeds, then
- * eventually apply {@param "succeed"} in the answered {@type "fiber"}. If the
- * operation fails, then eventually apply {@param "fail"} to the error code in
- * the answered {@type "fiber"}.
- *
- * @method
- *   "a fiber creating a directory named_\
- *      \|«with file access rights_,⁇»\
- *      \|then_,⁇\
- *      \|else_,⁇\
- *      \|«forked at priority_»"
- * @param "fn" "file name"
- *        The {@type "file name" name} of the target to create.
- * @param "optionalRights" "{file access right|}?"
- *        The {@type "file access right"}s with which to create the new
- *        directory. If not specified, then default to <code>rw-r--r--</code>.
- *        If the file system does not support {@type "file access right"}s, then
- *        just create the directory.
- * @param "succeed" "[]→⊤"
- *        What to do after the directory is successfully created.
- * @param "fail" "[{I/O-error code, permission-denied code}}ᵀ]→⊤"
- *        What to do with the error code if directory creation fails.
- * @param "optionalPriority" "byte?"
- *        The priority at which to launch the answered {@type "fiber"}. If not
- *        specified, then default to the {@method "_'s⁇priority" priority} of
- *        the {@method "current fiber"}.
- * @returns "fiber→⊤"
- *          The {@type "fiber"} which will apply {@param "succeed"} or {@param
- *          "fail"}, as appropriate.
- * @raises "invalid-path exception"
- *         If {@param "fn"} does not represent a valid path.
- * @category "Asynchronous IO" "Files"
- */
-Public method
-	"a fiber creating a directory named_\
-		\|«with file access rights_,⁇»\
-		\|then_,⁇\
-		\|else_,⁇\
-		\|«forked at priority_»"
-is
-[
-	fn : file name,
-	optionalRights : {file access right|}?,
-	succeed : []→⊤,
-	fail : [{file-exists code, I/O-error code, permission-denied code}ᵀ]→⊤,
-	optionalPriority : byte?
-|
-	rights ::= map optionalRights[1] else [_default_directory_access_rights]
-		through [r : file access right | r→numeric code];
-	private create directory fn's name
-		file access rights rights
-		then succeed
-		else fail
-		priority optionalPriority[1] else [current fiber's priority]
-] : fiber→⊤;
-
-/**
- * Create a new directory synchronously.
+ * Create a new directory.  The current fiber is suspended while the directory
+ * is created, without blocking an interpreter thread.
  *
  * @method "Create a directory named_«with file access rights_»"
  * @param "fn" "file name"
  *        The {@type "file name" name} of the target to create.
  * @param "optionalRights" "{file access right|}?"
  *        The {@type "file access right"}s with which to create the new
- *        directory. If not specified, then default to <code>rw-r--r--</code>.
+ *        directory. If not specified, then default to {@method
+ *        "default directory access rights"}, which are <code>rwxr-xr-x</code>.
  *        If the file system does not support {@type "file access right"}s, then
  *        just create the directory.
  * @returns "⊤"
  * @raises "invalid-path exception"
  *         If {@param "fn"} does not represent a valid path.
+ * @raises "file-exists exception"
+ *         If a file or directory named {@param "fn"} already exists.
  * @raises "permission-denied exception"
  *         If the operation is not permitted.
  * @raises "I/O exception"
@@ -759,21 +680,7 @@ Public method "Create a directory named_«with file access rights_»" is
 |
 	rights ::= map optionalRights[1] else [_default_directory_access_rights]
 		through [r : file access right | r→numeric code];
-	sem ::= a semaphore named "create " ++ fn's name with 0 out of 1 permits;
-	killer : exception;
-	Ignore: private create directory fn's name
-		file access rights rights
-		then [Signal sem;]
-		else
-		[
-			e : {file-exists code, I/O-error code, permission-denied code}ᵀ
-		|
-			killer := an exception for e;
-			Signal sem;
-		]
-		priority current fiber's priority;
-	Await sem;
-	If killer is assigned then [Raise killer];
+	private create directory fn's name file access rights rights;
 ] : ⊤;
 
 /**

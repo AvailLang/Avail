@@ -1,6 +1,6 @@
 /*
  * P_FileClose.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive1
+import avail.io.IOSystem
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
@@ -58,10 +59,14 @@ import java.nio.channels.AsynchronousFileChannel
  * specified [handle][AtomDescriptor]. Forget the association between the handle
  * and the file.
  *
+ * The association is forgotten at once, and the close then runs on the
+ * [IOSystem]'s file executor while the calling fiber is suspended, since
+ * closing a file can block.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileClose : Primitive1(CanInline, HasSideEffect)
+object P_FileClose : Primitive1(CanSuspend, HasSideEffect)
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -73,18 +78,25 @@ object P_FileClose : Primitive1(CanInline, HasSideEffect)
 			return fail(E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
-		try
-		{
-			handle.channel.close()
-		}
-		catch (e: IOException)
-		{
-			// There isn't much to do about a failed close, especially since
-			// we've already forgotten about the handle. There's no reason
-			// to fail the primitive.
-		}
 		atom.setAtomProperty(FILE_KEY.atom, nil)
-		return nil
+		return suspendThen {
+			// Closing can block, such as while a synchronization of the same
+			// file is still in progress, so it runs on the I/O system's file
+			// executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				try
+				{
+					handle.channel.close()
+				}
+				catch (e: IOException)
+				{
+					// There isn't much to do about a failed close, especially
+					// since we've already forgotten about the handle. There's
+					// no reason to fail the primitive.
+				}
+				succeed(nil)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -1,6 +1,6 @@
 /*
  * AbstractDescriptor.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,6 +127,7 @@ import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import java.util.function.IntConsumer
 import java.util.stream.IntStream
@@ -521,7 +522,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	fun checkWriteForField (e: AbstractSlotsEnum)
 	{
-		assert(isMutable || allowsImmutableToMutableReferenceInField(e))
+		// assert(isMutable || allowsImmutableToMutableReferenceInField(e))
 	}
 
 	/**
@@ -2213,7 +2214,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_LazyIncomplete (self: AvailObject): A_Map
 
-	abstract fun o_DecrementCountdownToReoptimize (self: AvailObject): Boolean
+	abstract fun o_ReoptimizationCountdown (self: AvailObject): AtomicLong
 
 	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,

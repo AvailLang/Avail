@@ -1,6 +1,6 @@
 /*
  * P_FileSetPermissions.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive3
 import avail.io.IOSystem
@@ -73,10 +73,14 @@ import java.util.EnumSet
  * **Primitive:** Set the access rights for the file specified by the given
  * [path][Path].
  *
+ * The change runs on the [IOSystem]'s file executor while the calling fiber
+ * is suspended, since changing the file system's metadata can take a long
+ * time.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileSetPermissions : Primitive3(CanInline, HasSideEffect)
+object P_FileSetPermissions : Primitive3(CanSuspend, HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -99,24 +103,35 @@ object P_FileSetPermissions : Primitive3(CanInline, HasSideEffect)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
 				?: return fail(E_OPERATION_NOT_SUPPORTED)
-		try
-		{
-			view.setPermissions(permissions)
+		return suspendThen {
+			// Changing permissions changes the file system's metadata, which
+			// can block for a long time, such as while the file system commits
+			// a transaction that a concurrent drive flush has claimed, so it
+			// runs on the I/O system's file executor instead of on an
+			// interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				try
+				{
+					view.setPermissions(permissions)
+				}
+				catch (e: SecurityException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: AccessDeniedException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: IOException)
+				{
+					fail(E_IO_ERROR)
+					return@executeFileTask
+				}
+				succeed(nil)
+			}
 		}
-		catch (e: SecurityException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return fail(E_IO_ERROR)
-		}
-
-		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

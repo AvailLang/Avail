@@ -1,6 +1,6 @@
 /*
  * File Iterators.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -626,24 +626,7 @@ Method "Synchronize_" is
 	/* Now abandon the buffer. */
 	Synchronize (aFileWriter :: buffered writer);
 	/* Finally, wait for the file system to say it has synchronized the file. */
-	syncComplete ::= a semaphore named "sync is complete" with 0 permits;
-	hadError : boolean := false;
-	readFiber ::= a fiber
-		synchronizing aFileWriter's element source with file system,
-		then
-		[
-			Signal syncComplete;
-		]
-		else
-		[
-			error : {I/O-error code}ᵀ
-		|
-			hadError := true;
-			Signal syncComplete;
-		]
-		priority current fiber's priority;
-	Await syncComplete;
-	If hadError then [Raise an I/O exception];
+	Synchronize aFileWriter's element source with file system;
 ];
 
 /**
@@ -661,24 +644,5 @@ Method "Truncate_to_bytes⁇" is
 	aFileWriter : file writer,
 	newSize : whole number
 |
-	truncationComplete ::=
-		a semaphore named "truncation is complete" with 0 permits;
-	hadError : boolean := false;
-	readFiber ::= a fiber
-		truncating aFileWriter's element source
-		to newSize bytes
-		then
-		[
-			Signal truncationComplete;
-		]
-		else
-		[
-			error : {I/O-error code}ᵀ
-		|
-			hadError := true;
-			Signal truncationComplete;
-		]
-		priority current fiber's priority;
-	Await truncationComplete;
-	If hadError then [Raise an I/O exception];
+	Truncate aFileWriter's element source to newSize bytes with file system;
 ];

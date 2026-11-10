@@ -308,46 +308,6 @@ tasks {
 		classpath = files("../avail-anvil.jar")
 	}
 
-	val aotDir = layout.projectDirectory.dir("out")
-
-	val aotJsa = aotDir.file("aot.app.jsa").asFile.path
-
-	val runTraining1 = register<JavaExec>("runTraining1") {
-		jvmArguments.addAll(
-			"-ea",
-			"-DavailDeveloper=true",
-			"-Xmx6g",
-			"--illegal-final-field-mutation=deny",
-// Uncommenting causes JDK's JSA file to be skipped
-//			"--enable-native-access=ALL-UNNAMED",
-			"-XX:+AutoCreateSharedArchive",
-			"-XX:SharedArchiveFile=$aotJsa"
-		)
-		group = "anvil"
-		description = "Run the Avail Project Manager for an already built anvil.jar"
-		classpath = files("../avail-anvil.jar")
-	}
-
-	val runTraining2 = register<JavaExec>("runTraining2") {
-		require(File(aotJsa).exists()) {
-			"runTraining1 should have created the jsa file."
-		}
-		jvmArguments.addAll(
-			"-ea",
-			"-DavailDeveloper=true",
-			"-Xmx6g",
-			"--illegal-final-field-mutation=deny",
-// Uncommenting causes JDK's JSA file to be skipped
-//			"--enable-native-access=ALL-UNNAMED",
-// Check that the jsa is used:
-			//"-Xlog:class+load",
-			"-XX:SharedArchiveFile=$aotJsa"
-		)
-		group = "anvil"
-		description = "Run the Avail Project Manager for an already built anvil.jar"
-		classpath = files("../avail-anvil.jar")
-	}
-
 	// Native macOS bundling via jpackage. Produces a self-contained
 	// Anvil.app under avail/build/jpackage whose Contents/runtime is a
 	// jlinked image of the same JDK the workbench is compiled and run

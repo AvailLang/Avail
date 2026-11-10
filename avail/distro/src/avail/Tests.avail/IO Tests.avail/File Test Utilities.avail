@@ -1,6 +1,6 @@
 /*
  * File Test Utilities.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@ Names
 	"test directory",
 	"abracadabra.txt",
 	"scratch.txt",
+	"a fresh test file name",
+	"a private copy of abracadabra.txt",
 
 	/* Potentially unsupported operations. */
 	"Try_",
@@ -57,12 +59,20 @@ Private method "a test directory" is
 /* The test directory. */
 testDir : file name;
 
-Before running I/O test suite, do
+/**
+ * Create a new file with the specified name, containing the UTF-8 encoding of
+ * "abracadabra".
+ *
+ * @method "Create an abracadabra file named_"
+ * @param "fn" "file name"
+ *        The name of the file to create.  No file may exist by that name.
+ * @returns "⊤"
+ */
+Private method "Create an abracadabra file named_" is
 [
-	testDir := a test directory;
-	Create a directory named testDir;
-	Using a file writer for testDir/"abracadabra.txt"
-		with options {create new}, do
+	fn : file name
+|
+	Using a file writer for fn with options {create new}, do
 	[
 		f : file writer
 	|
@@ -71,6 +81,18 @@ Before running I/O test suite, do
 				converted by a UTF8 encoder;
 		Write bytes to f;
 	];
+] : ⊤;
+
+/* The files created here are shared by every I/O test, and the I/O tests run
+ * concurrently, so no test may modify them.  A test that changes a file's
+ * access rights, contents, or name works on a file of its own, from {@method
+ * "a private copy of abracadabra.txt"} or {@method "a fresh test file name"}.
+ */
+Before running I/O test suite, do
+[
+	testDir := a test directory;
+	Create a directory named testDir;
+	Create an abracadabra file named testDir/"abracadabra.txt";
 	Close a file writer for testDir/"scratch.txt"
 		with options {create new};
 ];
@@ -92,6 +114,35 @@ Public method "scratch.txt" is
 [
 	test directory/"scratch.txt"
 ];
+
+/**
+ * Answer a name for a file in the {@method "test directory"} that no other
+ * test uses.  No file exists by that name.
+ *
+ * @method "a fresh test file name"
+ * @returns "file name"
+ */
+Public method "a fresh test file name" is
+[
+	name ::= “a UUID” (UUID) ++ ".txt";
+	test directory/name
+] : file name;
+
+/**
+ * Create a file in the {@method "test directory"} that no other test uses,
+ * with the same contents as {@method "abracadabra.txt"}, and answer its name.
+ * A test that changes a file's access rights uses such a copy, since the
+ * shared file is read by other tests concurrently.
+ *
+ * @method "a private copy of abracadabra.txt"
+ * @returns "file name"
+ */
+Public method "a private copy of abracadabra.txt" is
+[
+	fn ::= a fresh test file name;
+	Create an abracadabra file named fn;
+	fn
+] : file name;
 
 Public method "Try_" is
 [

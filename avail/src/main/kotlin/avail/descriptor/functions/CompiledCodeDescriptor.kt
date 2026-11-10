@@ -1,6 +1,6 @@
 /*
  * CompiledCodeDescriptor.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,7 @@ import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.representation.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.A_RawFunction.Companion.nybbles
 import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.representation.A_RawFunction.Companion.reoptimizationCountdown
 import avail.descriptor.representation.A_RawFunction.Companion.shortMethodName
 import avail.descriptor.representation.A_String
 import avail.descriptor.representation.A_String.Companion.asNativeString
@@ -352,11 +353,6 @@ open class CompiledCodeDescriptor protected constructor(
 	 * A helper class that tracks invocation information in [AtomicLong]s.
 	 * Since these require neither locks nor complete memory barriers, they're
 	 * ideally suited for this purpose.
-	 *
-	 * TODO MvG - Put these directly into the CompiledCodeDescriptor instances,
-	 * allocating a shared descriptor per code object.  Perhaps all the other
-	 * fields should also be moved there (allowing the AvailObjects to reuse the
-	 * common empty arrays).
 	 */
 	internal class InvocationStatistic
 	{
@@ -671,20 +667,8 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 	}
 
-	override fun o_DecrementCountdownToReoptimize(self: AvailObject): Boolean
-	{
-		val countdown = invocationStatistic.countdownToReoptimize
-		if (countdown.get().let { it == Long.MAX_VALUE || it <= 0 })
-			return false
-		var newValue: Long
-		do
-		{
-			var counter = countdown.get()
-			if (counter == Long.MAX_VALUE || counter <= 0) return false
-			newValue = counter - 1
-		} while (!countdown.compareAndSet(counter, newValue))
-		return newValue == 0L
-	}
+	override fun o_ReoptimizationCountdown(self: AvailObject): AtomicLong =
+		invocationStatistic.countdownToReoptimize
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
 		self: AvailObject,
@@ -1203,6 +1187,35 @@ open class CompiledCodeDescriptor protected constructor(
 
 	companion object
 	{
+		/**
+		 * Atomically decrement a raw function's countdown to reoptimization,
+		 * obtained from its [reoptimizationCountdown].  A countdown of
+		 * [Long.MAX_VALUE] means the code will not be reoptimized, and a
+		 * countdown that is zero or negative means it is already being
+		 * reoptimized, so neither is decremented.
+		 *
+		 * @param countdown
+		 *   The [AtomicLong] holding the countdown.
+		 * @return
+		 *   Whether this call decremented the countdown to exactly zero, which
+		 *   makes the caller responsible for reoptimizing the code and
+		 *   resetting the countdown to something positive.
+		 */
+		@JvmStatic
+		fun decrementCountdownToReoptimize(countdown: AtomicLong): Boolean
+		{
+			if (countdown.get().let { it == Long.MAX_VALUE || it <= 0 })
+				return false
+			var newValue: Long
+			do
+			{
+				val counter = countdown.get()
+				if (counter == Long.MAX_VALUE || counter <= 0) return false
+				newValue = counter - 1
+			} while (!countdown.compareAndSet(counter, newValue))
+			return newValue == 0L
+		}
+
 		/** The set of all active [raw functions][CompiledCodeDescriptor]. */
 		private val activeRawFunctions: MutableSet<A_RawFunction> =
 			synchronizedSet(newSetFromMap(WeakHashMap()))

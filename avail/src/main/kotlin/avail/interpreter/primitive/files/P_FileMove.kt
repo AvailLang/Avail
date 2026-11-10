@@ -1,6 +1,6 @@
 /*
  * P_FileMove.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive3
 import avail.io.IOSystem
@@ -70,10 +70,13 @@ import java.nio.file.StandardCopyOption
  * supplied [boolean][booleanType] to decide whether
  * to permit the destination to be overwritten.
  *
+ * The move runs on the [IOSystem]'s file executor while the calling fiber is
+ * suspended, since changing the file system's metadata can take a long time.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileMove : Primitive3(CanInline, HasSideEffect)
+object P_FileMove : Primitive3(CanSuspend, HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -103,35 +106,47 @@ object P_FileMove : Primitive3(CanInline, HasSideEffect)
 			{
 				arrayOf()
 			}
-		try
-		{
-			Files.move(
-				sourcePath,
-				destinationPath,
-				*options)
+		return suspendThen {
+			// Moving changes the file system's metadata, which can block for a
+			// long time, such as while the file system commits a transaction
+			// that a concurrent drive flush has claimed, so it runs on the I/O
+			// system's file executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				try
+				{
+					Files.move(
+						sourcePath,
+						destinationPath,
+						*options)
+				}
+				catch (e: SecurityException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: AccessDeniedException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: NoSuchFileException)
+				{
+					fail(E_NO_FILE)
+					return@executeFileTask
+				}
+				catch (e: FileAlreadyExistsException)
+				{
+					fail(E_FILE_EXISTS)
+					return@executeFileTask
+				}
+				catch (e: IOException)
+				{
+					fail(E_IO_ERROR)
+					return@executeFileTask
+				}
+				succeed(nil)
+			}
 		}
-		catch (e: SecurityException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: NoSuchFileException)
-		{
-			return fail(E_NO_FILE)
-		}
-		catch (e: FileAlreadyExistsException)
-		{
-			return fail(E_FILE_EXISTS)
-		}
-		catch (e: IOException)
-		{
-			return fail(E_IO_ERROR)
-		}
-
-		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

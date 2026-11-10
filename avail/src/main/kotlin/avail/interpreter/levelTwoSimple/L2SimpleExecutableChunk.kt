@@ -1,6 +1,6 @@
 /*
  * L2SimpleExecutableChunk.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,13 @@
  */
 package avail.interpreter.levelTwoSimple
 
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.caller
 import avail.descriptor.representation.A_Continuation.Companion.registerDump
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.reoptimizationCountdown
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
@@ -62,6 +63,7 @@ import avail.optimizer.ExecutableChunk
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.StackReifier
 import avail.utility.Strings.increaseIndentation
+import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
 import kotlin.math.max
 
@@ -122,6 +124,12 @@ constructor(
 	/** Capture the primitive, if any, for easy access. */
 	private val primitive: Primitive? = code.codePrimitive()
 
+	/**
+	 * Capture the code's [reoptimizationCountdown], so that each invocation
+	 * decrements it directly.
+	 */
+	private val countdown: AtomicLong = code.reoptimizationCountdown
+
 	override fun name(): String = "L2Simple chunk: ${code.methodName}"
 
 	override fun runChunk(interpreter: Interpreter, offset: Int): AvailObject?
@@ -147,7 +155,7 @@ constructor(
 		if (offset <= 0)
 		{
 			// Decrement the countdown to reoptimization, possibly reoptimizing.
-			if (code.decrementCountdownToReoptimize())
+			if (decrementCountdownToReoptimize(countdown))
 			{
 				var savedArguments = interpreter.argsBuffer.toTypedArray()
 				OptimizationLevel.optimizationLevel(

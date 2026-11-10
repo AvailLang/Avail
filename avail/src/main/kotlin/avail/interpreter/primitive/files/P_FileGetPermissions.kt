@@ -1,6 +1,6 @@
 /*
  * P_FileGetPermissions.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive2
 import avail.io.IOSystem
@@ -75,10 +75,13 @@ import java.util.EnumMap
  * [POSIX&#32;file&#32;permissions][PosixFilePermission] that describe the
  * access rights granted by the file named by specified [path][Path].
  *
+ * The permissions are read on the [IOSystem]'s file executor while the calling
+ * fiber is suspended, since reading the file system's metadata can block.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileGetPermissions : Primitive2(CanInline, HasSideEffect)
+object P_FileGetPermissions : Primitive2(CanSuspend, HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -95,28 +98,39 @@ object P_FileGetPermissions : Primitive2(CanInline, HasSideEffect)
 				return fail(E_INVALID_PATH)
 			}
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
-		val permissions: Set<PosixFilePermission> =
-			try
-			{
-				Files.getPosixFilePermissions(path, *options)
+		return suspendThen {
+			// Reading the file system's metadata can block, such as on a
+			// network file system, so it runs on the I/O system's file
+			// executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				val permissions: Set<PosixFilePermission> =
+					try
+					{
+						Files.getPosixFilePermissions(path, *options)
+					}
+					catch (e: SecurityException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: AccessDeniedException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: IOException)
+					{
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
+					catch (e: UnsupportedOperationException)
+					{
+						fail(E_OPERATION_NOT_SUPPORTED)
+						return@executeFileTask
+					}
+				succeed(ordinalsFromPosixPermissions(permissions))
 			}
-			catch (e: SecurityException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: AccessDeniedException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: IOException)
-			{
-				return fail(E_IO_ERROR)
-			}
-			catch (e: UnsupportedOperationException)
-			{
-				return fail(E_OPERATION_NOT_SUPPORTED)
-			}
-		return ordinalsFromPosixPermissions(permissions)
+		}
 	}
 
 	/**

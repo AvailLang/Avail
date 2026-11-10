@@ -1,6 +1,6 @@
 /*
  * Abstract Random.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ Uses
 	"Common",
 	"Foundation" = (-"_'s⁇element type", …),
 	"Iterators",
-	"Rational Number",
 	"Streams"
 Names
 	/* Types. */
@@ -83,128 +82,63 @@ Public method "pRNG of_" is
 
 /**
  * Consume and answer a pseudorandom value from the specified {@type "pRNG"
- * generator}.
+ * generator}, uniformly distributed over the specified range.
+ *
+ * The generator's values are combined into one large value, drawing enough of
+ * them that the combined space is at least 2^16 times the size of the range.
+ * The largest multiple of the range's size that fits in that space is kept,
+ * and a combined value beyond it is rejected and drawn again, so every value
+ * of the range is equally likely.  Because the rejected tail is smaller than
+ * the range, which is at most a 2^16th of the combined space, fewer than one
+ * draw in 2^16 is rejected, however the range relates to the generator's
+ * element type.
  *
  * @method "_'s⁇next«value in»⁇_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
- * @param "range" "whole number's type"
- *        A subtype of the generator's {@method "_'s⁇element type" element
- *        type}. The result will lie within this range.
- * @returns "whole number"
+ * @param "range" "integer's type"
+ *        The finite range of the answer.
+ * @returns "integer"
  *          A pseudorandom value that is an instance of {@param "range"}.
  * @category "Data Abstractions" "Random"
  * @raises "incorrect-argument-type exception"
- *         If ⌈{@param "range"}⌉ is ∞.
+ *         If {@param "range"} is empty, or either of its bounds is infinite.
  */
 Public method "_'s⁇next«value in»⁇_" is
 [
 	rng : pRNG,
 	range : integer's type
 |
-	If range = ⊥ ∨ ⌈range⌉ = ∞ then
+	If range = ⊥ ∨ ⌈range⌉ = ∞ ∨ ⌊range⌋ = -∞ then
 	[
 		Raise an incorrect-argument-type exception
 	];
-
-	/* The following algorithm is used to uniformly map values from the range
-	 * onto pRNG's element type.
-	 */
-	rangeSize : natural number := ⌈range⌉ - ⌊range⌋ + 1 ?→ natural number;
-
-	rngSize ::=
-		⌈rng's element type⌉ - ⌊rng's element type⌋ + 1 ?→ natural number;
-
-	bitCount : whole number:= cast (log 2 of rngSize) → extended integer
-		into [w: whole number | w];
-
-	/* Calculate the number of values from pRNG are required to ensure that
-	 * no boundary condition will ever result in more than two values
-	 * being in contention.
-	 * m represents the number of times to inflate the bit range.  If
-	 * rng's range represents n bits, then the range required to accomplish
-	 * the task is (2^n)^m.  We will need to acquire m numbers from rng to
-	 * construct our final value through bit shifting.
-	 */
-	requiredValueCount ::= ⌈⌈log 2 of rangeSize⌉ ÷ bitCount⌉ → extended integer;
-
-	/* There will always be at least 1 roll required.  If the result of
-	 * requiredValueCount is less than 1, we need to choose 1
-	 */
-	requiredValueCounts : <extended integer…| 1..2> :=
-		<1> ++ <requiredValueCount>;
-	m ::= cast max requiredValueCounts
-		into [n : natural number | n];
-
-	/* Calculate the potential maximum random value that can occur as a result
-	 * of the values obtained from the pRNG.
-	 * The new adjusted rng to map the range on will be
-	 * [0..maxRandomValue]
-	 */
-	maxRandomValue : whole number := rngSize^m - 1;
-
-	/* Acquire all necessary values from rng */
-	generatedNumbers : <whole number…|> := <>;
-	For each i from 1 to m do
+	rangeSize ::= (⌈range⌉ - ⌊range⌋ + 1) ?→ natural number;
+	elementType ::= rng's element type;
+	rngSize ::= (⌈elementType⌉ - ⌊elementType⌋ + 1) ?→ natural number;
+	/* Decide how many of the generator's values to combine. */
+	drawCount : natural number := 1;
+	space : natural number := rngSize;
+	Until space ≥ rangeSize × 65536 do
 	[
-		generatedNumbers := generatedNumbers ++ <rng's current element>;
-		Advance rng;
+		drawCount := drawCount + 1;
+		space := space × rngSize;
 	];
-	/* Obtain the total random number value */
-	randomValue : whole number := generatedNumbers[1];
-	For each i from 2 to |generatedNumbers| do
+	/* Combined values at or beyond this limit are rejected. */
+	limit ::= space - space mod rangeSize;
+	randomValue : whole number := 0;
+	Do
 	[
-		randomValue := eject randomValue +
-			(generatedNumbers[i] << (bitCount  × (i - 1)));
-	];
-
-	/* Calculate the multiplier that indicates where on the newly adjusted
-	 * rng that a boundary condition exists.  This value is a rational number
-	 * @see "rational number" in Rational Number.avail*/
-	boundaryMultiple ::= maxRandomValue ÷ rangeSize (r);
-
-	/*Determine if a boundary condition is reached.  A boundary condition is
-	 * known to have been reached if the following conditions are met:
-	 *
-	 *      1. (((result + 1) ÷ boundaryMultiple)'s whole number part
-	 *          -  (result ÷ boundaryMultiple)'s whole number part) > 0
-	 *
-	 *      2. (result ÷ boundaryMultiple)'s fraction > 0
-	 */
-	resultRangeValue ::= randomValue ÷ boundaryMultiple;
-	incrementedResultRangeValue ::= (randomValue + 1) ÷ boundaryMultiple;
-	wholeNumberDiff ::= incrementedResultRangeValue's whole number part
-		- resultRangeValue's whole number part;
-
-	baseResult : integer := if wholeNumberDiff > 0
-		∧ resultRangeValue's fraction is nonzero then
-	[
-		/*TODO Write function to continuously roll till resolved*/
-		resolutionReached : boolean := false;
-		weightedProbability : fraction := resultRangeValue's fraction;
-		outcome : integer := -1;
-
-		Do
+		randomValue := 0;
+		Repeat
 		[
-			newBoundary ::= rngSize × weightedProbability;
-			newResult ::= rng's current element;
-
-			If newResult < newBoundary's whole number part then
-			[
-				outcome := resultRangeValue's whole number part;
-				resolutionReached := true;
-			] else if newResult > newBoundary's whole number part then
-			[
-				outcome := incrementedResultRangeValue's whole number part;
-				resolutionReached := true;
-			] else [weightedProbability := newBoundary's fraction;];
-		]
-		until resolutionReached;
-		outcome
-	] else [resultRangeValue's whole number part];
-
-	/* Adjust the base result to match*/
-	cast baseResult + ⌊range⌋ into [i : integer | i]
+			offset ::= (rng's current element - ⌊elementType⌋) ?→ whole number;
+			randomValue := randomValue × rngSize + offset;
+			Advance rng;
+		] drawCount times;
+	]
+	until randomValue < limit;
+	cast randomValue mod rangeSize + ⌊range⌋ into [i : integer | i]
 ] : integer;
 
 Semantic restriction "_'s⁇next«value in»⁇_" is

@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,9 +58,7 @@ Names
 	"Bind_to_«with a backlog of_connection|connections»",
 
 	/* Accepting. */
-	"a fiber waiting until_accepts a new connection«named_»,⁇\
-		\|on success doing_,⁇\
-		\|on failure doing_«,⁇forked at priority_»"
+	"accept a new connection«named_»on_"
 Body
 
 /* The default name for unspecified optional names. */
@@ -283,59 +281,33 @@ Public method "Bind_to_«with a backlog of_connection|connections»" is
 ] : ⊤;
 
 /**
- * Asynchronously accept an incoming connection on the specified {@type
- * "server socket"}. If the operation is successful, then fork a new {@type
- * "fiber"} to apply {@param "success"} to the newly connected {@type
- * "client socket"}. If the operation is unsuccessful, then fork a new fiber to
- * apply {@param "failure"} to the {@type "exception"} that classifies the
- * failure. Answer the new fiber.
+ * Accept an incoming connection on the specified {@type "server socket"}.
+ * Answer the resultant {@type "client socket"}.  The current fiber is
+ * suspended until a connection arrives, without blocking an interpreter
+ * thread.
  *
- * @method
- *    "a fiber waiting until_accepts a new connection«named_»,⁇\
- *    \|on success doing_,⁇\
- *    \|on failure doing_«,⁇forked at priority_»"
- * @param "s" "server socket"
+ * @method "accept a new connection«named_»on_"
  * @param "optionalName" "nonempty string?"
  *        An optional string that describes the purpose of the client socket at
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
- * @param "success" "[client socket]→⊤"
- *        The function to apply to the newly connected client socket.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the error code that classifies the failure of
- *        the asynchronous accept operation.
- * @param "optionalPriority" "byte?"
- *        If specified, then the priority of the new fiber. If not specified,
- *        then the new fiber will run at the same priority as the {@method
- *        "current fiber"}.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
- * @category "IO" "Networking" "Sockets"
+ * @param "s" "server socket"
+ * @returns "client socket"
+ *          The newly connected client socket.
+ * @raises "I/O exception"
+ *         If the accept fails.
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
-Public method
-	"a fiber waiting until_accepts a new connection«named_»,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«,⁇forked at priority_»"
-is
+Public method "accept a new connection«named_»on_" is
 [
-	s : server socket,
 	optionalName : nonempty string?,
-	success : [client socket]→⊤,
-	failure : [exception]→⊤,
-	optionalPriority : byte?
+	s : server socket
 |
 	name ::= optionalName[1] else [defaultName];
-	priority ::= optionalPriority[1] else [current fiber's priority];
-	good ::= [h : atom | success(a client socket with handle ::= h);];
-	bad ::= [c : natural number | failure(an exception for c);];
-	aFiber ::=
+	h ::=
 		[
-			h : atom,
-			nm : nonempty string,
-			f1 : [atom]→⊤,
-			f2 : [I/O-error code's type]→⊤,
-			p : byte
+			serverHandle : atom,
+			nm : nonempty string
 		|
 			Primitive ServerSocketAccept (code :
 			{
@@ -344,35 +316,9 @@ is
 				I/O-error code
 			}ᵀ);
 			Raise an exception for code
-		] : fiber (s's handle, name, good, bad, priority);
-	aFiber
-] : fiber;
-
-/**
- * @method "a fiber waiting until_accepts a new connection«named_»,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«,⁇forked at priority_»"
- * @restricts "server socket's type"
- * @restricts "nonempty string?'s type"
- * @restricts "[client socket]→⊤'s type"
- * @restricts "[exception]→⊤'s type"
- * @restricts "byte?'s type"
- *
- */
-Semantic restriction
-	"a fiber waiting until_accepts a new connection«named_»,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«,⁇forked at priority_»"
-is
-[
-	s : server socket's type,
-	optionalName : nonempty string?'s type,
-	success : ([client socket]→⊤)'s type,
-	failure : ([exception]→⊤)'s type,
-	optionalPriority : byte?'s type
-|
-	fiber→(success's return type ∪ failure's return type)
-];
+		] : atom (s's handle, name);
+	a client socket with handle ::= h
+] : client socket;
 
 /**
  * Answer the {@type "socket address"} to which the specified {@type

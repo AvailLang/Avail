@@ -1,6 +1,6 @@
 /*
  * P_FileSetOwner.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive3
 import avail.io.IOSystem
@@ -67,10 +67,14 @@ import java.nio.file.attribute.UserPrincipal
  * the file denoted by the specified [path][Path] to the [user][UserPrincipal]
  * denoted by the specified name.
  *
+ * The lookup and the change run on the [IOSystem]'s file executor while the
+ * calling fiber is suspended, since looking up a user and changing the file
+ * system's metadata can each take a long time.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileSetOwner : Primitive3(CanInline, HasSideEffect)
+object P_FileSetOwner : Primitive3(CanSuspend, HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -93,32 +97,45 @@ object P_FileSetOwner : Primitive3(CanInline, HasSideEffect)
 		val view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView::class.java, *options)
 				?: return fail(E_OPERATION_NOT_SUPPORTED)
-		try
-		{
-			val lookupService =
-				fileSystem.userPrincipalLookupService
-			val user =
-				lookupService.lookupPrincipalByName(userName.asNativeString())
-			view.owner = user
+		val userNameString = userName.asNativeString()
+		return suspendThen {
+			// Looking up the user can block on directory services, and changing
+			// the owner changes the file system's metadata, which can block for
+			// a long time, such as while the file system commits a transaction
+			// that a concurrent drive flush has claimed, so both run on the I/O
+			// system's file executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				try
+				{
+					val lookupService =
+						fileSystem.userPrincipalLookupService
+					val user =
+						lookupService.lookupPrincipalByName(userNameString)
+					view.owner = user
+				}
+				catch (e: SecurityException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: AccessDeniedException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: IOException)
+				{
+					fail(E_IO_ERROR)
+					return@executeFileTask
+				}
+				catch (e: UnsupportedOperationException)
+				{
+					fail(E_OPERATION_NOT_SUPPORTED)
+					return@executeFileTask
+				}
+				succeed(nil)
+			}
 		}
-		catch (e: SecurityException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return fail(E_IO_ERROR)
-		}
-		catch (e: UnsupportedOperationException)
-		{
-			return fail(E_OPERATION_NOT_SUPPORTED)
-		}
-
-		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

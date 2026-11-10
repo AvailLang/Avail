@@ -1,6 +1,6 @@
 /*
  * IndirectionDescriptor.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -378,7 +378,6 @@ import avail.descriptor.representation.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.representation.A_RawFunction.Companion.countdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
 import avail.descriptor.representation.A_RawFunction.Companion.decreaseCountdownToReoptimizeFromPoll
-import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_RawFunction.Companion.encounteredFallbackLookup
 import avail.descriptor.representation.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.representation.A_RawFunction.Companion.literalAt
@@ -397,6 +396,7 @@ import avail.descriptor.representation.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.representation.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.representation.A_RawFunction.Companion.packedDeclarationNames
+import avail.descriptor.representation.A_RawFunction.Companion.reoptimizationCountdown
 import avail.descriptor.representation.A_RawFunction.Companion.returnTypeIfPrimitiveFails
 import avail.descriptor.representation.A_RawFunction.Companion.returneeCheckStat
 import avail.descriptor.representation.A_RawFunction.Companion.returnerCheckStat
@@ -653,6 +653,7 @@ import java.util.Deque
 import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import java.util.function.IntConsumer
 import java.util.stream.IntStream
@@ -2155,8 +2156,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_LazyIncomplete(self: AvailObject): A_Map =
 		self { lazyIncomplete }
 
-	override fun o_DecrementCountdownToReoptimize(self: AvailObject): Boolean =
-		self { decrementCountdownToReoptimize() }
+	override fun o_ReoptimizationCountdown(self: AvailObject): AtomicLong =
+		self { reoptimizationCountdown }
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,

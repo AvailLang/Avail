@@ -1,6 +1,6 @@
 /*
  * Runners.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -497,18 +497,47 @@ Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
 	enterAction's return type
 ];
 
-"can parallelize" is a new atom;
-"cannot parallelize" is a new atom;
+/**
+ * Answer whether the {@type "unit test"}s of the specified {@type
+ * "root unit test suite" test suite} must run one at a time.  They must if the
+ * suite or any of its ancestors defines per-test test-fixture setup, since
+ * every test of the suite runs that setup, and a test-fixture is not presumed
+ * to tolerate concurrent use.
+ *
+ * @method "_runs its tests serially"
+ * @param "aSuite" "root unit test suite"
+ *        A unit test suite (possibly the {@method "root suite"}).
+ * @returns "boolean"
+ *          {@method "true"} if the suite's tests must run serially, {@method
+ *          "false"} otherwise.
+ * @category "Unit Testing"
+ */
+Private method "_runs its tests serially" is
+[
+	aSuite : root unit test suite
+|
+	serial : boolean := false;
+	suiteID : atom := aSuite's suite ID;
+	Until serial ∨ suiteID = root test suite ID do
+	[
+		suite ::= suites by atom[suiteID];
+		serial := ¬suite's test fixture setup is empty;
+		suiteID := suite's parent suite ID;
+	];
+	serial
+] : boolean;
 
 /**
- * Recursively report on all {@type "unit test"}s in the specified {@type
- * "unit test suite" test suite}. Assume that the argument's ancestors have
- * already run any necessary test-fixture setup (and will eventually run any
- * necessary test-fixture tear-down).
+ * Report on all {@type "unit test"}s in the specified {@type
+ * "root unit test suite" test suite} and its descendants, one test at a time.
+ * Bracket the tests of each suite, including those of its descendants, with
+ * that suite's test-fixture setup and tear-down.  Assume that the argument's
+ * ancestors have already run any necessary test-fixture setup (and will
+ * eventually run any necessary test-fixture tear-down).
  *
- * @method "recursively report on all tests in_"
- * @param "aSuite" "unit test suite"
- *        A unit test suite.
+ * @method "serially report on all tests in_"
+ * @param "initialSuite" "root unit test suite"
+ *        A unit test suite (possibly the {@method "root suite"}).
  * @returns "<unit test result…|>"
  *          A tuple of {@type "unit test result"}s representing the metrics
  *          obtained from the argument's tests and those of its descendent
@@ -519,7 +548,7 @@ Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
  *         If any of the test-fixture tear-down functions fail.
  * @category "Unit Testing"
  */
-Private method "recursively report on all tests in_" is
+Private method "serially report on all tests in_" is
 [
 	initialSuite : root unit test suite
 |
@@ -532,25 +561,8 @@ Private method "recursively report on all tests in_" is
 				extend test-fixture-setup exception
 					with suite ID : aSuite's suite ID's type
 				on error;
-			/* Determine which unit tests must run in serial, and which can be
-			 * run in parallel. If a test requires any individual fixtures, then
-			 * it cannot be run in parallel.*/
-
-			groups ::= group aSuite's unit tests by
-				[
-					test : unit test
-				|
-					if setup for test is empty then [can parallelize]
-					else [cannot parallelize]
-				];
-			computeMetric ::= [test : unit test | test metric for test];
-			/* We are under no obligation to preserve the order of the tests, so
-			 * it is perfectly fine to concatenate the two result tuples. */
-
-			parallel ::= groups[can parallelize] else [<>];
-			serial ::= groups[cannot parallelize] else [<>];
-			map parallel in parallel through computeMetric
-				++ map serial through computeMetric
+			map aSuite's unit tests through
+				[test : unit test | test metric for test]
 		],
 		on leaving do
 		[
@@ -561,6 +573,76 @@ Private method "recursively report on all tests in_" is
 					with suite ID : aSuite's suite ID's type
 				on error;
 		]
+] : <unit test result…|>;
+
+Forward method "recursively report on all tests in_" is
+	[root unit test suite]→<unit test result…|>;
+
+/**
+ * Recursively report on all {@type "unit test"}s in the specified {@type
+ * "root unit test suite" test suite} and its descendants, running as many of
+ * them concurrently as their test fixtures permit.  Assume that the argument's
+ * ancestors have already run any necessary test-fixture setup (and will
+ * eventually run any necessary test-fixture tear-down).
+ *
+ * If the suite {@method "_runs its tests serially"}, then report on it and its
+ * descendants {@method "serially report on all tests in_" serially}, since its
+ * per-test test-fixture setup applies to its descendants' tests as well.
+ * Otherwise, run the suite's per-suite test-fixture setup, then run each of
+ * its tests and each of its child suites concurrently, then run its per-suite
+ * test-fixture tear-down.  Tests in different suites are presumed not to
+ * interfere with one another, so a child suite does not wait for its siblings,
+ * nor for the tests of its parent.
+ *
+ * @method "recursively report on all tests in_"
+ * @param "aSuite" "root unit test suite"
+ *        A unit test suite (possibly the {@method "root suite"}).
+ * @returns "<unit test result…|>"
+ *          A tuple of {@type "unit test result"}s representing the metrics
+ *          obtained from the argument's tests and those of its descendent
+ *          test suites.
+ * @raises "test-fixture-setup exception"
+ *         If any of the test-fixture setup functions fail.
+ * @raises "test-fixture-tear-down exception"
+ *         If any of the test-fixture tear-down functions fail.
+ * @category "Unit Testing"
+ */
+Private method "recursively report on all tests in_" is
+[
+	aSuite : root unit test suite
+|
+	if aSuite runs its tests serially then
+	[
+		serially report on all tests in aSuite
+	]
+	else
+	[
+		Run each aSuite's suite fixture setup, raising
+			extend test-fixture-setup exception
+				with suite ID : aSuite's suite ID's type
+			on error;
+		/* Child suites come first, since each of them is usually more work
+		 * than a single test, and the work units start in order. */
+		childWork ::= map aSuite's child suite IDs through
+			[
+				childID : atom
+			|
+				[recursively report on all tests in suites by atom[childID]]
+			];
+		testWork ::= map aSuite's unit tests through
+			[test : unit test | [<test metric for test>]];
+		resultGroups ::= guard
+			[
+				map childWork ++ testWork in parallel through
+					[work : []→<unit test result…|> | work()]
+			]
+			intercept [e : worker exception | Raise e's causal exception];
+		Run each aSuite's suite fixture tear down, raising
+			extend test-fixture-tear-down exception
+				with suite ID : aSuite's suite ID's type
+			on error;
+		concatenate resultGroups
+	]
 ] : <unit test result…|>;
 
 /**

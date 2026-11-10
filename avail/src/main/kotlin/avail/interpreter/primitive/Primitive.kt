@@ -1156,11 +1156,7 @@ constructor(
 			// Subclasses may be more lenient about the function being absent.
 			return false
 		}
-		if (!hasFlag(Flag.CanInline)
-			|| hasFlag(Flag.CanSwitchContinuations)
-			|| hasFlag(Flag.CanSuspend)
-			|| hasFlag(Flag.Invokes)
-			|| hasFlag(Flag.Unknown))
+		if (!canRunAtSimpleCallSite)
 		{
 			// The primitive might suspend or invoke.  Fall back to a general
 			// invocation.
@@ -1241,8 +1237,26 @@ constructor(
 	): ((Interpreter)->A_BasicObject?)?
 	{
 		functionIfKnown ?: return null
+		// A primitive that might suspend or invoke can't be attempted in
+		// place, since it may need the stack reified first.
+		if (!canRunAtSimpleCallSite) return null
 		return ::nilpotentAttempt
 	}
+
+	/**
+	 * Whether L2Simple code may run this primitive directly at a call site,
+	 * either inline or as a nilpotent attempt, instead of through a general
+	 * invocation.  A primitive that might suspend its fiber, switch
+	 * continuations, invoke a function, or behave in ways the translator
+	 * cannot model must go through a general invocation, which reifies the
+	 * stack first.
+	 */
+	private val canRunAtSimpleCallSite: Boolean
+		get() = hasFlag(Flag.CanInline)
+			&& !hasFlag(Flag.CanSwitchContinuations)
+			&& !hasFlag(Flag.CanSuspend)
+			&& !hasFlag(Flag.Invokes)
+			&& !hasFlag(Flag.Unknown)
 
 	/**
 	 * A convenient operation that satisfies the function signature for the

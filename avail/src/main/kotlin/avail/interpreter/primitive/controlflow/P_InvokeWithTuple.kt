@@ -1,6 +1,6 @@
 /*
  * P_InvokeWithTuple.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -290,6 +290,12 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		{
 			val argReg = explodedArgumentReads[i - 1]
 			val argType = argReg.type
+			// Function types are contravariant in their parameter types, so
+			// the static parameter type is a lower bound on the parameter type
+			// of whatever function is actually invoked.  An argument that
+			// conforms to it is accepted by every such function, even when the
+			// function's exact signature is unknown.
+			if (argType.isSubtypeOf(functionArgTypes.tupleAt(i))) continue
 			val exactTypeReg = extractParameterTypeFromFunction(functionRead, i)
 			val constantExactArgType = exactTypeReg.constantOrNull
 			if (constantExactArgType === null

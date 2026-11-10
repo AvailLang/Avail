@@ -1,6 +1,6 @@
 /*
  * Pseudorandom Number Generation Tests.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,12 @@ Names
 	"Mersenne Twister test suite",
 	"pRNG test suite"
 Body
+
+"fake values" is a new field atom constrained to whole number*;
+"fake position" is a new field atom constrained to ↑natural number;
+
+/* The element type of a 32-bit pRNG, such as a Mersenne Twister. */
+u32 ::= [0..1<<32);
 
 "pRNG test suite" is a new atom;
 New test suite pRNG test suite extends data abstractions test suite;
@@ -114,6 +120,108 @@ Test "next shuffling" in pRNG test suite is
 		For each i of shuffled do [aSet := eject aSet + i;];
 		Require: aSet = ref;
 	] 10 times;
+];
+
+/**
+ * A fake pRNG answers a fixed sequence of values instead of pseudorandom ones,
+ * so that a test can drive pRNG operations with chosen values.  Asking it for
+ * more values than it was given raises an {@type "exhausted-iterator
+ * exception"}, so a test cannot silently consume values it did not provide.
+ *
+ * @type "fake pRNG"
+ * @supertype "pRNG"
+ * @field "fake values" "whole number*"
+ *        The values to answer, in order.
+ * @field "fake position" "↑natural number"
+ *        The index into {@field "fake values"} of the current value.
+ * @category "Data Abstractions" "Random"
+ */
+Class "fake pRNG" extends pRNG
+	with immutable fields
+		fake values : whole number*,
+		fake position : ↑natural number;
+
+Method "_is exhausted" is
+[
+	aPRNG : fake pRNG
+|
+	↓aPRNG's fake position > |aPRNG's fake values|
+] : boolean;
+
+fake pRNG's current element method is
+[
+	aPRNG : fake pRNG
+|
+	aPRNG's fake values[↓aPRNG's fake position]
+] : any;
+
+fake pRNG's advance method is
+[
+	aPRNG : fake pRNG
+|
+	aPRNG's fake position++;
+] : ⊤;
+
+/**
+ * Answer a {@type "fake pRNG"} whose element type is {@param "elementType"},
+ * and which answers {@param "values"} in order.
+ *
+ * @method "a fake pRNG answering_within_"
+ * @param "values" "whole number*"
+ *        The values to answer, in order.
+ * @param "elementType" "whole number's type"
+ *        The element type of the pRNG, which every value must satisfy.
+ * @returns "pRNG"
+ * @category "Data Abstractions" "Random"
+ */
+Private method "a fake pRNG answering_within_" is
+[
+	values : whole number*,
+	elementType : whole number's type
+|
+	Assert: values ∈ elementType*;
+	position ::= new ↑natural number;
+	position ?= 1;
+	a fake pRNG with
+		element type ::= elementType,
+		fake values ::= values,
+		fake position ::= position
+] : pRNG;
+
+Test "fake pRNG fails when its values run out" in pRNG test suite is
+[
+	r ::= a fake pRNG answering <7> within u32;
+	Require: r's next byte ∈ byte;
+	Ignore: r's next byte;
+]
+must raise exhausted-iterator exception;
+
+/* The next three tests pin how a pRNG of u32 maps its values into another
+ * range: every value maps into the range, values in the rejected tail are drawn
+ * again, and a range too large for one value combines several.  Each test also
+ * requires that exactly the expected values were consumed.
+ */
+Test "next value maps the largest element into range" in pRNG test suite is
+[
+	r ::= a fake pRNG answering <4294967295> within u32;
+	Require: r's next byte = 255;
+	Require: r is exhausted;
+];
+
+Test "next value draws again after a rejected element" in pRNG test suite is
+[
+	/* 2^32 is not a multiple of 3, so its largest value is rejected. */
+	r ::= a fake pRNG answering <4294967295, 7> within u32;
+	Require: r's next [0..2] = 1;
+	Require: r is exhausted;
+];
+
+Test "next value combines elements for a large range" in pRNG test suite is
+[
+	/* A range as large as u32 needs two values, combined as 5 × 2^32 + 9. */
+	r ::= a fake pRNG answering <5, 9> within u32;
+	Require: r's next u32 = 9;
+	Require: r is exhausted;
 ];
 
 "Mersenne Twister test suite" is a new atom;

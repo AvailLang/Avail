@@ -1,6 +1,6 @@
 /*
  * P_FileCopy.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PARTIAL_SUCCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.PrimitiveN
 import avail.io.IOSystem
@@ -74,10 +74,14 @@ import java.util.EnumSet
  * **Primitive:** Recursively copy the source [path][Path] to the destination
  * path.
  *
+ * The copy runs on the [IOSystem]'s file executor while the calling fiber is
+ * suspended, since reading and writing files and creating directory entries
+ * can take a long time.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
+object P_FileCopy : PrimitiveN(5, CanSuspend, HasSideEffect)
 {
 	override fun attemptN(
 		interpreter: Interpreter,
@@ -113,96 +117,109 @@ object P_FileCopy : PrimitiveN(5, CanInline, HasSideEffect)
 			optionList.add(StandardCopyOption.COPY_ATTRIBUTES)
 		}
 		val options = optionList.toTypedArray()
-		try
-		{
-			val visitOptions =
-				if (followSymlinks.extractBoolean)
-				{
-					EnumSet.of(FileVisitOption.FOLLOW_LINKS)
-				}
-				else
-				{
-					EnumSet.noneOf(FileVisitOption::class.java)
-				}
-			val partialSuccess = Mutable(false)
-			Files.walkFileTree(
-				sourcePath,
-				visitOptions,
-				Integer.MAX_VALUE,
-				object : FileVisitor<Path>
-				{
-					@Throws(IOException::class)
-					override fun preVisitDirectory(
-						dir: Path,
-						unused: BasicFileAttributes
-					): FileVisitResult
-					{
-						val dstDir =
-							destinationPath.resolve(sourcePath.relativize(dir))
-						try
-						{
-							Files.copy(dir, dstDir, *options)
-						}
-						catch (e: FileAlreadyExistsException)
-						{
-							if (!Files.isDirectory(dstDir))
-							{
-								throw e
-							}
-						}
-
-						return CONTINUE
-					}
-
-					@Throws(IOException::class)
-					override fun visitFile(
-						file: Path,
-						unused: BasicFileAttributes): FileVisitResult
-					{
-						Files.copy(
-							file,
-							destinationPath.resolve(
-								sourcePath.relativize(file)),
-							*options)
-						return CONTINUE
-					}
-
-					override fun visitFileFailed(
-						file: Path,
-						unused: IOException
-					): FileVisitResult
-					{
-						partialSuccess.value = true
-						return CONTINUE
-					}
-
-					override fun postVisitDirectory(
-						dir: Path,
-						e: IOException?
-					): FileVisitResult
-					{
-						e?.let { partialSuccess.value = true }
-						return CONTINUE
-					}
-				})
-			if (partialSuccess.value)
+		val visitOptions =
+			if (followSymlinks.extractBoolean)
 			{
-				return fail(E_PARTIAL_SUCCESS)
+				EnumSet.of(FileVisitOption.FOLLOW_LINKS)
+			}
+			else
+			{
+				EnumSet.noneOf(FileVisitOption::class.java)
+			}
+		return suspendThen {
+			// Copying reads and writes files and creates directory entries,
+			// which can block for a long time, such as while the file system
+			// commits a transaction that a concurrent drive flush has claimed,
+			// so it runs on the I/O system's file executor instead of on an
+			// interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				try
+				{
+					val partialSuccess = Mutable(false)
+					Files.walkFileTree(
+						sourcePath,
+						visitOptions,
+						Integer.MAX_VALUE,
+						object : FileVisitor<Path>
+						{
+							@Throws(IOException::class)
+							override fun preVisitDirectory(
+								dir: Path,
+								unused: BasicFileAttributes
+							): FileVisitResult
+							{
+								val dstDir = destinationPath.resolve(
+									sourcePath.relativize(dir))
+								try
+								{
+									Files.copy(dir, dstDir, *options)
+								}
+								catch (e: FileAlreadyExistsException)
+								{
+									if (!Files.isDirectory(dstDir))
+									{
+										throw e
+									}
+								}
+
+								return CONTINUE
+							}
+
+							@Throws(IOException::class)
+							override fun visitFile(
+								file: Path,
+								unused: BasicFileAttributes): FileVisitResult
+							{
+								Files.copy(
+									file,
+									destinationPath.resolve(
+										sourcePath.relativize(file)),
+									*options)
+								return CONTINUE
+							}
+
+							override fun visitFileFailed(
+								file: Path,
+								unused: IOException
+							): FileVisitResult
+							{
+								partialSuccess.value = true
+								return CONTINUE
+							}
+
+							override fun postVisitDirectory(
+								dir: Path,
+								e: IOException?
+							): FileVisitResult
+							{
+								e?.let { partialSuccess.value = true }
+								return CONTINUE
+							}
+						})
+					if (partialSuccess.value)
+					{
+						fail(E_PARTIAL_SUCCESS)
+						return@executeFileTask
+					}
+				}
+				catch (e: SecurityException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: AccessDeniedException)
+				{
+					fail(E_PERMISSION_DENIED)
+					return@executeFileTask
+				}
+				catch (e: IOException)
+				{
+					fail(E_IO_ERROR)
+					return@executeFileTask
+				}
+				succeed(nil)
 			}
 		}
-		catch (e: SecurityException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return fail(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return fail(E_IO_ERROR)
-		}
-		return nil
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

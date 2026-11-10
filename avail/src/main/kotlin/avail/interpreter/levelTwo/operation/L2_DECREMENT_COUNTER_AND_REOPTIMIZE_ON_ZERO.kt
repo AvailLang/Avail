@@ -1,6 +1,6 @@
 /*
  * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_RawFunction.Companion.decrementCountdownToReoptimize
+import avail.descriptor.representation.A_RawFunction.Companion.reoptimizationCountdown
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
@@ -46,11 +47,13 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
+import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Explicitly decrement the current compiled code's countdown via
- * [A_RawFunction]'s [A_RawFunction.countdownToReoptimize].  If it reaches zero
- * then re-optimize the code and jump to its
+ * Explicitly decrement the current compiled code's countdown, the
+ * [reoptimizationCountdown] of its [A_RawFunction], which the generated code
+ * captures as a constant.  If it reaches zero then re-optimize the code and
+ * jump to its
  * [L2Chunk.offsetAfterInitialTryPrimitive], which expects the arguments to
  * still be set up in the [Interpreter].
  *
@@ -70,11 +73,13 @@ constructor(
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
-		// ::    interpreter, targetOptimizationLevel)) return null;
+		// ::    interpreter, countdown, targetOptimizationLevel)) return null;
 		loadInterpreter()
 		// :: interpreter
+		loadLiteralObject(code!!.reoptimizationCountdown)
+		// :: interpreter, countdown
 		intConstant(currentOptimizationLevel.intValue)
-		// :: interpreter, level
+		// :: interpreter, countdown, level
 		generateCall(decrementMethod)
 		// :: bool
 		val didNotOptimize = Label()
@@ -98,6 +103,8 @@ constructor(
 		 *
 		 * @param interpreter
 		 *   The interpreter for the current thread.
+		 * @param countdown
+		 *   The code's [reoptimizationCountdown], captured by the caller.
 		 * @param currentOptimizationLevel
 		 *   What level of optimization to apply if reoptimization occurs.
 		 * @return
@@ -108,13 +115,14 @@ constructor(
 		@JvmStatic
 		fun decrement(
 			interpreter: Interpreter,
+			countdown: AtomicLong,
 			currentOptimizationLevel: Int
 		): Boolean
 		{
-			val code = interpreter.function!!.code()
-			val hitZero = code.decrementCountdownToReoptimize()
+			val hitZero = decrementCountdownToReoptimize(countdown)
 			if (hitZero)
 			{
+				val code = interpreter.function!!.code()
 				OptimizationLevel.optimizationLevel(currentOptimizationLevel)
 					.optimize(code, interpreter)
 				val chunk = code.startingChunk
@@ -130,6 +138,7 @@ constructor(
 		private val decrementMethod = staticMethod(
 			::decrement,
 			Interpreter::class.java,
+			AtomicLong::class.java,
 			int)
 	}
 }

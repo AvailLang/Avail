@@ -1,6 +1,6 @@
 /*
  * File Iterators Test.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ Body
 
 "file iterator test suite" is a new atom;
 New test suite file iterator test suite extends I/O test suite;
-Do not run tests in file iterator test suite in parallel;
 
 Test "file iterator (readable)" in file iterator test suite is
 [
@@ -106,7 +105,7 @@ must raise I/O exception;
 
 Test "file iterator (refresh/synchronize)" in file iterator test suite is
 [
-	fileName ::= test directory / "deleteme.txt";
+	fileName ::= a fresh test file name;
 	aWriter ::= a file writer for fileName
 		with options {create new};
 	aReader ::= a file reader for fileName;
@@ -129,7 +128,7 @@ Test "file iterator (refresh/synchronize)" in file iterator test suite is
 
 Test "file iterator (alignment)" in file iterator test suite is
 [
-	fileName ::= test directory / "deleteme.txt";
+	fileName ::= a fresh test file name;
 	aWriter ::= a file writer for fileName
 		aligning buffers to 3 bytes
 		buffering at most 13 bytes
@@ -164,7 +163,7 @@ Test "file iterator (alignment)" in file iterator test suite is
 
 Test "file iterator (scattered write)" in file iterator test suite is
 [
-	fileName ::= test directory / "deleteme.txt";
+	fileName ::= a fresh test file name;
 	aWriter ::= a file writer for fileName
 		aligning buffers to 3 bytes
 		buffering at most 13 bytes

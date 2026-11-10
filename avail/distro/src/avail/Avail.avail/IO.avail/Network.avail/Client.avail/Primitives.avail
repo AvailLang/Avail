@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ Module "Primitives"
 Versions
 	"Avail-1.6.1"
 Extends
-	"Common" = ("Close_"),
+	"Common" = ("Close_", "Write_to_", "read«at most»?_byte|bytes from_"),
 	"Network Common" = ("_'s⁇name")
 Uses
 	"Address",
@@ -56,17 +56,7 @@ Names
 	"Bind_to_",
 
 	/* Connecting. */
-	"a fiber connecting_to_,⁇\
-		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»",
-
-	/* I/O. */
-	"a fiber reading_byte|bytes from_,⁇\
-		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»",
-	"a fiber writing_to_,⁇\
-		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»",
+	"Connect_to_",
 
 	/* Queries. */
 	"_'s⁇local address",
@@ -285,96 +275,48 @@ Public method "Bind_to_" is
 ] : ⊤;
 
 /**
- * Asynchronously connect a {@type "client socket"} to a remote {@type
- * "IP address"} and port. If the operation is successful, then fork a new
- * {@type "fiber"} to apply {@param "success"}. If the operation is
- * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
- * code that classifies the failure. Answer the new fiber.
+ * Connect a {@type "client socket"} to a remote {@type "IP address"} and
+ * port.  The current fiber is suspended until the connection is established.
  *
- * @method
- *   "a fiber connecting_to_on port_,\
- *   \|on success doing_,\
- *   \|on failure doing_,\
- *   \|forked at priority_"
+ * @method "Connect_to_on port_"
  * @param "s" "client socket"
  * @param "ipAddress" "IP address"
  * @param "port" "[0..65535]"
- * @param "success" "[]→⊤"
- *        The function to apply when connection establishment completes.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the {@type "exception"} that classifies the
- *        failure of the asynchronous connect operation.
- * @param "priority" "byte"
- *        The priority of the new fiber.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
+ * @returns "⊤"
  * @category "IO" "Networking" "Sockets" "IP"
  */
-Private abstract method
-	"a fiber connecting_to_on port_,\
-	\|on success doing_,\
-	\|on failure doing_,\
-	\|forked at priority_"
-is
+Private abstract method "Connect_to_on port_" is
 [
 	client socket,
 	IP address,
-	[0..65535],
-	[]→⊤,
-	[exception]→⊤,
-	byte
-]→fiber;
+	[0..65535]
+]→⊤;
 
 /**
- * Asynchronously connect a {@type "client socket"} to a remote {@type
- * "IP address"} and port. If the operation is successful, then fork a new
- * {@type "fiber"} to apply {@param "success"}. If the operation is
- * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
- * code that classifies the failure. Answer the new fiber.
+ * Connect a {@type "client socket"} to a remote {@type "IPv4 address"} and
+ * port.  The current fiber is suspended until the connection is established.
  *
- * @method
- *   "a fiber connecting_to_on port_,\
- *   \|on success doing_,\
- *   \|on failure doing_,\
- *   \|forked at priority_"
+ * @method "Connect_to_on port_"
  * @param "s" "client socket"
  * @param "ipAddress" "IPv4 address"
  * @param "port" "[0..65535]"
- * @param "success" "[]→⊤"
- *        The function to apply when connection establishment completes.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the {@type "exception"} that classifies the
- *        failure of the asynchronous connect operation.
- * @param "priority" "byte"
- *        The priority of the new fiber.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
+ * @returns "⊤"
+ * @raises "I/O exception"
+ *         If the connection cannot be established.
+ * @raises "permission-denied exception"
+ *         If a security manager forbids the connection.
  * @category "IO" "Networking" "Sockets" "IP"
  */
-Private method
-	"a fiber connecting_to_on port_,\
-	\|on success doing_,\
-	\|on failure doing_,\
-	\|forked at priority_"
-is
+Private method "Connect_to_on port_" is
 [
 	s : client socket,
 	ipAddress : IPv4 address,
-	port : [0..65535],
-	success : []→⊤,
-	failure : [exception]→⊤,
-	priority : byte
+	port : [0..65535]
 |
-	bad ::= [c : natural number | failure(an exception for c);];
 	[
 		h : atom,
 		octets : <byte…|4>,
-		portNumber : [0..65535],
-		f1 : []→⊤,
-		f2 : [I/O-error code's type]→⊤,
-		p : byte
+		portNumber : [0..65535]
 	|
 		Primitive SocketIPv4Connect (code :
 		{
@@ -385,58 +327,34 @@ is
 			permission-denied code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (s's handle, ipAddress's octets, port, success, bad, priority)
-] : fiber;
+	] : ⊤ (s's handle, ipAddress's octets, port);
+] : ⊤;
 
 /**
- * Asynchronously connect a {@type "client socket"} to a remote {@type
- * "IP address"} and port. If the operation is successful, then fork a new
- * {@type "fiber"} to apply {@param "success"}. If the operation is
- * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
- * code that classifies the failure. Answer the new fiber.
+ * Connect a {@type "client socket"} to a remote {@type "IPv6 address"} and
+ * port.  The current fiber is suspended until the connection is established.
  *
- * @method
- *   "a fiber connecting_to_on port_,\
- *   \|on success doing_,\
- *   \|on failure doing_,\
- *   \|forked at priority_"
+ * @method "Connect_to_on port_"
  * @param "s" "client socket"
  * @param "ipAddress" "IPv6 address"
  * @param "port" "[0..65535]"
- * @param "success" "[]→⊤"
- *        The function to apply when connection establishment completes.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the {@type "exception"} that classifies the
- *        failure of the asynchronous connect operation.
- * @param "priority" "byte"
- *        The priority of the new fiber.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
+ * @returns "⊤"
+ * @raises "I/O exception"
+ *         If the connection cannot be established.
+ * @raises "permission-denied exception"
+ *         If a security manager forbids the connection.
  * @category "IO" "Networking" "Sockets" "IP"
  */
-Private method
-	"a fiber connecting_to_on port_,\
-	\|on success doing_,\
-	\|on failure doing_,\
-	\|forked at priority_"
-is
+Private method "Connect_to_on port_" is
 [
 	s : client socket,
 	ipAddress : IPv6 address,
-	port : [0..65535],
-	success : []→⊤,
-	failure : [exception]→⊤,
-	priority : byte
+	port : [0..65535]
 |
-	bad ::= [c : natural number | failure(an exception for c);];
 	[
 		h : atom,
 		octets : <byte…|16>,
-		portNumber : [0..65535],
-		f1 : []→⊤,
-		f2 : [I/O-error code's type]→⊤,
-		p : byte
+		portNumber : [0..65535]
 	|
 		Primitive SocketIPv6Connect (code :
 		{
@@ -447,208 +365,121 @@ is
 			permission-denied code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (s's handle, ipAddress's octets, port, success, bad, priority)
-] : fiber;
+	] : ⊤ (s's handle, ipAddress's octets, port);
+] : ⊤;
 
 /**
- * Asynchronously connect a {@type "client socket"} to a remote {@type
- * "socket address"}. If the operation is successful, then fork a new {@type
- * "fiber"} to apply {@param "success"}. If the operation is unsuccessful, then
- * fork a new fiber to apply {@param "failure"} to the error code that
- * classifies the failure. Answer the new fiber.
+ * Connect a {@type "client socket"} to a remote {@type "socket address"}.  The
+ * current fiber is suspended until the connection is established, without
+ * blocking an interpreter thread.
  *
- * @method
- *    "a fiber connecting_to_,⁇\
- *    \|on success doing_,⁇\
- *    \|on failure doing_«⁇,forked at priority_»"
+ * @method "Connect_to_"
  * @param "s" "client socket"
  * @param "peerAddress" "socket address"
- * @param "success" "[]→⊤"
- *        The function to apply when connection establishment completes.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the {@type "exception"} that classifies the
- *        failure of the asynchronous connect operation.
- * @param "optionalPriority" "byte?"
- *        If specified, then the priority of the new fiber. If not specified,
- *        then the new fiber will run at the same priority as the {@method
- *        "current fiber"}.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
- * @category "IO" "Networking" "Sockets"
+ * @returns "⊤"
+ * @raises "I/O exception"
+ *         If the connection cannot be established.
+ * @raises "permission-denied exception"
+ *         If a security manager forbids the connection.
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
-Public method
-	"a fiber connecting_to_,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»"
-is
+Public method "Connect_to_" is
 [
 	s : client socket,
-	peerAddress : socket address,
-	success : []→⊤,
-	failure : [exception]→⊤,
-	optionalPriority : byte?
+	peerAddress : socket address
 |
 	addr ::= peerAddress's address;
 	port ::= peerAddress's port;
-	priority ::= optionalPriority[1] else [current fiber's priority];
-	a fiber connecting s to addr on port port,
-		on success doing success,
-		on failure doing failure,
-		forked at priority priority
-] : fiber;
-
-Semantic restriction
-	"a fiber connecting_to_,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»"
-is
-[
-	s : client socket's type,
-	peerAddress : socket address's type,
-	success : ([]→⊤)'s type,
-	failure : ([exception]→⊤)'s type,
-	optionalPriority : byte?'s type
-|
-	fiber→(success's return type ∪ failure's return type)
-];
+	Connect s to addr on port port;
+] : ⊤;
 
 /**
- * Asynchronously read data from a {@type "client socket"}. If the operation is
- * successful, then fork a new {@type "fiber"} to apply {@param "success"} to
- * the tuple of bytes read and a boolean that is {@method "true"} if the
- * connection has reached end-of-stream. If the operation is unsuccessful, then
- * fork a new fiber to apply {@param "failure"} to the error code that
- * classifies the failure. Answer the new fiber.
+ * Read at most {@param "count"} bytes from the {@type "client socket"}'s
+ * handle {@param "h"}, suspending the current fiber until some data or
+ * end-of-stream arrives.  Answer a 2-tuple: the bytes that were read, and
+ * {@method "true"} if the connection has reached end-of-stream.
  *
- * @method
- *    "a fiber reading_byte|bytes from_,⁇\
- *    \|on success doing_,⁇\
- *    \|on failure doing_«⁇,forked at priority_»"
+ * @method "private read_bytes from_"
+ * @param "count" "[0..2^31-1]"
+ * @param "h" "atom"
+ * @returns "<byte*, boolean…|2>"
+ * @raises "I/O exception"
+ *         If the read fails.
+ * @category "Synchronous IO" "Networking" "Sockets"
+ */
+Private method "private read_bytes from_" is
+[
+	count : [0..2^31-1],
+	h : atom
+|
+	Primitive SocketRead (code :
+	{
+		invalid-handle code,
+		special-atom code,
+		I/O-error code
+	}ᵀ);
+	Raise an exception for code
+] : <byte*, boolean…|2>;
+
+/**
+ * Read data from a {@type "client socket"}.  The current fiber is suspended
+ * while waiting for data, without blocking an interpreter thread.
+ *
+ * @method "read«at most»?_byte|bytes from_"
+ * @param "soft" "boolean"
+ *        If {@method "true"}, then {@param "count"} is treated "softly". In
+ *        this case, the operation will return data as soon as data becomes
+ *        available, even if fewer than {@param "count"} bytes were read.
+ *        Otherwise, hold out for either {@param "count"} bytes to become
+ *        available or end-of-stream to be reached.
  * @param "count" "whole number"
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
- * @param "success" "[byte*, boolean]→⊤"
- *        The function to apply to the newly read data and end-of-stream
- *        indicator.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the {@type "exception"} that classifies the
- *        failure of the asynchronous read operation.
- * @param "optionalPriority" "byte?"
- *        If specified, then the priority of the new fiber. If not specified,
- *        then the new fiber will run at the same priority as the {@method
- *        "current fiber"}.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
- * @category "IO" "Networking" "Sockets"
+ * @returns "byte*"
+ * @raises "I/O exception"
+ *         If a read fails.
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
-Public method
-	"a fiber reading_byte|bytes from_,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»"
-is
+Method "read«at most»?_byte|bytes from_" is
 [
+	soft : boolean,
 	count : whole number,
-	s : client socket,
-	success : [byte*, boolean]→⊤,
-	failure : [exception]→⊤,
-	optionalPriority : byte?
+	s : client socket
 |
-	adjustedCount ::= count min (2^31-1);
-	bad ::= [c : natural number | failure(an exception for c);];
-	priority ::= optionalPriority[1] else [current fiber's priority];
+	data : byte* := <>;
+	endOfStream : boolean := false;
+	Until
 	[
-		n : [0..2^31-1],
-		h : atom,
-		f1 : [byte*, boolean]→⊤,
-		f2 : [I/O-error code's type]→⊤,
-		p : byte
-	|
-		Primitive SocketRead (code :
-		{
-			invalid-handle code,
-			special-atom code,
-			I/O-error code
-		}ᵀ);
-		Raise an exception for code
-	] : fiber (adjustedCount, s's handle, success, bad, priority)
-] : fiber;
+		remaining ::= cast count - |data| into [t : whole number | t];
+		pair ::= private read remaining min (2^31-1) bytes from s's handle;
+		If pair[2] then [endOfStream := true;]
+		else [data ++= pair[1];];
+		soft ∨ endOfStream ∨ |data| = count
+	];
+	data
+] : byte*;
 
 /**
- * @method
- *  "a fiber reading_byte|bytes from_,⁇\
- *  \|on success doing_,⁇\
- *  \|on failure doing_«⁇,forked at priority_»"
- * @restricts "whole number's type"
- * @restricts "client socket's type"
- * @restricts "([]→⊤)'s type"
- * @restricts "([exception]→⊤)'s type"
- * @restricts "byte?'s type"
- */
-Semantic restriction
-	"a fiber reading_byte|bytes from_,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»"
-is
-[
-	count : whole number's type,
-	s : client socket's type,
-	success : ([]→⊤)'s type,
-	failure : ([exception]→⊤)'s type,
-	optionalPriority : byte?'s type
-|
-	fiber→(success's return type ∪ failure's return type)
-];
-
-/**
- * Asynchronously write data to a {@type "client socket"}. If the operation is
- * successful, then fork a new {@type "fiber"} to apply {@param "success"}. If
- * the operation is unsuccessful, then fork a new fiber to apply {@param
- * "failure"} to the error code that classifies the failure. Answer the new
- * fiber.
+ * Write data to a {@type "client socket"}.  The current fiber is suspended
+ * until all of the data has been written, without blocking an interpreter
+ * thread.
  *
- * @method
- *    "a fiber writing_to_,⁇\
- *    \|on success doing_,⁇\
- *    \|on failure doing_«⁇,forked at priority_»"
+ * @method "Write_to_"
  * @param "data" "byte*"
- *        The bytes to write.
  * @param "s" "client socket"
- * @param "success" "[byte*, boolean]→⊤"
- *        The function to apply if the write completes successfully.
- * @param "failure" "[exception]→⊤"
- *        The function to apply to the {@type "exception"} that classifies the
- *        failure of the asynchronous write operation.
- * @param "optionalPriority" "byte?"
- *        If specified, then the priority of the new fiber. If not specified,
- *        then the new fiber will run at the same priority as the {@method
- *        "current fiber"}.
- * @returns "fiber"
- *          The new fiber which may eventually apply either {@param "success"}
- *          or {@param "failure"}.
- * @category "IO" "Networking" "Sockets" "IP"
+ * @returns "⊤"
+ * @raises "I/O exception"
+ *         If the write fails.
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
-Public method
-	"a fiber writing_to_,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»"
-is
+Method "Write_to_" is
 [
 	data : byte*,
-	s : client socket,
-	success : []→⊤,
-	failure : [exception]→⊤,
-	optionalPriority : byte?
+	s : client socket
 |
-	bad ::= [c : natural number | failure(an exception for c);];
-	priority ::= optionalPriority[1] else [current fiber's priority];
 	[
 		d : byte*,
-		h : atom,
-		f1 : []→⊤,
-		f2 : [I/O-error code's type]→⊤,
-		p : byte
+		h : atom
 	|
 		Primitive SocketWrite (code :
 		{
@@ -657,34 +488,8 @@ is
 			I/O-error code
 		}ᵀ);
 		Raise an exception for code
-	] : fiber (data, s's handle, success, bad, priority)
-] : fiber;
-
-/**
- * @method
- *  "a fiber writing_to_,⁇\
- *  \|on success doing_,⁇\
- *  \|on failure doing_«⁇,forked at priority_»"
- * @restricts "byte*'s type"
- * @restricts "client socket's type"
- * @restricts "([]→⊤)'s type"
- * @restricts "([exception]→⊤)'s type"
- * @restricts "byte?'s type"
- */
-Semantic restriction
-	"a fiber writing_to_,⁇\
-	\|on success doing_,⁇\
-	\|on failure doing_«⁇,forked at priority_»"
-is
-[
-	data : byte*'s type,
-	s : client socket's type,
-	success : ([]→⊤)'s type,
-	failure : ([exception]→⊤)'s type,
-	optionalPriority : byte?'s type
-|
-	fiber→(success's return type ∪ failure's return type)
-];
+	] : ⊤ (data, s's handle);
+] : ⊤;
 
 /**
  * Answer the local {@type "socket address"} to which the specified {@type

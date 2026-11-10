@@ -1,6 +1,6 @@
 /*
  * Descriptor.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +93,7 @@ import java.nio.ByteBuffer
 import java.util.Deque
 import java.util.Spliterator
 import java.util.TimerTask
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import java.util.function.IntConsumer
 import java.util.stream.IntStream
@@ -1031,7 +1032,7 @@ protected constructor (
 
 	override fun o_LazyIncomplete (self: AvailObject): A_Map = unsupported
 
-	override fun o_DecrementCountdownToReoptimize (self: AvailObject): Boolean =
+	override fun o_ReoptimizationCountdown (self: AvailObject): AtomicLong =
 		unsupported
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(

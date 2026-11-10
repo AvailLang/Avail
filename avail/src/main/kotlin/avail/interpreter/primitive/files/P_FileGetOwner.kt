@@ -1,6 +1,6 @@
 /*
  * P_FileGetOwner.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive2
 import avail.io.IOSystem
@@ -65,10 +65,13 @@ import java.nio.file.attribute.UserPrincipal
  * **Primitive:** Answer the [user][UserPrincipal] that owns the file denoted by
  * the specified [path][Path].
  *
+ * The owner is read on the [IOSystem]'s file executor while the calling fiber
+ * is suspended, since reading the file system's metadata can block.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileGetOwner : Primitive2(CanInline, HasSideEffect)
+object P_FileGetOwner : Primitive2(CanSuspend, HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -89,25 +92,34 @@ object P_FileGetOwner : Primitive2(CanInline, HasSideEffect)
 		val view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView::class.java, *options)
 		view ?: return fail(E_OPERATION_NOT_SUPPORTED)
-		val user: UserPrincipal =
-			try
-			{
-				view.owner
+		return suspendThen {
+			// Reading the file system's metadata can block, such as on a
+			// network file system, so it runs on the I/O system's file
+			// executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				val user: UserPrincipal =
+					try
+					{
+						view.owner
+					}
+					catch (e: SecurityException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: AccessDeniedException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: IOException)
+					{
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
+				succeed(stringFrom(user.name))
 			}
-			catch (e: SecurityException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: AccessDeniedException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: IOException)
-			{
-				return fail(E_IO_ERROR)
-			}
-
-		return stringFrom(user.name)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

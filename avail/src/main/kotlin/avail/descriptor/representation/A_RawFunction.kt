@@ -32,6 +32,7 @@
 package avail.descriptor.representation
 
 import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.decrementCountdownToReoptimize
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -52,6 +53,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * `A_RawFunction` is an interface that specifies the operations specific to
@@ -132,13 +134,14 @@ interface A_RawFunction : A_BasicObject {
 			dispatch { o_CountdownToReoptimize(it, value) }
 
 		/**
-		 * Atomically decrement the countdown to reoptimization by the
-		 * [L2Generator]. Answer whether the count reached exactly zero, which
-		 * indicates the caller has the responsibility to reoptimize and reset
-		 * the countdown to something positive.
+		 * Answer the [AtomicLong] holding the countdown to reoptimization by
+		 * the [L2Generator].  It is the same object for the life of this
+		 * [A_RawFunction], so a chunk may capture it once and decrement it
+		 * directly with [decrementCountdownToReoptimize], rather than
+		 * dispatching through the raw function on every invocation.
 		 */
-		fun A_RawFunction.decrementCountdownToReoptimize(): Boolean =
-			dispatch { o_DecrementCountdownToReoptimize(it) }
+		val A_RawFunction.reoptimizationCountdown: AtomicLong
+			get() = dispatch { o_ReoptimizationCountdown(it) }
 
 		/**
 		 * A chunk associated with this [A_RawFunction] had to fall back to a

@@ -1,6 +1,6 @@
 /*
  * File Management.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,6 @@ Names
 	/* File moving. */
 	"Move_to_(overwrite=_)",
 	"Move_to_«,⁇overwriting if necessary»?",
-	"a fiber renaming_to_\
-		\|«(overwrite=_)»,⁇\
-		\|then_,⁇\
-		\|else_,⁇\
-		\|«forked at priority_»",
 	"Rename_to_«(overwrite=_)»",
 
 	/* File copying. */
@@ -60,97 +55,24 @@ Names
 	"«Recursively»?Unlink|unlink_«if necessary»?«,⁇following symlinks»?"
 Body
 
-Private method "private rename_to_replace existing_then_else_priority_" is
+Private method "private rename_to_replace existing_" is
 [
 	src : string,
 	dest : string,
-	replace : boolean,
-	succeed : []→⊤,
-	fail :
-		[{
-			permission-denied code,
-			file-exists code,
-			no-file code,
-			I/O-error code}ᵀ
-		]→⊤,
-	priority : byte
+	replace : boolean
 |
-	Primitive FileRename (e : invalid-path code's type);
+	Primitive FileRename (e : {
+		invalid-path code,
+		permission-denied code,
+		file-exists code,
+		no-file code,
+		I/O-error code}ᵀ);
 	Raise an exception for e
-] : fiber→⊤;
+] : ⊤;
 
 /**
- * Rename {@param "src"} to {@param "dest"} asynchronously. If the operation
- * succeeds, then eventually apply {@param "succeed"} in the answered {@type
- * "fiber"}. If the operation fails, then eventually apply {@param "fail"} to
- * the error code in the answered {@type "fiber"}.
- *
- * @method
- *    "a fiber renaming_to_\
- *    \|«(overwrite=_)»,⁇\
- *    \|then_,⁇\
- *    \|else_,⁇\
- *    \|«forked at priority_»"
- * @param "src" "file name"
- *        The source {@type "file name"}.
- * @param "dest" "file name"
- *        The destination {@type "file name"}.
- * @param "optionalReplace" "boolean"
- *        {@method "true"} if an existing destination file should be replaced,
- *        {@method "false"} otherwise. If not specified, then default to
- *        {@method "false"}.
- * @param "succeed" "[]→⊤"
- *        What to do after the rename is successful.
- * @param "fail"
- *        "[{
- *           permission-denied code,
- *           file-exists code,
- *           no-file code,
- *           I/O-error code
- *         }ᵀ]→⊤,
- *        What to do with the error code if renaming fails.
- * @param "optionalPriority" "byte?"
- *        The priority at which to launch the answered {@type "fiber"}. If not
- *        specified, then default to the {@method "_'s⁇priority" priority} of
- *        the {@method "current fiber"}.
- * @returns "fiber→⊤"
- *          The {@type "fiber"} which will apply {@param "succeed"} or {@param
- *          "fail"}, as appropriate.
- * @raises "invalid-path exception"
- *         If either {@param "src"} or {@param "dest"} cannot be understood as a
- *         path.
- * @category "Files" "Asynchronous IO"
- */
-Public method
-	"a fiber renaming_to_\
-		\|«(overwrite=_)»,⁇\
-		\|then_,⁇\
-		\|else_,⁇\
-		\|«forked at priority_»"
-is
-[
-	src : file name,
-	dest : file name,
-	optionalReplace : boolean?,
-	succeed : []→⊤,
-	fail :
-		[{
-			permission-denied code,
-			file-exists code,
-			no-file code,
-			I/O-error code
-		}ᵀ]→⊤,
-	optionalPriority : byte?
-|
-	private rename src's name to dest's name
-		replace existing optionalReplace[1] else [false]
-		then succeed
-		else fail
-		priority optionalPriority[1] else [current fiber's priority]
-] : fiber→⊤;
-
-/**
- * Rename {@param "src"} to {@param "dest"} synchronously.
+ * Rename {@param "src"} to {@param "dest"}.  The current fiber is suspended
+ * while the rename takes place, without blocking an interpreter thread.
  *
  * @method "Rename_to_«(overwrite=_)»"
  * @param "src" "file name"
@@ -182,27 +104,8 @@ Public method "Rename_to_«(overwrite=_)»" is
 	dest : file name,
 	optionalReplace : boolean?
 |
-	semName ::= format "rename ‘①’ to ‘②’" with src's name, dest's name;
-	sem ::= a semaphore named semName with 0 out of 1 permits;
-	killer : exception;
-	Ignore: private rename src's name to dest's name
-		replace existing optionalReplace[1] else [false]
-		then [Signal sem;]
-		else
-		[
-			e : {
-				permission-denied code,
-				file-exists code,
-				no-file code,
-				I/O-error code
-			}ᵀ
-		|
-			killer := an exception for e;
-			Signal sem;
-		]
-		priority current fiber's priority;
-	Await sem;
-	If killer is assigned then [Raise killer];
+	private rename src's name to dest's name
+		replace existing optionalReplace[1] else [false];
 ] : ⊤;
 
 /**

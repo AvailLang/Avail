@@ -1,6 +1,6 @@
 /*
  * Network Tests.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,164 +107,88 @@ Test "server socket (bind closed IPv4)" in network test suite is
 ]
 must raise I/O exception;
 
+/**
+ * Connect {@param "client"} to {@param "server"}, accepting the connection in a
+ * separately forked fiber so that this fiber can connect at the same time.
+ * Answer the accepted {@type "client socket"}.
+ *
+ * @method "the server end after connecting_to_"
+ * @param "client" "client socket"
+ * @param "server" "server socket"
+ * @returns "client socket"
+ *          The server's end of the new connection.
+ */
+Private method "the server end after connecting_to_" is
+[
+	client : client socket,
+	server : server socket
+|
+	accepted : client socket;
+	killer : exception;
+	acceptor ::= fork
+	[
+		Guard
+		[
+			c ::= accept a new connection on server;
+			c's address reusability := true;
+			accepted := c;
+		]
+		intercept [e : exception | killer := e;];
+	];
+	/* If connecting fails, the acceptor is still waiting for a connection.
+	 * The caller closes the server socket, which ends that wait.
+	 */
+	Connect client to server's address;
+	Join acceptor;
+	If killer is assigned then [Raise killer];
+	accepted
+] : client socket;
+
 Test "basic connection" in network test suite is
 [
 	server ::= a server socket;
-	accepted : client socket;
-	killer : exception;
-	serverFiber ::=
-		guard
-		[
-			server's address reusability := true;
-			Bind server to 127.0.0.1:0;
-			a fiber waiting until server accepts a new connection,
-				on success doing
-				[
-					c : client socket
-				|
-					c's address reusability := true;
-					accepted := c;
-				],
-				on failure doing [e : exception | killer := e;]
-		]
-		intercept
-		[
-			e : exception
-		|
-			Close server;
-			Raise e
-		];
 	client ::= a client socket;
-	clientFiber ::=
-		guard
-		[
-			client's address reusability := true;
-			Bind client to 127.0.0.1:0;
-			a fiber connecting client to server's address,
-				on success doing [/* Nothing. */],
-				on failure doing [e : exception | killer := e;]
-		]
-		intercept
-		[
-			e : exception
-		|
-			Close server;
-			Close client;
-			If accepted is assigned then [Close accepted;];
-			Raise e
-		];
 	Guard
 	[
-		Join serverFiber;
-		Join clientFiber;
-		If killer is assigned then [Raise killer];
+		server's address reusability := true;
+		Bind server to 127.0.0.1:0;
+		client's address reusability := true;
+		Bind client to 127.0.0.1:0;
+		accepted ::= the server end after connecting client to server;
+		Close accepted;
 	]
 	ensure
 	[
 		Close server;
 		Close client;
-		Close accepted;
 	];
 ];
 
 Test "basic transmission" in network test suite is
 [
 	server ::= a server socket;
-	sem ::= a semaphore named "transmission" with 0 out of 2 permits;
-	accepted : client socket;
-	killer : exception;
-	/* Accepting new connections. */
+	client ::= a client socket;
 	Guard
 	[
 		server's address reusability := true;
 		Bind server to 127.0.0.1:0;
-		Ignore: a fiber waiting until server accepts a new connection,
-			on success doing
-			[
-				c : client socket
-			|
-				c's address reusability := true;
-				accepted := c;
-				Signal sem;
-			],
-			on failure doing [e : exception | killer := e; Signal sem;];
-	]
-	intercept
-	[
-		e : exception
-	|
-		Close server;
-		Raise e
-	];
-	/* Connect. */
-	client ::= a client socket;
-	Guard
-	[
 		client's address reusability := true;
 		Bind client to 127.0.0.1:0;
-		Ignore: a fiber connecting client to server's address,
-			on success doing [Signal sem;],
-			on failure doing [e : exception | killer := e; Signal sem;];
-	]
-	intercept
-	[
-		e : exception
-	|
-		Close server;
-		Close client;
-		If accepted is assigned then [Close accepted;];
-		Raise e
-	];
-	Repeat
-	[
-		Await sem;
-		If killer is assigned then
+		accepted ::= the server end after connecting client to server;
+		Guard
 		[
-			Close server;
-			Close client;
-			If accepted is assigned then [Close accepted;];
-			Raise killer
-		];
-	] 2 times;
-	/* Send data. */
-	data ::=
-		map "Hello, world!\n"
-		through [c : character | c's code point bit∧ 255];
-	Guard
-	[
-		Ignore: a fiber writing data to client,
-			on success doing [/* Nothing. */],
-			on failure doing [e : exception | killer := e; Signal sem;];
-		read : byte* := <>;
-		Until
-		[
-			Ignore: a fiber reading (|data| - |read|) max 0 bytes from accepted,
-				on success doing
-				[
-					justRead : byte*,
-					endOfStream : boolean
-				|
-					Require: ¬endOfStream;
-					read ++= justRead;
-					Signal sem;
-				]
-				on failure doing
-				[
-					e : exception
-				|
-					killer := e;
-					Signal sem;
-				];
-			Await sem;
-			killer is assigned ∨ |read| = |data|
-		];
-		If killer is assigned then [Raise killer];
-		Require: read = data;
+			data ::=
+				map "Hello, world!\n"
+				through [c : character | c's code point bit∧ 255];
+			Write data to client;
+			received ::= read |data| bytes from accepted;
+			Require: received = data;
+		]
+		ensure [Close accepted;];
 	]
 	ensure
 	[
 		Close server;
 		Close client;
-		Close accepted;
 	];
 ];

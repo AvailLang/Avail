@@ -1,6 +1,6 @@
 /*
  * P_FileRead.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -183,7 +183,8 @@ object P_FileRead : PrimitiveN(6, CanInline, HasSideEffect)
 		val augmentedStart =
 			(oneBasedPositionLong - 1) / alignment * alignment + 1
 		val augmentedEnd =
-			(oneBasedPositionLong + size + alignment - 2) / alignment * alignment
+			((oneBasedPositionLong + size + alignment - 2)
+				/ alignment * alignment)
 		val bufferCount = (augmentedEnd + 1 - augmentedStart) / alignment
 		assert(bufferCount == bufferCount.toInt().toLong())
 		// Collect the initial run of either cache hits or cache misses.  Limit

@@ -1,6 +1,6 @@
 /*
  * File Names Test.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,12 +115,8 @@ Test "path decomposition permutations" in file names test suite is
 
 Test "parent path" in file names test suite is
 [
-	// TODO Unwrap from loop.
-	Repeat
-	[
-		Require: ./""'s parent path = ./"";
-		Require: ./"a"'s parent path = ./"";
-		Require: ./"a"/"b"'s parent path = ./"a";
-		Require: ./"a"/"b"/"c"/"d"/"e"'s parent path = ./"a"/"b"/"c"/"d";
-	] 10000 times;
+	Require: ./""'s parent path = ./"";
+	Require: ./"a"'s parent path = ./"";
+	Require: ./"a"/"b"'s parent path = ./"a";
+	Require: ./"a"/"b"/"c"/"d"/"e"'s parent path = ./"a"/"b"/"c"/"d";
 ];

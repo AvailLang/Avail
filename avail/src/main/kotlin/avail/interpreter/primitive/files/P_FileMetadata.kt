@@ -1,6 +1,6 @@
 /*
  * P_FileMetadata.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive2
 import avail.io.IOSystem
@@ -73,10 +73,13 @@ import java.nio.file.attribute.BasicFileAttributes
  * **Primitive:** Answer the [metadata][BasicFileAttributes] for the file
  * indicated by the specified [path][Path].
  *
+ * The metadata is read on the [IOSystem]'s file executor while the calling
+ * fiber is suspended, since reading the file system's metadata can block.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileMetadata : Primitive2(CanInline, HasSideEffect)
+object P_FileMetadata : Primitive2(CanSuspend, HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -94,68 +97,78 @@ object P_FileMetadata : Primitive2(CanInline, HasSideEffect)
 			}
 
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
-		val attributes: BasicFileAttributes =
-			try
-			{
-				Files.readAttributes(
-					path, BasicFileAttributes::class.java, *options)
-			}
-			catch (e: SecurityException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: AccessDeniedException)
-			{
-				return fail(E_PERMISSION_DENIED)
-			}
-			catch (e: IOException)
-			{
-				return fail(E_IO_ERROR)
-			}
+		return suspendThen {
+			// Reading the file system's metadata can block, such as on a
+			// network file system, so it runs on the I/O system's file
+			// executor instead of on an interpreter thread.
+			runtime.ioSystem.executeFileTask {
+				val attributes: BasicFileAttributes =
+					try
+					{
+						Files.readAttributes(
+							path, BasicFileAttributes::class.java, *options)
+					}
+					catch (e: SecurityException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: AccessDeniedException)
+					{
+						fail(E_PERMISSION_DENIED)
+						return@executeFileTask
+					}
+					catch (e: IOException)
+					{
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
 
-		// Build the attribute tuple.
-		val fileId = attributes.fileKey()
-		val raw: Any
-		// The file key may be null, in which case just use the path itself.
-		// Try to use the absolute path if it's available, otherwise just use
-		// the one supplied.
-		val rawClass: Class<*> =
-			if (fileId !== null)
-			{
-				raw = fileId
-				fileId.javaClass
+				// Build the attribute tuple.
+				val fileId = attributes.fileKey()
+				val raw: Any
+				// The file key may be null, in which case just use the path
+				// itself.  Try to use the absolute path if it's available,
+				// otherwise just use the one supplied.
+				val rawClass: Class<*> =
+					if (fileId !== null)
+					{
+						raw = fileId
+						fileId.javaClass
+					}
+					else
+					{
+						raw = try
+						{
+							path.toAbsolutePath()
+						}
+						catch (e: SecurityException)
+						{
+							path
+						}
+						catch (e: IOError)
+						{
+							path
+						}
+						Path::class.java
+					}
+				val tuple = tupleFromArray(
+					newPojo(equalityPojo(raw), pojoTypeForClass(rawClass)),
+					fromInt(
+						when
+						{
+							attributes.isRegularFile -> 1
+							attributes.isDirectory -> 2
+							attributes.isSymbolicLink -> 3
+							else -> 4
+						}),
+					fromLong(attributes.creationTime().toMillis()),
+					fromLong(attributes.lastModifiedTime().toMillis()),
+					fromLong(attributes.lastAccessTime().toMillis()),
+					fromLong(attributes.size()))
+				succeed(tuple)
 			}
-			else
-			{
-				raw = try
-				{
-					path.toAbsolutePath()
-				}
-				catch (e: SecurityException)
-				{
-					path
-				}
-				catch (e: IOError)
-				{
-					path
-				}
-				Path::class.java
-			}
-		val tuple = tupleFromArray(
-			newPojo(equalityPojo(raw), pojoTypeForClass(rawClass)),
-			fromInt(
-				when
-				{
-					attributes.isRegularFile -> 1
-					attributes.isDirectory -> 2
-					attributes.isSymbolicLink -> 3
-					else -> 4
-				}),
-			fromLong(attributes.creationTime().toMillis()),
-			fromLong(attributes.lastModifiedTime().toMillis()),
-			fromLong(attributes.lastAccessTime().toMillis()),
-			fromLong(attributes.size()))
-		return tuple
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

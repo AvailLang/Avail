@@ -1,6 +1,6 @@
 /*
  * Tuples.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1881,7 +1881,9 @@ Public method "left fold_through_" is
 styled by loop styler;
 
 /**
- * Left fold has the following requirements:
+ * Check that a left fold with the specified argument types is well-formed,
+ * rejecting the current parse if it is not, and answer the type of the fold's
+ * result.  Left fold has the following requirements:
  *
  * - The function's first parameter must accept every element of the tuple
  *   except for the first (with which it will not be applied at this position).
@@ -1891,11 +1893,15 @@ styled by loop styler;
  * Left fold answers either the tuple's first element or the value produced by
  * the final application of the function.
  *
- * @method "left fold_through_"
- * @restricts "any+'s type"
- * @restricts "([⊥, ⊥]→any)'s type"
+ * @method "left fold type for_,_"
+ * @param "tupleType" "any+'s type"
+ *        The type of the tuple to fold.
+ * @param "transformer" "([⊥, ⊥]→any)'s type"
+ *        The type of the function to apply repeatedly.
+ * @returns "any's type"
+ *          The type of the fold's result.
  */
-Semantic restriction "left fold_through_" is
+Private method "left fold type for_,_" is
 [
 	tupleType : any+'s type,
 	transformer : ([⊥, ⊥]→any)'s type
@@ -1931,16 +1937,135 @@ Semantic restriction "left fold_through_" is
 			++ ")"
 	];
 	finalType
+] : any's type;
+
+/**
+ * Left fold requires the function to accept each element of the tuple but the
+ * first, and to accept both the first element and its own output as the
+ * accumulator.  See {@method "left fold type for_,_"}.
+ *
+ * @method "left fold_through_"
+ * @restricts "any+'s type"
+ * @restricts "([⊥, ⊥]→any)'s type"
+ */
+Semantic restriction "left fold_through_" is
+[
+	tupleType : any+'s type,
+	transformer : ([⊥, ⊥]→any)'s type
+|
+	left fold type for tupleType, transformer
 ];
+
+/**
+ * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
+ * left to right. Answer the result of the reduction.
+ *
+ * This is a macro so that each use gets its own copy of the loop, whose
+ * accumulator, tuple, and function are declared with the static types of the
+ * actual arguments.  The accumulator is declared as the type of the fold's
+ * result, the union of the first element's type and the function's return
+ * type, which the requirements of {@method "left fold type for_,_"} guarantee
+ * the function accepts.  Applying the function to the accumulator therefore
+ * needs no run-time check of the accumulator's type, which for a large
+ * accumulator would take time proportional to its size at every step.
+ *
+ * @macro "left fold_through_"
+ * @param "aTuple" "expression phrase ⇒ any+"
+ *        A nonempty tuple.
+ * @param "transformer" "expression phrase ⇒ [⊥, ⊥]→any"
+ *        A binary function whose second parameter type accepts both the first
+ *        element and its own return type.  The first parameter type must be
+ *        general enough to accept each element of {@param "aTuple"} but the
+ *        first.
+ * @returns "sequence-as-expression phrase"
+ *          The inlined fold, which evaluates {@param "aTuple"} and then
+ *          {@param "transformer"}.
+ * @category "Tuples" "Transformers"
+ */
+Macro "left fold_through_" is
+[
+	aTuple : expression phrase ⇒ any+,
+	transformer : expression phrase ⇒ [⊥, ⊥]→any
+|
+	transformerType ::= transformer's semantic type;
+	accumulatorType ::=
+		left fold type for aTuple's semantic type, transformerType;
+
+	indexDecl ::= arg «this token: index : natural number»;
+	endDecl ::= arg «this token: end : whole number»;
+	accumulatorDecl ::= arg «this token: accumulator : accumulatorType»;
+	innerTupleDecl ::= arg «this token: innerTuple : aTuple's semantic type»;
+	innerTransformerDecl ::=
+		arg «this token: innerTransformer : transformerType»;
+	loopDecl ::= «$this token: loop : $[…]→accumulatorType»;
+	tupleTempDecl ::= «this token: tupleTemp ::= aTuple»;
+
+	/* Continuation types are contravariant in their result type, so every
+	 * loop label conforms to $[…]→⊥, whatever the accumulator type. */
+	loop ::= «↓loopDecl» ?→ variable use phrase ⇒ $[…]→⊥;
+	index ::= «↓indexDecl» ?→ variable use phrase ⇒ natural number;
+	end ::= «↓endDecl» ?→ variable use phrase ⇒ whole number;
+	accumulator ::= «↓accumulatorDecl»;
+	innerTuple ::= «↓innerTupleDecl» ?→ variable use phrase ⇒ tuple;
+	innerTransformer ::=
+		«↓innerTransformerDecl» ?→ variable use phrase ⇒ [⊥, ⊥]→any;
+	tupleTemp ::= «↓tupleTempDecl» ?→ variable use phrase ⇒ any+;
+
+	/* The exit is built directly as a send, since a quotation would check the
+	 * accumulator against the static type of the loop label, $[…]→⊥, while
+	 * the label's actual type, $[…]→accumulatorType, accepts it. */
+	exit ::= send $"Exit_with_if_"
+		with <loop, accumulator, ⟦⦊index⦉ > ⦊end⦉⟧> → list phrase
+		: ⊤;
+
+	block ::= «[
+		<
+			indexDecl,
+			endDecl,
+			accumulatorDecl,
+			innerTupleDecl,
+			innerTransformerDecl
+		>
+	|
+		<
+			loopDecl,
+			exit → statement phrase,
+			⟦
+				Restart ⦊loop⦉ with <
+					⦊index⦉ + 1,
+					⦊end⦉,
+					⦊innerTransformer⦉ (
+						⦊innerTuple⦉ [⦊index⦉], ⦊accumulator⦉),
+					⦊innerTuple⦉,
+					⦊innerTransformer⦉>
+			⟧
+		>
+	] : accumulatorType»;
+	sequence-as-expression «
+		seq «<
+			tupleTempDecl,
+			⟦
+				⦊block⦉ (
+					2,
+					|⦊tupleTemp⦉|,
+					⦊tupleTemp⦉ [1],
+					⦊tupleTemp⦉,
+					⦊transformer⦉)
+			⟧
+		>»
+	»
+] : sequence-as-expression phrase;
 
 /**
  * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
  * left to right, but injecting an initial value. Answer the result of the
  * reduction.
  *
- * @method "left fold_through_"
- * @param "aTuple" "any+"
- *        A nonempty tuple.
+ * @method "left fold_into_through_"
+ * @param "initialValue" "any"
+ *        The initial value of the accumulator.
+ * @param "aTuple" "any*"
+ *        A tuple.
  * @param "transformer" "[⊥, ⊥]→any"
  *        A binary function whose second parameter type matches its return type.
  *        The first parameter type must be general enough to accept each element
@@ -1980,7 +2105,9 @@ Public method "left fold_into_through_" is
 styled by loop styler;
 
 /**
- * Injecting left fold has the following requirements:
+ * Check that an injecting left fold with the specified argument types is
+ * well-formed, rejecting the current parse if it is not, and answer the type of
+ * the fold's result.  Injecting left fold has the following requirements:
  *
  * - The function's first parameter must accept every element of the tuple.
  * - The function's second parameter must accept the provided initialValue and
@@ -1989,12 +2116,17 @@ styled by loop styler;
  * Injecting left fold answers either the provided initial value or the value
  * produced by the final application of the function.
  *
- * @method "left fold_into_through_"
- * @restricts "any's type"
- * @restricts "any+'s type"
- * @restricts "([⊥, ⊥]→any)'s type"
+ * @method "injecting left fold type for_,_,_"
+ * @param "initialValueType" "any's type"
+ *        The type of the initial value.
+ * @param "tupleType" "any*'s type"
+ *        The type of the tuple to fold.
+ * @param "transformer" "([⊥, ⊥]→any)'s type"
+ *        The type of the function to apply repeatedly.
+ * @returns "any's type"
+ *          The type of the fold's result.
  */
-Semantic restriction "left fold_into_through_" is
+Private method "injecting left fold type for_,_,_" is
 [
 	initialValueType : any's type,
 	tupleType : any*'s type,
@@ -2027,7 +2159,7 @@ Semantic restriction "left fold_into_through_" is
 			\| output, "
 			++ “returnType”
 			++ ", but it only accepts "
-			++ “transformer[1]”
+			++ “transformer[2]”
 	];
 
 	if ⌈tupleType⌉ = 0 then
@@ -2045,7 +2177,137 @@ Semantic restriction "left fold_into_through_" is
 		/* The tuple is not empty, so the initialValue cannot be returned. */
 		returnType
 	]
+] : any's type;
+
+/**
+ * Injecting left fold requires the function to accept each element of the
+ * tuple, and to accept both the initial value and its own output as the
+ * accumulator.  See {@method "injecting left fold type for_,_,_"}.
+ *
+ * @method "left fold_into_through_"
+ * @restricts "any's type"
+ * @restricts "any*'s type"
+ * @restricts "([⊥, ⊥]→any)'s type"
+ */
+Semantic restriction "left fold_into_through_" is
+[
+	initialValueType : any's type,
+	tupleType : any*'s type,
+	transformer : ([⊥, ⊥]→any)'s type
+|
+	injecting left fold type for initialValueType, tupleType, transformer
 ];
+
+/**
+ * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
+ * left to right, but injecting an initial value. Answer the result of the
+ * reduction.
+ *
+ * This is a macro so that each use gets its own copy of the loop, whose
+ * accumulator, tuple, and function are declared with the static types of the
+ * actual arguments.  The accumulator is declared as the union of the initial
+ * value's type and the function's return type, which the requirements of
+ * {@method "injecting left fold type for_,_,_"} guarantee the function
+ * accepts.  Applying the function to the accumulator therefore needs no
+ * run-time check of the accumulator's type, which for a large accumulator,
+ * such as a long string, would take time proportional to its size at every
+ * step.  The loop answers the possibly narrower type that the same method
+ * computes for the fold's result, which excludes the initial value's type
+ * when the tuple cannot be empty.
+ *
+ * @macro "left fold_into_through_"
+ * @param "initialValue" "expression phrase ⇒ any"
+ *        The initial value of the accumulator.
+ * @param "aTuple" "expression phrase ⇒ any*"
+ *        A tuple.
+ * @param "transformer" "expression phrase ⇒ [⊥, ⊥]→any"
+ *        A binary function whose second parameter type accepts both the
+ *        initial value and its own return type.  The first parameter type
+ *        must be general enough to accept each element of {@param "aTuple"}.
+ * @returns "sequence-as-expression phrase"
+ *          The inlined fold, which evaluates {@param "initialValue"}, {@param
+ *          "aTuple"}, and {@param "transformer"} in that order.
+ * @category "Tuples" "Transformers"
+ */
+Macro "left fold_into_through_" is
+[
+	initialValue : expression phrase ⇒ any,
+	aTuple : expression phrase ⇒ any*,
+	transformer : expression phrase ⇒ [⊥, ⊥]→any
+|
+	transformerType ::= transformer's semantic type;
+	resultType ::= injecting left fold type for
+		initialValue's semantic type, aTuple's semantic type, transformerType;
+	accumulatorType ::=
+		initialValue's semantic type ∪ transformerType's return type;
+
+	indexDecl ::= arg «this token: index : natural number»;
+	endDecl ::= arg «this token: end : whole number»;
+	accumulatorDecl ::= arg «this token: accumulator : accumulatorType»;
+	innerTupleDecl ::= arg «this token: innerTuple : aTuple's semantic type»;
+	innerTransformerDecl ::=
+		arg «this token: innerTransformer : transformerType»;
+	loopDecl ::= «$this token: loop : $[…]→resultType»;
+	initialTempDecl ::= «this token: initialTemp ::= initialValue»;
+	tupleTempDecl ::= «this token: tupleTemp ::= aTuple»;
+
+	/* Continuation types are contravariant in their result type, so every
+	 * loop label conforms to $[…]→⊥, whatever the accumulator type. */
+	loop ::= «↓loopDecl» ?→ variable use phrase ⇒ $[…]→⊥;
+	index ::= «↓indexDecl» ?→ variable use phrase ⇒ natural number;
+	end ::= «↓endDecl» ?→ variable use phrase ⇒ whole number;
+	accumulator ::= «↓accumulatorDecl»;
+	innerTuple ::= «↓innerTupleDecl» ?→ variable use phrase ⇒ tuple;
+	innerTransformer ::=
+		«↓innerTransformerDecl» ?→ variable use phrase ⇒ [⊥, ⊥]→any;
+	initialTemp ::= «↓initialTempDecl»;
+	tupleTemp ::= «↓tupleTempDecl» ?→ variable use phrase ⇒ tuple;
+
+	/* The exit is built directly as a send, since a quotation would check the
+	 * accumulator against the static type of the loop label, $[…]→⊥, while
+	 * the label's actual type, $[…]→accumulatorType, accepts it. */
+	exit ::= send $"Exit_with_if_"
+		with <loop, accumulator, ⟦⦊index⦉ > ⦊end⦉⟧> → list phrase
+		: ⊤;
+
+	block ::= «[
+		<
+			indexDecl,
+			endDecl,
+			accumulatorDecl,
+			innerTupleDecl,
+			innerTransformerDecl
+		>
+	|
+		<
+			loopDecl,
+			exit → statement phrase,
+			⟦
+				Restart ⦊loop⦉ with <
+					⦊index⦉ + 1,
+					⦊end⦉,
+					⦊innerTransformer⦉ (
+						⦊innerTuple⦉ [⦊index⦉], ⦊accumulator⦉),
+					⦊innerTuple⦉,
+					⦊innerTransformer⦉>
+			⟧
+		>
+	] : resultType»;
+	sequence-as-expression «
+		seq «<
+			initialTempDecl,
+			tupleTempDecl,
+			⟦
+				⦊block⦉ (
+					1,
+					|⦊tupleTemp⦉|,
+					⦊initialTemp⦉,
+					⦊tupleTemp⦉,
+					⦊transformer⦉)
+			⟧
+		>»
+	»
+] : sequence-as-expression phrase;
 
 /**
  * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
@@ -2092,7 +2354,9 @@ Public method "right fold_through_" is
 styled by loop styler;
 
 /**
- * Right fold has the following requirements:
+ * Check that a right fold with the specified argument types is well-formed,
+ * rejecting the current parse if it is not, and answer the type of the fold's
+ * result.  Right fold has the following requirements:
  *
  * - The function's first parameter must accept every element of the tuple
  *   except for the last (with which it will not be applied at this position).
@@ -2102,11 +2366,15 @@ styled by loop styler;
  * Right fold answers either the tuple's last element or the value produced by
  * the final application of the function.
  *
- * @method "right fold_through_"
- * @restricts "any+'s type"
- * @restricts "([⊥, ⊥]→any)'s type"
+ * @method "right fold type for_,_"
+ * @param "tupleType" "any+'s type"
+ *        The type of the tuple to fold.
+ * @param "transformer" "([⊥, ⊥]→any)'s type"
+ *        The type of the function to apply repeatedly.
+ * @returns "any's type"
+ *          The type of the fold's result.
  */
-Semantic restriction "right fold_through_" is
+Private method "right fold type for_,_" is
 [
 	tupleType : any+'s type,
 	transformer : ([⊥, ⊥]→any)'s type
@@ -2144,8 +2412,116 @@ Semantic restriction "right fold_through_" is
 			++ “transformer[2]”
 			++ ")"
 	];
-	returnType
+	finalType
+] : any's type;
+
+/**
+ * Right fold requires the function to accept each element of the tuple but the
+ * last, and to accept both the last element and its own output as the
+ * accumulator.  See {@method "right fold type for_,_"}.
+ *
+ * @method "right fold_through_"
+ * @restricts "any+'s type"
+ * @restricts "([⊥, ⊥]→any)'s type"
+ */
+Semantic restriction "right fold_through_" is
+[
+	tupleType : any+'s type,
+	transformer : ([⊥, ⊥]→any)'s type
+|
+	right fold type for tupleType, transformer
 ];
+
+/**
+ * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
+ * right to left. Answer the result of the reduction.
+ *
+ * This is a macro so that each use gets its own copy of the loop, whose
+ * accumulator, tuple, and function are declared with the static types of the
+ * actual arguments.  The accumulator is declared as the type of the fold's
+ * result, the union of the last element's type and the function's return
+ * type, which the requirements of {@method "right fold type for_,_"}
+ * guarantee the function accepts.  Applying the function to the accumulator
+ * therefore needs no run-time check of the accumulator's type, which for a
+ * large accumulator would take time proportional to its size at every step.
+ *
+ * @macro "right fold_through_"
+ * @param "aTuple" "expression phrase ⇒ any+"
+ *        A nonempty tuple.
+ * @param "transformer" "expression phrase ⇒ [⊥, ⊥]→any"
+ *        A binary function whose second parameter type accepts both the last
+ *        element and its own return type.  The first parameter type must be
+ *        general enough to accept each element of {@param "aTuple"} but the
+ *        last.
+ * @returns "sequence-as-expression phrase"
+ *          The inlined fold, which evaluates {@param "aTuple"} and then
+ *          {@param "transformer"}.
+ * @category "Tuples" "Transformers"
+ */
+Macro "right fold_through_" is
+[
+	aTuple : expression phrase ⇒ any+,
+	transformer : expression phrase ⇒ [⊥, ⊥]→any
+|
+	transformerType ::= transformer's semantic type;
+	accumulatorType ::=
+		right fold type for aTuple's semantic type, transformerType;
+
+	indexDecl ::= arg «this token: index : whole number»;
+	accumulatorDecl ::= arg «this token: accumulator : accumulatorType»;
+	innerTupleDecl ::= arg «this token: innerTuple : aTuple's semantic type»;
+	innerTransformerDecl ::=
+		arg «this token: innerTransformer : transformerType»;
+	loopDecl ::= «$this token: loop : $[…]→accumulatorType»;
+	tupleTempDecl ::= «this token: tupleTemp ::= aTuple»;
+
+	/* Continuation types are contravariant in their result type, so every
+	 * loop label conforms to $[…]→⊥, whatever the accumulator type. */
+	loop ::= «↓loopDecl» ?→ variable use phrase ⇒ $[…]→⊥;
+	index ::= «↓indexDecl» ?→ variable use phrase ⇒ whole number;
+	accumulator ::= «↓accumulatorDecl»;
+	innerTuple ::= «↓innerTupleDecl» ?→ variable use phrase ⇒ tuple;
+	innerTransformer ::=
+		«↓innerTransformerDecl» ?→ variable use phrase ⇒ [⊥, ⊥]→any;
+	tupleTemp ::= «↓tupleTempDecl» ?→ variable use phrase ⇒ any+;
+
+	/* The exit is built directly as a send, since a quotation would check the
+	 * accumulator against the static type of the loop label, $[…]→⊥, while
+	 * the label's actual type, $[…]→accumulatorType, accepts it. */
+	exit ::= send $"Exit_with_if_"
+		with <loop, accumulator, ⟦⦊index⦉ < 1⟧> → list phrase
+		: ⊤;
+
+	block ::= «[
+		<indexDecl, accumulatorDecl, innerTupleDecl, innerTransformerDecl>
+	|
+		<
+			loopDecl,
+			exit → statement phrase,
+			⟦
+				Restart ⦊loop⦉ with <
+					⦊index⦉ - 1 ?→ whole number,
+					⦊innerTransformer⦉ (
+						⦊innerTuple⦉ [⦊index⦉ ?→ natural number],
+						⦊accumulator⦉),
+					⦊innerTuple⦉,
+					⦊innerTransformer⦉>
+			⟧
+		>
+	] : accumulatorType»;
+	sequence-as-expression «
+		seq «<
+			tupleTempDecl,
+			⟦
+				⦊block⦉ (
+					|⦊tupleTemp⦉| - 1,
+					⦊tupleTemp⦉ [|⦊tupleTemp⦉|],
+					⦊tupleTemp⦉,
+					⦊transformer⦉)
+			⟧
+		>»
+	»
+] : sequence-as-expression phrase;
 
 /**
  * Compute and answer the index of the first element of {@param "aTuple"} that
