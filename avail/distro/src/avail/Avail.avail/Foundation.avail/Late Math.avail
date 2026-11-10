@@ -1,6 +1,6 @@
 /*
  * Late Math.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1074,15 +1074,15 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 		// checks are negligible to the overall time cost of the operation.
 		i := i - (i mod 30) ?→ whole number;
 	];
-	// Specialize for 32-bit limits.
+	// Specialize for 64-bit limits.
 	cast stop into
 	[
-		smallStop : [0..2^31 - 60)
+		smallStop : [0..2^63 - 60)
 	|
 		factor ::= [
-			j : [0..2^31 - 30)
+			j : [0..2^63 - 30)
 		|
-			$scan : [0..2^31);
+			$scan : [0..2^63);
 			Exit scan with 0 if j > smallStop;
 			// micro-sieve: primes > 5 can only have these 8 remainders mod 30.
 			Exit scan with j+1 if j+1 | n;
@@ -1093,8 +1093,8 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 			Exit scan with j+19 if j+19 | n;
 			Exit scan with j+23 if j+23 | n;
 			Exit scan with j+29 if j+29 | n;
-			Restart scan with <j + 30 ?→ [0..2^31 - 30)>
-		](i ?→ [0..2^31 - 30));
+			Restart scan with <j + 30 ?→ [0..2^63 - 30)>
+		](i ?→ [0..2^63 - 30));
 		if factor = 0 then
 		[
 			<0, 0>

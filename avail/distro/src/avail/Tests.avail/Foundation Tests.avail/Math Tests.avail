@@ -1,6 +1,6 @@
 /*
  * Math Tests.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -455,6 +455,18 @@ Test "factorization" in math test suite is
 	Require: quicksort factor 16079919820099 = <1997, 1999, 2003, 2011>;
 	Require: prime factorization of 15! =
 		{2→11, 3→6, 5→3, 7→2, 11→1, 13→1};
+];
+
+Test "factorization beyond 2^62" in math test suite is
+[
+	/* This product lies in [2^62..2^63 - 60), so its integer square root is at
+	 * least 2^31 - 60, which takes trial division through its 64-bit search.
+	 * Its lowest factor exceeds the small primes that trial division checks
+	 * first, so the search must find it.
+	 */
+	n ::= 49003 × 49009 × 49019 × 49031;
+	Require: 2^62 ≤ n < 2^63 - 60;
+	Require: factor n = <49003, 49009, 49019, 49031>;
 ];
 
 Test "modular exponent tests" in math test suite is
