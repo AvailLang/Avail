@@ -53,9 +53,11 @@ import java.util.concurrent.atomic.AtomicReference
  * but the aggregate collection of queues cannot be considered strictly
  * ordered.  A thief takes the victim's highest priority task, which it runs,
  * plus one of the two subheaps under it, which it merges into its own heap.
- * The other subheap stays with the victim.  The roots of both subheaps are
- * among the victim's second and third highest priority tasks, so stealing
- * respects the priority scheme roughly.
+ * The other subheap stays with the victim.  One of the two subheaps is rooted
+ * at the victim's second highest priority task, so stealing respects the
+ * priority scheme roughly.  The other subheap's root is only the highest
+ * priority task within that subheap, and may rank anywhere below second in
+ * the victim's heap as a whole.
  *
  * A thread that finds no task anywhere blocks on [idlePermits].  Whenever a
  * thread makes tasks newly visible to other threads, by [offer]ing one or by

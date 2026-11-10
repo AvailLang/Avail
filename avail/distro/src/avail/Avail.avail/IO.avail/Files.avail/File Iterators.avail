@@ -608,8 +608,8 @@ Method "Refresh_" is
 ] : ⊤;
 
 /**
- * Wait for all outstanding writes on this iterator to complete writing to the
- * physical medium associated with the file's filesystem.
+ * Wait for all outstanding writes on this iterator to reach the drive holding
+ * the file, as described for {@method "Synchronize_with file system"}.
  *
  * @method "Synchronize_"
  * @param "anIterator" "file writer"

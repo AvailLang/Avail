@@ -126,6 +126,24 @@ Test "file iterator (refresh/synchronize)" in file iterator test suite is
 	];
 ];
 
+Test "file iterator (delete on close)" in file iterator test suite is
+[
+	fileName ::= a fresh test file name;
+	Require: ¬fileName exists;
+	aWriter ::= a file writer for fileName
+		with options {create new, delete on close};
+	Guard
+	[
+		Write <67, 97, 116> to aWriter;
+		Synchronize aWriter;
+	]
+	ensure
+	[
+		Close aWriter;
+	];
+	Require: ¬fileName exists;
+];
+
 Test "file iterator (alignment)" in file iterator test suite is
 [
 	fileName ::= a fresh test file name;

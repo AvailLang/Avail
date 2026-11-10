@@ -1,6 +1,6 @@
 /*
  * IOSystem.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,8 @@ import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.utility.Mutable
 import avail.utility.SimpleThreadFactory
 import org.availlang.cache.LRUCache
+import java.io.FileDescriptor
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
 import java.nio.channels.AsynchronousFileChannel
@@ -54,6 +56,7 @@ import java.nio.file.FileSystems
 import java.nio.file.LinkOption
 import java.nio.file.OpenOption
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE
@@ -324,6 +327,21 @@ class IOSystem
 	 * @property channel
 	 *  The underlying [AsynchronousFileChannel] through which input and/or
 	 *  output takes place.
+	 * @property syncStream
+	 *   For a [writable][canWrite] file, a second, write-only descriptor on
+	 *   the same file, opened for appending and never written through, whose
+	 *   [FileDescriptor] is used only to [synchronize][FileDescriptor.sync]
+	 *   the file; `null` for a file that cannot be written.  It exists
+	 *   because [AsynchronousFileChannel.force] issues `F_FULLFSYNC` on
+	 *   macOS, which flushes the entire drive's write cache, whereas
+	 *   [FileDescriptor.sync] issues a plain `fsync` there.  Since `fsync`
+	 *   applies to the file rather than to a descriptor, synchronizing this
+	 *   descriptor commits the writes made through [channel].
+	 * @property deleteAfterClose
+	 *   The [Path] to delete after closing this file, or `null` if none.
+	 *   This is set only when the file was opened with
+	 *   [StandardOpenOption.DELETE_ON_CLOSE] and the operating system refused
+	 *   to delete it while it was open.
 	 *
 	 * @constructor
 	 * Construct a new file handle.
@@ -338,13 +356,20 @@ class IOSystem
 	 *   Whether the file can be written.
 	 * @param channel
 	 *   The [AsynchronousFileChannel] with which to do reading and writing.
+	 * @param syncStream
+	 *   The [FileOutputStream] whose [FileDescriptor] synchronizes the file,
+	 *   or `null` if the file cannot be written.
+	 * @param deleteAfterClose
+	 *   The [Path] to delete after closing the file, or `null` if none.
 	 */
 	class FileHandle constructor(
 		val filename: A_String,
 		val alignment: Int,
 		val canRead: Boolean,
 		val canWrite: Boolean,
-		val channel: AsynchronousFileChannel)
+		val channel: AsynchronousFileChannel,
+		val syncStream: FileOutputStream?,
+		val deleteAfterClose: Path?)
 	{
 		/**
 		 * A weak set of [BufferKey]s pertaining to this file, for which there

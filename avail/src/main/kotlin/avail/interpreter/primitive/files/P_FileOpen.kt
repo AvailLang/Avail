@@ -67,14 +67,17 @@ import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive4
 import avail.io.IOSystem
 import avail.io.IOSystem.FileHandle
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.AccessDeniedException
 import java.nio.file.FileSystem
+import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.nio.file.StandardOpenOption.DELETE_ON_CLOSE
 import java.nio.file.StandardOpenOption.READ
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileAttribute
@@ -90,6 +93,9 @@ import java.util.EnumSet
  * fiber is suspended, since the operating system can take a long time to
  * create or open a file.  The fiber resumes with the handle, or fails with the
  * reason the open failed.
+ *
+ * A file opened for writing also gets a second descriptor, used only to
+ * synchronize it (see [FileHandle.syncStream]).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -133,16 +139,25 @@ object P_FileOpen : Primitive4(CanSuspend, HasSideEffect)
 				return fail(E_INVALID_PATH)
 			}
 
+		val writable = fileOptions.contains(WRITE)
+		// A writable file gets a second descriptor for synchronization (see
+		// FileHandle.syncStream), which must open the same file as the
+		// channel.  The operating system may unlink a DELETE_ON_CLOSE file as
+		// soon as the channel opens it, so that option is withheld from the
+		// channel and carried out here after both descriptors are open.
+		val deleteOnClose = writable && fileOptions.contains(DELETE_ON_CLOSE)
+		val channelOptions =
+			if (deleteOnClose) fileOptions - DELETE_ON_CLOSE else fileOptions
 		return suspendThen {
 			// Opening a file can block for a long time, such as while the file
-			// system commits a transaction that a concurrent drive flush has
-			// claimed, so it runs on the I/O system's file executor instead of
-			// on an interpreter thread.
+			// system commits a transaction, so it runs on the I/O system's
+			// file executor instead of on an interpreter thread.
 			ioSystem.executeFileTask {
 				val channel: AsynchronousFileChannel =
 					try
 					{
-						ioSystem.openFile(path, fileOptions, *fileAttributes)
+						ioSystem.openFile(
+							path, channelOptions, *fileAttributes)
 					}
 					catch (e: IllegalArgumentException)
 					{
@@ -169,12 +184,46 @@ object P_FileOpen : Primitive4(CanSuspend, HasSideEffect)
 						fail(E_IO_ERROR)
 						return@executeFileTask
 					}
+				val syncStream =
+					if (!writable) null
+					else try
+					{
+						FileOutputStream(path.toFile(), true)
+					}
+					catch (e: IOException)
+					{
+						try
+						{
+							channel.close()
+						}
+						catch (ignored: IOException)
+						{
+							// The open is failing anyway.
+						}
+						fail(E_IO_ERROR)
+						return@executeFileTask
+					}
+				var deleteAfterClose: Path? = null
+				if (deleteOnClose)
+				{
+					try
+					{
+						Files.deleteIfExists(path)
+					}
+					catch (e: IOException)
+					{
+						// Some systems (Windows) refuse to delete an open file.
+						deleteAfterClose = path
+					}
+				}
 				val fileHandle = FileHandle(
 					filename,
 					alignmentInt,
 					fileOptions.contains(READ),
-					fileOptions.contains(WRITE),
-					channel)
+					writable,
+					channel,
+					syncStream,
+					deleteAfterClose)
 				val atom = createAtom(filename, nil)
 				atom.setAtomProperty(FILE_KEY.atom, identityPojo(fileHandle))
 				succeed(atom)

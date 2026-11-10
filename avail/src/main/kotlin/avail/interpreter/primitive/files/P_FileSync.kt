@@ -55,7 +55,7 @@ import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive1
 import avail.io.IOSystem
 import avail.io.IOSystem.FileHandle
-import java.io.IOException
+import java.io.SyncFailedException
 import java.nio.channels.AsynchronousFileChannel
 
 /**
@@ -63,6 +63,15 @@ import java.nio.channels.AsynchronousFileChannel
  * [writable][FileHandle.canWrite] [file&#32;channel][AsynchronousFileChannel]
  * associated with the [handle][AtomDescriptor] to synchronize with the
  * underlying device.
+ *
+ * This is the operating system's ordinary per-file synchronization (`fsync`
+ * on POSIX systems, `FlushFileBuffers` on Windows), issued through the
+ * handle's [sync&#32;descriptor][FileHandle.syncStream].  The file's data
+ * and the metadata needed to read it back reach the drive.  On macOS this
+ * does not include the drive's own write cache, so the data can still be lost
+ * if power fails; making it survive that requires `F_FULLFSYNC`, which on
+ * macOS flushes the write cache of the entire drive, not just this file, and
+ * is not offered here.
  *
  * The calling fiber is suspended while the synchronization runs on the
  * [IOSystem]'s file executor, since it can take a long time.  The fiber
@@ -97,9 +106,9 @@ object P_FileSync : Primitive1(CanSuspend, HasSideEffect)
 			runtime.ioSystem.executeFileTask {
 				try
 				{
-					handle.channel.force(true)
+					handle.syncStream!!.fd.sync()
 				}
-				catch (e: IOException)
+				catch (e: SyncFailedException)
 				{
 					fail(E_IO_ERROR)
 					return@executeFileTask

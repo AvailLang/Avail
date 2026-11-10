@@ -520,6 +520,12 @@ Public method
  * while the current fiber is suspended, so no interpreter thread is blocked
  * waiting for it.
  *
+ * This is the operating system's ordinary per-file synchronization: the file's
+ * data, and the metadata needed to read it back, reach the drive.  On macOS
+ * this does not include the drive's own write cache, so the data can still be
+ * lost if power fails.  Surviving that would take a flush of the entire
+ * drive's write cache, not just this file's, which this method does not do.
+ *
  * @method "Synchronize_with file system"
  * @param "f" "writable file"
  * @returns "⊤"

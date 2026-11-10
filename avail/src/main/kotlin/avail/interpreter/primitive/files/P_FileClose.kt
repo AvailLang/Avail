@@ -53,6 +53,7 @@ import avail.io.IOSystem
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
+import java.nio.file.Files
 
 /**
  * **Primitive:** Close the [file][AsynchronousFileChannel] associated with the
@@ -61,7 +62,10 @@ import java.nio.channels.AsynchronousFileChannel
  *
  * The association is forgotten at once, and the close then runs on the
  * [IOSystem]'s file executor while the calling fiber is suspended, since
- * closing a file can block.
+ * closing a file can block.  The close also closes the handle's
+ * [sync&#32;descriptor][FileHandle.syncStream], if any, and deletes a
+ * [delete-on-close][FileHandle.deleteAfterClose] file that could not be
+ * deleted while it was open.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -84,15 +88,34 @@ object P_FileClose : Primitive1(CanSuspend, HasSideEffect)
 			// file is still in progress, so it runs on the I/O system's file
 			// executor instead of on an interpreter thread.
 			runtime.ioSystem.executeFileTask {
+				// There isn't much to do about a failed close or deletion,
+				// especially since we've already forgotten about the handle.
+				// There's no reason to fail the primitive.
 				try
 				{
 					handle.channel.close()
 				}
 				catch (e: IOException)
 				{
-					// There isn't much to do about a failed close, especially
-					// since we've already forgotten about the handle. There's
-					// no reason to fail the primitive.
+					// Ignore it, as explained above.
+				}
+				try
+				{
+					handle.syncStream?.close()
+				}
+				catch (e: IOException)
+				{
+					// Ignore it, as explained above.
+				}
+				handle.deleteAfterClose?.let { path ->
+					try
+					{
+						Files.deleteIfExists(path)
+					}
+					catch (e: IOException)
+					{
+						// Ignore it, as explained above.
+					}
 				}
 				succeed(nil)
 			}
