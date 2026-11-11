@@ -1,228 +1,270 @@
 # Variable Elision
 
-## ***Note: This is not exactly what was implemented.***
+Level Two code avoids creating the variable object for a local variable of
+the function being optimized until something could observe that object.  An
+*elided* local exists only as the values in registers that it would hold:
+its creation and its writes are postponed, and a read of it becomes a move of
+the value most recently written.  The variable is created when it *escapes*
+(when the code passes, captures, or stores the variable itself), or when the
+frame's continuation is reified and then made immutable or shared.
 
-Continuations can have the constant `0` as a sentinel in variable slots to indicate they haven't been populated yet.  L2 registers that would hold those same slots can contain `0` to indicate the same condition.  When reifying a continuation from registers, those nils can usually be conserved.  However, the moment a continuation *becomes immutable or shared*,
-1. those variables have to be created and written to the slots, and
-2. the continuation has to be downgraded to another path to handle potentially escaped variables.
+The governing invariant is that **L1 code only ever sees real variables**.
+Any continuation that would expose an elided local to the L1 interpreter, or
+to another fiber, first creates the missing variables and switches its own
+resumption to the L1 interpreter.
 
-Simply switching the continuation's chunk to the default L1 executor is probably fine for this, to avoid generating extra code for this presumably cold occurrence.
+## Scope
 
-If a continuation hasn't been constructed yet, or it has but it was still mutable upon resumption, restore the registers and continue with the assumption of non-escape for all variables that were previously non-escaped.  This situation does not create any new variables.
+Elision applies to the local variables of a raw function (the slots after
+its arguments), in chunks that the [L1Translator] and the L2 optimizer
+produce.  The unoptimized [DefaultL1Chunk] and the [L2SimpleChunk] create
+every local up front, as does the optimizer when
+`L1Translator.enableVariableElision` is `false`.
 
-If a continuation has been created and then becomes immutable, variables are immediately created for it, and its resumption chunk falls back to L1, which is the same as it would be if a method it depends on changed membership.  Thus, L1 execution only ever sees actual variables.
+## Instructions
 
-If a variable is captured, say to be an outer of a function or an argument to some (non-inlined) function, the variable has to be created, and it's considered "escaped but not shared" at that moment.  When the function returns, all created local variables (not just any created for a particular call) have to be checked, or at least any that are still reachable by this chunk.  If they have become shared, then writes to them may have to trigger write traps, which occupies a considerable portion of the current control flow graphs, and also inhibits some optimizations.  So if any reachable local variables are now shared, we should construct the rest of the variables and fall back to L1.
+The mechanism is carried by ordinary L2 instructions that the postponement
+machinery knows how to transform.  The diagrams below use the shorthand on
+the left.
 
-Another case is that the called function triggers reification.  When we get our turn to reify the current frame, we can likewise check for any shared variables, and in that event create an L1 frame instead, creating any remaining variables.
+- **`Create x := y`** — [L2_CREATE_VARIABLE].  Create local `#n`, initialized
+  to `y`, or unassigned if `y` is `nil`.  It also carries the placeholder for
+  local `#n` (see [Placeholders](#placeholders)), to stand in for the
+  variable if the creation never happens.  It can be postponed.
+- **`Set x := y`** — [L2_SET_UNESCAPED_LOCAL_VARIABLE].  Write `y` into `x`
+  with no type check and no write reactors, which is valid only while `x` is
+  neither shared nor reactive.  It produces `x` again under a new semantic
+  value, so every later use of the local is ordered after the write.  It can
+  be postponed.
+- **`v ← Get x`** — [L2_GET_UNESCAPED_LOCAL_VARIABLE].  Read `x` into `v`,
+  branching on whether `x` is assigned, and produce `x` again.  It branches,
+  so it is never postponed.
+- **`v ← GetClearing x`** —
+  [L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE].  Like `Get`, but
+  also clear `x` if it is mutable.  The compiler emits the clearing read only
+  for the last read of a local (`AvailGetLocalVariable.canClear`).
+- **`Check x, …`** — [L2_CHECK_ESCAPED_LOCALS].  If any listed local has
+  become shared or has acquired a reactor, fall back to the L1 interpreter.
+- **`SaveAll`** — [L2_SAVE_ALL_AND_PC_TO_INT].  Begin reifying this frame,
+  capturing its live registers in an [A_RegisterDump], along with how to
+  create each elided local (its `dirtyLocals` and `dirtyLocalIndices`).
+- **`CreateContinuation`** — [L2_CREATE_CONTINUATION].  Build the frame's
+  continuation from the dump.
+- **`Invoke`** — [L2_INVOKE] or [L2_INVOKE_CONSTANT_FUNCTION]: a call that is
+  not inlined.
+- **`Return`** — [L2_RETURN].
 
-Even when some non-shared but possibly immutable local variables have been created in the current frame registers, L2 can still track the most recent values that would have been written to those variables, postponing writes that won't be observed (because write traps are not possible).
+## Placeholders
 
+Each elided local has a placeholder, an instance of
+[VariablePlaceholderDescriptor] that records the local's index and variable
+type, compares by identity, and prints as `Elided local #n`.  A continuation
+slot holds a placeholder where the real variable has not been created.
 
-## Transitions
+The [L1Translator] creates the placeholders at the head of the function's
+body.  It binds each local's slot to its placeholder, emits the interrupt
+check, and only then emits one `Create x := nil` per local.  A continuation
+reified to service that interrupt therefore holds placeholders for every
+local.  Anywhere else, a `Create` that is still postponed when the frame is
+reified is replaced on the reification path by its placeholder (see
+[Reification](#reification)).
 
-### Interrupt at start of method
-Use `0` in local variable slots, and on resumption know that those slots are still `0`, or it would have been marked immutable and returned into L1.
+## Translation
 
-### Continuation --> immutable/shared
-Fill in any missing variables and switch its chunk for the L1 chunk.
+- The L1 operations that read and write a local translate to `Get`,
+  `GetClearing`, and `Set`.
+- An L1 instruction that captures or pushes the variable itself (to close a
+  function over it, or to pass it as an argument) reads the variable's
+  register, which forces the `Create` to be emitted.  That is the local's
+  escape.
+- After an operation that might make an escaped local shared or give it a
+  reactor, the translator emits `Check` over every local slot that is not
+  bound to a constant.  (A slot bound to a placeholder, or to `nil` after a
+  clearing read, holds no variable to check.)  Those operations are:
+  - every call that is not inlined;
+  - every inlined primitive that has the flag
+    `Primitive.Flag.MightMakeEscapedVariableShared`, such as `P_SetValue`,
+    `P_Fork`, and `P_AddWriteReactor`;
+  - every write to a variable that is a literal of the code, which is always
+    shared, so it may share anything written into it.
 
-### Reification in call
-Capture the current mix of `0` sentinels and variables in the new continuation.  Upon return, know that the same mix is present, and none of the present variables were observed, or it would have been marked immutable and returned into L1.
+A local that has become shared is open to reads and writes from other fibers,
+so L2 can no longer track its value in registers.  A local with a reactor
+must run that reactor on each write, which `Set` does not do.  Either way,
+`Check` falls back to the L1 interpreter ([L2_FALL_BACK_TO_L1]), which
+creates any locals still elided and uses only real variables from then on.
 
-### Capturing or passing local variable for function call
-Always create the variable.  After the call (direct return or resuming a reified continuation), check if *any* of the existing local variables have become shared, transitioning to L1 if any were.
+## Postponement
 
-### Read/write local variable
-Leverage the fact that the variable is definitely not shared, so it cannot cause any read traps or write traps.
+A side-effect-free instruction with a single output can be *postponed*: the
+regenerator records it in the edge's [L2ValueManifest] instead of emitting it,
+and emits it only when something reads its output.  `Create` and `Set` are
+postponable, and the rules below say what happens when one of them, still
+postponed, reaches another instruction.
 
-### Passing local variable to an inlined primitive invocation
-Some primitives can make their arguments (or components of their arguments) shared.  If the primitive might do this, an explicit check for shared variables should be performed after the call, falling back to L1 if any are detected.  Returning a local variable doesn't have to do these checks, since that can't cause it to be shared.  It's still up to the caller to check if any of its variables has become shared.
+Most rules take effect in any regeneration that tracks semantic values: the
+merging of a `Create` or `Set` with a following `Set`
+(`L2Instruction.rewritePostponed`), the pruning of `Check`
+(`L2Instruction.aboutToAdd`), and the handling of `SaveAll`.  Two take effect
+only in the dedicated postponement phases
+(`OptimizationPhase.POSTPONE_CONDITIONALLY_USED_VALUES_1` and its siblings),
+because they are implemented by `L2Instruction.regenerateForPostponement`:
+the rewriting of a `Get` into a move, and the emission of postponed `Set`s
+before an `Invoke` or `Return`.
 
-### Primitive variable readers/writers
-Some primitives exist just to get/set/clear/atomically-update a variable that was provided from elsewhere.  None of those primitives, to my knowledge, change the mutability of the passed variables.  Hm, in theory one could have a variable V, immutable, in an immutable tuple like `<V>`.  If an inlined primitive causes that tuple to be written into a shared variable SV, the tuple would become shared, as would V.  So V would have escaped.  I can't think of a corresponding example that does a read.  Maybe the variable-write primitives just shouldn't be inlined, allowing the normal generated post-return code of a call to just check all the locals for sharedness (and falling back to L1).
-
-
-
-# Reworked form (proposed ~Oct 12, 2024)
-The L1Translator produces a naive translation, with a sequence of L2_CREATE_VARIABLE instructions at the start, just like it did before the variable elision mechanism was introduced.  For every L1 instruction that does a get or set to something other than a literal (which is always marked as shared because it's referenced from code), the L1Translation produces an L2_VIRTUAL_GET_VARIABLE or L2_VIRTUAL_SET_VARIABLE.
-
-
-
-
-
- During postponement, we look for transformations that help us avoid some
- variable operations.  Here's a table of some instructions that appear in the postponement rules:
-
-| Instruction                     | Description                                                                                                                                                                                                                                                                     |
-|---------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <nobr>Create x := y</nobr>      | Create a local in register x and initialize it to y.                                                                                                                                                                                                                            |
-| <nobr>Set x := y</nobr>         | Set variable x to y.                                                                                                                                                                                                                                                            |
-| <nobr>y ← Get x</nobr>          | Read variable x into register y.                                                                                                                                                                                                                                                |
-| <nobr>Check x</nobr>            | Ensure variable x still has no reactors/shared, otherwise fall out to L1.  The virtual form of this just assumes it will be successful.                                                                                                                                         |
-| <nobr>CallUnsafe</nobr>         | Invoke a function that might make an already escaped variable become shared or have a reactor.                                                                                                                                                                                  |
-| <nobr>CallSafe</nobr>           | Invoke a primitive that can't make an escaped variable become shared or have a reactor.                                                                                                                                                                                         |
-| <nobr>SaveAll</nobr>            | Save all live registers into an [A_RegisterDump], which is made available to a subsequent [L2_CREATE_CONTINUATION].  It also records which local variables are elided, and anything needed for the continuation to be able to construct them if it becomes immutable or shared. |
-| <nobr>CreateContinuation</nobr> | Create a continuation, using mostly the information captured in an [A_RegisterDump] by a previous SaveAll.                                                                                                                                                                      |
-| <nobr>ReturnFromReify</nobr>    | Reification of this frame has completed                                                                                                                                                                                                                                         |
-| <nobr>Return</nobr>             | Return from this function.                                                                                                                                                                                                                                                      |
-
+### Postponed creation
 
 ```mermaid
 ---
-title: Postponement of Create
+title: A postponed Create reaching another instruction
 ---
 flowchart LR
  Set["Create x := y<br>Set x := z"]
- Set .-> Set'["Create x := z"]
- Get["Create x := y<br>z ← Get x"]
- Get .-> Get'["Move z ← y<br>Create x := y"]
- Return["Create x := y<br>Return z / ReturnFromReify"]
- Return .-> Return'["Return z / ReturnFromReify"]
- Check["Create x := y<br>Check x"]
- Check .-> Check'["Create x := y<br><i>(check created by L1Translator<br>is no longer needed)</i>"]
- CallSafe["Create x := y<br>CallSafe ... <i>(x not used)</i>"]
- CallSafe .-> CallSafe'["CallSafe ...<br>Create x := y"]
- CallUnsafe["Create x := y<br>CallUnsafe ... <i>(x not used)</i>"]
- CallUnsafe .-> CallUnsafe'["CallUnsafe ...<br>Create x := y"]
-```
-```mermaid
----
-title: Postponement of Create (continued)
----
-flowchart LR
- subgraph Save["&nbsp;"]
-  direction TB
-  SaveIntro(("&nbsp;")) ..-> SaveHead
-  SaveHead["Create x <i>(local #n)</i> := y<br>SaveAll ..."]
-  SaveHead ..->|ref| SaveRef["..."]
-  SaveHead -->|fall-through| SaveFall["...<br>CreateContinuation <... local #n = x ...><br><i>(x is not otherwise used)</i><br>..."]
- end
- subgraph Save'["&nbsp;"]
-  direction TB
-  SaveIntro'(("&nbsp;")) ..-> SaveHead'
-  SaveHead'["SaveAll ... dirtyLocals[n] = y"]
-  SaveHead' ..->|ref| SaveRef'["Create x := y"]
-  SaveHead' -->|fall-through| SaveFall'["...<br>CreateContinuation <... local #n = 0 sentinel ...><br>..."]
- end
- Save .-> Save'
- subgraph Other["&nbsp;"]
-  direction TB
-  OtherIntro(("&nbsp;")) ..-> OtherHead
-  OtherHead["Create x <i>(not a local)</i> := y<br>SaveAll ..."]
-  OtherHead ..->|ref| OtherRef["..."]
-  OtherHead -->|fall-through| OtherFall["...<br>CreateContinuation <...><br><i>(x is not used)</i><br>..."]
- end
- subgraph Other'["&nbsp;"]
-  direction TB
-  OtherIntro'(("&nbsp;")) ..-> OtherHead'
-  OtherHead'["SaveAll ..."]
-  OtherHead' ..->|ref| OtherRef'["Create x := y"]
-  OtherHead' -->|fall-through| OtherFall'["...<br>CreateContinuation<...>"]
- end
- Other .-> Other'
+ Set .-> Set'["Create x := z<br><i>(unless z is computed<br>from x itself)</i>"]
+ Get["Create x := y<br>v ← Get x"]
+ Get'["Move v ← y<br>go to success<br><i>(failure: y nil)</i><br>Create x := y"]
+ Get .-> Get'
+ Clear["Create x := y<br>v ← GetClearing x"]
+ Clear .-> Clear'["Move v ← y<br>go to success<br>Create x := y"]
+ Check["Create x := y<br>Check x, w"]
+ Check'["Check w<br>Create x := y<br><i>(no Check if w is empty)</i>"]
+ Check .-> Check'
+ Call["Create x := y<br>Invoke / Return<br><i>(x not used)</i>"]
+ Call'["Invoke / Return<br>Create x := y<br><i>(dead after Return)</i>"]
+ Call .-> Call'
+ Use["Create x := y<br>… x … <i>(x itself used)</i>"]
+ Use .-> Use'["Create x := y<br>… x …<br><i>(emitted: x escapes)</i>"]
 ```
 
+When the value `y` might or might not be assigned, the `Get` reads the
+variable, which forces the `Create` to be emitted first.  After a
+`GetClearing`, the postponed creation keeps its initial value: the clearing
+read is the local's last read, so nothing observes the difference, and the
+creation is never emitted unless the variable later escapes.
+
+### Postponed assignment
+
+A `Set` survives postponement only for a local that has already been created,
+since a `Set` that reaches a postponed `Create` merges into it.
 
 ```mermaid
 ---
-title: Postponement of Set
+title: A postponed Set reaching another instruction
 ---
 flowchart LR
  Set["Set x := y<br>Set x := z"]
- Set .-> Set'("Set x := z")
- Get["Set x := y<br>z ← Get x"]
- Get .-> Get'("Move z ← y<br>Set x := y")
- Return["Set x := y<br>Return z / ReturnFromReify"]
- Return .-> Return'["Set x := y<br>Return z / ReturnFromReify<br><i>(i.e., preserve set for escaped variable)</i>"]
+ Set .-> Set'["Set x := z<br><i>(the first write<br>is unobserved)</i>"]
+ Get["Set x := y<br>v ← Get x"]
+ Get'["Move v ← y<br>go to success<br><i>(failure: y nil)</i><br>Set x := y"]
+ Get .-> Get'
  Check["Set x := y<br>Check x"]
- Check .-> Check'["Set x := y<br><i>(check created by L1Translator<br>is no longer needed)</i>"]
- CallSafe["Set x := y<br>CallSafe ... <i>(x not used)</i>"]
- CallSafe .-> CallSafe'["CallSafe ...<br>Set x := y"]
- CallUnsafe["Set x := y<br>CallUnsafe ... <i>(x not used)</i>"]
- CallUnsafe .-> CallUnsafe'["<i>(no change)</i>"]
+ Check .-> Check'["Set x := y<br>Check x<br><i>(emitted: x already exists)</i>"]
+ Call["Set x := y<br>Invoke / Return"]
+ Call'["Set x := y<br>Invoke / Return<br><i>(emitted: others<br>may see x)</i>"]
+ Call .-> Call'
 ```
-```mermaid
----
-title: Postponement of Set (continued)
----
-flowchart LR
- subgraph Save["&nbsp;"]
-  direction TB
-  SaveIntro(("&nbsp;")) ..-> SaveHead
-  SaveHead["Set x <i>(local #n)</i> := y<br>SaveAll ..."]
-  SaveHead ..->|ref| SaveRef["..."]
-  SaveHead -->|fall-through| SaveFall["...<br>CreateContinuation <... local #n = x ...><br><i>(and x is not otherwise used)</i><br>..."]
- end
- subgraph Save'["&nbsp;"]
-  direction TB
-  SaveIntro'(("&nbsp;")) ..-> SaveHead'
-  SaveHead'["SaveAll ... dirtyLocals[n] = y"]
-  SaveHead' ..->|ref| SaveRef'["Set x := y"]
-  SaveHead' -->|fall-through| SaveFall'["...<br>CreateContinuation <... local #n = 0 sentinel ...><br>..."]
- end
- Save .-> Save'
- subgraph Other["&nbsp;"]
-  direction TB
-  OtherIntro(("&nbsp;")) ..-> OtherHead
-  OtherHead["Set x <i>(x not local)</i> := y<br>SaveAll ..."]
-  OtherHead ..->|ref| OtherRef["..."]
-  OtherHead -->|fall-through| OtherFall["...<br>CreateContinuation <...><br><i>(x is not used)</i><br>..."]
- end
- Other .-> Other'["<i>(no change – only locals are checked<br>for shared & reactors, so writes to<br>non-locals must not be reordered)</i>"]
-```
+
+Like any postponed instruction, a `Set` is also emitted as soon as anything
+reads the variable it produces.
+
+### Reification
+
+`SaveAll` has two outgoing edges: the *fall-through* edge, which goes on to
+build and store the frame's continuation, and the *reference* edge, where
+execution resumes when that continuation is returned into while still
+mutable.  A postponed `Create` follows both.
 
 ```mermaid
 ---
-title: Postponement of Get
+title: A postponed Create reaching SaveAll
 ---
 flowchart LR
- Get["y ← Get x<br>z ← Get x"]
- Get .-> Get'("y ← Get x<br>Move z ← y")
- Set["y ← Get x<br>Set x := z"]
- Set .-> Set'("<i>(no change)</i>")
- ReturnIt["y ← Get x<br>Return y"]
- ReturnIt .-> ReturnIt'["<i>(no change)</i>"]
- ReturnOther["y ← Get x<br>Return z / ReturnFromReify"]
- ReturnOther .-> ReturnOther'["Return z / ReturnFromReify<br><i>(i.e., eliminate useless get)</i>"]
- Check["y ← Get x<br>Check x"]
- Check .-> Check'["<i>(no change - must not conflate Get from<br>before unsafe call with Get after the call)</i>"]
- CallSafe["y ← Get x<br>CallSafe ... <i>(y not used)</i>"]
- CallSafe .-> CallSafe'["CallSafe ...<br>y ← Get x"]
- CallUnsafe["y ← Get x<br>CallUnsafe ... <i>(x not used)</i>"]
- CallUnsafe .-> CallUnsafe'["<i>(no change - must not conflate Get from<br>before unsafe call with Get after the call)</i>"]
-```
-```mermaid
----
-title: Postponement of Get (continued)
----
-flowchart LR
- subgraph Save["&nbsp;"]
+ subgraph Before["&nbsp;"]
   direction TB
-  SaveIntro(("&nbsp;")) ..-> SaveHead
-  SaveHead["y ← Get x<br>SaveAll ..."]
-  SaveHead ..->|ref| SaveRef["..."]
-  SaveHead -->|fall-through| SaveFall["...<br>CreateContinuation <... x <i>(if it's a local)</i>, ...><br><i>(either x or y is used<br>elsewhere in this branch)</i><br>..."]
+  BeforeHead["Create x <i>(local #n)</i> := y<br>SaveAll"]
+  BeforeRef["…"]
+  BeforeFall["…<br>CreateContinuation<br>&lt;… x …&gt;"]
+  BeforeHead ..->|reference| BeforeRef
+  BeforeHead -->|fall-through| BeforeFall
  end
- Save'["<i>(no change)</i>"]
- Save .-> Save'
- subgraph Other["&nbsp;"]
+ subgraph After["&nbsp;"]
   direction TB
-  OtherIntro(("&nbsp;")) ..-> OtherHead
-  OtherHead["y ← Get x<br>SaveAll ..."]
-  OtherHead ..->|ref| OtherRef["..."]
-  OtherHead -->|fall-through| OtherFall["...<br>CreateContinuation <... x <i>(if it's a local)</i>, ...><br><i>(neither x nor y is used<br>elsewhere in this branch)</i><br>..."]
+  AfterHead["SaveAll<br><i>dirtyLocals[n] = y,<br>when y is not nil</i>"]
+  AfterRef["Create x := y<br><i>(still postponed)</i><br>…"]
+  AfterFall["`…
+  CreateContinuation
+  &lt;… placeholder #n …&gt;
+  Create x := y
+  *(still postponed, likely unused)*`"]
+  AfterHead ..->|reference| AfterRef
+  AfterHead -->|fall-through| AfterFall
  end
- subgraph Other'["&nbsp;"]
-  direction TB
-  OtherIntro'(("&nbsp;")) ..-> OtherHead'
-  OtherHead'["SaveAll ..."]
-  OtherHead' ..->|ref| OtherRef'["y ← Get x<br>..."]
-  OtherHead' -->|fall-through| OtherFall'["...<br>CreateContinuation <... x <i>(if it's a local)</i>, ...><br>..."]
- end
- Other .-> Other'
+ Before .-> After
 ```
 
-There's still an unresolved minor issue with these postponements.  Say we have `y ← Get x` at some point, then a bunch of other code that can't cause the variable to be altered or shared or a reactor added, then we have `z ← Get x`.  The postponements above aren't strong enough to convert the second Get into a `Move y → z`.  The addition of another pass after postponement can look for this exact situation.  The postponement rules will have already performed every possible variable elision, so this will only eliminate redundant Gets.
+Along the fall-through edge, the `Create` is dropped and the local's value is
+bound to the placeholder, so the continuation holds the placeholder in that
+slot.  If the creation's initial value is not `nil`, `SaveAll` records the
+pair (local index, register holding the value) in its `dirtyLocals`, choosing
+a register that is already live (int, then float, then boxed), else the
+constant, else the producer of a postponed value.  A local that has not yet
+been assigned is not recorded; it will be created unassigned.  The register
+dump keeps these pairs, encoded by `A_RegisterDump.encodeLocalValue`.
 
-From the diagrams, it appears there's little value in using a virtual Get instruction that can migrate.  Perhaps the Get/Get collision that replaces the second Get with a move?  If we expect variable elision to be statistically effective, we should bet on the Gets being elided most of the time anyhow, so the L1Translator can produce full Get structures, including the failure paths.  If a Create with a non-nil initialization value attempts to overtake such an instruction, the Get (or GetClearing) L2 instruction can be replaced by a simple move of the initialization value and a jump to the success case.  In the GetClearing case, the move is still there, but the Create's initialization value is replaced by nil.
+Along the reference edge the creation stays postponed, so a frame that is
+resumed while its continuation is still mutable continues in L2 with its
+locals still elided.
+
+## Creating elided variables
+
+`ContinuationDescriptor.createElidedVariables` creates a continuation's
+elided locals.  It runs:
+
+- when the continuation becomes immutable or shared, from
+  `o_MakeImmutableInternal` and `o_MakeSharedInternal`;
+- when the interpreter returns into a reified continuation whose chunk has
+  been invalidated, or while a debugger is attached
+  (`Interpreter.checkValidity`).
+
+A mutable continuation belongs to its fiber, and is returned into at most
+once along the path that created it, so L2 can restore its registers and
+carry on with its locals still elided.  Once the continuation is immutable,
+it can be examined or resumed more than once, and each of those must see the
+same variable objects.  Once it is shared, other fibers can reach it, and
+through it the locals, which exposes them to concurrent modification.  Either
+way the locals have escaped, so they are created, and the continuation
+resumes in the L1 interpreter, whose execution only uses real variables.  An
+invalidated chunk cannot be resumed at all, so its frame likewise resumes in
+L1, with real variables.
+
+For each pair recorded in the register dump, it creates a variable of the
+local's declared type, initialized to the decoded value: a boxed register's
+object, an int register's whole 64-bit value, or a float register's double.
+Every other placeholder becomes a new, unassigned variable of its local's
+type.  The replacement covers every slot of the frame, not only the local
+slots, because a pushed local is the same value as its slot, so a stack slot
+of the reified frame can hold the placeholder too.  Finally it sets the
+continuation's chunk to the [DefaultL1Chunk], at the dump's
+`fallbackEntryPoint`.
+
+It does nothing for a continuation of the [DefaultL1Chunk] or of an
+[L2SimpleChunk], neither of which elides locals, or for a function with no
+locals.
+
+[A_RegisterDump]: ../../../src/main/kotlin/avail/descriptor/representation/A_RegisterDump.kt
+[DefaultL1Chunk]: ../../../src/main/kotlin/avail/optimizer/DefaultL1ExecutableChunk.kt
+[L1Translator]: ../../../src/main/kotlin/avail/optimizer/L1Translator.kt
+[L2SimpleChunk]: ../../../src/main/kotlin/avail/interpreter/levelTwo/L2SimpleChunk.kt
+[L2ValueManifest]: ../../../src/main/kotlin/avail/optimizer/manifest/L2ValueManifest.kt
+[L2_CHECK_ESCAPED_LOCALS]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CHECK_ESCAPED_LOCALS.kt
+[L2_CREATE_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_CONTINUATION.kt
+[L2_CREATE_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CREATE_VARIABLE.kt
+[L2_FALL_BACK_TO_L1]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_FALL_BACK_TO_L1.kt
+[L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE.kt
+[L2_GET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_UNESCAPED_LOCAL_VARIABLE.kt
+[L2_INVOKE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_INVOKE.kt
+[L2_INVOKE_CONSTANT_FUNCTION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_INVOKE_CONSTANT_FUNCTION.kt
+[L2_RETURN]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_RETURN.kt
+[L2_SAVE_ALL_AND_PC_TO_INT]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_SAVE_ALL_AND_PC_TO_INT.kt
+[L2_SET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_UNESCAPED_LOCAL_VARIABLE.kt
+[VariablePlaceholderDescriptor]: ../../../src/main/kotlin/avail/descriptor/variables/VariablePlaceholderDescriptor.kt

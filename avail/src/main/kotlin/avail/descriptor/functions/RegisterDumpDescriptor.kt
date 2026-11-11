@@ -118,7 +118,7 @@ class RegisterDumpDescriptor private constructor(
 		 * initial value:
 		 *  - If positive, it's an index into [OBJECT_SLOTS_],
 		 *  - If negative and even, -2×N, the Nth entry in [INTEGER_SLOTS_]
-		 *    contains an [Int] to box and store in the new variable.
+		 *    contains a [Long] to box and store in the new variable.
 		 *  - If negative and odd, -2×N+1, the Nth entry in [INTEGER_SLOTS_]
 		 *    array contains a [Long] whose bit pattern can produce a [Double]
 		 *    to box and store in the new variable.

@@ -53,7 +53,6 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2Optimizer
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
@@ -65,13 +64,12 @@ import org.objectweb.asm.Opcodes
  * that might cause one of those effects to a variable, whether passed directly
  * or not.
  *
- * The [L2Optimizer.postponeConditionallyUsedValues] pass can cause the
- * [L2_CREATE_VARIABLE] instructions to migrate past it, which removes that
- * local from the instruction, or if it was the last one, removes the
- * instruction entirely.
- *
- * See "/avail/doc/Optimization/Level Two/Variable elision.md" for the overall
- * variable elision scheme.
+ * Any regeneration that tracks semantic values lets a still-postponed
+ * [L2_CREATE_VARIABLE] migrate past it, which removes that local from the
+ * instruction, or if it was the last one, removes the instruction entirely
+ * (doc/Optimization/Level_Two/Variable_elision.md
+ * §Postponement.Postponed_screation).  See §Translation of the same document
+ * for where the [L1Translator] emits it.
  *
  * @param localsToCheck
  *   The local variables to be examined.

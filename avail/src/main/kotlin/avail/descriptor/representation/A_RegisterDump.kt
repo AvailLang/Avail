@@ -34,7 +34,7 @@ package avail.descriptor.representation
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.exceptions.unsupported
 import avail.interpreter.JavaLibrary.int
@@ -106,8 +106,9 @@ interface A_RegisterDump : A_BasicObject
 		 * Boxed values are written as a one-based index into the dumped object
 		 * array.
 		 *
-		 * Int values are written as the zero-based index × -2 into the dumped
-		 * long array, where a [Long] slot holds the [Int].
+		 * Int register values are written as the zero-based index × -2 into
+		 * the dumped long array, where a [Long] slot holds the register's whole
+		 * 64-bit value.
 		 *
 		 * Double values are written as the zero-based index × -2 + 1 into the
 		 * dumped long array, where the [Long] slot holds the raw bit pattern
@@ -162,8 +163,8 @@ interface A_RegisterDump : A_BasicObject
 		{
 			encodedIndex == 0 -> unsupported
 			encodedIndex > 0 -> dump.extractDumpedObjectAt(encodedIndex)
-			encodedIndex and 1 == 0 -> fromInt(
-				dump.extractDumpedLongAt(-encodedIndex ushr 1).toInt())
+			encodedIndex and 1 == 0 -> fromLong(
+				dump.extractDumpedLongAt(-encodedIndex ushr 1))
 			else -> fromDouble(
 				longBitsToDouble(
 					dump.extractDumpedLongAt(-encodedIndex ushr 1))).cast()

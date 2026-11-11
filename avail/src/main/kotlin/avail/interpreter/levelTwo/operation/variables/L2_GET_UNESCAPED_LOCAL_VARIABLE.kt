@@ -61,8 +61,8 @@ import avail.utility.notNullAnd
  * creations during the [L2Optimizer.postponeConditionallyUsedValues]
  * optimization.
  *
- * See "/doc/Optimization/Level_Two/Variable_elision.md" for
- * details.
+ * See doc/Optimization/Level_Two/Variable_elision.md §Postponement for the
+ * rewriting it performs.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

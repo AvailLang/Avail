@@ -55,6 +55,9 @@ import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable.Companion.clearValue
+import avail.descriptor.representation.A_Variable.Companion.getValue
+import avail.descriptor.representation.A_Variable.Companion.hasValue
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -67,6 +70,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
+import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
@@ -108,9 +112,11 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.dispatch.TypeTagDecisionStep
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
+import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
 import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
 import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
 import avail.interpreter.levelOne.L1Operation.L1_doGetLocal
@@ -137,6 +143,7 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
@@ -784,6 +791,59 @@ class SimpleOptimizerTest
 			wideLongSamples,
 			{ it.isBitLogicOperation(Xor) },
 			BigInteger::xor)
+	}
+
+	/**
+	 * Check that an elided local variable whose value lives in an int register
+	 * beyond 32 bits keeps its whole value when its reified continuation
+	 * becomes shared.  The callee pushes a label and writes it into a shared
+	 * variable, which shares the caller's continuation, creating its elided
+	 * local from the [register&#32;dump][L2_SAVE_ALL_AND_PC_TO_INT] and
+	 * resuming it in L1.
+	 */
+	@Test
+	fun testElidedLocalBeyondIntSurvivesSharing()
+	{
+		val sharedVariable =
+			newVariableWithContentType(mostGeneralContinuationType)
+				.makeShared()
+		helper.defineMethod("share caller", TOP()) {
+			L1Ext_doPushLabel()
+			L1Ext_doSetLiteral(addLiteral(sharedVariable))
+			pushLiteral(zero)
+		}
+		val rawFunction = helper.rawFunction(i64) {
+			argumentTypes(i64, i64)
+			val x = createLocal(variableTypeFor(i64))
+			// :: x := a bit∧ b;
+			L1_doPushLocal(1)
+			L1_doPushLocal(2)
+			call("_bit∧_", i64)
+			L1_doSetLocal(x)
+			// :: share caller;
+			call("share caller", TOP())
+			L1_doPop()
+			// :: x
+			L1_doGetLocal(x)
+		}
+		helper.testOptimize(rawFunction)
+		assertTrue(
+			rawFunction.startingChunk.instructions.any {
+				it is L2_SAVE_ALL_AND_PC_TO_INT
+					&& it.dirtyLocals.elements.isNotEmpty()
+			},
+			"Expected the local's creation to be elided across the call")
+		for (value in listOf((1L shl 40) + 5, Long.MIN_VALUE, -7L))
+		{
+			sharedVariable.clearValue()
+			val result = helper.executeRawFunction(
+				rawFunction, listOf(fromLong(value), fromLong(-1L)))
+			assertTrue(
+				sharedVariable.hasValue()
+					&& sharedVariable.getValue().descriptor.isShared,
+				"Expected the callee to share a label")
+			assertEquals(value, result.asBigInteger().toLong())
+		}
 	}
 
 	/**

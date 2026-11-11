@@ -411,15 +411,15 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 }
 
 /**
- * The kind of register that holds an [Int].
+ * The kind of register that holds an unboxed integer, as a [Long].  The
+ * register's restriction says how much of the [Long] range its value can
+ * occupy.
  */
 object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	ordinal = 1,
 	kindName = "int",
 	prefix = "i",
-	// Int registers are stored in 64-bit JVM locals.  Their values are always
-	// sign-extended ints, so consumers see an int after an L2I and producers
-	// widen with an I2L before storing.
+	// Int registers are stored in 64-bit JVM locals, and hold any long.
 	jvmTypeString = Type.LONG_TYPE.descriptor,
 	jvmLoadInstruction = Opcodes.LLOAD,
 	jvmStoreInstruction = Opcodes.LSTORE)
