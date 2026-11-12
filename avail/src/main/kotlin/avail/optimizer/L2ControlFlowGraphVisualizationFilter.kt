@@ -43,6 +43,12 @@ import avail.optimizer.values.L2SemanticValue
  * [L2ControlFlowGraphVisualizer]. Implementations can choose to show everything
  * ([NoFilter]) or focus on specific data flow ([FocusFilter]).
  *
+ * The filter answers yes-or-no questions about each block, instruction, and
+ * edge, rather than handing the renderer filtered collections, so that the
+ * renderer keeps control of what it iterates over and how.  The one exception
+ * is [interestingSynonymsFor], which answers a set, since a manifest's
+ * synonyms would be awkward to ask about one at a time.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface L2ControlFlowGraphVisualizationFilter
@@ -124,6 +130,26 @@ class NoFilter : L2ControlFlowGraphVisualizationFilter
  *
  * Sibling edges (edges from the same source block as an interesting edge) have
  * their manifests shown but filtered to only the semantic values being traced.
+ *
+ * Focusing changes the picture as follows:
+ *  * A block the trace does not reach is drawn as a small circle.
+ *  * An instruction the trace does not reach shows only its operation name,
+ *    in gray italics.  One that it does reach is shown in full, with all of
+ *    its operands, not just the relevant ones.
+ *  * An edge carrying nothing relevant has no label, but still shows its
+ *    input number at a block with phis.  Other edges show only the synonyms
+ *    involved in the trace.
+ *  * Blocks' debug notes are omitted.
+ *  * The manifest of the block under construction is shown in full, since it
+ *    belongs to no edge.
+ *
+ * The trace has known limits:
+ *  * It does not follow back edges, so a value that reaches a block only
+ *    around a loop is not traced to its origin.
+ *  * It does not trace through postponed instructions in manifests; their
+ *    reads do not extend the trace.
+ *  * If the focus value appears nowhere, every block is drawn as a circle,
+ *    without any further indication.
  *
  * @property focusValue
  *   The [L2SemanticValue] to trace backward from.

@@ -31,7 +31,6 @@ description = "Documents made retrievable by wovenspec."
 # Derived by `wovenspec init --docs`: the schema is the intersection of
 # what the detected adapters can fill, per source:
 #
-#   avail/doc/Optimization/Focus_Filter_Design_Summary.md (markdown): fills the single dotted key only
 #   avail/doc/Optimization/Level_Two/Post_phi_data.md (markdown): fills the single dotted key only
 #   avail/doc/Optimization/Level_Two/Value_manifest.md (markdown): fills the single dotted key only
 #   avail/doc/Optimization/Level_Two/Variable_elision.md (markdown): fills the single dotted key only
@@ -103,17 +102,6 @@ heading_regex = '^(\d+(?:\.\d+)*)\.?\s+(.+)$'
 # [embedding]
 # model = "none"
 
-# Detected by `init --docs`: 30 headings, nesting 2 deep, unnumbered.
-[[spec_source]]
-spec_id    = "focus-filter-design-summary"
-version_id = "v1"
-adapter    = "markdown"
-path       = "avail/doc/Optimization/Focus_Filter_Design_Summary.md"
-# Markdown sources in this project disagree on arrangement, so
-# each carries its own; this one was read from the document.
-[spec_source.adapter_config]
-mode = "heading_text"
-
 [[spec_source]]
 spec_id    = "post-phi-data"
 version_id = "v1"
@@ -123,16 +111,6 @@ path       = "avail/doc/Optimization/Level_Two/Post_phi_data.md"
 # each carries its own; this one was read from the document.
 [spec_source.adapter_config]
 mode = "heading_text"
-
-# UNCLASSIFIED — avail/doc/Optimization/Level_Two/Function_call_with_outers.md: no adapter confirmed this document, and a
-# wrong adapter would ingest well-formed-looking sections nothing
-# downstream could detect — so the choice stays open.
-# (tried `markdown`: probe found no section headings)
-# [[spec_source]]
-# spec_id    = "..."
-# version_id = "v1"
-# adapter    = "..."  # one of the adapters listed above
-# path       = "avail/doc/Optimization/Level_Two/Function_call_with_outers.md"
 
 [[spec_source]]
 spec_id    = "value-manifest"
