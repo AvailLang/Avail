@@ -109,12 +109,12 @@ Mersenne Twister's head method is
 [
 	rng : Mersenne Twister
 |
-	y : integer := rng's mt[rng's index];
-	y := y bit⊕ (y >> 11);
-	y := y bit⊕ ((y × (1<<7)) bit∧ 2636928640);
-	y := y bit⊕ ((y × (1<<15)) bit∧ 4022730752);
-	y := y bit⊕ (y >> 18);
-	y ?→ u32
+	y1 ::= rng's mt[rng's index];
+	y2 ::= y1 bit⊕ (y1 >> 11);
+	y3 ::= y2 bit⊕ ((y2 << 7) bit∧ 2636928640);
+	y4 ::= y3 bit⊕ ((y3 << 15) bit∧ 4022730752);
+	y5 ::= y4 bit⊕ (y4 >> 18);
+	y5 ?→ u32
 ] : u32;
 
 Mersenne Twister's tail method is
@@ -123,8 +123,8 @@ Mersenne Twister's tail method is
 |
 	nextIndex ::= rng's index mod 624 + 1;
 	vector ::= if nextIndex = 1
-		then [ next state after rng's mt]
-		else [ rng's mt ];
+		then [next state after rng's mt]
+		else [rng's mt];
 	rng's
 		mt ::= vector,
 		index ::= nextIndex

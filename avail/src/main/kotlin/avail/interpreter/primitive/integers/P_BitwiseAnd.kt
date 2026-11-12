@@ -44,7 +44,7 @@ import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.greaterOrEqual
 import avail.descriptor.representation.A_Number.Companion.isInt
-import avail.descriptor.representation.A_Number.Companion.isLong
+import avail.descriptor.representation.A_Number.Companion.lessThan
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
@@ -58,12 +58,11 @@ import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i63
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.dispatch.TestForConstantsDecisionStep
 import avail.interpreter.execution.Interpreter
@@ -92,7 +91,6 @@ import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.optimizer.values.PatternBuilder.Companion.pattern
 import avail.utility.notNullAnd
-import kotlin.math.min
 
 /**
  * **Primitive:** Compute the bitwise AND of the [arguments][IntegerDescriptor].
@@ -118,46 +116,32 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
 
-		// If either value is constrained to a positive range, then at least
-		// guarantee the bit-wise `and` can't be greater than or equal to the
-		// next higher power of two of that range's upper bound.
-		val upper: Long =
-			if (aRange.lowerBound.greaterOrEqual(zero)
-				&& aRange.upperBound.isLong)
-			{
-				if (bRange.lowerBound.greaterOrEqual(zero)
-					&& bRange.upperBound.isLong)
-				{
-					min(
-						aRange.upperBound.extractLong,
-						bRange.upperBound.extractLong)
-				}
-				else
-				{
-					aRange.upperBound.extractLong
-				}
-			}
-			else if (bRange.lowerBound.greaterOrEqual(zero)
-				&& bRange.upperBound.isLong)
-			{
-				bRange.upperBound.extractLong
-			}
-			else
-			{
-				// Give up, as the result may be negative or exceed a long.
-				return super.returnTypeGuaranteedByVM(
-					rawFunction, argumentTypes)
-			}
-		// At least one value is positive, so the result is positive.
-		// At least one is a long, so the result must be a long.
-		val highOneBit = upper.takeHighestOneBit()
-		if (highOneBit == 0L)
+		val aLower = aRange.lowerBound
+		val aUpper = aRange.upperBound
+		val bLower = bRange.lowerBound
+		val bUpper = bRange.upperBound
+		// If either value is constrained to a positive range, then its upper
+		// bound is the limit.
+		val upper = if (aLower.greaterOrEqual(zero))
 		{
-			// One of the ranges is constrained to be exactly zero.
-			return singleInt(0)
+			if (bLower.greaterOrEqual(zero))
+			{
+				// Use the min of the upper bounds.
+				if (aUpper.lessThan(bUpper)) aUpper
+				else bUpper
+			}
+			else aUpper
 		}
-		val maxValue = highOneBit - 1 or highOneBit
-		return inclusive(0L, maxValue)
+		else if (bLower.greaterOrEqual(zero)) bUpper
+		else
+		{
+			// Give up, as the result may be negative.
+			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		}
+
+		// It's non-negative.
+		if (upper.isFinite) return inclusive(zero, upper)
+		return wholeNumbers
 	}
 
 	override fun L2GeneratorInterface.readAsTwoInts(
@@ -320,7 +304,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 	 * expanded to include a [TestForConstantsDecisionStep].  That part of the
 	 * tree translateds to code that hashes the value, conceptually masks it
 	 * against 0xFFFF_FFFF (i.e., treats it as unsigned), optionally shifts it
-	 * right, and masks it to some number of low bits,  That [i32] value is used
+	 * right, and masks it to some number of low bits,  That [u32] value is used
 	 * in an [L2_MULTIWAY_JUMP] using a [ShiftedHashSplitter] to choose among
 	 * 2^n branch targets with what eventually becomes a `lookupswitch` JVM
 	 * bytecode.  The code at each target can then be checked against the
