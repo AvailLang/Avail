@@ -40,15 +40,18 @@ import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 
 /**
- * Information extracted from the current [L2ValueManifest] just before the
- * end of generation of an [L2BasicBlock], before the final instruction
- * clones the manifest for each successor edge.
+ * The synonyms and restrictions of an [L2BasicBlock]'s [L2ValueManifest] as
+ * they stood before the block's final instruction, without registers or
+ * postponed instructions.  Regeneration replays it at the top of the
+ * corresponding new block, and once the graph is complete it is the block's
+ * settled record of what each value is known to be
+ * (doc/Optimization/Level_Two/Post_phi_data.md §Content).
  *
- * @constructor
- *   Construct a new instance.
  * @property restrictionsBySynonym
  *   The (immutable) map from [L2Synonym] to [TypeRestriction].  This shape
  *   captures both the restrictions and the synonym structure.
+ * @constructor
+ *   Construct a new instance.
  */
 class PostPhiData
 constructor(
@@ -79,21 +82,50 @@ constructor(
 		return restrictionsBySemanticValueOrNull!!
 	}
 
+	/**
+	 * Answer the [TypeRestriction] of the given [L2Synonym]: the restriction
+	 * of its semantic constant if it has one, since a synonym holding only a
+	 * constant is not recorded, otherwise the recorded restriction.
+	 *
+	 * @param synonym
+	 *   The [L2Synonym] to look up.
+	 * @return
+	 *   The synonym's restriction.
+	 */
 	operator fun get(synonym: L2Synonym): TypeRestriction =
 		synonym.semanticValues()
 			.firstNotNullOfOrNull { it.constantRestrictionOrNull }
 			?: restrictionsBySynonym[synonym]!!
 
+	/**
+	 * Answer the [TypeRestriction] of the given [L2SemanticValue]: the
+	 * constant's restriction if it is a semantic constant, otherwise the
+	 * restriction recorded for its synonym.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to look up.
+	 * @return
+	 *   The value's restriction.
+	 */
 	operator fun get(semanticValue: L2SemanticValue): TypeRestriction =
 		semanticValue.constantRestrictionOrNull
 			?: restrictionsBySemanticValue()[semanticValue]!!
 
+	/**
+	 * The [TypeRestriction] this data records for the read's semantic value,
+	 * for code running with this [PostPhiData] as a receiver.
+	 */
 	val L2ReadOperand<*>.restriction: TypeRestriction
 		get() = get(semanticValue())
 
+	/** The type of the read's [restriction] in this data. */
 	val L2ReadOperand<*>.type: A_Type
 		get() = restriction.type
 
+	/**
+	 * The read's value, if its semantic value is a constant or this data
+	 * restricts it to a single value, otherwise `null`.
+	 */
 	val L2ReadOperand<*>.constantOrNull: AvailObject?
 		get() = semanticValue().constant ?: restriction.constantOrNull
 }

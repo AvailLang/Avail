@@ -937,7 +937,8 @@ class L2ValueManifest
 	 * registers or postponed instructions.  This will be plugged into a block's
 	 * [L2BasicBlock.postPhiData].
 	 *
-	 * Leave out constants that have no other semantic value.
+	 * Leave out constants that have no other semantic value
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Content).
 	 */
 	fun extractPostPhiData() = PostPhiData(
 		states.values
@@ -3006,10 +3007,9 @@ class L2ValueManifest
 					extendSynonym(semanticValueToSynonym(pickSemanticValue), it)
 				}
 			updateRestriction(pickSemanticValue) {
-				// Replace the restriction entirely.  This is also useful after
-				// the registers have been colored, to ensure previous uses of
-				// the same register won't have an effect when it's reused for
-				// another purpose.
+				// The restriction is intersected with the existing one, so a
+				// write never weakens what the manifest already knows (such as
+				// restrictions replayed from post-phi data).
 				writer.restriction()
 			}
 		}
@@ -3719,7 +3719,8 @@ class L2ValueManifest
 
 	/**
 	 * Given a map from synonyms to restrictions, add this information to this
-	 * manifest.  That may entail merging synonyms and narrowing restrictions.
+	 * manifest.  That may entail merging synonyms and narrowing restrictions
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Replay).
 	 *
 	 * @param data
 	 *   The [PostPhiData] containing [L2Synonym]s and the associated

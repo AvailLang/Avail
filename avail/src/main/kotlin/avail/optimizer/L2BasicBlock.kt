@@ -162,12 +162,13 @@ constructor(
 
 	/**
 	 * During code generation, this field holds the synonym and restriction
-	 * state captured just before the final [L2ControlFlowInstruction]
-	 * instruction is emitted.  When this block is used as a source of
-	 * instructions during regeneration, right after any [L2_PHI]s are generated
-	 * in the new block, the original block's [postPhiData] synonym and
-	 * restriction information is merged into the current manifest, which may
-	 * force synonyms to be extended or merged, and restrictions to be narrowed.
+	 * state as it stood just before the final [L2ControlFlowInstruction]
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Capture).  When this block
+	 * is used as a source of instructions during regeneration, right after any
+	 * [L2_PHI]s are generated in the new block, the original block's
+	 * [postPhiData] synonym and restriction information is merged into the
+	 * current manifest, which may force synonyms to be extended or merged, and
+	 * restrictions to be narrowed.
 	 *
 	 * These are effects that would be lost when a postponed instruction travels
 	 * downstream and the graph is regenerated only from previously emitted
@@ -175,10 +176,10 @@ constructor(
 	 * regeneration passes, like an eddy of information.
 	 *
 	 * Having synonym and restriction information known *earlier* than the
-	 * instruction that would produce it is safe.  We already (prior to the
-	 * introduction of this field) do instruction postponement, which captures
-	 * synonym and output restriction information prior to the eventual emission
-	 * point of the instruction.
+	 * instruction that would produce it is safe.  Instruction postponement
+	 * already captures synonym and output restriction information prior to
+	 * the eventual emission point of the instruction.  See
+	 * doc/Optimization/Level_Two/Post_phi_data.md §Replay.
 	 */
 	var postPhiData: PostPhiData? = null
 
