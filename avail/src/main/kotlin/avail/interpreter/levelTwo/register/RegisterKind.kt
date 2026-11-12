@@ -274,9 +274,9 @@ constructor (
 	 *   This kind's [Representation] of it, which is [emptyRepresentation] if it
 	 *   is not held in a register of this kind.
 	 * @param otherKinds
-	 *   The [ValueState] to take the *other* kinds' representations from, or
-	 *   `null` when building a record for a value that is new to a manifest and
-	 *   therefore held in this kind alone.
+	 *   The [ValueState] to take the *other* kinds' representations and the
+	 *   [ValueState.usingClasses] from, or `null` when building a record for a
+	 *   value that is new to a manifest and therefore held in this kind alone.
 	 * @return
 	 *   The new [ValueState].
 	 */
@@ -394,7 +394,8 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		restriction,
 		representation,
 		otherKinds?.intRepresentation ?: emptyRepresentation(),
-		otherKinds?.floatRepresentation ?: emptyRepresentation())
+		otherKinds?.floatRepresentation ?: emptyRepresentation(),
+		otherKinds?.usingClasses ?: emptySet())
 
 	override fun defineOrEmitMove(
 		semanticValue: L2SemanticValue,
@@ -482,7 +483,8 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		restriction,
 		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
 		representation,
-		otherKinds?.floatRepresentation ?: emptyRepresentation())
+		otherKinds?.floatRepresentation ?: emptyRepresentation(),
+		otherKinds?.usingClasses ?: emptySet())
 
 	override fun defineOrEmitMove(
 		semanticValue: L2SemanticValue,
@@ -568,7 +570,8 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		restriction,
 		otherKinds?.boxedRepresentation ?: emptyRepresentation(),
 		otherKinds?.intRepresentation ?: emptyRepresentation(),
-		representation)
+		representation,
+		otherKinds?.usingClasses ?: emptySet())
 
 	override fun defineOrEmitMove(
 		semanticValue: L2SemanticValue,

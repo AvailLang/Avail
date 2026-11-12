@@ -65,9 +65,12 @@ import avail.optimizer.values.L2SemanticValue
  * Because equality and hashing follow the [id], and the ids of a manifest are
  * small and assigned deterministically, a collection keyed by `ValueClass` is
  * no longer at the mercy of identity hash codes and cannot make code generation
- * vary between runs.
+ * vary between runs (doc/Optimization/Level_Two/Value_manifest.md §Data
+ * model.Identity and state).
  *
  * @property id
+ *   The number distinguishing this class from the others of the manifest
+ *   that created it.
  *   Distinguishes this class from every other in the same [L2ValueManifest],
  *   and is unrelated to those in any other manifest.  Small enough to be
  *   legible while debugging, and to serve as a subscript.

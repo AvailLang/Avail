@@ -158,8 +158,9 @@ class L2ValueManifest
 	 * [L2Instruction] that would populate them.
 	 *
 	 * This is the structure that lets one value be described in several
-	 * representations at once.  A [ValueClass] contains a separate
-	 * [Representation] for each [RegisterKind].
+	 * representations at once.  A [ValueState] contains a separate
+	 * [Representation] for each [RegisterKind]
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model).
 	 *
 	 * Keeping the definitions of different kinds in separate representations is
 	 * a requirement, not an incidental arrangement.  An earlier incarnation
@@ -234,29 +235,6 @@ class L2ValueManifest
 			definitions.isNotEmpty() || postponedInstruction != null
 
 		/**
-		 * Merge this representation with another, producing a new
-		 * representation that combines their definitions and selects one
-		 * postponed instruction. Returns the featherweight
-		 * [emptyRepresentation] if the result would be empty.
-		 *
-		 * @param other
-		 *   The other [Representation] to merge with.
-		 * @return
-		 *   A new representation containing the concatenated definitions and a
-		 *   selected postponed instruction, or the empty representation if
-		 *   empty.
-		 */
-		fun mergeWith(other: Representation<K>): Representation<K> {
-			val mergedDefinitions = (definitions + other.definitions).distinct()
-			val mergedPostponed =
-				postponedInstruction ?: other.postponedInstruction
-			return if (mergedDefinitions.isEmpty() && mergedPostponed == null)
-				emptyRepresentation<K>()
-			else
-				Representation(mergedDefinitions, mergedPostponed)
-		}
-
-		/**
 		 * Whether this is the [emptyRepresentation] standing for a value that
 		 * is *not held in this kind at all*.
 		 *
@@ -310,7 +288,8 @@ class L2ValueManifest
 	 * register and an int register at the same time, so "what kind is this
 	 * value" is not a property of the value at all – it is a property of each
 	 * individual question asked about it.  Those questions are asked through a
-	 * [Representation], which is a kind-scoped view of one of these records.
+	 * [Representation], which is a kind-scoped view of one of these records
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model).
 	 *
 	 * @property members
 	 *   The canonical, boxed [L2SemanticValue]s naming this value.
@@ -346,7 +325,7 @@ class L2ValueManifest
 			emptyRepresentation(),
 		val floatRepresentation: Representation<FLOAT_KIND> =
 			emptyRepresentation(),
-		val usingClasses: Set<ValueClass> = emptySet())
+		val usingClasses: Set<ValueClass>)
 	{
 		/**
 		 * Every [Representation] this value currently has, for the
@@ -438,12 +417,7 @@ class L2ValueManifest
 		 */
 		fun withMembers(
 			newMembers: Set<L2SemanticValue>
-		): ValueState = ValueState(
-			newMembers,
-			restriction,
-			boxedRepresentation,
-			intRepresentation,
-			floatRepresentation)
+		): ValueState = copy(members = newMembers)
 
 
 		/**
@@ -473,47 +447,10 @@ class L2ValueManifest
 				&& intRepresentation.postponedInstruction === null
 				&& floatRepresentation.postponedInstruction === null
 			-> this
-			else -> ValueState(
-				members,
-				restriction,
-				boxedRepresentation.withPostponed(null),
-				intRepresentation.withPostponed(null),
-				floatRepresentation.withPostponed(null))
-		}
-
-		/**
-		 * Answer a [ValueState] that combines the receiver and [other], for the
-		 * set [allMembers] of semantic values, narrowed to [newRestriction].
-		 *
-		 * @param other
-		 *   The [ValueState] being merged away.
-		 * @param allMembers
-		 *   The complete set of [L2SemanticValue]s to include in the
-		 *   merged [ValueState].
-		 * @param newRestriction
-		 *   The [TypeRestriction] bounding the merged value, normally the
-		 *   intersection of the two.
-		 * @return
-		 *   The merged [ValueState].
-		 */
-		fun mergedWith(
-			other: ValueState,
-			allMembers: Set<L2SemanticValue>,
-			newRestriction: TypeRestriction
-		): ValueState
-		{
-			// A constant can be reconstructed in any kind, so it never needs an
-			// instruction kept for it.
-			val isConstant = allMembers.any(L2SemanticValue::isConstant)
-			return ValueState(
-				allMembers,
-				newRestriction,
-				mergeRepresentations(
-					boxedRepresentation, other.boxedRepresentation, isConstant),
-				mergeRepresentations(
-					intRepresentation, other.intRepresentation, isConstant),
-				mergeRepresentations(
-					floatRepresentation, other.floatRepresentation, isConstant))
+			else -> copy(
+				boxedRepresentation = boxedRepresentation.withPostponed(null),
+				intRepresentation = intRepresentation.withPostponed(null),
+				floatRepresentation = floatRepresentation.withPostponed(null))
 		}
 
 		/**
@@ -582,7 +519,8 @@ class L2ValueManifest
 				restriction,
 				emptyRepresentation(),
 				emptyRepresentation(),
-				emptyRepresentation())
+				emptyRepresentation(),
+				emptySet())
 
 			/**
 			 * Create a record with a single [Representation], taking its
@@ -616,59 +554,6 @@ class L2ValueManifest
 				restriction,
 				Representation(definitions, postponedInstruction),
 				null)
-
-			/**
-			 * Reconcile two [Representation]s of one [RegisterKind], both of
-			 * which describe a value that has just been shown to be a single
-			 * value.
-			 *
-			 * @param first
-			 *   One [Representation].
-			 * @param second
-			 *   The other [Representation], of the same [RegisterKind].
-			 * @param valueIsConstant
-			 *   Whether the merged value is a known constant, and therefore
-			 *   reconstructible in any kind without a postponed instruction.
-			 * @return
-			 *   The reconciled [Representation].
-			 */
-			private fun <K: RegisterKind<K>> mergeRepresentations(
-				first: Representation<K>,
-				second: Representation<K>,
-				valueIsConstant: Boolean
-			): Representation<K> = when
-			{
-				// Absence is the identity here: merging with a kind the other
-				// record was not held in must not make the result held in it,
-				// so the surviving representation is answered unchanged.
-				first.isAbsent -> second
-				second.isAbsent -> first
-				else ->
-				{
-					// Just concatenate the two lists, as this essentially
-					// preserves earliest definition order.  Make them distinct
-					// in casee we've already colored the registers and have
-					// duplicates that are alive at the same time (scratch
-					// writes).
-					val definitions =
-						(first.definitions + second.definitions).distinct()
-					Representation(
-						definitions = definitions,
-						postponedInstruction = when
-						{
-							// Something already writes it in this kind.
-							definitions.isNotEmpty() -> null
-							valueIsConstant -> null
-							// In theory, if both postponed instructions are
-							// present we could decide which to keep and augment
-							// with the other synonym, but for now we can just
-							// choose arbitrarily, since they yield equivalent
-							// values.
-							else -> first.postponedInstruction
-								?: second.postponedInstruction
-						})
-				}
-			}
 		}
 	}
 
@@ -749,8 +634,6 @@ class L2ValueManifest
 	 * must go through [resolve]; use [classOrNull] or [classFor] rather than
 	 * indexing this map directly.
 	 *
-	 * Unboxed semantic values can be looked up by their equivalent boxed form.
-	 *
 	 * It is always present, even in the modes where the graph is held together
 	 * by registers and semantic values are not tracked.  Whether to consult it
 	 * is decided by [caresAboutSemanticValues], which follows the current
@@ -767,7 +650,8 @@ class L2ValueManifest
 	 * performed along one edge of a branch cannot be seen along the other.
 	 *
 	 * It grows monotonically within a manifest and is compacted lazily by the
-	 * path compression in [resolve].
+	 * path compression in [resolve] (doc/Optimization/Level_Two/
+	 * Value_manifest.md §Data model.The manifest's maps).
 	 */
 	private val forward: MutableMap<ValueClass, ValueClass>
 
@@ -799,14 +683,18 @@ class L2ValueManifest
 	 * the specialization never happens.
 	 *
 	 * Keys are merged in [forwardClass]; values are resolved lazily on use, so
-	 * a merge costs one map operation rather than a scan.
+	 * a merge costs one map operation rather than a scan
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Postponed
+	 * instructions.Re-narrowing).
 	 */
 	private val postponedReaders:
 		MutableMap<ValueClass, MutableSet<ValueClass>>
 
 	/**
-	 * The number of constraints in the manifest that are impossible, which is
-	 * the case when the constraint's restriction is [bottomRestriction].
+	 * The number of [ValueState]s in the manifest that are impossible, which
+	 * is the case when the state's restriction is [bottomRestriction].  Every
+	 * operation that adds, removes, or replaces a state keeps it current, so
+	 * [hasImpossibleRestriction] needs no scan.
 	 */
 	private var impossibleRestrictionCount = 0
 
@@ -952,9 +840,8 @@ class L2ValueManifest
 	 * Record an [L2Instruction] suitable for subsequent emission, if necessary,
 	 * to produce its output values.  The sole writeOperand should have no
 	 * target semantic values, as these will be supplied by the current synonym
-	 * at emission time.
-	 *
-	 * The writeOperand's
+	 * at emission time (doc/Optimization/Level_Two/Value_manifest.md
+	 * §Postponed instructions).
 	 *
 	 * @param semanticValue
 	 *   A semantic value that will be defined by the instruction.  This is used
@@ -969,22 +856,10 @@ class L2ValueManifest
 	{
 		assert(instruction.canBePostponed)
 		assert(!instruction.hasBeenEmitted)
-		val originalWrite = instruction.writeOperands.single()
-		assert(originalWrite.semanticValues().isEmpty())
-		if (instruction is L2_MOVE<*>)
-		{
-			val source = instruction.source.semanticValue()
-			// Moves should pre-merge the source and destination synonyms.
-			agglomerateSynonym(
-				setOf(semanticValue, source),
-				originalWrite.restriction())
-			// Never replace an existing postponed instruction with a new move.
-			// The existing instruction will automatically write to any semantic
-			// values that get added to the synonym.
-			if (postponedInstructionFor(semanticValue, originalWrite.kind)
-					!= null)
-				return
-		}
+		assert(instruction.writeOperands.single().semanticValues().isEmpty())
+		// A move is postponed by merging its destination into its source's
+		// synonym, never by being recorded; see L2_MOVE.postponeInstruction.
+		assert(instruction !is L2_MOVE<*>)
 		// MOVE_CONSTANT instructions should not be postponed; they should be
 		// emitted immediately or replaced with constant folding.
 		if (instruction is L2_MOVE_CONSTANT<*, *>)
@@ -1336,16 +1211,7 @@ class L2ValueManifest
 		val newRestriction = oldRestriction.intersection(oldRestriction.body())
 		if (newRestriction != oldRestriction)
 		{
-			state = ValueState(
-				members = state.members,
-				restriction = newRestriction,
-				boxedRepresentation = state.boxedRepresentation,
-				intRepresentation = state.intRepresentation,
-				floatRepresentation = state.floatRepresentation)
-			states[valueClass] = state
-		}
-		if (newRestriction != oldRestriction)
-		{
+			states[valueClass] = state.copy(restriction = newRestriction)
 			if (oldRestriction == bottomRestriction)
 				impossibleRestrictionCount--
 			if (newRestriction == bottomRestriction)
@@ -1365,10 +1231,11 @@ class L2ValueManifest
 	}
 
 	/**
-	 * The restriction for a [semanticValue] has just changed.  Find any related
-	 * semantic values (boxed/unboxed, tags, object variants, primitive
-	 * identities, covariant/contravariant relationships), and attempt to
-	 * further constrain them.
+	 * The restriction for a [semanticValue] has just changed.  Narrow what
+	 * depends on it: the postponed instructions that read it, the constant it
+	 * may have become, the primitive invocations computed from it, and the
+	 * arguments of the primitive invocations naming it
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Narrowing).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] whose restriction was just changed.
@@ -1815,6 +1682,11 @@ class L2ValueManifest
 	 * Note that this direction only – merging arguments merges the invocations
 	 * that read them, never the converse, since a primitive is not injective.
 	 *
+	 * Every invocation among a user's members is considered, not just one,
+	 * since a class can be named by invocations of several primitives.  An
+	 * invocation with an argument unknown to this manifest is skipped, since
+	 * two unknown arguments say nothing about each other.
+	 *
 	 * @param usingClasses
 	 *   The [ValueClass]es of the invocations reading the merged value.
 	 */
@@ -1824,61 +1696,70 @@ class L2ValueManifest
 		usingClasses
 			.map(::resolve)
 			.distinct()
-			.groupBy { usingClass ->
-				states[usingClass]
-					?.members
-					?.filterIsInstance<L2SemanticPrimitiveInvocation>()
-					?.firstOrNull()
-					?.let { invocation ->
-						invocation.primitive to
-							invocation.argumentSemanticValues.map(::classOrNull)
+			.flatMap { usingClass ->
+				states[usingClass]?.members.orEmpty()
+					.filterIsInstance<L2SemanticPrimitiveInvocation>()
+					.mapNotNull { invocation ->
+						val argumentClasses = invocation.argumentSemanticValues
+							.map { classOrNull(it) ?: return@mapNotNull null }
+						(invocation.primitive to argumentClasses) to usingClass
 					}
 			}
-			.forEach { (key, group) ->
-				if (key !== null) group.zipWithNext(::mergeValueClasses)
-			}
+			.groupBy({ it.first }, { it.second })
+			.values
+			.forEach { group -> group.zipWithNext(::mergeValueClasses) }
 	}
 
 	/**
 	 * Merge two [ValueClass]es that have been shown to describe the same value,
-	 * folding the second into the first.
+	 * folding the second into the first.  Then merge any users that have become
+	 * congruent, and propagate the merged restriction if it is narrower than
+	 * either class's was (doc/Optimization/Level_Two/Value_manifest.md
+	 * §Merging).
 	 *
-	 * @param winner
-	 *   The surviving [ValueClass].
+	 * Either class may have been merged away already, in which case it is
+	 * resolved first, and merging a class with itself does nothing.
+	 *
+	 * @param survivor
+	 *   The [ValueClass] that absorbs the other.
 	 * @param loser
 	 *   The [ValueClass] to merge away.
 	 */
-	private fun mergeValueClasses(winner: ValueClass, loser: ValueClass)
+	private fun mergeValueClasses(survivor: ValueClass, loser: ValueClass)
 	{
-		if (winner == loser) return
-		val winnerState = states[winner] ?: return
-		val loserState = states[loser] ?: return
-		// This recurses back through forwardClass if the merged classes have
-		// derived values of their own, which terminates because every merge
-		// strictly reduces the number of classes.
-		//
-		// Merge the members (union of all semantic values from both classes)
-		// and the restrictions. Update each representation independently.
-		val mergedMembers = winnerState.members + loserState.members
-		val mergedRestriction = winnerState.restriction.intersection(
-			loserState.restriction)
-		val mergedBoxedRep = winnerState.boxedRepresentation.mergeWith(
-			loserState.boxedRepresentation)
-		val mergedIntRep = winnerState.intRepresentation.mergeWith(
-			loserState.intRepresentation)
-		val mergedFloatRep = winnerState.floatRepresentation.mergeWith(
-			loserState.floatRepresentation)
-
-		val mergedState = ValueState(
-			mergedMembers,
-			mergedRestriction,
-			mergedBoxedRep,
-			mergedIntRep,
-			mergedFloatRep,
-			winnerState.usingClasses + loserState.usingClasses)
-
-		states[winner] = mergedState
-		forwardClass(loser, winner)
+		val winner = resolve(survivor)
+		val other = resolve(loser)
+		if (winner == other) return
+		val winnerState = states[winner]!!
+		val loserState = states[other]!!
+		val members = winnerState.members + loserState.members
+		val restriction =
+			winnerState.restriction.intersection(loserState.restriction)
+		val sources = listOf(winnerState, loserState)
+		val usingClasses = winnerState.usingClasses + loserState.usingClasses
+		forwardClass(winner, other)
+		states[winner] = ValueState(
+			members,
+			restriction,
+			mergedRepresentation(BOXED_KIND, sources, restriction),
+			mergedRepresentation(INTEGER_KIND, sources, restriction),
+			mergedRepresentation(FLOAT_KIND, sources, restriction),
+			usingClasses)
+		if (winnerState.isImpossible) impossibleRestrictionCount--
+		if (loserState.isImpossible) impossibleRestrictionCount--
+		if (restriction.isImpossible) impossibleRestrictionCount++
+		// Rebinding the loser's members is not needed for lookup, since their
+		// class forwards to the winner, but it indexes any invocation among
+		// them under its arguments' classes again.
+		bind(loserState.members, winner)
+		mergeCongruentUsers(usingClasses)
+		if (restriction != winnerState.restriction
+			|| restriction != loserState.restriction)
+		{
+			// The merge is a narrowing of at least one of the two values, and
+			// may even have made it a constant.
+			propagateForRestrictionChange(members.first())
+		}
 	}
 
 	/**
@@ -1895,32 +1776,9 @@ class L2ValueManifest
 	): L2Synonym = semanticValueToSynonymOrNull(semanticValue)!!
 
 	/**
-	 * Look up the given [L2SemanticValue], answering the [L2Synonym]
-	 * that's bound to it.  If not found, evaluate the lambda to produce an
-	 * optional `L2Synonym` or `null`.
-	 *
-	 * @param semanticValue
-	 *   The semantic value to look up.
-	 * @param elseSupplier
-	 *   The code to run if the semantic value was not found.
-	 * @return
-	 *   The [L2Synonym] bound to that semantic value, or `null`.
-	 */
-	private fun <K: RegisterKind<K>> semanticValueToSynonymOrElse(
-		semanticValue: L2SemanticValue,
-		elseSupplier: ()->L2Synonym
-	): L2Synonym = semanticValueToSynonymOrNull(semanticValue) ?: elseSupplier()
-
-	/**
 	 * Capture information about a new [L2Synonym] and its [TypeRestriction].
 	 * It's an error if any of the provided [L2SemanticValue]s are already bound
 	 * to other synonyms in this manifest.
-	 *
-	 * The values may nonetheless *name* a value this manifest already knows,
-	 * when they are the unboxed spelling of one it holds boxed.  That is not a
-	 * new value but a new [Representation] of an existing one, so it joins that
-	 * [ValueClass] rather than starting one: a value has a single class, and
-	 * its boxed and unboxed forms cannot be allowed to drift apart into two.
 	 *
 	 * @param semanticValues
 	 *   The new [L2SemanticValue]s to place in the new synonym.
@@ -1933,11 +1791,12 @@ class L2ValueManifest
 	{
 		assert(semanticValues.none(::hasSemanticValue))
 		val valueClass = newValueClass()
-		bind(semanticValues, valueClass)
-		assert(valueClass !in states)
 		states[valueClass] = newEmptyState(
 			semanticValues.toSet(),
 			restriction)
+		if (restriction.isImpossible) impossibleRestrictionCount++
+		bind(semanticValues, valueClass)
+		// This joins the constant's class if the restriction is a constant.
 		updateRestriction(valueClass) { restriction }
 	}
 
@@ -2045,11 +1904,12 @@ class L2ValueManifest
 	 *    likewise requires the probe to be present in this manifest.
 	 *
 	 * When the probe is absent and is not itself a constant, none of the three
-	 * applies, and the remaining cases – equality and the structural
-	 * boxed/unboxed, tag, variant, and primitive-invocation recursions – all
-	 * require both values to have the same (final) class.  Filtering candidates
-	 * preserves their relative order, and any candidate that could have matched
-	 * is retained, so the value chosen is unchanged.
+	 * applies, and the remaining cases – equality and the recursion through
+	 * the arguments of two primitive invocations – both require the values to
+	 * have the same (final) class.  Filtering candidates preserves their
+	 * relative order, and any candidate that could have matched is retained,
+	 * so the value chosen is unchanged
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Equivalence search).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] being searched for.
@@ -2128,9 +1988,10 @@ class L2ValueManifest
 		})
 
 	/**
-	 * Given two [L2SemanticValue]s, see if they represent the same value
-	 * in this manifest.  Include checking covariant homomorphisms between
-	 * boxed/unboxed forms and primitive invocations.
+	 * Given two [L2SemanticValue]s, see if they represent the same value in
+	 * this manifest: they are equal, they are synonyms, one is a semantic
+	 * constant and the other's restriction is that constant, or they are
+	 * invocations of one primitive with recursively equivalent arguments.
 	 *
 	 * @param semanticValue
 	 *   The first [L2SemanticValue] to compare.
@@ -2196,78 +2057,61 @@ class L2ValueManifest
 	 * single [Representation] that the merged value has in that kind.
 	 *
 	 * The rule is the same for every kind, and is therefore expressed once:
-	 * every register of that kind holds the value, and the value needs an
-	 * instruction to populate it only where nothing yet writes it.  Only the
-	 * *choice* of instruction depends on the kind, and that is dispatched
-	 * through the [RegisterKind] itself.
+	 * every register of that kind holds the merged value, and the value needs
+	 * a postponed instruction to populate it only where no register does yet,
+	 * and only when it is neither impossible nor a known constant, which the
+	 * generator can produce in any kind directly
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Merging).
 	 *
 	 * @param kind
 	 *   The [RegisterKind] to reconcile.
 	 * @param sources
-	 *   The [ValueState]s being merged, including the survivor's.
-	 * @param members
-	 *   The canonical members of the merged value.
+	 *   The [ValueState]s being merged.
 	 * @param restriction
-	 *   The boxed [TypeRestriction] bounding the merged value.
+	 *   The [TypeRestriction] bounding the merged value.
 	 * @return
 	 *   The merged [Representation] for that kind.
 	 */
-	private fun <K: RegisterKind<K>> agglomeratedRepresentation(
+	private fun <K: RegisterKind<K>> mergedRepresentation(
 		kind: K,
 		sources: List<ValueState>,
-		members: Set<L2SemanticValue>,
 		restriction: TypeRestriction
 	): Representation<K>
 	{
 		val present = sources
 			.map(kind::representationIn)
 			.filterNot(Representation<K>::isAbsent)
-		var definitions = present.flatMap(Representation<K>::definitions)
-		// AFter coloring, the same register might otherwise appear multiple
-		// times.
-		if (mode != BySemanticValue)
-			definitions = definitions.distinct()
-		// Reuse any of the existing postponed instructions, since they all will
-		// populate the entire synonym.
-		val postponedInstructions =
-			present.mapNotNull(Representation<K>::postponedInstruction)
-		val defined = definitions
-			.flatMap(L2Register<K>::definitions)
-			.flatMap(L2WriteOperand<K>::semanticValues)
-			.intersect(members)
-		// An instruction written into a register of this kind needs the
-		// restriction as that kind sees it.
+		if (present.isEmpty()) return emptyRepresentation()
+		// After coloring, the same register can appear in more than one.
+		val definitions = present
+			.flatMap(Representation<K>::definitions)
+			.distinct()
 		val postponedInstruction = when
 		{
-			// Don't generate postponed instructions when the graph is held
-			// together by registers instead of semantic values.
+			// The graph is held together by registers instead.
 			!caresAboutSemanticValues -> null
-			// If the value is defined for *any*, no instruction is needed,
-			// since generation from constants or even conversions between kinds
-			// should be an automatic feature of the generator.
-			defined.isNotEmpty() -> null
-			// If the new restriction is impossible, output an impossibleCode
-			// instruction, which should hopefully cause this path to become
-			// unreachable from the nearest branch.
+			definitions.isNotEmpty() -> null
 			restriction.isImpossible -> null
-			// Constants never create an instructions.
-			// The value is defined for none.  Check for a constant restriction.
 			restriction.isConstant -> null
-			// If the value is defined for some and notDefined for others,
-			// produce a move.
-			defined.isNotEmpty() -> kind.dynamicMove(
-				defined.first(), emptySet(), this, restriction)
-			// Defined for none, and not constant.  Keep (any) one of the
-			// (definitely non-move, non-constant-move) postponed instructions
-			// found in the prior synonyms.  Allow there to have been no
-			// postponed instruction *just* to simplify intermediate states,
-			// where the synonym is built before the defining instruction is
-			// added.
-			else -> postponedInstructions.firstOrNull()
+			// They all populate the same value, so any of them will do.
+			else -> present.firstNotNullOfOrNull(
+				Representation<K>::postponedInstruction)
 		}
 		return Representation(definitions, postponedInstruction)
 	}
 
+	/**
+	 * Make the given [L2SemanticValue]s synonyms of each other: merge the
+	 * classes of those this manifest already knows, add those it does not, and
+	 * narrow the resulting value by [baseRestriction]
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Merging).
+	 *
+	 * @param semanticValues
+	 *   The [L2SemanticValue]s known to denote one value.  There must be at
+	 *   least one.
+	 * @param baseRestriction
+	 *   A [TypeRestriction] that the value is known to satisfy.
+	 */
 	fun agglomerateSynonym(
 		semanticValues: Iterable<L2SemanticValue>,
 		baseRestriction: TypeRestriction)
@@ -2300,68 +2144,38 @@ class L2ValueManifest
 			return
 		}
 
-		// If a semantic constant is provided, use its value as a constant
-		// restriction, otherwise compute the intersection of the existing
-		// synonyms' restrictions.
-		val existingSemanticConstant =
-			strandedValues.firstOrNull(L2SemanticValue::isConstant)
-		// Intersect the *stored* restrictions, which are boxed, so that tag and
-		// variant information survives an agglomeration performed on behalf of
-		// an unboxed spelling.
-		// The caller's restriction is a constraint on the value too, so it is
-		// intersected in rather than being used only when there is nothing else
-		// - which is what "may be further strengthened by the restrictions
-		// present for existing synonyms" says, and what the single-class path
-		// above already does.  Dropping it let a class carrying no real
-		// knowledge decide the merged restriction on its own.
-		// The caller's restriction arrives in whatever kind the caller was
-		// working in - an int move supplies an int-flagged one - while stored
-		// restrictions are boxed, and mixing the two in one restriction is
-		// forbidden.  Boxing it first is what makes the intersection well
-		// formed.
-		val newRestriction = existingSemanticConstant?.constantRestrictionOrNull
-			?: existingClasses.fold(baseRestriction) {
-					restriction, existing ->
-				restriction.intersection(states[existing]!!.restriction)
+		// A semantic constant says exactly what the value is.
+		val restriction = strandedValues
+			.firstNotNullOfOrNull(L2SemanticValue::constantRestrictionOrNull)
+			?.intersection(baseRestriction)
+			?: baseRestriction
+		if (existingClasses.isEmpty())
+		{
+			introduceSynonym(strandedValues, restriction)
+			return
+		}
+		val survivor = existingClasses.first()
+		if (strandedValues.isNotEmpty())
+		{
+			val state = states[survivor]!!
+			states[survivor] = state.withMembers(state.members + strandedValues)
+			bind(strandedValues, survivor)
+			// A new invocation may be congruent with one already present, which
+			// would be found among the users of its arguments.  Users are only
+			// indexed while semantic values are being tracked.
+			if (caresAboutSemanticValues)
+			{
+				strandedValues
+					.filterIsInstance<L2SemanticPrimitiveInvocation>()
+					.forEach { invocation ->
+						invocation.argumentSemanticValues.firstOrNull()?.let {
+							mergeCongruentUsers(stateOrNull(it)!!.usingClasses)
+						}
+					}
 			}
-
-		// Capture the records now, since forwarding the losers below removes
-		// them from the map, while their representations are still needed
-		// afterwards.
-		val existingStates = existingClasses.map { states[it]!! }
-		// The kind this call is spelled in is always one of the kinds to
-		// reconcile, even when no existing record is held in it yet.
-		val members: Set<L2SemanticValue> = existingStates
-			.flatMapTo(mutableSetOf(), ValueState::members)
-			.plus(strandedValues)
-		val usingClasses = existingStates
-			.flatMapTo(mutableSetOf(), ValueState::usingClasses)
-		val newState = ValueState(
-			members = members,
-			restriction = newRestriction,
-			boxedRepresentation = agglomeratedRepresentation(
-				BOXED_KIND, existingStates, members, newRestriction),
-			intRepresentation = agglomeratedRepresentation(
-				INTEGER_KIND, existingStates, members, newRestriction),
-			floatRepresentation = agglomeratedRepresentation(
-				FLOAT_KIND, existingStates, members, newRestriction),
-			usingClasses = usingClasses)  // Congruent ones merged below.
-		// Wire it in.  One of the existing classes survives and absorbs the
-		// others, so that anything still referring to a merged-away class
-		// resolves to the survivor.
-		assert(
-			caresAboutSemanticValues
-				|| newState.representations.all {
-					it.postponedInstruction === null
-				})
-		val winner = existingClasses.firstOrNull() ?: newValueClass()
-		existingClasses.forEach { loser -> forwardClass(winner, loser) }
-		states[winner] = newState
-		bind(members, winner)
-		// Only now merge the invocations that have become congruent through
-		// this merge.  If we did this earlier, the intermediate changes might
-		// be problematic.
-		mergeCongruentUsers(usingClasses)
+		}
+		existingClasses.drop(1).forEach { mergeValueClasses(survivor, it) }
+		updateRestriction(survivor) { restriction }
 	}
 
 	/**
@@ -2424,162 +2238,7 @@ class L2ValueManifest
 					semanticValue2.constantRestrictionOrNull!!)
 			}
 		}
-		val synonym1 = semanticValueToSynonym(semanticValue1)
-		val synonym2 = semanticValueToSynonym(semanticValue2)
-		if (!privateMergeSynonyms(synonym1, synonym2))
-		{
-			return
-		}
-
-		// Figure out which L2SemanticPrimitiveInvocations have become
-		// equivalent due to their arguments being merged into the same
-		// synonyms.  Repeat as necessary, alternating collection of newly
-		// matched pairs of synonyms with merging them.
-		val allSemanticPrimitives = classOf.keys
-			.filterIsInstance<L2SemanticPrimitiveInvocation>()
-			.groupBy(L2SemanticPrimitiveInvocation::primitive)
-		if (allSemanticPrimitives.isEmpty())
-		{
-			// There are no primitive invocations visible.
-			return
-		}
-		while (true)
-		{
-			val followupMerges = mutableListOf<
-				Pair<
-					L2SemanticValue,
-					L2SemanticValue>>()
-			for (invocations in allSemanticPrimitives.values)
-			{
-				// It takes at least two primitive invocations (of the same
-				// primitive) for there to be a potential merge.
-				if (invocations.size <= 1)
-				{
-					continue
-				}
-				// Create a map from each distinct input list of synonyms to the
-				// set of invocation synonyms.
-				val map = mutableMapOf<
-					List<L2Synonym?>,
-					MutableSet<L2Synonym>>()
-				for (invocation in invocations)
-				{
-					// Note that sometimes an L2SemanticPrimitiveInvocation will
-					// be in the manifest, even though some of its argument
-					// semantic values are no longer accessible.  Create a
-					// singleton synonym for such a semantic value, but don't
-					// register it in the manifest.
-					val argumentSynonyms: List<L2Synonym?> =
-						invocation.argumentSemanticValues
-							.map {
-								semanticValueToSynonymOrElse(it) {
-									L2Synonym(setOf(it))
-								}
-							}
-					val primitiveSynonyms =
-						map.computeIfAbsent(argumentSynonyms) { mutableSetOf() }
-					val invocationSynonym: L2Synonym =
-						semanticValueToSynonym(invocation)
-					if (primitiveSynonyms.isNotEmpty()
-						&& !primitiveSynonyms.contains(invocationSynonym))
-					{
-						val sampleSynonym = primitiveSynonyms.first()
-						val sampleInvocation = sampleSynonym.pickSemanticValue()
-						followupMerges.add(invocation to sampleInvocation)
-					}
-					primitiveSynonyms.add(invocationSynonym)
-				}
-			}
-			if (followupMerges.isEmpty())
-			{
-				break
-			}
-			followupMerges.forEach { (first, second) ->
-				privateMergeSynonyms(
-					semanticValueToSynonym(first),
-					semanticValueToSynonym(second))
-			}
-		}
-	}
-
-	/**
-	 * Given two [L2SemanticValue]s, merge their [L2Synonym]s together, if
-	 * they're not already.  Update the manifest to reflect the merged synonyms.
-	 * Do not yet merge synonyms of [L2SemanticPrimitiveInvocation]s whose
-	 * arguments have just become equivalent.
-	 *
-	 * @param synonym1
-	 *   An [L2Synonym].
-	 * @param synonym2
-	 *   Another [L2Synonym] representing what has just been shown to be the
-	 *   same value.  It may already be equal to the first synonym.
-	 * @return
-	 *   Whether any change was made to the manifest.
-	 */
-	private fun privateMergeSynonyms(
-		synonym1: L2Synonym,
-		synonym2: L2Synonym
-	): Boolean
-	{
-		if (synonym1 == synonym2) return false
-		val class1 = classFor(synonym1.pickSemanticValue())
-		val class2 = classFor(synonym2.pickSemanticValue())
-		if (class1 == class2) return false
-		val state1 = states[class1]!!
-		val state2 = states[class2]!!
-		val semanticValues =
-			synonym1.semanticValues() + synonym2.semanticValues()
-		// Intersect the stored restrictions, which are boxed, so that nothing
-		// the boxed form knows is lost by merging on behalf of an unboxed
-		// spelling.
-		val restriction = state1.restriction.intersection(state2.restriction)
-		// class1 survives and absorbs class2, so anything still holding class2
-		// resolves to class1.
-		forwardClass(class1, class2)
-		// class1's record is re-read, since forwarding class2 can recursively
-		// merge derived values and thereby replace it.  Every kind either
-		// record was held in is reconciled, not just the one this synonym is
-		// spelled in.
-		val newState = states[class1]!!.mergedWith(
-			state2, semanticValues, restriction)
-		assert(
-			caresAboutSemanticValues
-				|| newState.representations.all {
-					it.postponedInstruction === null
-				})
-		states[class1] = newState
-		bind(semanticValues, class1)
-		if (state1.isImpossible) impossibleRestrictionCount--
-		if (state2.isImpossible) impossibleRestrictionCount--
-		if (newState.isImpossible) impossibleRestrictionCount++
-		if (restriction.isConstant
-			&& semanticValues.none(L2SemanticValue::isConstant))
-		{
-			// The merged restriction is a constant, but we don't have that
-			// semantic constant within the synonym yet.  The two cases are if
-			// there's another synonym with that semantic constant and if there
-			// isn't.
-			val semanticConstant = L2SemanticConstant(
-				restriction.constantOrNull!!)
-			if (hasSemanticValue(semanticConstant))
-			{
-				// Another synonym is also constrained to that constant.  Do
-				// another synonym merge, technically recursively, although the
-				// maximum recursion depth is 2.  Note that we don't care about
-				// the boolean return value, since we must answer true from the
-				// outer call.
-				privateMergeSynonyms(
-					states[class1]!!.synonym,
-					semanticValueToSynonym(semanticConstant))
-			}
-			else
-			{
-				// The semantic constant is not in any synonym yet, but it needs
-				// to be added to the new synonym.
-				extendSynonym(states[class1]!!.synonym, semanticConstant)
-			}
-		}
-		return true
+		mergeValueClasses(classFor(semanticValue1), classFor(semanticValue2))
 	}
 
 	/**
@@ -2705,11 +2364,11 @@ class L2ValueManifest
 	): List<L2Register<K>> = representation(semanticValue, kind).definitions
 
 	/**
-	 * Replace the [TypeRestriction] associated with the given
-	 * [L2SemanticValue], which must be known by this manifest.  This also
-	 * restricts any synonymous semantic values, and may even cause propagation
-	 * of narrowing to related synonyms, which may also merge if they become
-	 * constrained to constants that are already present in other synonyms.
+	 * Narrow the [TypeRestriction] associated with the given [L2SemanticValue]
+	 * to its intersection with [newRestriction].  This also restricts any
+	 * synonymous semantic values, and may even cause propagation of narrowing
+	 * to related synonyms, which may also merge if they become constrained to
+	 * constants that are already present in other synonyms.
 	 *
 	 * @param semanticValue
 	 *   The given [L2SemanticValue].
