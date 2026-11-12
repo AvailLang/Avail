@@ -715,7 +715,7 @@ constructor(
 				.flatMapTo(mutableSetOf(), L2Synonym::semanticValues)
 			manifests.forEach { m ->
 				commonSemanticValues.retainAll {
-					m.hasAnyLiveSemanticValue(it)
+					m.isPopulatedInAnyKind(it)
 				}
 			}
 			// For each semantic value, determine all other semantic values that
@@ -756,21 +756,21 @@ constructor(
 			commonSynonyms.forEach { sv, set ->
 				if (!set.intersects(synonymRepresentatives))
 				{
-					// Only keep a candidate if it's in the current manifest,
-					// since we might be stripping dead code.  Either at least
-					// one will be alive, or we don't need to preserve the
-					// synonym's information.
-					if (currentManifest.hasAnyLiveSemanticValue(sv))
+					// Only keep a candidate if it's populated in the current
+					// manifest, since we might be stripping dead code.  Either
+					// at least one will be populated, or we don't need to
+					// preserve the synonym's information.
+					if (currentManifest.isPopulatedInAnyKind(sv))
 					{
 						synonymRepresentatives.add(sv)
 					}
 				}
 			}
-			// We now have one (live) representative from each common incoming
-			// synonym.  We can iterate over them to process the synonym merges
-			// and restrictions.
+			// We now have one populated representative from each common
+			// incoming synonym.  We can iterate over them to process the
+			// synonym merges and restrictions.
 			synonymRepresentatives.forEach { sv ->
-				assert(currentManifest.hasAnyLiveSemanticValue(sv))
+				assert(currentManifest.isPopulatedInAnyKind(sv))
 				commonSynonyms[sv]!!.forEach { otherSv ->
 					currentManifest.mergeExistingSemanticValues(sv, otherSv)
 				}

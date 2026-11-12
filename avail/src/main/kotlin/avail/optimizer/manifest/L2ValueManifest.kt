@@ -170,8 +170,10 @@ class L2ValueManifest
 	 *   The [RegisterKind] that this representation describes.
 	 * @property definitions
 	 *   An immutable [List] of [L2Register]s of kind [K] that hold the value.
-	 *   The list may be replaced, but not internally modified, and the caller
-	 *   must not modify the list after passing it to this constructor.
+	 *   It is a list because one value can be held by several registers at
+	 *   once, although in SSA form each register has a single definition.  The
+	 *   list may be replaced, but not internally modified, and the caller must
+	 *   not modify the list after passing it to this constructor.
 	 * @property postponedInstruction
 	 *   The optional [L2Instruction] that is responsible for populating members
 	 *   that do not yet have definitions of kind [K].  It has *not* yet been
@@ -1801,7 +1803,9 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Answer whether the [L2SemanticValue] is known to this manifest.
+	 * Answer whether the [L2SemanticValue] is known to this manifest, whether
+	 * or not any register holds it (doc/Optimization/Level_Two/
+	 * Value_manifest.md §Data model.Known, live, and populated).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
@@ -1816,16 +1820,18 @@ class L2ValueManifest
 		semanticValue in classOf
 
 	/**
-	 * Answer whether the [L2SemanticValue] is known to this manifest AND
-	 * the instruction that computes it have been emitted.
+	 * Answer whether the [L2SemanticValue] is live in the given [kind]: known
+	 * to this manifest, with some register of that kind holding its class.
+	 * The register need not have been written under this exact name; for that,
+	 * see [isPopulated] (doc/Optimization/Level_Two/Value_manifest.md §Data
+	 * model.Known, live, and populated).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
 	 * @param kind
 	 *   The [RegisterKind] for which a live value is sought.
 	 * @return
-	 *   Whether there is a register of the requested [kind] known to be holding
-	 *   this value, populated by an instruction that has been emitted.
+	 *   Whether a register of the requested [kind] holds this value.
 	 */
 	fun <K: RegisterKind<K>> hasLiveSemanticValue(
 		semanticValue: L2SemanticValue,
@@ -1835,16 +1841,18 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Answer whether the [L2SemanticValue] is known to this manifest AND
-	 * it's populated for at least one [RegisterKind].
+	 * Answer whether the [L2SemanticValue] is populated in at least one
+	 * [RegisterKind]: some register of its class, of any kind, was written by
+	 * an instruction whose write names this exact semantic value
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known, live,
+	 * and populated).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
 	 * @return
-	 *   Whether there is a register of *any* kind known to be holding this
-	 *   value, written by an emitted instruction.
+	 *   Whether a register of any kind was written under this exact name.
 	 */
-	fun hasAnyLiveSemanticValue(
+	fun isPopulatedInAnyKind(
 		semanticValue: L2SemanticValue
 	): Boolean = stateOrNull(semanticValue).notNullAnd {
 		allDefinitions.any { reg ->
@@ -1863,6 +1871,14 @@ class L2ValueManifest
 	 * Note that there may be multiple [L2SemanticPrimitiveInvocation]s that are
 	 * equivalent, in which case an arbitrary (and not necessarily stable) one
 	 * is chosen.
+	 *
+	 * The value found is only known, and may be produced by a postponed
+	 * instruction.  That is what a caller that reads the value wants, since
+	 * reading it forces the postponed instruction to be emitted; a caller that
+	 * needs a register written under the exact name uses
+	 * [equivalentPopulatedSemanticValue] instead
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known, live,
+	 * and populated).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to look up.
@@ -1928,10 +1944,13 @@ class L2ValueManifest
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one
-	 * in this manifest, but appearing in a definition – i.e., already bound to
-	 * a register of the specified [kind][RegisterKind].  If an
-	 * [L2SemanticPrimitiveInvocation] is supplied, look for a recursively
-	 * synonymous one (that's bound to a register).
+	 * in this manifest that is [populated][isPopulated] in the specified
+	 * [kind][RegisterKind]: some register of that kind was written under that
+	 * exact name.  If an [L2SemanticPrimitiveInvocation] is supplied, look for
+	 * a recursively synonymous one.  A caller that only reads the value should
+	 * use [equivalentSemanticValue] instead
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known, live,
+	 * and populated).
 	 *
 	 * Answer the extant [L2SemanticValue] if found, otherwise answer `null`.
 	 * Note that there may be multiple [L2SemanticPrimitiveInvocation]s that are
@@ -1968,7 +1987,10 @@ class L2ValueManifest
 	/**
 	 * Answer whether the given [L2SemanticValue] is populated by having a
 	 * visible defining write that wrote to that exact semantic value, using a
-	 * register of the specified [kind].
+	 * register of the specified [kind].  This is stricter than
+	 * [hasLiveSemanticValue], which accepts a register written under any
+	 * member of the value's class (doc/Optimization/Level_Two/
+	 * Value_manifest.md §Data model.Known, live, and populated).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to test.

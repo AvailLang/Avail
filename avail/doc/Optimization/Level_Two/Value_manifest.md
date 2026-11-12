@@ -137,6 +137,42 @@ postponed instruction.  The mode of a long-lived manifest changes as the
 phases progress, so it is the mode, not the presence of a map, that decides
 whether semantic values are consulted.
 
+### Known, live, and populated
+
+A manifest can know a value without any register holding it.  In each
+register kind, a value it knows has registers holding it, a postponed
+instruction that would produce it, or neither.  It has neither when it is a
+constant, which the generator can produce directly; an argument introduced
+for a primitive invocation (see [Introduced arguments](#introduced-arguments));
+a value restored by replaying post-phi data; or a value briefly between
+being introduced and being written.  A postponed instruction is present
+only when some member of the class has no register of that kind, and it is
+never a move when the class has no register of that kind at all.
+
+The queries distinguish three degrees of presence:
+
+- *Known*: the value is a member of some class (`hasSemanticValue`).
+  `equivalentSemanticValue` finds a known value equivalent to a given one.
+- *Live* in a kind: some register of that kind holds the value's class
+  (`hasLiveSemanticValue`).
+- *Populated* in a kind: some register of that kind was written by an
+  instruction whose write names this exact semantic value (`isPopulated`).
+  `equivalentPopulatedSemanticValue` finds a populated value equivalent to
+  a given one, and `isPopulatedInAnyKind` asks whether the value is
+  populated in any kind.
+
+Reading a value that is known but not live forces its postponed
+instruction to be emitted, so a caller that only needs to read a value
+should use the plain queries, and reuse a postponed equivalent rather than
+compute the value again.  The populated queries are for a caller that needs
+a register written under that exact name.
+
+Registers and semantic values are not one to one.  In SSA form each
+register has a single definition, but one value can be held by several
+registers at once: a control flow merge creates new registers for the
+values it carries, and a cold block can reconstruct a value that is already
+held elsewhere.  That is why a `Representation` holds a list of registers.
+
 ## Semantic values
 
 Every member of a state is an [L2SemanticValue].  A value held in an `int`
