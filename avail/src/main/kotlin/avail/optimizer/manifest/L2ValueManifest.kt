@@ -1302,7 +1302,10 @@ class L2ValueManifest
 	 * assumption that it is being asked about a call that could actually
 	 * happen, and is entitled to do things like ask a metatype for its
 	 * instance; a value widened by a merge, or narrowed to ⊥ by a
-	 * contradiction, can violate that.
+	 * contradiction, can violate that.  An argument of type ⊥ is checked for
+	 * separately, since ⊥ is a subtype of every declared argument type.
+	 * Skipping it loses nothing: the contradiction has already made the
+	 * argument's restriction impossible, which marks the position unreachable.
 	 *
 	 * @param usingClass
 	 *   The resolved [ValueClass] of the invocations to recompute.
@@ -1320,8 +1323,9 @@ class L2ValueManifest
 		}
 		val declaredTypes = primitive.blockTypeRestriction().argsTupleType
 		if (argumentTypes.withIndex().any { (zeroIndex, argumentType) ->
-				!argumentType.isSubtypeOf(
-					declaredTypes.typeAtIndex(zeroIndex + 1))
+				argumentType.isBottom
+					|| !argumentType.isSubtypeOf(
+						declaredTypes.typeAtIndex(zeroIndex + 1))
 			})
 		{
 			return
@@ -1444,6 +1448,107 @@ class L2ValueManifest
 		assert(count == impossibleRestrictionCount)
 		{
 			"Incorrect value for hasImpossibleRestriction."
+		}
+	}
+
+	/**
+	 * Answer whether the receiver is at least as informative as [other], a
+	 * manifest that describes an earlier or analogous point in the code
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Monotonicity).
+	 *
+	 * Only the facts that survive any rewrite are compared: which semantic
+	 * values are synonyms, and the [TypeRestriction]s bounding them.
+	 * Registers, postponed instructions, and [ValueClass]es are particular to
+	 * one manifest, and are ignored.  For each synonym of [other], the members
+	 * that the receiver knows must be synonyms in the receiver too, with a
+	 * restriction at least as strong.  A value the receiver does not know at
+	 * all is not a weakening, since a value may be forgotten once nothing can
+	 * read it.
+	 *
+	 * @param other
+	 *   The [L2ValueManifest] that the receiver must be at least as strong as.
+	 * @return
+	 *   Whether the receiver keeps everything [other] knows about the values
+	 *   they share.
+	 */
+	fun isStrongerThanManifest(other: L2ValueManifest): Boolean =
+		weakeningsRelativeTo(other).isEmpty()
+
+	/**
+	 * Answer whether the receiver already knows everything that [data]
+	 * records: every semantic value of each of its synonyms is known here, in
+	 * one synonym, with a restriction at least as strong.  Unlike
+	 * [isStrongerThanManifest], a value the receiver does not know counts
+	 * against it, since the question is whether [data] could be discarded
+	 * without losing anything.
+	 *
+	 * @param data
+	 *   The [PostPhiData] whose facts must already be known here.
+	 * @return
+	 *   Whether nothing in [data] is missing from the receiver.
+	 */
+	fun isStrongerThanPostPhiData(data: PostPhiData): Boolean =
+		weakeningsRelativeTo(
+			data.restrictionsBySynonym, forgettingIsWeakening = true
+		).isEmpty()
+
+	/**
+	 * Describe each way in which the receiver is weaker than [other], in the
+	 * sense of [isStrongerThanManifest], for reporting a violation.
+	 *
+	 * @param other
+	 *   The [L2ValueManifest] that the receiver should be at least as strong
+	 *   as.
+	 * @return
+	 *   One description per weakening, empty if there is none.
+	 */
+	fun weakeningsRelativeTo(other: L2ValueManifest): List<String> =
+		weakeningsRelativeTo(
+			other.states.values.associate { it.synonym to it.restriction },
+			forgettingIsWeakening = false)
+
+	/**
+	 * Describe each way in which the receiver is weaker than the given facts,
+	 * each a synonym and the [TypeRestriction] bounding it.
+	 *
+	 * @param facts
+	 *   The synonyms and restrictions the receiver should be at least as
+	 *   strong as.
+	 * @param forgettingIsWeakening
+	 *   Whether a semantic value of [facts] that the receiver does not know
+	 *   at all counts as a weakening.
+	 * @return
+	 *   One description per weakening, empty if there is none.
+	 */
+	private fun weakeningsRelativeTo(
+		facts: Map<L2Synonym, TypeRestriction>,
+		forgettingIsWeakening: Boolean
+	): List<String> = buildList {
+		facts.forEach { (synonym, restriction) ->
+			val (shared, forgotten) =
+				synonym.semanticValues().partition(::hasSemanticValue)
+			if (forgettingIsWeakening && forgotten.isNotEmpty())
+			{
+				add("$synonym lost $forgotten")
+			}
+			if (shared.isEmpty()) return@forEach
+			val ownStates = shared
+				.mapTo(mutableSetOf(), ::classFor)
+				.map { states[it]!! }
+			if (ownStates.size > 1)
+			{
+				add(
+					"synonym $synonym was split into " +
+						ownStates.joinToString { it.synonym.toString() })
+			}
+			ownStates.forEach { ownState ->
+				if (!ownState.restriction.isStrongerThan(restriction))
+				{
+					add(
+						"${ownState.synonym} has restriction " +
+							"${ownState.restriction}, weaker than $restriction")
+				}
+			}
 		}
 	}
 

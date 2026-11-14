@@ -188,17 +188,21 @@ Private method "Run all tests" is
  * each successive run took.  Do not break this down by test suite or test.  If
  * any test fails, print the report and abort the loop.
  *
+ * A run strictly faster than every earlier run in the batch is marked with
+ * " *" after its time, so the last marked line is the fastest run.
+ *
  * @entry
- * @method "Run all tests"
+ * @method "Time all tests_time|times"
  * @param "count" "natural number"
  *        The number of times to run all tests.
- * @returns "boolean"
+ * @returns "⊤"
  */
 Private method "Time all tests_time|times" is
 [
 	count : natural number
 |
 	$escape : ⊤;
+	fastest : extended integer := ∞;
 	For each iteration in 1 to count do
 	[
 		startTime ::= high-precision timer value;
@@ -212,7 +216,10 @@ Private method "Time all tests_time|times" is
 			Print: test suite-oriented “report”;
 			Exit escape
 		];
-		Print: “iteration” ++ ": " ++ “elapsed ÷ 1000000” ++ " ms\n";
+		isFastest ::= elapsed < fastest;
+		If isFastest then [fastest := elapsed;];
+		Print: “iteration” ++ ": " ++ “elapsed ÷ 1000000” ++ " ms"
+			++ (if isFastest then [" *"] else [""]) ++ "\n";
 	];
 ] : ⊤;
 

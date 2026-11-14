@@ -674,15 +674,22 @@ class L2Optimizer internal constructor(
 				// Make sure all the semantic values that were in the old
 				// graph have values in the new graph, even if some of them
 				// might be latent in the manifest's postponed instructions.
+				// A semantic constant is exempt, since it can be produced
+				// wherever it is needed without being in the manifest.
 				sourceInstruction.writeOperands
 					.forEach { write ->
 						write.semanticValues().forEach { value ->
 							assert(
-								currentManifest.hasSemanticValue(value) ||
-								currentManifest
-									.postponedInstructionFor(
-										value, write.kind
-									) != null)
+								value.isConstant
+									|| currentManifest.hasSemanticValue(value)
+									|| currentManifest
+										.postponedInstructionFor(
+											value, write.kind
+										) != null)
+							{
+								"Regenerating $sourceInstruction lost " +
+									"the value $value"
+							}
 						}
 					}
 			}
@@ -948,9 +955,11 @@ class L2Optimizer internal constructor(
 	/**
 	 * Each block that ends with an unconditional [L2_JUMP] to a block with only
 	 * that incoming edge should be merged with that successor block, eliding
-	 * the jump.  Additionally, any block that contains only an unconditional
-	 * jump can be removed, adjusting its incoming edges to point to the jump's
-	 * target instead.
+	 * the jump.  Additionally, edges leading to a block that contains only an
+	 * unconditional jump are redirected to the jump's target, when doing so
+	 * loses nothing that the block's post-phi data records, and the block is
+	 * removed once no edges lead to it
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Jump-only blocks).
 	 *
 	 * Don't do this if the destination block is [L2BasicBlock.isIrremovable].
 	 */
@@ -974,8 +983,11 @@ class L2Optimizer internal constructor(
 	 * Part 1: For every jump from a normal block to a normal block having only
 	 * that predecessor, migrate the instructions (dropping the jump) forward
 	 * across the edge.  Replace edges leading to the first block with the
-	 * second.  Answer whether the graph was changed.
-	*/
+	 * second.  A block holding nothing but the jump is left to
+	 * [skipTrampolineBlocks], which keeps it if its post-phi data records
+	 * something that the edges into it do not.  Answer whether the graph was
+	 * changed.
+	 */
 	private fun concatenateAcrossJumps(): Boolean
 	{
 		var changed = false
@@ -991,20 +1003,19 @@ class L2Optimizer internal constructor(
 				val target = edge.targetBlock()
 				// Don't remove the block if it's irremovable or a loop head.
 				if (block.isIrremovable || block.isLoopHead) continue
-				// If we have instructions to push forward to get rid of the
-				// block, don't push them to an irremovable or loop head.
-				if (block.instructions().size > 1)
-				{
-					// There are instructions that would have to be moved to the
-					// target block.
-					if (target.isIrremovable) continue
-					if (target.isLoopHead) continue
-					if (edge.isBackward) continue
-					if (target.predecessorEdges().size > 1) continue
-				}
-				// Move the instructions (if any) other than the jump from the
-				// block to the target, since either there aren't any such
-				// instructions or we're the sole predecessor of the target.
+				// A block holding nothing but the jump is left to
+				// skipTrampolineBlocks, which keeps it if its post-phi data
+				// records something that the edges into it do not.
+				if (block.instructions().size == 1) continue
+				// Don't push the instructions forward into an irremovable
+				// block or a loop head, nor into a block that other paths
+				// reach.
+				if (target.isIrremovable) continue
+				if (target.isLoopHead) continue
+				if (edge.isBackward) continue
+				if (target.predecessorEdges().size > 1) continue
+				// Move the instructions other than the jump from the block to
+				// the target, since we're the sole predecessor of the target.
 				block.instructions().removeLast()  // the jump
 				jump.justRemoved()
 				while (block.instructions().isNotEmpty())
@@ -1027,8 +1038,12 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
-	 * Redirect all edges that lead to blocks that contain only an unconditional
-	 * jump.
+	 * Redirect edges that lead to blocks that contain only an unconditional
+	 * jump, straight to the jump's target.  Only an edge whose manifest
+	 * already knows everything in the block's post-phi data is redirected,
+	 * and the block is removed once no edges lead to it
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Jump-only blocks).
+	 * Answer whether the graph was changed.
 	 */
 	private fun skipTrampolineBlocks(): Boolean
 	{
@@ -1047,17 +1062,28 @@ class L2Optimizer internal constructor(
 				is L2_JUMP_BACK -> soleInstruction.target
 				else -> continue
 			}
-			// Redirect all predecessors through the jump.
+			// Redirect predecessors through the jump, but only those that
+			// already know everything the block's post-phi data records.  That
+			// data is the only lasting record of what the block established,
+			// such as the synonyms of a move dropped by register coloring,
+			// since an edge's own manifest is rebuilt by each regeneration
+			// (doc/Optimization/Level_Two/Post_phi_data.md §Monotonicity).
+			// The block stays for the remaining predecessors, and final code
+			// generation jumps past it anyhow.
 			val jumpTarget = jumpEdge.targetBlock()
 			val isBackward = jumpEdge.isBackward
+			val postPhiData = block.postPhiData
 			// Copy it; the predecessorEdges list will change in the loop.
 			for (inEdge in block.predecessorEdges().toList())
 			{
+				val knowsEverything = postPhiData === null
+					|| inEdge.manifestOrNull()
+						.notNullAnd { isStrongerThanPostPhiData(postPhiData) }
+				if (!knowsEverything) continue
 				changed = true
 				inEdge.switchTargetBlockNonSSA(jumpTarget, isBackward)
 			}
-			assert(block.predecessorEdges().isEmpty())
-			if (!block.isIrremovable)
+			if (block.predecessorEdges().isEmpty() && !block.isIrremovable)
 			{
 				block.instructions().clear()
 				soleInstruction.justRemoved()
@@ -1106,11 +1132,18 @@ class L2Optimizer internal constructor(
 				}
 			}
 		}
-		val registerIdentityMap =
-			allRegisters.associateWithTo(mutableMapOf()) { it }
+		// A register must never be shared between graphs, so map each one to
+		// a fresh copy with the same number and color, but no definitions or
+		// uses yet.  Constant pseudo-registers are reused for constant reads,
+		// and are not mapped.
+		val registerCopyMap = allRegisters
+			.filterNot(L2Register<*>::isConstant)
+			.associateWithTo(mutableMapOf<L2Register<*>, L2Register<*>>()) {
+				it.copyAfterColoring(it.uniqueValue)
+			}
 		// Rewrite the graph with the useless branches replaced by jumps.
 		regenerateGraph(
-			WithFixedRegisterMap(registerIdentityMap),
+			WithFixedRegisterMap(registerCopyMap),
 			collapseUnconditionalJumps = true,
 			isRemovingDeadCode = true
 		) { instruction ->
@@ -1558,12 +1591,19 @@ class L2Optimizer internal constructor(
 					&& instruction !is L2_STRIP_MANIFEST)
 				{
 					// An instruction cannot read and write the same semantic
-					// value.
-					val written = instruction.writeOperands
-						.flatMap(L2WriteOperand<*>::semanticValues)
-					val read = instruction.readOperands
-						.map(L2ReadOperand<*>::semanticValue)
-					assert(!written.intersects(read))
+					// value in the same register kind.  Converting between
+					// kinds, as boxing and unboxing do, reads and writes one
+					// value in two representations.
+					val written = instruction.writeOperands.flatMap { write ->
+						write.semanticValues().map { it to write.kind }
+					}
+					val read = instruction.readOperands.map {
+						it.semanticValue() to it.kind
+					}
+					assert(!written.intersects(read)) {
+						"$instruction in block ${block.name()} reads and " +
+							"writes ${written.intersect(read.toSet())}"
+					}
 				}
 			}
 			// Ensure the successorEdges of the block agree with the edges of
@@ -1675,16 +1715,38 @@ class L2Optimizer internal constructor(
 				}
 				else
 				{
-					// Check that the register and semantic value required by
-					// each read has been populated.
+					// Check that the register required by each read has been
+					// populated, and that the value it reads is known here.
+					// The value need not be named by the register's write: a
+					// name can join a synonym without being written, as when a
+					// move is elided or post-phi data is replayed.  So accept
+					// it if any member of its synonym in the block's post-phi
+					// data is visible.
 					instruction.readOperands.forEach { read ->
 						if (!read.isConstantRead)
 						{
-							assert(read.register() in registers)
+							assert(read.register() in registers) {
+								"Read $read in $instruction of block " +
+									"${block.name()} uses a register that " +
+									"is not populated here"
+							}
 							if (StateFlag.HAS_ELIMINATED_PHIS::class
 								!in controlFlowGraph.state)
 							{
-								assert(read.semanticValue() in values)
+								val semanticValue = read.semanticValue()
+								val names = block.postPhiData
+									?.restrictionsBySynonym
+									?.keys
+									?.firstOrNull {
+										semanticValue in it.semanticValues()
+									}
+									?.semanticValues()
+									?: setOf(semanticValue)
+								assert(names.any(values::contains)) {
+									"Read $read in $instruction of block " +
+										"${block.name()} names a value with " +
+										"no visible synonym"
+								}
 							}
 						}
 					}
@@ -1877,6 +1939,36 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
+	 * Ensure that a block with a single incoming edge never weakens what that
+	 * edge knows: each outgoing edge's manifest must be
+	 * [at least as strong][L2ValueManifest.isStrongerThanManifest] as the
+	 * incoming edge's (doc/Optimization/Level_Two/Post_phi_data.md
+	 * §Monotonicity).  A block with several incoming edges is exempt, since its
+	 * phis legitimately lose what the predecessors disagree about.  So are
+	 * manifests that do not track semantic values.
+	 */
+	private fun checkSingleInputBlocksDoNotWeaken()
+	{
+		for (block in blocks)
+		{
+			val input = block.predecessorEdges().singleOrNull()?.manifest()
+				?: continue
+			if (!input.caresAboutSemanticValues) continue
+			for (edge in block.successorEdges())
+			{
+				val output = edge.manifest()
+				if (!output.caresAboutSemanticValues) continue
+				val weakenings = output.weakeningsRelativeTo(input)
+				assert(weakenings.isEmpty()) {
+					"Block ${block.name()} weakened its input along " +
+						"${edge.optionalName ?: "an edge"}:\n" +
+						weakenings.joinToString("\n")
+				}
+			}
+		}
+	}
+
+	/**
 	 * Check that all registers have a unique definition.  This should only be
 	 * called if the graph is expected to be in single-static-assignment form
 	 * ([IS_SSA]).
@@ -1939,6 +2031,7 @@ class L2Optimizer internal constructor(
 			checkEdgesAndPhis()
 			checkRegistersAreInitialized(L2Register<*>::uniqueValue)
 			checkUniqueConstantSynonyms()
+			checkSingleInputBlocksDoNotWeaken()
 			if (IS_SSA::class in generator.controlFlowGraph.state)
 			{
 				checkUniqueRegisterDefinitions()

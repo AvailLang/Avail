@@ -37,6 +37,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
 import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_Atom.Companion.atomName
+import avail.descriptor.representation.A_Atom.Companion.fieldAtomConstraint
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Map.Companion.hasKey
 import avail.descriptor.representation.A_Map.Companion.mapAtOrNull
@@ -45,6 +46,7 @@ import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.fieldTypeMap
 import avail.descriptor.representation.A_Type.Companion.instances
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -182,9 +184,13 @@ object P_GetObjectField : Primitive2(CanFold, CanInline)
 		// equivalent semantic value.
 		val equivalentObject =
 			manifest.equivalentSemanticValue(containingObject) ?: return
+		// The field's value always satisfies the atom's field constraint, and
+		// the object type cannot be built with a field type that doesn't.
+		val fieldType = restriction.type.typeIntersection(
+			fieldAtom.fieldAtomConstraint)
 		manifest.intersectType(
 			equivalentObject,
-			objectTypeFromTuple(tuple(tuple(fieldAtom, restriction.type))))
+			objectTypeFromTuple(tuple(tuple(fieldAtom, fieldType))))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

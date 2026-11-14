@@ -84,6 +84,7 @@ import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -450,15 +451,36 @@ class JVMTranslator constructor(
 	val labels: MutableMap<Int, Label> = mutableMapOf()
 
 	/**
+	 * The offset of each block that consists of nothing but an [L2_JUMP],
+	 * mapped to the offset that the jump leads to.  The optimizer keeps such a
+	 * block when its post-phi data records something that the edges into it
+	 * do not (doc/Optimization/Level_Two/Post_phi_data.md §Jump-only blocks),
+	 * but at run time it does nothing, so [labelFor] sends jumps straight past
+	 * it.
+	 * Chains of such blocks cannot form a cycle, since every backward jump
+	 * leads to code that checks for interrupts.
+	 */
+	private val trampolineTargets = mutableMapOf<Int, Int>()
+
+	/**
 	 * Answer the [Label] for the specified [L2Instruction]
-	 * [offset][L2Instruction.offset].
+	 * [offset][L2Instruction.offset], skipping any blocks that consist of
+	 * nothing but a jump.
 	 *
 	 * @param offset
 	 *   The offset.
 	 * @return
 	 *   The requested `Label`.
 	 */
-	fun labelFor(offset: Int): Label = labels[offset]!!
+	fun labelFor(offset: Int): Label
+	{
+		var target = offset
+		while (true)
+		{
+			target = trampolineTargets[target] ?: break
+		}
+		return labels[target]!!
+	}
 
 	/**
 	 * The mapping of registers to locals, partitioned by kind.
@@ -801,6 +823,12 @@ class JVMTranslator constructor(
 				val label = Label()
 				entryPoints[instruction.offset] = label
 				labels[instruction.offset] = label
+			}
+			if (instruction is L2_JUMP
+				&& instruction.basicBlock().instructions().size == 1)
+			{
+				trampolineTargets[instruction.offset] =
+					instruction.target.offset()
 			}
 			instruction.operands.forEach { it.dispatchOperand(preparer) }
 		}

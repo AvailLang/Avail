@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
-import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2Optimizer
@@ -122,21 +121,27 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 				return
 			}
 		}
-		// The move from variable to variableOut is unconditional.
+		// The move from variable to variableOut is unconditional.  Merging the
+		// two versions of the variable would ordinarily blur the order of the
+		// gets and sets of it, but here the variable's creation or last set is
+		// still postponed, which proves that nothing else has touched it, so
+		// they can simply be made synonyms.
 		currentManifest.removePostponedInstructionFor(
 			variableOut.pickSemanticValue(), BOXED_KIND)
-		currentManifest.recordPostponedInstruction(
-			variableOut.pickSemanticValue(),
-			L2_MOVE_BOXED(variable, variableOut))
+		currentManifest.agglomerateSynonym(
+			variableOut.semanticValues() + variable.semanticValue(),
+			variableOut.restriction())
 		val originRestriction = currentManifest.restrictionFor(originValue)
 		when
 		{
 			originRestriction.containedByType(ANY()) ->
 			{
-				// The variable is definitely assigned.
-				currentManifest.recordPostponedInstruction(
-					extractedValue.pickSemanticValue(),
-					BOXED_KIND.move(originValue, extractedValue))
+				// The variable is definitely assigned, and the value read is
+				// the value that was written.
+				currentManifest.agglomerateSynonym(
+					extractedValue.semanticValues()
+						+ originValue.semanticValue(),
+					extractedValue.restriction())
 				jumpTo(ifReadSucceeded.targetBlock())
 				return
 			}

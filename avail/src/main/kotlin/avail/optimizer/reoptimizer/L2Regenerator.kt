@@ -238,6 +238,12 @@ constructor(
 			// Leave it up to the instruction's instructionWasAdded() to set up
 			// the correct clamped values.
 			currentOperand = edge
+			if (shouldSanityCheck
+				&& manifestInOldGraph.caresAboutSemanticValues
+				&& manifestCopy.caresAboutSemanticValues)
+			{
+				regeneratedEdges.add(operand to edge)
+			}
 		}
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
@@ -504,6 +510,16 @@ constructor(
 		MutableMap<Set<L2SplitCondition>, L2BasicBlock>>()
 
 	/**
+	 * Each edge of the source graph paired with an edge of the new graph that
+	 * was regenerated from it, for [checkRegeneratedEdgesDoNotWeaken].  An
+	 * edge of the source graph may be regenerated several times, once for
+	 * each specialization of its block by code splitting.  Pairs are only
+	 * recorded while [shouldSanityCheck] is set.
+	 */
+	private val regeneratedEdges =
+		mutableListOf<Pair<L2PcOperand, L2PcOperand>>()
+
+	/**
 	 * Transform the given [L2BasicBlock].  Use the [blockMap], adding an entry
 	 * if necessary.  Always produce the block representing the default code
 	 * splitting path, the one with no conditions.
@@ -685,6 +701,32 @@ constructor(
 				}
 			}
 		}
+		if (shouldSanityCheck) checkRegeneratedEdgesDoNotWeaken()
+	}
+
+	/**
+	 * Ensure that each edge of the new graph is
+	 * [at least as strong][L2ValueManifest.isStrongerThanManifest] as the edge
+	 * of the source graph that it was regenerated from
+	 * (doc/Optimization/Level_Two/Post_phi_data.md §Monotonicity).  The pairs
+	 * are recorded by [OperandSemanticTransformer] only while
+	 * [shouldSanityCheck] is set, and only between manifests that track
+	 * semantic values.  A new edge whose instruction was transformed but
+	 * never emitted is not part of the new graph, and is skipped.
+	 */
+	private fun checkRegeneratedEdgesDoNotWeaken()
+	{
+		regeneratedEdges.forEach { (oldEdge, newEdge) ->
+			if (!newEdge.instructionHasBeenEmitted) return@forEach
+			val weakenings = newEdge.manifest()
+				.weakeningsRelativeTo(oldEdge.manifest())
+			assert(weakenings.isEmpty()) {
+				"Regenerating the edge from ${oldEdge.sourceBlock().name()} " +
+					"to ${oldEdge.targetBlock().name()} weakened it:\n" +
+					weakenings.joinToString("\n")
+			}
+		}
+		regeneratedEdges.clear()
 	}
 
 	/**

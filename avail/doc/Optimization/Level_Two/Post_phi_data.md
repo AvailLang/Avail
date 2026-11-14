@@ -135,6 +135,25 @@ regeneration, through code splitting, without any new path reaching the
 block.  Replay happens after phi generation, so it sees the merged manifest
 whatever the count.
 
+## Jump-only blocks
+
+A block holding nothing but an unconditional jump can still carry post-phi
+data that its incoming edges lack.  After register coloring, for example, a
+move between two registers of the same color is dropped, and the synonym it
+established survives only in the data of the block that held it.  Since each
+regeneration rebuilds the edges' manifests from scratch, discarding that block
+would discard the fact for good, and a later pass could no longer find a
+register for a value it reads.
+
+So [L2Optimizer] redirects an incoming edge past a jump-only block only when
+the edge's manifest already knows everything the block's data records, and
+keeps the block for the remaining edges.  Merging a block forward into its
+successor applies only to a block with instructions to move, never to a
+jump-only one.  The kept block costs nothing at run time: [JVMTranslator]
+resolves a jump to a jump-only block as a jump to that block's target.
+Chains of them cannot form a cycle, since every backward jump leads to code
+that checks for interrupts.
+
 ## Other uses
 
 Once a graph is complete, a block's post-phi data is the authoritative record
