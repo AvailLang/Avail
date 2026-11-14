@@ -94,12 +94,14 @@ added.
 
 Replay asserts at the top of a block facts that, in the original generation
 order, became true only partway through it.  That is sound for the same
-reason postponement is: postponing an instruction already records what an
-unconditionally downstream instruction will produce, long before producing
-it.  Nothing crosses a block boundary, and every instruction of a block runs
-whenever its end is reached, so a fact true at the end of the block is true
-for anything that observes the value, since an observer must read it after
-the instruction that writes it.
+reason postponement is: the manifest knows a postponed instruction's result,
+restriction and all, from the point where the instruction was translated,
+although the instruction may be emitted blocks later, only along the paths
+that read its result, or never.  Knowing a value early is harmless, since
+anything that observes it must read it, and a read comes after the
+instruction that writes it.  Every instruction of a block runs whenever its
+end is reached, so a fact true at the end of the block is true for every
+observer of the value within the block.
 
 When regeneration then reaches an instruction that writes a value the
 manifest already knows, [L2ValueManifest.recordDefinitionNoCheck] extends the
