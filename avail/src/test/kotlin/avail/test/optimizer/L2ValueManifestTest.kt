@@ -34,11 +34,14 @@ package avail.test.optimizer
 
 import avail.AvailRuntime.HookType.BASE_FRAME
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_Type.Companion.instanceTag
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.general.P_ExtractObjectVariantId
+import avail.interpreter.primitive.general.P_ExtractTagOrdinal
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
@@ -78,6 +81,14 @@ class L2ValueManifestTest
 	/** The layout variant id of `y`. */
 	private val variantOfY = L2SemanticPrimitiveInvocation(
 		P_ExtractObjectVariantId, listOf(y))
+
+	/** The [TypeTag] ordinal of `x`. */
+	private val tagOfX = L2SemanticPrimitiveInvocation(
+		P_ExtractTagOrdinal, listOf(x))
+
+	/** The [TypeTag] ordinal of `y`. */
+	private val tagOfY = L2SemanticPrimitiveInvocation(
+		P_ExtractTagOrdinal, listOf(y))
 
 	/**
 	 * Answer a manifest that knows `x`, `y`, and the variant ids of each, all
@@ -194,5 +205,35 @@ class L2ValueManifestTest
 			listOf(x, y), restrictionForType(Types.ANY()))
 		assertTrue(manifest.hasImpossibleRestriction)
 		assertTrue(manifest.restrictionFor(x).isImpossible)
+	}
+
+	/**
+	 * A primitive invocation keeps the value it reads known, even when nothing
+	 * else mentions that value: binding `Tag(x)` alone introduces `x`, with no
+	 * definition, and records `Tag(x)` as one of its users.  That is what lets
+	 * a later discovery that `x = y` make `Tag(x)` and `Tag(y)` synonyms.
+	 */
+	@Test
+	fun invocationKeepsItsArgumentKnown()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		assertFalse(manifest.hasSemanticValue(x))
+		assertFalse(manifest.hasSemanticValue(y))
+		val tagRange = restrictionForType(Types.ANY().instanceTag.tagRangeType)
+		manifest.agglomerateSynonym(listOf(tagOfX), tagRange)
+		manifest.agglomerateSynonym(listOf(tagOfY), tagRange)
+		listOf(x, y).forEach { argument ->
+			assertTrue(manifest.hasSemanticValue(argument))
+			assertTrue(
+				manifest.stateOrNull(argument)!!.usingClasses.isNotEmpty())
+		}
+		assertNotEquals(
+			manifest.semanticValueToSynonym(tagOfX),
+			manifest.semanticValueToSynonym(tagOfY))
+		manifest.agglomerateSynonym(
+			listOf(x, y), restrictionForType(Types.ANY()))
+		assertEquals(
+			manifest.semanticValueToSynonym(tagOfX),
+			manifest.semanticValueToSynonym(tagOfY))
 	}
 }
