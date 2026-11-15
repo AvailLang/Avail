@@ -302,7 +302,7 @@ constructor(
 		): L2SemanticValue
 		{
 			val equivalent = currentManifest
-				.equivalentPopulatedSemanticValue(oldSemanticValue, kind)
+				.equivalentLiveSemanticValue(oldSemanticValue, kind)
 			if (equivalent !== null) return equivalent
 			return oldSemanticValue
 		}
@@ -757,7 +757,7 @@ constructor(
 				.flatMapTo(mutableSetOf(), L2Synonym::semanticValues)
 			manifests.forEach { m ->
 				commonSemanticValues.retainAll {
-					m.isPopulatedInAnyKind(it)
+					m.hasLiveSemanticValueInAnyKind(it)
 				}
 			}
 			// For each semantic value, determine all other semantic values that
@@ -798,21 +798,21 @@ constructor(
 			commonSynonyms.forEach { sv, set ->
 				if (!set.intersects(synonymRepresentatives))
 				{
-					// Only keep a candidate if it's populated in the current
+					// Only keep a candidate if it's live in the current
 					// manifest, since we might be stripping dead code.  Either
-					// at least one will be populated, or we don't need to
+					// at least one will be live, or we don't need to
 					// preserve the synonym's information.
-					if (currentManifest.isPopulatedInAnyKind(sv))
+					if (currentManifest.hasLiveSemanticValueInAnyKind(sv))
 					{
 						synonymRepresentatives.add(sv)
 					}
 				}
 			}
-			// We now have one populated representative from each common
+			// We now have one live representative from each common
 			// incoming synonym.  We can iterate over them to process the
 			// synonym merges and restrictions.
 			synonymRepresentatives.forEach { sv ->
-				assert(currentManifest.isPopulatedInAnyKind(sv))
+				assert(currentManifest.hasLiveSemanticValueInAnyKind(sv))
 				commonSynonyms[sv]!!.forEach { otherSv ->
 					currentManifest.mergeExistingSemanticValues(sv, otherSv)
 				}
@@ -832,9 +832,25 @@ constructor(
 		}
 		else
 		{
+			val postPhiData = originalBlock.postPhiData
 			originalBlock.instructions().forEach {
 				if (currentlyReachable())
+				{
+					val blockBefore = currentBlock()
 					processInstruction(it)
+					// A replacement can introduce control flow and continue
+					// the rest of the original block in a new block, whose
+					// manifest holds only what the replacement code wrote.
+					// The original block's facts hold there too, since it is
+					// still the same original block
+					// (doc/Optimization/Level_Two/Post_phi_data.md §Replay).
+					if (postPhiData !== null
+						&& currentlyReachable()
+						&& currentBlock() !== blockBefore)
+					{
+						currentManifest.applyPostPhiData(postPhiData)
+					}
+				}
 			}
 		}
 	}
@@ -905,6 +921,16 @@ constructor(
 								.postponedInstructionFor(
 									semanticValue, read.kind
 								) != null)
+					{
+						val oldBlock = sourceInstruction.basicBlock()
+						"Regenerating $sourceInstruction from block " +
+							"${oldBlock.name()} into block " +
+							"${currentBlock().name()}: it reads " +
+							"$semanticValue, which is unknown here.\n" +
+							"Old block's post-phi data:\n" +
+							"${oldBlock.postPhiData}\n" +
+							"Current manifest:\n$currentManifest"
+					}
 				}
 			}
 		}

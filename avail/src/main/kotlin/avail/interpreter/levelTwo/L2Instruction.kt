@@ -583,7 +583,7 @@ constructor() :
 			val targets = write.semanticValues()
 			val (sources, allTargets) = targets
 				.mapNotNull {
-					manifest.equivalentPopulatedSemanticValue(it, write.kind)
+					manifest.equivalentLiveSemanticValue(it, write.kind)
 				}
 				.plus(targets)
 				.partition { manifest.hasLiveSemanticValue(it, write.kind) }
@@ -1052,7 +1052,7 @@ constructor() :
 		// See if there's already an existing equivalent value.
 		val existing = originalWrite.semanticValues()
 			.firstNotNullOfOrNull {
-				manifest.equivalentPopulatedSemanticValue(it, kind.cast())
+				manifest.equivalentLiveSemanticValue(it, kind.cast())
 			}
 		if (existing != null)
 		{
@@ -1190,7 +1190,7 @@ constructor() :
 		val semanticValues = write.semanticValues()
 		val unpopulated = semanticValues
 			.filterNotTo(mutableSetOf()) {
-				currentManifest.isPopulated(it, write.kind)
+				currentManifest.hasLiveSemanticValue(it, write.kind)
 			}
 		val constantSource = semanticValues.find(L2SemanticValue::isConstant)
 		val constant =
@@ -1206,7 +1206,7 @@ constructor() :
 			return true
 		}
 		val possibleSources = semanticValues.mapNotNull {
-			currentManifest.equivalentPopulatedSemanticValue(it, write.kind)
+			currentManifest.equivalentLiveSemanticValue(it, write.kind)
 		}
 		if (possibleSources.isEmpty()) return false
 		if (unpopulated.isEmpty())

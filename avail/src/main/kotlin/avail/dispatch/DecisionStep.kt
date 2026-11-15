@@ -517,7 +517,7 @@ constructor(
 						constant(fromLong(0xFFFF_FFFFL))),
 					constant(bestShift))
 			manifest
-				.equivalentPopulatedSemanticValue(
+				.equivalentLiveSemanticValue(
 					semanticShifted, INTEGER_KIND
 				) ?: run {
 					// Neither the semantic value representing the shifted hash

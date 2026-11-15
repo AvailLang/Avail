@@ -86,6 +86,14 @@ and intersects the restriction.  A block that code splitting has specialized
 receives the same data as the unspecialized one; the restrictions its incoming
 edges guarantee are already in its manifest, and the intersection keeps them.
 
+An instruction's replacement can introduce control flow of its own, as the
+replacement of a label's placeholder does, and continue the rest of the old
+block in a new block.  That block's manifest holds only what the replacement
+wrote, so the old block's data is applied again there.  It is still the same
+old block, so its facts hold for the same reason they hold at its top (see
+[Facts known early](#facts-known-early)).  This matters most for a fact that
+nothing else records, such as a synonym established by an elided move.
+
 The data is not copied into the new block.  The new block captures its own at
 its end, which is what the old block knew plus whatever the current pass
 added.

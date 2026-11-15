@@ -328,7 +328,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 			P_TupleSize,
 			listOf(tuple.semanticValue()))
 		val equivalentSize = currentManifest
-			.equivalentPopulatedSemanticValue(size, INTEGER_KIND)
+			.equivalentLiveSemanticValue(size, INTEGER_KIND)
 		if (equivalentSize !== null)
 		{
 			// It already exists, so reuse it.

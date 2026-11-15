@@ -128,4 +128,13 @@ constructor(
 	 */
 	val L2ReadOperand<*>.constantOrNull: AvailObject?
 		get() = semanticValue().constant ?: restriction.constantOrNull
+
+	/**
+	 * Describe the data one synonym per line, each followed by its
+	 * restriction, as the control flow graph visualizer renders it.
+	 */
+	override fun toString(): String =
+		restrictionsBySynonym.entries.joinToString("\n") {
+			(synonym, restriction) -> "$synonym: $restriction"
+		}
 }

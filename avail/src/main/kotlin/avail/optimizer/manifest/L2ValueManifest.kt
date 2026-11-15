@@ -57,7 +57,6 @@ import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_NOP
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -196,37 +195,6 @@ class L2ValueManifest
 			newPostponed === postponedInstruction -> this
 			else -> Representation(definitions, newPostponed)
 		}
-
-		/**
-		 * Answer which of the owning [Representation]'s members actually have a
-		 * defining write **in this representation's kind**.
-		 *
-		 * Definedness is necessarily per-representation: a value can be held in
-		 * an int register with no boxed register yet – say the result of an
-		 * [L2_ADD_INT_TO_INT] before it is boxed – so "is it defined?" is only
-		 * answerable relative to a representation.  Membership, by contrast,
-		 * belongs to the [Representation], which is why it is passed in rather
-		 * than duplicated here: three representations each holding their own
-		 * member set could drift apart, whereas this is derived on demand and
-		 * cannot.
-		 *
-		 * The owner is a parameter rather than a back-pointer deliberately.  A
-		 * [Representation] is replaced wholesale on every update and is shared
-		 * between manifests, so a stored back-pointer would need rewriting on
-		 * every copy and would otherwise go stale – the same aliasing hazard
-		 * that rules out a mutable [L2Synonym].
-		 *
-		 * @return
-		 *   The [L2SemanticValue]s that have a visible defining write of this
-		 *   kind.  Deliberately *not* intersected with the owner's members: the
-		 *   two being equal is an invariant that [check] tests, and narrowing
-		 *   this to the members would quietly satisfy that assertion instead.
-		 */
-		fun definedMembers(): Set<L2SemanticValue> =
-			definitions
-				.flatMap(L2Register<K>::definitions)
-				.flatMap(L2WriteOperand<K>::semanticValues)
-				.toSet()
 
 		/**
 		 * Whether this representation can produce a value: either it has
@@ -477,16 +445,6 @@ class L2ValueManifest
 					postponed.isNullOr {
 						writeOperands.single().semanticValues().isEmpty()
 					})
-				// Detect a move from a not-defined value.
-				if (postponed is L2_MOVE<*>)
-				{
-					val sourceValue = postponed.source.semanticValue()
-					assert(registers.any { reg ->
-						reg.definitions().any { write ->
-							sourceValue in write.semanticValues()
-						}
-					})
-				}
 			}
 		}
 
@@ -1370,68 +1328,7 @@ class L2ValueManifest
 				classOf.values.mapTo(mutableSetOf(), ::resolve) ==
 					states.keys)
 			checkInvocationArgumentsAreKnown()
-
-			// Check each value's representations for consistency with its
-			// synonym, one kind at a time. Postponed instructions are now
-			// source-only (no explicit targets), with targets derived
-			// contextually from the synonym's not-defined semantic values.
-			// There is no special case for constant restrictions - they require
-			// an explicit postponed constant move instruction.
-			for ((_, state) in states)
-			{
-				val synonym = state.synonym
-				state.forEachRepresentation { representation, _ ->
-					// Collect the semantic values that have been defined in
-					// this representation.
-					val defined = representation.definedMembers()
-
-					// All defined semantic values must be in the synonym.
-					assert(synonym.semanticValues().containsAll(defined))
-					{
-						val extraValues = defined - synonym.semanticValues()
-						buildString {
-							append("Representation has defined semantic " +
-								"values not in synonym.")
-							append("\n  Synonym: ${synonym.semanticValues()}")
-							append("\n  Extra defined values: $extraValues")
-						}
-					}
-
-					// Compute which semantic values in the synonym are not yet
-					// defined (lack visible defining writes).
-					val notDefined = synonym.semanticValues() - defined
-
-					// If there are not-defined semantic values, there must be
-					// an explicit postponed instruction. If there are no
-					// defined values,
-					// it must be a constant restriction and a constant-move,
-					// otherwise it must be a regular move from a defined value.
-					val postponed = representation.postponedInstruction
-
-					// Check for problems with the postponed instruction.
-					postponed?.let {
-						assert(
-							it.writeOperands.single().semanticValues()
-								.isEmpty())
-					}
-					when
-					{
-						notDefined.isEmpty() -> assert(postponed == null)
-						defined.isNotEmpty() ->
-						{
-							// Allow the postponed instruction to be null, to
-							// allow subsequent code to set it up.
-							if (postponed is L2_MOVE<*>)
-							{
-								assert(
-									postponed.source.semanticValue() in defined)
-							}
-						}
-						postponed == null -> Unit
-						else -> assert(postponed !is L2_MOVE<*>)
-					}
-				}
-			}
+			checkInvocationsAreNotTop()
 		}
 		// Aggregate: every register in the manifest, of every kind.
 		val registers = states.values.flatMap(ValueState::allDefinitions)
@@ -1910,7 +1807,7 @@ class L2ValueManifest
 	/**
 	 * Answer whether the [L2SemanticValue] is known to this manifest, whether
 	 * or not any register holds it (doc/Optimization/Level_Two/
-	 * Value_manifest.md §Data model.Known, live, and populated).
+	 * Value_manifest.md §Data model.Known and live).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
@@ -1927,9 +1824,10 @@ class L2ValueManifest
 	/**
 	 * Answer whether the [L2SemanticValue] is live in the given [kind]: known
 	 * to this manifest, with some register of that kind holding its class.
-	 * The register need not have been written under this exact name; for that,
-	 * see [isPopulated] (doc/Optimization/Level_Two/Value_manifest.md §Data
-	 * model.Known, live, and populated).
+	 * The register need not have been written under this exact name, since
+	 * every member of a class names the same value
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known and
+	 * live).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
@@ -1946,25 +1844,20 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Answer whether the [L2SemanticValue] is populated in at least one
-	 * [RegisterKind]: some register of its class, of any kind, was written by
-	 * an instruction whose write names this exact semantic value
-	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known, live,
-	 * and populated).
+	 * Answer whether the [L2SemanticValue] is live in at least one
+	 * [RegisterKind]: known to this manifest, with some register of any kind
+	 * holding its class (doc/Optimization/Level_Two/Value_manifest.md §Data
+	 * model.Known and live).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue].
 	 * @return
-	 *   Whether a register of any kind was written under this exact name.
+	 *   Whether a register of any kind holds this value.
 	 */
-	fun isPopulatedInAnyKind(
+	fun hasLiveSemanticValueInAnyKind(
 		semanticValue: L2SemanticValue
 	): Boolean = stateOrNull(semanticValue).notNullAnd {
-		allDefinitions.any { reg ->
-			reg.definitions().any { write ->
-				semanticValue in write.semanticValues()
-			}
-		}
+		allDefinitions.isNotEmpty()
 	}
 
 	/**
@@ -1980,10 +1873,9 @@ class L2ValueManifest
 	 * The value found is only known, and may be produced by a postponed
 	 * instruction.  That is what a caller that reads the value wants, since
 	 * reading it forces the postponed instruction to be emitted; a caller that
-	 * needs a register written under the exact name uses
-	 * [equivalentPopulatedSemanticValue] instead
-	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known, live,
-	 * and populated).
+	 * needs a register already holding it uses [equivalentLiveSemanticValue]
+	 * instead (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known
+	 * and live).
 	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to look up.
@@ -2049,13 +1941,13 @@ class L2ValueManifest
 
 	/**
 	 * Given an [L2SemanticValue], see if there's already an equivalent one
-	 * in this manifest that is [populated][isPopulated] in the specified
-	 * [kind][RegisterKind]: some register of that kind was written under that
-	 * exact name.  If an [L2SemanticPrimitiveInvocation] is supplied, look for
-	 * a recursively synonymous one.  A caller that only reads the value should
-	 * use [equivalentSemanticValue] instead
-	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known, live,
-	 * and populated).
+	 * in this manifest that is [live][hasLiveSemanticValue] in the specified
+	 * [kind][RegisterKind]: some register of that kind holds it.  If an
+	 * [L2SemanticPrimitiveInvocation] is supplied, look for a recursively
+	 * synonymous one.  A caller that only reads the value should use
+	 * [equivalentSemanticValue] instead
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known and
+	 * live).
 	 *
 	 * Answer the extant [L2SemanticValue] if found, otherwise answer `null`.
 	 * Note that there may be multiple [L2SemanticPrimitiveInvocation]s that are
@@ -2065,54 +1957,29 @@ class L2ValueManifest
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to look up.
 	 * @param kind
-	 *   The [RegisterKind] for which to look for a definition.
+	 *   The [RegisterKind] for which to look for a register.
 	 * @return
 	 *   An [L2SemanticValue] from this manifest which is equivalent to the
-	 *   given one, and appearing in a defining write of the requested [kind],
-	 *   or `null` if no such value is in the manifest.
+	 *   given one and held in a register of the requested [kind], or `null` if
+	 *   there is no such value.
 	 */
-	fun <K: RegisterKind<K>> equivalentPopulatedSemanticValue(
+	fun <K: RegisterKind<K>> equivalentLiveSemanticValue(
 		semanticValue: L2SemanticValue,
 		kind: K
 	): L2SemanticValue?
 	{
-		if (isPopulated(semanticValue, kind)) return semanticValue
+		if (hasLiveSemanticValue(semanticValue, kind)) return semanticValue
 		// Try a slower, far less frequent search.  Note that the probe may be
-		// present in the manifest but unpopulated, in which case the search
+		// present in the manifest but not live, in which case the search
 		// cannot be narrowed by class, since the shared-synonym test can then
 		// match a candidate of some other class.
 		val onlyClass = classRestrictingSearchFor(semanticValue)
 		return classOf.keys.firstOrNull { other ->
 			(onlyClass === null || other.javaClass === onlyClass)
 				&& isEquivalentSemanticValue(semanticValue, other)
-				&& isPopulated(other, kind)
+				&& hasLiveSemanticValue(other, kind)
 		}
 	}
-
-	/**
-	 * Answer whether the given [L2SemanticValue] is populated by having a
-	 * visible defining write that wrote to that exact semantic value, using a
-	 * register of the specified [kind].  This is stricter than
-	 * [hasLiveSemanticValue], which accepts a register written under any
-	 * member of the value's class (doc/Optimization/Level_Two/
-	 * Value_manifest.md §Data model.Known, live, and populated).
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] to test.
-	 * @param kind
-	 *   The [RegisterKind] indicating what kind of definition to look for.
-	 * @return
-	 *   Whether that semantic value has a visible write to it of that [kind].
-	 */
-	fun <K: RegisterKind<K>> isPopulated(
-		semanticValue: L2SemanticValue,
-		kind: K
-	): Boolean = (hasSemanticValue(semanticValue)
-		&& getDefinitions(semanticValue, kind).any { register ->
-			register.definitions().any { write ->
-				semanticValue in write.semanticValues()
-			}
-		})
 
 	/**
 	 * Given two [L2SemanticValue]s, see if they represent the same value in
@@ -2282,10 +2149,26 @@ class L2ValueManifest
 			return
 		}
 		val survivor = existingClasses.first()
+		var narrowedEarly = false
 		if (strandedValues.isNotEmpty())
 		{
+			// Narrow the surviving class as its members are added, before
+			// binding them.  Binding a primitive invocation propagates the
+			// class's restriction to the invocation's arguments, and an interim
+			// restriction, such as the ⊤ of an argument introduced as an
+			// anchor, says nothing true about them.  The change is propagated
+			// below, once the class is complete.
 			val state = states[survivor]!!
-			states[survivor] = state.withMembers(state.members + strandedValues)
+			val narrowed = state.restriction.intersection(restriction)
+			if (narrowed != state.restriction)
+			{
+				narrowedEarly = true
+				if (state.isImpossible) impossibleRestrictionCount--
+				if (narrowed.isImpossible) impossibleRestrictionCount++
+			}
+			states[survivor] = state
+				.withMembers(state.members + strandedValues)
+				.copy(restriction = narrowed)
 			bind(strandedValues, survivor)
 			// A new invocation may be congruent with one already present, which
 			// would be found among the users of its arguments.  Users are only
@@ -2302,7 +2185,12 @@ class L2ValueManifest
 			}
 		}
 		existingClasses.drop(1).forEach { mergeValueClasses(survivor, it) }
-		updateRestriction(survivor) { restriction }
+		if (narrowedEarly)
+		{
+			propagateForRestrictionChange(
+				stateFromClass(resolve(survivor)).synonym.pickSemanticValue())
+		}
+		updateRestriction(resolve(survivor)) { restriction }
 	}
 
 	/**
@@ -2373,16 +2261,16 @@ class L2ValueManifest
 	 * for each in this manifest, and if so, merge their synonyms.  Otherwise do
 	 * nothing.
 	 *
-	 * Only merge them if they're both populated.
+	 * Only merge them if they're both live in the same kind.
 	 */
 	fun mergeSemanticValueEquivalentsIfPresent(
 		value1: L2SemanticValue,
 		value2: L2SemanticValue)
 	{
 		RegisterKind.forEachKind { kind ->
-			equivalentPopulatedSemanticValue(value1, kind.cast())
+			equivalentLiveSemanticValue(value1, kind.cast())
 				?.let { eqv1 ->
-					equivalentPopulatedSemanticValue(value2, kind.cast())
+					equivalentLiveSemanticValue(value2, kind.cast())
 						?.let { eqv2 ->
 							mergeExistingSemanticValues(eqv1, eqv2)
 						}
@@ -2391,11 +2279,9 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Retrieve the oldest definition of the given [L2SemanticValue] or an
-	 * equivalent, but having the given [kind].  Only consider registers whose
-	 * definitions *all* include that semantic value.  This should work well in
-	 * SSA or non-SSA, but not after register coloring. If no such register is
-	 * found, return `null`.
+	 * Retrieve the oldest register of the given [kind] holding the given
+	 * [L2SemanticValue]'s class, whatever member of the class its write
+	 * named.  If there is no such register, return `null`.
 	 *
 	 * @param K
 	 *   The [RegisterKind] of the desired register.
@@ -2414,27 +2300,13 @@ class L2ValueManifest
 			// Postponed instructions don't have registers assigned.
 			return null
 		}
-		val rep = representation(semanticValue, kind)
-		var definition = rep.definitions.find { reg ->
-			reg.definitions().all { write ->
-				semanticValue in write.semanticValues()
-			}
-		}
-		if (definition == null)
-		{
-			// Fall back to any register of the requested kind, even if it
-			// doesn't have the specified semanticValue in all of its
-			// definitions.
-			definition = rep.definitions.firstOrNull()
-		}
-		return definition
+		return representation(semanticValue, kind).definitions.firstOrNull()
 	}
 
 	/**
-	 * Retrieve the oldest definition of the given [L2SemanticValue] or an
-	 * equivalent, but having the given [RegisterKind].  Only consider
-	 * registers whose definitions *all* include that semantic value.  This
-	 * should work well in SSA or non-SSA, but not after register coloring.
+	 * Retrieve the oldest register of the given [kind] holding the given
+	 * [L2SemanticValue]'s class, whatever member of the class its write
+	 * named.  The value must be live in that kind.
 	 *
 	 * @param K
 	 *   The [RegisterKind] of the desired register.
@@ -2449,43 +2321,18 @@ class L2ValueManifest
 	): L2Register<K> = getDefinitionOrNull(semanticValue, kind)!!
 
 	/**
-	 * Retrieve all [L2Register]s known to contain the given
-	 * [L2SemanticValue], for the specified [kind]. If the mode is still
-	 * [BySemanticValue], narrow it to just those registers whose definitions
-	 * *all* include that semantic value.
+	 * Retrieve all [L2Register]s of the specified [kind] holding the given
+	 * [L2SemanticValue]'s class, whatever member of the class their writes
+	 * named.
 	 *
-	 * @param <R>
-	 *   The kind of [L2Register] to return.
+	 * @param K
+	 *   The [RegisterKind] of the desired registers.
 	 * @param semanticValue
 	 *   The [L2SemanticValue] being examined.
 	 * @return
 	 *   A [List] of the requested [L2Register]s.
 	 */
 	fun <K: RegisterKind<K>> getDefinitions(
-		semanticValue: L2SemanticValue,
-		kind: K
-	): List<L2Register<K>> = when (mode)
-	{
-		BySemanticValue ->
-			representation(semanticValue, kind).definitions.filter { reg ->
-				reg.definitions().all { write ->
-					semanticValue in write.semanticValues()
-				}
-			}
-		else -> representation(semanticValue, kind).definitions
-	}
-	/**
-	 * Retrieve all [L2Register]s known to contain the given [L2SemanticValue],
-	 * regardless of whether [getDefinitions] would filter some out.
-	 *
-	 * @param <R>
-	 *   The kind of [L2Register] to return.
-	 * @param semanticValue
-	 *   The [L2SemanticValue] being examined.
-	 * @return
-	 *   A [List] of the requested [L2Register]s.
-	 */
-	fun <K: RegisterKind<K>> getAllDefinitions(
 		semanticValue: L2SemanticValue,
 		kind: K
 	): List<L2Register<K>> = representation(semanticValue, kind).definitions
@@ -2700,6 +2547,13 @@ class L2ValueManifest
 		states.values
 			.mapToSet(mutableSetOf(), ValueState::synonym)
 			.toTypedArray()
+
+	/**
+	 * Describe the manifest one value per line: its synonym, the registers
+	 * holding it (or that it is only postponed), and its restriction.
+	 */
+	override fun toString(): String =
+		states.values.joinToString("\n") { "${it.synonym} $it" }
 
 	/**
 	 * Expose the current collection of [ValueState]s as a list.
@@ -3491,7 +3345,7 @@ class L2ValueManifest
 				newInstruction.writeOperands.single().restriction())
 			val pick = equivalence.synonym.pickSemanticValue()
 			val commonDefinitions = manifests
-				.map { it.getAllDefinitions(pick, kind.cast()).toSet() }
+				.map { it.getDefinitions(pick, kind.cast()).toSet() }
 				.reduce(Set<L2Register<*>>::intersect)
 			updateDefinitions(pick, kind.cast()) {
 				plus(commonDefinitions).cast()
@@ -3842,6 +3696,34 @@ class L2ValueManifest
 						}
 					}
 				}
+		}
+	}
+
+	/**
+	 * Check that no synonym holding an invocation of a side-effectless
+	 * primitive is restricted to ⊤.  Such an invocation produces a value, so
+	 * `any` is the weakest restriction it can truthfully have.  A ⊤ means a
+	 * restriction that described nothing true was applied to the synonym, such
+	 * as the default restriction of an argument introduced as an anchor, and
+	 * propagating it to the invocation's arguments asks the primitive about a
+	 * call that cannot happen.
+	 */
+	private fun checkInvocationsAreNotTop()
+	{
+		states.values.forEach { state ->
+			val invocation = state.members
+				.filterIsInstance<L2SemanticPrimitiveInvocation>()
+				.firstOrNull { !it.primitive.l2HasSideEffect }
+				?: return@forEach
+			assert(!state.restriction.type.isTop)
+			{
+				buildString {
+					append("Manifest restricts an invocation of a ")
+					append("side-effectless primitive to ⊤.")
+					append("\n  Invocation: $invocation")
+					append("\n  Its synonym: ${state.members}")
+				}
+			}
 		}
 	}
 

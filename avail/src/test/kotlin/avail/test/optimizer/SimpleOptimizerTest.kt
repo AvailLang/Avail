@@ -3240,6 +3240,68 @@ class SimpleOptimizerTest
 	}
 
 	/**
+	 * Reduced from the outer function of `"«_‡«=|≤|<»!»"` in Dates and Times,
+	 * which pushes a label, then loops over `1` to `|args| - 1` with a body
+	 * capturing `args` and the label.
+	 *
+	 * Replacing the label's placeholder rebuilds a merge whose groups include
+	 * `〖|args| - 1〗` and `〖|args| & n〗`, where `n` is the slot holding
+	 * `|args|`.  Populating the first group introduced `n` as an anchor, an
+	 * argument of `|args| - 1`, at its default restriction ⊤.  Populating the
+	 * second then bound `|args|` into `n`'s class before narrowing that class,
+	 * so binding it propagated the interim ⊤ back to `args`, and
+	 * [P_TupleSize] could not build a tuple type from a size of ⊤.
+	 * [L2ValueManifest.agglomerateSynonym] now narrows the surviving class
+	 * before binding new members to it.
+	 */
+	@Test
+	fun testChainedComparisonWithLabel()
+	{
+		val sizes = integerRangeType(fromInt(3), true, positiveInfinity, false)
+		val argsType = tupleTypeForSizesTypesDefaultType(
+			sizes, emptyTuple, Types.ANY())
+		val rawFunction = helper.rawFunction(booleanType) {
+			argumentTypes(argsType)
+			val args = declareName("args")
+
+			// Label
+			/*val body =*/ declareName("body")
+
+			// :: From 1 to |args| - 1 by 1 do [index : ℕ | …];
+			pushLiteral(one)
+			L1_doPushLocal(args)
+			call("`|_`|", sizes)
+			pushLiteral(one)
+			call(
+				"_-_",
+				integerRangeType(two, true, positiveInfinity, false))
+			pushLiteral(one)
+			L1_doPushLocal(args)
+			L1Ext_doPushLabel()
+			close(
+				arguments = listOf("index" to naturalNumbers),
+				outers = listOf(
+					"args" to argsType,
+					"body" to mostGeneralContinuationType),
+				returnType = TOP())
+			callNewDummy(
+				"From_to_by_do_",
+				listOf(
+					naturalNumbers,
+					wholeNumbers,
+					naturalNumbers,
+					functionType(tuple(naturalNumbers), TOP())),
+				TOP())
+			L1_doPop()
+
+			// :: true
+			pushLiteral(trueObject)
+		}
+
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
 	 * The initial translation of Method "_×_" in Math.avail (line ~504) had a
 	 * lookup of the floor function (⌊a⌋) that failed translation to L2.  This
 	 * is a greatly reduced version of just the initial instructions.
@@ -3524,8 +3586,8 @@ class SimpleOptimizerTest
 		// Regression test for Tuples:4429 - ensure the max call result check
 		// is not unconditionally failing during L2 translation.
 		// The bug was that the passed-check branch would emit an ImpossibleCode
-		// instruction due to manifest state corruption at the merge point before
-		// the max call's result type check.
+		// instruction due to manifest state corruption at the merge point
+		// before the max call's result type check.
 		val rawFunction = helper.rawFunction(tupleMeta) {
 			// Constants
 			val unionLocal = createConstant(anyMeta)
@@ -3572,9 +3634,8 @@ class SimpleOptimizerTest
 		// If the passed-check branch became unreachable, the return paths
 		// would be eliminated during dead code removal.
 		val startingChunk = rawFunction.startingChunk
-		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
-			instruction is L2_RETURN
-		}
+		val hasReturnInstructions =
+			startingChunk.instructions.any { it is L2_RETURN }
 		assertTrue(hasReturnInstructions,
 			"Compiled chunk should contain return instructions; " +
 			"if not, the passed-check branch was likely made unreachable")
@@ -3619,9 +3680,8 @@ class SimpleOptimizerTest
 		helper.testOptimize(rawFunction)
 
 		val startingChunk = rawFunction.startingChunk
-		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
-			instruction is L2_RETURN
-		}
+		val hasReturnInstructions =
+			startingChunk.instructions.any { it is L2_RETURN }
 		assertTrue(hasReturnInstructions,
 			"Argument version: chunk should contain return instructions")
 	}
@@ -3665,17 +3725,17 @@ class SimpleOptimizerTest
 		helper.testOptimize(rawFunction)
 
 		val startingChunk = rawFunction.startingChunk
-		val hasReturnInstructions = startingChunk.instructions.any { instruction ->
-			instruction is L2_RETURN
-		}
+		val hasReturnInstructions =
+			startingChunk.instructions.any { it is L2_RETURN }
 		assertTrue(hasReturnInstructions,
 			"Outer version: chunk should contain return instructions")
 	}
 
 	/**
-	 * Test optimization of a function with two arguments of equal instance types.
-	 * This triggered an L2 translation failure during initial code generation
-	 * due to type restrictions on the first two arguments being identical.
+	 * Test optimization of a function with two arguments of equal instance
+	 * types.  This triggered an L2 translation failure during initial code
+	 * generation due to type restrictions on the first two arguments being
+	 * identical.
 	 */
 	@Test
 	fun test_EqualInstanceTypeArguments()

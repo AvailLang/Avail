@@ -1025,7 +1025,7 @@ constructor(
 				this@Primitive,
 				arguments.map(L2ReadBoxedOperand::semanticValue))
 			// See if we already have a value for an equivalent invocation.
-			currentManifest.equivalentPopulatedSemanticValue(
+			currentManifest.equivalentLiveSemanticValue(
 				semanticValue,
 				BOXED_KIND
 			)?.let { equivalent ->
@@ -1491,7 +1491,7 @@ constructor(
 
 			// Check if there's already an equivalent int value available.
 			val equivalent = helper.currentManifest
-				.equivalentPopulatedSemanticValue(
+				.equivalentLiveSemanticValue(
 					primitiveInvocation(
 						this@Primitive,
 						arguments.map(L2ReadBoxedOperand::semanticValue)),

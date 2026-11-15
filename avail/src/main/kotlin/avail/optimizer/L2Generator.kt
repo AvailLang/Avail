@@ -1404,7 +1404,7 @@ constructor(
 			}
 		}
 		val equivalentUnboxed = currentManifest
-			.equivalentPopulatedSemanticValue(semanticValue, BOXED_KIND)
+			.equivalentLiveSemanticValue(semanticValue, BOXED_KIND)
 		if (equivalentUnboxed != null
 			&& currentManifest.restrictionFor(semanticValue)
 				.containedByType(i64))

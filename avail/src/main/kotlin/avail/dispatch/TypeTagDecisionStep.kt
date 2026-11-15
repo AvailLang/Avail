@@ -466,7 +466,7 @@ constructor(
 			// Assume the base type is sufficient to limit the possible tag
 			// ordinals.
 			val equivalentTag = currentManifest
-				.equivalentPopulatedSemanticValue(semanticTag, INTEGER_KIND)
+				.equivalentLiveSemanticValue(semanticTag, INTEGER_KIND)
 			when (equivalentTag)
 			{
 				null -> +L2_EXTRACT_TAG_ORDINAL(

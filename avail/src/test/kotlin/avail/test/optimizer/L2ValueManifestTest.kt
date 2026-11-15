@@ -41,6 +41,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.general.P_ExtractObjectVariantId
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.primitive.general.P_ExtractTagOrdinal
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
@@ -235,5 +237,55 @@ class L2ValueManifestTest
 		assertEquals(
 			manifest.semanticValueToSynonym(tagOfX),
 			manifest.semanticValueToSynonym(tagOfY))
+	}
+
+	/**
+	 * A name that joins a class without being written is live wherever the
+	 * class is, and is held by the class's registers, even though no write
+	 * names it (doc/Optimization/Level_Two/Value_manifest.md §Data model.Known
+	 * and live).
+	 */
+	@Test
+	fun joiningALiveClassMakesANameLive()
+	{
+		val register = L2BoxedRegister(1)
+		val manifest = L2ValueManifest(BySemanticValue)
+		manifest.agglomerateSynonym(listOf(x), restrictionForType(Types.ANY()))
+		manifest.updateDefinitions(x, BOXED_KIND) { plus(register) }
+		assertTrue(manifest.hasLiveSemanticValue(x, BOXED_KIND))
+		assertFalse(manifest.hasSemanticValue(y))
+		manifest.agglomerateSynonym(
+			listOf(x, y), restrictionForType(Types.ANY()))
+		assertTrue(manifest.hasLiveSemanticValue(y, BOXED_KIND))
+		assertTrue(manifest.hasLiveSemanticValueInAnyKind(y))
+		assertEquals(listOf(register), manifest.getDefinitions(y, BOXED_KIND))
+		assertEquals(register, manifest.getDefinitionOrNull(y, BOXED_KIND))
+		assertEquals(y, manifest.equivalentLiveSemanticValue(y, BOXED_KIND))
+	}
+
+	/**
+	 * The search for a live equivalent finds a congruent invocation held in a
+	 * register, through its arguments' synonymy, and finds nothing when the
+	 * congruent invocation is known but held in no register.
+	 */
+	@Test
+	fun equivalentLiveSemanticValueRequiresARegister()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		manifest.agglomerateSynonym(
+			listOf(x, y), restrictionForType(Types.ANY()))
+		manifest.agglomerateSynonym(
+			listOf(tagOfX),
+			restrictionForType(Types.ANY().instanceTag.tagRangeType))
+		// The probe, Tag(y), is not itself in the manifest.
+		assertFalse(manifest.hasSemanticValue(tagOfY))
+		assertEquals(tagOfX, manifest.equivalentSemanticValue(tagOfY))
+		assertEquals(
+			null, manifest.equivalentLiveSemanticValue(tagOfY, BOXED_KIND))
+		manifest.updateDefinitions(tagOfX, BOXED_KIND) {
+			plus(L2BoxedRegister(1))
+		}
+		assertEquals(
+			tagOfX, manifest.equivalentLiveSemanticValue(tagOfY, BOXED_KIND))
 	}
 }

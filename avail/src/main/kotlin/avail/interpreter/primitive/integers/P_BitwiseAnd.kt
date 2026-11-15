@@ -340,7 +340,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanFold, CanInline)
 			P_Hash(capture(0))
 		}.matchForEach(premask, manifest) { (valueToHash) ->
 			val equivalentIntValueToHash = manifest
-				.equivalentPopulatedSemanticValue(
+				.equivalentLiveSemanticValue(
 					valueToHash,
 					INTEGER_KIND
 				) ?: return@matchForEach

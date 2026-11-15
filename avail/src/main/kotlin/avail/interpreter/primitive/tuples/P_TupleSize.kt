@@ -141,7 +141,7 @@ object P_TupleSize : Primitive1(CannotFail, CanFold, CanInline)
 					P_TupleSize,
 					listOf(tupleReg.semanticValue()))
 				val equivalent = currentManifest
-					.equivalentPopulatedSemanticValue(size, INTEGER_KIND)
+					.equivalentLiveSemanticValue(size, INTEGER_KIND)
 				if (equivalent !== null)
 				{
 					// It already exists, so reuse it.
