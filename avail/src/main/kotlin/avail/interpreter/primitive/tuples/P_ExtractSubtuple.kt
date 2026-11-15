@@ -76,10 +76,10 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.numbers.P_Subtraction
@@ -98,7 +98,7 @@ import kotlin.math.min
  * elements.
  */
 @Suppress("unused")
-object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
+object P_ExtractSubtuple : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -419,7 +419,7 @@ object P_ExtractSubtuple : Primitive3(CanFold, CanInline)
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{

@@ -43,7 +43,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -57,7 +57,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_SequenceAsExpressionSequence : Primitive1(
-	CannotFail, CanFold, CanInline)
+	CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

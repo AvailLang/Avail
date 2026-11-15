@@ -60,7 +60,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -77,7 +77,7 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
+object P_BitwiseXor : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -142,7 +142,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanFold, CanInline)
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{

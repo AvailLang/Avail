@@ -181,6 +181,7 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VAR
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
@@ -211,6 +212,7 @@ import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
+import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import java.util.IdentityHashMap
@@ -1256,7 +1258,7 @@ class L1Translator private constructor(
 					L2ReadBoxedOperand(argSemanticValue)
 				}
 				argumentTypes = strongArguments.map { it.type }
-				if (primitive.hasFlag(Flag.CanFold))
+				if (primitive is Foldable)
 				{
 					// See if there's an equivalent semantic value already in
 					// the manifest, and just reuse that if possible.
@@ -1304,10 +1306,17 @@ class L1Translator private constructor(
 						// to keep the call machinery happy.
 						resultType = Types.ANY()
 					}
+					// Only a foldable primitive's result can be named by its
+					// invocation; any other result is just a temporary.
+					val resultValue = when (primitive)
+					{
+						is Foldable -> primitiveInvocation(
+							primitive,
+							arguments.map(L2ReadBoxedOperand::semanticValue))
+						else -> newTemp("${primitive.name} result")
+					}
 					val writer = boxedWrite(
-						primitive.semanticInvocation(
-							arguments.map(L2ReadBoxedOperand::semanticValue)),
-						restrictionForType(resultType))
+						resultValue, restrictionForType(resultType))
 					val invoke = L2_RUN_INFALLIBLE_PRIMITIVE(
 						rawFunction,
 						primitive,

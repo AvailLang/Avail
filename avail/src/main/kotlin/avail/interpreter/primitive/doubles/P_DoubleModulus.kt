@@ -41,7 +41,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -52,7 +52,7 @@ import kotlin.math.floor
  * answer the remainder.
  */
 @Suppress("unused")
-object P_DoubleModulus : Primitive2(CannotFail, CanInline, CanFold)
+object P_DoubleModulus : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

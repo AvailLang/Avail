@@ -74,8 +74,8 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_CODEPOINT_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_LONG_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.characters.P_CharacterCodePoint
@@ -90,7 +90,7 @@ import java.lang.Integer.MAX_VALUE
  * **Primitive:** Look up an element in the [tuple][TupleDescriptor].
  */
 @Suppress("unused")
-object P_TupleAt : Primitive2(CanFold, CanInline)
+object P_TupleAt : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

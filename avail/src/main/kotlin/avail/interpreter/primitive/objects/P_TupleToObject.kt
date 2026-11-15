@@ -92,7 +92,7 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Offset
 import avail.interpreter.levelTwoSimple.instructions.registers.Read
 import avail.interpreter.levelTwoSimple.instructions.registers.ReadArray
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
@@ -107,7 +107,7 @@ import avail.optimizer.L1Translator
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleToObject : Primitive1(CanFold, CanInline)
+object P_TupleToObject : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

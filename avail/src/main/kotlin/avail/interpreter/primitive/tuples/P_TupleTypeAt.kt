@@ -52,7 +52,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -63,7 +63,7 @@ import avail.interpreter.primitive.Primitive2
  * [bottom][BottomTypeDescriptor] if out of range.
  */
 @Suppress("unused")
-object P_TupleTypeAt : Primitive2(CannotFail, CanFold, CanInline)
+object P_TupleTypeAt : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

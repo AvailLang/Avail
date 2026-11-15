@@ -48,7 +48,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.descriptor.variables.VariableSharedGlobalDescriptor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -60,7 +60,7 @@ import avail.interpreter.primitive.PrimitiveN
  * registering it with the given module.
  */
 object P_PrivateCreateModuleVariable
-	: PrimitiveN(5, CanFold, CanInline, Private, CannotFail)
+	: PrimitiveN(5, CanInline, Private, CannotFail), Foldable
 {
 	override fun attemptN(
 		interpreter: Interpreter,

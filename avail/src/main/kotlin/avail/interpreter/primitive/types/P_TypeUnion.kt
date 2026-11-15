@@ -49,7 +49,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -64,7 +64,7 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
  * [types][TypeDescriptor].
  */
 @Suppress("unused")
-object P_TypeUnion : Primitive2(CannotFail, CanFold, CanInline)
+object P_TypeUnion : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

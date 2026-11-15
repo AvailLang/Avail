@@ -52,7 +52,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -80,7 +80,7 @@ import avail.optimizer.values.L2SemanticValue
  */
 @Suppress("unused")
 object P_ExtractObjectTypeVariantId
-	: Primitive1(Private, CannotFail, CanFold, CanInline)
+	: Primitive1(Private, CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

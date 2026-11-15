@@ -38,7 +38,7 @@ import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Instruction.InstructionEquivalence
@@ -814,7 +814,7 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue,
 		instruction: L2Instruction)
 	{
-		assert(instruction.canBePostponed)
+		assert(instruction.canBePostponed(this))
 		assert(!instruction.hasBeenEmitted)
 		assert(instruction.writeOperands.single().semanticValues().isEmpty())
 		// A move is postponed by merging its destination into its source's
@@ -1330,6 +1330,7 @@ class L2ValueManifest
 			checkInvocationArgumentsAreKnown()
 			checkInvocationsAreNotTop()
 		}
+		checkRepresentationsFitTheirKinds()
 		// Aggregate: every register in the manifest, of every kind.
 		val registers = states.values.flatMap(ValueState::allDefinitions)
 		if (mode !is WithFixedRegisterMap)
@@ -1536,25 +1537,6 @@ class L2ValueManifest
 	fun stateOrNull(
 		semanticValue: L2SemanticValue
 	): ValueState? = classOrNull(semanticValue)?.let(states::get)
-
-	/**
-	 * Whether the given [L2SemanticValue] can be produced on this edge:
-	 * it is a constant, or has a live register in some kind, or a postponed
-	 * instruction.
-	 *
-	 * @param semanticValue
-	 *   The [L2SemanticValue] to check.
-	 * @return
-	 *   `true` if the value can be produced.
-	 */
-	fun canProduceValue(semanticValue: L2SemanticValue): Boolean {
-		if (semanticValue.isConstant) return true
-		val state = stateOrNull(semanticValue) ?: return false
-		return state.boxedRepresentation.canProduceValue() ||
-			state.intRepresentation.canProduceValue() ||
-			state.floatRepresentation.canProduceValue() ||
-			state.restriction.isConstant
-	}
 
 	/**
 	 * Bind the given [L2SemanticValue]s to the given [ValueClass],
@@ -1858,6 +1840,157 @@ class L2ValueManifest
 		semanticValue: L2SemanticValue
 	): Boolean = stateOrNull(semanticValue).notNullAnd {
 		allDefinitions.isNotEmpty()
+	}
+
+	/**
+	 * Answer whether code could produce the [L2SemanticValue], boxed, at this
+	 * point, without failing and without side effects.  A value is producible
+	 * when a register of any kind holds it, since boxing an unboxed value
+	 * cannot fail; when it is a semantic constant, or restricted to a single
+	 * value; when it has a postponed instruction of any kind; or when it, or
+	 * another member of its synonym, is a primitive invocation whose arguments
+	 * are themselves producible (see [producibleInvocationFor]).  The
+	 * invocation case, the only recursive one, is tried last.
+	 *
+	 * Producing a value in an `int` or `float` register additionally requires
+	 * that its restriction fit that kind, since unboxing is not checked at run
+	 * time (doc/Optimization/Level_Two/Value_manifest.md §Restrictions.The int
+	 * register invariant).
+	 *
+	 * Being known is not enough: a manifest can know a value, and what it is
+	 * restricted to, with nothing able to produce it
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Data model.Producible).
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to test.  It need not be known to this manifest.
+	 * @return
+	 *   Whether the value could be produced.
+	 */
+	fun isProducible(semanticValue: L2SemanticValue): Boolean =
+		isProducible(semanticValue, mutableSetOf())
+
+	/**
+	 * Answer whether the [L2SemanticValue] is [producible][isProducible],
+	 * given that the values in [inProgress] are already being checked
+	 * further up the recursion.
+	 *
+	 * The recursive case is a primitive invocation naming the value: the value
+	 * itself, or any member of its synonym, since every member names the same
+	 * value.  A value already being checked does not count as producible
+	 * along the path that reached it again, which ends cycles such as the
+	 * synonym `{x, x + 0}`, whose invocation reads `x` itself.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to test.
+	 * @param inProgress
+	 *   The [ValueClass]es, or the unknown values themselves, already being
+	 *   checked.
+	 * @return
+	 *   Whether the value could be produced.
+	 */
+	private fun isProducible(
+		semanticValue: L2SemanticValue,
+		inProgress: MutableSet<Any>
+	): Boolean = when
+	{
+		hasLiveSemanticValueInAnyKind(semanticValue) -> true
+		semanticValue.isConstant -> true
+		stateOrNull(semanticValue)?.restriction?.isConstant == true -> true
+		hasPostponedInstructionInAnyKind(semanticValue) -> true
+		else ->
+			producibleInvocationFor(semanticValue, inProgress) !== null
+	}
+
+	/**
+	 * Answer a primitive invocation naming the [L2SemanticValue], either the
+	 * value itself or a member of its synonym, whose arguments are all
+	 * [producible][isProducible], or `null` if there is none.  Running that
+	 * invocation produces the value.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to produce.
+	 * @return
+	 *   An [L2SemanticPrimitiveInvocation] that produces it, or `null`.
+	 */
+	fun producibleInvocationFor(
+		semanticValue: L2SemanticValue
+	): L2SemanticPrimitiveInvocation? =
+		producibleInvocationFor(semanticValue, mutableSetOf())
+
+	/**
+	 * Answer a primitive invocation naming the [L2SemanticValue] whose
+	 * arguments are all producible, given that the values in [inProgress] are
+	 * already being checked further up the recursion.
+	 *
+	 * An invocation is assumed to be built only where running it cannot fail,
+	 * and to stay that way.  Its arguments' types cannot always show it: a
+	 * subscript is known to be in bounds only on the passing side of a bounds
+	 * check, which no type expresses, and a control flow merge can widen
+	 * arguments whose combinations along each incoming path could not fail.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to produce.
+	 * @param inProgress
+	 *   The [ValueClass]es, or the unknown values themselves, already being
+	 *   checked.
+	 * @return
+	 *   An [L2SemanticPrimitiveInvocation] that produces it, or `null`.
+	 */
+	private fun producibleInvocationFor(
+		semanticValue: L2SemanticValue,
+		inProgress: MutableSet<Any>
+	): L2SemanticPrimitiveInvocation?
+	{
+		val key: Any = classOrNull(semanticValue) ?: semanticValue
+		if (!inProgress.add(key)) return null
+		try
+		{
+			val names =
+				stateOrNull(semanticValue)?.members ?: setOf(semanticValue)
+			return names
+				.filterIsInstance<L2SemanticPrimitiveInvocation>()
+				.firstOrNull { invocation ->
+					invocation.argumentSemanticValues.all {
+						isProducible(it, inProgress)
+					}
+				}
+		}
+		finally
+		{
+			inProgress.remove(key)
+		}
+	}
+
+	/**
+	 * Answer whether the [L2SemanticValue] has a postponed instruction that
+	 * would produce it in a register of any kind.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to test.
+	 * @return
+	 *   Whether some kind's representation of it is postponed.
+	 */
+	private fun hasPostponedInstructionInAnyKind(
+		semanticValue: L2SemanticValue
+	): Boolean = postponedInstructionFor(semanticValue, BOXED_KIND) !== null
+		|| postponedInstructionFor(semanticValue, INTEGER_KIND) !== null
+		|| postponedInstructionFor(semanticValue, FLOAT_KIND) !== null
+
+	/**
+	 * Answer whether a value of the receiver type can be held in a register of
+	 * the given [kind]: any value can be boxed, an `int` register holds values
+	 * within `i64`, and a `float` register holds `double`s.
+	 *
+	 * @param kind
+	 *   The [RegisterKind] to test.
+	 * @return
+	 *   Whether every value of the receiver type fits that kind.
+	 */
+	private fun A_Type.fitsIn(kind: RegisterKind<*>): Boolean = when (kind)
+	{
+		BOXED_KIND -> true
+		INTEGER_KIND -> isSubtypeOf(i64)
+		FLOAT_KIND -> isSubtypeOf(DOUBLE())
 	}
 
 	/**
@@ -2868,8 +3001,9 @@ class L2ValueManifest
 				// Filter out phantom values: those that appear in the
 				// intersection but can't actually be produced on all edges.
 				// These can occur when a value has a restriction but no
-				// registers, postponed instructions, or constant backing.
-				.filter { sv -> manifests.all { it.canProduceValue(sv) } }
+				// registers, postponed instructions, constant, or producible
+				// invocation backing.
+				.filter { sv -> manifests.all { it.isProducible(sv) } }
 				.toList()
 
 			// Force any postponed instructions in the predecessors, if they
@@ -2889,7 +3023,7 @@ class L2ValueManifest
 					.map(L2ValueManifest::liveOrPostponedSemanticValues)
 					.reduce(Set<L2SemanticValue>::intersect)
 					// Strip phantom values again, since the manifests changed.
-					.filter { sv -> manifests.all { it.canProduceValue(sv) } }
+					.filter { sv -> manifests.all { it.isProducible(sv) } }
 					.toList()
 			}
 
@@ -2951,7 +3085,7 @@ class L2ValueManifest
 					} -> BOXED_KIND
 					// No common registers; choose based on union type.
 					unionType.isSubtypeOf(i64) -> INTEGER_KIND
-					unionType.isSubtypeOf(FLOAT()) -> FLOAT_KIND
+					unionType.isSubtypeOf(DOUBLE()) -> FLOAT_KIND
 					else -> BOXED_KIND
 				}
 				populateOneSynonym(
@@ -3696,6 +3830,35 @@ class L2ValueManifest
 						}
 					}
 				}
+		}
+	}
+
+	/**
+	 * Check that every value held in, or postponed to, a register of some
+	 * kind has a restriction that fits that kind: within `i64` for an `int`
+	 * register, and within `double` for a `float` register.  Unboxing is not
+	 * checked at run time, so a value outside those bounds in such a register
+	 * is illegal, not merely unproducible (doc/Optimization/Level_Two/
+	 * Value_manifest.md §Restrictions.The int register invariant).
+	 */
+	private fun checkRepresentationsFitTheirKinds()
+	{
+		states.values.forEach { state ->
+			state.forEachRepresentation { representation, kind ->
+				if (representation.canProduceValue())
+				{
+					assert(state.restriction.type.fitsIn(kind))
+					{
+						buildString {
+							append("Manifest holds a value in a $kind ")
+							append("register, or postpones one, that its ")
+							append("restriction does not fit.")
+							append("\n  Restriction: ${state.restriction}")
+							append("\n  Its synonym: ${state.members}")
+						}
+					}
+				}
+			}
 		}
 	}
 

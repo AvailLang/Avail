@@ -62,9 +62,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
@@ -75,7 +75,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * **Primitive:** Subtract [number][AbstractNumberDescriptor] b from a.
  */
 @Suppress("unused")
-object P_Subtraction : Primitive2(CanFold, CanInline)
+object P_Subtraction : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

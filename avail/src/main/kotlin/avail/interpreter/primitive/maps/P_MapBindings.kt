@@ -46,7 +46,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -56,7 +56,7 @@ import avail.interpreter.primitive.Primitive1
  * [tuple][TupleDescriptor] of 2-tuples of key and value.
  */
 @Suppress("unused")
-object P_MapBindings : Primitive1(CannotFail, CanFold, CanInline)
+object P_MapBindings : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

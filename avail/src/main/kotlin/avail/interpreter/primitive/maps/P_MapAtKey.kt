@@ -49,7 +49,7 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 
@@ -58,7 +58,7 @@ import avail.interpreter.primitive.Primitive2
  * corresponding value.
  */
 @Suppress("unused")
-object P_MapAtKey : Primitive2(CanFold, CanInline)
+object P_MapAtKey : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

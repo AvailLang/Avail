@@ -49,7 +49,7 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive3
@@ -61,7 +61,7 @@ import avail.interpreter.primitive.Primitive3
  * if all the indices are out of range.
  */
 @Suppress("unused")
-object P_TupleTypeAtThrough : Primitive3(CannotFail, CanFold, CanInline)
+object P_TupleTypeAtThrough : Primitive3(CannotFail, CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

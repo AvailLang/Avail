@@ -71,7 +71,7 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Vari
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable.Y
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.Pattern.Variable.Z
 import avail.interpreter.levelTwo.register.INTEGER_KIND
-import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.integers.P_BitShiftLeft
 import avail.interpreter.primitive.integers.P_BitShiftRight
 import avail.interpreter.primitive.integers.P_BitwiseAnd
@@ -705,7 +705,7 @@ constructor(
 		 * of the call site.
 		 *
 		 * @param primitive
-		 *   The [Primitive] being effectively invoked.
+		 *   The [Foldable] primitive being effectively invoked.
 		 * @param arguments
 		 *   The two boxed input arguments.
 		 * @param argumentTypes
@@ -728,7 +728,7 @@ constructor(
 		 *   call.
 		 */
 		fun L2GeneratorInterface.generateBinaryIntOperation(
-			primitive: Primitive,
+			primitive: Foldable,
 			arguments: List<L2ReadBoxedOperand>,
 			argumentTypes: List<A_Type>,
 			callSiteHelper: CallSiteHelper,
@@ -751,7 +751,7 @@ constructor(
 			val fallback = createBasicBlock("fall back to boxed logic")
 			try
 			{
-				val (intA, intB) = primitive.run {
+				val (intA, intB) = primitive.thisPrimitive.run {
 					readAsTwoInts(
 						a.semanticValue(),
 						b.semanticValue(),

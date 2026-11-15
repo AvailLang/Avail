@@ -63,7 +63,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 import java.lang.Math.multiplyExact
@@ -77,7 +77,7 @@ import java.lang.Math.multiplyExact
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BitShiftWithTruncation : Primitive3(CanInline, CanFold)
+object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

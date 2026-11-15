@@ -41,7 +41,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -50,7 +50,7 @@ import avail.interpreter.primitive.Primitive1
  * **Primitive:** Answer the name of an [atom][AtomDescriptor].
  */
 @Suppress("unused")
-object P_AtomName : Primitive1(CannotFail, CanFold, CanInline)
+object P_AtomName : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

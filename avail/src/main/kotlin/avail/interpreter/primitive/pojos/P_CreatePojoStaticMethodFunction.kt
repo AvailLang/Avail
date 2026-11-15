@@ -60,7 +60,7 @@ import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.PrimitiveHelper.lookupMethod
@@ -86,7 +86,7 @@ import java.util.WeakHashMap
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePojoStaticMethodFunction : Primitive3(CanInline, CanFold)
+object P_CreatePojoStaticMethodFunction : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

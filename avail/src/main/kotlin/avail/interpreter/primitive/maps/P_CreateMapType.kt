@@ -43,7 +43,7 @@ import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive3
@@ -53,7 +53,7 @@ import avail.interpreter.primitive.Primitive3
  * constraints.
  */
 @Suppress("unused")
-object P_CreateMapType : Primitive3(CannotFail, CanFold, CanInline)
+object P_CreateMapType : Primitive3(CannotFail, CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

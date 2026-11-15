@@ -35,6 +35,7 @@ import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.general.P_ExtractTagOrdinal
 import avail.optimizer.ValueClass
@@ -53,26 +54,26 @@ import avail.utility.cast
  * @constructor
  * Create a new `L2SemanticPrimitiveInvocation` semantic value.
  *
- * @property primitive
- *   The [Primitive] whose invocation is being represented.
+ * @property foldable
+ *   The [Foldable] primitive whose invocation is being represented.  Only a
+ *   foldable primitive can be named this way, which the type guarantees.
  * @property argumentSemanticValues
  *   The [List] of [L2SemanticValue]s that represent the arguments to the
  *   invocation of the primitive.
- * @param primitive
+ * @param foldable
  *   The primitive whose invocation is being represented.
  * @param argumentSemanticValues
  *   The semantic values supplied as arguments.
  */
 class L2SemanticPrimitiveInvocation
 internal constructor(
-	val primitive: Primitive,
+	val foldable: Foldable,
 	val argumentSemanticValues: List<L2SemanticValue>
-) : L2SemanticValue(computeHash(primitive, argumentSemanticValues))
+) : L2SemanticValue(
+	computeHash(foldable.thisPrimitive, argumentSemanticValues))
 {
-	init
-	{
-		assert(primitive.hasFlag(Primitive.Flag.CanFold))
-	}
+	/** The [Primitive] whose invocation is being represented. */
+	val primitive: Primitive get() = foldable.thisPrimitive
 
 	override fun equalsSemanticValue(other: L2SemanticValue) =
 		(other is L2SemanticPrimitiveInvocation
@@ -96,7 +97,7 @@ internal constructor(
 		{
 			return this
 		}
-		return L2SemanticPrimitiveInvocation(primitive, newArguments.cast())
+		return L2SemanticPrimitiveInvocation(foldable, newArguments.cast())
 	}
 
 	override val defaultRestriction: TypeRestriction

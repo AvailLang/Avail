@@ -77,10 +77,10 @@ import avail.interpreter.levelTwo.operation.NumericComparator.LessOrEqual
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.levelTwo.operation.numbers.L2_DIVIDE_INT_BY_INT
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
@@ -95,7 +95,7 @@ import avail.optimizer.PostPhiData
  * **Primitive:** Divide a number by another number.
  */
 @Suppress("unused")
-object P_Division : Primitive2(CanFold, CanInline)
+object P_Division : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

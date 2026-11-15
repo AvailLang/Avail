@@ -51,10 +51,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 
@@ -65,7 +65,7 @@ import avail.interpreter.primitive.Primitive3
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IntegerIntervalTuple : Primitive3(CanFold, CanInline)
+object P_IntegerIntervalTuple : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

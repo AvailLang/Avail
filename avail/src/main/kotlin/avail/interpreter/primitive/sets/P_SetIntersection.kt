@@ -40,7 +40,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -49,7 +49,7 @@ import avail.interpreter.primitive.Primitive2
  * **Primitive:** Answer the intersection of two [sets][SetDescriptor].
  */
 @Suppress("unused")
-object P_SetIntersection : Primitive2(CannotFail, CanFold, CanInline)
+object P_SetIntersection : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

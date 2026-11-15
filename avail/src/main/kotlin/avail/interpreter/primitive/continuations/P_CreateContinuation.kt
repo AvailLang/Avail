@@ -55,7 +55,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveN
@@ -68,7 +68,7 @@ import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
  * function is an infallible primitive.
  */
 @Suppress("unused")
-object P_CreateContinuation : PrimitiveN(5, CanFold, CanInline)
+object P_CreateContinuation : PrimitiveN(5, CanInline), Foldable
 {
 	override fun attemptN(
 		interpreter: Interpreter,

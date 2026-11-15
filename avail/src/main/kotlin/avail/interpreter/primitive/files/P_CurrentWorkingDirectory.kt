@@ -40,7 +40,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive0
@@ -55,7 +55,7 @@ import java.nio.file.Path
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CurrentWorkingDirectory : Primitive0(CannotFail, CanInline, CanFold)
+object P_CurrentWorkingDirectory : Primitive0(CannotFail, CanInline), Foldable
 {
 	override fun attempt0(
 		interpreter: Interpreter

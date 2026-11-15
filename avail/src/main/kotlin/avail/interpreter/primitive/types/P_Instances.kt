@@ -56,10 +56,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.L2GeneratorInterface
@@ -72,7 +71,7 @@ import avail.optimizer.PostPhiData
  * **Primitive:** Obtain the instances of the specified [type][topMeta].
  */
 @Suppress("unused")
-object P_Instances : Primitive1(CanFold, CanInline)
+object P_Instances : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -110,7 +109,7 @@ object P_Instances : Primitive1(CanFold, CanInline)
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
@@ -132,9 +131,8 @@ object P_Instances : Primitive1(CanFold, CanInline)
 			{
 				// We've deduced the possible sizes of the set of instances.  We
 				// also proved it's finite, so the primitive won't fail.
-				+L2_RUN_INFALLIBLE_PRIMITIVE(
+				emitBasicInfalliblePrimitive(
 					rawFunction,
-					this@P_Instances,
 					arguments,
 					boxedWrite(
 						result.semanticValues(),

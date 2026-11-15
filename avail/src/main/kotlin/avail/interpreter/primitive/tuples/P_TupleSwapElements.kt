@@ -55,7 +55,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 import kotlin.math.max
@@ -66,7 +66,7 @@ import kotlin.math.min
  * the elements at the specified indices swapped.
  */
 @Suppress("unused")
-object P_TupleSwapElements : Primitive3(CanFold, CanInline)
+object P_TupleSwapElements : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

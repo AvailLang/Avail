@@ -35,6 +35,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
@@ -290,12 +291,28 @@ protected constructor(
 		{
 			sourceInstruction = manifest
 				.postponedInstructionFor(semanticValue, kind)
-			// Synchesize an instruction if the restriction is constant.
+			// Synthesize an instruction if the restriction is constant.
 			if (sourceInstruction == null && restriction.isConstant)
 			{
 				sourceInstruction = kind.moveConstant(
 					restriction.constantOrNull!!, emptyList())
 			}
+		}
+		// Synthesize the instruction that would run a primitive invocation
+		// naming the value, if its postponement was elided.
+		if (sourceInstruction == null)
+		{
+			sourceInstruction = manifest.producibleInvocationFor(semanticValue)
+				?.let { invocation ->
+					L2_RUN_INFALLIBLE_PRIMITIVE(
+						invocation.foldable,
+						L2ReadBoxedVectorOperand(
+							invocation.argumentSemanticValues.map {
+								L2ReadBoxedOperand(it)
+							}),
+						L2WriteBoxedOperand(
+							setOf(semanticValue), restriction))
+				}
 		}
 		if (sourceInstruction == null)
 		{

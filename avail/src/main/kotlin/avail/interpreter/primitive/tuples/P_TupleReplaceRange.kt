@@ -65,10 +65,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive4
 
@@ -84,7 +84,7 @@ import avail.interpreter.primitive.Primitive4
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleReplaceRange : Primitive4(CanInline, CanFold)
+object P_TupleReplaceRange : Primitive4(CanInline), Foldable
 {
 	override fun attempt4(
 		interpreter: Interpreter,

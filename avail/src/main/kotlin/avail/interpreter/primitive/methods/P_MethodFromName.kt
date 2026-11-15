@@ -48,6 +48,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
@@ -60,7 +61,7 @@ import avail.interpreter.primitive.Primitive1
  * simply fail.
  */
 @Suppress("unused")
-object P_MethodFromName : Primitive1(CanInline, CanFold)
+object P_MethodFromName : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

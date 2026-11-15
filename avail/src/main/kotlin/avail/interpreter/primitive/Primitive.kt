@@ -52,7 +52,6 @@ import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
-import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -87,7 +86,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_RunInfalliblePrimitiveNoCheck
@@ -214,17 +212,39 @@ constructor(
 		"Duplicate flag in ${javaClass.simpleName}"
 	}
 	// Sanity check certain conditions.
-	assert(Flag.CanFold !in flags || Flag.CanInline in flags)
+	assert(Flag.CanFold !in flags)
 	{
-		"Primitive ${javaClass.simpleName} has CanFold without CanInline"
+		"CanFold is implied by implementing Foldable, not passed as a flag"
 	}
 	assert(Flag.Invokes !in flags || Flag.CanInline in flags)
 	{
-		"Primitive ${javaClass.simpleName} has Invokes without CanInline"
+		"A primitive has Invokes without CanInline"
 	}
 	flags.forEach { flag -> flag(true) }
 })
 {
+	init
+	{
+		// A foldable primitive says so by its type, so the flag that the rest
+		// of the VM tests is derived from that, before anything reads it.
+		if (this is Foldable)
+		{
+			assert(this[Flag.CanInline])
+			{
+				"Primitive ${javaClass.simpleName} is Foldable without " +
+					"CanInline"
+			}
+			this[Flag.CanFold] = true
+		}
+	}
+
+	/**
+	 * This primitive itself.  A [Foldable] primitive implements
+	 * [Foldable.thisPrimitive] with this inherited member, so code holding a
+	 * `Foldable` reaches all of the primitive's capabilities without a cast.
+	 */
+	val thisPrimitive: Primitive get() = this
+
 	/**
 	 * To simplify styling during bootstrapping, a method defined by the
 	 * [pragma][PragmaKind] mechanism can have its primitive declare a styler
@@ -355,10 +375,10 @@ constructor(
 					add(CURRENT_FUNCTION)
 					add(LATEST_RETURN_VALUE)
 				}
-				else ->
-				{
-					add(LATEST_RETURN_VALUE)
-				}
+				// A side-effectless primitive writes nothing hidden: its
+				// result goes straight into its result register, never into
+				// the interpreter's latest result.
+				else -> Unit
 			}
 		}
 		writeHidden.map { it.mask }.fold(0, Int::or)
@@ -378,6 +398,26 @@ constructor(
 			|| hasFlag(Flag.Unknown))
 
 	/**
+	 * Answer whether an [L2_RUN_INFALLIBLE_PRIMITIVE] running this primitive
+	 * on the given arguments may be postponed until its result is needed.  By
+	 * default, a primitive may be postponed when it neither reads nor writes
+	 * hidden state and has no side effects.
+	 *
+	 * @param arguments
+	 *   The [L2ReadBoxedOperand]s supplying the primitive's arguments.
+	 * @param manifest
+	 *   The [L2ValueManifest] in effect where the primitive would run.
+	 * @return
+	 *   Whether running the primitive may be postponed.
+	 */
+	open fun canBePostponed(
+		arguments: List<L2ReadBoxedOperand>,
+		manifest: L2ValueManifest
+	): Boolean = l2ReadInterferenceMask == 0
+		&& l2WriteInterferenceMask == 0
+		&& !l2HasSideEffect
+
+	/**
 	 * These flags are used by the execution machinery and optimizer to indicate
 	 * the potential mischief that the corresponding primitives may get into.
 	 */
@@ -389,6 +429,9 @@ constructor(
 		 * should be stable, such that invoking the primitive again with the
 		 * same arguments should produce the same value. The primitive should
 		 * not have side-effects.
+		 *
+		 * This flag is never passed to a primitive's constructor.  It is set
+		 * exactly when the primitive implements [Foldable].
 		 */
 		CanFold,
 
@@ -1019,10 +1062,11 @@ constructor(
 		val restriction = restrictionForType(
 			if (guaranteedType.isBottom) TOP() else guaranteedType)
 		val semanticValue: L2SemanticValue
-		if (hasFlag(Flag.CanFold) && !guaranteedType.isBottom)
+		val self = this@Primitive
+		if (self is Foldable && !guaranteedType.isBottom)
 		{
 			semanticValue = primitiveInvocation(
-				this@Primitive,
+				self,
 				arguments.map(L2ReadBoxedOperand::semanticValue))
 			// See if we already have a value for an equivalent invocation.
 			currentManifest.equivalentLiveSemanticValue(
@@ -1292,7 +1336,8 @@ constructor(
 	 * @receiver
 	 *   The [L2GeneratorInterface] on which to emit the instructions.
 	 * @param rawFunction
-	 *   The [A_RawFunction] that is implemented by this [Primitive].
+	 *   The [A_RawFunction] that is implemented by this [Primitive], or `null`
+	 *   if this is a [Foldable] primitive run without one.
 	 * @param arguments
 	 *   The [L2ReadBoxedVectorOperand] containing the sources of the arguments
 	 *   being passed to the primitive function.
@@ -1301,7 +1346,7 @@ constructor(
 	 *   invocation.
 	 */
 	open fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand
 	) = emitBasicInfalliblePrimitive(rawFunction, arguments, result)
@@ -1333,7 +1378,8 @@ constructor(
 	 * @receiver
 	 *   The [L2GeneratorInterface] on which to emit the instructions.
 	 * @param rawFunction
-	 *   The [A_RawFunction] that is implemented by this [Primitive].
+	 *   The [A_RawFunction] that is implemented by this [Primitive], or `null`
+	 *   if this is a [Foldable] primitive run without one.
 	 * @param arguments
 	 *   The [L2ReadBoxedVectorOperand] containing the sources of the arguments
 	 *   being passed to the primitive function.
@@ -1342,21 +1388,28 @@ constructor(
 	 *   invocation.
 	 */
 	open fun L2GeneratorInterface.emitBasicInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
-		+L2_RUN_INFALLIBLE_PRIMITIVE(
-			rawFunction,
-			this@Primitive,
-			arguments,
-			result)
+		val self = this@Primitive
+		+when
+		{
+			rawFunction !== null ->
+				L2_RUN_INFALLIBLE_PRIMITIVE(
+					rawFunction, self, arguments, result)
+			self is Foldable ->
+				L2_RUN_INFALLIBLE_PRIMITIVE(self, arguments, result)
+			else -> error(
+				"primitive '${self.name}' is not foldable, so running it " +
+					"needs a raw function")
+		}
 	}
 
 	/**
-	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to
-	 * use as the receiver when invoking its lambdas that produce code that
-	 * operates on ints.
+	 * A syntactic helper class for
+	 * [Foldable.attemptToGenerateTwoIntToIntPrimitive] to use as the receiver
+	 * when invoking its lambdas that produce code that operates on ints.
 	 *
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
@@ -1372,9 +1425,10 @@ constructor(
 	) : L2GeneratorInterface by translator
 
 	/**
-	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to
-	 * use as the receiver when invoking its lambdas that produce code that
-	 * operates on ints.
+	 * A syntactic helper class for
+	 * [Foldable.attemptToGenerateTwoIntToIntPrimitive] to use as the receiver
+	 * when invoking its fallback lambda, which produces code that operates on
+	 * the boxed values.
 	 *
 	 * Note that this class's val fields are visible to the lambdas.
 	 */
@@ -1387,150 +1441,6 @@ constructor(
 		val boxedWrite: L2WriteBoxedOperand,
 		val translator: L1Translator
 	) : L2GeneratorInterface by translator
-
-	/**
-	 * Emit code that attempts to unbox ints, and uses the supplied values in
-	 * code generated by the [ifOutputIsInt] or [ifOutputIsPossiblyInt] lambdas,
-	 * or the [fallback] when the values happen not to be ints.
-	 *
-	 * @param callSiteHelper
-	 *   The [CallSiteHelper] that coordinates the larger messege send.
-	 * @param functionToCallReg
-	 *   The [L2ReadBoxedOperand] capable to producing the function to be
-	 *   called.
-	 * @param rawFunction
-	 *   The raw function that [functionToCallReg]'s value will have closed.
-	 * @param arguments
-	 *   The list of [L2ReadBoxedOperand]s providing arguments to the primitive.
-	 * @param argumentTypes
-	 *   The known static types of the [arguments].
-	 * @param ifOutputIsInt
-	 *   A lambda with [BinaryIntGeneratorHelper] as receiver, that generates
-	 *   code to handle the case that the values are both in the [range] in int
-	 *   registers, and the result, if performed, would also be in the [range].
-	 * @param ifOutputIsPossiblyInt
-	 *   A lambda with [BinaryIntGeneratorHelper] as receiver, that generates
-	 *   code to handle the case that the values are both in the [range] in int
-	 *   registers, and the result is not known to be in the [range].  It must
-	 *   check that the result is within the [range].
-	 * @param fallback
-	 *   A lambda with [BinaryNonIntGeneratorHelper] as receiver, that generates
-	 *   code to handle the case that the inputs can't be converted into the
-	 *   [range], or the result is known always to be out of the [range].
-	 * @param range
-	 *   The range of integers to unbox the arguments into, and to which the
-	 *   unboxed result is restricted.  This is [i32] unless both lambdas read
-	 *   their int registers as `long`s, in which case it may be [i64].
-	 */
-	fun attemptToGenerateTwoIntToIntPrimitive(
-		callSiteHelper: CallSiteHelper,
-		functionToCallReg: L2ReadBoxedOperand,
-		rawFunction: A_RawFunction,
-		arguments: List<L2ReadBoxedOperand>,
-		argumentTypes: List<A_Type>,
-		ifOutputIsInt: BinaryIntGeneratorHelper.() -> Unit,
-		ifOutputIsPossiblyInt: BinaryIntGeneratorHelper.() -> Unit,
-		fallback: BinaryNonIntGeneratorHelper.() -> Unit =
-			{
-				translator.generateGeneralFunctionInvocation(
-					functionToCallReg, false, callSiteHelper, arguments)
-			},
-		range: A_Type = i32
-	): Boolean = callSiteHelper.translator.run {
-		val (boxedA, boxedB) = arguments
-		val (aType, bType) = argumentTypes
-
-		val aInRange = boxedA.restriction
-			.intersectionWithType(aType.typeIntersection(range))
-		val bInRange = boxedB.restriction
-			.intersectionWithType(bType.typeIntersection(range))
-		if (aInRange.isImpossible || bInRange.isImpossible)
-		{
-			// They can't both be in range, so tell the caller to fall back.
-			return false
-		}
-
-		// Attempt to unbox the arguments.
-		val valueA = boxedA.semanticValue()
-		val valueB = boxedB.semanticValue()
-		val intSuccess = createBasicBlock("output is in $range")
-		val intFallback = createBasicBlock("fall back to boxed")
-		val (intA, intB) = readAsTwoInts(
-			valueA,
-			valueB,
-			intFallback,
-			range
-		) ?: return false
-		assert(currentlyReachable())
-		// The happy path is reachable.  Generate the most efficient available
-		// unboxed arithmetic.
-		val returnTypeIfInts = returnTypeGuaranteedByVM(
-			rawFunction, listOf(aInRange.type, bInRange.type))
-		val semanticPrimitive = semanticInvocation(valueA, valueB)
-		val intWriter = intWrite(
-			setOf(semanticPrimitive),
-			restrictionForType(returnTypeIfInts.typeIntersection(range)))
-		val boxedWrite = boxedWrite(
-			setOf(semanticPrimitive),
-			restrictionForType(returnTypeIfInts))
-		val helper = BinaryIntGeneratorHelper(
-			intA = intA,
-			intB = intB,
-			intWrite = intWriter,
-			boxedWrite = boxedWrite,
-			intSuccess = intSuccess,
-			intFailure = intFallback,
-			translator = this)
-		if (returnTypeIfInts.isSubtypeOf(range))
-		{
-			// The result is guaranteed not to overflow, so emit an instruction
-			// that won't bother with an overflow check.  Note that both the
-			// unboxed and boxed registers end up in the same synonym, so
-			// subsequent uses of the result might use either register,
-			// depending whether an unboxed value is desired.
-
-			// Check if there's already an equivalent int value available.
-			val equivalent = helper.currentManifest
-				.equivalentLiveSemanticValue(
-					primitiveInvocation(
-						this@Primitive,
-						arguments.map(L2ReadBoxedOperand::semanticValue)),
-					INTEGER_KIND)
-			when (equivalent)
-			{
-				null -> helper.ifOutputIsInt()
-				else -> callSiteHelper.translator.move(
-					equivalent, intWriter.semanticValues())
-			}
-		}
-		else
-		{
-			// The result could exceed the range.
-			helper.ifOutputIsPossiblyInt()
-			startBlock(intSuccess)
-		}
-
-		// Even though we're just using the boxed value again, the unboxed form
-		// is also still available for use by subsequent primitives, which could
-		// allow the boxing instruction to evaporate.  Note that the prior
-		// int-specific generation blocks are allowed to have simply emitted a
-		// jump to the fallback, so only use the int/boxed value if it exists.
-		if (currentManifest.hasSemanticValue(semanticPrimitive))
-		{
-			callSiteHelper.useAnswer(readBoxed(semanticPrimitive), false)
-		}
-		if (intFallback.predecessorEdges().isNotEmpty())
-		{
-			// The fallback block is reachable, so generate the slow case within
-			// it.  Fallback may happen from conversion of non-int32 arguments,
-			// or from int32 overflow calculating the product.
-			startBlock(intFallback)
-			BinaryNonIntGeneratorHelper(
-				boxedA, boxedB, boxedWrite, this
-			).fallback()
-		}
-		return true
-	}
 
 	/**
 	 * Generate code to extract two boxed values into int registers.  If
@@ -1744,36 +1654,6 @@ constructor(
 	open fun PostPhiData.interestingSplitConditions(
 		readBoxedOperands: List<L2ReadBoxedOperand>
 	): List<L2SplitCondition?> = emptyList()
-
-	/**
-	 * Answer a semantic value representing the result of invoking this
-	 * primitive with the provided list of boxed semantic values.
-	 *
-	 * @param arguments
-	 *   [L2SemanticValue]s that supplied the arguments to the primitive.
-	 * @return
-	 *   The [L2SemanticValue] representing the primitive result.
-	 */
-	fun semanticInvocation(
-		arguments: List<L2SemanticValue>
-	): L2SemanticPrimitiveInvocation = primitiveInvocation(this, arguments)
-
-	/**
-	 * Answer a semantic value representing the result of invoking this
-	 * primitive with the provided varargs array of boxed semantic values.
-	 *
-	 * @param arguments
-	 *   [L2SemanticValue]s that supplied the arguments to the primitive.
-	 * @return
-	 *   The [L2SemanticValue] representing the primitive result.
-	 */
-	fun semanticInvocation(
-		vararg arguments: L2SemanticValue
-	): L2SemanticPrimitiveInvocation
-	{
-		assert(argCount == -1 || arguments.size == argCount)
-		return primitiveInvocation(this, arguments.toList())
-	}
 
 	/**
 	 * The [manifest] has just gotten a narrower [TypeRestriction] set for a

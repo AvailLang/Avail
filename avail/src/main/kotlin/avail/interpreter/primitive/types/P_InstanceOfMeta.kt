@@ -47,7 +47,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -59,7 +59,7 @@ import avail.optimizer.L1Translator
  * **Primitive:** Obtain the sole instance, a type, of the specified metatype.
  */
 @Suppress("unused")
-object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanFold, CanInline)
+object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

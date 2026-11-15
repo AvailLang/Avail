@@ -37,6 +37,7 @@ import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
@@ -60,7 +61,7 @@ constructor(
 		append(comment.comment)
 	}
 
-	override val canBePostponed: Boolean get() = false
+	override fun canBePostponed(manifest: L2ValueManifest): Boolean = false
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{

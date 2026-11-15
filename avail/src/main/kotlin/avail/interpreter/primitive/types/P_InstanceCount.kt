@@ -56,7 +56,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -69,7 +69,7 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
  * **Primitive:** How many instances does the specified [type][topMeta] have?
  */
 @Suppress("unused")
-object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
+object P_InstanceCount : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -120,7 +120,7 @@ object P_InstanceCount : Primitive1(CannotFail, CanFold, CanInline)
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{

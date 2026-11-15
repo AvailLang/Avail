@@ -45,6 +45,7 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.L1Translator
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.isNullOr
 
@@ -103,8 +104,8 @@ constructor(
 	 * creates the [A_RegisterDump] subsequently used by the
 	 * [L2_CREATE_CONTINUATION].
 	 */
-	override val canBePostponed: Boolean
-		get() = L1Translator.enableVariableElision
+	override fun canBePostponed(manifest: L2ValueManifest): Boolean =
+		L1Translator.enableVariableElision
 
 	override fun L2Regenerator.regenerateForPostponement()
 	{

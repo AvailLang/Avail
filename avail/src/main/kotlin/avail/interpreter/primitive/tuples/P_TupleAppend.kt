@@ -57,7 +57,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -70,7 +70,7 @@ import avail.utility.PrefixSharingList.Companion.append
  * with the [element][AvailObject] appended to its right.
  */
 @Suppress("unused")
-object P_TupleAppend : Primitive2(CannotFail, CanFold, CanInline)
+object P_TupleAppend : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

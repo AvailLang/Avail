@@ -54,7 +54,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -70,7 +70,7 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
  * [boolean][booleanType].
  */
 @Suppress("unused")
-object P_LessOrEqual : Primitive2(CannotFail, CanFold, CanInline)
+object P_LessOrEqual : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

@@ -68,9 +68,9 @@ import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.levelTwo.operation.numbers.L2_BOX_INT
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
@@ -88,7 +88,7 @@ import avail.utility.notNullAnd
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
  */
 @Suppress("unused")
-object P_Addition : Primitive2(CanFold, CanInline)
+object P_Addition : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -214,7 +214,7 @@ object P_Addition : Primitive2(CanFold, CanInline)
 		range = i64)
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{

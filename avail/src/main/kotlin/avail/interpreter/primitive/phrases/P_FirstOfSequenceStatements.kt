@@ -44,7 +44,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -59,7 +59,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_FirstOfSequenceStatements : Primitive1(
-	CannotFail, CanFold, CanInline)
+	CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

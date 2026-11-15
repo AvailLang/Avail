@@ -42,7 +42,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -52,7 +52,7 @@ import avail.interpreter.primitive.Primitive1
  * [supercast&#32;phrase][SuperCastPhraseDescriptor].
  */
 @Suppress("unused")
-object P_SuperCastExpression : Primitive1(CanFold, CanInline, CannotFail)
+object P_SuperCastExpression : Primitive1(CanInline, CannotFail), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

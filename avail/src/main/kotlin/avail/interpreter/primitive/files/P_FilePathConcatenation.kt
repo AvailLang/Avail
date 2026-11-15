@@ -48,7 +48,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
 import avail.io.IOSystem
@@ -62,7 +62,7 @@ import java.nio.file.Path
  * @author authorName &lt;emailAddress@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FilePathConcatenation : Primitive1(CanInline, CanFold)
+object P_FilePathConcatenation : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

@@ -56,7 +56,7 @@ import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT
 import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
@@ -80,7 +80,7 @@ import java.util.WeakHashMap
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePojoConstructorFunction : Primitive2(CanInline, CanFold)
+object P_CreatePojoConstructorFunction : Primitive2(CanInline), Foldable
 {
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].

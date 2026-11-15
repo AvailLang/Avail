@@ -149,7 +149,8 @@ being introduced and being written.  A postponed instruction is present
 only when some member of the class has no register of that kind, and it is
 never a move when the class has no register of that kind at all.
 
-The queries distinguish two degrees of presence:
+The queries distinguish two degrees of presence, and a third question that
+cuts across them:
 
 - *Known*: the value is a member of some class (`hasSemanticValue`).
   `equivalentSemanticValue` finds a known value equivalent to a given one.
@@ -157,6 +158,9 @@ The queries distinguish two degrees of presence:
   (`hasLiveSemanticValue`).  `equivalentLiveSemanticValue` finds a live
   value equivalent to a given one, and `hasLiveSemanticValueInAnyKind` asks
   whether the value is live in any kind.
+- *Producible*: code could produce the value here, without failing and
+  without side effects (`isProducible`).  See
+  [Producible](#producible).
 
 A register holds its whole class, whichever member its write named.  A name
 can join a class without being written, as when a move is elided, an
@@ -177,6 +181,33 @@ registers at once: a control flow merge creates new registers for the
 values it carries, and a cold block can reconstruct a value that is already
 held elsewhere.  That is why a `Representation` holds a list of registers.
 
+### Producible
+
+Being known is not enough to read a value: a manifest can know a value, and
+what it is restricted to, with nothing able to produce it.  Such a value is
+harmless, since nothing reads it, and its restriction is still worth
+knowing.  `isProducible` answers whether a value could be produced boxed,
+and it is producible when:
+
+1. a register of any kind holds it, since boxing an unboxed value cannot
+   fail;
+2. it is a semantic constant, or its restriction is a single value;
+3. it has a postponed instruction of any kind; or
+4. it, or another member of its class, is a primitive invocation whose
+   arguments are all producible (`producibleInvocationFor`).
+
+The value need not be known: a semantic constant, or an invocation of
+producible arguments, is producible without being in the manifest.  Only
+the last case recurses, and it is tried last.  A class already being
+checked does not count as producible along the path that reached it again,
+which ends cycles such as the class `{x, x + 0}`, whose invocation reads `x`
+itself.  An argument repeated within an invocation, as in `(a + a) + (a +
+a)`, is checked again each time it appears, which costs little in practice.
+
+Producing a value in an `int` or `float` register additionally requires
+that its restriction fit the kind, since unboxing is not checked at run time
+(see [The int register invariant](#the-int-register-invariant)).
+
 ## Semantic values
 
 Every member of a state is an [L2SemanticValue].  A value held in an `int`
@@ -193,13 +224,24 @@ Two kinds of semantic value deserve mention:
   restriction becomes a single value always includes that value's semantic
   constant (see [Narrowing](#narrowing)).
 - An [L2SemanticPrimitiveInvocation] names the result of applying a
-  side-effectless primitive to argument semantic values.  Values derived
-  from another value are expressed this way: a value's type tag is an
-  invocation of `P_ExtractTagOrdinal`, and an object's or object type's
-  layout variant id is an invocation of `P_ExtractObjectVariantId` or
+  [Foldable] primitive to argument semantic values.  Only a foldable
+  primitive can be named this way, which the invocation's type guarantees;
+  a primitive is foldable by implementing `Foldable`, from which its
+  `CanFold` flag is derived.  Values derived from another value are
+  expressed this way: a value's type tag is an invocation of
+  `P_ExtractTagOrdinal`, and an object's or object type's layout variant id
+  is an invocation of `P_ExtractObjectVariantId` or
   `P_ExtractObjectTypeVariantId`.  Facts flow between an invocation and its
   arguments through the primitive, in both directions (see
   [Narrowing](#narrowing)).
+
+An invocation is assumed to be infallible and stable wherever it is known:
+running it again there produces the same value and cannot fail.  Its
+arguments' types cannot always show this.  A subscript is known to be in
+bounds only on the passing side of a bounds check, which no type expresses,
+and a control flow merge can widen arguments whose combinations along each
+incoming path could not fail.  So nothing checks it; an invocation is named
+only where the primitive has run, or provably could run, without failing.
 
 ## Restrictions
 
@@ -353,6 +395,32 @@ postponed; otherwise the instruction is installed in the representation of
 its kind and indexed in `postponedReaders` under the class of each value it
 reads.
 
+### Elided postponement
+
+Some instructions need not be recorded at all, because the value's
+existence and synonymy are enough to produce it again when it is needed
+(`canBeElidedFromPostponement`): a move, a constant move, boxing or
+unboxing, and an [L2_RUN_INFALLIBLE_PRIMITIVE] whose result names the
+invocation of its primitive on its arguments.  Postponing one of these only
+merges its outputs into their class, with the write's restriction, and
+records nothing.  Whether an instruction may be postponed in the first place
+is a separate question (`canBePostponed`); an infallible primitive defers
+it to the primitive, which allows it when the primitive neither reads hidden
+state nor has side effects.
+
+The generator produces an elided value where it is read, through
+`ensureDefinedOrEmitMove`: from a register of another kind by boxing or
+unboxing, from a constant, from a postponed instruction, or by running a
+producible invocation in the value's class.  Running one emits an
+`L2_RUN_INFALLIBLE_PRIMITIVE` built from the [Foldable] primitive alone,
+without a raw function, which only primitives that cannot be folded need;
+its arguments are produced in turn as the instruction is added.  Code that
+asks which instruction produces a value
+(`L2ReadOperand.definitionSkippingMoves`) is given the instruction that
+would run the invocation, as it is given a constant move for a constant.
+The kinds of elision and the kinds of production must agree: each elidable
+instruction is one the generator can produce again.
+
 ### Re-narrowing
 
 When a value is narrowed, each postponed instruction that reads it may now
@@ -427,8 +495,9 @@ In `BySemanticValue` mode:
 
 1. Each incoming manifest first simplifies its postponed instructions.
 2. The live semantic values are those known on every incoming edge, and
-   producible on every incoming edge, by a register, a postponed
-   instruction, or a constant.
+   [producible](#producible) on every incoming edge.  A value whose
+   postponement was elided survives the merge this way, carried by the
+   invocation in its class.
 3. Postponed instructions are reconciled across the edges
    (`mergeIncomingPostponedInstructions`).  Each edge's postponed
    instructions are paired with the synonyms they would populate, as
@@ -497,9 +566,13 @@ routinely.  It asserts:
   of `states`;
 - every argument of every primitive invocation in the manifest is known to
   it;
-- in each representation, the members its registers define are members of
-  the class, and a postponed instruction is present only where some member
-  is not yet defined, and writes no explicit semantic values;
+- no class holding an invocation of a side-effectless primitive is
+  restricted to ⊤, since `any` is the weakest restriction such a value can
+  truthfully have;
+- a postponed instruction writes no explicit semantic values;
+- a representation with registers or a postponed instruction has a
+  restriction that fits its kind: within `i64` for `int`, and within
+  `double` for `float`;
 - no register appears in two places, except under a fixed register map;
 - `impossibleRestrictionCount` equals the number of impossible states.
 
@@ -557,5 +630,7 @@ anything that is not already bounded (see
 [L2SemanticPrimitiveInvocation]: ../../../src/main/kotlin/avail/optimizer/values/L2SemanticPrimitiveInvocation.kt
 [L2_UNBOX_INT]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/numbers/L2_UNBOX_INT.kt
 [L2_MOVE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_MOVE.kt
+[L2_RUN_INFALLIBLE_PRIMITIVE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_RUN_INFALLIBLE_PRIMITIVE.kt
+[Foldable]: ../../../src/main/kotlin/avail/interpreter/primitive/Foldable.kt
 [L2Generator]: ../../../src/main/kotlin/avail/optimizer/L2Generator.kt
 [InstructionEquivalence]: ../../../src/main/kotlin/avail/interpreter/levelTwo/L2Instruction.kt

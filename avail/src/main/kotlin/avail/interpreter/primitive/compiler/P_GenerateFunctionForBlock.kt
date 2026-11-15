@@ -53,7 +53,7 @@ import avail.exceptions.AvailErrorCode.E_BLOCK_IS_INVALID
 import avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
@@ -67,7 +67,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_GenerateFunctionForBlock : Primitive1(
-	CanFold, CanInline, MightMakeEscapedVariableShared)
+	CanInline, MightMakeEscapedVariableShared), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

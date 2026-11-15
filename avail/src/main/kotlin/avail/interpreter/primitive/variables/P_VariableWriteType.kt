@@ -41,7 +41,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -51,7 +51,7 @@ import avail.interpreter.primitive.Primitive1
  * [variable&#32;type][VariableTypeDescriptor].
  */
 @Suppress("unused")
-object P_VariableWriteType : Primitive1(CannotFail, CanFold, CanInline)
+object P_VariableWriteType : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

@@ -41,7 +41,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -51,7 +51,7 @@ import avail.interpreter.primitive.Primitive1
  * specified [token][TokenDescriptor].
  */
 @Suppress("unused")
-object P_TokenLexeme : Primitive1(CannotFail, CanFold, CanInline)
+object P_TokenLexeme : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

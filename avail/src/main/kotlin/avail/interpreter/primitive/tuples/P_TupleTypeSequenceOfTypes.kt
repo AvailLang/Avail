@@ -52,7 +52,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 
@@ -62,7 +62,7 @@ import avail.interpreter.primitive.Primitive3
  * [bottom][BottomTypeDescriptor] for indices out of range.
  */
 @Suppress("unused")
-object P_TupleTypeSequenceOfTypes : Primitive3(CanFold, CanInline)
+object P_TupleTypeSequenceOfTypes : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

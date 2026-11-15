@@ -42,7 +42,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -51,7 +51,7 @@ import avail.interpreter.primitive.Primitive2
  * **Primitive:** Check if [set1][SetDescriptor] is a subset of `set2`.
  */
 @Suppress("unused")
-object P_SetIsSubset : Primitive2(CannotFail, CanFold, CanInline)
+object P_SetIsSubset : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

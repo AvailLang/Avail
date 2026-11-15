@@ -50,7 +50,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFuncti
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_WRONG_OUTERS
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 
@@ -59,7 +59,7 @@ import avail.interpreter.primitive.Primitive2
  * [function][CompiledCodeDescriptor] and the outer variables.
  */
 @Suppress("unused")
-object P_CreateFunction : Primitive2(CanFold, CanInline)
+object P_CreateFunction : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

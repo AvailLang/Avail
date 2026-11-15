@@ -42,7 +42,7 @@ import avail.descriptor.types.SetTypeDescriptor
 import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -52,7 +52,7 @@ import avail.interpreter.primitive.Primitive1
  * [type][TypeDescriptor].
  */
 @Suppress("unused")
-object P_SetTypeElementType : Primitive1(CannotFail, CanFold, CanInline)
+object P_SetTypeElementType : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

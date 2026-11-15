@@ -45,7 +45,7 @@ import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -55,7 +55,7 @@ import avail.interpreter.primitive.Primitive1
  * [phrase&#32;type][PhraseTypeDescriptor].
  */
 @Suppress("unused")
-object P_PhraseTypeExpressionType : Primitive1(CannotFail, CanFold, CanInline)
+object P_PhraseTypeExpressionType : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

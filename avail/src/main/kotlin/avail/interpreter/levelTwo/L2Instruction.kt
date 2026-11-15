@@ -351,8 +351,39 @@ constructor() :
 	 */
 	open val hasSideEffect get() = false
 
-	open val canBePostponed: Boolean
-		get() = !hasSideEffect && layout.hasSingleWriteOperand
+	/**
+	 * Answer whether generating this instruction may be postponed until its
+	 * value is needed, rather than emitting it immediately.  By default, an
+	 * instruction without side effects that writes a single value may be.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] in effect where the instruction would be
+	 *   generated.
+	 * @return
+	 *   Whether the instruction may be postponed.
+	 */
+	open fun canBePostponed(manifest: L2ValueManifest): Boolean =
+		!hasSideEffect && layout.hasSingleWriteOperand
+
+	/**
+	 * Answer whether a postponable instruction need not be recorded as a
+	 * postponed instruction at all, because the existence and synonymy of the
+	 * value it writes are enough to produce that value again when it is
+	 * needed: a move, which merges its destination into its source's synonym;
+	 * a constant move; boxing or unboxing, which can be redone from any form
+	 * of the value; or an infallible primitive whose result names its own
+	 * invocation (see [L2ValueManifest.isProducible])
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Postponed
+	 * instructions.Elided postponement).
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] in effect where the instruction would be
+	 *   postponed.
+	 * @return
+	 *   Whether recording a postponed instruction can be skipped.
+	 */
+	open fun canBeElidedFromPostponement(manifest: L2ValueManifest): Boolean =
+		false
 
 	/**
 	 * Answer whether, upon discovering all edges out of this instruction but
@@ -538,10 +569,20 @@ constructor() :
 	 * convenient time when making function calls, as well as "sucking down"
 	 * phi-equivalent instructions at control flow merges, rather than requiring
 	 * only *identical* instructions to be eligible for motion across a merge.
+	 *
+	 * @param another
+	 *   The [L2Instruction] that follows this one.
+	 * @param manifest
+	 *   The [L2ValueManifest] in effect where the instructions would run.
+	 * @return
+	 *   Whether the two instructions may run in either order.
 	 */
-	fun canCommuteWith(another: L2Instruction): Boolean = when
+	fun canCommuteWith(
+		another: L2Instruction,
+		manifest: L2ValueManifest
+	): Boolean = when
 	{
-		!canBePostponed && !another.canBePostponed -> false
+		!canBePostponed(manifest) && !another.canBePostponed(manifest) -> false
 		destinationRegisters.intersects(another.sourceRegisters) -> false
 		another is L2_SAVE_ALL_AND_PC_TO_INT
 			&& this !is L2_MOVE_CONSTANT<*, *>
@@ -1044,7 +1085,7 @@ constructor() :
 	 */
 	open fun postponeInstruction(generator: L2GeneratorInterface)
 	{
-		assert(canBePostponed)
+		assert(canBePostponed(generator.currentManifest))
 		val originalWrite = writeOperands.single()
 		assert(originalWrite.semanticValues().isNotEmpty())
 		val kind = originalWrite.kind
@@ -1073,6 +1114,9 @@ constructor() :
 		manifest.agglomerateSynonym(
 			originalWrite.semanticValues(),
 			originalWrite.restriction())
+		// The value's existence and synonymy may be enough to produce it again
+		// when it is needed, in which case nothing is recorded.
+		if (canBeElidedFromPostponement(manifest)) return
 		manifest.recordPostponedInstruction(
 			originalWrite.pickSemanticValue(),
 			clone().apply {
@@ -1131,7 +1175,7 @@ constructor() :
 	 */
 	fun L2GeneratorInterface.basicRegenerateForPostponement()
 	{
-		if (!canBePostponed)
+		if (!canBePostponed(currentManifest))
 		{
 			// Emit the translation right now.
 			forcePostponedTranslationNow()
@@ -1177,7 +1221,7 @@ constructor() :
 	): Boolean
 	{
 		// If it has side effect, do the default processing.
-		if (!canBePostponed) return false
+		if (!canBePostponed(currentManifest)) return false
 		return populateForMoveTo(writeOperands.single())
 	}
 
@@ -1470,7 +1514,7 @@ constructor() :
 	 */
 	fun L2GeneratorInterface.basicForcePostponedTranslationNow()
 	{
-		if (canBePostponed)
+		if (canBePostponed(currentManifest))
 		{
 			// If we already have a live value for each of the *writes* of this
 			// instruction, we can elide the instruction and write extending

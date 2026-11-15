@@ -67,7 +67,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
 
@@ -80,7 +80,7 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleToObjectType : Primitive1(CanFold, CanInline)
+object P_TupleToObjectType : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

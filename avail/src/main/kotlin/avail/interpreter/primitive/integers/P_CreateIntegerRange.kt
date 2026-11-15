@@ -43,7 +43,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedInteg
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive4
@@ -55,7 +55,7 @@ import avail.interpreter.primitive.Primitive4
  * inclusive (`true`) or exclusive (`false`).
  */
 @Suppress("unused")
-object P_CreateIntegerRange : Primitive4(CannotFail, CanFold, CanInline)
+object P_CreateIntegerRange : Primitive4(CannotFail, CanInline), Foldable
 {
 	override fun attempt4(
 		interpreter: Interpreter,

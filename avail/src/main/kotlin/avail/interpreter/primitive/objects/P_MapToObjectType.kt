@@ -52,7 +52,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
 
@@ -62,7 +62,7 @@ import avail.interpreter.primitive.Primitive1
  * [types][TypeDescriptor] into an [object&#32;type][ObjectTypeDescriptor].
  */
 @Suppress("unused")
-object P_MapToObjectType : Primitive1(CanFold, CanInline)
+object P_MapToObjectType : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

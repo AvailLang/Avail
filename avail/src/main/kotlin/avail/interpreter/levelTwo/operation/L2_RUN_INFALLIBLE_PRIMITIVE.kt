@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HideInAllVisualizations
 import avail.interpreter.levelTwo.L2Instruction
@@ -45,6 +46,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L1Translator
@@ -55,6 +57,7 @@ import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.utility.cast
 
 /**
@@ -70,10 +73,26 @@ import avail.utility.cast
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
+ * The [A_RawFunction] whose primitive this runs is needed only by primitives
+ * whose guaranteed return type depends on it, none of which is [Foldable].  A
+ * foldable primitive can therefore be run without one, as when the optimizer
+ * produces a primitive invocation on demand, and only the constructor taking a
+ * [Foldable] leaves it out.
+ *
+ * @property rawFunction
+ *   The [A_RawFunction] whose primitive this runs, or [nil] if it was run as
+ *   a [Foldable] without one.
+ * @property primitive
+ *   The [Primitive] to run.
+ * @property arguments
+ *   The arguments to supply to the primitive.
+ * @property result
+ *   Where to write the primitive's result.
  * @constructor
  * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE`.
  */
-class L2_RUN_INFALLIBLE_PRIMITIVE
+class
+L2_RUN_INFALLIBLE_PRIMITIVE
 private constructor(
 	@HideInAllVisualizations
 	var rawFunction: L2ConstantOperand,
@@ -82,6 +101,19 @@ private constructor(
 	var result: L2WriteBoxedOperand
 ): L2Instruction()
 {
+	/**
+	 * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE` for the primitive of a raw
+	 * function.
+	 *
+	 * @param rawFunction
+	 *   The [A_RawFunction] whose primitive this runs.
+	 * @param primitive
+	 *   The [Primitive] to run.
+	 * @param arguments
+	 *   The arguments to supply to the primitive.
+	 * @param result
+	 *   Where to write the primitive's result.
+	 */
 	constructor(
 		rawFunction: A_RawFunction,
 		primitive: Primitive,
@@ -93,6 +125,34 @@ private constructor(
 		arguments,
 		result)
 
+	/**
+	 * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE` for a [Foldable] primitive,
+	 * which needs no raw function.
+	 *
+	 * @param foldable
+	 *   The [Foldable] primitive to run.
+	 * @param arguments
+	 *   The arguments to supply to the primitive.
+	 * @param result
+	 *   Where to write the primitive's result.
+	 */
+	constructor(
+		foldable: Foldable,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	) : this(
+		L2ConstantOperand(nil),
+		L2ArbitraryConstantOperand(foldable.thisPrimitive),
+		arguments,
+		result)
+
+	/**
+	 * The [A_RawFunction] whose primitive this runs, or `null` if the
+	 * [Foldable] constructor left it out.
+	 */
+	private val rawFunctionOrNull: A_RawFunction?
+		get() = rawFunction.constant.takeUnless { it.isNil }
+
 	override val readsHiddenVariablesMask: Int
 		get() = primitive.constant.l2ReadInterferenceMask
 
@@ -103,8 +163,26 @@ private constructor(
 	override val hasSideEffect: Boolean
 		get() = primitive.constant.l2HasSideEffect
 
-	override val canBePostponed: Boolean
-		get() = false // DEBUGGING: Disable primitive postponement
+	/** Defer to the primitive. */
+	override fun canBePostponed(manifest: L2ValueManifest): Boolean =
+		primitive.constant.canBePostponed(arguments.elements, manifest)
+
+	/**
+	 * The instruction need not be recorded when its result names the
+	 * invocation of its primitive on its arguments, since that invocation says
+	 * how to produce the value again.
+	 */
+	override fun canBeElidedFromPostponement(
+		manifest: L2ValueManifest
+	): Boolean
+	{
+		val argumentValues = arguments.elements.map { it.semanticValue() }
+		return result.semanticValues().any {
+			it is L2SemanticPrimitiveInvocation
+				&& it.primitive === primitive.constant
+				&& it.argumentSemanticValues == argumentValues
+		}
+	}
 
 	/** Defer to the primitive. */
 	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =
@@ -149,7 +227,7 @@ private constructor(
 			return TypeRestriction.bottomRestriction
 		return result.restriction().intersectionWithType(
 			primitive.constant.returnTypeGuaranteedByVM(
-				rawFunction.constant,
+				rawFunctionOrNull,
 				argumentRestrictions.map(TypeRestriction::type)))
 	}
 
@@ -228,7 +306,7 @@ private constructor(
 		}
 		primitive.constant.run {
 			emitTransformedInfalliblePrimitive(
-				rawFunction.constant, arguments, strongerResult)
+				rawFunctionOrNull, arguments, strongerResult)
 		}
 	}
 

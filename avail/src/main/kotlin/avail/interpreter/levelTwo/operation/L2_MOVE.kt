@@ -91,6 +91,11 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 	/** The [RegisterKind] operated on by this move instruction. */
 	abstract val kind: K
 
+	/** A move merges its destination into its source's synonym. */
+	override fun canBeElidedFromPostponement(
+		manifest: L2ValueManifest
+	): Boolean = true
+
 	/**
 	 * The source of this move.  Subclasses further strengthen this property.
 	 */

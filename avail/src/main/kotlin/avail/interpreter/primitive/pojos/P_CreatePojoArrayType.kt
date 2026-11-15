@@ -45,7 +45,7 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayT
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -56,7 +56,7 @@ import avail.interpreter.primitive.Primitive2
  * sizes.
  */
 @Suppress("unused")
-object P_CreatePojoArrayType : Primitive2(CannotFail, CanFold, CanInline)
+object P_CreatePojoArrayType : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

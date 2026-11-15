@@ -48,7 +48,7 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive3
@@ -61,7 +61,7 @@ import kotlin.math.min
  * intermediate overflow or any precision loss.
  */
 @Suppress("unused")
-object P_DoubleTimesTwoPower : Primitive3(CannotFail, CanFold, CanInline)
+object P_DoubleTimesTwoPower : Primitive3(CannotFail, CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

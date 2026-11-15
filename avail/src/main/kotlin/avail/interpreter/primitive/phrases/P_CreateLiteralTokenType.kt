@@ -43,7 +43,7 @@ import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
@@ -59,11 +59,10 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateLiteralTokenType : Primitive1(
 	CannotFail,
-	CanFold,
 	CanInline,
 	// The type might contain an escaped variable, possibly making it shared
 	// here.
-	MightMakeEscapedVariableShared)
+	MightMakeEscapedVariableShared), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

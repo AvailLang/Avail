@@ -43,7 +43,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFuncti
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Decompiler.Companion.decompile
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -55,7 +55,7 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DecompileFunction : Primitive1(CanInline, CanFold, CannotFail)
+object P_DecompileFunction : Primitive1(CanInline, CannotFail), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

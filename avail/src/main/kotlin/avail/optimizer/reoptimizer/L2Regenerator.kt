@@ -870,7 +870,7 @@ constructor(
 	open fun processInstruction(sourceInstruction: L2Instruction)
 	{
 		val transformed = basicTransformInstruction(sourceInstruction)
-		if (transformed.canBePostponed)
+		if (transformed.canBePostponed(currentManifest))
 		{
 			val write = sourceInstruction.writeOperands.single()
 			write.semanticValues()

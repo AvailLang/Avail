@@ -58,6 +58,14 @@ class L2_UNBOX_INT(
 	var destination: L2WriteIntOperand
 ) : L2Instruction()
 {
+	/**
+	 * Unboxing can be redone from any form of the value, since a value held
+	 * in an `int` register is within `i64`.
+	 */
+	override fun canBeElidedFromPostponement(
+		manifest: L2ValueManifest
+	): Boolean = true
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,

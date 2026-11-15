@@ -51,7 +51,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
 
@@ -61,7 +61,7 @@ import avail.interpreter.primitive.Primitive1
  * [type][InstanceTypeDescriptor] to [types][TypeDescriptor].
  */
 @Suppress("unused")
-object P_ObjectTypeToMap : Primitive1(CanFold, CanInline)
+object P_ObjectTypeToMap : Primitive1(CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

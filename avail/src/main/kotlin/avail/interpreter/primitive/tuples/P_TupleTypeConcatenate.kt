@@ -41,7 +41,7 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -53,7 +53,7 @@ import avail.interpreter.primitive.Primitive2
  * restriction of the two-argument concatenation operation.
  */
 @Suppress("unused")
-object P_TupleTypeConcatenate : Primitive2(CannotFail, CanFold, CanInline)
+object P_TupleTypeConcatenate : Primitive2(CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

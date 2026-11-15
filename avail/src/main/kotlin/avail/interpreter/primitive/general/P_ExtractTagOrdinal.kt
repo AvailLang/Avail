@@ -47,7 +47,7 @@ import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_TAG_ORDINAL
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -71,7 +71,7 @@ import avail.optimizer.values.L2SemanticValue
  */
 @Suppress("unused")
 object P_ExtractTagOrdinal
-	: Primitive1(Private, CannotFail, CanFold, CanInline)
+	: Primitive1(Private, CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

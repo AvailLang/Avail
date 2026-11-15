@@ -55,7 +55,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 
@@ -66,7 +66,7 @@ import avail.interpreter.primitive.Primitive2
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RepeatedElementTuple : Primitive2(CanInline, CanFold)
+object P_RepeatedElementTuple : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

@@ -53,7 +53,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -71,7 +71,7 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
  * the tuple type.
  */
 @Suppress("unused")
-object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
+object P_TupleTypeSizes : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -81,7 +81,7 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 	}
 
 	override fun L2GeneratorInterface.emitBasicInfalliblePrimitive(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
@@ -110,11 +110,14 @@ object P_TupleTypeSizes : Primitive1(CannotFail, CanFold, CanInline)
 				result.semanticValues())
 			return
 		}
-		+L2_RUN_INFALLIBLE_PRIMITIVE(
-			rawFunction,
-			this@P_TupleTypeSizes,
-			arguments,
-			boxedWrite(result.semanticValues(), strongSizeRestriction))
+		val write = boxedWrite(result.semanticValues(), strongSizeRestriction)
+		+when (rawFunction)
+		{
+			null -> L2_RUN_INFALLIBLE_PRIMITIVE(
+				this@P_TupleTypeSizes, arguments, write)
+			else -> L2_RUN_INFALLIBLE_PRIMITIVE(
+				rawFunction, this@P_TupleTypeSizes, arguments, write)
+		}
 	}
 
 	override fun PostPhiData.interestingSplitConditions(

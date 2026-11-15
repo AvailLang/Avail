@@ -42,7 +42,7 @@ import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive2
@@ -55,7 +55,7 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_CreateReadWriteVariableType : Primitive2(
-	CannotFail, CanInline, CanFold)
+	CannotFail, CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

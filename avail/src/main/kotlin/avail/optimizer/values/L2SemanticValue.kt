@@ -37,6 +37,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2Synonym
 import avail.optimizer.ValueClass
@@ -258,14 +259,14 @@ protected constructor(
 		 * foldable primitive.
 		 *
 		 * @param primitive
-		 *   The [Primitive] that was executed.
+		 *   The [Foldable] primitive that was executed.
 		 * @param argumentSemanticValues
 		 *   `L2SemanticValue`s that supplied the arguments to the primitive.
 		 * @return
 		 *   The semantic value representing the primitive result.
 		 */
 		fun primitiveInvocation(
-			primitive: Primitive,
+			primitive: Foldable,
 			argumentSemanticValues: List<L2SemanticValue>
 		) = L2SemanticPrimitiveInvocation(
 			primitive, argumentSemanticValues.cast())

@@ -55,6 +55,14 @@ class L2_UNBOX_FLOAT(
 	var destination: L2WriteFloatOperand
 ): L2Instruction()
 {
+	/**
+	 * Unboxing can be redone from any form of the value, since a value held
+	 * in a `float` register is a `double`.
+	 */
+	override fun canBeElidedFromPostponement(
+		manifest: L2ValueManifest
+	): Boolean = true
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,

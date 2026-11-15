@@ -43,7 +43,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -53,7 +53,7 @@ import avail.interpreter.primitive.Primitive1
  * message parts (a [tuple][TupleDescriptor] of strings).
  */
 @Suppress("unused")
-object P_BundleMessageParts : Primitive1(CannotFail, CanFold, CanInline)
+object P_BundleMessageParts : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

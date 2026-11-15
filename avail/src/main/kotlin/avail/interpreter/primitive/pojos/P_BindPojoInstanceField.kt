@@ -50,7 +50,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import java.lang.reflect.Field
@@ -65,7 +65,7 @@ import java.lang.reflect.Modifier
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BindPojoInstanceField : Primitive2(CanFold, CanInline)
+object P_BindPojoInstanceField : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

@@ -43,7 +43,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -54,7 +54,7 @@ import avail.interpreter.primitive.Primitive1
  * unassigned if the continuation has no caller.
  */
 @Suppress("unused")
-object P_ContinuationCaller : Primitive1(CannotFail, CanFold, CanInline)
+object P_ContinuationCaller : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

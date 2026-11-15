@@ -62,7 +62,7 @@ import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive4
 
@@ -75,7 +75,7 @@ import avail.interpreter.primitive.Primitive4
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
 @Suppress("unused")
-object P_CreateToken : Primitive4(CanFold, CanInline)
+object P_CreateToken : Primitive4(CanInline), Foldable
 {
 	override fun attempt4(
 		interpreter: Interpreter,

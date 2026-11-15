@@ -43,7 +43,7 @@ import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
@@ -56,11 +56,10 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_CreatePhraseType : Primitive2(
-	CanFold,
 	CanInline,
 	CannotFail,
 	// The types might contain an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	MightMakeEscapedVariableShared), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

@@ -62,6 +62,11 @@ class L2_BOX_INT(
 	var destination: L2WriteBoxedOperand
 ): L2Instruction()
 {
+	/** Boxing can be redone from any form of the value. */
+	override fun canBeElidedFromPostponement(
+		manifest: L2ValueManifest
+	): Boolean = true
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,

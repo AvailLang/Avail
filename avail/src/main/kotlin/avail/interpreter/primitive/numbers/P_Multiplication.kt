@@ -70,9 +70,9 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
-import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
@@ -86,7 +86,7 @@ import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
  * **Primitive:** Multiply two extended integers.
  */
 @Suppress("unused")
-object P_Multiplication : Primitive2(CanFold, CanInline)
+object P_Multiplication : Primitive2(CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

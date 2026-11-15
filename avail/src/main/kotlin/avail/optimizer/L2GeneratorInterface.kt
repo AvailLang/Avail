@@ -236,7 +236,7 @@ interface L2GeneratorInterface : L2Visualizable
 	operator fun L2Instruction.unaryPlus()
 	{
 		assert(this !is L2_PHI<*>)
-		if (!canBePostponed || mode != BySemanticValue)
+		if (!canBePostponed(currentManifest) || mode != BySemanticValue)
 		{
 			addInstruction(this)
 			return

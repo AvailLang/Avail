@@ -41,7 +41,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -52,7 +52,7 @@ import avail.interpreter.primitive.Primitive1
  * argument is to be treated as during method lookup.
  */
 @Suppress("unused")
-object P_SuperCastLookupType : Primitive1(CanFold, CanInline, CannotFail)
+object P_SuperCastLookupType : Primitive1(CanInline, CannotFail), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

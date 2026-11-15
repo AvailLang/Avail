@@ -50,7 +50,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -62,7 +62,7 @@ import avail.optimizer.L1Translator
  * [character][CharacterDescriptor].
  */
 @Suppress("unused")
-object P_CharacterCodePoint : Primitive1(CannotFail, CanFold, CanInline)
+object P_CharacterCodePoint : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

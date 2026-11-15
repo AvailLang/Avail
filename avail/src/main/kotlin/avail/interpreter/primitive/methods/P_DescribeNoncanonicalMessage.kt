@@ -43,7 +43,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
@@ -55,7 +55,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_DescribeNoncanonicalMessage
-	: Primitive1(CanInline, CanFold, CannotFail)
+	: Primitive1(CanInline, CannotFail), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

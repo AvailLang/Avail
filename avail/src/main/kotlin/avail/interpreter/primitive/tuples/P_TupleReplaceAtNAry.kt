@@ -52,7 +52,7 @@ import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.AvailException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Primitive.Flag.CanFold
+import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 
@@ -63,7 +63,7 @@ import avail.interpreter.primitive.Primitive3
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleReplaceAtNAry : Primitive3(CanInline, CanFold)
+object P_TupleReplaceAtNAry : Primitive3(CanInline), Foldable
 {
 	override fun attempt3(
 		interpreter: Interpreter,

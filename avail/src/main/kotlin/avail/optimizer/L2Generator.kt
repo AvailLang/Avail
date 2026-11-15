@@ -355,6 +355,46 @@ constructor(
 	}
 
 	/**
+	 * Answer the constant to produce for a [semanticValue] that has no
+	 * register and no postponed instruction in any kind, and whose restriction
+	 * is not a constant.  Only a semantic constant can be produced that way.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to produce.
+	 * @return
+	 *   The constant it names.
+	 * @throws IllegalStateException
+	 *   If it is not a semantic constant, so nothing here can produce it.
+	 */
+	private fun constantToProduce(
+		semanticValue: L2SemanticValue
+	): A_BasicObject = checkNotNull(semanticValue.constant) {
+		// TODO: Produce a value whose postponement was elided, such as a
+		//  primitive invocation, from what its synonym says about it.
+		val synonym = currentManifest.semanticValueToSynonym(semanticValue)
+		val unproducibleArguments = synonym.semanticValues()
+			.filterIsInstance<L2SemanticPrimitiveInvocation>()
+			.flatMap { it.argumentSemanticValues }
+			.filterNot(currentManifest::isProducible)
+			.map { argument ->
+				when (currentManifest.hasSemanticValue(argument))
+				{
+					true -> "$argument (known as " +
+						"${currentManifest.semanticValueToSynonym(argument)})"
+					false -> "$argument (unknown)"
+				}
+			}
+		"cannot produce '$semanticValue': its synonym $synonym has no " +
+			"register, postponed instruction, or constant" +
+			when (unproducibleArguments.isEmpty())
+			{
+				true -> ""
+				false -> ", and these invocation arguments cannot be " +
+					"produced: $unproducibleArguments"
+			}
+	}
+
+	/**
 	 * Given that there is no register yet holding the boxed [semanticValue],
 	 * emit code that populates it.
 	 *
@@ -370,6 +410,7 @@ constructor(
 		assert(state.boxedRepresentation.definitions.isEmpty())
 		val restriction = state.restriction
 		val single = setOf(semanticValue)
+		val invocation = producibleInvocationFor(semanticValue)
 		val newInstruction: L2Instruction = when
 		{
 			// Use a boxed constant.
@@ -409,11 +450,22 @@ constructor(
 					L2ReadFloatOperand(semanticValue),
 					L2WriteBoxedOperand(single, restriction))
 			}
+			// Run a primitive invocation that names it.  Its arguments are
+			// produced in turn as the instruction is added.
+			invocation !== null -> L2_RUN_INFALLIBLE_PRIMITIVE(
+				invocation.foldable,
+				L2ReadBoxedVectorOperand(
+					invocation.argumentSemanticValues.map {
+						L2ReadBoxedOperand(it)
+					}),
+				L2WriteBoxedOperand(single, restriction))
 			// It's present, but not defined or postponed.  It must be constant.
-			else -> BOXED_KIND.moveConstant(semanticValue.constant!!, single)
+			else -> BOXED_KIND.moveConstant(
+				constantToProduce(semanticValue), single)
 		}
 		// Ensure all reads are already available before adding instruction.
-		// Skip reads in a different synonym, as those cascade through predecessors.
+		// Skip reads in a different synonym, as those cascade through
+		// predecessors.
 		val mySynonym = semanticValueToSynonymOrNull(semanticValue)
 		newInstruction.readOperands.forEach { read ->
 			val readSv = read.semanticValue()
@@ -421,7 +473,8 @@ constructor(
 			if (readSynonym != mySynonym) return@forEach
 			assert(hasLiveSemanticValue(readSv, read.kind) ||
 				constantOrNullFor(readSv) != null) {
-				"Attempting to add boxed instruction reading $readSv (${read.kind}) which is not live"
+				"Attempting to add boxed instruction reading $readSv " +
+					"(${read.kind}) which is not live"
 			}
 		}
 		addInstruction(newInstruction)
@@ -461,8 +514,10 @@ constructor(
 					removePostponedInstructionFor(
 						semanticValue, INTEGER_KIND)!!,
 					single)
-			// Compute boxed value and unbox it.
-			state.boxedRepresentation.postponedInstruction != null ->
+			// Compute boxed value, from a postponed instruction or a primitive
+			// invocation that names it, and unbox it.
+			state.boxedRepresentation.postponedInstruction != null
+				|| producibleInvocationFor(semanticValue) !== null ->
 			{
 				ensureDefinedOrEmitMoveBoxed(semanticValue)
 				L2_UNBOX_INT(
@@ -470,10 +525,12 @@ constructor(
 					L2WriteIntOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
-			else -> INTEGER_KIND.moveConstant(semanticValue.constant!!, single)
+			else -> INTEGER_KIND.moveConstant(
+				constantToProduce(semanticValue), single)
 		}
 		// Ensure all reads are already available before adding instruction.
-		// Skip reads in a different synonym, as those cascade through predecessors.
+		// Skip reads in a different synonym, as those cascade through
+		// predecessors.
 		val mySynonym = semanticValueToSynonymOrNull(semanticValue)
 		newInstruction.readOperands.forEach { read ->
 			val readSv = read.semanticValue()
@@ -481,7 +538,8 @@ constructor(
 			if (readSynonym != mySynonym) return@forEach
 			assert(hasLiveSemanticValue(readSv, read.kind) ||
 				constantOrNullFor(readSv) != null) {
-				"Attempting to add int instruction reading $readSv (${read.kind}) which is not live"
+				"Attempting to add int instruction reading $readSv " +
+					"(${read.kind}) which is not live"
 			}
 		}
 		addInstruction(newInstruction)
@@ -521,8 +579,10 @@ constructor(
 					removePostponedInstructionFor(
 						semanticValue, FLOAT_KIND)!!,
 					single)
-			// Compute boxed value and unbox it to a float.
-			state.boxedRepresentation.postponedInstruction != null ->
+			// Compute boxed value, from a postponed instruction or a primitive
+			// invocation that names it, and unbox it to a float.
+			state.boxedRepresentation.postponedInstruction != null
+				|| producibleInvocationFor(semanticValue) !== null ->
 			{
 				ensureDefinedOrEmitMoveBoxed(semanticValue)
 				L2_UNBOX_FLOAT(
@@ -530,10 +590,12 @@ constructor(
 					L2WriteFloatOperand(single, restriction))
 			}
 			// It's present, but not defined or postponed.  It must be constant.
-			else -> FLOAT_KIND.moveConstant(semanticValue.constant!!, single)
+			else -> FLOAT_KIND.moveConstant(
+				constantToProduce(semanticValue), single)
 		}
 		// Ensure all reads are already available before adding instruction.
-		// Skip reads in a different synonym, as those cascade through predecessors.
+		// Skip reads in a different synonym, as those cascade through
+		// predecessors.
 		val mySynonym = semanticValueToSynonymOrNull(semanticValue)
 		newInstruction.readOperands.forEach { read ->
 			val readSv = read.semanticValue()
@@ -541,7 +603,8 @@ constructor(
 			if (readSynonym != mySynonym) return@forEach
 			assert(hasLiveSemanticValue(readSv, read.kind) ||
 				constantOrNullFor(readSv) != null) {
-				"Attempting to add float instruction reading $readSv (${read.kind}) which is not live"
+				"Attempting to add float instruction reading $readSv " +
+					"(${read.kind}) which is not live"
 			}
 		}
 		addInstruction(newInstruction)
@@ -1253,8 +1316,8 @@ constructor(
 					// is-subtype test is a get-type instruction.
 					val firstTypeOperand = valueSource.firstType
 					val secondTypeOperand = valueSource.seccondType
-					val firstTypeSource =
-						firstTypeOperand.definitionSkippingMoves(currentManifest)
+					val firstTypeSource = firstTypeOperand
+						.definitionSkippingMoves(currentManifest)
 					if (firstTypeSource is L2_GET_TYPE)
 					{
 						// There's a get-type followed by an is-subtype followed
@@ -1869,11 +1932,11 @@ constructor(
 		 * @param targetBlock
 		 *   The target [L2BasicBlock].
 		 * @param forcedClampedRegisters
-		 *   A [Set] of [L2Register]s that limit the information that can propagate
-		 *   arcoss the new back-edge.
+		 *   A [Set] of [L2Register]s that limit the information that can
+		 *   propagate across the new back-edge.
 		 * @param forcedClampedSemanticValues
 		 *   A [Set] of [L2SemanticValue]s that limit the information that can
-		 *   propagate arcoss the new back-edge.
+		 *   propagate across the new back-edge.
 		 * @return
 		 *   The new [L2PcOperand].
 		 */

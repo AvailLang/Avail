@@ -33,26 +33,45 @@
 package avail.test.optimizer
 
 import avail.AvailRuntime.HookType.BASE_FRAME
+import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instanceTag
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TypeTag
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.primitive.general.P_ExtractObjectVariantId
+import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.general.P_ExtractObjectVariantId
 import avail.interpreter.primitive.general.P_ExtractTagOrdinal
+import avail.interpreter.primitive.numbers.P_Addition
+import avail.interpreter.primitive.tuples.P_TupleSize
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticSlot
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -287,5 +306,228 @@ class L2ValueManifestTest
 		}
 		assertEquals(
 			tagOfX, manifest.equivalentLiveSemanticValue(tagOfY, BOXED_KIND))
+	}
+
+	/**
+	 * Answer a manifest that knows the given values, each in a class of its
+	 * own with the given type, and holds each of them in a register of the
+	 * given kind when one is supplied.
+	 *
+	 * @param values
+	 *   Triples of a value, its type, and the [RegisterKind] of the register
+	 *   that holds it, or `null` for none.
+	 * @return
+	 *   The new [L2ValueManifest].
+	 */
+	private fun manifestHolding(
+		vararg values: Triple<L2SemanticValue, A_Type, RegisterKind<*>?>
+	): L2ValueManifest
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		values.forEachIndexed { index, (value, type, kind) ->
+			manifest.agglomerateSynonym(listOf(value), restrictionForType(type))
+			when (kind)
+			{
+				null -> Unit
+				BOXED_KIND -> manifest.updateDefinitions(value, BOXED_KIND) {
+					plus(L2BoxedRegister(index))
+				}
+				INTEGER_KIND ->
+					manifest.updateDefinitions(value, INTEGER_KIND) {
+						plus(L2IntRegister(index))
+					}
+				FLOAT_KIND -> manifest.updateDefinitions(value, FLOAT_KIND) {
+					plus(L2FloatRegister(index))
+				}
+			}
+		}
+		return manifest
+	}
+
+	/**
+	 * A value held in a register is producible, and so is every other member
+	 * of its synonym.
+	 */
+	@Test
+	fun liveValueIsProducible()
+	{
+		val manifest = manifestHolding(Triple(x, Types.ANY(), BOXED_KIND))
+		manifest.agglomerateSynonym(
+			listOf(x, y), restrictionForType(Types.ANY()))
+		assertTrue(manifest.hasLiveSemanticValue(y, BOXED_KIND))
+		assertTrue(manifest.isProducible(x))
+		assertTrue(manifest.isProducible(y))
+	}
+
+	/**
+	 * A value held only in an `int` or `float` register is producible, since
+	 * boxing it cannot fail.
+	 */
+	@Test
+	fun valueHeldUnboxedIsProducible()
+	{
+		val manifest = manifestHolding(
+			Triple(x, i32, INTEGER_KIND),
+			Triple(y, Types.DOUBLE(), FLOAT_KIND))
+		assertFalse(manifest.hasLiveSemanticValue(x, BOXED_KIND))
+		assertFalse(manifest.hasLiveSemanticValue(y, BOXED_KIND))
+		assertTrue(manifest.isProducible(x))
+		assertTrue(manifest.isProducible(y))
+	}
+
+	/**
+	 * A value the manifest knows, with nothing to produce it, is not
+	 * producible: knowing a value is not the same as being able to produce it.
+	 */
+	@Test
+	fun knownValueWithNothingToProduceItIsNotProducible()
+	{
+		val manifest = manifestHolding(Triple(x, Types.ANY(), null))
+		assertTrue(manifest.hasSemanticValue(x))
+		assertFalse(manifest.isProducible(x))
+	}
+
+	/**
+	 * A semantic constant is producible, even when the manifest does not know
+	 * it.
+	 */
+	@Test
+	fun semanticConstantIsProducible()
+	{
+		val manifest = L2ValueManifest(BySemanticValue)
+		val constants = listOf(
+			constant(fromInt(5)),
+			constant(stringFrom("five")),
+			constant(fromDouble(0.5)))
+		constants.forEach { value ->
+			assertFalse(manifest.hasSemanticValue(value))
+			assertTrue(manifest.isProducible(value))
+		}
+	}
+
+	/**
+	 * A value restricted to a single value is producible as that constant,
+	 * though no register holds it.
+	 */
+	@Test
+	fun valueRestrictedToAConstantIsProducible()
+	{
+		val manifest =
+			manifestHolding(Triple(x, instanceType(fromInt(5)), null))
+		assertFalse(manifest.hasLiveSemanticValueInAnyKind(x))
+		assertTrue(manifest.isProducible(x))
+	}
+
+	/**
+	 * A value with a postponed instruction of any kind is producible, by
+	 * emitting the instruction.
+	 */
+	@Test
+	fun postponedValueIsProducible()
+	{
+		val manifest = manifestHolding(
+			Triple(x, mostGeneralTupleType, BOXED_KIND),
+			Triple(y, i32, null))
+		manifest.recordPostponedInstruction(
+			y,
+			L2_TUPLE_SIZE(
+				L2ReadBoxedOperand(x),
+				L2WriteIntOperand(emptySet(), restrictionForType(i32))))
+		assertFalse(manifest.hasLiveSemanticValueInAnyKind(y))
+		assertTrue(manifest.postponedInstructionFor(y, INTEGER_KIND) !== null)
+		assertTrue(manifest.isProducible(y))
+	}
+
+	/**
+	 * A primitive invocation is producible, even when the manifest does not
+	 * know it, exactly when its argument is.
+	 */
+	@Test
+	fun invocationIsProducibleExactlyWhenItsArgumentIs()
+	{
+		val sizeOfX = L2SemanticPrimitiveInvocation(P_TupleSize, listOf(x))
+		val live = manifestHolding(
+			Triple(x, mostGeneralTupleType, BOXED_KIND))
+		assertFalse(live.hasSemanticValue(sizeOfX))
+		assertTrue(live.isProducible(sizeOfX))
+		val known = manifestHolding(Triple(x, mostGeneralTupleType, null))
+		assertFalse(known.isProducible(sizeOfX))
+	}
+
+	/**
+	 * Producibility is recursive: nested invocations are producible when the
+	 * values at their leaves are, and an argument appearing several times is
+	 * no obstacle.
+	 */
+	@Test
+	fun nestedInvocationIsProducible()
+	{
+		fun sum(a: L2SemanticValue, b: L2SemanticValue) =
+			L2SemanticPrimitiveInvocation(P_Addition, listOf(a, b))
+		val sumOfX = sum(x, x)
+		val nested = sum(sum(sumOfX, sumOfX), sum(sumOfX, sumOfX))
+		val live = manifestHolding(Triple(x, i32, BOXED_KIND))
+		assertFalse(live.hasSemanticValue(nested))
+		assertTrue(live.isProducible(nested))
+		val known = manifestHolding(Triple(x, i32, null))
+		assertFalse(known.isProducible(nested))
+	}
+
+	/**
+	 * A value whose synonym holds a producible invocation is producible, though
+	 * it is not an invocation itself: every member of a synonym names the same
+	 * value.
+	 */
+	@Test
+	fun valueSynonymousWithAProducibleInvocationIsProducible()
+	{
+		val sizeOfX = L2SemanticPrimitiveInvocation(P_TupleSize, listOf(x))
+		val manifest = manifestHolding(
+			Triple(x, mostGeneralTupleType, BOXED_KIND))
+		manifest.agglomerateSynonym(
+			listOf(y, sizeOfX), restrictionForType(wholeNumbers))
+		assertFalse(manifest.hasLiveSemanticValueInAnyKind(y))
+		assertTrue(manifest.isProducible(y))
+		assertEquals(sizeOfX, manifest.producibleInvocationFor(y))
+	}
+
+	/**
+	 * An invocation that reads its own synonym, as in `{x, x + 0}`, does not
+	 * make the synonym producible, and checking it terminates.
+	 */
+	@Test
+	fun invocationReadingItsOwnSynonymIsNotProducible()
+	{
+		val xPlusZero = L2SemanticPrimitiveInvocation(
+			P_Addition, listOf(x, constant(fromInt(0))))
+		val manifest = manifestHolding(Triple(x, i32, null))
+		manifest.agglomerateSynonym(
+			listOf(x, xPlusZero), restrictionForType(i32))
+		assertTrue(xPlusZero in manifest.stateOrNull(x)!!.members)
+		assertFalse(manifest.isProducible(x))
+		assertFalse(manifest.isProducible(xPlusZero))
+	}
+
+
+	/**
+	 * A value held in an `int` register whose restriction does not lie within
+	 * `i64` is illegal, since unboxing is not checked at run time, and the
+	 * manifest's consistency check rejects it.
+	 */
+	@Test
+	fun intRegisterOutsideI64IsIllegal()
+	{
+		val manifest = manifestHolding(Triple(x, integers, INTEGER_KIND))
+		assertTrue(manifest.hasLiveSemanticValue(x, INTEGER_KIND))
+		val wasChecking = L2ValueManifest.deepManifestDebugCheck
+		L2ValueManifest.deepManifestDebugCheck = true
+		try
+		{
+			assertThrows(AssertionError::class.java) { manifest.check() }
+		}
+		finally
+		{
+			L2ValueManifest.deepManifestDebugCheck = wasChecking
+		}
 	}
 }

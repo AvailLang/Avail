@@ -87,6 +87,11 @@ protected constructor(
 	/** Subclasses should answer the appropriate [RegisterKind]. */
 	abstract val kind: K
 
+	/** A constant can always be produced again. */
+	override fun canBeElidedFromPostponement(
+		manifest: L2ValueManifest
+	): Boolean = true
+
 	/**
 	 * The source of this move.  This is a member function instead of a field,
 	 * to simplify the reflection logic in [InstructionLayout].
