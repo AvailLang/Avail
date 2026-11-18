@@ -38,7 +38,6 @@ import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * Do nothing.  This is useful to insert comments into an [L2ControlFlowGraph].
@@ -64,11 +63,6 @@ constructor(
 	override fun canBePostponed(manifest: L2ValueManifest): Boolean = false
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
-	{
-		// Drop no-ops on regeneration.  They only last one pass.
-	}
-
-	override fun L2Regenerator.regenerateForPostponement()
 	{
 		// Drop no-ops on regeneration.  They only last one pass.
 	}

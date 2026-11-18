@@ -59,7 +59,6 @@ import avail.optimizer.L2Synonym
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
@@ -227,17 +226,6 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 			}
 		}
 		+this@L2_MOVE
-	}
-
-	/**
-	 * Moves shouldn't normally be postponed – they can combine the source and
-	 * destination synonyms instead, while strengthening the restriction.
-	 */
-	override fun L2Regenerator.regenerateForPostponement()
-	{
-		val values = destination.semanticValues().toMutableSet()
-		values.add(source.semanticValue())
-		currentManifest.agglomerateSynonym(values, destination.restriction())
 	}
 
 	override fun sourceOfMoveToRegister(

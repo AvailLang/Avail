@@ -4,9 +4,23 @@ Level Two code avoids creating the variable object for a local variable of
 the function being optimized until something could observe that object.  An
 *elided* local exists only as the values in registers that it would hold:
 its creation and its writes are postponed, and a read of it becomes a move of
-the value most recently written.  The variable is created when it *escapes*
-(when the code passes, captures, or stores the variable itself), or when the
-frame's continuation is reified and then made immutable or shared.
+the value most recently written.  The variable is created when something needs
+the variable object itself, such as the frame's continuation being reified
+and then made immutable or shared.
+
+Two distinct hazards end a local's elision, and this document names them
+separately:
+
+- A local is *aliased* when the code hands out the variable itself, rather
+  than its value: to close a function over it, to put it in a tuple, or to
+  pass it as an argument.  Other code may then read or write the same
+  variable, so its accesses must stay ordered against that code.  Aliasing is
+  decided statically, before translation (see [Aliased
+  locals](#aliased-locals)), and an aliased local is never elided.
+- A variable has *escaped* when it has become shared or has acquired a
+  reactor.  Its value can then change, or a write to it must run code, outside
+  the knowledge of L2, so the fast unescaped accesses are no longer valid (see
+  [Translation](#translation)).
 
 The governing invariant is that **L1 code only ever sees real variables**.
 Any continuation that would expose an elided local to the L1 interpreter, or
@@ -19,7 +33,28 @@ Elision applies to the local variables of a raw function (the slots after
 its arguments), in chunks that the [L1Translator] and the L2 optimizer
 produce.  The unoptimized [DefaultL1Chunk] and the [L2SimpleChunk] create
 every local up front, as does the optimizer when
-`L1Translator.enableVariableElision` is `false`.
+`L1Translator.enableVariableElision` is `false`.  Even when elision is
+enabled, an aliased local is not elided.
+
+## Aliased locals
+
+Before translating a raw function, the [L1Translator] scans its nybblecodes
+for `L1_doPushLocal` and `L1_doPushLastLocal` applied to a local slot.  Those
+are the only L1 operations that push the variable itself, so the locals they
+name are exactly the aliased ones.  The decision covers the whole function:
+a local pushed on any path is aliased on every path, from the start.
+
+An aliased local is created at the head of the function's body, before the
+interrupt check, by a `Create x := nil` that carries `nil` in place of a
+placeholder.  Such a `Create` is never postponed, so it never reaches
+`SaveAll`, and nothing ever stands in for the variable.  Every read and write
+of an aliased local uses the general variable instructions,
+[L2_GET_VARIABLE], [L2_GET_VARIABLE_CLEARING_IF_MUTABLE], and
+[L2_SET_VARIABLE], none of which is ever postponed.  So each access happens
+where the L1 code put it, in order with any call that might run code holding
+the same variable, and with any read of the variable taken back out of a
+tuple.  Those instructions also handle a shared variable and write reactors
+themselves, so `Check` never lists an aliased local.
 
 ## Instructions
 
@@ -71,16 +106,16 @@ reified is replaced on the reification path by its placeholder (see
 
 ## Translation
 
-- The L1 operations that read and write a local translate to `Get`,
-  `GetClearing`, and `Set`.
-- An L1 instruction that captures or pushes the variable itself (to close a
-  function over it, or to pass it as an argument) reads the variable's
-  register, which forces the `Create` to be emitted.  That is the local's
-  escape.
-- After an operation that might make an escaped local shared or give it a
-  reactor, the translator emits `Check` over every local slot that is not
-  bound to a constant.  (A slot bound to a placeholder, or to `nil` after a
-  clearing read, holds no variable to check.)  Those operations are:
+- The L1 operations that read and write an elided local translate to `Get`,
+  `GetClearing`, and `Set`.  Those of an aliased local translate to the
+  general variable instructions instead (see [Aliased
+  locals](#aliased-locals)).
+- After an operation that might make a created local shared or give it a
+  reactor, the translator emits `Check` over every elided local slot that is
+  not bound to a constant.  (A slot bound to a placeholder, or to `nil` after
+  a clearing read, holds no variable to check.)  An elided local can have
+  been created only because something needed the variable itself, such as a
+  `Get` whose value might be unassigned.  Those operations are:
   - every call that is not inlined;
   - every inlined primitive that has the flag
     `Primitive.Flag.MightMakeEscapedVariableShared`, such as `P_SetValue`,
@@ -102,15 +137,15 @@ and emits it only when something reads its output.  `Create` and `Set` are
 postponable, and the rules below say what happens when one of them, still
 postponed, reaches another instruction.
 
-Most rules take effect in any regeneration that tracks semantic values: the
-merging of a `Create` or `Set` with a following `Set`
-(`L2Instruction.rewritePostponed`), the pruning of `Check`
-(`L2Instruction.aboutToAdd`), and the handling of `SaveAll`.  Two take effect
-only in the dedicated postponement phases
-(`OptimizationPhase.POSTPONE_CONDITIONALLY_USED_VALUES_1` and its siblings),
-because they are implemented by `L2Instruction.regenerateForPostponement`:
-the rewriting of a `Get` into a move, and the emission of postponed `Set`s
-before an `Invoke` or `Return`.
+The initial translation by the [L1Translator] applies these rules, and so does
+every regeneration that tracks semantic values, such as code splitting.  There
+is no separate postponement pass.
+
+The merging of a `Create` or `Set` with a following `Set`
+(`L2Instruction.rewritePostponed`) happens only on the edges into a control
+flow merge (`L2ValueManifest.populateForMerge`), where both are still
+postponed.  Elsewhere the `Set` stays postponed on top of the instruction that
+produced its variable.
 
 ### Postponed creation
 
@@ -120,7 +155,8 @@ title: A postponed Create reaching another instruction
 ---
 flowchart LR
  Set["Create x := y<br>Set x := z"]
- Set .-> Set'["Create x := z<br><i>(unless z is computed<br>from x itself)</i>"]
+ Set'["Create x := z<br><i>(at a merge, unless<br>z is from x itself)</i>"]
+ Set .-> Set'
  Get["Create x := y<br>v ← Get x"]
  Get'["Move v ← y<br>go to success<br><i>(failure: y nil)</i><br>Create x := y"]
  Get .-> Get'
@@ -133,19 +169,19 @@ flowchart LR
  Call'["Invoke / Return<br>Create x := y<br><i>(dead after Return)</i>"]
  Call .-> Call'
  Use["Create x := y<br>… x … <i>(x itself used)</i>"]
- Use .-> Use'["Create x := y<br>… x …<br><i>(emitted: x escapes)</i>"]
+ Use .-> Use'["Create x := y<br>… x …<br><i>(emitted: x is needed)</i>"]
 ```
 
 When the value `y` might or might not be assigned, the `Get` reads the
 variable, which forces the `Create` to be emitted first.  After a
 `GetClearing`, the postponed creation keeps its initial value: the clearing
 read is the local's last read, so nothing observes the difference, and the
-creation is never emitted unless the variable later escapes.
+creation is never emitted unless something later needs the variable itself.
 
 ### Postponed assignment
 
-A `Set` survives postponement only for a local that has already been created,
-since a `Set` that reaches a postponed `Create` merges into it.
+A postponed `Set` may follow a postponed `Create` or another postponed `Set`
+until they reach a control flow merge, where they merge into one.
 
 ```mermaid
 ---
@@ -153,19 +189,23 @@ title: A postponed Set reaching another instruction
 ---
 flowchart LR
  Set["Set x := y<br>Set x := z"]
- Set .-> Set'["Set x := z<br><i>(the first write<br>is unobserved)</i>"]
+ Set'["Set x := z<br><i>(at a merge: the first<br>write is unobserved)</i>"]
+ Set .-> Set'
  Get["Set x := y<br>v ← Get x"]
  Get'["Move v ← y<br>go to success<br><i>(failure: y nil)</i><br>Set x := y"]
  Get .-> Get'
  Check["Set x := y<br>Check x"]
  Check .-> Check'["Set x := y<br>Check x<br><i>(emitted: x already exists)</i>"]
  Call["Set x := y<br>Invoke / Return"]
- Call'["Set x := y<br>Invoke / Return<br><i>(emitted: others<br>may see x)</i>"]
+ Call'["Invoke / Return<br>Set x := y<br><i>(nothing else<br>sees x)</i>"]
  Call .-> Call'
 ```
 
 Like any postponed instruction, a `Set` is also emitted as soon as anything
-reads the variable it produces.
+reads the variable it produces.  An elided local is never aliased, so no
+invoked code can read or write it, and a `Set` may pass an `Invoke` or a
+`Return`.  After an `Invoke`, the `Check` that follows reads the variable,
+which emits the `Set`; after a `Return`, the `Set` is dead.
 
 ### Reification
 
@@ -262,9 +302,12 @@ locals.
 [L2_FALL_BACK_TO_L1]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_FALL_BACK_TO_L1.kt
 [L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE.kt
 [L2_GET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_UNESCAPED_LOCAL_VARIABLE.kt
+[L2_GET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE.kt
+[L2_GET_VARIABLE_CLEARING_IF_MUTABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE_CLEARING_IF_MUTABLE.kt
 [L2_INVOKE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_INVOKE.kt
 [L2_INVOKE_CONSTANT_FUNCTION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_INVOKE_CONSTANT_FUNCTION.kt
 [L2_RETURN]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_RETURN.kt
 [L2_SAVE_ALL_AND_PC_TO_INT]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_SAVE_ALL_AND_PC_TO_INT.kt
 [L2_SET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_UNESCAPED_LOCAL_VARIABLE.kt
+[L2_SET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_VARIABLE.kt
 [VariablePlaceholderDescriptor]: ../../../src/main/kotlin/avail/descriptor/variables/VariablePlaceholderDescriptor.kt

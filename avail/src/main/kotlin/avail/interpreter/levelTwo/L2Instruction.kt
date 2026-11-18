@@ -69,7 +69,7 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2Optimizer
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
@@ -1143,7 +1143,11 @@ constructor() :
 	/**
 	 * Given this instruction, which is already a transformation of the same
 	 * kind of instruction from an earlier graph, write to the regenerator an
-	 * equivalent instruction or series of replacement instructions.
+	 * equivalent instruction or series of replacement instructions.  An
+	 * instruction that can be postponed is postponed, through
+	 * [unaryPlus][L2GeneratorInterface.unaryPlus], so a regeneration in
+	 * [BySemanticValue] mode moves it toward its uses; to emit it at this
+	 * point instead, use [forceTransformedInstruction].
 	 *
 	 * @receiver
 	 *   The [L2GeneratorInterface] on which to emit the transformed
@@ -1151,58 +1155,28 @@ constructor() :
 	 */
 	open fun L2GeneratorInterface.emitTransformedInstruction(): Unit
 	{
-		analyzeAndOptionallyRewrite()?.let(::addInstruction)
+		analyzeAndOptionallyRewrite()?.let { +it }
 	}
 
 	/**
-	 * This instruction, adapted from a previous control flow graph, was
-	 * encountered during postponement optimization.  Depending on the kind of
-	 * instruction, either emit it to the regenerator, record it as a postponed
-	 * instruction, or do something else like writing an arbitrary
-	 * transformation.
+	 * Like [emitTransformedInstruction], but emit the instruction at this
+	 * point even if it could be postponed, as when it has been decided not to
+	 * postpone it.  An instruction that cannot be postponed is emitted at once
+	 * by [emitTransformedInstruction] anyway, so its own specialization of that
+	 * operation still applies.
 	 *
 	 * @receiver
-	 *   The [L2Regenerator] on which to write the effect.
+	 *   The [L2GeneratorInterface] on which to emit the transformed
+	 *   instruction.
 	 */
-	open fun L2Regenerator.regenerateForPostponement()
-	{
-		analyzeAndOptionallyRewrite()?.run { basicRegenerateForPostponement() }
-	}
-
-	/**
-	 * The default implementation of [regenerateForPostponement], since super is
-	 * not possible for Kotlin methods taking an extra receiver.
-	 */
-	fun L2GeneratorInterface.basicRegenerateForPostponement()
+	fun L2GeneratorInterface.forceTransformedInstruction()
 	{
 		if (!canBePostponed(currentManifest))
 		{
-			// Emit the translation right now.
-			forcePostponedTranslationNow()
+			emitTransformedInstruction()
 			return
 		}
-		if (targetEdges.size > 1 &&
-			destinationRegisters.all { writeReg ->
-				targetEdges.all { edge ->
-					writeReg in edge.liveness!!.alwaysLiveInRegisters
-				}
-			})
-		{
-			// We're going to branch soon, but the result will always be needed
-			// along all the successor edges.  While we *could* postpone the
-			// instruction, we choose not to, since the increase of register
-			// pressure is minor compared to the cost of the duplicated code.
-			forcePostponedTranslationNow()
-			return
-		}
-		// Emit a constant move for each constant output, then postpone the
-		// instruction if any outputs were non-constant.
-		val write = writeOperands.single()
-		val constant = write.restriction().constantOrNull
-		if (constant == null)
-			+this@L2Instruction
-		else
-			write.moveConstantForWrite(constant, this)
+		analyzeAndOptionallyRewrite()?.let(::addInstruction)
 	}
 
 	/**
@@ -1484,9 +1458,9 @@ constructor() :
 	): Boolean = false
 
 	/**
-	 * We're performing [L2Optimizer.postponeConditionallyUsedValues], and we
-	 * have decided that this instruction (cloned from the original graph) needs
-	 * to be cloned and emitted in the new graph.  If the instruction uses
+	 * We're generating in [BySemanticValue] mode, and we have decided that this
+	 * postponed instruction (cloned from the original graph) needs to be
+	 * cloned and emitted in the new graph.  If the instruction uses
 	 * values that are not yet available in registers due to postponement, first
 	 * translate the instructions that produce those values.
 	 *
@@ -1539,7 +1513,7 @@ constructor() :
 			// specialize or fold against what is known here.  Safe to mutate,
 			// since this is a clone.
 			refreshRestrictionsFrom(currentManifest)
-			emitTransformedInstruction()
+			forceTransformedInstruction()
 		}
 	}
 

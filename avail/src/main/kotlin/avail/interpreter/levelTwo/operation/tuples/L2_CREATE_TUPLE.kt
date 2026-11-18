@@ -89,6 +89,13 @@ class L2_CREATE_TUPLE(
 	var tuple: L2WriteBoxedOperand
 ): L2Instruction()
 {
+	init
+	{
+		// The empty tuple is always a constant, never built by this
+		// instruction.
+		assert(elements.elements.isNotEmpty())
+	}
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,
@@ -116,7 +123,6 @@ class L2_CREATE_TUPLE(
 	/**
 	 * Generated code uses:
 	 *
-	 *  * [TupleDescriptor.emptyTuple] (zero arguments)
 	 *  * [ObjectTupleDescriptor.Companion.tuple] (1..5 arguments)
 	 *  * [ObjectTupleDescriptor.Companion.tupleFromArray] (>5 arguments)
 	 *
@@ -126,9 +132,7 @@ class L2_CREATE_TUPLE(
 		val size = elements.elements.size
 
 		// Special cases for small tuples
-		assert(size > 0) {
-			"Empty tuple should have been replaced via generateReplacement()"
-		}
+		assert(size > 0)
 
 		// Special cases for characters and integers
 		val unionType = elements.elements.fold(bottom) { t, read ->

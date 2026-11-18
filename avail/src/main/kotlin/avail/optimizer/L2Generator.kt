@@ -140,7 +140,6 @@ import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_UPDATE
-import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -1769,17 +1768,6 @@ constructor(
 		//
 		jumpEdge.manifest().check()
 		edge.manifest().check()
-	}
-
-	override fun forcePostponedWritesToLocals()
-	{
-		currentManifest.allPostponedInstructions()
-			.filter { it.instruction is L2_SET_UNESCAPED_LOCAL_VARIABLE }
-			.forEach { equivalence ->
-				forceTranslationForRead(
-					equivalence.synonym.pickSemanticValue(),
-					equivalence.kind.cast())
-			}
 	}
 
 	override fun visualize(

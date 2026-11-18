@@ -60,7 +60,6 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.DUP
@@ -119,12 +118,6 @@ class L2_INVOKE(
 				}
 			}
 		return true
-	}
-
-	override fun L2Regenerator.regenerateForPostponement()
-	{
-		forcePostponedWritesToLocals()
-		basicRegenerateForPostponement()
 	}
 
 	/**

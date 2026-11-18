@@ -123,8 +123,6 @@ constructor(
 		}
 	}
 
-	override val isPlaceholder get() = true
-
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		// Delegate to the MultiWaySplitter.

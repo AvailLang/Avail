@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.InstructionLayout
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -224,12 +223,6 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 			predecessorManifest.getDefinition(semanticValue, kind))
 		updateVectorOperand { it.add(readOperand) }
 	}
-
-	/**
-	 * Phi instructions are regenerated as needed, so the postponement pass can
-	 * ignore them.
-	 */
-	override fun L2Regenerator.regenerateForPostponement() = unsupported
 
 	/**
 	 * Write the given [L2Instruction]'s equivalent effect through the given

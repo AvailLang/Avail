@@ -46,7 +46,6 @@ import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.L1Translator
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.isNullOr
 
 /**
@@ -103,15 +102,15 @@ constructor(
 	 * updated to capture this information, since that instruction is what
 	 * creates the [A_RegisterDump] subsequently used by the
 	 * [L2_CREATE_CONTINUATION].
+	 *
+	 * Only the creation of an elided local is postponed, recognized by its
+	 * placeholder in [constantVariableIfElided].  An aliased local's variable
+	 * is created where the [L1Translator] put it, since other code may access
+	 * it.
 	 */
 	override fun canBePostponed(manifest: L2ValueManifest): Boolean =
 		L1Translator.enableVariableElision
-
-	override fun L2Regenerator.regenerateForPostponement()
-	{
-		// Always try to postpone the local variable creation instruction.
-		+this@L2_CREATE_VARIABLE
-	}
+			&& constantVariableIfElided.constant.notNil
 
 	override fun JVMTranslator.translateToJVM()
 	{

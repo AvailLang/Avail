@@ -118,6 +118,7 @@ import avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
 import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
 import avail.interpreter.levelOne.L1Operation.L1Ext_doSetLocalSlot
+import avail.interpreter.levelOne.L1Operation.L1_doClose
 import avail.interpreter.levelOne.L1Operation.L1_doGetLastOuter
 import avail.interpreter.levelOne.L1Operation.L1_doGetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doGetLocalClearing
@@ -3759,6 +3760,116 @@ class SimpleOptimizerTest
 		}
 
 		helper.testOptimize(rawFunction)
+	}
+
+	/**
+	 * Check that a write to a local that is aliased by a closure happens before
+	 * a call that may run the closure.  The function closes over its local,
+	 * then assigns it, then invokes the closure, which reads the local through
+	 * the variable it captured.  The assignment must not be postponed past the
+	 * invocation, or the closure would read the earlier value.
+	 */
+	@Test
+	fun testSetOfAliasedLocalPrecedesInvoke()
+	{
+		val reader = helper.rawFunction(integers) {
+			val variable = createOuter(variableTypeFor(integers))
+			// :: ↓variable
+			L1_doGetOuter(variable)
+		}
+		val rawFunction = helper.rawFunction(integers) {
+			val x = createLocal(variableTypeFor(integers))
+			// :: x := 1;
+			pushLiteral(one)
+			L1_doSetLocal(x)
+			// :: reader ::= [x];   (left on the stack)
+			L1_doPushLocal(x)
+			L1_doClose(1, addLiteral(reader))
+			// :: x := 2;
+			pushLiteral(two)
+			L1_doSetLocal(x)
+			// :: Invoke reader with <>
+			pushLiteral(emptyTuple)
+			call("Invoke_with tuple_", integers)
+		}
+		helper.testOptimize(rawFunction)
+		val result = helper.executeRawFunction(rawFunction)
+		assertEquals(two, result)
+	}
+
+	/**
+	 * Check that a write to a local that is aliased by a tuple happens before
+	 * a read of the variable taken back out of the tuple.  That read reaches
+	 * the variable through the tuple rather than through the local, so it does
+	 * not depend on the write's output, but it reads the same variable object,
+	 * and must see the written value.
+	 */
+	@Test
+	fun testSetOfAliasedLocalPrecedesAliasedRead()
+	{
+		val rawFunction = helper.rawFunction(integers) {
+			val x = createLocal(variableTypeFor(integers))
+			// :: x := 1;
+			pushLiteral(one)
+			L1_doSetLocal(x)
+			// :: t ::= <x>;   (left on the stack)
+			L1_doPushLocal(x)
+			L1_doMakeTuple(1)
+			// :: x := 2;
+			pushLiteral(two)
+			L1_doSetLocal(x)
+			// :: ↓t[1]
+			pushLiteral(one)
+			call("_[_]", variableTypeFor(integers))
+			call("↓_", integers)
+		}
+		helper.testOptimize(rawFunction)
+		val result = helper.executeRawFunction(rawFunction)
+		assertEquals(two, result)
+	}
+
+	/**
+	 * Check that a closure's write to a local it captured is seen by the
+	 * function that owns the local.  The function closes over its local,
+	 * assigns it, then invokes the closure, which assigns the local through the
+	 * variable it captured, then reads the local.  The function's own
+	 * assignment must not be postponed past the invocation, where it would
+	 * overwrite the closure's assignment, nor may the read be answered from
+	 * the function's own assignment.
+	 */
+	@Test
+	fun testWriteThroughAliasIsSeenByLocalRead()
+	{
+		val three = fromInt(3)
+		val writer = helper.rawFunction(integers) {
+			val variable = createOuter(variableTypeFor(integers))
+			// :: variable := 2;
+			pushLiteral(two)
+			L1_doSetOuter(variable)
+			// :: 2
+			pushLiteral(two)
+		}
+		val rawFunction = helper.rawFunction(integers) {
+			val x = createLocal(variableTypeFor(integers))
+			// :: x := 1;
+			pushLiteral(one)
+			L1_doSetLocal(x)
+			// :: writer ::= [x];   (left on the stack)
+			L1_doPushLocal(x)
+			L1_doClose(1, addLiteral(writer))
+			// :: x := 3;
+			pushLiteral(three)
+			L1_doSetLocal(x)
+			// :: Invoke writer with <>;
+			pushLiteral(emptyTuple)
+			call("Invoke_with tuple_", integers)
+			L1_doPop()
+			// :: x
+			L1_doGetLocal(x)
+		}
+		helper.testOptimize(rawFunction)
+		val result = helper.executeRawFunction(rawFunction)
+		assertEquals(two, result)
 	}
 
 }

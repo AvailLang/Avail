@@ -44,9 +44,9 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L2Optimizer
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.utility.notNullAnd
 
@@ -57,8 +57,8 @@ import avail.utility.notNullAnd
  * unconditionally.
  *
  * This instruction is a marker that transforms arriving postponed writes and
- * creations during the [L2Optimizer.postponeConditionallyUsedValues]
- * optimization.
+ * creations whenever it is translated or regenerated in [BySemanticValue]
+ * mode.
  *
  * See doc/Optimization/Level_Two/Variable_elision.md §Postponement for the
  * rewriting it performs.
@@ -95,15 +95,16 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 	 * rewrite the get as a move from the setting (or initializing) expression,
 	 * followed by a jump to the success case.
 	 */
-	override fun L2Regenerator.regenerateForPostponement()
+	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val semanticVariable = variable.semanticValue()
-		if (currentManifest.hasSemanticValue(semanticVariable))
+		if (mode != BySemanticValue
+			|| currentManifest.hasSemanticValue(semanticVariable))
 		{
-			// The variable has already been explicitly created.  Keep it simple
-			// and always explicitly read from the variable.  We don't have to
-			// worry about reactors being present.
-			basicRegenerateForPostponement()
+			// The variable has already been explicitly created, or nothing is
+			// postponed.  Keep it simple and always explicitly read from the
+			// variable.  We don't have to worry about reactors being present.
+			+this@L2_GET_UNESCAPED_LOCAL_VARIABLE
 			return
 		}
 		val postponed = currentManifest
@@ -117,7 +118,7 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 					postponed.extractedValue.pickSemanticValue())
 			else ->
 			{
-				basicRegenerateForPostponement()
+				+this@L2_GET_UNESCAPED_LOCAL_VARIABLE
 				return
 			}
 		}
@@ -152,7 +153,7 @@ class L2_GET_UNESCAPED_LOCAL_VARIABLE(
 				return
 			}
 			// The variable might be assigned and might not.
-			else -> basicRegenerateForPostponement()
+			else -> +this@L2_GET_UNESCAPED_LOCAL_VARIABLE
 		}
 	}
 

@@ -38,7 +38,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2SplitCondition.Companion.constantConditions
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.Opcodes
 
 /**
@@ -74,16 +73,6 @@ class L2_RETURN(
 		{
 			addAll(constantConditions(listOf(returnValue.register())))
 		}
-	}
-
-	/**
-	 * If a local variable has been created, ensure any final write will really
-	 * happen before returning from the function.
-	 */
-	override fun L2Regenerator.regenerateForPostponement()
-	{
-		forcePostponedWritesToLocals()
-		basicRegenerateForPostponement()
 	}
 
 	override fun JVMTranslator.translateToJVM()

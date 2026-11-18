@@ -38,13 +38,13 @@ import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.numbers.L2_RECYCLE_IF_MUTABLE
 import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
 import avail.optimizer.L2ControlFlowGraph.StateFlag.HAS_ELIMINATED_PHIS
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.annotations.Clears
 import avail.optimizer.annotations.Requires
 import avail.optimizer.annotations.RequiresNot
@@ -99,77 +99,38 @@ internal enum class OptimizationPhase constructor(
 	DO_CODE_SPLITTING_1(L2Optimizer::doCodeSplitting),
 
 	/**
-	 * Try to move any side-effect-less instructions to later points in the
-	 * control flow graph.  If such an instruction defines a register that's
-	 * used in the same basic block, don't bother moving it.  Also don't
-	 * attempt to move it if it's always-live-in at each successor block,
-	 * since the point of moving it forward is to avoid inessential
-	 * computations.
-	 *
-	 * Note that this breaks SSA by duplicating defining instructions.
-	 * It also always recomputes liveness after each change, so there's no
-	 * need to recompute it after this phase.
+	 * Code splitting regenerates the graph, postponing side-effect-free
+	 * instructions toward the paths that use their values, which can leave
+	 * idempotent redundancies as dead code.  Remove them before splitting
+	 * again.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_1(
-		L2Optimizer::postponeConditionallyUsedValues),
-
-	/**
-	 * Postponing conditionally used values can introduce idempotent
-	 * redundancies, which are dead code.  Remove them for clarity before we
-	 * replace placeholder instructions.
-	 */
-	REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS_1(
+	REMOVE_DEAD_CODE_AFTER_SPLITTING_1(
 		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
 
 	/**
-	 * Postponements may have exposed new opportunities for useful splitting.
-	 * For example, variable elision can allow i32 values to stay in int
-	 * registers longer without needing to be boxed as often.
+	 * The first splitting may have exposed new opportunities for useful
+	 * splitting.  For example, variable elision can allow i32 values to stay
+	 * in int registers longer without needing to be boxed as often.
 	 */
 	@Requires(IS_SSA::class)
 	DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
 
 	/**
-	 * Try to move any side-effect-less instructions to later points in the
-	 * control flow graph.  If such an instruction defines a register that's
-	 * used in the same basic block, don't bother moving it.  Also don't
-	 * attempt to move it if it's always-live-in at each successor block,
-	 * since the point of moving it forward is to avoid inessential
-	 * computations.
-	 *
-	 * Note that this breaks SSA by duplicating defining instructions.
-	 * It also always recomputes liveness after each change, so there's no
-	 * need to recompute it after this phase.
-	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_2(
-		L2Optimizer::postponeConditionallyUsedValues),
-
-	/**
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
 	 * replace them with the rather complex code that will reify the caller if
-	 * necessary, and create a label continuation.
-	 *
-	 * There are other placeholder instructions that get transformed here as
-	 * well, such as [L2_MULTIWAY_JUMP].
+	 * necessary, and create a label continuation.  By now each placeholder has
+	 * been postponed toward its uses by the initial translation and by any
+	 * code splitting, both of which regenerate in [BySemanticValue] mode.
 	 */
 	REPLACE_PLACEHOLDER_INSTRUCTIONS(
 		L2Optimizer::replacePlaceholderInstructions),
 
 	/**
 	 * Placeholder instructions may have been replaced with new subgraphs of
-	 * generated code.  Some of that might be dead, so clean it up, otherwise
-	 * the [L2Optimizer.postponeConditionallyUsedValues] might get upset about
-	 * an instruction being in a place with no downstream uses.
+	 * generated code.  Some of that might be dead, so clean it up.
 	 */
 	REMOVE_DEAD_CODE_AFTER_REPLACEMENTS(
 		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
-
-	/**
-	 * If [REPLACE_PLACEHOLDER_INSTRUCTIONS] made any changes, give one more try
-	 * at pushing conditionally used values.  Otherwise do nothing.
-	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_3(
-		L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in

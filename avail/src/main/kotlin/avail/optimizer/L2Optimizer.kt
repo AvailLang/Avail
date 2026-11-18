@@ -70,7 +70,6 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
-import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
@@ -542,51 +541,6 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
-	 * Regenerate the edge-split SSA graph, postponing emission of
-	 * side-effectless instructions until just before they're needed.
-	 *
-	 * The [L2ValueManifest] maintains a map from [L2SemanticValue] to a list of
-	 * [L2Instruction]s that were translated from the original graph, but not
-	 * yet emitted.  When a semantic value is needed by an instruction being
-	 * emitted, we emit a copy of the postponed instructions to provide that
-	 * value (recursively, as needed).
-	 *
-	 * This maximally postpones construction of values, ensuring they're only
-	 * constructed along paths where they're actually needed.
-	 *
-	 * The astute reader will have noticed I haven't mentioned control flow
-	 * merges.  Normally a control flow merge produces phi instructions for any
-	 * semantic values common to all incoming edges that aren't from a common
-	 * register.  When postponing instructions in this way, we want to avoid
-	 * generating the same value multiple times along any path.  Therefore, if
-	 * we have a semantic value available in a register on at least one incoming
-	 * path, and that semantic value is either available in the manifests or
-	 * available as a postponed instruction in each of the incoming edges, we
-	 * force the postponed instructions to be generated in the predecessor
-	 * blocks, just prior to their final jump.  This is safe, because we're at a
-	 * merge point in an edge-split SSA graph, so none of the predecessors can
-	 * have multiple successors.
-	 *
-	 * This effects a complete redundancy elimination (other than for loops).
-	 * The resulting graph is still in edge-split SSA form.
-	 */
-	fun postponeConditionallyUsedValues()
-	{
-		computeLivenessAtEachEdge(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS)
-		// Emit the transformation of the given instruction, emitting any
-		// necessary postponed instructions first.
-		regenerateGraph(
-			BySemanticValue,
-			collapseUnconditionalJumps = false)
-		{ sourceInstruction ->
-			basicTransformInstruction(sourceInstruction).run {
-				currentManifest.check() //TODO remove
-				regenerateForPostponement()
-			}
-		}
-	}
-
-	/**
 	 * An [L2ControlFlowGraph] can have different invariants in different phases
 	 * of code [generation][L2GeneratorInterface].  [GenerationMode] subclasses
 	 * indicate how reads and writes are connected in a particular graph.
@@ -614,6 +568,28 @@ class L2Optimizer internal constructor(
 	/**
 	 * Regenerate the [controlFlowGraph], using the given instruction
 	 * transformer function.
+	 *
+	 * In [BySemanticValue] mode, regeneration postpones the emission of
+	 * side-effectless instructions until just before they're needed.  The
+	 * [L2ValueManifest] records each such instruction, translated from the
+	 * original graph but not yet emitted, under the [L2SemanticValue] it
+	 * produces.  When an instruction being emitted needs that value, a copy of
+	 * the postponed instruction is emitted first to provide it (recursively, as
+	 * needed).  This maximally postpones the construction of values, ensuring
+	 * they're only constructed along paths where they're actually needed.
+	 *
+	 * Normally a control flow merge produces phi instructions for any semantic
+	 * values common to all incoming edges that aren't from a common register.
+	 * When postponing instructions in this way, we want to avoid generating the
+	 * same value multiple times along any path.  Therefore, if a semantic value
+	 * is available in a register on at least one incoming path, and is either
+	 * available in the manifests or available as a postponed instruction in
+	 * each of the incoming edges, the postponed instructions are generated in
+	 * the predecessor blocks, just prior to their final jump.  This is safe,
+	 * because we're at a merge point in an edge-split SSA graph, so none of the
+	 * predecessors can have multiple successors.  This effects a complete
+	 * redundancy elimination (other than for loops), and the resulting graph
+	 * is still in edge-split SSA form.
 	 *
 	 * @param mode
 	 *   A [GenerationMode] that primarily controls whether to produce phi

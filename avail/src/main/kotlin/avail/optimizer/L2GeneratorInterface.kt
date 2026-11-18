@@ -952,11 +952,6 @@ interface L2GeneratorInterface : L2Visualizable
 	fun splitEdge(edge: L2PcOperand)
 
 	/**
-	 * Force emission of any delayed writes to local variables.
-	 */
-	fun forcePostponedWritesToLocals()
-
-	/**
 	 * Answer a suitable instruction to add to indicate the code at the current
 	 * position should not be reachable due to an impossible constraint.  Note
 	 * that we normally use an [L2_IMPOSSIBLE_CODE], but if we're in the middle

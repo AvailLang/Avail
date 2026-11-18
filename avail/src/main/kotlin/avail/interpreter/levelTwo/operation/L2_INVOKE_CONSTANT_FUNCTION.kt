@@ -60,7 +60,6 @@ import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.Strings.increaseIndentation
 
 /**
@@ -100,12 +99,6 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			null -> true
 			else -> prim.mightMakeEscapedVariableShared()
 		}
-
-	override fun L2Regenerator.regenerateForPostponement()
-	{
-		forcePostponedWritesToLocals()
-		basicRegenerateForPostponement()
-	}
 
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't
