@@ -1,5 +1,5 @@
 /*
- * L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE.kt
+ * L2_GET_ELIDABLE_LOCAL_VARIABLE.kt
  * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,6 +42,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
+import avail.interpreter.levelTwo.operation.variables.GetClearMode.NeverClear
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2GeneratorInterface
@@ -51,13 +52,12 @@ import avail.optimizer.values.Frame
 import avail.utility.notNullAnd
 
 /**
- * Extract the value of a [variable] into [extractedValue].  If the variable is
- * mutable, clear it, without forcing the extracted value to be immutable.  If
- * the variable is immutable or shared, do not clear the variable; note that the
- * extracted value will already be immutable.  If the variable had a (non-nil)
- * value, jump to [ifReadSucceeded].  If the variable was unassigned, branch to
+ * Extract the value of a [variable] into [extractedValue], jumping to
+ * [ifReadSucceeded].  If the variable is unassigned, then branch to
  * [ifReadFailed] instead.  Also transfer [variable] to [variableOut]
- * unconditionally.
+ * unconditionally.  The [clearMode] says whether to clear the variable as it
+ * is read: the last read of a local clears it if it is still mutable, so the
+ * extracted value need not be made immutable.
  *
  * This instruction is a marker that transforms arriving postponed writes and
  * creations whenever it is translated or regenerated in [BySemanticValue]
@@ -66,9 +66,24 @@ import avail.utility.notNullAnd
  * See doc/Optimization/Level_Two/Variable_elision.md §Postponement for the
  * rewriting it performs.
  *
+ * @property clearMode
+ *   The [GetClearMode] that says whether to clear the variable as it is read.
+ * @property frame
+ *   The [Frame] whose local variable is being read.
+ * @property variable
+ *   The variable to read.
+ * @property variableOut
+ *   The same variable, under a new semantic value.
+ * @property extractedValue
+ *   Where to write the value read from the variable, if it is assigned.
+ * @property ifReadSucceeded
+ *   Where to go if the variable was assigned.
+ * @property ifReadFailed
+ *   Where to go if the variable was unassigned.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
+class L2_GET_ELIDABLE_LOCAL_VARIABLE(
+	var clearMode: L2ArbitraryConstantOperand<GetClearMode>,
 	var frame: L2ArbitraryConstantOperand<Frame>,
 	var variable: L2ReadBoxedOperand,
 	var variableOut: L2WriteBoxedOperand,
@@ -83,7 +98,12 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
-		append(" Virtual get clearing if mutable ↓")
+		append(
+			when (clearMode.constant)
+			{
+				NeverClear -> " Virtual get ↓"
+				else -> " Virtual get (${clearMode.constant}) ↓"
+			})
 		append(variable.registerString())
 		append(" → ")
 		append(extractedValue.registerString())
@@ -92,13 +112,15 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 		append(")")
 	}
 
-	override val hasSideEffect get() = true
+	/** Clearing the variable as it is read alters the variable. */
+	override val hasSideEffect get() = clearMode.constant != NeverClear
 
 	/**
 	 * See if the value we would get from the variable is already known via a
 	 * still-postponed variable creation or variable set instruction.  If so, we
 	 * rewrite the get as a move from the setting (or initializing) expression,
-	 * followed by a jump to the success case.
+	 * followed by a jump to the success case.  Since this instruction branches,
+	 * it is never itself postponed.
 	 */
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
@@ -109,19 +131,18 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 			// The variable has already been explicitly created, or nothing is
 			// postponed.  Keep it simple and always explicitly read from the
 			// variable.  We don't have to worry about reactors being present.
-			// Since this instruction does a branch, it is never postponed.
-			+this@L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE
+			+this@L2_GET_ELIDABLE_LOCAL_VARIABLE
 			return
 		}
 		val postponed = currentManifest
 			.postponedInstructionFor(semanticVariable, BOXED_KIND)!!
-		val originOfValue: L2ReadBoxedOperand = when (postponed)
+		val originOfValue = when (postponed)
 		{
-			is L2_SET_UNESCAPED_LOCAL_VARIABLE -> postponed.valueToWrite
+			is L2_SET_ELIDABLE_LOCAL_VARIABLE -> postponed.valueToWrite
 			is L2_CREATE_VARIABLE -> postponed.initialValueOrNil
 			else ->
 			{
-				+this@L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE
+				+this@L2_GET_ELIDABLE_LOCAL_VARIABLE
 				return
 			}
 		}
@@ -141,7 +162,7 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 					variableOut.semanticValues() + variable.semanticValue(),
 					variableOut.restriction())
 				// Make sure to strengthen the restriction on the extracted
-				// value, since the restriction on the origin valueOfValue can
+				// value, since the restriction on the origin of the value can
 				// be far more precise than the variable type.
 				currentManifest.agglomerateSynonym(
 					extractedValue.semanticValues()
@@ -161,7 +182,7 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 				return
 			}
 			// The variable might be assigned and might not.
-			else -> +this@L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE
+			else -> +this@L2_GET_ELIDABLE_LOCAL_VARIABLE
 		}
 	}
 
@@ -181,7 +202,7 @@ class L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
 			load(variable)
 			store(variableOut.register())
 		}
-		GetClearMode.ClearIfMutable.run {
+		clearMode.constant.run {
 			translateJvmVariableRead(
 				variable,
 				extractedValue,

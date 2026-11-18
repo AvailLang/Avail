@@ -62,7 +62,6 @@ import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.A_Type.Companion.valueType
 import avail.descriptor.representation.A_Type.Companion.writeType
 import avail.descriptor.representation.A_Variable
-import avail.descriptor.representation.A_Variable.Companion.getValue
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -77,8 +76,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedInteg
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.descriptor.variables.VariableDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.variables.VariableDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.variables.VariableDescriptor.ObjectSlots.KIND

@@ -172,11 +172,10 @@ import avail.interpreter.levelTwo.operation.variables.GetClearMode
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.ClearIfMutable
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.NeverClear
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
-import avail.interpreter.levelTwo.operation.variables.L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE
-import avail.interpreter.levelTwo.operation.variables.L2_GET_UNESCAPED_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_GET_ELIDABLE_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING_IF_MUTABLE
-import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_SET_ELIDABLE_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.register.L2Register
@@ -300,7 +299,7 @@ class L1Translator private constructor(
 	 * @return
 	 *   `true` if the local may be elided, otherwise `false`.
 	 */
-	private fun isElidedLocal(slotIndex: Int): Boolean =
+	private fun isElidableLocal(slotIndex: Int): Boolean =
 		enableVariableElision && slotIndex !in aliasedLocals
 
 	/**
@@ -1915,14 +1914,14 @@ class L1Translator private constructor(
 	 * @param clear
 	 *   Whether the variale should also be cleared.
 	 */
-	fun emitGetUnescapedLocalVariableAndOffRamp(
+	fun emitGetLocalVariableAndOffRamp(
 		localSlotIndex: Int,
 		clear: Boolean)
 	{
 		val extractedValue = createSemanticSlot(stackp, pc)
 		val variable = semanticSlot(localSlotIndex)
 		val variableRestriction = currentManifest.restrictionFor(variable)
-		val isElided = isElidedLocal(localSlotIndex)
+		val isElidable = isElidableLocal(localSlotIndex)
 
 		val success = createBasicBlock("successfully read variable")
 		val failure = createBasicBlock(
@@ -1932,7 +1931,7 @@ class L1Translator private constructor(
 
 		// Emit the specified get-variable instruction variant.
 		when {
-			!isElided && clear -> {
+			!isElidable && clear -> {
 				+L2_GET_VARIABLE_CLEARING_IF_MUTABLE(
 					variable = readBoxed(variable),
 					extractedValue = boxedWrite(
@@ -1941,7 +1940,7 @@ class L1Translator private constructor(
 					ifReadSucceeded = edgeTo(success),
 					ifReadFailed = edgeTo(failure))
 			}
-			!isElided -> {
+			!isElidable -> {
 				+L2_GET_VARIABLE(
 					variable = readBoxed(variable),
 					extractedValue = boxedWrite(
@@ -1953,24 +1952,12 @@ class L1Translator private constructor(
 			// Emit an elided local's read through its transformation, which
 			// becomes a move if the local's creation or last write is still
 			// postponed.
-			clear -> {
-				val variableOut = createSemanticSlot(localSlotIndex, pc)
-				forceSlot(localSlotIndex, variableOut)
-				val get = L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE(
-					frame = L2ArbitraryConstantOperand(topFrame),
-					variable = readBoxed(variable),
-					variableOut = boxedWrite(variableOut, variableRestriction),
-					extractedValue = boxedWrite(
-						extractedValue,
-						restrictionForType(variableRestriction.type.readType)),
-					ifReadSucceeded = edgeTo(success),
-					ifReadFailed = edgeTo(failure))
-				get.run { emitTransformedInstruction() }
-			}
 			else -> {
 				val variableOut = createSemanticSlot(localSlotIndex, pc)
 				forceSlot(localSlotIndex, variableOut)
-				val get = L2_GET_UNESCAPED_LOCAL_VARIABLE(
+				val get = L2_GET_ELIDABLE_LOCAL_VARIABLE(
+					clearMode = L2ArbitraryConstantOperand(
+						if (clear) ClearIfMutable else NeverClear),
 					frame = L2ArbitraryConstantOperand(topFrame),
 					variable = readBoxed(variable),
 					variableOut = boxedWrite(variableOut, variableRestriction),
@@ -2158,14 +2145,14 @@ class L1Translator private constructor(
 		val elidedLocalPlaceholders = (1..numLocals).map { localIndex ->
 			when
 			{
-				isElidedLocal(numArgs + localIndex) ->
+				isElidableLocal(numArgs + localIndex) ->
 					newPlaceholder(code.localTypeAt(localIndex), localIndex)
 				else -> nil
 			}
 		}
 		for (localIndex in 1..numLocals)
 		{
-			if (isElidedLocal(numArgs + localIndex))
+			if (isElidableLocal(numArgs + localIndex))
 			{
 				forceConstantSlot(
 					numArgs + localIndex,
@@ -2215,7 +2202,7 @@ class L1Translator private constructor(
 		// allowing some to be elided entirely.
 		for (localIndex in 1 .. numLocals)
 		{
-			if (isElidedLocal(numArgs + localIndex))
+			if (isElidableLocal(numArgs + localIndex))
 			{
 				val localType = code.localTypeAt(localIndex)
 				+L2_CREATE_VARIABLE(
@@ -2373,11 +2360,11 @@ class L1Translator private constructor(
 		val slotIndex = instructionDecoder.getOperand()
 		// Note that L1 raw functions statically guarantee that the value will
 		// always satisfy a local variable's content type.
-		if (isElidedLocal(slotIndex))
+		if (isElidableLocal(slotIndex))
 		{
-			// Optimized translation: use unescaped local variant, which can be
-			// postponed by optimization passes.
-			+L2_SET_UNESCAPED_LOCAL_VARIABLE(
+			// Optimized translation: use the elidable local variant, which can
+			// be postponed by optimization passes.
+			+L2_SET_ELIDABLE_LOCAL_VARIABLE(
 				readSlot(slotIndex),
 				readSlot(stackp),
 				writeSlot(
@@ -2419,7 +2406,7 @@ class L1Translator private constructor(
 	{
 		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		emitGetUnescapedLocalVariableAndOffRamp(slotIndex, true)
+		emitGetLocalVariableAndOffRamp(slotIndex, true)
 	}
 
 	override fun L1_doPushOuter()
@@ -2470,7 +2457,7 @@ class L1Translator private constructor(
 	{
 		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		emitGetUnescapedLocalVariableAndOffRamp(slotIndex, false)
+		emitGetLocalVariableAndOffRamp(slotIndex, false)
 	}
 
 	override fun L1_doMakeTuple()

@@ -1,5 +1,5 @@
 /*
- * L2_SET_UNESCAPED_LOCAL_VARIABLE.kt
+ * L2_SET_ELIDABLE_LOCAL_VARIABLE.kt
  * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -47,15 +47,18 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 
 /**
- * Assign a value to a [variable][VariableDescriptor] *without* checking that
- * it's of the correct type, or handling exceptions thrown by write reactors.
- * There must not be any write reactors attached at this point, and the variable
- * must not have become shared.
+ * Assign a value to an elidable local [variable][VariableDescriptor] *without*
+ * checking that it's of the correct type, or handling exceptions thrown by
+ * write reactors.  An elidable local is never aliased, so while its L2 code
+ * runs its variable has no write reactors and is not shared
+ * (doc/Optimization/Level_Two/Variable_elision.md §Escape).  The instruction
+ * can be postponed, and while the local's creation is still postponed, no
+ * variable need exist at all.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @WritesHiddenVariable(GLOBAL_STATE::class)
-class L2_SET_UNESCAPED_LOCAL_VARIABLE
+class L2_SET_ELIDABLE_LOCAL_VARIABLE
 constructor(
 	var variable: L2ReadBoxedOperand,
 	var valueToWrite: L2ReadBoxedOperand,
@@ -65,7 +68,7 @@ constructor(
 	init
 	{
 		assert(!this.variable.isConstantRead) {
-			"L2_SET_UNESCAPED_LOCAL_VARIABLE is an elided local here."
+			"L2_SET_ELIDABLE_LOCAL_VARIABLE is an elided local here."
 		}
 	}
 
@@ -94,7 +97,7 @@ constructor(
 	/**
 	 * Rewrite this postponed instruction in the manifest, replacing it and
 	 * sometimes others in the process.  For example, if an [L2_CREATE_VARIABLE]
-	 * produces a variable that's used in an [L2_SET_UNESCAPED_LOCAL_VARIABLE],
+	 * produces a variable that's used in an [L2_SET_ELIDABLE_LOCAL_VARIABLE],
 	 * both can be replaced by an [L2_CREATE_VARIABLE] that has the more
 	 * up-to-date value as its initialization value.
 	 *
@@ -155,13 +158,13 @@ constructor(
 							variableOrigin.constantVariableIfElided))
 				return true
 			}
-			is L2_SET_UNESCAPED_LOCAL_VARIABLE ->
+			is L2_SET_ELIDABLE_LOCAL_VARIABLE ->
 			{
 				// We have a chain of setters.  The first one takes a variable
 				// and value as input and produces an output variable, which is
 				// consumed by the current instruction, also a setter that
 				// writes some value and produces the output variable.  Due to
-				// the way unescaped local instructions are emitted, there will
+				// the way elidable local instructions are emitted, there will
 				// be no other uses of that intermediate variable.  Remove both
 				// setters and write a new instruction that takes the first
 				// instruction's input variable, sets the second instruction's
@@ -178,7 +181,7 @@ constructor(
 				}
 				recordPostponedInstruction(
 					synonym.pickSemanticValue(),
-					L2_SET_UNESCAPED_LOCAL_VARIABLE(
+					L2_SET_ELIDABLE_LOCAL_VARIABLE(
 						variable = variableOrigin.variable,
 						valueToWrite = valueToWrite,
 						variableOut = L2WriteBoxedOperand(

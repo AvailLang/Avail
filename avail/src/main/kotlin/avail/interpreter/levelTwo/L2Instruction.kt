@@ -61,7 +61,7 @@ import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
-import avail.interpreter.levelTwo.operation.variables.L2_SET_UNESCAPED_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_SET_ELIDABLE_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -1427,7 +1427,7 @@ constructor() :
 	/**
 	 * Rewrite this postponed instruction in the manifest, replacing it and
 	 * sometimes others in the process.  For example, if an [L2_CREATE_VARIABLE]
-	 * produces a variable that's used in an [L2_SET_UNESCAPED_LOCAL_VARIABLE],
+	 * produces a variable that's used in an [L2_SET_ELIDABLE_LOCAL_VARIABLE],
 	 * both can be replaced by an [L2_CREATE_VARIABLE] that has the more
 	 * up-to-date value as its initialization value.
 	 *

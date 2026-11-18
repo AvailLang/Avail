@@ -19,10 +19,10 @@ separately:
   locals](#aliased-locals)), and an aliased local is never elided.
 - A variable has *escaped* when it has become shared or has acquired a
   reactor.  Its value can then change, or a write to it must run code, outside
-  the knowledge of L2, so the fast unescaped accesses are no longer valid.
-  Only code holding the variable can share it or give it a reactor, so an
-  elided local can escape only through its frame's continuation, and that
-  frame then resumes in L1 (see [Escape](#escape)).
+  the knowledge of L2, so the fast elidable-local accesses are no longer
+  valid.  Only code holding the variable can share it or give it a reactor,
+  so an elided local can escape only through its frame's continuation, and
+  that frame then resumes in L1 (see [Escape](#escape)).
 
 The governing invariant is that **L1 code only ever sees real variables**.
 Any continuation that would expose an elided local to the L1 interpreter, or
@@ -68,18 +68,19 @@ the left.
   to `y`, or unassigned if `y` is `nil`.  It also carries the placeholder for
   local `#n` (see [Placeholders](#placeholders)), to stand in for the
   variable if the creation never happens.  It can be postponed.
-- **`Set x := y`** — [L2_SET_UNESCAPED_LOCAL_VARIABLE].  Write `y` into `x`
-  with no type check and no write reactors, which is valid only while `x` is
-  neither shared nor reactive.  It produces `x` again under a new semantic
-  value, so every later use of the local is ordered after the write.  It can
-  be postponed.
-- **`v ← Get x`** — [L2_GET_UNESCAPED_LOCAL_VARIABLE].  Read `x` into `v`,
+- **`Set x := y`** — [L2_SET_ELIDABLE_LOCAL_VARIABLE].  Write `y` into `x`
+  with no type check and no write reactors, which is valid because an
+  elidable local is neither shared nor reactive while its L2 code runs (see
+  [Escape](#escape)).  It produces `x` again under a new semantic value, so
+  every later use of the local is ordered after the write.  It can be
+  postponed.
+- **`v ← Get x`** — [L2_GET_ELIDABLE_LOCAL_VARIABLE].  Read `x` into `v`,
   branching on whether `x` is assigned, and produce `x` again.  It branches,
   so it is never postponed.
-- **`v ← GetClearing x`** —
-  [L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE].  Like `Get`, but
-  also clear `x` if it is mutable.  The compiler emits the clearing read only
-  for the last read of a local (`AvailGetLocalVariable.canClear`).
+- **`v ← GetClearing x`** — the same instruction with the clear mode
+  `ClearIfMutable`.  Like `Get`, but also clear `x` if it is mutable, so the
+  value read need not be made immutable.  The compiler emits the clearing read
+  only for the last read of a local (`AvailGetLocalVariable.canClear`).
 - **`SaveAll`** — [L2_SAVE_ALL_AND_PC_TO_INT].  Begin reifying this frame,
   capturing its live registers in an [A_RegisterDump], along with how to
   create each elided local (its `dirtyLocals` and `dirtyLocalIndices`).
@@ -292,14 +293,13 @@ locals.
 [L2ValueManifest]: ../../../src/main/kotlin/avail/optimizer/manifest/L2ValueManifest.kt
 [L2_CREATE_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_CONTINUATION.kt
 [L2_CREATE_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CREATE_VARIABLE.kt
-[L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE.kt
-[L2_GET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_UNESCAPED_LOCAL_VARIABLE.kt
+[L2_GET_ELIDABLE_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_ELIDABLE_LOCAL_VARIABLE.kt
 [L2_GET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE.kt
 [L2_GET_VARIABLE_CLEARING_IF_MUTABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE_CLEARING_IF_MUTABLE.kt
 [L2_INVOKE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_INVOKE.kt
 [L2_INVOKE_CONSTANT_FUNCTION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_INVOKE_CONSTANT_FUNCTION.kt
 [L2_RETURN]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_RETURN.kt
 [L2_SAVE_ALL_AND_PC_TO_INT]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_SAVE_ALL_AND_PC_TO_INT.kt
-[L2_SET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_UNESCAPED_LOCAL_VARIABLE.kt
+[L2_SET_ELIDABLE_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_ELIDABLE_LOCAL_VARIABLE.kt
 [L2_SET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_VARIABLE.kt
 [VariablePlaceholderDescriptor]: ../../../src/main/kotlin/avail/descriptor/variables/VariablePlaceholderDescriptor.kt

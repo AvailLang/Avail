@@ -119,7 +119,7 @@ object P_GetClearing : Primitive1(
 			"extracted",
 			restrictionForType(varInnerType))
 
-		// DO NOT try to generate a L2_GET_AND_CLEAR_UNESCAPED_LOCAL_VARIABLE
+		// DO NOT try to generate a clearing L2_GET_ELIDABLE_LOCAL_VARIABLE
 		// here.  We can recognize the circumstance just fine by examining the
 		// semanticValue of varReg, but that instruction produces a variableOut
 		// that's at odds with the way we track locals between L1 instructions
