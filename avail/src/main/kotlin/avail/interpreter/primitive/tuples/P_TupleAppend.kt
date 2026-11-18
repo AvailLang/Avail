@@ -117,8 +117,7 @@ object P_TupleAppend : Primitive2(CannotFail, CanInline), Foldable
 		if (explodedTupleElements !== null)
 		{
 			callSiteHelper.useAnswer(
-				createTuple(explodedTupleElements.append(newElementRead)),
-				false)
+				createTuple(explodedTupleElements.append(newElementRead)))
 			return true
 		}
 		val resultType = concatenatingAnd(
@@ -127,7 +126,7 @@ object P_TupleAppend : Primitive2(CannotFail, CanInline), Foldable
 			"tuple after append",
 			restrictionForType(resultType))
 		+L2_APPEND_TO_TUPLE(tupleRead, newElementRead, tempWrite)
-		callSiteHelper.useAnswer(readBoxed(tempWrite), false)
+		callSiteHelper.useAnswer(readBoxed(tempWrite))
 		return true
 	}
 

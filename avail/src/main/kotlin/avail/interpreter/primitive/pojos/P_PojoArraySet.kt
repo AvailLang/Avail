@@ -55,7 +55,6 @@ import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 import java.lang.reflect.Array
 
@@ -67,9 +66,7 @@ import java.lang.reflect.Array
 @Suppress("unused")
 object P_PojoArraySet : Primitive3(
 	CanInline,
-	HasSideEffect,
-	// The value might capture an escaped variable and make it shared here.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

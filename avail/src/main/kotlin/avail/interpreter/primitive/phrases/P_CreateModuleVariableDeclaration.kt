@@ -48,7 +48,6 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -61,9 +60,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreateModuleVariableDeclaration : Primitive2(
 	CanInline,
-	CannotFail,
-	// The variable might be an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	CannotFail)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

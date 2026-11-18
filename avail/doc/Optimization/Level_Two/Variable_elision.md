@@ -19,8 +19,10 @@ separately:
   locals](#aliased-locals)), and an aliased local is never elided.
 - A variable has *escaped* when it has become shared or has acquired a
   reactor.  Its value can then change, or a write to it must run code, outside
-  the knowledge of L2, so the fast unescaped accesses are no longer valid (see
-  [Translation](#translation)).
+  the knowledge of L2, so the fast unescaped accesses are no longer valid.
+  Only code holding the variable can share it or give it a reactor, so an
+  elided local can escape only through its frame's continuation, and that
+  frame then resumes in L1 (see [Escape](#escape)).
 
 The governing invariant is that **L1 code only ever sees real variables**.
 Any continuation that would expose an elided local to the L1 interpreter, or
@@ -54,7 +56,7 @@ of an aliased local uses the general variable instructions,
 where the L1 code put it, in order with any call that might run code holding
 the same variable, and with any read of the variable taken back out of a
 tuple.  Those instructions also handle a shared variable and write reactors
-themselves, so `Check` never lists an aliased local.
+themselves.
 
 ## Instructions
 
@@ -78,8 +80,6 @@ the left.
   [L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE].  Like `Get`, but
   also clear `x` if it is mutable.  The compiler emits the clearing read only
   for the last read of a local (`AvailGetLocalVariable.canClear`).
-- **`Check x, …`** — [L2_CHECK_ESCAPED_LOCALS].  If any listed local has
-  become shared or has acquired a reactor, fall back to the L1 interpreter.
 - **`SaveAll`** — [L2_SAVE_ALL_AND_PC_TO_INT].  Begin reifying this frame,
   capturing its live registers in an [A_RegisterDump], along with how to
   create each elided local (its `dirtyLocals` and `dirtyLocalIndices`).
@@ -106,28 +106,26 @@ reified is replaced on the reification path by its placeholder (see
 
 ## Translation
 
-- The L1 operations that read and write an elided local translate to `Get`,
-  `GetClearing`, and `Set`.  Those of an aliased local translate to the
-  general variable instructions instead (see [Aliased
-  locals](#aliased-locals)).
-- After an operation that might make a created local shared or give it a
-  reactor, the translator emits `Check` over every elided local slot that is
-  not bound to a constant.  (A slot bound to a placeholder, or to `nil` after
-  a clearing read, holds no variable to check.)  An elided local can have
-  been created only because something needed the variable itself, such as a
-  `Get` whose value might be unassigned.  Those operations are:
-  - every call that is not inlined;
-  - every inlined primitive that has the flag
-    `Primitive.Flag.MightMakeEscapedVariableShared`, such as `P_SetValue`,
-    `P_Fork`, and `P_AddWriteReactor`;
-  - every write to a variable that is a literal of the code, which is always
-    shared, so it may share anything written into it.
+The L1 operations that read and write an elided local translate to `Get`,
+`GetClearing`, and `Set`.  Those of an aliased local translate to the general
+variable instructions instead (see [Aliased locals](#aliased-locals)).
+
+## Escape
 
 A local that has become shared is open to reads and writes from other fibers,
 so L2 can no longer track its value in registers.  A local with a reactor
-must run that reactor on each write, which `Set` does not do.  Either way,
-`Check` falls back to the L1 interpreter ([L2_FALL_BACK_TO_L1]), which
-creates any locals still elided and uses only real variables from then on.
+must run that reactor on each write, which `Set` does not do.  Neither can
+happen to an elided local while its L2 code still runs.
+
+Sharing a variable or adding a reactor to it takes a reference to the
+variable object, and an elided local's object is never handed to other code:
+a local whose variable is pushed is aliased, not elided.  The variable object
+of an elided local, once created, is held only by its own frame.  The frame's
+continuation can be reached by other code only after it is reified and made
+immutable or shared, by label creation, the debugger, or another fiber.  That
+transition runs `createElidedVariables` (see [Creating elided
+variables](#creating-elided-variables)), which switches the continuation to
+the L1 interpreter, so the L2 code that elided the local never resumes with it.
 
 ## Postponement
 
@@ -162,9 +160,6 @@ flowchart LR
  Get .-> Get'
  Clear["Create x := y<br>v ← GetClearing x"]
  Clear .-> Clear'["Move v ← y<br>go to success<br>Create x := y"]
- Check["Create x := y<br>Check x, w"]
- Check'["Check w<br>Create x := y<br><i>(no Check if w is empty)</i>"]
- Check .-> Check'
  Call["Create x := y<br>Invoke / Return<br><i>(x not used)</i>"]
  Call'["Invoke / Return<br>Create x := y<br><i>(dead after Return)</i>"]
  Call .-> Call'
@@ -194,8 +189,6 @@ flowchart LR
  Get["Set x := y<br>v ← Get x"]
  Get'["Move v ← y<br>go to success<br><i>(failure: y nil)</i><br>Set x := y"]
  Get .-> Get'
- Check["Set x := y<br>Check x"]
- Check .-> Check'["Set x := y<br>Check x<br><i>(emitted: x already exists)</i>"]
  Call["Set x := y<br>Invoke / Return"]
  Call'["Invoke / Return<br>Set x := y<br><i>(nothing else<br>sees x)</i>"]
  Call .-> Call'
@@ -204,8 +197,9 @@ flowchart LR
 Like any postponed instruction, a `Set` is also emitted as soon as anything
 reads the variable it produces.  An elided local is never aliased, so no
 invoked code can read or write it, and a `Set` may pass an `Invoke` or a
-`Return`.  After an `Invoke`, the `Check` that follows reads the variable,
-which emits the `Set`; after a `Return`, the `Set` is dead.
+`Return`.  After a `Return`, the `Set` is dead.  If the frame is reified
+during the `Invoke`, building its continuation reads the variable, which
+emits the `Set` on that path.
 
 ### Reification
 
@@ -282,8 +276,8 @@ local's declared type, initialized to the decoded value: a boxed register's
 object, an int register's whole 64-bit value, or a float register's double.
 Every other placeholder becomes a new, unassigned variable of its local's
 type.  The replacement covers every slot of the frame, not only the local
-slots, because a pushed local is the same value as its slot, so a stack slot
-of the reified frame can hold the placeholder too.  Finally it sets the
+slots, although a placeholder now occurs only in its own local's slot: a
+local that is ever pushed is aliased, not elided.  Finally it sets the
 continuation's chunk to the [DefaultL1Chunk], at the dump's
 `fallbackEntryPoint`.
 
@@ -296,10 +290,8 @@ locals.
 [L1Translator]: ../../../src/main/kotlin/avail/optimizer/L1Translator.kt
 [L2SimpleChunk]: ../../../src/main/kotlin/avail/interpreter/levelTwo/L2SimpleChunk.kt
 [L2ValueManifest]: ../../../src/main/kotlin/avail/optimizer/manifest/L2ValueManifest.kt
-[L2_CHECK_ESCAPED_LOCALS]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CHECK_ESCAPED_LOCALS.kt
 [L2_CREATE_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_CONTINUATION.kt
 [L2_CREATE_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CREATE_VARIABLE.kt
-[L2_FALL_BACK_TO_L1]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_FALL_BACK_TO_L1.kt
 [L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE.kt
 [L2_GET_UNESCAPED_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_UNESCAPED_LOCAL_VARIABLE.kt
 [L2_GET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE.kt

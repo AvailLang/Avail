@@ -51,7 +51,6 @@ import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 
@@ -65,10 +64,7 @@ import avail.interpreter.primitive.Primitive1
 object P_AddUnloadFunction : Primitive1(
 	CanInline,
 	HasSideEffect,
-	WritesToHiddenGlobalState,
-	// The function might contain outers that are escaped variables, but they're
-	// made shared here.
-	MightMakeEscapedVariableShared)
+	WritesToHiddenGlobalState)
 {
 	override fun attempt1(
 		interpreter: Interpreter,

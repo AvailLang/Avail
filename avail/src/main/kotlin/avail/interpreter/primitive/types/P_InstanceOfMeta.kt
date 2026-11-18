@@ -89,8 +89,7 @@ object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanInline), Foldable
 		val restriction = restrictionForType(returnType)
 		val writer = boxedWriteTemp("instance of meta", restriction)
 		+L2_INSTANCE_OF_META(metaReg, writer)
-		callSiteHelper.useAnswer(
-			readBoxed(writer.onlySemanticValue()), false)
+		callSiteHelper.useAnswer(readBoxed(writer.onlySemanticValue()))
 		return true
 	}
 }

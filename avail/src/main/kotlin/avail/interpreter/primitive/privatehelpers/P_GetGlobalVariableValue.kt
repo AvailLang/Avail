@@ -126,7 +126,7 @@ object P_GetGlobalVariableValue : Primitive1(
 			variable.valueWasStablyComputed)
 		{
 			// The variable is permanently set to this value.
-			callSiteHelper.useAnswer(boxedConstant(variable.getValue()), false)
+			callSiteHelper.useAnswer(boxedConstant(variable.getValue()))
 			return true
 		}
 		val temp = newTemp("value of global ${variable.globalName}")
@@ -135,7 +135,7 @@ object P_GetGlobalVariableValue : Primitive1(
 			boxedConstant(variable),
 			variable.kind().readType,
 			destination = temp)
-		callSiteHelper.useAnswer(readBoxed(temp), false)
+		callSiteHelper.useAnswer(readBoxed(temp))
 		return true
 	}
 

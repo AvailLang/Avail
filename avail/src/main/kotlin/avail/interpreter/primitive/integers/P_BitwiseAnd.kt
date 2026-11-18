@@ -194,7 +194,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 		if (bound.lowerBound.equals(bound.upperBound))
 		{
 			// Constant result.
-			callSiteHelper.useAnswer(boxedConstant(bound.lowerBound), false)
+			callSiteHelper.useAnswer(boxedConstant(bound.lowerBound))
 			return true
 		}
 		val (range1, range2) = argumentTypes
@@ -212,7 +212,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 			{
 				// range2 is a constant power of two big enough to include all
 				// non-zero bits of the first argument.
-				callSiteHelper.useAnswer(arguments[0], false)
+				callSiteHelper.useAnswer(arguments[0])
 				return true
 			}
 		}
@@ -228,7 +228,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 			{
 				// range1 is a constant power of two big enough to include all
 				// non-zero bits of the second argument.
-				callSiteHelper.useAnswer(arguments[1], false)
+				callSiteHelper.useAnswer(arguments[1])
 				return true
 			}
 		}

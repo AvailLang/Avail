@@ -47,7 +47,6 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -59,9 +58,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateLiteralExpression : Primitive1(
 	CannotFail,
-	CanInline,
-	// The token might contain an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	CanInline)
 {
 	override fun attempt1(
 		interpreter: Interpreter,

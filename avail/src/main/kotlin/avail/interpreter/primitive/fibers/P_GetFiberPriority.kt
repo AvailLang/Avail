@@ -89,7 +89,7 @@ object P_GetFiberPriority : Primitive1(
 		// evaporate later.
 		val prioritySemanticIntValue = priorityIntWrite.pickSemanticValue()
 		val boxedPriority = readBoxed(prioritySemanticIntValue)
-		callSiteHelper.useAnswer(boxedPriority, false)
+		callSiteHelper.useAnswer(boxedPriority)
 		return true
 	}
 

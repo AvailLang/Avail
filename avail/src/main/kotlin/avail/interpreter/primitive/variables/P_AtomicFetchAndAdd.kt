@@ -60,7 +60,6 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -72,10 +71,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_AtomicFetchAndAdd : Primitive2(
 	CanInline,
-	HasSideEffect,
-	// If the variable had a reactor, adjusting it can activate that reactor,
-	// which might cause a variable captured in it to become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

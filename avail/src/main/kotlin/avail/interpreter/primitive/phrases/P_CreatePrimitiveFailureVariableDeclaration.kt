@@ -46,7 +46,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -58,10 +57,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_CreatePrimitiveFailureVariableDeclaration : Primitive2(
 	CanInline,
-	CannotFail,
-	// The token or type might contain an escaped variable, making it shared
-	// here.
-	MightMakeEscapedVariableShared)
+	CannotFail)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

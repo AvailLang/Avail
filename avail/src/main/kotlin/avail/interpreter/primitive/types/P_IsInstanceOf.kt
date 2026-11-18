@@ -101,7 +101,7 @@ object P_IsInstanceOf : Primitive2(CannotFail, CanInline), Foldable
 				yTypeReg.restriction).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
-			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+			callSiteHelper.useAnswer(boxedConstant(falseObject))
 			return true
 		}
 
@@ -128,12 +128,12 @@ object P_IsInstanceOf : Primitive2(CannotFail, CanInline), Foldable
 		startBlock(ifInstance)
 		if (currentlyReachable())
 		{
-			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+			callSiteHelper.useAnswer(boxedConstant(trueObject))
 		}
 		startBlock(ifNotInstance)
 		if (currentlyReachable())
 		{
-			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+			callSiteHelper.useAnswer(boxedConstant(falseObject))
 		}
 		return true
 	}

@@ -171,7 +171,6 @@ import avail.interpreter.levelTwo.operation.tuples.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.variables.GetClearMode
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.ClearIfMutable
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.NeverClear
-import avail.interpreter.levelTwo.operation.variables.L2_CHECK_ESCAPED_LOCALS
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_AND_CLEAR_IF_MUTABLE_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_GET_UNESCAPED_LOCAL_VARIABLE
@@ -192,8 +191,8 @@ import avail.interpreter.primitive.privatehelpers.P_PushArgument2
 import avail.interpreter.primitive.privatehelpers.P_PushArgument3
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.interpreter.primitive.privatehelpers.P_PushLastOuter
-import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckTestEscapes
-import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckTestEscapes
+import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheck
+import avail.optimizer.CallSiteHelper.JunctionType.AfterEverything
 import avail.optimizer.CallSiteHelper.JunctionType.FallBackToSlowLookup
 import avail.optimizer.CallSiteHelper.JunctionType.ReificationNoCheck
 import avail.optimizer.CallSiteHelper.JunctionType.ReificationUnreturnable
@@ -645,76 +644,6 @@ class L1Translator private constructor(
 	}
 
 	/**
-	 * Emit code that checks if any local variable has become shared or has had
-	 * a reactor set on it, and if so, falls back to L1 code.  Later, during a
-	 * postponement optimization, local variable creation instructions may drift
-	 * past this check, removing themselves from the list as they pass, and
-	 * eliminating the check entirely if they are all able to slip past.
-	 *
-	 * @param actuallyCheck
-	 *   Whether to generate check code for the locals, versus simple moves.
-	 * @param comment
-	 *   A [String] describing why this instruction was generated.
-	 */
-	fun emitCheckLocals(actuallyCheck: Boolean, comment: String)
-	{
-		if (!enableVariableElision) return
-
-		if (numLocals == 0) return
-		val ifSafe = createBasicBlock("locals are safe")
-		val ifFallBack = createBasicBlock(
-			"fall back to L1",
-			ZoneType.DEAD_END.createZone("Fall back"),
-			isCold = true)
-		val localIndices = (numArgs + 1 .. numArgs + numLocals).filter {
-			// Aliased locals are accessed only through the general variable
-			// instructions, which cope with sharing and reactors themselves.
-			// The only constant locals are placeholder variables (see
-			// [VariablePlaceholderDescriptor]) indicating elision, or a `nil`
-			// representing the variable has been used for the last time and
-			// removed even at the L1 level.  All of those cases should be
-			// excluded from the check (or move).
-			isElidedLocal(it) && readSlot(it).constantOrNull == null
-		}
-		if (localIndices.isEmpty()) return
-		if (actuallyCheck)
-		{
-			+L2_CHECK_ESCAPED_LOCALS(
-				L2CommentOperand(comment),
-				L2ReadBoxedVectorOperand(
-					localIndices.map(::readSlot)),
-				L2WriteBoxedVectorOperand(
-					localIndices.map { slotIndex ->
-						boxedWrite(
-							createSemanticSlot(slotIndex, pc),
-							restrictionForType(
-								code.localTypeAt(slotIndex - numArgs)))
-					}),
-				edgeTo(ifSafe),
-				edgeTo(ifFallBack))
-			assert(!currentlyReachable())
-
-			startBlock(ifFallBack)
-			+L2_FALL_BACK_TO_L1(
-				L2IntImmediateOperand(pc),
-				L2IntImmediateOperand(stackp),
-				L2ReadBoxedVectorOperand((1..numSlots).map(::readSlot)))
-			assert(!currentlyReachable())
-			startBlock(ifSafe)
-		}
-		else
-		{
-			// Move the locals into new semantic slots, as part of the mechanism
-			// that prevents reordering reads and writes.
-			localIndices.forEach { slotIndex ->
-				move(
-					semanticSlot(slotIndex),
-					listOf(createSemanticSlot(slotIndex, pc)))
-			}
-		}
-	}
-
-	/**
 	 * Generate instruction(s) to move the given [AvailObject] into a fresh
 	 * writable slot [L2Register] with the given slot index.  The slot it
 	 * occupies is tagged with the current pc.
@@ -1123,26 +1052,6 @@ class L1Translator private constructor(
 		// when the downstream one gets its turn, it'll see that it has a block
 		// built for it and that it's reachable.
 		callSiteHelper.generateReachableJunctions()
-
-		// Now we're after the call.  Along every path here, each elided local
-		// was either checked and moved into a new semantic slot, or just moved.
-		// The semanticSlots array must not have changed.  Now update it to use
-		// those new semantic slots.
-		if (currentlyReachable() && enableVariableElision)
-		{
-			(numArgs + 1 .. numArgs + numLocals)
-				.filter(::isElidedLocal)
-				.forEach { slotIndex ->
-					currentManifest
-						.restrictionFor(semanticSlot(slotIndex))
-						.constantOrNull
-						?: run {
-							val newSlot = createSemanticSlot(slotIndex, pc)
-							assert(currentManifest.hasSemanticValue(newSlot))
-							forceSlot(slotIndex, newSlot)
-						}
-				}
-		}
 	}
 
 	/**
@@ -1312,9 +1221,7 @@ class L1Translator private constructor(
 					manifest.equivalentSemanticValue(semanticPrimitive)?.let {
 							equivalent ->
 						move(equivalent, listOf(semanticPrimitive))
-						callSiteHelper.useAnswer(
-							readBoxed(semanticPrimitive),
-							false)
+						callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
 						return
 					}
 				}
@@ -1376,12 +1283,7 @@ class L1Translator private constructor(
 						addUnreachableCode()
 						return
 					}
-					callSiteHelper.useAnswer(
-						readBoxed(writer),
-						invoke.run {
-							callSiteHelper.generator.currentManifest
-								.mightMakeEscapedVariableShared()
-						})
+					callSiteHelper.useAnswer(readBoxed(writer))
 					generated = true
 				}
 				else
@@ -1475,8 +1377,8 @@ class L1Translator private constructor(
 		if (currentlyReachable())
 		{
 			jumpTo(
-				if (skipCheck) callSiteHelper[AfterCallNoCheckTestEscapes]
-				else callSiteHelper[AfterCallWithCheckTestEscapes])
+				if (skipCheck) callSiteHelper[AfterEverything]
+				else callSiteHelper[AfterCallWithCheck])
 			assert(!currentlyReachable())
 		}
 	}
@@ -1654,8 +1556,7 @@ class L1Translator private constructor(
 				if (valueOrNull !== null)
 				{
 					callSiteHelper.useAnswer(
-						boxedConstant(valueOrNull.makeImmutable()),
-						false)
+						boxedConstant(valueOrNull.makeImmutable()))
 					return true
 				}
 				assert(interpreter.currentReifier === null)
@@ -2163,11 +2064,6 @@ class L1Translator private constructor(
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
 		startBlock(success)
-		// We may have written something into this non-local variable that
-		// caused one of our locals to become shared.
-		emitCheckLocals(
-			true,
-			"after emit setvariable offramp (${variable.semanticValue()})")
 	}
 
 	override fun toString(): String =
@@ -2683,9 +2579,6 @@ class L1Translator private constructor(
 		// continuation if we needed to reify during the failure path.
 		nilSlot(stackp)
 		stackp++
-		// We just wrote to a shared variable.  Check if any local has become
-		// shared (or had reactors added somehow).
-		emitCheckLocals(true, "after set literal")
 	}
 
 	override fun L1Ext_doDuplicate()

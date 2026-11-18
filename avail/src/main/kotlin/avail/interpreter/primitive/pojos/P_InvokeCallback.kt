@@ -46,7 +46,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveN
 
@@ -67,9 +66,7 @@ object P_InvokeCallback : PrimitiveN(
 	-1,
 	Private,
 	CanSuspend,
-	HasSideEffect,
-	// An argument might capture an escaped variable and make it shared here.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attemptN(
 		interpreter: Interpreter,

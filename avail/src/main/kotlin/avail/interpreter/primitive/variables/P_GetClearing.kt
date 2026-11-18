@@ -56,7 +56,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -71,10 +70,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_GetClearing : Primitive1(
 	CanInline,
-	HasSideEffect,
-	// If the variable had a reactor, clearing it can activate that reactor,
-	// which might cause a variable captured in it to become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt1(
 		interpreter: Interpreter,
@@ -151,7 +147,7 @@ object P_GetClearing : Primitive1(
 		startBlock(success)
 		// Reading and clearing the variable can't cause any local variables to
 		// become shared or acquire reactors.
-		callSiteHelper.useAnswer(readBoxed(extractedValue), false)
+		callSiteHelper.useAnswer(readBoxed(extractedValue))
 		return true
 	}
 

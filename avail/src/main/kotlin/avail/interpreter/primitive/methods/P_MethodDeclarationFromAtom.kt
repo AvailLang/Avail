@@ -70,7 +70,6 @@ import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive3
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
@@ -84,10 +83,7 @@ import avail.utility.notNullAnd
 @Suppress("unused")
 object P_MethodDeclarationFromAtom : Primitive3(
 	CanSuspend,
-	Unknown,
-	// The signature might include instance types on variables that are escaped,
-	// and those instance types get added to the definition.
-	MightMakeEscapedVariableShared)
+	Unknown)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

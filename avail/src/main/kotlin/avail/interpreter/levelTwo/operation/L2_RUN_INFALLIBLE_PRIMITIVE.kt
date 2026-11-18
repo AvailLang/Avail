@@ -184,10 +184,6 @@ private constructor(
 		}
 	}
 
-	/** Defer to the primitive. */
-	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =
-		primitive.constant.mightMakeEscapedVariableShared()
-
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,

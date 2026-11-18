@@ -107,8 +107,7 @@ object P_PushLastOuter : PrimitiveN(
 		if (constantFunction !== null)
 		{
 			callSiteHelper.useAnswer(
-				boxedConstant(constantFunction.outerVarAt(1)),
-				false)
+				boxedConstant(constantFunction.outerVarAt(1)))
 			return true
 		}
 
@@ -121,7 +120,7 @@ object P_PushLastOuter : PrimitiveN(
 		val outerReg = functionCreationInstruction.run {
 			extractFunctionOuter(functionToCallReg, 1, returnType)
 		}
-		callSiteHelper.useAnswer(outerReg, false)
+		callSiteHelper.useAnswer(outerReg)
 		return true
 	}
 

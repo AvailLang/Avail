@@ -58,7 +58,6 @@ import avail.exceptions.SignatureException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -71,11 +70,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_SealMethod : Primitive2(
 	CanInline,
-	HasSideEffect,
-	// The argument types might include instance types on variables that are
-	// escaped, and those instance types get added to the seal, making them
-	// immutable.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

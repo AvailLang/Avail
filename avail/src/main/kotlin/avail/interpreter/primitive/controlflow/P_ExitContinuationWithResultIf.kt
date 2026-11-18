@@ -181,7 +181,7 @@ object P_ExitContinuationWithResultIf : Primitive3(
 			startBlock(noExit)
 			if (currentlyReachable())
 			{
-				callSiteHelper.useAnswer(boxedConstant(nil), false)
+				callSiteHelper.useAnswer(boxedConstant(nil))
 			}
 			return true
 		}

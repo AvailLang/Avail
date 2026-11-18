@@ -47,7 +47,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -64,10 +63,7 @@ import avail.interpreter.primitive.Primitive2
 object P_GetValueElse : Primitive2(
 	CannotFail,
 	CanInline,
-	HasSideEffect,
-	// If the variable had a reactor, reading it can activate that reactor,
-	// which might cause a variable captured in it to become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

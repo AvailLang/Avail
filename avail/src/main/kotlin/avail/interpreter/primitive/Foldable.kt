@@ -220,7 +220,7 @@ interface Foldable
 		// jump to the fallback, so only use the int/boxed value if it exists.
 		if (currentManifest.hasSemanticValue(semanticPrimitive))
 		{
-			callSiteHelper.useAnswer(readBoxed(semanticPrimitive), false)
+			callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
 		}
 		if (intFallback.predecessorEdges().isNotEmpty())
 		{

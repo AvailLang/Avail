@@ -107,7 +107,7 @@ object P_PushConstant : PrimitiveN(
 	): Boolean
 	{
 		val constant = rawFunction.literalAt(1)
-		callSiteHelper.useAnswer(boxedConstant(constant), false)
+		callSiteHelper.useAnswer(boxedConstant(constant))
 		return true
 	}
 

@@ -108,7 +108,7 @@ object P_IsSubtypeOf : Primitive2(CannotFail, CanInline), Foldable
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
-				callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+				callSiteHelper.useAnswer(boxedConstant(trueObject))
 				return true
 			}
 		}
@@ -123,7 +123,7 @@ object P_IsSubtypeOf : Primitive2(CannotFail, CanInline), Foldable
 				// and it is not a subtype of y.  The actual y might be more
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
-				callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+				callSiteHelper.useAnswer(boxedConstant(falseObject))
 				return true
 			}
 		}
@@ -133,7 +133,7 @@ object P_IsSubtypeOf : Primitive2(CannotFail, CanInline), Foldable
 			// ⊥ is a subtype of all other types.  We test this separately from
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
-			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+			callSiteHelper.useAnswer(boxedConstant(trueObject))
 			return true
 		}
 

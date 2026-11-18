@@ -54,7 +54,6 @@ import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.MapException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive1
 
@@ -66,7 +65,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_ExceptionStackDump : Primitive1(
-	CanSuspend, Unknown, MightMakeEscapedVariableShared)
+	CanSuspend, Unknown)
 {
 	override fun attempt1(
 		interpreter: Interpreter,

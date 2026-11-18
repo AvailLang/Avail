@@ -105,7 +105,7 @@ object P_PushArgument2 : PrimitiveN(
 		// The value is available in the second argument register.  Doesn't even
 		// need a move. The translator deals with strengthening separately,
 		// through the call return type checks.
-		callSiteHelper.useAnswer(arguments[1], false)
+		callSiteHelper.useAnswer(arguments[1])
 		return true
 	}
 

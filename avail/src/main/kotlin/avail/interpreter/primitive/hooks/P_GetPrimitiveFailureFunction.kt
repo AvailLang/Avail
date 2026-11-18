@@ -42,7 +42,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive0
@@ -66,8 +65,7 @@ object P_GetPrimitiveFailureFunction : Primitive0(
 	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
-	WritesToHiddenGlobalState,
-	MightMakeEscapedVariableShared)
+	WritesToHiddenGlobalState)
 {
 	override fun attempt0(
 		interpreter: Interpreter

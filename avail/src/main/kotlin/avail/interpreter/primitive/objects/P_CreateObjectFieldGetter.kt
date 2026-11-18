@@ -64,7 +64,6 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -85,10 +84,7 @@ import avail.optimizer.L1Translator
  */
 @Suppress("unused")
 object P_CreateObjectFieldGetter : Primitive2(
-	CanInline,
-	// The objectType might contain an instance type on an escaped variables,
-	// making it shared here.
-	MightMakeEscapedVariableShared), Foldable
+	CanInline), Foldable
 {
 	override fun attempt2(
 		interpreter: Interpreter,

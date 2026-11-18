@@ -393,17 +393,6 @@ constructor() :
 	open fun canReduceToJumpIfOnePathRemains(): Boolean = false
 
 	/**
-	 * Check whether this instruction could cause any previously escaped
-	 * variables to become shared or to have a reactor installed.  Assume most
-	 * instructions can't do this, and override for instructions that can, like
-	 * invocations of general functions, or of primitives that say they can.
-	 *
-	 * @receiver
-	 *   The [L2ValueManifest] in which to trace postponed instructions.
-	 */
-	open fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean = false
-
-	/**
 	 * Answer whether this instruction produces any JVM code.  Examples of
 	 * instructions that produce no JVM code include unconditional jumps that
 	 * fall through to the next instruction, and moves between registers that

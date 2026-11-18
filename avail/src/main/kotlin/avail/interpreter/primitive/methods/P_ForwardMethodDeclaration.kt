@@ -54,7 +54,6 @@ import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENT
 import avail.exceptions.AvailException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive2
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
@@ -65,10 +64,7 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 @Suppress("unused")
 object P_ForwardMethodDeclaration : Primitive2(
 	CanSuspend,
-	Unknown,
-	// The signature might include instance types on variables that are escaped,
-	// and those instance types get added to the forward definition.
-	MightMakeEscapedVariableShared)
+	Unknown)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

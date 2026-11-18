@@ -59,7 +59,6 @@ import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MethodDefinitionException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -71,11 +70,7 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_DefinitionForArgumentTypes : Primitive2(
-	CanInline,
-	// The argTypes might include instance types on variables that are escaped,
-	// and those instance types might end up in the dispatch tree, which makes
-	// them shared.
-	MightMakeEscapedVariableShared)
+	CanInline)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

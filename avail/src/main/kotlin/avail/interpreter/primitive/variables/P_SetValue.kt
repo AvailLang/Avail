@@ -59,7 +59,6 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE
 import avail.interpreter.levelTwo.operation.variables.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -72,10 +71,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 @Suppress("unused")
 object P_SetValue : Primitive2(
 	CanInline,
-	HasSideEffect,
-	// If the variable had a write reactor, writing can activate that reactor,
-	// which might cause a variable captured in it to become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
@@ -142,7 +138,7 @@ object P_SetValue : Primitive2(
 		// also made it to the callSiteHelper's after-everything block if the
 		// call returns successfully.
 		startBlock(success)
-		callSiteHelper.useAnswer(boxedConstant(nil), true)
+		callSiteHelper.useAnswer(boxedConstant(nil))
 		return true
 	}
 

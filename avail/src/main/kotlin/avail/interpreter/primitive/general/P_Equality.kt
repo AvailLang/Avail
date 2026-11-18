@@ -123,7 +123,7 @@ object P_Equality : Primitive2(CannotFail, CanInline), Foldable
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
-			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+			callSiteHelper.useAnswer(boxedConstant(trueObject))
 			return true
 		}
 
@@ -132,7 +132,7 @@ object P_Equality : Primitive2(CannotFail, CanInline), Foldable
 		if (type1.typeIntersection(type2).isBottom)
 		{
 			// The actual values cannot be equal at runtime.
-			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+			callSiteHelper.useAnswer(boxedConstant(falseObject))
 			return true
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -142,7 +142,7 @@ object P_Equality : Primitive2(CannotFail, CanInline), Foldable
 			&& type1.instanceCount.equalsInt(1)
 			&& !type1.isInstanceMeta)
 		{
-			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+			callSiteHelper.useAnswer(boxedConstant(trueObject))
 			return true
 		}
 
@@ -174,12 +174,12 @@ object P_Equality : Primitive2(CannotFail, CanInline), Foldable
 		if (ifEqual.currentlyReachable())
 		{
 			startBlock(ifEqual)
-			callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+			callSiteHelper.useAnswer(boxedConstant(trueObject))
 		}
 		if (ifNotEqual.currentlyReachable())
 		{
 			startBlock(ifNotEqual)
-			callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+			callSiteHelper.useAnswer(boxedConstant(falseObject))
 		}
 		return true
 	}

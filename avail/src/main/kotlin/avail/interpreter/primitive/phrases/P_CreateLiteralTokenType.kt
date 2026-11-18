@@ -46,7 +46,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -59,10 +58,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_CreateLiteralTokenType : Primitive1(
 	CannotFail,
-	CanInline,
-	// The type might contain an escaped variable, possibly making it shared
-	// here.
-	MightMakeEscapedVariableShared), Foldable
+	CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

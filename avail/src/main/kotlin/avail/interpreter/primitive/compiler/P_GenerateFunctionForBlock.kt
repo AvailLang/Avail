@@ -55,7 +55,6 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -67,7 +66,7 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_GenerateFunctionForBlock : Primitive1(
-	CanInline, MightMakeEscapedVariableShared), Foldable
+	CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,

@@ -69,7 +69,6 @@ import avail.interpreter.levelTwo.operation.variables.L2_VARIABLE_COMPARE_AND_SW
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -88,10 +87,7 @@ import avail.performance.StatisticReport.PRIMITIVES
 @Suppress("unused")
 object P_AtomicCompareAndSwap : Primitive3(
 	CanInline,
-	HasSideEffect,
-	// If the variable is shared and a local variable is captured inside the
-	// newValue, it could become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,
@@ -145,10 +141,10 @@ object P_AtomicCompareAndSwap : Primitive3(
 			edgeTo(failure),
 			edgeTo(exception))
 		startBlock(success)
-		callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+		callSiteHelper.useAnswer(boxedConstant(trueObject))
 
 		startBlock(failure)
-		callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+		callSiteHelper.useAnswer(boxedConstant(falseObject))
 
 		startBlock(exception)
 		generateGeneralFunctionInvocation(

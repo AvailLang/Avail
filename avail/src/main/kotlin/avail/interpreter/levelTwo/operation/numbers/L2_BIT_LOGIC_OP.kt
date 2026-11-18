@@ -779,9 +779,7 @@ constructor(
 						currentManifest.updateRestriction(semanticPrimitive) {
 							intersectionWithType(typeGuarantee)
 						}
-						callSiteHelper.useAnswer(
-							readBoxed(semanticPrimitive),
-							false)
+						callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
 						return true
 					}
 					if (currentManifest
@@ -791,9 +789,7 @@ constructor(
 						currentManifest.updateRestriction(semanticPrimitive) {
 							intersectionWithType(typeGuarantee)
 						}
-						callSiteHelper.useAnswer(
-							readBoxed(semanticPrimitive),
-							false)
+						callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
 						return true
 					}
 					when (val lower = typeGuarantee.lowerBound)
@@ -818,10 +814,7 @@ constructor(
 					// unboxed form is also still available in the manifest for
 					// use by subsequent primitives, which might allow the
 					// boxing instruction to evaporate.
-					callSiteHelper.useAnswer(
-						readBoxed(semanticPrimitive),
-						// Bit logic can't endanger escaped locals.
-						false)
+					callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
 				}
 				return true
 			}

@@ -293,7 +293,7 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 			L2ConstantOperand(typeGuarantee),
 			L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
 			write)
-		callSiteHelper.useAnswer(readBoxed(write), false)
+		callSiteHelper.useAnswer(readBoxed(write))
 		return true
 	}
 

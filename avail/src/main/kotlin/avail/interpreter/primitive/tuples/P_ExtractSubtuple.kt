@@ -403,7 +403,7 @@ object P_ExtractSubtuple : Primitive3(CanInline), Foldable
 						tuple.type,
 						lowInt.type,
 						highInt.type))))
-		callSiteHelper.useAnswer(readBoxed(temp), false)
+		callSiteHelper.useAnswer(readBoxed(temp))
 		startBlock(outOfRange)
 		if (currentlyReachable())
 		{

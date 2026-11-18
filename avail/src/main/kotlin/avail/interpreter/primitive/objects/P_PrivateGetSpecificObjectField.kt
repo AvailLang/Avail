@@ -153,7 +153,7 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 				// L2 instructions that access the field by index.
 			}
 		}
-		callSiteHelper.useAnswer(readBoxed(semanticFieldValue), false)
+		callSiteHelper.useAnswer(readBoxed(semanticFieldValue))
 		return true
 	}
 }

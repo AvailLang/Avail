@@ -60,7 +60,6 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive1
 import avail.utility.cast
@@ -78,8 +77,7 @@ object P_SetImplicitObserveFunction : Primitive1(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
-	WritesToHiddenGlobalState,
-	MightMakeEscapedVariableShared)
+	WritesToHiddenGlobalState)
 {
 	override fun attempt1(
 		interpreter: Interpreter,

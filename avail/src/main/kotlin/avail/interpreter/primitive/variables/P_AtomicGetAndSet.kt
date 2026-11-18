@@ -56,7 +56,6 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -68,10 +67,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_AtomicGetAndSet : Primitive2(
 	CanInline,
-	HasSideEffect,
-	// If the variable is shared and a local variable is captured inside the
-	// newValue, it could become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

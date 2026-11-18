@@ -240,7 +240,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 				{
 					+L2_TUPLE_AT_NO_FAIL(tupleReg, readSubscript, writeResult)
 				}
-				callSiteHelper.useAnswer(readBoxed(writeResult), false)
+				callSiteHelper.useAnswer(readBoxed(writeResult))
 			}
 			startBlock(outOfBounds)
 			if (currentlyReachable())
@@ -271,7 +271,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 			val subscriptInt = lower.extractInt
 			+L2_TUPLE_AT_CONSTANT(
 				tupleReg, L2IntImmediateOperand(subscriptInt), writer)
-			callSiteHelper.useAnswer(readBoxed(writer), false)
+			callSiteHelper.useAnswer(readBoxed(writer))
 			return true
 		}
 		// The subscript isn't a constant, but it's known to be in range.
@@ -285,7 +285,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 		}
 		assert(subscriptConversionFailure.predecessorEdges().isEmpty())
 		+L2_TUPLE_AT_NO_FAIL(tupleReg, subscriptIntReg, writer)
-		callSiteHelper.useAnswer(readBoxed(writer), false)
+		callSiteHelper.useAnswer(readBoxed(writer))
 		return true
 	}
 }

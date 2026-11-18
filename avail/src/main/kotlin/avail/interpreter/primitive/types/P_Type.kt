@@ -87,7 +87,7 @@ object P_Type : Primitive1(CannotFail, CanInline), Foldable
 		val restriction = arguments[0].restriction.metaRestriction()
 		val writer = boxedWriteTemp("type", restriction)
 		+L2_GET_TYPE(arguments[0], writer)
-		callSiteHelper.useAnswer(readBoxed(writer), false)
+		callSiteHelper.useAnswer(readBoxed(writer))
 		return true
 	}
 }

@@ -59,7 +59,6 @@ import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.manifest.L2ValueManifest
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.DUP
@@ -106,19 +105,6 @@ class L2_INVOKE(
 ): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
-
-	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean
-	{
-		calledFunction.definitionSkippingMoves(this)
-			.getConstantCode(this)
-			?.let { code ->
-				code.codePrimitive()?.let { prim ->
-					return prim.mightMakeEscapedVariableShared()
-				}
-			}
-		return true
-	}
 
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't

@@ -129,7 +129,7 @@ object P_TupleSize : Primitive1(CannotFail, CanInline), Foldable
 			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that
 				// information to produce a constant.
-				callSiteHelper.useAnswer(boxedConstant(lower), false)
+				callSiteHelper.useAnswer(boxedConstant(lower))
 			else ->
 			{
 				// The exact size of the tuple isn't known, so generate code to
@@ -156,7 +156,7 @@ object P_TupleSize : Primitive1(CannotFail, CanInline), Foldable
 					val writer = intWrite(setOf(size), restriction)
 					+L2_TUPLE_SIZE(tupleReg, writer)
 				}
-				callSiteHelper.useAnswer(readBoxed(size), false)
+				callSiteHelper.useAnswer(readBoxed(size))
 			}
 		}
 		return true

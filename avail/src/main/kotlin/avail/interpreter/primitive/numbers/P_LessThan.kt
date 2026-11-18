@@ -141,7 +141,7 @@ object P_LessThan : Primitive2(CannotFail, CanInline), Foldable
 		{
 			// The branch direction has been statically proven.
 			callSiteHelper.useAnswer(
-				boxedConstant(objectFromBoolean(canBeTrue)), false)
+				boxedConstant(objectFromBoolean(canBeTrue)))
 			return true
 		}
 		val truePath = createBasicBlock("true path")
@@ -153,9 +153,9 @@ object P_LessThan : Primitive2(CannotFail, CanInline), Foldable
 			edgeTo(truePath),
 			edgeTo(falsePath))
 		startBlock(truePath)
-		callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+		callSiteHelper.useAnswer(boxedConstant(trueObject))
 		startBlock(falsePath)
-		callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+		callSiteHelper.useAnswer(boxedConstant(falseObject))
 		return true
 	}
 

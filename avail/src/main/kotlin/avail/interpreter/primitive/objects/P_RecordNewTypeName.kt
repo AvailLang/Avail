@@ -49,7 +49,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -61,10 +60,7 @@ import avail.interpreter.primitive.Primitive2
 object P_RecordNewTypeName : Primitive2(
 	CanInline,
 	CannotFail,
-	HasSideEffect,
-	// The type might contain an instance type on an escaped variables,
-	// making it shared here.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

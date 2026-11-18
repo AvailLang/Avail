@@ -54,7 +54,6 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive2
 
@@ -72,9 +71,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_DisableTraceVariableReadsBeforeWrites : Primitive2(
 	 HasSideEffect,
-	WritesToHiddenGlobalState,
-	// If the reactorFunction captured a local variable, it will become shared.
-	MightMakeEscapedVariableShared)
+	WritesToHiddenGlobalState)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

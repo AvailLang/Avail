@@ -150,7 +150,7 @@ object P_TupleToSet : Primitive1(CannotFail, CanInline), Foldable
 		val write = boxedWrite(
 			semanticResult, restrictionForType(restriction))
 		+L2_CREATE_SET(L2ReadBoxedVectorOperand(elementRegs), write)
-		callSiteHelper.useAnswer(readBoxed(write), false)
+		callSiteHelper.useAnswer(readBoxed(write))
 		return true
 	}
 }

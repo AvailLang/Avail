@@ -51,7 +51,6 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -60,10 +59,7 @@ import avail.interpreter.primitive.Primitive2
 @Suppress("unused")
 object P_Swap : Primitive2(
 	CanInline,
-	HasSideEffect,
-	// If either variable had a reactor, the reads or writes could activate
-	// them, which might cause a variable captured in them to become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

@@ -59,7 +59,6 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.Strings.increaseIndentation
 
 /**
@@ -91,14 +90,6 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 ): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
-
-	/** If it's primitive, defer to it, otherwise assume the worst. */
-	override fun L2ValueManifest.mightMakeEscapedVariableShared(): Boolean =
-		when (val prim = constantFunction.constant.code().codePrimitive())
-		{
-			null -> true
-			else -> prim.mightMakeEscapedVariableShared()
-		}
 
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't

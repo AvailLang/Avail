@@ -155,7 +155,7 @@ object P_ParamTypeAt : Primitive2(CanInline), Foldable
 		// function, the resulting argument type can't be top or bottom.
 		val read = callSiteHelper.generator.extractParameterTypeFromFunction(
 			functionTypeDefinition.value, exactIndex.extractInt)
-		callSiteHelper.useAnswer(read, false)
+		callSiteHelper.useAnswer(read)
 		return true
 	}
 }

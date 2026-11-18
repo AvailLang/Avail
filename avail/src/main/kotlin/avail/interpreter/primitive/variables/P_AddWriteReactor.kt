@@ -53,7 +53,6 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 
 /**
@@ -65,9 +64,7 @@ import avail.interpreter.primitive.Primitive3
  */
 @Suppress("unused")
 object P_AddWriteReactor : Primitive3(
-	HasSideEffect,
-	// The variable gets a reactor here.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

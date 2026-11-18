@@ -59,7 +59,6 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.PrimitiveN
 
 /**
@@ -73,9 +72,7 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_CreateLiteralToken : PrimitiveN(
 	5,
-	CanInline,
-	// The token might contain an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	CanInline)
 {
 	override fun attemptN(
 		interpreter: Interpreter,

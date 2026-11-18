@@ -69,7 +69,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 
 /**
@@ -81,9 +80,7 @@ import avail.interpreter.primitive.Primitive3
 @Suppress("unused")
 object P_AtomicAddToMap : Primitive3(
 	CanInline,
-	HasSideEffect,
-	// A variable may be part of the value, so it could become shared here.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

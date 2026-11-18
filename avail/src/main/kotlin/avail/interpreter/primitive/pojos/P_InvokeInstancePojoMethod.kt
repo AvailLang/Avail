@@ -52,7 +52,6 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveHelper.marshalValues
 import avail.interpreter.primitive.PrimitiveN
@@ -79,9 +78,7 @@ import java.lang.reflect.Method
 object P_InvokeInstancePojoMethod : PrimitiveN(
 	-1,
 	Private,
-	HasSideEffect,
-	// An argument might capture an escaped variable and make it shared here.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attemptN(
 		interpreter: Interpreter,

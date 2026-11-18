@@ -62,7 +62,6 @@ import avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.primitive.PrimitiveN
 
@@ -76,9 +75,7 @@ import avail.interpreter.primitive.PrimitiveN
 @Suppress("unused")
 object P_CreateBlockExpression : PrimitiveN(
 	5,
-	CanInline,
-	// The resultType might contain an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	CanInline)
 {
 	override fun attemptN(
 		interpreter: Interpreter,

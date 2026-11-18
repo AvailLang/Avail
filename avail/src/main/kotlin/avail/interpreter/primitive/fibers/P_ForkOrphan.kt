@@ -67,7 +67,6 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive3
 
@@ -82,8 +81,7 @@ import avail.interpreter.primitive.Primitive3
 object P_ForkOrphan : Primitive3(
 	CanInline,
 	HasSideEffect,
-	WritesToHiddenGlobalState,
-	MightMakeEscapedVariableShared)
+	WritesToHiddenGlobalState)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

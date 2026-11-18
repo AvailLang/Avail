@@ -225,16 +225,13 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 				inputTuple,
 				readBoxed(elementTemp),
 				resultWrite)
-			callSiteHelper.useAnswer(
-				readBoxed(resultWrite),
-				// Append to a tuple can't endanger escaped locals.
-				false)
+			callSiteHelper.useAnswer(readBoxed(resultWrite))
 			return true
 		}
 		when (adjustedSources.size)
 		{
-			0 -> callSiteHelper.useAnswer(boxedConstant(emptyTuple), false)
-			1 -> callSiteHelper.useAnswer(adjustedSources[0], false)
+			0 -> callSiteHelper.useAnswer(boxedConstant(emptyTuple))
+			1 -> callSiteHelper.useAnswer(adjustedSources[0])
 			else ->
 			{
 				val guaranteedType = returnTypeGuaranteedByVM(
@@ -245,7 +242,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 				+L2_CONCATENATE_TUPLES(
 					L2ReadBoxedVectorOperand(adjustedSources),
 					write)
-				callSiteHelper.useAnswer(readBoxed(write), false)
+				callSiteHelper.useAnswer(readBoxed(write))
 			}
 		}
 		return true

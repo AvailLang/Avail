@@ -51,7 +51,6 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive1
 
 /**
@@ -60,10 +59,7 @@ import avail.interpreter.primitive.Primitive1
 @Suppress("unused")
 object P_ClearValue : Primitive1(
 	CanInline,
-	HasSideEffect,
-	// If the variable had a reactor, clearing it can activate that reactor,
-	// which might cause a variable captured in it to become shared.
-	MightMakeEscapedVariableShared)
+	HasSideEffect)
 {
 	override fun attempt1(
 		interpreter: Interpreter,

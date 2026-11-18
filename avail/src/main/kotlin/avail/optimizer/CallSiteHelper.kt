@@ -45,10 +45,8 @@ import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckNoEscapes
-import avail.optimizer.CallSiteHelper.JunctionType.AfterCallNoCheckTestEscapes
-import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckNoEscapes
-import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheckTestEscapes
+import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheck
+import avail.optimizer.CallSiteHelper.JunctionType.AfterEverything
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE
 import avail.optimizer.values.L2SemanticValue
@@ -125,8 +123,7 @@ class CallSiteHelper internal constructor(
 	 * invocation sites of this potentially polymorphic call site.  They take
 	 * into account whether the invocation can complete, whether it produces a
 	 * value provable strong enough to satisfy semantic restrictions of the
-	 * call, whether reification is taking place, and whether the call might
-	 * cause escaped local variables to become shared or have reactors.
+	 * call, and whether reification is taking place.
 	 */
 	enum class JunctionType
 	private constructor(
@@ -140,7 +137,7 @@ class CallSiteHelper internal constructor(
 		 * If this junction is reached, generate a slow lookup using the
 		 * [LookupTree] mechanism, followed by a generic invocation.  Then jump
 		 * to a suitable [JunctionType], based on whether *any* of the looked-up
-		 * functions might require return type checking and local escape checks.
+		 * functions might require return type checking.
 		 */
 		FallBackToSlowLookup(
 			namePattern = {"fall back to slow lookup during $bundle"},
@@ -176,7 +173,7 @@ class CallSiteHelper internal constructor(
 							translator.getLatestReturnValue(
 								"unchecked result",
 								unionOfPossibleResults))
-						generator.jumpTo(this[AfterCallWithCheckTestEscapes])
+						generator.jumpTo(this[AfterCallWithCheck])
 					}
 				}
 			}),
@@ -210,7 +207,7 @@ class CallSiteHelper internal constructor(
 							translator.getLatestReturnValue(
 								"no-check result",
 								guaranteedType))
-						generator.jumpTo(this[AfterCallNoCheckTestEscapes])
+						generator.jumpTo(this[AfterEverything])
 					}
 				}
 			}),
@@ -236,7 +233,7 @@ class CallSiteHelper internal constructor(
 		/**
 		 * Where to jump after a completed call to perform a return type check.
 		 */
-		AfterCallWithCheckNoEscapes(
+		AfterCallWithCheck(
 			{"after$superString call with check of $bundle"},
 			generate = {
 				// The unchecked return value will have been put into the
@@ -245,59 +242,13 @@ class CallSiteHelper internal constructor(
 				// register that's bound to the L2SemanticSlot for the stackp
 				// and pc just after the call.
 				translator.generateReturnTypeCheck(expectedType)
-				generator.jumpTo(this[AfterCallNoCheckNoEscapes])
-			}),
-
-		/**
-		 * Where to jump after a completed call if a return type check isn't
-		 * needed.
-		 */
-		AfterCallNoCheckNoEscapes(
-			{"after$superString no-check call of $bundle"},
-			generate = {
-				// Make the version of the stack with the unchecked value
-				// available. The value will have been put into a register bound
-				// to the L2SemanticSlot for the stackp and pc just after the
-				// call.
-				translator.emitCheckLocals(false, "unused comment")
-				generator.jumpTo(this[AfterEverything])
-			}),
-
-		/**
-		 * Where to jump after a completed call to perform a return type check,
-		 * if we also have to test for escaped locals becoming shared or having
-		 * reactors.
-		 */
-		AfterCallWithCheckTestEscapes(
-			{"after$superString call with check of $bundle"},
-			generate = {
-				// The unchecked return value will have been put into the
-				// register bound to the L2SemanticSlot for the stackp and pc
-				// just after the call MINUS ONE.  Check it, moving it to a
-				// register that's bound to the L2SemanticSlot for the stackp
-				// and pc just after the call.
-				translator.generateReturnTypeCheck(expectedType)
-				generator.jumpTo(this[AfterCallNoCheckTestEscapes])
-			}),
-
-		/**
-		 * Where to jump after a completed call if a return type check isn't
-		 * needed.
-		 */
-		AfterCallNoCheckTestEscapes(
-			{"after$superString no-check call of $bundle"},
-			generate = {
-				// Make the version of the stack with the unchecked value
-				// available. The value will have been put into a register bound
-				// to the L2SemanticSlot for the stackp and pc just after the
-				// call.
-				translator.emitCheckLocals(true, "after call no check $bundle")
 				generator.jumpTo(this[AfterEverything])
 			}),
 
 		/**
 		 * Where it ends up after the entire call, regardless of whether the
-		 * returned value had to be checked or not.
+		 * returned value had to be checked or not.  A call whose value needs no
+		 * check jumps here directly.
 		 */
 		AfterEverything(
 			{"after entire$superString call of $bundle"},
@@ -373,24 +324,14 @@ class CallSiteHelper internal constructor(
 
 	/**
 	 * Record the fact that this call has produced a value in a particular
-	 * [answerReg] which is to represent the new top-of-stack value.  If the
-	 * call has the potential to have made one or more local variables of this
-	 * frame shared or to give them recators, [mightEndangerEscapedLocals] must
-	 * be true. That will lead to extra checks for those cases, falling out to
-	 * the L1 interpreter if so.
+	 * [answerReg] which is to represent the new top-of-stack value.
 	 *
 	 * @param answerReg
 	 *   The register which will already hold the return value at this point.
 	 *   The value has not yet been type checked against the expectedType at
 	 *   this point, but it should comply with the type guarantees of the VM.
-	 * @param mightEndangerEscapedLocals
-	 *   If true, after the call we should check whether any escaped variables
-	 *   might have become shared or had write reactors added to them.
-	 *   Otherwise, don't bother checking.
 	 */
-	fun useAnswer(
-		answerReg: L2ReadBoxedOperand,
-		mightEndangerEscapedLocals: Boolean)
+	fun useAnswer(answerReg: L2ReadBoxedOperand)
 	{
 		val answerType = generator.run { answerReg.type }
 		when
@@ -407,12 +348,7 @@ class CallSiteHelper internal constructor(
 				// Capture it as the checked value L2SemanticSlot.
 				translator.forceSlotMove(
 					translator.stackp, translator.pc, answerReg)
-				generator.jumpTo(
-					when (mightEndangerEscapedLocals)
-					{
-						true -> this[AfterCallNoCheckTestEscapes]
-						else -> this[AfterCallNoCheckNoEscapes]
-					})
+				generator.jumpTo(this[AfterEverything])
 			}
 			else ->
 			{
@@ -420,12 +356,7 @@ class CallSiteHelper internal constructor(
 				// using pc - 1.
 				translator.forceSlotMove(
 					translator.stackp, translator.pc - 1, answerReg)
-				generator.jumpTo(
-					when (mightEndangerEscapedLocals)
-					{
-						true -> this[AfterCallWithCheckTestEscapes]
-						else -> this[AfterCallWithCheckNoEscapes]
-					})
+				generator.jumpTo(this[AfterCallWithCheck])
 			}
 		}
 		assert(!generator.currentlyReachable())
@@ -442,7 +373,7 @@ class CallSiteHelper internal constructor(
 		constantResult: A_BasicObject)
 	{
 		if (!generator.currentlyReachable()) return
-		useAnswer(generator.boxedConstant(constantResult), false)
+		useAnswer(generator.boxedConstant(constantResult))
 	}
 
 	/**

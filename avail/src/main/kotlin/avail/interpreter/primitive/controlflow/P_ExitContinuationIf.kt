@@ -175,7 +175,7 @@ object P_ExitContinuationIf : Primitive2(
 			startBlock(noExit)
 			if (currentlyReachable())
 			{
-				callSiteHelper.useAnswer(boxedConstant(nil), false)
+				callSiteHelper.useAnswer(boxedConstant(nil))
 			}
 			return true
 		}

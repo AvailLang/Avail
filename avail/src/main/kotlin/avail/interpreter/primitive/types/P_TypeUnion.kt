@@ -122,26 +122,25 @@ object P_TypeUnion : Primitive2(CannotFail, CanInline), Foldable
 			// ⊥ ∪ x = x
 			argType1.equals(bottomMeta) ->
 			{
-				callSiteHelper.useAnswer(arg2, false)
+				callSiteHelper.useAnswer(arg2)
 				return true
 			}
 			// x ∪ ⊥ = x
 			argType2.equals(bottomMeta) ->
 			{
-				callSiteHelper.useAnswer(arg1, false)
+				callSiteHelper.useAnswer(arg1)
 				return true
 			}
 			// fold constant types
 			const1 !== null && const2 !== null ->
 				callSiteHelper.useAnswer(
-					boxedConstant(const1.typeUnion(const2)),
-					false)
+					boxedConstant(const1.typeUnion(const2)))
 			// t ∪ x = t, if t is a constant type subsuming x
 			const1 !== null && argType2.instance.isSubtypeOf(const1) ->
-				callSiteHelper.useAnswer(arg1, false)
+				callSiteHelper.useAnswer(arg1)
 			// x ∪ t = t, if t is a constant type subsuming x
 			const2 !== null && argType1.instance.isSubtypeOf(const2) ->
-				callSiteHelper.useAnswer(arg2, false)
+				callSiteHelper.useAnswer(arg2)
 			// if x≠⊥ ∧ y≠⊥, then (x∪y)≠⊥.
 			!arg1.restriction.containsEntireType(bottomMeta) &&
 				!arg2.restriction.containsEntireType(bottomMeta) ->
@@ -160,7 +159,7 @@ object P_TypeUnion : Primitive2(CannotFail, CanInline), Foldable
 		}
 		val writer = boxedWriteTemp("type union", restriction)
 		+L2_TYPE_UNION(arg1, arg2, writer)
-		callSiteHelper.useAnswer(readBoxed(writer), false)
+		callSiteHelper.useAnswer(readBoxed(writer))
 		return true
 	}
 }

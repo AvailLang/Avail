@@ -436,21 +436,6 @@ interface A_Variable : A_ChunkDependable
 			dispatch { o_GetValueForDebugger(it) }
 
 		/**
-		 * Examine this variable.  If it's shared or might have a reactor, answer
-		 * true.
-		 */
-		fun A_Variable.checkForSharedOrReactors(): Boolean
-		{
-			val traversed = traversed()
-			val traversedDescriptor = traversed.descriptor as VariableDescriptor
-			if (traversedDescriptor.isShared) return true
-			return !traversedDescriptor.withWriteReactorsToModify(
-				traversed,
-				toModify = false,
-				body = MutableMap<*, *>?::isNullOrEmpty)
-		}
-
-		/**
 		 * Answer whether this variable is both a write-once variable and
 		 * initialized from an expression which is stable – always produces the
 		 * same value (modulo loading of modules) and has no side effects.
@@ -555,16 +540,5 @@ interface A_Variable : A_ChunkDependable
 			A_Variable::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
-
-
-		@ReferencedInGeneratedCode
-		@JvmStatic
-		fun staticCheckForSharedOrReactors(variable: A_Variable): Boolean =
-			variable.checkForSharedOrReactors()
-
-		/** The [CheckedMethod] for [staticCheckForSharedOrReactors]. */
-		val checkForSharedOrReactorsMethod = staticMethod(
-			::staticCheckForSharedOrReactors,
-			A_Variable::class.java)
 	}
 }

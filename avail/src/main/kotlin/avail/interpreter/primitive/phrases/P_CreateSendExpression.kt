@@ -64,7 +64,6 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive3
 
 /**
@@ -78,9 +77,7 @@ import avail.interpreter.primitive.Primitive3
  */
 @Suppress("unused")
 object P_CreateSendExpression : Primitive3(
-	CanInline,
-	// The returnType might contain an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	CanInline)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

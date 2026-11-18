@@ -85,8 +85,7 @@ object P_CharacterCodePoint : Primitive1(CannotFail, CanInline), Foldable
 		if (characterInstruction is L2_CODEPOINT_TO_CHARACTER)
 		{
 			callSiteHelper.useAnswer(
-				readBoxed(characterInstruction.source.semanticValue()),
-				false)
+				readBoxed(characterInstruction.source.semanticValue()))
 			return true
 		}
 		return false

@@ -226,9 +226,9 @@ object P_BitTest : Primitive2(CannotFail, CanInline), Foldable
 			ifTrue = edgeTo(isZeroLabel),
 			ifFalse = edgeTo(isOneLabel))
 		startBlock(isZeroLabel)
-		callSiteHelper.useAnswer(boxedConstant(falseObject), false)
+		callSiteHelper.useAnswer(boxedConstant(falseObject))
 		startBlock(isOneLabel)
-		callSiteHelper.useAnswer(boxedConstant(trueObject), false)
+		callSiteHelper.useAnswer(boxedConstant(trueObject))
 		startBlock(fallback)
 		// If the fallback is reachable, return false to indicate general
 		// infallible primitive invocation code should be generated for it,

@@ -51,7 +51,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.primitive.Primitive2
 
@@ -65,8 +64,7 @@ object P_SetFiberVariable : Primitive2(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
-	WritesToHiddenGlobalState,
-	MightMakeEscapedVariableShared)
+	WritesToHiddenGlobalState)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

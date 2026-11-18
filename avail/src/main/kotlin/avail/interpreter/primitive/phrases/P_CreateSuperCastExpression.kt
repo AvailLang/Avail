@@ -52,7 +52,6 @@ import avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_T
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive.Flag.MightMakeEscapedVariableShared
 import avail.interpreter.primitive.Primitive2
 
 /**
@@ -64,9 +63,7 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_CreateSuperCastExpression : Primitive2(
-	CanInline,
-	// The lookupType might contain an escaped variable, making it shared here.
-	MightMakeEscapedVariableShared)
+	CanInline)
 {
 	override fun attempt2(
 		interpreter: Interpreter,
