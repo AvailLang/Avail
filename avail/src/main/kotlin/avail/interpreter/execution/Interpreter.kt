@@ -114,7 +114,6 @@ import avail.descriptor.representation.A_Tuple.Companion.copyTupleFromToCanDestr
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Variable
-import avail.descriptor.representation.A_Variable.Companion.isPlaceholderVariable
 import avail.descriptor.representation.A_Variable.Companion.value
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
@@ -1547,7 +1546,7 @@ final class Interpreter(
 								P_CatchException.slotIndexOfGuardVariable)
 							val guardValue = when
 							{
-								guard.isPlaceholderVariable() -> "(elided)"
+								guard.isNil -> "(elided)"
 								guard.isInstanceOfKind(mostGeneralVariableType)
 									-> guard.value().toString()
 								else -> "unknown"

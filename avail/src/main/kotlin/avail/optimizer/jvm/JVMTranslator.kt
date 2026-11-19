@@ -34,8 +34,10 @@ package avail.optimizer.jvm
 import avail.AvailRuntimeSupport
 import avail.AvailThread
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
+import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_RawFunction
@@ -51,6 +53,8 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
+import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.JavaLibrary.getClassLoader
 import avail.interpreter.JavaLibrary.javaBoxLongMethod
 import avail.interpreter.JavaLibrary.javaUnboxDoubleMethod
@@ -83,6 +87,8 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
@@ -276,10 +282,10 @@ class JVMTranslator constructor(
 
 	/**
 	 * A map from each offset of [entry&#32;points][L2Instruction.isEntryPoint]
-	 * into the [L2Chunk] to a [Map].  The map is from [RegisterKind] to a
-	 * [List] of live [L2Register] numbers of that kind.  The registers are
-	 * restored from an [A_RegisterDump] during re-entry.  This all gets set up
-	 * during generation of the preceding [L2_SAVE_ALL_AND_PC_TO_INT].
+	 * into the [L2Chunk] to the [RegisterDumpLayout] of the live registers
+	 * that are restored from an [A_RegisterDump] during re-entry.  This all
+	 * gets set up during generation of the preceding
+	 * [L2_SAVE_ALL_AND_PC_TO_INT].
 	 *
 	 * During initial generation and optimization of the [L2ControlFlowGraph],
 	 * the edge from the [L2_SAVE_ALL_AND_PC_TO_INT] to its [L2_ENTER_L2_CHUNK]
@@ -287,11 +293,252 @@ class JVMTranslator constructor(
 	 * instruction captures the live registers into an [A_RegisterDump] and the
 	 * latter instruction restores them.
 	 */
-	val entryPointLiveInfo =
-		mutableMapOf<Int, Map<RegisterKind<*>, List<Int>>>()
+	val entryPointLiveInfo = mutableMapOf<Int, RegisterDumpLayout>()
+
+	/**
+	 * A map from the offset of each [L2_ENTER_FREEZE] to the
+	 * [RegisterDumpLayout] of the registers that are live along the
+	 * [freeze][L2_CREATE_CONTINUATION.freeze] edge leading to it.  The
+	 * [L2_CREATE_CONTINUATION] saves them into the room reserved after the
+	 * registers saved by the [L2_SAVE_ALL_AND_PC_TO_INT], and the
+	 * [L2_ENTER_FREEZE] restores them.  This is set up by [prepare].
+	 */
+	val freezeDumpLayouts = mutableMapOf<Int, RegisterDumpLayout>()
+
+	/**
+	 * A map from each [L2_SAVE_ALL_AND_PC_TO_INT] whose register dump feeds an
+	 * [L2_CREATE_CONTINUATION] with a [freeze][L2_CREATE_CONTINUATION.freeze]
+	 * edge, to the [RegisterDumpLayout] of the registers that the latter will
+	 * save in it.  The former reserves room for them when it creates the
+	 * dump.  This is set up by [prepare].
+	 */
+	val freezeReservations =
+		mutableMapOf<L2Instruction, RegisterDumpLayout>()
+
+	/**
+	 * The [L2BasicBlock]s reachable from an [L2_ENTER_FREEZE], which are
+	 * translated into the [ExecutableChunk.freeze] method rather than the
+	 * [ExecutableChunk.runChunk] method.  This is set up by [prepare].
+	 */
+	private val freezeBlocks = mutableSetOf<L2BasicBlock>()
+
+	/**
+	 * A map from each offset at which the [ExecutableChunk.freeze] method can
+	 * start, to its [Label].  These are the [L2_ENTER_FREEZE] instructions,
+	 * and when [debugNicerJavaDecompilation] is set, the start of each block
+	 * in [freezeBlocks].
+	 */
+	private val freezeEntryPoints = mutableMapOf<Int, Label>()
+
+	/**
+	 * Whether the [ExecutableChunk.freeze] method is being generated.  It has
+	 * no [Interpreter], so [loadInterpreter] is forbidden while this is set,
+	 * and code that would use the interpreter only as an optimization, such
+	 * as its recycling pool for boxed integers, should do without it.
+	 */
+	var isGeneratingFreeze = false
+		private set
 
 	/** The current [MethodVisitor] being generated. */
 	lateinit var method : MethodVisitor private set
+
+	/**
+	 * Where a group of registers is saved in an [A_RegisterDump]: the boxed
+	 * registers in consecutive object slots starting after [objectBase], and
+	 * the int registers followed by the float registers in consecutive long
+	 * slots starting after [longBase].
+	 *
+	 * @property objectBase
+	 *   The number of object slots that precede this group's.
+	 * @property longBase
+	 *   The number of long slots that precede this group's.
+	 * @property boxed
+	 *   The boxed registers, in the order they're saved.
+	 * @property ints
+	 *   The int registers, in the order they're saved.
+	 * @property floats
+	 *   The float registers, in the order they're saved after the [ints].
+	 */
+	class RegisterDumpLayout(
+		val objectBase: Int,
+		val longBase: Int,
+		val boxed: List<L2BoxedRegister>,
+		val ints: List<L2Register<*>>,
+		val floats: List<L2Register<*>>)
+	{
+		/** The registers saved in long slots, ints first, then floats. */
+		val longRegisters get() = ints + floats
+
+		/** The number of object slots this group occupies. */
+		val objectCount get() = boxed.size
+
+		/** The number of long slots this group occupies. */
+		val longCount get() = ints.size + floats.size
+
+		/** Whether this group has no registers. */
+		val isEmpty get() = objectCount == 0 && longCount == 0
+	}
+
+	/**
+	 * Answer the [RegisterDumpLayout] of the registers live along the given
+	 * edge, placed after the given numbers of object and long slots.
+	 *
+	 * @param edge
+	 *   The [L2PcOperand] whose [liveness][L2PcOperand.liveness] says which
+	 *   registers to save.
+	 * @param objectBase
+	 *   The number of object slots that precede the layout's.
+	 * @param longBase
+	 *   The number of long slots that precede the layout's.
+	 * @return
+	 *   The [RegisterDumpLayout].
+	 */
+	fun registerDumpLayout(
+		edge: L2PcOperand,
+		objectBase: Int,
+		longBase: Int
+	): RegisterDumpLayout
+	{
+		val registers = edge.liveness!!.registers
+			.sortedBy(L2Register<*>::finalIndex)
+			.distinctBy(::localNumberFromRegister)
+		return RegisterDumpLayout(
+			objectBase,
+			longBase,
+			registers.filterIsInstance<L2BoxedRegister>(),
+			registers.filter { it.kind == INTEGER_KIND },
+			registers.filter { it.kind == FLOAT_KIND })
+	}
+
+	/**
+	 * With an [A_RegisterDump] on the stack, generate code to save the
+	 * registers of the given [RegisterDumpLayout] into its slots, leaving the
+	 * register dump on the stack.  The slots must have been reserved when the
+	 * dump was created.
+	 *
+	 * @param layout
+	 *   Which registers to save, and where.
+	 */
+	fun saveRegistersIntoDump(layout: RegisterDumpLayout)
+	{
+		layout.boxed.forEachIndexed { i, register ->
+			// :: [dump]
+			intConstant(layout.objectBase + i + 1)
+			loadRegister(register)
+			generateCall(RegisterDumpDescriptor.storeDumpedObjectMethod)
+		}
+		layout.longRegisters.forEachIndexed { i, register ->
+			// :: [dump]
+			intConstant(layout.longBase + i + 1)
+			loadRegisterAsLong(register)
+			generateCall(RegisterDumpDescriptor.storeDumpedLongMethod)
+		}
+		// :: [dump]
+	}
+
+	/**
+	 * With an [A_RegisterDump] on the stack, generate code to restore the
+	 * registers of the given [RegisterDumpLayout] from its slots, consuming
+	 * the register dump.
+	 *
+	 * @param layout
+	 *   Which registers to restore, and from where.
+	 */
+	fun restoreRegistersFromDump(layout: RegisterDumpLayout)
+	{
+		var countdown = layout.objectCount + layout.longCount
+		if (countdown == 0)
+		{
+			method.visitInsn(Opcodes.POP)
+			return
+		}
+		layout.boxed.forEachIndexed { i, register ->
+			if (--countdown > 0)
+			{
+				// :: [dump, dump]
+				method.visitInsn(Opcodes.DUP)
+			}
+			intConstant(layout.objectBase + i + 1)
+			generateCall(A_RegisterDump.extractDumpedObjectAtMethod)
+			method.visitVarInsn(
+				BOXED_KIND.jvmStoreInstruction,
+				localNumberFromRegister(register))
+			// :: [dump], or [] on last use
+		}
+		layout.longRegisters.forEachIndexed { i, register ->
+			if (--countdown > 0)
+			{
+				// :: [dump, dump]
+				method.visitInsn(Opcodes.DUP)
+			}
+			intConstant(layout.longBase + i + 1)
+			generateCall(A_RegisterDump.extractDumpedLongAtMethod)
+			if (register.kind == FLOAT_KIND)
+			{
+				generateCall(bitCastLongToDoubleMethod)
+			}
+			// Int registers hold the dumped long directly.
+			method.visitVarInsn(
+				register.kind.jvmStoreInstruction,
+				localNumberFromRegister(register))
+			// :: [dump], or [] on last use
+		}
+		assert(countdown == 0)
+	}
+
+	/**
+	 * Generate a push of the given int or float register's value as a `long`,
+	 * as it's saved in an [A_RegisterDump].  An int register already holds a
+	 * `long`, and a float register's `double` is converted to its bits.
+	 *
+	 * @param register
+	 *   The int or float [L2Register] to push.
+	 */
+	fun loadRegisterAsLong(register: L2Register<*>)
+	{
+		when (register.kind)
+		{
+			INTEGER_KIND -> loadLongRegister(register)
+			FLOAT_KIND ->
+			{
+				loadRegister(register)
+				generateCall(bitCastDoubleToLongMethod)
+			}
+			else -> throw AssertionError("Not an int or float register")
+		}
+	}
+
+	/**
+	 * With an [A_Continuation] on the stack, generate code to write the given
+	 * values into its frame slots, leaving the continuation on the stack.
+	 *
+	 * @param slotReads
+	 *   Pairs of one-based frame slot indices and the boxed reads whose values
+	 *   to write there.
+	 */
+	fun frameAtPutAll(slotReads: List<Pair<Int, L2ReadBoxedOperand>>)
+	{
+		// :: [continuation]
+		slotReads.chunked(6).forEach { batch ->
+			batch.forEach { (slotIndex, read) ->
+				intConstant(slotIndex)
+				load(read)
+			}
+			// Each method answers the continuation, to simplify stack
+			// handling.
+			generateCall(
+				when (batch.size)
+				{
+					1 -> AvailObject.frameAtPutMethod
+					2 -> AvailObject.frameAtPut2Method
+					3 -> AvailObject.frameAtPut3Method
+					4 -> AvailObject.frameAtPut4Method
+					5 -> AvailObject.frameAtPut5Method
+					else -> AvailObject.frameAtPut6Method
+				})
+			// :: [continuation]
+		}
+	}
 
 	/**
 	 * When a [JVMTranslator] is a receiver, this accesses the restrioction of a
@@ -431,18 +678,22 @@ class JVMTranslator constructor(
 	val literals = mutableMapOf<Any, LiteralAccessor>()
 
 	/**
-	 * The start of the runChunk method, where the offset is used to jump to the
-	 * start of the control flow graph, or the specified entry point.
+	 * The start of the method being generated (runChunk or freeze), where the
+	 * offset is used to jump to the start of the control flow graph, or the
+	 * specified entry point.
 	 */
-	val methodHead = Label()
+	var methodHead = Label()
+		private set
 
 	/**
-	 * An entry point near the end of the method, which jumps back to the
-	 * [methodHead] for the purpose of performing a jump to a specified L2
-	 * offset without having the Fernflower Java decompiler produce tons of
-	 * spurious nested blocks, breaks, and duplicated code.  It's not very good.
+	 * An entry point near the end of the method being generated, which jumps
+	 * back to the [methodHead] for the purpose of performing a jump to a
+	 * specified L2 offset without having the Fernflower Java decompiler
+	 * produce tons of spurious nested blocks, breaks, and duplicated code.
+	 * It's not very good.
 	 */
-	val jumper = Label()
+	var jumper = Label()
+		private set
 
 	/**
 	 * The [L2PcOperand]'s encapsulated program counters, mapped to their
@@ -806,9 +1057,38 @@ class JVMTranslator constructor(
 	 */
 	fun prepare()
 	{
+		// Find the freeze subgraphs, which are translated into the freeze
+		// method instead of runChunk.
+		val freezeWork = instructions
+			.filterIsInstance<L2_ENTER_FREEZE>()
+			.mapTo(mutableListOf()) { it.basicBlock() }
+		while (freezeWork.isNotEmpty())
+		{
+			val block = freezeWork.removeLast()
+			if (freezeBlocks.add(block))
+			{
+				block.successorEdges().mapTo(freezeWork) { it.targetBlock() }
+			}
+		}
+		freezeBlocks.forEach { block ->
+			block.predecessorEdges().forEach { edge ->
+				assert(edge.instruction.basicBlock() in freezeBlocks
+					|| edge.instruction is L2_CREATE_CONTINUATION
+						&& block.instructions()[0] is L2_ENTER_FREEZE)
+				{
+					"Freeze subgraph block ${block.name()} is reachable " +
+						"from outside the freeze subgraph"
+				}
+			}
+		}
 		val preparer = JVMTranslationPreparer()
 		instructions.forEach { instruction ->
-			var include = instruction.isEntryPoint
+			val isFreeze = instruction.basicBlock() in freezeBlocks
+			var include = when (isFreeze)
+			{
+				true -> instruction is L2_ENTER_FREEZE
+				false -> instruction.isEntryPoint
+			}
 			if (debugNicerJavaDecompilation && !include)
 			{
 				// Normally we only keep L2_ENTER_L2_CHUNK entry points in the
@@ -821,7 +1101,11 @@ class JVMTranslator constructor(
 			if (include)
 			{
 				val label = Label()
-				entryPoints[instruction.offset] = label
+				when (isFreeze)
+				{
+					true -> freezeEntryPoints[instruction.offset] = label
+					false -> entryPoints[instruction.offset] = label
+				}
 				labels[instruction.offset] = label
 			}
 			if (instruction is L2_JUMP
@@ -831,6 +1115,46 @@ class JVMTranslator constructor(
 					instruction.target.offset()
 			}
 			instruction.operands.forEach { it.dispatchOperand(preparer) }
+		}
+		// Lay out where each freeze subgraph's registers go in the register
+		// dump, after the registers saved by the L2_SAVE_ALL_AND_PC_TO_INT
+		// that created it.
+		instructions.forEach { instruction ->
+			if (instruction !is L2_CREATE_CONTINUATION) return@forEach
+			val edge = instruction.freeze.edges.singleOrNull()
+				?: return@forEach
+			val saveAll = saveAllFeeding(instruction)
+			val saved = registerDumpLayout(saveAll.reference, 0, 0)
+			val layout = registerDumpLayout(
+				edge, saved.objectCount, saved.longCount)
+			freezeDumpLayouts[edge.offset()] = layout
+			assert(saveAll !in freezeReservations)
+			freezeReservations[saveAll] = layout
+		}
+	}
+
+	/**
+	 * Answer the [L2_SAVE_ALL_AND_PC_TO_INT] whose register dump the given
+	 * [L2_CREATE_CONTINUATION] uses.  The latter is reached only by following
+	 * the former's [ifFallThrough][L2_SAVE_ALL_AND_PC_TO_INT.ifFallThrough]
+	 * edge, perhaps through some jumps.
+	 *
+	 * @param create
+	 *   The [L2_CREATE_CONTINUATION].
+	 * @return
+	 *   The [L2_SAVE_ALL_AND_PC_TO_INT] that created its register dump.
+	 */
+	private fun saveAllFeeding(
+		create: L2_CREATE_CONTINUATION
+	): L2_SAVE_ALL_AND_PC_TO_INT
+	{
+		var block = create.basicBlock()
+		while (true)
+		{
+			val predecessor = block.predecessorEdges().single().instruction
+			if (predecessor is L2_SAVE_ALL_AND_PC_TO_INT) return predecessor
+			assert(predecessor is L2_JUMP)
+			block = predecessor.basicBlock()
 		}
 	}
 
@@ -1047,10 +1371,25 @@ class JVMTranslator constructor(
 
 	/**
 	 * Generate access to the JVM local for the [Interpreter] formal parameter
-	 * of a generated implementation of [JVMChunk.runChunk].
+	 * of a generated implementation of [JVMChunk.runChunk].  The
+	 * [freeze][ExecutableChunk.freeze] method has no interpreter.
 	 */
 	fun loadInterpreter()
 	{
+		assert(!isGeneratingFreeze) {
+			"The freeze method of $chunkName has no interpreter"
+		}
+		method.visitVarInsn(ALOAD, interpreterLocal())
+	}
+
+	/**
+	 * Generate access to the JVM local for the continuation formal parameter
+	 * of a generated implementation of [ExecutableChunk.freeze].  It occupies
+	 * the same local as the [Interpreter] parameter of [JVMChunk.runChunk].
+	 */
+	fun loadFrozenContinuation()
+	{
+		assert(isGeneratingFreeze)
 		method.visitVarInsn(ALOAD, interpreterLocal())
 	}
 
@@ -1731,30 +2070,7 @@ class JVMTranslator constructor(
 				methodHead,
 				endLabel,
 				offsetLocal())
-			// Initialize the register locals.
-			locals
-				.flatMap { (kind, value) ->
-					value.map { (finalIndex, localIndex) ->
-						Triple(kind, finalIndex, localIndex)
-					}
-				}
-				.sortedBy(Triple<*, *, Int>::third)
-				.forEach { (kind, finalIndex, localIndex) ->
-					when (kind)
-					{
-						BOXED_KIND -> method.visitInsn(ACONST_NULL)
-						INTEGER_KIND -> method.visitInsn(LCONST_0)
-						FLOAT_KIND -> doubleConstant(0.0)
-					}
-					method.visitVarInsn(kind.jvmStoreInstruction, localIndex)
-					method.visitLocalVariable(
-						kind.prefix + finalIndex,
-						kind.jvmTypeString,
-						null,
-						labelHere(),
-						endLabel,
-						localIndex)
-				}
+			initializeRegisterLocals(endLabel)
 		}
 		else if (debugJVM)
 		{
@@ -1799,9 +2115,10 @@ class JVMTranslator constructor(
 		method.visitVarInsn(ILOAD, offsetLocal())
 		val badOffsetLabel = Label()
 		method.visitLookupSwitchInsn(badOffsetLabel, offsets, entries)
-		// Translate the instructions.
+		// Translate the instructions, except for the freeze subgraphs.
 		for (instruction in instructions)
 		{
+			if (instruction.basicBlock() in freezeBlocks) continue
 			val label = labels[instruction.offset] ?: Label()
 			method.visitLabel(label)
 			method.visitLineNumber(
@@ -1851,6 +2168,122 @@ class JVMTranslator constructor(
 		// later if we care.
 		method.visitLabel(endLabel)
 		finishMethod()
+	}
+
+	/**
+	 * Initialize every register local to a zero value, and declare it for
+	 * debuggers.  This is only needed when [debugNicerJavaDecompilation] is
+	 * set, since jumps then go through the [jumper], and the verifier can no
+	 * longer prove that locals are set before use.
+	 *
+	 * @param endLabel
+	 *   The [Label] at the end of the method, where the locals' scopes end.
+	 */
+	private fun initializeRegisterLocals(endLabel: Label)
+	{
+		locals
+			.flatMap { (kind, value) ->
+				value.map { (finalIndex, localIndex) ->
+					Triple(kind, finalIndex, localIndex)
+				}
+			}
+			.sortedBy(Triple<*, *, Int>::third)
+			.forEach { (kind, finalIndex, localIndex) ->
+				when (kind)
+				{
+					BOXED_KIND -> method.visitInsn(ACONST_NULL)
+					INTEGER_KIND -> method.visitInsn(LCONST_0)
+					FLOAT_KIND -> doubleConstant(0.0)
+				}
+				method.visitVarInsn(kind.jvmStoreInstruction, localIndex)
+				method.visitLocalVariable(
+					kind.prefix + finalIndex,
+					kind.jvmTypeString,
+					null,
+					labelHere(),
+					endLabel,
+					localIndex)
+			}
+	}
+
+	/**
+	 * Generate the [ExecutableChunk.freeze] method of the target [JVMChunk],
+	 * if the chunk has any freeze subgraphs.  Like [generateRunChunk], it
+	 * uses a lookupswitch to start at the right offset, in this case the
+	 * [A_RegisterDump.freezeOffset] of the continuation's register dump, and
+	 * an offset of -1 returns immediately.  Its parameters occupy the same
+	 * locals as runChunk's, so the register locals are shared, with the
+	 * continuation in place of the [Interpreter], which it does not have.
+	 * See doc/Optimization/Level_Two/Variable_elision.md §Freezing.
+	 */
+	fun generateFreeze()
+	{
+		if (freezeEntryPoints.isEmpty()) return
+		isGeneratingFreeze = true
+		methodHead = Label()
+		jumper = Label()
+		method = classNode.visitMethod(
+			ACC_PUBLIC,
+			ExecutableChunk::freeze.name,
+			Type.getMethodDescriptor(
+				Type.VOID_TYPE,
+				Type.getType(AvailObject::class.java)),
+			null,
+			null)
+		method.visitParameter("continuation", ACC_FINAL)
+		method.visitCode()
+		val endLabel = Label()
+		if (debugNicerJavaDecompilation)
+		{
+			initializeRegisterLocals(endLabel)
+		}
+		// :: offset = continuation.registerDump().freezeOffset();
+		loadFrozenContinuation()
+		generateCall(AvailObject.registerDumpMethod)
+		generateCall(RegisterDumpDescriptor.freezeOffsetMethod)
+		method.visitVarInsn(ISTORE, offsetLocal())
+		method.visitLabel(methodHead)
+		// The lookupswitch requires its values to be in ascending order, and
+		// -1 precedes every offset.
+		val returnLabel = Label()
+		val badOffsetLabel = Label()
+		val entriesList =
+			freezeEntryPoints.entries.sortedBy(Map.Entry<Int, *>::key)
+		val offsets = intArrayOf(-1) +
+			IntArray(entriesList.size) { entriesList[it].key }
+		val entries = arrayOf(returnLabel) +
+			Array(entriesList.size) { entriesList[it].value }
+		// :: switch (offset) {…}
+		method.visitVarInsn(ILOAD, offsetLocal())
+		method.visitLookupSwitchInsn(badOffsetLabel, offsets, entries)
+		for (instruction in instructions)
+		{
+			if (instruction.basicBlock() !in freezeBlocks) continue
+			val label = labels[instruction.offset] ?: Label()
+			method.visitLabel(label)
+			method.visitLineNumber(instruction.offset, label)
+			instruction.run {
+				translateToJVM()
+			}
+		}
+		// :: return;
+		method.visitLabel(returnLabel)
+		method.visitInsn(RETURN)
+
+		method.visitLabel(badOffsetLabel)
+		// :: throw JVMChunk.badOffset(offset);
+		method.visitVarInsn(ILOAD, offsetLocal())
+		generateCall(JVMChunk.badOffsetMethod)
+		method.visitInsn(ATHROW)
+
+		if (debugNicerJavaDecompilation)
+		{
+			method.visitLabel(jumper)
+			method.visitJumpInsn(GOTO, methodHead)
+		}
+		method.visitLabel(endLabel)
+		finishMethod()
+		isGeneratingFreeze = false
 	}
 
 	private fun labelHere(): Label =
@@ -1962,6 +2395,9 @@ class JVMTranslator constructor(
 
 		/** Generate the runChunk() method. */
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
+
+		/** Generate the freeze() method, if there are freeze subgraphs. */
+		GENERATE_FREEZE(JVMTranslator::generateFreeze),
 
 		/**
 		 * Create the static &lt;clinit&gt; method for capturing constants.

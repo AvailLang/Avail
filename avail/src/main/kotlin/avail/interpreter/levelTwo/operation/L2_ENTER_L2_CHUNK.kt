@@ -32,10 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_RegisterDump
-import avail.descriptor.representation.A_RegisterDump.Companion.extractDumpedLongAtMethod
-import avail.descriptor.representation.A_RegisterDump.Companion.extractDumpedObjectAtMethod
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.interpreterRunChunkMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
@@ -45,9 +42,6 @@ import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -111,15 +105,8 @@ constructor(
 		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set
 		// up for us the lists of registers that were saved.  The interpreter
 		// should have extracted the registerDump for us already.
-		entryPointLiveInfo[offset]?.let { localNumberLists ->
-			val boxedList = localNumberLists[BOXED_KIND]!!
-			val intsList = localNumberLists[INTEGER_KIND]!!
-			val floatsList = localNumberLists[FLOAT_KIND]!!
-			val boxedCount = boxedList.size
-			val intsCount = intsList.size
-			val floatsCount = floatsList.size
-			var countdown = boxedCount + intsCount + floatsCount
-			if (countdown > 0)
+		entryPointLiveInfo[offset]?.let { layout ->
+			if (!layout.isEmpty)
 			{
 				// Extract the register dump from the current continuation.
 				loadInterpreter()
@@ -128,51 +115,7 @@ constructor(
 				// :: [continuation]
 				generateCall(AvailObject.registerDumpMethod)
 				// :: [registerDump]
-				// Stack now has the registerDump.
-				for (i in 0 until boxedCount)
-				{
-					if (--countdown > 0)
-					{
-						method.visitInsn(Opcodes.DUP)
-						// :: [registerDump, registerDump]
-					}
-					intConstant(i + 1) //one-based
-					generateCall(extractDumpedObjectAtMethod)
-					method.visitVarInsn(
-						BOXED_KIND.jvmStoreInstruction, boxedList[i])
-					// :: [registerDump], or [] on last use
-				}
-				var i = 1  //one-based
-				for (intRegisterIndex in intsList)
-				{
-					if (--countdown > 0)
-					{
-						method.visitInsn(Opcodes.DUP)
-						// :: [registerDump, registerDump]
-					}
-					intConstant(i++) //one-based
-					generateCall(extractDumpedLongAtMethod)
-					// The dump holds int registers' longs directly.
-					method.visitVarInsn(
-						INTEGER_KIND.jvmStoreInstruction, intRegisterIndex)
-					// :: [registerDump], or [] on last use
-				}
-				for (floatRegisterIndex in floatsList)
-				{
-					if (--countdown > 0)
-					{
-						method.visitInsn(Opcodes.DUP)
-						// :: [registerDump, registerDump]
-					}
-					intConstant(i++) //one-based
-					generateCall(extractDumpedLongAtMethod)
-					generateCall(bitCastLongToDoubleMethod)
-					method.visitVarInsn(
-						FLOAT_KIND.jvmStoreInstruction, floatRegisterIndex)
-					// :: [registerDump], or [] on last use
-				}
-				assert(countdown == 0)
-				// The last copy of registerDumps was popped.
+				restoreRegistersFromDump(layout)
 				// :: []
 			}
 		}

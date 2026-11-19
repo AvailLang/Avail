@@ -47,9 +47,9 @@ name are exactly the aliased ones.  The decision covers the whole function:
 a local pushed on any path is aliased on every path, from the start.
 
 An aliased local is created at the head of the function's body, before the
-interrupt check, by a `Create x := nil` that carries `nil` in place of a
-placeholder.  Such a `Create` is never postponed, so it never reaches
-`SaveAll`, and nothing ever stands in for the variable.  Every read and write
+interrupt check, by a `Create x := nil` that is not marked elidable.  Such a
+`Create` is never postponed, so it never reaches `SaveAll`, and the variable
+exists wherever the local is used.  Every read and write
 of an aliased local uses the general variable instructions,
 [L2_GET_VARIABLE], [L2_GET_VARIABLE_CLEARING_IF_MUTABLE], and
 [L2_SET_VARIABLE], none of which is ever postponed.  So each access happens
@@ -65,9 +65,8 @@ machinery knows how to transform.  The diagrams below use the shorthand on
 the left.
 
 - **`Create x := y`** — [L2_CREATE_VARIABLE].  Create local `#n`, initialized
-  to `y`, or unassigned if `y` is `nil`.  It also carries the placeholder for
-  local `#n` (see [Placeholders](#placeholders)), to stand in for the
-  variable if the creation never happens.  It can be postponed.
+  to `y`, or unassigned if `y` is `nil`.  It is marked elidable unless the
+  local is aliased, and only an elidable one can be postponed.
 - **`Set x := y`** — [L2_SET_ELIDABLE_LOCAL_VARIABLE].  Write `y` into `x`
   with no type check and no write reactors, which is valid because an
   elidable local is neither shared nor reactive while its L2 code runs (see
@@ -82,30 +81,26 @@ the left.
   value read need not be made immutable.  The compiler emits the clearing read
   only for the last read of a local (`AvailGetLocalVariable.canClear`).
 - **`SaveAll`** — [L2_SAVE_ALL_AND_PC_TO_INT].  Begin reifying this frame,
-  capturing its live registers in an [A_RegisterDump], along with how to
-  create each elided local (its `dirtyLocals` and `dirtyLocalIndices`).
+  capturing the registers live where it resumes in an [A_RegisterDump].
 - **`CreateContinuation`** — [L2_CREATE_CONTINUATION].  Build the frame's
-  continuation from the dump.
+  continuation, with the dump.  A slot whose variable has not been created
+  holds `nil`, and a *freeze* edge leads to the subgraph that creates those
+  variables (see [Freezing](#freezing)).
+- **`EnterFreeze`** — [L2_ENTER_FREEZE].  Start a freeze subgraph, restoring
+  the registers it needs from the dump.
+- **`FinishFreeze`** — [L2_FINISH_FREEZE].  Write variables into the frame
+  slots of the continuation being frozen, ending its freeze subgraph.
 - **`Invoke`** — [L2_INVOKE] or [L2_INVOKE_CONSTANT_FUNCTION]: a call that is
   not inlined.
 - **`Return`** — [L2_RETURN].
 
-## Placeholders
-
-Each elided local has a placeholder, an instance of
-[VariablePlaceholderDescriptor] that records the local's index and variable
-type, compares by identity, and prints as `Elided local #n`.  A continuation
-slot holds a placeholder where the real variable has not been created.
-
-The [L1Translator] creates the placeholders at the head of the function's
-body.  It binds each local's slot to its placeholder, emits the interrupt
-check, and only then emits one `Create x := nil` per local.  A continuation
-reified to service that interrupt therefore holds placeholders for every
-local.  Anywhere else, a `Create` that is still postponed when the frame is
-reified is replaced on the reification path by its placeholder (see
-[Reification](#reification)).
-
 ## Translation
+
+The [L1Translator] emits one `Create x := nil` per local at the head of the
+function's body, before the interrupt check.  The `Create` of an elidable
+local is postponed from the start, so a continuation reified to service that
+interrupt already has a freeze subgraph that creates it (see
+[Reification](#reification)).
 
 The L1 operations that read and write an elided local translate to `Get`,
 `GetClearing`, and `Set`.  Those of an aliased local translate to the general
@@ -124,9 +119,9 @@ a local whose variable is pushed is aliased, not elided.  The variable object
 of an elided local, once created, is held only by its own frame.  The frame's
 continuation can be reached by other code only after it is reified and made
 immutable or shared, by label creation, the debugger, or another fiber.  That
-transition runs `createElidedVariables` (see [Creating elided
-variables](#creating-elided-variables)), which switches the continuation to
-the L1 interpreter, so the L2 code that elided the local never resumes with it.
+transition freezes the continuation (see [Freezing](#freezing)), which
+switches it to the L1 interpreter, so the L2 code that elided the local never
+resumes with it.
 
 ## Postponement
 
@@ -199,8 +194,9 @@ Like any postponed instruction, a `Set` is also emitted as soon as anything
 reads the variable it produces.  An elided local is never aliased, so no
 invoked code can read or write it, and a `Set` may pass an `Invoke` or a
 `Return`.  After a `Return`, the `Set` is dead.  If the frame is reified
-during the `Invoke`, building its continuation reads the variable, which
-emits the `Set` on that path.
+during the `Invoke`, the `Set` stays postponed past the creation of its
+continuation, and is emitted in that continuation's freeze subgraph (see
+[Reification](#reification)).
 
 ### Reification
 
@@ -224,36 +220,53 @@ flowchart LR
  end
  subgraph After["&nbsp;"]
   direction TB
-  AfterHead["SaveAll<br><i>dirtyLocals[n] = y,<br>when y is not nil</i>"]
+  AfterHead["SaveAll"]
   AfterRef["Create x := y<br><i>(still postponed)</i><br>…"]
-  AfterFall["`…
-  CreateContinuation
-  &lt;… placeholder #n …&gt;
-  Create x := y
-  *(still postponed, likely unused)*`"]
+  AfterFall["…<br>CreateContinuation<br>&lt;… nil …&gt;"]
+  AfterFreeze["EnterFreeze<br>Create x := y<br>FinishFreeze <i>(x)</i>"]
   AfterHead ..->|reference| AfterRef
   AfterHead -->|fall-through| AfterFall
+  AfterFall ..->|freeze| AfterFreeze
  end
  Before .-> After
 ```
-
-Along the fall-through edge, the `Create` is dropped and the local's value is
-bound to the placeholder, so the continuation holds the placeholder in that
-slot.  If the creation's initial value is not `nil`, `SaveAll` records the
-pair (local index, register holding the value) in its `dirtyLocals`, choosing
-a register that is already live (int, then float, then boxed), else the
-constant, else the producer of a postponed value.  A local that has not yet
-been assigned is not recorded; it will be created unassigned.  The register
-dump keeps these pairs, encoded by `A_RegisterDump.encodeLocalValue`.
 
 Along the reference edge the creation stays postponed, so a frame that is
 resumed while its continuation is still mutable continues in L2 with its
 locals still elided.
 
-## Creating elided variables
+Along the fall-through edge the creation also stays postponed, until it
+reaches the `CreateContinuation`.  There, each frame slot holding a variable
+whose `Create`, or the `Set` that follows it, is still postponed is written
+as `nil` instead, so the `Create` stays postponed past the
+`CreateContinuation`, and is dead along its fall-through edge.  The
+`CreateContinuation` then gets a freeze edge, which the postponed
+instructions follow into a new freeze subgraph: an `EnterFreeze`, then a
+`FinishFreeze` that writes the variable of each slot written as `nil` back
+into that slot.  Reading those variables forces their `Create`s and `Set`s,
+which are therefore emitted in the freeze subgraph and nowhere else along
+this path.
 
-`ContinuationDescriptor.createElidedVariables` creates a continuation's
-elided locals.  It runs:
+A `CreateContinuation` starts with no freeze edge, and gains one, with its
+freeze subgraph, the first time it is emitted by translation or by a
+regeneration that tracks semantic values with some creation still postponed
+there.  After that, each regeneration regenerates the freeze subgraph along
+with the rest of the graph, since the `Create`s it forces exist nowhere else
+along this path.  A creation that reaches a `CreateContinuation` that already
+has a freeze edge, as when a later regeneration postpones it further, is
+emitted before the `CreateContinuation` instead.
+
+Control never flows along the freeze edge.  Like the reference edge of
+`SaveAll`, it carries the manifest and determines which registers are live,
+and JVM translation turns it into saved and restored registers (see
+[Freezing](#freezing)).
+
+## Freezing
+
+A continuation is *frozen* when its elided locals are created, and it is
+switched to resume in the L1 interpreter.
+`ContinuationDescriptor.createElidedVariables` freezes a continuation.  It
+runs:
 
 - when the continuation becomes immutable or shared, from
   `o_MakeImmutableInternal` and `o_MakeSharedInternal`;
@@ -272,19 +285,40 @@ resumes in the L1 interpreter, whose execution only uses real variables.  An
 invalidated chunk cannot be resumed at all, so its frame likewise resumes in
 L1, with real variables.
 
-For each pair recorded in the register dump, it creates a variable of the
-local's declared type, initialized to the decoded value: a boxed register's
-object, an int register's whole 64-bit value, or a float register's double.
-Every other placeholder becomes a new, unassigned variable of its local's
-type.  The replacement covers every slot of the frame, not only the local
-slots, although a placeholder now occurs only in its own local's slot: a
-local that is ever pushed is aliased, not elided.  Finally it sets the
-continuation's chunk to the [DefaultL1Chunk], at the dump's
-`fallbackEntryPoint`.
+It calls the `freeze` method of the continuation's chunk
+(`ExecutableChunk.freeze`), then sets the continuation's chunk to the
+[DefaultL1Chunk], at the dump's `fallbackEntryPoint`.  It does nothing for a
+continuation of the [DefaultL1Chunk] or of an [L2SimpleChunk], neither of
+which elides locals, for a function with no locals, whose continuation can
+keep resuming in L2, or for a continuation without a register dump.
 
-It does nothing for a continuation of the [DefaultL1Chunk] or of an
-[L2SimpleChunk], neither of which elides locals, or for a function with no
-locals.
+A chunk translated to JVM code has a `freeze` method if it has any freeze
+subgraphs; every other chunk inherits one that does nothing.  The freeze
+subgraphs are translated into that method rather than into `runChunk`.  Like
+`runChunk`, it starts with a lookupswitch on an L2 offset, in this case the
+dump's `FREEZE_OFFSET`, which is the offset of the `EnterFreeze` of the
+continuation's freeze subgraph, or -1 to return at once.  It takes the
+continuation in place of the interpreter, which it does not have, since a
+continuation can be frozen on any thread.  Code in the freeze subgraph that
+would use the interpreter only as an optimization does without: boxing an int
+does not use the interpreter's recycling pool.
+
+The dump holds what the freeze subgraph needs.  When JVM translation finds a
+`CreateContinuation` with a freeze edge, it finds the `SaveAll` whose dump that
+`CreateContinuation` uses, by following the fall-through edge backward.  That
+`SaveAll` creates its dump with room reserved after its own registers, one
+object slot for each boxed register live along the freeze edge, and one long
+slot for each int or float register.  The `CreateContinuation` fills that
+room with those registers' values and records the `FREEZE_OFFSET`, and the
+`EnterFreeze` restores them into the same registers.  The registers that
+`SaveAll` saved come first and are unchanged, so resuming the continuation
+in L2 restores them as before.  The values reserved for freezing are the
+values at the `CreateContinuation`, so later changes to those registers
+along its fall-through edge cannot affect them.
+
+A dump with reserved room is always a new one, never the shared empty dump,
+since it must hold its `FREEZE_OFFSET`.  The shared empty dumps have a
+`FREEZE_OFFSET` of -1.
 
 [A_RegisterDump]: ../../../src/main/kotlin/avail/descriptor/representation/A_RegisterDump.kt
 [DefaultL1Chunk]: ../../../src/main/kotlin/avail/optimizer/DefaultL1ExecutableChunk.kt
@@ -293,6 +327,8 @@ locals.
 [L2ValueManifest]: ../../../src/main/kotlin/avail/optimizer/manifest/L2ValueManifest.kt
 [L2_CREATE_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_CONTINUATION.kt
 [L2_CREATE_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CREATE_VARIABLE.kt
+[L2_ENTER_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_ENTER_FREEZE.kt
+[L2_FINISH_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_FINISH_FREEZE.kt
 [L2_GET_ELIDABLE_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_ELIDABLE_LOCAL_VARIABLE.kt
 [L2_GET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE.kt
 [L2_GET_VARIABLE_CLEARING_IF_MUTABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE_CLEARING_IF_MUTABLE.kt
@@ -302,4 +338,3 @@ locals.
 [L2_SAVE_ALL_AND_PC_TO_INT]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_SAVE_ALL_AND_PC_TO_INT.kt
 [L2_SET_ELIDABLE_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_ELIDABLE_LOCAL_VARIABLE.kt
 [L2_SET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_VARIABLE.kt
-[VariablePlaceholderDescriptor]: ../../../src/main/kotlin/avail/descriptor/variables/VariablePlaceholderDescriptor.kt

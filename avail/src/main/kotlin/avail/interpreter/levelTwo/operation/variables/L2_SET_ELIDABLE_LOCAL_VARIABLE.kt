@@ -154,8 +154,7 @@ constructor(
 							variableOut.semanticValues(),
 							variableOut.restriction()),
 						initialValueOrNil = valueToWrite,
-						constantVariableIfElided =
-							variableOrigin.constantVariableIfElided))
+						isElidable = variableOrigin.isElidable))
 				return true
 			}
 			is L2_SET_ELIDABLE_LOCAL_VARIABLE ->

@@ -32,7 +32,6 @@
 package avail.descriptor.functions
 
 import avail.AvailRuntime
-import avail.AvailThread
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
@@ -47,7 +46,6 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.ifNotNil
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.caller
 import avail.descriptor.representation.A_Continuation.Companion.currentLineNumber
@@ -65,27 +63,19 @@ import avail.descriptor.representation.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.representation.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.representation.A_RawFunction.Companion.declarationNamesWithoutOuters
 import avail.descriptor.representation.A_RawFunction.Companion.lineNumberEncodedDeltas
-import avail.descriptor.representation.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.module
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_RawFunction.Companion.numLocals
 import avail.descriptor.representation.A_RawFunction.Companion.numSlots
-import avail.descriptor.representation.A_RawFunction.Companion.shortMethodName
 import avail.descriptor.representation.A_RegisterDump
-import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
-import avail.descriptor.representation.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.representation.A_String.Companion.asNativeString
-import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
-import avail.descriptor.representation.A_Variable
-import avail.descriptor.representation.A_Variable.Companion.isPlaceholderVariable
-import avail.descriptor.representation.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.representation.A_Variable.Companion.value
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -105,12 +95,8 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationT
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.debugL2
-import avail.interpreter.execution.Interpreter.Companion.log
-import avail.interpreter.execution.Interpreter.Companion.loggerDebugL2
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
@@ -125,6 +111,7 @@ import avail.io.TextInterface
 import avail.optimizer.DefaultL1ExecutableChunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
+import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -133,7 +120,6 @@ import avail.serialization.SerializerOperation
 import avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
-import java.util.logging.Level
 import kotlin.math.min
 
 /**
@@ -592,7 +578,7 @@ class ContinuationDescriptor private constructor(
 					self.frameAt(P_CatchException.slotIndexOfGuardVariable)
 				when
 				{
-					guardVariable.isPlaceholderVariable() -> append("elided")
+					guardVariable.isNil -> append("elided")
 					guardVariable.isInstanceOfKind(mostGeneralVariableType) ->
 						append(guardVariable.value())
 					else -> append("??? ($guardVariable)")
@@ -885,11 +871,13 @@ class ContinuationDescriptor private constructor(
 		 * The receiver is becoming immutable or shared from a mutable state, or
 		 * is being returned into after an L2 invalidation.
 		 *
-		 * Create any elided variables, using the information stored in the
-		 * [LEVEL_TWO_REGISTER_DUMP].  Also switch this continuation's
+		 * Create any elided variables, by running the creating chunk's
+		 * [freeze][ExecutableChunk.freeze] method, which finds what it needs
+		 * in the [LEVEL_TWO_REGISTER_DUMP].  Also switch this continuation's
 		 * resumption chunk to the L1 interpreter, at the
 		 * [A_RegisterDump.fallbackEntryPoint], if the register dump is present
 		 * (otherwise it's the caller's responsibility to ensure this is set).
+		 * See doc/Optimization/Level_Two/Variable_elision.md §Freezing.
 		 */
 		fun AvailObject.createElidedVariables()
 		{
@@ -901,92 +889,21 @@ class ContinuationDescriptor private constructor(
 			if (chunk === DefaultL1Chunk) return
 			// L2Simple chunks don't postpone variable creation either.
 			if (chunk is L2SimpleChunk) return
-
-			val code = this[FUNCTION].code()
-			val numLocals = code.numLocals
 			// There are no local variables, so this frame can stay optimized.
-			if (numLocals == 0) return
-			// This is a tuple of ints, taken two at a time, where the first is
-			// the local number into which the new variable is to be written,
-			// and the second numuber is a signed value interpreted by
-			// decodeBoxedValueFromDump() which allows a boxed, i32, or double
-			// value to be used for initialization (boxing as needed).
+			if (this[FUNCTION].code().numLocals == 0) return
+
 			val dump = this[LEVEL_TWO_REGISTER_DUMP]
-			dump.ifNotNil { dump: A_RegisterDump ->
-				val encoded: A_Tuple = dump.encodedElidedLocals
-				val numArgs = code.numArgs()
-				val placeholderReplacements =
-					arrayOfNulls<A_Variable>(numLocals)
-				for (i in 1 .. encoded.tupleSize step 2)
-				{
-					val localIndex = encoded.tupleIntAt(i)
-					val sourceInt = encoded.tupleIntAt(i + 1)
-					val value = decodeBoxedValueFromDump(dump, sourceInt)
-					val slotIndex = localIndex + numArgs
-					val newVariable = newVariableWithOuterType(
-						code.localTypeAt(localIndex), value)
-					val placeholder = this[FRAME_AT_, slotIndex]
-					assert(placeholder.isPlaceholderVariable())
-					placeholderReplacements[localIndex - 1] = newVariable
-					// We must not create the same variable twice, and the L2
-					// code should have ensured this, so verify the placeholder
-					// in the local slot.
-					assert(
-						placeholder.placeholderVariableLocalIndex()
-							== localIndex)
-				}
-				// Replace placeholders in every slot of the continuation, not
-				// just the local slots.  That allows a variable to be pushed
-				// without the fast path having to create it, even in the event
-				// of simple reification.
-				//
-				// 2026.02.28 This seems a bit wonky, but I think it's just a
-				// consequence of the way pushees happen in the L1Translator,
-				// simply augmenting a synonym, and subsequently how those
-				// values get captured in a continuation, potentially in
-				// multiple slots.
-				for (slotIndex in 1 .. code.numSlots)
-				{
-					val entry = this[FRAME_AT_, slotIndex]
-					if (entry.isPlaceholderVariable())
-					{
-						val localIndex = entry.placeholderVariableLocalIndex()
-						var replacement =
-							placeholderReplacements[localIndex - 1]
-						if (replacement == null)
-						{
-							// This placeholder wasn't mentioned in the register
-							// dump, which means it should be a variable
-							// initialized to nil.
-							replacement = newVariableWithOuterType(
-								code.localTypeAt(localIndex), nil)
-							placeholderReplacements[localIndex - 1] =
-								replacement
-						}
-						this[FRAME_AT_, slotIndex] = replacement
-						if (debugL2)
-						{
-							AvailThread.currentOrNull?.interpreter?.run {
-								log(
-									loggerDebugL2,
-									Level.FINER,
-									"{0}WROTE ELIDED local #{1} " +
-										"into slot {2} of {3}",
-									debugModeString,
-									localIndex,
-									slotIndex,
-									code.shortMethodName)
-							}
-						}
-					}
-				}
-			}
+			// Without a register dump, it's the caller's responsibility to
+			// switch to L1.
+			if (dump.isNil) return
+			// Let the chunk create the variables whose creation it postponed
+			// past the continuation's creation.  A register dump's freeze
+			// offset of -1 makes this a no-op.
+			chunk.executableChunk.freeze(this)
 			// The L2 code cannot continue to run with those variables created,
 			// so we must fall back to L1.
-			dump.ifNotNil<A_RegisterDump> {
-				this[LEVEL_TWO_CHUNK] = DefaultL1Chunk.chunkPojo
-				this[LEVEL_TWO_OFFSET] = dump.fallbackEntryPoint
-			}
+			this[LEVEL_TWO_CHUNK] = DefaultL1Chunk.chunkPojo
+			this[LEVEL_TWO_OFFSET] = dump.fallbackEntryPoint
 		}
 
 		/**

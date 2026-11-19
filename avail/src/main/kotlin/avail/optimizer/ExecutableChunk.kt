@@ -32,7 +32,11 @@
 package avail.optimizer
 
 import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.A_RegisterDump.Companion.freezeOffset
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.jvm.CheckedMethod
@@ -77,6 +81,28 @@ interface ExecutableChunk
 	 */
 	@ReferencedInGeneratedCode
 	fun runChunk(interpreter: Interpreter, offset: Int): AvailObject?
+
+	/**
+	 * The given mutable [continuation][A_Continuation], created by this chunk,
+	 * is about to become immutable or shared, or to resume after this chunk
+	 * was invalidated, so it will continue in the [DefaultL1Chunk].  Create
+	 * the local variables whose creation the chunk postponed past the
+	 * continuation's creation, and write them into the continuation's frame
+	 * slots, which hold [nil] until then.  The continuation's register dump
+	 * says where to start, as its [A_RegisterDump.freezeOffset], and holds the
+	 * values the variables need.  A freeze offset of -1 means there is nothing
+	 * to create.
+	 *
+	 * This runs without an [Interpreter], since a continuation can become
+	 * immutable or shared on any thread.  Only a chunk that postpones
+	 * variable creation has anything to do here, so the default does nothing.
+	 * See doc/Optimization/Level_Two/Variable_elision.md §Freezing.
+	 *
+	 * @param continuation
+	 *   The mutable continuation whose elided variables should be created.
+	 */
+	@ReferencedInGeneratedCode
+	fun freeze(continuation: AvailObject) = Unit
 
 	companion object
 	{

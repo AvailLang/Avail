@@ -378,7 +378,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					basicBlock.instructions().any {
 						it is L2_UNREACHABLE_CODE
 					} -> Triple(
-						"#400000/600000",
+						"#800000/600000",
 						"#ffffff/ffffff",
 						"#ffffff/ffffff")
 					basicBlock.isLoopHead -> Triple(
@@ -856,6 +856,11 @@ class L2ControlFlowGraphVisualizer constructor(
 						{
 							style("dashed")
 							color("#6080ff")
+						}
+						Purpose.FREEZE ->
+						{
+							style("dashed")
+							color("#202090/6060f0")
 						}
 					}
 				}

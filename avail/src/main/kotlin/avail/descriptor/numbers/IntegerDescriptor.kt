@@ -96,6 +96,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import avail.exceptions.AvailSystemLimitException
 import avail.exceptions.MarshalingException
 import avail.interpreter.JavaLibrary.int
+import avail.interpreter.JavaLibrary.long
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1538,6 +1539,8 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun fromLong(aLong: Long): AvailObject = when (aLong) {
 			in 0..255 -> smallIntegers[aLong.toInt()]!!
 			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
@@ -1690,6 +1693,9 @@ class IntegerDescriptor private constructor(
 
 		/** The [CheckedMethod] for [fromInt]. */
 		val fromIntMethod = staticMethod(::fromInt, int)
+
+		/** The [CheckedMethod] for [fromLong]. */
+		val fromLongMethod = staticMethod(::fromLong, long)
 
 
 		/**

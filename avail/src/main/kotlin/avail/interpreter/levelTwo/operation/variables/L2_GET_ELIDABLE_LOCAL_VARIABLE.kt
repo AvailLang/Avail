@@ -126,16 +126,19 @@ class L2_GET_ELIDABLE_LOCAL_VARIABLE(
 	{
 		val semanticVariable = variable.semanticValue()
 		if (mode != BySemanticValue
-			|| currentManifest.hasSemanticValue(semanticVariable))
+			|| currentManifest.hasLiveSemanticValue(
+				semanticVariable, BOXED_KIND))
 		{
 			// The variable has already been explicitly created, or nothing is
 			// postponed.  Keep it simple and always explicitly read from the
 			// variable.  We don't have to worry about reactors being present.
+			// Note that a postponed variable is still known to the manifest,
+			// so being known is not the test; being live is.
 			+this@L2_GET_ELIDABLE_LOCAL_VARIABLE
 			return
 		}
 		val postponed = currentManifest
-			.postponedInstructionFor(semanticVariable, BOXED_KIND)!!
+			.postponedInstructionFor(semanticVariable, BOXED_KIND)
 		val originOfValue = when (postponed)
 		{
 			is L2_SET_ELIDABLE_LOCAL_VARIABLE -> postponed.valueToWrite

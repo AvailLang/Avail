@@ -135,7 +135,16 @@ class L2NamedOperandType internal constructor(
 		 * integer constant so it can be passed elsewhere, typically to an
 		 * [L2_CREATE_CONTINUATION].
 		 */
-		REFERENCED_AS_INT
+		REFERENCED_AS_INT,
+
+		/**
+		 * This target address is never jumped to.  It leads to the freeze
+		 * subgraph of an [L2_CREATE_CONTINUATION], which runs only to create
+		 * the continuation's elided variables when the continuation becomes
+		 * immutable or shared (doc/Optimization/Level_Two/Variable_elision.md
+		 * §Freezing).
+		 */
+		FREEZE
 	}
 
 	override fun toString(): String

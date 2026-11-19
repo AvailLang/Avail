@@ -34,27 +34,19 @@ package avail.interpreter.levelTwo.operand
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.createRegisterDumpMethod
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.representation.A_RegisterDump
-import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.exceptions.unsupported
-import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
-import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.L2BasicBlock
@@ -64,7 +56,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.cast
 import org.objectweb.asm.Opcodes
 import java.util.concurrent.atomic.LongAdder
 
@@ -313,9 +304,12 @@ constructor (
 
 	/**
 	 * Write JVM bytecodes to the JVMTranslator which will push a
-	 * [A_RegisterDump].  The register dump includes information that a
-	 * continuation needs to create elided variables should it become immutable
-	 * or shared.
+	 * [A_RegisterDump] holding the values of the registers live along this
+	 * edge.  If the [JVMTranslator] has recorded a
+	 * [freeze&#32;reservation][JVMTranslator.freezeReservations] for this
+	 * edge's [L2_SAVE_ALL_AND_PC_TO_INT], the dump also has room after those
+	 * values for the registers that the freeze subgraph of the corresponding
+	 * [L2_CREATE_CONTINUATION] needs.
 	 *
 	 * Also, associate within the [JVMTranslator] the information needed to
 	 * extract these live registers when the target [L2_ENTER_L2_CHUNK] is
@@ -323,13 +317,11 @@ constructor (
 	 * that is still mutable.
 	 *
 	 * Note that this also gets invoked when creating the initial reification
-	 * edge, from something other than [L2_SAVE_ALL_AND_PC_TO_INT], but it only
-	 * has to save registers, not deal with capturing local variable
-	 * initialization values.  That's because it's a dummy continuation that
-	 * gets created at that point, to allow reification to proceed in the right
-	 * direction (earliest calls first).  So there is no L1 progress during the
-	 * lifetime of a dummy continuation, and no way for that continuation to
-	 * become immutable or shared.
+	 * edge, from something other than [L2_SAVE_ALL_AND_PC_TO_INT].  That
+	 * creates a dummy continuation, to allow reification to proceed in the
+	 * right direction (earliest calls first).  There is no L1 progress during
+	 * the lifetime of a dummy continuation, and no way for that continuation to
+	 * become immutable or shared, so it never needs a freeze reservation.
 	 *
 	 * @receiver
 	 *   The [JVMTranslator] in which to record the saved register dump.
@@ -344,129 +336,55 @@ constructor (
 		// dump containing the state of all live registers.  A subsequent
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
-		val liveMap = RegisterKind.associate { mutableListOf<L2Register<*>>() }
-		val liveRegistersList =
-			liveness!!.registers
-				.sortedBy(L2Register<*>::finalIndex)
-				.distinct()
-		liveRegistersList.forEach {
-			liveMap[it.kind]!!.add(it)
-		}
-		// ALSO add any registers that must be preserved because elided variable
-		// creation will need it as an initial value (in the reification path).
-		val sourceInstruction = instruction
-		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
-		{
-			sourceInstruction.dirtyLocals.elements.forEach { read ->
-				liveMap[read.kind]!!.add(read.register())
-			}
-		}
-
-		// Stably deduplicate them.
-		val liveLocalsByKind = liveMap.mapValues { (_, list) ->
-			list.map(::localNumberFromRegister).distinct()
-		}
+		val layout = registerDumpLayout(this@L2PcOperand, 0, 0)
 		when (val targetInstruction = targetBlock.instructions()[0])
 		{
 			is L2_ENTER_L2_CHUNK ->
 			{
-				entryPointLiveInfo[targetInstruction.offset] = liveLocalsByKind
+				entryPointLiveInfo[targetInstruction.offset] = layout
 			}
 			is L2_ENTER_L2_CHUNK_FOR_CALL ->
 			{
 				// There should be no live registers on the edge back to the
 				// start due to a surviving L2_VIRTUAL_CREATE_LABEL.
-				assert(liveMap.values.all(List<*>::isEmpty))
+				assert(layout.isEmpty)
 			}
 			else -> throw AssertionError("Invalid target of $this")
 		}
-		if (liveMap.values.all(List<*>::isEmpty))
+		val reservation = freezeReservations[instruction]
+		if (layout.isEmpty && reservation === null)
 		{
 			// Nothing needs to be saved, so we can reuse the empty register
-			// dump object.  Note that since there are no saved values, it's
-			// also the case that there are no saved values that would be used
-			// to initialize new variables if the continuation becomes immutable
-			// or shared.
+			// dump object.
 			loadLiteralObject(
 				emptyRegisterDump(fallbackDefaultEntryPoint.offset()))
 			return
 		}
-		// The stack is now AvailObject[], long[].  At least one of the arrays
-		// is non-empty.  Create the encoded tuple of local/source info for
-		// initializing variables.  See ENCODED_ELIDED_LOCALS in
-		// RegisterDumpDescriptor.
+		// :: [fallback]
 		intConstant(fallbackDefaultEntryPoint.offset())
-		if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
-		{
-			// This is a real continuation that can become immutable or shared,
-			// so we have to capture the local initialization plan.  That takes
-			// the form of a tuple of Ints, alternating between L1 local index
-			// and its source in the object array or long array, as specified
-			// in RegisterDumpDescriptor.ENCODED_ELIDED_LOCALS.
-			assert(sourceInstruction.dirtyLocals.elements.size
-				== sourceInstruction.dirtyLocalIndices.constant.size)
-			val ints = mutableListOf<Int>()
-			sourceInstruction.dirtyLocals.elements.forEachIndexed { i, read ->
-				ints.add(sourceInstruction.dirtyLocalIndices.constant[i])
-				val liveIndexInKind =
-					liveMap[read.kind]!!.indexOf(read.register())
-				assert(liveIndexInKind >= 0)
-				ints.add(encodeLocalValue(read.kind, liveIndexInKind))
-			}
-			val intTuple = tupleFromIntegerList(ints).makeShared()
-			loadLiteralObject(intTuple)
-			// :: encodedIntTuple
-		}
-		else
-		{
-			// This is a dummy continuation created to allow L2 code to handle
-			// reification itself, when it's its turn to run (oldest calls
-			// first).  A dummy continuation only survivess during the chain of
-			// reifications, and no L1 progress can be made during that time, so
-			// it cannot become immutable or shared.
-			loadLiteralObject(nil)
-		}
 		// Emit code to save live registers' values.  Start with the objects.
 		// :: array = new «arrayClass»[«limit»];
 		// :: array[0] = ...; array[1] = ...;
-		val boxedLocal: List<L2BoxedRegister> = liveMap[BOXED_KIND]!!.cast()
-		objectArrayFromRegisters(boxedLocal, AvailObject::class.java)
+		objectArrayFromRegisters(layout.boxed, AvailObject::class.java)
 		// Now create the array of longs, including both ints and doubles.
-		val intLocals = liveMap[INTEGER_KIND]!!
-		val floatLocals = liveMap[FLOAT_KIND]!!
-		val count = intLocals.size + floatLocals.size
-		if (count == 0)
+		if (layout.longCount == 0)
 		{
 			load(JVMChunk.noLongsField)
 		}
 		else
 		{
-			intConstant(count)
+			intConstant(layout.longCount)
 			method.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG)
-			var i = 0
-			while (i < intLocals.size)
-			{
+			layout.longRegisters.forEachIndexed { i, register ->
 				method.visitInsn(Opcodes.DUP)
 				intConstant(i)
-				// Int registers already hold longs, sign-extended.
-				method.visitVarInsn(
-					INTEGER_KIND.jvmLoadInstruction,
-					localNumberFromRegister(intLocals[i]))
+				loadRegisterAsLong(register)
 				method.visitInsn(Opcodes.LASTORE)
-				i++
-			}
-			for (floatIndex in 0 until floatLocals.size)
-			{
-				method.visitInsn(Opcodes.DUP)
-				intConstant(i)
-				method.visitVarInsn(
-					FLOAT_KIND.jvmLoadInstruction,
-					localNumberFromRegister(floatLocals[floatIndex]))
-				generateCall(bitCastDoubleToLongMethod)
-				method.visitInsn(Opcodes.LASTORE)
-				i++
 			}
 		}
+		// :: [fallback, objects, longs, reservedObjects, reservedLongs]
+		intConstant(reservation?.objectCount ?: 0)
+		intConstant(reservation?.longCount ?: 0)
 		generateCall(createRegisterDumpMethod)
 	}
 

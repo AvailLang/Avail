@@ -1539,8 +1539,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_CountdownToReoptimize (self: AvailObject, value: Long)
 
-	abstract fun o_IsPlaceholderVariable(self: AvailObject): Boolean
-
 	abstract fun o_IsSubsetOf (self: AvailObject, another: A_Set): Boolean
 
 	abstract fun o_IsSubtypeOf (self: AvailObject, aType: A_Type): Boolean
@@ -1749,8 +1747,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		index: Int,
 		value: AvailObject)
-
-	abstract fun o_PlaceholderVariableLocalIndex(self: AvailObject): Int
 
 	/**
 	 * Add the [operands][AvailObject] and answer the result.
@@ -3986,7 +3982,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ReturnTypeIfPrimitiveFails (self: AvailObject): A_Type
 
-	abstract fun o_EncodedElidedLocals(self: AvailObject): A_Tuple
+	abstract fun o_FreezeOffset(self: AvailObject): Int
 
 	abstract fun o_ExtractDumpedObjectAt (
 		self: AvailObject,

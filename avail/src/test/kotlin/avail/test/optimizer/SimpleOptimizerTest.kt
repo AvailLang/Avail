@@ -52,9 +52,11 @@ import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Variable
 import avail.descriptor.representation.A_Variable.Companion.clearValue
 import avail.descriptor.representation.A_Variable.Companion.getValue
 import avail.descriptor.representation.A_Variable.Companion.hasValue
@@ -139,12 +141,12 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
-import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
@@ -165,6 +167,9 @@ import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_LONG_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SUBRANGE_NO_FAIL
+import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_GET_ELIDABLE_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_SET_ELIDABLE_LOCAL_VARIABLE
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_IfFalseThenElse
 import avail.interpreter.primitive.controlflow.P_IfTrueThenElse
@@ -798,9 +803,10 @@ class SimpleOptimizerTest
 	 * Check that an elided local variable whose value lives in an int register
 	 * beyond 32 bits keeps its whole value when its reified continuation
 	 * becomes shared.  The callee pushes a label and writes it into a shared
-	 * variable, which shares the caller's continuation, creating its elided
-	 * local from the [register&#32;dump][L2_SAVE_ALL_AND_PC_TO_INT] and
-	 * resuming it in L1.
+	 * variable, which shares the caller's continuation.  That runs the freeze
+	 * subgraph ([L2_ENTER_FREEZE]) of the chunk, which creates the elided
+	 * local from values saved in the register dump, before the continuation
+	 * resumes in L1.
 	 */
 	@Test
 	fun testElidedLocalBeyondIntSurvivesSharing()
@@ -808,11 +814,7 @@ class SimpleOptimizerTest
 		val sharedVariable =
 			newVariableWithContentType(mostGeneralContinuationType)
 				.makeShared()
-		helper.defineMethod("share caller", TOP()) {
-			L1Ext_doPushLabel()
-			L1Ext_doSetLiteral(addLiteral(sharedVariable))
-			pushLiteral(zero)
-		}
+		defineShareCaller(sharedVariable)
 		val rawFunction = helper.rawFunction(i64) {
 			argumentTypes(i64, i64)
 			val x = createLocal(variableTypeFor(i64))
@@ -830,8 +832,7 @@ class SimpleOptimizerTest
 		helper.testOptimize(rawFunction)
 		assertTrue(
 			rawFunction.startingChunk.instructions.any {
-				it is L2_SAVE_ALL_AND_PC_TO_INT
-					&& it.dirtyLocals.elements.isNotEmpty()
+				it is L2_ENTER_FREEZE
 			},
 			"Expected the local's creation to be elided across the call")
 		for (value in listOf((1L shl 40) + 5, Long.MIN_VALUE, -7L))
@@ -845,6 +846,170 @@ class SimpleOptimizerTest
 				"Expected the callee to share a label")
 			assertEquals(value, result.asBigInteger().toLong())
 		}
+	}
+
+	/**
+	 * Answer the [L2Instruction]s of the receiver's optimized chunk.
+	 */
+	private val A_RawFunction.l2Instructions: List<L2Instruction>
+		get() = startingChunk.instructions.filterIsInstance<L2Instruction>()
+
+	/**
+	 * Answer whether the receiver is in the block of a freeze subgraph, which
+	 * starts with an [L2_ENTER_FREEZE].
+	 */
+	private val L2Instruction.isInFreezeBlock: Boolean
+		get() = basicBlock().instructions().any { it is L2_ENTER_FREEZE }
+
+	/**
+	 * Define "share caller", which pushes a label for its caller and writes it
+	 * into the given shared variable.  That shares the caller's continuation,
+	 * which runs the caller's freeze subgraph if it has elided locals.
+	 *
+	 * @param sharedVariable
+	 *   The shared variable to receive the label.
+	 */
+	private fun defineShareCaller(sharedVariable: A_Variable)
+	{
+		helper.defineMethod("share caller", TOP()) {
+			L1Ext_doPushLabel()
+			L1Ext_doSetLiteral(addLiteral(sharedVariable))
+			pushLiteral(zero)
+		}
+	}
+
+	/**
+	 * Check that a read of an elided local whose creation or last assignment
+	 * is still postponed takes its value from that instruction, so that the
+	 * local's variable is never created outside a freeze subgraph.  The
+	 * function assigns its argument to a local, then reads it twice, the
+	 * second time clearing it, and adds the two reads.
+	 */
+	@Test
+	fun testElidedLocalReadNeedsNoVariable()
+	{
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(integers)
+			val x = createLocal(variableTypeFor(integers))
+			// :: x := a;
+			L1_doPushLocal(1)
+			L1_doSetLocal(x)
+			// :: x + x
+			L1_doGetLocal(x)
+			L1_doGetLocalClearing(x)
+			call("_+_", integers)
+		}
+		helper.testOptimize(rawFunction)
+		val instructions = rawFunction.l2Instructions
+		assertTrue(
+			instructions.isNotEmpty(),
+			"Expected the function to have an optimized chunk")
+		assertTrue(
+			instructions.none { it is L2_GET_ELIDABLE_LOCAL_VARIABLE },
+			"Expected every read of the local to become a move")
+		assertTrue(
+			instructions.all {
+				it !is L2_CREATE_VARIABLE || it.isInFreezeBlock
+			},
+			"Expected the local to be created only when frozen")
+		val result = helper.executeRawFunction(rawFunction, listOf(fromInt(21)))
+		assertEquals(fromInt(42), result)
+	}
+
+	/**
+	 * Check that freezing an elided local gives its variable the value of
+	 * the local's latest assignment.  The function assigns one argument to the
+	 * local, pushes the local's value, assigns the other argument to it, and
+	 * calls a method that shares the caller's continuation.  The freeze
+	 * subgraph must create the variable already holding the second argument,
+	 * with the assignment folded into the creation rather than performed after
+	 * it.  The continuation resumes in L1, which reads the local and adds it
+	 * to the value pushed before the call.
+	 */
+	@Test
+	fun testFrozenLocalHoldsLatestAssignment()
+	{
+		val sharedVariable =
+			newVariableWithContentType(mostGeneralContinuationType)
+				.makeShared()
+		defineShareCaller(sharedVariable)
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(integers, integers)
+			val x = createLocal(variableTypeFor(integers))
+			// :: x := a;
+			L1_doPushLocal(1)
+			L1_doSetLocal(x)
+			// :: (x) + ...   (left on the stack)
+			L1_doGetLocal(x)
+			// :: x := b;
+			L1_doPushLocal(2)
+			L1_doSetLocal(x)
+			// :: share caller;
+			call("share caller", TOP())
+			L1_doPop()
+			// :: ... + x
+			L1_doGetLocal(x)
+			call("_+_", integers)
+		}
+		helper.testOptimize(rawFunction)
+		val freezeInstructions =
+			rawFunction.l2Instructions.filter { it.isInFreezeBlock }
+		assertTrue(
+			freezeInstructions.any { it is L2_CREATE_VARIABLE },
+			"Expected the local's creation to be elided across the call")
+		assertTrue(
+			freezeInstructions.none { it is L2_SET_ELIDABLE_LOCAL_VARIABLE },
+			"Expected the assignments to be folded into the creation")
+		for ((a, b) in listOf(3 to 4, -10 to 1000, 0 to 0))
+		{
+			sharedVariable.clearValue()
+			val result = helper.executeRawFunction(
+				rawFunction, listOf(fromInt(a), fromInt(b)))
+			assertTrue(
+				sharedVariable.hasValue(),
+				"Expected the callee to share a label")
+			assertEquals(fromInt(a + b), result)
+		}
+	}
+
+	/**
+	 * Check that freezing an elided local that has not yet been assigned
+	 * creates an unassigned variable, which the code resumed in L1 can then
+	 * assign and read.  The function calls a method that shares the caller's
+	 * continuation before it assigns its local, then assigns its argument to
+	 * the local and answers the local's value.
+	 */
+	@Test
+	fun testFrozenUnassignedLocalCanBeAssigned()
+	{
+		val sharedVariable =
+			newVariableWithContentType(mostGeneralContinuationType)
+				.makeShared()
+		defineShareCaller(sharedVariable)
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(integers)
+			val x = createLocal(variableTypeFor(integers))
+			// :: share caller;
+			call("share caller", TOP())
+			L1_doPop()
+			// :: x := a;
+			L1_doPushLocal(1)
+			L1_doSetLocal(x)
+			// :: x
+			L1_doGetLocal(x)
+		}
+		helper.testOptimize(rawFunction)
+		assertTrue(
+			rawFunction.l2Instructions.any {
+				it is L2_CREATE_VARIABLE && it.isInFreezeBlock
+			},
+			"Expected the local's creation to be elided across the call")
+		sharedVariable.clearValue()
+		val result = helper.executeRawFunction(rawFunction, listOf(fromInt(7)))
+		assertTrue(
+			sharedVariable.hasValue(),
+			"Expected the callee to share a label")
+		assertEquals(fromInt(7), result)
 	}
 
 	/**

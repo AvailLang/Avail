@@ -33,27 +33,16 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.representation.A_Continuation
-import avail.descriptor.representation.A_Number.Companion.isFloat
-import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_RegisterDump
-import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.variables.VariablePlaceholderDescriptor
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL
@@ -62,8 +51,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.cast
-import avail.utility.notNullAnd
 
 /**
  * Extract the given "reference" edge's target level two offset as an [Int],
@@ -75,7 +62,11 @@ import avail.utility.notNullAnd
  * This is a special operation, in that during final JVM code generation it
  * saves all live register values in a register dump ([RegisterDumpDescriptor]),
  * and the [L2_ENTER_L2_CHUNK] at the reference target will restore them into
- * the same registers.
+ * the same registers.  If the [L2_CREATE_CONTINUATION] that uses the dump has
+ * a [freeze][L2_CREATE_CONTINUATION.freeze] edge, the dump also has room
+ * reserved after those registers, which that instruction fills with the
+ * registers its freeze subgraph needs
+ * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -97,15 +88,6 @@ import avail.utility.notNullAnd
  *   by [processForMakeImmutable] with reads of the boxed registers that will be
  *   saved into the [registerDump], based on which boxed values are live along
  *   the [reference] edge.
- * @property dirtyLocals
- *   Mixed vector holding the current dirty values to be written into fresh
- *   variables if/when the continuation becomes immutable or shared.
- * @property dirtyLocalIndices
- *   The one-based local variable indices for which to get initialization values
- *   from the unboxed int, unboxed float, and boxed, in that priority, when
- *   creating local variables due to the continuation becoming immutable or
- *   shared (or returned into after invalidation).  Unmentioned local variables
- *   are initialized to nil (unassigned).
  */
 class L2_SAVE_ALL_AND_PC_TO_INT
 constructor(
@@ -113,16 +95,9 @@ constructor(
 	@On(REFERENCED_AS_INT) var reference: L2PcOperand,
 	@On(SUCCESS) var referenceOffset: L2WriteIntOperand,
 	@On(SUCCESS) var registerDump: L2WriteBoxedOperand,
-	var finalSavedBoxedRegisters: L2ReadBoxedVectorOperand,
-	var dirtyLocals: L2ReadMixedVectorOperand,
-	var dirtyLocalIndices: L2ArbitraryConstantOperand<IntArray>
+	var finalSavedBoxedRegisters: L2ReadBoxedVectorOperand
 ): L2ControlFlowInstruction()
 {
-	init
-	{
-		assert(dirtyLocals.elements.size == dirtyLocalIndices.constant.size)
-	}
-
 	override val hasSideEffect get() = true
 
 	override fun StringBuilder.appendToWithWarnings(
@@ -142,119 +117,16 @@ constructor(
 		}
 		append(",\n\tdump registers ")
 		append(registerDump)
-		val sources = dirtyLocals.elements
-		when
-		{
-			sources.isEmpty() && dirtyLocalIndices.constant.isEmpty() -> { }
-			sources.size == dirtyLocalIndices.constant.size ->
-			{
-				dirtyLocalIndices.constant.zip(sources).joinTo(
-					this, ",\n\t\t", ",\n\tDirties:\n\t\t"
-				) { (localIndex, source) -> "local#$localIndex = $source" }
-			}
-			else ->
-			{
-				warningStyleChange(true)
-				append("\n\tMismatched dirty locals:\n\t\t")
-				append(dirtyLocalIndices)
-				append("\n\t\t")
-				append(sources)
-				warningStyleChange(false)
-			}
-		}
 	}
 
 	/**
-	 * Specially handle postponed [L2_CREATE_VARIABLE] instructions.  Record
-	 * their information in the [dirtyLocals] and [dirtyLocalIndices] operands.
-	 * Along the [ifFallThrough] edge, restrict these variables to the constant
-	 * placeholder variables ([VariablePlaceholderDescriptor]), but allow them
-	 * to stay postponed along the reference edge.
+	 * Postponed instructions travel along both edges.  Along the [reference]
+	 * edge they stay postponed until the resumed code needs them.  Along the
+	 * [ifFallThrough] edge, the [L2_CREATE_CONTINUATION] that builds the
+	 * continuation keeps the postponed creation of a variable out of the main
+	 * path, moving it into its freeze subgraph instead.  A backward
+	 * [reference] edge, used to create a label, carries nothing.
 	 */
-	override fun aboutToAdd(generator: L2GeneratorInterface): Boolean
-	{
-		if (reference.isBackward ||
-			!generator.currentManifest.caresAboutSemanticValues)
-		{
-			// It's preparing to create a label or transient continuation.
-			// Either way, the reference is to (near) the top of the graph, so
-			// we can just let the postponed instructions go both ways and the
-			// instructionWasAdded() that happens later will clear them from the
-			// reference edge.
-			return super.aboutToAdd(generator)
-		}
-		// Look for L2_CREATE_VARIABLE instructions that can stay postponed.
-		val creations = generator.currentManifest.allPostponedInstructions()
-			.filter { it.instruction is L2_CREATE_VARIABLE }
-		if (creations.isEmpty())
-		{
-			// There's nothing new to elide here.
-			return super.aboutToAdd(generator)
-		}
-		// There's at least one elision to add.
-		val elidedVariables = dirtyLocals.elements.toMutableList()
-		val elidedVariableIndices = dirtyLocalIndices.constant.toMutableList()
-		creations.forEach { instructionEquivalence ->
-			// We can postpone the creation of this local along the reference
-			// edge, but also record the source of the value for creating the
-			// register dump that will be used by the continuation creation
-			// instruction within the reification section.  We'll also have to
-			// ensure that we move a postponed variable into the local slot
-			// along the ifFallThrough path, to indicate the continuation can
-			// keep it elided unless the continuation is made immutable or
-			// shared (in which case it will exit to L1).
-			val postponedCreation =
-				instructionEquivalence.instruction as L2_CREATE_VARIABLE
-			val manifest = generator.currentManifest
-			val valueRead = postponedCreation.initialValueOrNil
-			val sv = valueRead.semanticValue()
-
-			// Skip nil values - they don't need to be in the dump.
-			// The continuation will create them uninitialized (nil).
-			if (sv.constant.notNullAnd { equals(nil) })
-			{
-				return@forEach
-			}
-			val restriction = manifest.restrictionFor(sv)
-			// For non-nil: determine which kind of register to materialize
-			val sourceKind = when
-			{
-				// Priority 1-3: Already-live registers
-				manifest.hasLiveSemanticValue(sv, INTEGER_KIND) -> INTEGER_KIND
-				manifest.hasLiveSemanticValue(sv, FLOAT_KIND) -> FLOAT_KIND
-				manifest.hasLiveSemanticValue(sv, BOXED_KIND) -> BOXED_KIND
-				// Priority 4-6: Constants
-				restriction.isConstant -> restriction.constantOrNull!!.run {
-					when
-					{
-						isInt -> INTEGER_KIND
-						isFloat -> FLOAT_KIND
-						else -> BOXED_KIND
-					}
-				}
-				// Priority 7-9: Postponed instructions.
-				manifest.postponedInstructionFor(sv, INTEGER_KIND) != null
-					-> INTEGER_KIND
-				manifest.postponedInstructionFor(sv, FLOAT_KIND) != null
-					-> FLOAT_KIND
-				manifest.postponedInstructionFor(sv, BOXED_KIND) != null
-					-> BOXED_KIND
-				else -> error("Expected value in at least one RegisterKind")
-			}
-
-			// Materialize unconditionally, then read the register
-			generator.ensureDefinedOrEmitMove(sv, sourceKind.cast())
-			val newElidedVariable = manifest.read(sv, sourceKind.cast())
-			elidedVariables.add(newElidedVariable)
-			newElidedVariable.adjustCloneForInstruction(this, generator)
-			elidedVariableIndices.add(postponedCreation.localIndex.intValue)
-		}
-		dirtyLocals = L2ReadMixedVectorOperand(elidedVariables)
-		dirtyLocalIndices =
-			L2ArbitraryConstantOperand(elidedVariableIndices.toIntArray())
-		return super.aboutToAdd(generator)
-	}
-
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
@@ -273,27 +145,7 @@ constructor(
 				reference.forcedClampedSemanticValues = emptySet()
 			}
 		}
-		val fallThroughManifest = L2ValueManifest(manifest).apply {
-			// Finish what instructionWasAdded() started, removing any variable
-			// creations from the ifFallThrough path, replacing them with elided
-			// variable placeholders.
-			if (reference.isBackward) return@apply
-			manifest.allPostponedInstructions()
-				.filter { it.instruction is L2_CREATE_VARIABLE }
-				.forEach { (postponedCreation, synonym) ->
-					postponedCreation as L2_CREATE_VARIABLE
-					val elidedVariable =
-						postponedCreation.constantVariableIfElided.constant
-					removePostponedInstructionFor(
-						synonym.pickSemanticValue(),
-						BOXED_KIND)
-					agglomerateSynonym(
-						synonym.semanticValues(),
-						restrictionForConstant(elidedVariable))
-				}
-		}
-
-		dirtyLocals.instructionWasAdded(manifest)
+		val fallThroughManifest = L2ValueManifest(manifest)
 		referenceOffset.instructionWasAdded(fallThroughManifest)
 		registerDump.instructionWasAdded(fallThroughManifest)
 		ifFallThrough.instructionWasAdded(fallThroughManifest)
@@ -305,9 +157,7 @@ constructor(
 		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue>)
 	{
 		// Don't replace any saved registers with constants, since there would
-		// be nowhere to restore them to (they don't occupy JVM locals).  This
-		// also ensures that dirtyLocals continue to refer to real registers,
-		// since the encoding can't handle constants.
+		// be nowhere to restore them to (they don't occupy JVM locals).
 	}
 
 	/**

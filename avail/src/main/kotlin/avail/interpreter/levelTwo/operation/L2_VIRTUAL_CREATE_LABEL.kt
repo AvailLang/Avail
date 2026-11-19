@@ -43,13 +43,12 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.HideInAllVisualizations
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
@@ -199,9 +198,7 @@ constructor(
 				referenceOffset = tempOffset,
 				registerDump = tempRegisterDump,
 				finalSavedBoxedRegisters =
-					L2ReadBoxedVectorOperand(emptyList()),
-				dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
-				dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
+					L2ReadBoxedVectorOperand(emptyList()))
 
 			startBlock(reificationOfframp)
 			val tempCaller = boxedWrite(
@@ -215,17 +212,22 @@ constructor(
 				"dummy continuation",
 				restrictionForType(mostGeneralContinuationType))
 			+L2_GET_CURRENT_CONTINUATION(tempCaller)
+			val dummyCreated = createBasicBlock(
+				"return dummy continuation", zone)
 			+L2_CREATE_CONTINUATION(
-				readCurrentFunction,
-				code,
-				readBoxed(tempCaller),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2ReadBoxedVectorOperand(emptyList()),
-				dummyContinuation,
-				readIntNoFail(tempOffset.pickSemanticValue()),
-				readBoxed(tempRegisterDump),
-				L2CommentOperand("Dummy reification continuation."))
+				function = readCurrentFunction,
+				code = code,
+				caller = readBoxed(tempCaller),
+				levelOnePc = L2IntImmediateOperand(Int.MAX_VALUE),
+				levelOneStackp = L2IntImmediateOperand(Int.MAX_VALUE),
+				slotValues = L2ReadBoxedVectorOperand(emptyList()),
+				destination = dummyContinuation,
+				labelAddress = readIntNoFail(tempOffset.pickSemanticValue()),
+				registerDump = readBoxed(tempRegisterDump),
+				ifFallThrough = edgeTo(dummyCreated),
+				freeze = L2PcVectorOperand(emptyList()),
+				comment = L2CommentOperand("Dummy reification continuation."))
+			startBlock(dummyCreated)
 			+L2_RETURN_FROM_REIFICATION_HANDLER(readBoxed(dummyContinuation))
 
 			startBlock(unreachable)
@@ -266,27 +268,31 @@ constructor(
 				mutableSetOf()),
 			referenceOffset = writeOffset,
 			registerDump = writeRegisterDump,
-			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()),
-			// Local variables aren't preserved by a label.
-			dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
-			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
+			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()))
 
 		startBlock(fallThrough)
 		val frameSizeInt = code.constant.numSlots
 		val slots = arguments.elements.toMutableList()
 		val nilRead = boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
+		// Local variables aren't preserved by a label, so there is nothing
+		// to freeze.
+		val labelCreated = createBasicBlock(
+			"Label created", currentBlock().zone)
 		+L2_CREATE_CONTINUATION(
-			function,
-			code,
-			readBoxed(caller),
+			function = function,
+			code = code,
+			caller = readBoxed(caller),
 			levelOnePc = L2IntImmediateOperand(0),  // indicates a label.
 			levelOneStackp = L2IntImmediateOperand(frameSizeInt + 1),  // empty
-			L2ReadBoxedVectorOperand(slots),  // each immutable
-			outputLabel,
-			readIntNoFail(writeOffset.onlySemanticValue()),
-			readBoxed(writeRegisterDump),
-			L2CommentOperand("Create label."))
+			slotValues = L2ReadBoxedVectorOperand(slots),  // each immutable
+			destination = outputLabel,
+			labelAddress = readIntNoFail(writeOffset.onlySemanticValue()),
+			registerDump = readBoxed(writeRegisterDump),
+			ifFallThrough = edgeTo(labelCreated),
+			freeze = L2PcVectorOperand(emptyList()),
+			comment = L2CommentOperand("Create label."))
+		startBlock(labelCreated)
 	}
 
 	override fun JVMTranslator.translateToJVM()

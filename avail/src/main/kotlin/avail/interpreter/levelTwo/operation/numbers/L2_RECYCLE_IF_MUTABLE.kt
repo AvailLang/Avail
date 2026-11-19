@@ -83,10 +83,14 @@ class L2_RECYCLE_IF_MUTABLE(
 	{
 		// :: interpreter.integerPool.recycleIfMutable(source);
 		// :: source = null;
-		loadInterpreter()
-		load(integerPoolField)
-		load(source)
-		generateCall(recycleIfMutableMethod)
+		if (!isGeneratingFreeze)
+		{
+			// There's no interpreter, so no recycling pool, while freezing.
+			loadInterpreter()
+			load(integerPoolField)
+			load(source)
+			generateCall(recycleIfMutableMethod)
+		}
 		method.visitInsn(ACONST_NULL)
 		store(source.register())
 	}

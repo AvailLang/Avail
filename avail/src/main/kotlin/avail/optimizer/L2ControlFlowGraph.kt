@@ -181,7 +181,7 @@ class L2ControlFlowGraph : L2Visualizable
 	enum class ZoneType constructor(val color: String?, val bgcolor: String?)
 	{
 		/** A zone used for reifying to handle a fiber interrupt. */
-		BEGIN_REIFICATION_FOR_INTERRUPT("#c0c0ff/505090", "#d8d8ff/282850"),
+		BEGIN_REIFICATION_FOR_INTERRUPT("#9090f0/505090", "#b0b0e0/282850"),
 
 		/**
 		 * A zone used for reifying the call stack to create an [A_Continuation]
@@ -195,13 +195,19 @@ class L2ControlFlowGraph : L2Visualizable
 		 * when this zone is entered, and the invoke logic ensures the callers
 		 * have already been reified by the time this zone runs.
 		 */
-		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010"),
+		PROPAGATE_REIFICATION_FOR_INVOKE("#80e0b0/10a010", "#80f0c0/103010"),
+
+		/**
+		 * The enclosed instructions run when a continuation is about to be made
+		 * immutable or shared.
+		 */
+		FREEZING("#4050c0/202090", "#6080ff/101060"),
 
 		/**
 		 * A zone used to visually indicate a dead end, such as a failed read
 		 * from a variable, or a failed return type check.
 		 */
-		DEAD_END("#ffc0c0/905050", "#ffd8d8/502828"),
+		DEAD_END("#ffc0c0/905050", "#d88080/502828"),
 
 		/**
 		 * A zone to be used to cluster and sort a node's direct children if

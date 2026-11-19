@@ -32,36 +32,86 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrameMethod
-import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.functions.RegisterDumpDescriptor.Companion.storeFreezeOffsetMethod
 import avail.descriptor.representation.A_RawFunction.Companion.declarationNamesWithoutOuters
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_RawFunction.Companion.numLocals
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HideInSimpleVisualization
-import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FREEZE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
+import avail.interpreter.levelTwo.operation.variables.L2_SET_ELIDABLE_LOCAL_VARIABLE
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2ControlFlowGraph
+import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.utility.isNullOr
+import org.objectweb.asm.Opcodes
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
  * constant level one program counter, constant stack pointer, continuation
  * slot values, and level two program counter.  Write the new continuation
- * into the specified register.
+ * into the specified register, then continue along [ifFallThrough].
+ *
+ * A frame slot whose local variable has not been created yet, because its
+ * creation is still postponed here, holds [nil] in the new continuation.
+ * The [freeze] edge then leads to a freeze subgraph, which creates those
+ * variables and writes them into the frame if the continuation ever becomes
+ * immutable or shared.  Control never flows along that edge, but the
+ * postponed creations travel along it, and the registers live along it are
+ * saved in room reserved for them in the [registerDump]
+ * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property function
+ *   The function whose frame the continuation represents.
+ * @property code
+ *   The function's raw function.
+ * @property caller
+ *   The continuation's caller.
+ * @property levelOnePc
+ *   The L1 program counter at which the continuation resumes in L1.
+ * @property levelOneStackp
+ *   The L1 stack pointer at which the continuation resumes in L1.
+ * @property slotValues
+ *   The values of the continuation's frame slots.
+ * @property destination
+ *   Where to write the new continuation, along [ifFallThrough].
+ * @property labelAddress
+ *   The L2 offset at which the continuation resumes in this chunk.
+ * @property registerDump
+ *   The register dump created by the preceding [L2_SAVE_ALL_AND_PC_TO_INT].
+ * @property ifFallThrough
+ *   Where to continue after creating the continuation.
+ * @property freeze
+ *   Either empty, or a single edge to the freeze subgraph, which starts with
+ *   an [L2_ENTER_FREEZE] and ends with an [L2_FINISH_FREEZE].  The edge is
+ *   added by [emitTransformedInstruction] when a variable creation is still
+ *   postponed here, and is never followed at runtime.
+ * @property comment
+ *   A description of why the continuation is created.
  */
 class L2_CREATE_CONTINUATION
 constructor (
@@ -72,12 +122,20 @@ constructor (
 	var levelOnePc: L2IntImmediateOperand,
 	var levelOneStackp: L2IntImmediateOperand,
 	var slotValues: L2ReadBoxedVectorOperand,
-	var destination: L2WriteBoxedOperand,
+	@On(SUCCESS) var destination: L2WriteBoxedOperand,
 	var labelAddress: L2ReadIntOperand,
 	var registerDump: L2ReadBoxedOperand,
+	@On(SUCCESS) var ifFallThrough: L2PcOperand,
+	@On(FREEZE) var freeze: L2PcVectorOperand,
 	var comment: L2CommentOperand
-): L2Instruction()
+): L2ControlFlowInstruction()
 {
+	/**
+	 * The instruction ends its block, so it must not be postponed like a pure
+	 * computation of its [destination].
+	 */
+	override val hasSideEffect get() = true
+
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,
@@ -141,6 +199,72 @@ constructor (
 		super.instructionWasAdded(manifest)
 	}
 
+	/**
+	 * Emit this instruction, adding a [freeze] subgraph if it has none yet and
+	 * some variable creation is still postponed here.  Each frame slot whose
+	 * value is a variable whose creation (or the assignment that follows it)
+	 * is still postponed here is written as [nil] instead, which keeps the
+	 * creation postponed along [ifFallThrough].  If there are any such slots,
+	 * the [freeze] edge leads to a new subgraph that reads those slots'
+	 * variables, forcing their creation there, and writes them into the frame.
+	 *
+	 * Once the instruction has a freeze subgraph, a regeneration regenerates
+	 * that subgraph along with the rest of the graph, since the creations it
+	 * forces exist nowhere else on this path.  A creation that reaches this
+	 * instruction only in a later regeneration is forced before it.
+	 */
+	override fun L2GeneratorInterface.emitTransformedInstruction()
+	{
+		val instruction = this@L2_CREATE_CONTINUATION
+		val manifest = currentManifest
+		if (!manifest.caresAboutSemanticValues || freeze.edges.isNotEmpty())
+		{
+			+instruction
+			return
+		}
+		val originalSlots = slotValues.elements
+		val slotsToFreeze = originalSlots.indices
+			.filter { manifest.isPostponedVariable(originalSlots[it]) }
+			.map { it + 1 }
+		val freezeBlock = when
+		{
+			slotsToFreeze.isEmpty() -> null
+			else ->
+			{
+				val freezingZone = L2ControlFlowGraph.Zone(
+					L2ControlFlowGraph.ZoneType.FREEZING,
+					"Freezing")
+				createBasicBlock(
+					"Freeze elided variables", freezingZone, isCold = true)
+			}
+		}
+		if (freezeBlock === null)
+		{
+			+instruction
+			return
+		}
+		val nilRead = boxedConstant(nil)
+		slotValues = L2ReadBoxedVectorOperand(
+			originalSlots.mapIndexed { zeroIndex, read ->
+				when (zeroIndex + 1)
+				{
+					in slotsToFreeze -> nilRead
+					else -> read
+				}
+			})
+		freeze = L2PcVectorOperand(listOf(edgeTo(freezeBlock)))
+		+instruction
+		if (freezeBlock.predecessorEdges().isEmpty()) return
+		startBlock(freezeBlock)
+		+L2_ENTER_FREEZE()
+		val variables = slotsToFreeze.map { slot ->
+			readBoxed(originalSlots[slot - 1].semanticValue())
+		}
+		+L2_FINISH_FREEZE(
+			L2ArbitraryConstantOperand(slotsToFreeze.toIntArray()),
+			L2ReadBoxedVectorOperand(variables))
+	}
+
 	override fun JVMTranslator.translateToJVM()
 	{
 		// :: continuation = createContinuationExceptFrame(
@@ -160,41 +284,58 @@ constructor (
 		load(Interpreter.chunkField)
 		load(labelAddress)
 		generateCall(createContinuationExceptFrameMethod)
-		val slotCount = slotValues.elements.size
-		var pushed = 0
-		for (i in 0 until slotCount)
+		// Skip slots that are always nil, since the continuation was already
+		// initialized with nils.
+		// :: [continuation]
+		frameAtPutAll(
+			slotValues.elements
+				.mapIndexed { zeroIndex, read -> zeroIndex + 1 to read }
+				.filter { (_, read) ->
+					read.register().constant.isNullOr { notNil }
+				})
+		freeze.edges.singleOrNull()?.let { edge ->
+			// Save the registers that the freeze subgraph needs into the room
+			// that the register dump reserved for them, and record where the
+			// freeze subgraph starts.
+			// :: [continuation, registerDump]
+			load(registerDump)
+			intConstant(edge.offset())
+			generateCall(storeFreezeOffsetMethod)
+			saveRegistersIntoDump(freezeDumpLayouts[edge.offset()]!!)
+			method.visitInsn(Opcodes.POP)
+			// :: [continuation]
+		}
+		store(destination.register())
+		// :: []
+		jumpOrFallThrough(ifFallThrough)
+	}
+
+	companion object
+	{
+		/**
+		 * Answer whether the given read is of a variable whose creation, or
+		 * whose assignment after its creation, is still postponed in this
+		 * manifest.
+		 *
+		 * @receiver
+		 *   The [L2ValueManifest] where the read would happen.
+		 * @param read
+		 *   The read of a frame slot.
+		 * @return
+		 *   Whether the variable has not been created yet.
+		 */
+		private fun L2ValueManifest.isPostponedVariable(
+			read: L2ReadBoxedOperand
+		): Boolean
 		{
-			val regRead = slotValues.elements[i]
-			val constant: A_BasicObject? = regRead.register().constant
-			// Skip if it's always nil, since the continuation was already
-			// initialized with nils.
-			if (constant === null || constant.notNil)
+			val semanticValue = read.semanticValue()
+			if (hasLiveSemanticValue(semanticValue, BOXED_KIND)) return false
+			return when (postponedInstructionFor(semanticValue, BOXED_KIND))
 			{
-				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
-				// [continuation]
-				intConstant(i + 1)
-				load(slotValues.elements[i])
-				if (++pushed == 6)
-				{
-					generateCall(AvailObject.frameAtPut6Method)
-					// Method returns continuation to simplify stack handling.
-					// [continuation]
-					pushed = 0
-				}
+				is L2_CREATE_VARIABLE -> true
+				is L2_SET_ELIDABLE_LOCAL_VARIABLE -> true
+				else -> false
 			}
 		}
-		when (pushed)
-		{
-			0 -> { }
-			1 -> generateCall(AvailObject.frameAtPutMethod)
-			2 -> generateCall(AvailObject.frameAtPut2Method)
-			3 -> generateCall(AvailObject.frameAtPut3Method)
-			4 -> generateCall(AvailObject.frameAtPut4Method)
-			5 -> generateCall(AvailObject.frameAtPut5Method)
-			else -> throw AssertionError(
-				"Internal error - wrong bulk write size for frame")
-		}
-		// [continuation]
-		store(destination.register())
 	}
 }

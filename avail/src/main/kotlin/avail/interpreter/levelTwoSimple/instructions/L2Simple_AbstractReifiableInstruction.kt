@@ -44,7 +44,6 @@ import avail.descriptor.representation.A_Variable
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
@@ -84,9 +83,10 @@ constructor(
 		registers: RegisterSet,
 	): AvailObject = createRegisterDump(
 		defaultEntryPoint.offset(),
-		emptyTuple,
 		registers[stateOfL1.allLiveRegisters!!],
-		emptyLongArray
+		emptyLongArray,
+		0,
+		0
 	)
 
 	/**

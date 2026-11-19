@@ -653,10 +653,6 @@ protected constructor (
 		index: Int,
 		value: AvailObject): Unit = unsupported
 
-	override fun o_PlaceholderVariableLocalIndex(
-		self: AvailObject
-	): Int = unsupported
-
 	override fun o_PlusCanDestroy (
 		self: AvailObject,
 		aNumber: A_Number,
@@ -1054,8 +1050,6 @@ protected constructor (
 		unsupported
 
 	override fun o_IsInstanceMeta (self: AvailObject): Boolean = false
-
-	override fun o_IsPlaceholderVariable(self: AvailObject): Boolean = false
 
 	override fun o_IsPositive (self: AvailObject): Boolean = unsupported
 
@@ -2670,7 +2664,7 @@ protected constructor (
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		unsupported
 
-	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple = unsupported
+	override fun o_FreezeOffset(self: AvailObject): Int = unsupported
 
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,

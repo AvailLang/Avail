@@ -111,7 +111,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
-import avail.descriptor.variables.VariablePlaceholderDescriptor.Companion.newPlaceholder
 import avail.dispatch.InternalLookupTree
 import avail.dispatch.LeafLookupTree
 import avail.exceptions.MethodDefinitionException
@@ -128,10 +127,10 @@ import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -727,9 +726,7 @@ class L1Translator private constructor(
 			reference = edgeTo(onReturnIntoReified),
 			referenceOffset = writeOffset,
 			registerDump = writeRegisterDump,
-			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()),
-			dirtyLocals = L2ReadMixedVectorOperand(emptyList()),
-			dirtyLocalIndices = L2ArbitraryConstantOperand(intArrayOf()))
+			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()))
 		startBlock(fallThrough)
 		// We're in a reification handler here, so the caller is guaranteed to
 		// contain the reified caller.
@@ -740,10 +737,11 @@ class L1Translator private constructor(
 		val newContinuationWrite = boxedWriteTemp(
 			"new continuation",
 			restrictionForType(mostGeneralContinuationType))
-		if (defaultEntryPoint === DefaultEntryPoint.TRANSIENT)
+		val afterCreation = createBasicBlock("Return reified", zone)
+		val create = when (defaultEntryPoint)
 		{
 			// L1 can never see this continuation, so it can be minimal.
-			+L2_CREATE_CONTINUATION(
+			DefaultEntryPoint.TRANSIENT -> L2_CREATE_CONTINUATION(
 				function = currentFunction,
 				code = L2ConstantOperand(code),
 				caller = readBoxed(writeReifiedCaller),
@@ -754,15 +752,15 @@ class L1Translator private constructor(
 				labelAddress = L2ReadIntOperand(
 					writeOffset.onlySemanticValue()),
 				registerDump = readBoxed(writeRegisterDump),
+				ifFallThrough = edgeTo(afterCreation),
+				freeze = L2PcVectorOperand(emptyList()),
 				comment = L2CommentOperand(
 					"Create a dummy reification continuation."))
-		}
-		else
-		{
 			// Make an L1-complete continuation, since an invalidation can cause
 			// it to resume in the L2Chunk#unoptimizedChunk, which can only see
-			// L1 content.
-			+L2_CREATE_CONTINUATION(
+			// L1 content.  Its emission adds a freeze subgraph if any variable
+			// creation is still postponed.
+			else -> L2_CREATE_CONTINUATION(
 				function = currentFunction,
 				code = L2ConstantOperand(code),
 				caller = readBoxed(writeReifiedCaller),
@@ -773,9 +771,13 @@ class L1Translator private constructor(
 				labelAddress = L2ReadIntOperand(
 					writeOffset.onlySemanticValue()),
 				registerDump = readBoxed(writeRegisterDump),
+				ifFallThrough = edgeTo(afterCreation),
+				freeze = L2PcVectorOperand(emptyList()),
 				comment = L2CommentOperand(
 					"Create a reification continuation."))
 		}
+		create.run { emitTransformedInstruction() }
+		startBlock(afterCreation)
 		+L2_RETURN_FROM_REIFICATION_HANDLER(readBoxed(newContinuationWrite))
 
 		// Here it's returning into the reified continuation.
@@ -2136,41 +2138,26 @@ class L1Translator private constructor(
 		jumpTo(loopHead)
 		startBlock(loopHead)
 
-		// Let the interrupt routine see postponed variables for each elided
-		// local variable, to avoid having to slide them through that part of
-		// the graph.  We'll set them to new variables right after the interrupt
-		// has been serviced and resumed safely (from a continuation that isn't
-		// shared or immutable).  Create each local that isn't elided right
-		// away, with nil standing in for its placeholder.
-		val elidedLocalPlaceholders = (1..numLocals).map { localIndex ->
-			when
-			{
-				isElidableLocal(numArgs + localIndex) ->
-					newPlaceholder(code.localTypeAt(localIndex), localIndex)
-				else -> nil
-			}
-		}
+		// Create the local variables.  The creation of an elidable local is
+		// postponed, so it migrates through the graph during optimization,
+		// allowing it to be elided entirely.  If a continuation is created
+		// while its creation is still postponed, as when the interrupt check
+		// below reifies, its frame slot holds nil, and the continuation's
+		// freeze subgraph creates the variable if the continuation becomes
+		// immutable or shared.
 		for (localIndex in 1..numLocals)
 		{
-			if (isElidableLocal(numArgs + localIndex))
-			{
-				forceConstantSlot(
+			val localType = code.localTypeAt(localIndex)
+			+L2_CREATE_VARIABLE(
+				localIndex = L2IntImmediateOperand(localIndex),
+				outerType = L2ConstantOperand(localType),
+				variable = writeSlot(
 					numArgs + localIndex,
-					elidedLocalPlaceholders[localIndex - 1])
-			}
-			else
-			{
-				val localType = code.localTypeAt(localIndex)
-				+L2_CREATE_VARIABLE(
-					localIndex = L2IntImmediateOperand(localIndex),
-					outerType = L2ConstantOperand(localType),
-					variable = writeSlot(
-						numArgs + localIndex,
-						pc,
-						restrictionForType(localType)),
-					initialValueOrNil = boxedConstant(nil),
-					constantVariableIfElided = L2ConstantOperand(nil))
-			}
+					pc,
+					restrictionForType(localType)),
+				initialValueOrNil = boxedConstant(nil),
+				isElidable = L2ArbitraryConstantOperand(
+					isElidableLocal(numArgs + localIndex)))
 		}
 		var startOfConstantsToClear = numArgs + numLocals + 1
 		primitive?.let {
@@ -2196,28 +2183,6 @@ class L1Translator private constructor(
 		// L1, not here.  If it was still mutable, however, all registers will
 		// be restored and it will continue this chunk.
 		emitInterruptOffRamp()
-
-		// Finally, create the elided local variables.  These creation
-		// instructions will migrate through the graph during optimization,
-		// allowing some to be elided entirely.
-		for (localIndex in 1 .. numLocals)
-		{
-			if (isElidableLocal(numArgs + localIndex))
-			{
-				val localType = code.localTypeAt(localIndex)
-				+L2_CREATE_VARIABLE(
-					localIndex = L2IntImmediateOperand(localIndex),
-					outerType = L2ConstantOperand(localType),
-					variable = writeSlot(
-						numArgs + localIndex,
-						pc,
-						restrictionForType(localType)),
-					initialValueOrNil = boxedConstant(nil),
-					constantVariableIfElided =
-						L2ConstantOperand(
-							elidedLocalPlaceholders[localIndex - 1]))
-			}
-		}
 
 		val nybblecodeMap = mutableMapOf<Int, String>()
 		L1Disassembler(code).printInstructions(

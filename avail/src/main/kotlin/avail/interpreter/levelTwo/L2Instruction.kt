@@ -49,6 +49,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -977,7 +978,8 @@ constructor() :
 		}
 		if (regenerator.mode is WithFixedRegisterMap
 			|| !altersControlFlow
-			|| this is L2_SAVE_ALL_AND_PC_TO_INT)
+			|| this is L2_SAVE_ALL_AND_PC_TO_INT
+			|| this is L2_CREATE_CONTINUATION)
 		{
 			return clone().also { clone ->
 				layout.updateOperands(clone, regenerator::transformOperand)

@@ -604,7 +604,7 @@ class DotWriter constructor(
 			if (uniMatcher.find()) {
 				val original = Integer.parseInt(uniMatcher.group(1), 16)
 				var r = original shr 16
-				var g = original shr 16 and 255
+				var g = original shr 8 and 255
 				var b = original and 255
 				// Compress each component into the upper 1/2 range.
 				r = 255 - ((255 - r) shr 1)

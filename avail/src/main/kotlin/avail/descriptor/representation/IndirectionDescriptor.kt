@@ -404,7 +404,7 @@ import avail.descriptor.representation.A_RawFunction.Companion.setStartingChunkA
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.representation.A_RawFunction.Companion.totalInvocations
-import avail.descriptor.representation.A_RegisterDump.Companion.encodedElidedLocals
+import avail.descriptor.representation.A_RegisterDump.Companion.freezeOffset
 import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
 import avail.descriptor.representation.A_Sendable.Companion.bodySignature
 import avail.descriptor.representation.A_Sendable.Companion.definitionModuleName
@@ -611,8 +611,6 @@ import avail.descriptor.representation.A_Variable.Companion.globalModule
 import avail.descriptor.representation.A_Variable.Companion.globalName
 import avail.descriptor.representation.A_Variable.Companion.hasValue
 import avail.descriptor.representation.A_Variable.Companion.isGlobal
-import avail.descriptor.representation.A_Variable.Companion.isPlaceholderVariable
-import avail.descriptor.representation.A_Variable.Companion.placeholderVariableLocalIndex
 import avail.descriptor.representation.A_Variable.Companion.removeWriteReactor
 import avail.descriptor.representation.A_Variable.Companion.setUnescapedLocalValueNoCheck
 import avail.descriptor.representation.A_Variable.Companion.setValue
@@ -3903,8 +3901,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		self { returnTypeIfPrimitiveFails }
 
-	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple =
-		self { encodedElidedLocals }
+	override fun o_FreezeOffset(self: AvailObject): Int =
+		self { freezeOffset }
 
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,
@@ -4163,12 +4161,6 @@ class IndirectionDescriptor private constructor(
 		indices: Iterator<AvailObject>,
 		update: (AvailObject)->A_BasicObject
 	): A_BasicObject = self { recursivelyUpdate(indices, update) }
-
-	override fun o_IsPlaceholderVariable(self: AvailObject): Boolean =
-		self { isPlaceholderVariable() }
-
-	override fun o_PlaceholderVariableLocalIndex(self: AvailObject): Int =
-		self { placeholderVariableLocalIndex() }
 
 	override fun o_SpliteratorOfInt(self: AvailObject): Spliterator.OfInt =
 		self { spliteratorOfInt() }

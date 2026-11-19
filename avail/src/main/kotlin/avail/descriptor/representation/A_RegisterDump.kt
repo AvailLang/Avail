@@ -32,25 +32,16 @@
 package avail.descriptor.representation
 
 import avail.descriptor.functions.RegisterDumpDescriptor
-import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
-import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.exceptions.unsupported
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
+import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.cast
-import java.lang.Double.longBitsToDouble
 
 /**
  * [A_RegisterDump] is an interface for
@@ -97,85 +88,15 @@ interface A_RegisterDump : A_BasicObject
 
 	companion object {
 		/**
-		 * Encode a reference to a register that has been saved in a register
-		 * dump, in such a way that it can be decoded later if the continuation
-		 * using the dump is made immutable or shared.
-		 *
-		 * See [decodeBoxedValueFromDump] for the corresponding decoding logic.
-		 *
-		 * Boxed values are written as a one-based index into the dumped object
-		 * array.
-		 *
-		 * Int register values are written as the zero-based index × -2 into
-		 * the dumped long array, where a [Long] slot holds the register's whole
-		 * 64-bit value.
-		 *
-		 * Double values are written as the zero-based index × -2 + 1 into the
-		 * dumped long array, where the [Long] slot holds the raw bit pattern
-		 * for reconstructing a [Double].
-		 *
-		 * @param kind
-		 *   The [RegisterKind] of the register that held the local variable
-		 *   value.
-		 * @param liveIndexInKind
-		 *   A zero-based index into the boxed, integer, or float register list
-		 *   saved in some dump.
-		 * @return
-		 *   An encoded [Int] to save in the dump's [encodedElidedLocals], to
-		 *   allow a specified elided local variable to be initialized on
-		 *   creation, if the continuation using the dump is made immutable or
-		 *   shared.
+		 * Answer the L2 offset within the creating chunk's
+		 * [freeze][ExecutableChunk.freeze] method at which to start creating
+		 * the elided variables of the continuation that holds this register
+		 * dump, or -1 if no variable creation was postponed past the
+		 * continuation's creation.  See
+		 * doc/Optimization/Level_Two/Variable_elision.md §Freezing.
 		 */
-		fun encodeLocalValue(
-			kind: RegisterKind<*>,
-			liveIndexInKind: Int
-		): Int
-		{
-			assert(liveIndexInKind >= 0)
-			return when (kind)
-			{
-				BOXED_KIND -> liveIndexInKind + 1
-				INTEGER_KIND -> liveIndexInKind * -2 - 2
-				FLOAT_KIND -> liveIndexInKind * -2 + 1
-			}
-		}
-
-		/**
-		 * Decode a reference to a register that has been saved in a dump for
-		 * the purpose of initializing an elided variable during creation and
-		 * initialization when the [A_Continuation] using that dump is becoming
-		 * immutable or shared.
-		 *
-		 * @param dump
-		 *   The [A_RegisterDump] containing saved register state.
-		 * @param encodedIndex
-		 *   An [Int] produced by [encodeLocalValue] for capturing the value for
-		 *   initializing a local variable.
-		 * @return
-		 *   The [AvailObject], perhaps freshly created from an unboxed form,
-		 *   suitable for initializing a local variable that has been elided up
-		 *   to this point.
-		 */
-		fun decodeBoxedValueFromDump(
-			dump: A_RegisterDump,
-			encodedIndex: Int
-		): AvailObject = when
-		{
-			encodedIndex == 0 -> unsupported
-			encodedIndex > 0 -> dump.extractDumpedObjectAt(encodedIndex)
-			encodedIndex and 1 == 0 -> fromLong(
-				dump.extractDumpedLongAt(-encodedIndex ushr 1))
-			else -> fromDouble(
-				longBitsToDouble(
-					dump.extractDumpedLongAt(-encodedIndex ushr 1))).cast()
-		}
-
-		/**
-		 * Extract the tuple of elided local information from this register
-		 * dump.  The information is encoded as per [ENCODED_ELIDED_LOCALS].
-		 */
-		val A_RegisterDump.encodedElidedLocals: A_Tuple
-			get() = dispatch { o_EncodedElidedLocals(it) }
+		val A_RegisterDump.freezeOffset: Int
+			get() = dispatch { o_FreezeOffset(it) }
 
 		/**
 		 * A [CheckedMethod] for invoking the method [extractDumpedObjectAt].

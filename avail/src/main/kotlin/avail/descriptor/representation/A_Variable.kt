@@ -444,14 +444,6 @@ interface A_Variable : A_ChunkDependable
 			get() = dispatch { o_ValueWasStablyComputed(it) }
 			set(value) = dispatch { o_SetValueWasStablyComputed(it, value) }
 
-		fun A_Variable.isPlaceholderVariable(): Boolean =
-			dispatch { o_IsPlaceholderVariable(it) }
-
-		fun A_Variable.placeholderVariableLocalIndex(): Int =
-			dispatch { o_PlaceholderVariableLocalIndex(it) }
-
-
-
 		/* Static methods for the L2/JVM code to invoke. */
 
 		/** The static method equivalent of getValue().makeImmutable() */

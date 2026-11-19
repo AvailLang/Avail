@@ -32,6 +32,7 @@
 
 package avail.interpreter.levelTwo.operation.numbers
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLongMethod
 import avail.descriptor.numbers.IntegerDescriptor.RecyclePool
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.long
@@ -99,11 +100,21 @@ class L2_BOX_INT(
 
 	override fun JVMTranslator.translateToJVM()
 	{
-		// :: destination = interpreter.integerPool.boxLong(source);
-		loadInterpreter()
-		load(integerPoolField)
-		loadLong(source)
-		generateCall(boxLongMethod)
+		if (isGeneratingFreeze)
+		{
+			// There's no interpreter, so no recycling pool.
+			// :: destination = IntegerDescriptor.fromLong(source);
+			loadLong(source)
+			generateCall(fromLongMethod)
+		}
+		else
+		{
+			// :: destination = interpreter.integerPool.boxLong(source);
+			loadInterpreter()
+			load(integerPoolField)
+			loadLong(source)
+			generateCall(boxLongMethod)
+		}
 		store(destination.register())
 	}
 

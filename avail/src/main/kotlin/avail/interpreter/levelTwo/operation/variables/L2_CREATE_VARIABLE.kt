@@ -32,11 +32,12 @@
 
 package avail.interpreter.levelTwo.operation.variables
 
-import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -58,6 +59,18 @@ import avail.utility.isNullOr
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property localIndex
+ *   The one-based index of the local variable being created.
+ * @property outerType
+ *   The variable's outer type.
+ * @property variable
+ *   Where to write the new variable.
+ * @property initialValueOrNil
+ *   The variable's initial value, or [nil] to leave it unassigned.
+ * @property isElidable
+ *   Whether the local variable is elidable, which allows its creation to be
+ *   postponed.  An aliased local is not elidable.
  */
 class L2_CREATE_VARIABLE
 constructor(
@@ -65,7 +78,7 @@ constructor(
 	var outerType: L2ConstantOperand,
 	var variable: L2WriteBoxedOperand,
 	var initialValueOrNil: L2ReadBoxedOperand,
-	var constantVariableIfElided: L2ConstantOperand
+	var isElidable: L2ArbitraryConstantOperand<Boolean>
 ): L2Instruction()
 {
 	override fun StringBuilder.appendToWithWarnings(
@@ -93,24 +106,17 @@ constructor(
 	 * [reference][L2_SAVE_ALL_AND_PC_TO_INT.reference] edge to allow variable
 	 * creation to be postponed until after the reification completes and the
 	 * continuation is returned into.  It also goes along the
-	 * [ifFallThrough][L2_SAVE_ALL_AND_PC_TO_INT.ifFallThrough] edge, where it
-	 * gets transformed by the eventual [L2_CREATE_CONTINUATION] in the
-	 * reification part that captures the initialization value in case the
-	 * continuation becomes shared or immutable, allowing that local variable to
-	 * be initialized correctly on creation (and switch to L1 execution).  Note
-	 * that other state information of the [L2_SAVE_ALL_AND_PC_TO_INT] has to be
-	 * updated to capture this information, since that instruction is what
-	 * creates the [A_RegisterDump] subsequently used by the
-	 * [L2_CREATE_CONTINUATION].
+	 * [ifFallThrough][L2_SAVE_ALL_AND_PC_TO_INT.ifFallThrough] edge, where the
+	 * eventual [L2_CREATE_CONTINUATION] writes [nil] into the variable's frame
+	 * slot, and moves the creation into its freeze subgraph, which runs only
+	 * if the continuation becomes immutable or shared.
 	 *
-	 * Only the creation of an elided local is postponed, recognized by its
-	 * placeholder in [constantVariableIfElided].  An aliased local's variable
-	 * is created where the [L1Translator] put it, since other code may access
-	 * it.
+	 * Only the creation of an [elidable][isElidable] local is postponed.  An
+	 * aliased local's variable is created where the [L1Translator] put it,
+	 * since other code may access it.
 	 */
 	override fun canBePostponed(manifest: L2ValueManifest): Boolean =
-		L1Translator.enableVariableElision
-			&& constantVariableIfElided.constant.notNil
+		L1Translator.enableVariableElision && isElidable.constant
 
 	override fun JVMTranslator.translateToJVM()
 	{

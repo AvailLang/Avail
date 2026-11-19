@@ -31,17 +31,12 @@
  */
 package avail.descriptor.functions
 
+import avail.descriptor.functions.RegisterDumpDescriptor.IntegerSlots.FREEZE_OFFSET
 import avail.descriptor.functions.RegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
-import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.ENCODED_ELIDED_LOCALS
 import avail.descriptor.functions.RegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_RegisterDump
-import avail.descriptor.representation.A_RegisterDump.Companion.decodeBoxedValueFromDump
-import avail.descriptor.representation.A_RegisterDump.Companion.encodeLocalValue
-import avail.descriptor.representation.A_Tuple
-import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -51,15 +46,17 @@ import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.JavaLibrary.int
+import avail.interpreter.JavaLibrary.long
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPointCatalog
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
+import avail.optimizer.ExecutableChunk
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
@@ -70,12 +67,19 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
  * interpretation of its fields depends on the [L2Chunk] that's both creating
  * and consuming it.
  *
+ * An [L2_SAVE_ALL_AND_PC_TO_INT] creates the dump, saving the registers that
+ * are live where the continuation will resume.  When the continuation it
+ * feeds has elided variables, that instruction also reserves room after its
+ * own values, which the [L2_CREATE_CONTINUATION] fills with the registers
+ * that its freeze subgraph needs, and records in [FREEZE_OFFSET] where that
+ * subgraph starts (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
+ *
  * @constructor
  * @property fallbackEntryPoint
  *   The [DefaultEntryPoint] at which to eventually re-enter the
  *   [DefaultL1Chunk], should the containing [A_Continuation] become immutable
- *   or shared – at which time any elided local fields will also be created and
- *   populated via information recorded in [ENCODED_ELIDED_LOCALS].
+ *   or shared – at which time any elided local variables are first created by
+ *   the chunk's [freeze][ExecutableChunk.freeze] method.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -98,6 +102,15 @@ class RegisterDumpDescriptor private constructor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
+		 * The L2 offset at which the creating chunk's
+		 * [freeze][ExecutableChunk.freeze] method starts creating the elided
+		 * variables of the continuation that holds this dump, or -1 if there
+		 * are none to create.  An [L2_CREATE_CONTINUATION] sets it after the
+		 * dump is created, and it never changes after that.
+		 */
+		FREEZE_OFFSET,
+
+		/**
 		 * A vector of [Long] slots, to be interpreted by the [L2Chunk] that
 		 * both creates and consumes it.
 		 */
@@ -109,30 +122,6 @@ class RegisterDumpDescriptor private constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/**
-		 * An encoding of local variables that have not yet been constructed in
-		 * the corresponding continuation.
-		 *
-		 * The encoding is in consecutive pairs of [i32]s, where the first one
-		 * is a local number and the second one indicates where to find its
-		 * initial value:
-		 *  - If positive, it's an index into [OBJECT_SLOTS_],
-		 *  - If negative and even, -2×N, the Nth entry in [INTEGER_SLOTS_]
-		 *    contains a [Long] to box and store in the new variable.
-		 *  - If negative and odd, -2×N+1, the Nth entry in [INTEGER_SLOTS_]
-		 *    array contains a [Long] whose bit pattern can produce a [Double]
-		 *    to box and store in the new variable.
-		 *
-		 * These are encoded and decoded via [encodeLocalValue]
-		 * and [decodeBoxedValueFromDump].
-		 *
-		 * These values are used to initialize new local variables if a
-		 * continuation using this register dump is made immutable or shared.
-		 * If a local isn't mentioned, it still gets created in that
-		 * circumstance, but has no initial value (i.e., it's unassigned).
-		 */
-		ENCODED_ELIDED_LOCALS,
-
 		/**
 		 * A vector of [AvailObject] slots, to be interpreted by the [L2Chunk]
 		 * that both creates and consumes it.
@@ -163,8 +152,8 @@ class RegisterDumpDescriptor private constructor(
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		self[INTEGER_SLOTS_, index]
 
-	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple =
-		self[ENCODED_ELIDED_LOCALS]
+	override fun o_FreezeOffset(self: AvailObject): Int =
+		self[FREEZE_OFFSET].toInt()
 
 	override fun o_FallbackEntryPoint(self: AvailObject) = fallbackEntryPoint
 
@@ -228,41 +217,51 @@ class RegisterDumpDescriptor private constructor(
 					RegisterDumpDescriptor(SHARED, entry)
 				emptyRegisterDumps[entry + 1] =
 					mutables[entry + 1]!!.createShared(0) {
-						this[ENCODED_ELIDED_LOCALS] = emptyTuple
+						this[FREEZE_OFFSET] = -1L
 					}.makeShared()
 			}
 		}
 
 		/**
-		 * Create a new register dump [AvailObject] with the given data.
+		 * Create a new register dump [AvailObject] with the given data,
+		 * followed by room for the given number of additional objects and
+		 * longs.  The additional objects start as [nil], the additional longs
+		 * start as zero, and the [FREEZE_OFFSET] starts as -1, until an
+		 * [L2_CREATE_CONTINUATION] fills them in.
 		 *
+		 * @param fallbackEntryPoint
+		 *   The offset of the [DefaultEntryPoint] at which to resume in the
+		 *   [DefaultL1Chunk] if the continuation becomes immutable or shared.
 		 * @param objects
 		 *   The array of [AvailObject]s to capture.
 		 * @param longs
 		 *   The array of [Long]s to capture.
+		 * @param reservedObjects
+		 *   How many object slots to reserve after the [objects].
+		 * @param reservedLongs
+		 *   How many long slots to reserve after the [longs].
 		 * @return
-		 *   The new [A_RegisterDump] or [nil].
+		 *   The new, mutable [A_RegisterDump].
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun createRegisterDump(
 			fallbackEntryPoint: Int,
-			encodedElidedLocals: A_Tuple,
 			objects: Array<AvailObject>,
-			longs: LongArray
+			longs: LongArray,
+			reservedObjects: Int,
+			reservedLongs: Int
 		): AvailObject =
 			mutables[fallbackEntryPoint + 1]!!.create(
-				objects.size,
-				longs.size
+				objects.size + reservedObjects,
+				longs.size + reservedLongs
 			) {
-				assert(
-					encodedElidedLocals.run {
-						isNil || (2 .. tupleSize step 2).all {
-							tupleIntAt(it) != 0
-						}
-					})
-				setSlot(ENCODED_ELIDED_LOCALS, encodedElidedLocals)
+				setSlot(FREEZE_OFFSET, -1L)
 				setSlotsFromArray(OBJECT_SLOTS_, 1, objects, 0, objects.size)
+				for (i in objects.size + 1 .. objects.size + reservedObjects)
+				{
+					setSlot(OBJECT_SLOTS_, i, nil)
+				}
 				setSlotsFromArray(INTEGER_SLOTS_, 1, longs, 0, longs.size)
 			}
 
@@ -270,9 +269,124 @@ class RegisterDumpDescriptor private constructor(
 		val createRegisterDumpMethod = staticMethod(
 			::createRegisterDump,
 			int,
-			A_Tuple::class.java,
 			Array<AvailObject>::class.java,
-			LongArray::class.java)
+			LongArray::class.java,
+			int,
+			int)
+
+		/**
+		 * Answer the [A_RegisterDump.freezeOffset] of the given register dump.
+		 *
+		 * @param dump
+		 *   The register dump.
+		 * @return
+		 *   The L2 offset at which to start freezing, or -1.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun freezeOffsetStatic(dump: AvailObject): Int =
+			dump.descriptor.o_FreezeOffset(dump)
+
+		/** Access the method [freezeOffsetStatic]. */
+		val freezeOffsetMethod = staticMethod(
+			::freezeOffsetStatic,
+			AvailObject::class.java)
+
+		/**
+		 * Record in the given freshly created, still mutable register dump the
+		 * L2 offset at which the creating chunk's
+		 * [freeze][ExecutableChunk.freeze] method starts creating the elided
+		 * variables of its continuation.
+		 *
+		 * @param dump
+		 *   The mutable register dump.
+		 * @param freezeOffset
+		 *   The L2 offset of the freeze subgraph's entry.
+		 * @return
+		 *   The same register dump, to simplify the generated code.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun storeFreezeOffset(dump: AvailObject, freezeOffset: Int): AvailObject
+		{
+			assert(dump.descriptor.isMutable)
+			dump.setSlot(FREEZE_OFFSET, freezeOffset.toLong())
+			return dump
+		}
+
+		/** Access the method [storeFreezeOffset]. */
+		val storeFreezeOffsetMethod = staticMethod(
+			::storeFreezeOffset,
+			AvailObject::class.java,
+			int)
+
+		/**
+		 * Store an object into one of the slots that an
+		 * [L2_SAVE_ALL_AND_PC_TO_INT] reserved in the given freshly created,
+		 * still mutable register dump.
+		 *
+		 * @param dump
+		 *   The mutable register dump.
+		 * @param index
+		 *   The one-based index of the object slot.
+		 * @param value
+		 *   The object to store.
+		 * @return
+		 *   The same register dump, to simplify the generated code.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun storeDumpedObject(
+			dump: AvailObject,
+			index: Int,
+			value: AvailObject
+		): AvailObject
+		{
+			assert(dump.descriptor.isMutable)
+			dump.setSlot(OBJECT_SLOTS_, index, value)
+			return dump
+		}
+
+		/** Access the method [storeDumpedObject]. */
+		val storeDumpedObjectMethod = staticMethod(
+			::storeDumpedObject,
+			AvailObject::class.java,
+			int,
+			AvailObject::class.java)
+
+		/**
+		 * Store a [Long] into one of the slots that an
+		 * [L2_SAVE_ALL_AND_PC_TO_INT] reserved in the given freshly created,
+		 * still mutable register dump.
+		 *
+		 * @param dump
+		 *   The mutable register dump.
+		 * @param index
+		 *   The one-based index of the long slot.
+		 * @param value
+		 *   The [Long] to store.
+		 * @return
+		 *   The same register dump, to simplify the generated code.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun storeDumpedLong(
+			dump: AvailObject,
+			index: Int,
+			value: Long
+		): AvailObject
+		{
+			assert(dump.descriptor.isMutable)
+			dump.setSlot(INTEGER_SLOTS_, index, value)
+			return dump
+		}
+
+		/** Access the method [storeDumpedLong]. */
+		val storeDumpedLongMethod = staticMethod(
+			::storeDumpedLong,
+			AvailObject::class.java,
+			int,
+			long)
 
 		/**
 		 * Answer an empty register dump that uses the given fallback entry
