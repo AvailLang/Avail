@@ -281,9 +281,9 @@ Public "L1 make tuple" is a new atom;
 Public "L1 get outer" is a new atom;
 
 /**
- * Push a {@type "continuation"} just like the current one, such that if it is
- * ever {@method "Resume_" resumed} it will have the same effect as {@method
- * "Restart_with_" restarting} the current one.
+ * Push a {@type "label"} for the current invocation, holding its caller and
+ * function, so that it can be {@method "Restart_with_" restarted} with new
+ * arguments or {@method "Exit_with_" exited} with a value.
  *
  * @method "L1 push label"
  * @category "Disassembly" "Function Implementations"

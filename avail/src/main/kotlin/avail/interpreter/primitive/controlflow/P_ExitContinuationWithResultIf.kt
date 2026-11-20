@@ -87,8 +87,8 @@ object P_ExitContinuationWithResultIf : Primitive3(
 	): A_BasicObject? = interpreter.run {
 		if (!condition.extractBoolean) return nil
 		// The primitive fails if the value being returned disagrees with the
-		// label continuation's function's return type.  Any stronger check, as
-		// specified in a semantic restriction, will be tested in the caller.
+		// label's function's return type.  Any stronger check, as specified in
+		// a semantic restriction, will be tested in the caller.
 		var expectedType =
 			continuation.function().code().functionType().returnType
 		if (!result.isInstanceOf(expectedType))

@@ -39,8 +39,8 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor
-import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.DefinitionDescriptor
@@ -176,8 +176,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED(13),
 
 	/**
-	 * [Continuation][ContinuationDescriptor] expected a stronger
-	 * [type][TypeDescriptor].
+	 * A [label][LabelDescriptor] was exited with a value that is not an
+	 * instance of its function's return [type][TypeDescriptor].
 	 */
 	E_CONTINUATION_EXPECTED_STRONGER_TYPE(14),
 

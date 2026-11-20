@@ -211,7 +211,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 			return true
 		}
 
-		// A restart works with every continuation that is created by a label.
+		// Any label can be restarted, not just one for this frame.
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).  Extract the tuple of arguments back into a

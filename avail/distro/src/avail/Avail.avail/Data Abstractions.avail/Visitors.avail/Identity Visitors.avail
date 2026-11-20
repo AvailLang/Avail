@@ -52,13 +52,13 @@ Body
 "escape continuation" is a new field atom constrained to $[…]→boolean;
 
 /**
- * An {@type "private identity visitor"} retains a {@type "continuation"} that
+ * An {@type "private identity visitor"} retains a {@type "label"} that
  * enables fast escape upon affirmative discovery that a value has identity.
  *
  * @type "private identity visitor"
  * @supertype "visitor"
  * @field "escape continuation" "$[…]→boolean"
- *        The {@type "continuation"} to {@method "Exit_with_" exit} if the
+ *        The {@type "label"} to {@method "Exit_with_" exit} if the
  *        target value is determined to have identity.
  */
 Class "private identity visitor" extends visitor

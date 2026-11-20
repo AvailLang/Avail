@@ -118,7 +118,7 @@ internal enum class OptimizationPhase constructor(
 	/**
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
 	 * replace them with the rather complex code that will reify the caller if
-	 * necessary, and create a label continuation.  By now each placeholder has
+	 * necessary, and create the label.  By now each placeholder has
 	 * been postponed toward its uses by the initial translation and by any
 	 * code splitting, both of which regenerate in [BySemanticValue] mode.
 	 */

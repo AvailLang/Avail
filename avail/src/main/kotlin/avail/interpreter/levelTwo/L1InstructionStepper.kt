@@ -499,7 +499,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// Unfortunately, the caller is not yet reified. Reify
 						// now and capture the current L1 state in a
 						// continuation that will continue at pc-2, which is the
-						// pushLocal instruction itself (one nybble for the
+						// pushLabel instruction itself (one nybble for the
 						// extension, one for the pushLabel).  The continuation
 						// should continue at offset
 						// AFTER_REIFICATION_FOR_LABEL_CREATION, which will pop

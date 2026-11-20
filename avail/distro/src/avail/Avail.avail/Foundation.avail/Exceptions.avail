@@ -1171,9 +1171,8 @@ System exception "method-return-type-not-as-forward-declared" (13)
 	extends definition exception;
 
 /**
- * Raised when attempting to {@method "Exit_" exit} a {@type "continuation"}
- * with a value insufficiently strong to satisfy the {@type "continuation"}'s
- * return type.
+ * Raised when attempting to {@method "Exit_" exit} a {@type "label"} with a
+ * value insufficiently strong to satisfy the {@type "label"}'s return type.
  *
  * @type "continuation-expected-stronger-type exception"
  * @supertype "invocation exception"

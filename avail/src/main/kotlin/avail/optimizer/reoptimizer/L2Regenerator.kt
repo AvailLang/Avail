@@ -98,7 +98,7 @@ import avail.utility.mapToSet
  *  * allows stronger call-site types to narrow method lookups,
  *  * exposes primitive cancellation patterns like `<x,y>[1] → x`,
  *  * exposes L1 instruction cancellation, like avoiding creation of
- *    closures and label continuations,
+ *    closures and labels,
  *  * allows nearly all conditional and loop control flow to be expressed
  *    as simple jumps,
  *  * exposes opportunities to operate on intermediate values in an unboxed

@@ -141,12 +141,15 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Add
@@ -228,6 +231,7 @@ import avail.interpreter.primitive.variables.P_GetClearing
 import avail.interpreter.primitive.variables.P_GetValue
 import avail.interpreter.primitive.variables.P_SetValue
 import avail.optimizer.CallSiteHelper
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
@@ -846,6 +850,98 @@ class SimpleOptimizerTest
 				"Expected the callee to share a label")
 			assertEquals(value, result.asBigInteger().toLong())
 		}
+	}
+
+	/**
+	 * Check that a reification whose save-all code splitting has duplicated
+	 * still freezes correctly.  The function dispatches on its first argument,
+	 * assigns an elided local, calls "share caller", then dispatches on the
+	 * same argument again.  Code splitting copies the path between the two
+	 * dispatches, call site included, so two save-alls fall through to the one
+	 * continuation creation, whose freeze subgraph needs room in either one's
+	 * register dump.
+	 */
+	@Test
+	fun testFreezeWithSplitSaveAlls()
+	{
+		val sharedVariable =
+			newVariableWithContentType(mostGeneralLabelType)
+				.makeShared()
+		defineShareCaller(sharedVariable)
+		helper.defineMethod("sign of_", integers) {
+			argumentTypes(integers)
+			pushLiteral(fromInt(-1))
+		}
+		helper.defineMethod("sign of_", integers) {
+			argumentTypes(naturalNumbers)
+			pushLiteral(fromInt(1))
+		}
+		val rawFunction = helper.rawFunction(i64) {
+			argumentTypes(i64, i64)
+			val x = createLocal(variableTypeFor(i64))
+			// :: sign of a;
+			L1_doPushLocal(1)
+			call("sign of_", integers)
+			L1_doPop()
+			// :: x := a bit∧ b;
+			L1_doPushLocal(1)
+			L1_doPushLocal(2)
+			call("_bit∧_", i64)
+			L1_doSetLocal(x)
+			// :: share caller;
+			call("share caller", TOP())
+			L1_doPop()
+			// :: sign of a;
+			L1_doPushLocal(1)
+			call("sign of_", integers)
+			L1_doPop()
+			// :: x
+			L1_doGetLocal(x)
+		}
+		helper.testOptimize(rawFunction)
+		val freezingCreates = rawFunction.l2Instructions
+			.filterIsInstance<L2_CREATE_CONTINUATION>()
+			.filter { it.freeze.edges.isNotEmpty() }
+		assertTrue(
+			freezingCreates.any { it.feedingSaveAllCount() > 1 },
+			"Expected a freezing continuation creation fed by several " +
+				"save-alls")
+		for (value in listOf(5L, -7L, (1L shl 40) + 3))
+		{
+			sharedVariable.clearValue()
+			val result = helper.executeRawFunction(
+				rawFunction, listOf(fromLong(value), fromLong(-1L)))
+			assertTrue(
+				sharedVariable.hasValue()
+					&& sharedVariable.getValue().descriptor.isShared,
+				"Expected the callee to share a label")
+			assertEquals(value, result.asBigInteger().toLong())
+		}
+	}
+
+	/**
+	 * Answer how many [L2_SAVE_ALL_AND_PC_TO_INT]s reach the receiver along
+	 * their fall-through edges, perhaps through some jumps.
+	 */
+	private fun L2_CREATE_CONTINUATION.feedingSaveAllCount(): Int
+	{
+		val visited = mutableSetOf<L2BasicBlock>()
+		val toVisit = mutableListOf(basicBlock())
+		var count = 0
+		while (toVisit.isNotEmpty())
+		{
+			val block = toVisit.removeLast()
+			if (!visited.add(block)) continue
+			block.predecessorEdges().forEach { edge ->
+				when (val predecessor = edge.instruction)
+				{
+					is L2_SAVE_ALL_AND_PC_TO_INT -> count++
+					is L2_JUMP -> toVisit.add(predecessor.basicBlock())
+					else -> { }
+				}
+			}
+		}
+		return count
 	}
 
 	/**

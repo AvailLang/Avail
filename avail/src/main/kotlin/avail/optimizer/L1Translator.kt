@@ -675,9 +675,8 @@ class L1Translator private constructor(
 	 * If the reification was for getting into a state suitable for creating an
 	 * L1 label, the top continuation's chunk is resumed immediately, whereupon
 	 * the continuation will be popped and exploded back into registers, and the
-	 * actual label will be created from the continuation that was just resumed
-	 * (making use of [Interpreter.getReifiedContinuation] which now represents
-	 * the reified caller of the current method).
+	 * label will be created with the reified caller of the current method
+	 * (which [Interpreter.getReifiedContinuation] now answers).
 	 *
 	 * @param expectedValueOrNull
 	 *   A constant type to replace the top-of-stack in the reified
@@ -789,8 +788,8 @@ class L1Translator private constructor(
 
 	/**
 	 * We've reached a position in code generation where we know the current
-	 * continuation (a label) is being restarted.  Generate code to strip the
-	 * manifest and jump back to the [RESTART_LOOP_HEAD].
+	 * frame's label is being restarted.  Generate code to strip the manifest
+	 * and jump back to the [RESTART_LOOP_HEAD].
 	 *
 	 * @param restartArguments
 	 *   The [L2ReadBoxedOperand]s providing values with which to restart the
@@ -2083,11 +2082,9 @@ class L1Translator private constructor(
 		// While it's true that invalidation may only take place when no Avail
 		// code is running (even when evicting old chunks), and it's also the
 		// case that invalidation causes the chunk to be disconnected from its
-		// compiled code, it's still the case that a continuation (a label, say)
-		// created at an earlier time still refers to the invalid chunk.  Ensure
-		// it can fall back gracefully to L1 (the default chunk) by entering it
-		// at the TO_RESTART entry point.  Note that there can't be a primitive
-		// for such continuations.
+		// compiled code, this entry point can still be reached in a chunk that
+		// has since become invalid.  Ensure it can fall back gracefully to L1
+		// (the default chunk) by reentering it at the beginning.
 		// Capture the arguments, but don't consume them, in case the
 		// decrement-and-reoptimize has to create and run a different chunk.
 		val tupleType = code.functionType().argsTupleType
@@ -2454,9 +2451,9 @@ class L1Translator private constructor(
 		// After code motion, the L2_VIRTUAL_CREATE_LABEL instruction will be
 		// replaced by code to force reification of the caller (or do nothing if
 		// it has migrated into an off-ramp), and then create the label using
-		// the up-to-date caller.  Since label building only preserves the
-		// frame's function, only that is used by the virtual instruction.  The
-		// label continuation's pc will be 0, and its stack will be empty.
+		// the up-to-date caller.  A label holds only that caller and the
+		// frame's function, so the function is the only input the virtual
+		// instruction needs.
 		assert(code.codePrimitive() == null)
 		val semanticLabel = topFrame.label()
 		if (currentManifest.hasSemanticValue(semanticLabel))

@@ -1516,7 +1516,7 @@ constructor(
 	override fun L1Ext_doPushLabel()
 	{
 		// Defer the L2Simple_PushLabel emission.  The label's value-equality
-		// guarantee (same continuation for any pushLabel within the same frame
+		// guarantee (equal labels for any pushLabel within the same frame
 		// invocation) means we can synthesize it later if a non-Restart/Exit
 		// consumer forces materialization through [unaryPlus], OR skip the
 		// construction entirely when a Restart/Exit primitive's override of
@@ -1547,9 +1547,9 @@ constructor(
 		+L2Simple_PushLabel(
 			nextOffset = NEXT,
 			// Note that this is the state to capture during reification, not
-			// the content of the label continuation itself.  We have to
-			// capture the actual L1 state in frame slots, since the debugger
-			// *can* switch to L1 when stepping past such a step.
+			// the content of the label itself.  We have to capture the actual
+			// L1 state in frame slots, since the debugger *can* switch to L1
+			// when stepping past such a step.
 			stateOfL1 = StateOfL1(
 				pc = -999,
 				stackp = -999,

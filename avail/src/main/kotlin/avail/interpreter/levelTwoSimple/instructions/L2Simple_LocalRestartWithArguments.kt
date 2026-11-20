@@ -42,9 +42,10 @@ import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 /**
  * Restart the current function frame using new arguments read from explicit
  * source slots, in place of a P_RestartContinuationWithArguments invocation
- * that would otherwise have built (and resumed into) a label continuation
- * for this frame.  All locals are reinitialized to fresh variables, mirroring
- * the function-entry setup performed by [L2SimpleExecutableChunk.runChunk].
+ * that would otherwise have built a label for this frame and invoked the
+ * function afresh through it.  All locals are reinitialized to fresh
+ * variables, mirroring the function-entry setup performed by
+ * [L2SimpleExecutableChunk.runChunk].
  *
  * This instruction is emitted only for functions without a `codePrimitive`,
  * so the restart does not have to re-attempt a primitive that lives at the

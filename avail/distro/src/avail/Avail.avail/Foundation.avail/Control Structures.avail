@@ -214,19 +214,18 @@ styled by conditional styler;
 /* These are error messages. */
 sizesIncompatibleMessage ::=
 	"size of argument tuple to be compatible with size of\
-	\| continuation's parameter tuple";
+	\| label's parameter tuple";
 
 /**
- * Answer a continuation that represents (approximately) the current
- * continuation. This facility may be used to simulate labels within (but not at
- * the start of) blocks. The answer may be restarted, but not exited, which
- * causes execution to resume at the point where the continuation is computed
- * and answered.
+ * Answer a label for an invocation of this method, made from the current
+ * point.  This facility may be used to simulate labels within (but not at the
+ * start of) blocks.  The answer may be restarted, but not exited, which causes
+ * execution to resume at the point where the label is computed and answered.
  *
  * @method "here"
  * @returns "$[]→⊥"
- *          A continuation which, when restarted, causes {@method "here"} to
- *          answer the continuation again.
+ *          A label which, when restarted, causes {@method "here"} to answer a
+ *          label again.
  * @category "Control Structures" "Continuations"
  */
 Public method "here" is

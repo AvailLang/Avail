@@ -35,6 +35,7 @@ package avail.compiler.instruction
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.representation.A_Token
 import avail.descriptor.representation.A_Tuple
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
@@ -43,14 +44,13 @@ import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgument
 import avail.io.NybbleOutputStream
 
 /**
- * I represent the use of a label.  When a label is *used*, it causes the
- * current [continuation][ContinuationDescriptor] to be copied.  The copy is
- * then reset to the state that existed when the current
- * [function][FunctionDescriptor] started running, resetting the program
- * counter, stack pointer, and stack slots, and creating new local variables.
+ * I represent the use of a label.  When a label is *used*, it creates a
+ * [label][LabelDescriptor] for the current invocation of the current
+ * [function][FunctionDescriptor], holding that function and the invocation's
+ * caller [continuation][ContinuationDescriptor].
  *
- * The new continuation can subsequently be
- * [restarted][P_RestartContinuationWithArguments] with new arguments, or
+ * The label can subsequently be [restarted][P_RestartContinuationWithArguments]
+ * with new arguments, which invokes the function afresh with new locals, or
  * [exited][P_ExitContinuationWithResultIf].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -69,13 +69,12 @@ class AvailPushLabel constructor(relevantTokens: A_Tuple)
 		L1Ext_doPushLabel.writeTo(aStream)
 
 	/**
-	 * Push a label, which is a [ continuation][ContinuationDescriptor].  Since
-	 * the label can be restarted (which runs the same function again, with new
-	 * arguments and new locals), or exited (which has no static effect on
-	 * optimizations), I only have an effect on outer variables.  The label
-	 * does not keep the original arguments, so they need not be preserved.
-	 * Scan all outer variables and ensure the most recent pushes are reset so
-	 * that isLastAccess is false.
+	 * Push a [label][LabelDescriptor].  Since the label can be restarted
+	 * (which runs the same function again, with new arguments and new locals),
+	 * or exited (which has no static effect on optimizations), I only have an
+	 * effect on outer variables.  The label does not keep the original
+	 * arguments, so they need not be preserved.  Scan all outer variables and
+	 * ensure the most recent pushes are reset so that isLastAccess is false.
 	 */
 	override fun fixUsageFlags(
 		localData: MutableList<AvailVariableAccessNote?>,

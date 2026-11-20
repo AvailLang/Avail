@@ -308,12 +308,12 @@ class JVMTranslator constructor(
 	/**
 	 * A map from each [L2_SAVE_ALL_AND_PC_TO_INT] whose register dump feeds an
 	 * [L2_CREATE_CONTINUATION] with a [freeze][L2_CREATE_CONTINUATION.freeze]
-	 * edge, to the [RegisterDumpLayout] of the registers that the latter will
-	 * save in it.  The former reserves room for them when it creates the
-	 * dump.  This is set up by [prepare].
+	 * edge, to the [DumpReservation] it makes when it creates the dump, so the
+	 * latter has room to save the freeze subgraph's registers.  This is set
+	 * up by [prepare].
 	 */
 	val freezeReservations =
-		mutableMapOf<L2Instruction, RegisterDumpLayout>()
+		mutableMapOf<L2Instruction, DumpReservation>()
 
 	/**
 	 * The [L2BasicBlock]s reachable from an [L2_ENTER_FREEZE], which are
@@ -378,6 +378,18 @@ class JVMTranslator constructor(
 		/** Whether this group has no registers. */
 		val isEmpty get() = objectCount == 0 && longCount == 0
 	}
+
+	/**
+	 * The room that an [L2_SAVE_ALL_AND_PC_TO_INT] reserves in its register
+	 * dump, after the registers it saves, for the registers that the freeze
+	 * subgraph of an [L2_CREATE_CONTINUATION] it feeds will save there.
+	 *
+	 * @property objectCount
+	 *   The number of extra object slots to reserve.
+	 * @property longCount
+	 *   The number of extra long slots to reserve.
+	 */
+	class DumpReservation(val objectCount: Int, val longCount: Int)
 
 	/**
 	 * Answer the [RegisterDumpLayout] of the registers live along the given
@@ -1117,45 +1129,72 @@ class JVMTranslator constructor(
 			instruction.operands.forEach { it.dispatchOperand(preparer) }
 		}
 		// Lay out where each freeze subgraph's registers go in the register
-		// dump, after the registers saved by the L2_SAVE_ALL_AND_PC_TO_INT
-		// that created it.
+		// dump, after the registers saved by the L2_SAVE_ALL_AND_PC_TO_INTs
+		// that may have created it.  When code splitting has given the
+		// creation several save-alls, which may save different registers, the
+		// freeze registers go after the most that any of them saves, and each
+		// reserves room up to there, leaving a few slots unused in the dumps of
+		// those that save fewer.
 		instructions.forEach { instruction ->
 			if (instruction !is L2_CREATE_CONTINUATION) return@forEach
 			val edge = instruction.freeze.edges.singleOrNull()
 				?: return@forEach
-			val saveAll = saveAllFeeding(instruction)
-			val saved = registerDumpLayout(saveAll.reference, 0, 0)
-			val layout = registerDumpLayout(
-				edge, saved.objectCount, saved.longCount)
+			val savedBySaveAll = saveAllsFeeding(instruction).associateWith {
+				registerDumpLayout(it.reference, 0, 0)
+			}
+			val objectBase = savedBySaveAll.values.maxOf { it.objectCount }
+			val longBase = savedBySaveAll.values.maxOf { it.longCount }
+			val layout = registerDumpLayout(edge, objectBase, longBase)
 			freezeDumpLayouts[edge.offset()] = layout
-			assert(saveAll !in freezeReservations)
-			freezeReservations[saveAll] = layout
+			savedBySaveAll.forEach { (saveAll, saved) ->
+				assert(saveAll !in freezeReservations)
+				freezeReservations[saveAll] = DumpReservation(
+					objectBase - saved.objectCount + layout.objectCount,
+					longBase - saved.longCount + layout.longCount)
+			}
 		}
 	}
 
 	/**
-	 * Answer the [L2_SAVE_ALL_AND_PC_TO_INT] whose register dump the given
-	 * [L2_CREATE_CONTINUATION] uses.  The latter is reached only by following
-	 * the former's [ifFallThrough][L2_SAVE_ALL_AND_PC_TO_INT.ifFallThrough]
-	 * edge, perhaps through some jumps.
+	 * Answer every [L2_SAVE_ALL_AND_PC_TO_INT] whose register dump the given
+	 * [L2_CREATE_CONTINUATION] may use.  The latter is reached only by
+	 * following the former's
+	 * [ifFallThrough][L2_SAVE_ALL_AND_PC_TO_INT.ifFallThrough] edges, perhaps
+	 * through some jumps.  There is usually one, but code splitting can give
+	 * each copy of a reification entry point its own save-all, all falling
+	 * through to the same creation.
 	 *
 	 * @param create
 	 *   The [L2_CREATE_CONTINUATION].
 	 * @return
-	 *   The [L2_SAVE_ALL_AND_PC_TO_INT] that created its register dump.
+	 *   The [L2_SAVE_ALL_AND_PC_TO_INT]s that may have created its register
+	 *   dump.
 	 */
-	private fun saveAllFeeding(
+	private fun saveAllsFeeding(
 		create: L2_CREATE_CONTINUATION
-	): L2_SAVE_ALL_AND_PC_TO_INT
+	): Set<L2_SAVE_ALL_AND_PC_TO_INT>
 	{
-		var block = create.basicBlock()
-		while (true)
+		val saveAlls = mutableSetOf<L2_SAVE_ALL_AND_PC_TO_INT>()
+		val visited = mutableSetOf<L2BasicBlock>()
+		val toVisit = mutableListOf(create.basicBlock())
+		while (toVisit.isNotEmpty())
 		{
-			val predecessor = block.predecessorEdges().single().instruction
-			if (predecessor is L2_SAVE_ALL_AND_PC_TO_INT) return predecessor
-			assert(predecessor is L2_JUMP)
-			block = predecessor.basicBlock()
+			val block = toVisit.removeLast()
+			if (!visited.add(block)) continue
+			block.predecessorEdges().forEach { edge ->
+				when (val predecessor = edge.instruction)
+				{
+					is L2_SAVE_ALL_AND_PC_TO_INT -> saveAlls.add(predecessor)
+					else ->
+					{
+						assert(predecessor is L2_JUMP)
+						toVisit.add(predecessor.basicBlock())
+					}
+				}
+			}
 		}
+		assert(saveAlls.isNotEmpty())
+		return saveAlls
 	}
 
 	/**
