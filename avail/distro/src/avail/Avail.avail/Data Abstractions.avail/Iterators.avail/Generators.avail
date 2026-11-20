@@ -43,7 +43,7 @@ Body
 
 "current value" is a new field atom constrained to ↑any;
 "client state" is a new field atom constrained to ↑$[any]→⊤;
-"execution state" is a new field atom constrained to ↑continuation;
+"execution state" is a new field atom constrained to ↑label;
 "resuming" is a new field atom constrained to ↑boolean;
 
 /**
@@ -61,7 +61,7 @@ Class "generator" extends reader
 	with mutable fields
 		current value : any,
 		client state : $[any]→⊤,
-		referable execution state : continuation,
+		referable execution state : label,
 		resuming : boolean;
 
 Method "_is exhausted" is
@@ -140,12 +140,11 @@ Public method "generator for_" is
 	 * raises an exception.
 	 */
 	caller : $[any]→⊤;
-	/* This variable holds the execution continuation. It generally corresponds
-	 * to the site of an application of the yield function (though at the
-	 * beginning of the algorithm it has not yet applied the generator
-	 * function).
+	/* This variable holds the execution label.  It generally names the
+	 * invocation of the yield function (though at the beginning of the
+	 * algorithm it has not yet applied the generator function).
 	 */
-	state : continuation;
+	state : label;
 	state :=
 		[
 			/* The argument is ignored.  It exists so that this function and

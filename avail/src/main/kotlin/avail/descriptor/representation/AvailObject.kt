@@ -105,6 +105,7 @@ class AvailObject private constructor(
 	A_Fiber,
 	A_Function,
 	A_GrammaticalRestriction,
+	A_Label,
 	A_Lexer,
 	A_Macro,
 	A_Map,
@@ -539,8 +540,11 @@ class AvailObject private constructor(
 	override fun equalsContinuation(aContinuation: A_Continuation) =
 		descriptor.o_EqualsContinuation(this, aContinuation)
 
-	override fun equalsContinuationType(aContinuationType: A_Type) =
-		descriptor.o_EqualsContinuationType(this, aContinuationType)
+	override fun equalsLabel(aLabel: A_Label) =
+		descriptor.o_EqualsLabel(this, aLabel)
+
+	override fun equalsLabelType(aLabelType: A_Type) =
+		descriptor.o_EqualsLabelType(this, aLabelType)
 
 	override fun equalsIntegerRangeType(anIntegerRangeType: A_Type) =
 		descriptor.o_EqualsIntegerRangeType(this, anIntegerRangeType)

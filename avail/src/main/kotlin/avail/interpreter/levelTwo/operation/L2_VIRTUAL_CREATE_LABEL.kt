@@ -31,13 +31,11 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
-import avail.descriptor.representation.A_RawFunction.Companion.numSlots
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.HideInAllVisualizations
@@ -54,11 +52,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraph.ZoneType
-import avail.optimizer.L2Generator
-import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.L2GeneratorInterface.SpecialBlock
-import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -79,33 +73,21 @@ import avail.optimizer.reoptimizer.L2Regenerator
  *       area,
  *   1.  [L2_ENTER_L2_CHUNK].
  *
- * - [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
- * - [L2_GET_CURRENT_FUNCTION] (or [L2_MOVE_CONSTANT]), if the current
- *     function isn't already visible,
- * - [L2_GET_CURRENT_CONTINUATION]
- * - [L2_CREATE_CONTINUATION].
- * - The target of the [L2_SAVE_ALL_AND_PC_TO_INT] is in another block, which
- *   contains an unconditional [L2_JUMP_BACK] to the
- *   [SpecialBlock.AFTER_OPTIONAL_PRIMITIVE].
+ * - [L2_GET_CURRENT_CONTINUATION], if the reified caller isn't already
+ *   visible,
+ * - [L2_CREATE_LABEL], which builds the [label][LabelDescriptor] from the
+ *   function and the reified caller.
  *
- * The second [L2_SAVE_ALL_AND_PC_TO_INT] captures the offset of the
- * [L2Generator]'s [L2_ENTER_L2_CHUNK] entry point at
- * [SpecialBlock.AFTER_OPTIONAL_PRIMITIVE].  The register dump is fed to the
- * [L2_CREATE_CONTINUATION], so that when the continuation is restarted as a
- * label, it will restore these values into registers.
- *
- * The [L2_CREATE_CONTINUATION]'s level one pc is set to zero to indicate this
- * is a label.  The stack is empty, every slot is [nil], and only the function
- * and caller are recorded – for level one.  For level two, it also captures the
- * register dump and the level two offset of the entry point above.
+ * A label records nothing else, so no registers or level two entry point are
+ * saved for it.  Restarting it invokes the function afresh.
  *
  * @property code
  *   The [A_RawFunction] that is known statically to be referenced by the
  *   [function].
  * @property function
- *   The [A_Function] to use for the continuation.
+ *   The [A_Function] whose invocation the label names.
  * @property outputLabel
- *   Where to write the new continuation.
+ *   Where to write the new label.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -198,14 +180,14 @@ constructor(
 			startBlock(reificationOfframp)
 			val tempCaller = boxedWrite(
 				setOf(topFrame.reifiedCaller()),
-				restrictionForType(mostGeneralContinuationType))
+				restrictionForType(Types.CONTINUATION()))
 			val readCurrentFunction = currentFunction(
 				topFrame,
 				function.restriction.constantOrNull,
 				function.restriction.type)
 			val dummyContinuation = boxedWriteTemp(
 				"dummy continuation",
-				restrictionForType(mostGeneralContinuationType))
+				restrictionForType(Types.CONTINUATION()))
 			+L2_GET_CURRENT_CONTINUATION(tempCaller)
 			val dummyCreated = createBasicBlock(
 				"return dummy continuation", zone)
@@ -243,54 +225,9 @@ constructor(
 			+L2_GET_CURRENT_CONTINUATION(
 				boxedWrite(
 					setOf(caller),
-					restrictionForType(mostGeneralContinuationType)))
+					restrictionForType(Types.CONTINUATION())))
 		}
-		val fallThrough = createBasicBlock(
-			"Fall-through for label creation",
-			currentBlock().zone)
-		val writeOffset = intWriteTemp(
-			"offset to continue", restrictionForType(i32))
-		val writeRegisterDump = boxedWriteTemp(
-			"dump for label",
-			restrictionForType(Types.OTHER_NONTYPE()))
-		+L2_SAVE_ALL_AND_PC_TO_INT(
-			ifFallThrough = edgeTo(fallThrough),
-			// Force there to be nothing considered live in the edge
-			// leading to the label's entry point.
-			reference = backEdgeTo(
-				specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!,
-				mutableSetOf(),
-				mutableSetOf()),
-			referenceOffset = writeOffset,
-			registerDump = writeRegisterDump,
-			finalSavedBoxedRegisters = L2ReadBoxedVectorOperand(emptyList()))
-
-		startBlock(fallThrough)
-		val frameSizeInt = code.constant.numSlots
-		// A restart supplies new arguments, so a label captures neither
-		// arguments nor locals.
-		// TODO: A label has no use for these slots at all; they remain only
-		//  because a label is still represented as a continuation.
-		val nilRead = boxedConstant(nil)
-		val slots = List(frameSizeInt) { nilRead }
-		// Local variables aren't preserved by a label, so there is nothing
-		// to freeze.
-		val labelCreated = createBasicBlock(
-			"Label created", currentBlock().zone)
-		+L2_CREATE_CONTINUATION(
-			function = function,
-			code = code,
-			caller = readBoxed(caller),
-			levelOnePc = L2IntImmediateOperand(0),  // indicates a label.
-			levelOneStackp = L2IntImmediateOperand(frameSizeInt + 1),  // empty
-			slotValues = L2ReadBoxedVectorOperand(slots),  // each immutable
-			destination = outputLabel,
-			labelAddress = readIntNoFail(writeOffset.onlySemanticValue()),
-			registerDump = readBoxed(writeRegisterDump),
-			ifFallThrough = edgeTo(labelCreated),
-			freeze = L2PcVectorOperand(emptyList()),
-			comment = L2CommentOperand("Create label."))
-		startBlock(labelCreated)
+		+L2_CREATE_LABEL(function, readBoxed(caller), outputLabel)
 	}
 
 	override fun JVMTranslator.translateToJVM()

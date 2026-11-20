@@ -1,6 +1,6 @@
 /*
- * ContinuationTypeToFunctionType Tests.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * FunctionTypeToLabelType Tests.avail
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "ContinuationTypeToFunctionType Tests"
+Module "FunctionTypeToLabelType Tests"
 Versions
 	"Avail-1.6.1"
 Uses
 	"Primitive Test Common"
 Body
 
-Test "ContinuationTypeToFunctionType ok" in primitive continuations test suite if supported is
+Test "FunctionTypeToLabelType ok" in primitive continuations test suite if supported is
 [
-	Skip test;
+	labelType ::= $[integer]→string;
+	Require: labelType ⊆ label;
+	Require: labelType's function type = [integer]→string;
 ];
-

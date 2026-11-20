@@ -59,7 +59,6 @@ import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.BottomTypeDescriptor
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
@@ -76,6 +75,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedInteg
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
 import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
@@ -545,10 +545,10 @@ class TypeConsistencyTest
 				"FUNCTION_META", functionMeta(), NONTYPE_META)
 
 			/**
-			 * The metatype for continuation types.
+			 * The metatype for label types.
 			 */
-			private val CONTINUATION_META = Node(
-				"CONTINUATION_META", continuationMeta, NONTYPE_META)
+			private val LABEL_META = Node(
+				"LABEL_META", labelMeta, NONTYPE_META)
 
 			/**
 			 * The metatype for integer types.
@@ -723,7 +723,7 @@ class TypeConsistencyTest
 				bottomMeta,
 				FIBER_META,
 				FUNCTION_META,
-				CONTINUATION_META,
+				LABEL_META,
 				WHOLE_NUMBER_META,
 				WHOLE_NUMBER_META_META,
 				MAP_META,

@@ -39,9 +39,9 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
@@ -95,5 +95,5 @@ object P_GetContinuationOfOtherFiber : Primitive1(
 		functionType(
 			tuple(
 				mostGeneralFiberType()),
-			mostGeneralContinuationType)
+			Types.CONTINUATION())
 }

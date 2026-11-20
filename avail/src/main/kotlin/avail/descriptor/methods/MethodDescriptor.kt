@@ -153,6 +153,7 @@ import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckMod
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleVersion
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro
 import avail.interpreter.primitive.continuations.P_ContinuationCaller
+import avail.interpreter.primitive.continuations.P_LabelCaller
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import avail.interpreter.primitive.fibers.P_CreateFiberHeritableAtom
@@ -924,10 +925,14 @@ class MethodDescriptor private constructor(
 			"vm atom_remove property_",
 			P_AtomRemoveProperty),
 
-		/** The special atom for extracting the caller of a continuation. */
+		/**
+		 * The special atom for extracting the caller of a continuation or of a
+		 * label.
+		 */
 		CONTINUATION_CALLER(
 			"vm_'s caller",
-			P_ContinuationCaller),
+			P_ContinuationCaller,
+			P_LabelCaller),
 
 		/** The special atom for creating a literal phrase. */
 		CREATE_LITERAL_PHRASE(

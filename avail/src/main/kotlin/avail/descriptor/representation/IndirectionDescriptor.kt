@@ -516,7 +516,7 @@ import avail.descriptor.representation.A_Type.Companion.instanceTag
 import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfCompiledCodeType
-import avail.descriptor.representation.A_Type.Companion.isSupertypeOfContinuationType
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfLabelType
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfEnumerationType
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfFiberType
 import avail.descriptor.representation.A_Type.Companion.isSupertypeOfFunctionType
@@ -551,7 +551,7 @@ import avail.descriptor.representation.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfCompiledCodeType
-import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfContinuationType
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfLabelType
 import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfFiberType
 import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfFunctionType
 import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfIntegerRangeType
@@ -571,7 +571,7 @@ import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfVariab
 import avail.descriptor.representation.A_Type.Companion.typeTuple
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.A_Type.Companion.typeUnionOfCompiledCodeType
-import avail.descriptor.representation.A_Type.Companion.typeUnionOfContinuationType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfLabelType
 import avail.descriptor.representation.A_Type.Companion.typeUnionOfFiberType
 import avail.descriptor.representation.A_Type.Companion.typeUnionOfFunctionType
 import avail.descriptor.representation.A_Type.Companion.typeUnionOfIntegerRangeType
@@ -1312,10 +1312,15 @@ class IndirectionDescriptor private constructor(
 		aContinuation: A_Continuation
 	): Boolean = self { equalsContinuation(aContinuation) }
 
-	override fun o_EqualsContinuationType(
+	override fun o_EqualsLabel(
 		self: AvailObject,
-		aContinuationType: A_Type
-	): Boolean = self { equalsContinuationType(aContinuationType) }
+		aLabel: A_Label
+	): Boolean = self { equalsLabel(aLabel) }
+
+	override fun o_EqualsLabelType(
+		self: AvailObject,
+		aLabelType: A_Type
+	): Boolean = self { equalsLabelType(aLabelType) }
 
 	override fun o_EqualsCompiledCodeType(
 		self: AvailObject,
@@ -1521,11 +1526,11 @@ class IndirectionDescriptor private constructor(
 		aVariableType: A_Type
 	): Boolean = self { isSupertypeOfVariableType(aVariableType) }
 
-	override fun o_IsSupertypeOfContinuationType(
+	override fun o_IsSupertypeOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type
+		aLabelType: A_Type
 	): Boolean = self {
-		isSupertypeOfContinuationType(aContinuationType)
+		isSupertypeOfLabelType(aLabelType)
 	}
 
 	override fun o_IsSupertypeOfCompiledCodeType(
@@ -1896,11 +1901,11 @@ class IndirectionDescriptor private constructor(
 		typeIntersectionOfCompiledCodeType(aCompiledCodeType)
 	}
 
-	override fun o_TypeIntersectionOfContinuationType(
+	override fun o_TypeIntersectionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type
+		aLabelType: A_Type
 	): A_Type = self {
-		typeIntersectionOfContinuationType(aContinuationType)
+		typeIntersectionOfLabelType(aLabelType)
 	}
 
 	override fun o_TypeIntersectionOfFiberType(
@@ -1980,10 +1985,10 @@ class IndirectionDescriptor private constructor(
 		aVariableType: A_Type
 	): A_Type = self { typeUnionOfVariableType(aVariableType) }
 
-	override fun o_TypeUnionOfContinuationType(
+	override fun o_TypeUnionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type
-	): A_Type = self { typeUnionOfContinuationType(aContinuationType) }
+		aLabelType: A_Type
+	): A_Type = self { typeUnionOfLabelType(aLabelType) }
 
 	override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,

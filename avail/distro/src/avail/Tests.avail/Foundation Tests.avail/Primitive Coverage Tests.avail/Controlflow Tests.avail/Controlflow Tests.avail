@@ -47,6 +47,7 @@ Uses
 	"ExceptionStackDump Tests",
 	"ExitContinuationIf Tests",
 	"ExitContinuationWithResultIf Tests",
+	"ExitCurrentFiber Tests",
 	"IfFalseThenElse Tests",
 	"IfTrueThenElse Tests",
 	"InvokeWithTuple Tests",

@@ -31,22 +31,17 @@
  */
 package avail.optimizer.values
 
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import avail.descriptor.functions.LabelDescriptor
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 
 /**
- * A semantic value which represents a label continuation created for the
- * indicated [Frame].
- *
- * TODO MvG - It's unclear how to deal with replacement arguments provided by
- *  [P_RestartContinuationWithArguments].  Perhaps the approach is to create a
- *  duplicate Label using a new Frame.  It would have to merge control flow into
- *  a loop, so maybe this just falls under the general case of phis within
- *  loops. Or maybe it should use the very same Arguments, since a semantic
- *  value doesn't have a notion of value or register *directly* associated with
- *  it, only through a manifest.
+ * A semantic value which represents the [label][LabelDescriptor] created for
+ * the indicated [Frame].  A label holds only the frame's caller and function,
+ * not its arguments, so restarting it with replacement arguments via
+ * [P_RestartContinuationWithArguments] leaves the label itself unchanged.
  *
  * @constructor
  * Create a new `L2SemanticLabel` semantic value.
@@ -70,7 +65,7 @@ internal class L2SemanticLabel constructor(frame: Frame)
 		}
 
 	override val defaultRestriction: TypeRestriction
-		get() = continuationRestriction
+		get() = labelRestriction
 
 	override val primaryVisualSortKey get() = PrimaryVisualSortKey.LABEL
 
@@ -78,8 +73,7 @@ internal class L2SemanticLabel constructor(frame: Frame)
 
 	companion object
 	{
-		/** The default restriction for continuations. */
-		private val continuationRestriction =
-			restrictionForType(mostGeneralContinuationType)
+		/** The default restriction for labels. */
+		private val labelRestriction = restrictionForType(mostGeneralLabelType)
 	}
 }

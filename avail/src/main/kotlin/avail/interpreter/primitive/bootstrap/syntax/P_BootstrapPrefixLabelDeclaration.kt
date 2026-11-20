@@ -52,10 +52,10 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
@@ -151,9 +151,9 @@ object P_BootstrapPrefixLabelDeclaration : Primitive3(CanInline, Bootstrap)
 		}
 		val functionType =
 			functionType(tupleFromList(blockArgumentTypes), labelReturnType)
-		val continuationType = continuationTypeForFunctionType(functionType)
+		val labelType = labelTypeForFunctionType(functionType)
 		val labelDeclaration =
-			newLabel(labelName, labelReturnTypePhrase, continuationType)
+			newLabel(labelName, labelReturnTypePhrase, labelType)
 		val conflictingDeclaration =
 			FiberDescriptor.addDeclaration(labelDeclaration)
 		if (conflictingDeclaration !== null)

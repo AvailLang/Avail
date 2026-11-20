@@ -35,7 +35,7 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.nilSubstitute
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Continuation
 import avail.descriptor.representation.A_Continuation.Companion.frameAt
-import avail.descriptor.representation.A_RawFunction.Companion.numSlots
+import avail.descriptor.representation.A_Continuation.Companion.numSlots
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Variable
@@ -44,8 +44,8 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.BottomTypeDescriptor
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
@@ -66,7 +66,7 @@ object P_ContinuationStackData : Primitive1(CannotFail, CanInline), Foldable
 		interpreter: Interpreter,
 		con: AvailObject
 	): A_BasicObject? = interpreter.run {
-		val tuple = generateObjectTupleFrom(con.function().code().numSlots) {
+		val tuple = generateObjectTupleFrom(con.numSlots()) {
 			con.frameAt(it).let { entry ->
 				if (entry.isNil) nilSubstitute
 				else entry
@@ -78,6 +78,6 @@ object P_ContinuationStackData : Primitive1(CannotFail, CanInline), Foldable
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType),
+			tuple(Types.CONTINUATION()),
 			mostGeneralTupleType)
 }

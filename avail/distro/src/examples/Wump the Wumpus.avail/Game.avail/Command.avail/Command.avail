@@ -337,7 +337,7 @@ Commands "label NUMBER as STRING", "label #NUMBER as STRING" are
 |
 	id, name ::= args;
 	theRoom ::= the cave[id];
-	theRoom's label := name;
+	theRoom's room label := name;
 	Report:
 		format "Done‘helpful’.\n"
 		with helpful ::= if name = ""
@@ -353,13 +353,13 @@ Commands "unlabel NUMBER", "unlabel #NUMBER" are
 |
 	id ::= args[1];
 	theRoom ::= the cave[id];
-	If theRoom's label = "" then
+	If theRoom's room label = "" then
 	[
 		Report: "That room is not labeled.\n";
 	]
 	else
 	[
-		theRoom's label := "";
+		theRoom's room label := "";
 		Report: "Done.\n";
 	];
 	false

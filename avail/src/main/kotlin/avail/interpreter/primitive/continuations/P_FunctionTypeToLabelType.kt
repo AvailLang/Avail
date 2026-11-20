@@ -1,6 +1,6 @@
 /*
- * FunctionTypeToContinuationType Tests.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * P_FunctionTypeToLabelType.kt
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.interpreter.primitive.continuations
 
-Module "FunctionTypeToContinuationType Tests"
-Versions
-	"Avail-1.6.1"
-Uses
-	"Primitive Test Common"
-Body
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.FunctionTypeDescriptor
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.LabelTypeDescriptor
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
+import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.Foldable
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.Primitive1
 
-Test "FunctionTypeToContinuationType ok" in primitive continuations test suite if supported is
-[
-	Skip test;
-];
+/**
+ * **Primitive:** Answer a [label&#32;type][LabelTypeDescriptor] that uses the
+ * given [function&#32;type][FunctionTypeDescriptor].
+ */
+@Suppress("unused")
+object P_FunctionTypeToLabelType
+	: Primitive1(CannotFail, CanInline), Foldable
+{
+	override fun attempt1(
+		interpreter: Interpreter,
+		functionType: AvailObject
+	): A_BasicObject? = interpreter.run {
+		return labelTypeForFunctionType(functionType)
+	}
 
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(functionMeta()), labelMeta)
+}

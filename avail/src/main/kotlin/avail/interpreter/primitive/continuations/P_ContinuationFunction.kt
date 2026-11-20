@@ -38,9 +38,9 @@ import avail.descriptor.representation.A_Continuation.Companion.function
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -64,6 +64,6 @@ object P_ContinuationFunction : Primitive1(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralContinuationType),
+				Types.CONTINUATION()),
 			mostGeneralFunctionType)
 }

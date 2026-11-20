@@ -39,6 +39,8 @@ import avail.compiler.LexicalScanner
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.character.CharacterDescriptor
+import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
@@ -83,6 +85,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ABSTRACT_DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CONTINUATION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
@@ -236,11 +239,11 @@ private constructor(
 		aVariableType: A_Type
 	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
-	// A primitive type is a supertype of a continuation type if it is a
-	// supertype of NONTYPE.
-	override fun o_IsSupertypeOfContinuationType(
+	// A primitive type is a supertype of a label type if it is a supertype of
+	// NONTYPE.
+	override fun o_IsSupertypeOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type
+		aLabelType: A_Type
 	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// A primitive type is a supertype of a compiled code type if it is a
@@ -339,10 +342,10 @@ private constructor(
 					ANY -> Any::class.java
 					DOUBLE -> Double::class.javaPrimitiveType
 					FLOAT -> Float::class.javaPrimitiveType
-					ABSTRACT_DEFINITION, ATOM, CHARACTER, FORWARD_DEFINITION,
-					LEXER, MACRO_DEFINITION, MESSAGE_BUNDLE, METHOD,
-					METHOD_DEFINITION, MODULE, NONTYPE, NUMBER, RAW_POJO,
-					DEFINITION, TOKEN, OTHER_NONTYPE ->
+					ABSTRACT_DEFINITION, ATOM, CHARACTER, CONTINUATION,
+					FORWARD_DEFINITION, LEXER, MACRO_DEFINITION,
+					MESSAGE_BUNDLE, METHOD, METHOD_DEFINITION, MODULE, NONTYPE,
+					NUMBER, RAW_POJO, DEFINITION, TOKEN, OTHER_NONTYPE ->
 						super.o_MarshalToJava(self, classHint)
 				}
 			}
@@ -432,7 +435,7 @@ private constructor(
 	companion object
 	{
 		/** The total count of [Types] enum values. */
-		const val typesEnumCount = 20
+		const val typesEnumCount = 21
 
 		/**
 		 * Extract the [Types] enum value from this primitive
@@ -664,7 +667,22 @@ private constructor(
 		 * machinery.  It's a legitimate type, but it subsumes implementation
 		 * objects like [A_SemanticRestriction]s and [A_ParsingPlanInProgress].
 		 */
-		OTHER_NONTYPE(NONTYPE, TypeTag.NONTYPE_TAG, TypeTag.OTHER_NONTYPE_TAG)
+		OTHER_NONTYPE(NONTYPE, TypeTag.NONTYPE_TAG, TypeTag.OTHER_NONTYPE_TAG),
+
+		/**
+		 * The kind of all [continuations][ContinuationDescriptor], each of
+		 * which is an activated execution frame.  Continuations have no type
+		 * structure, since finding one on the stack says nothing useful,
+		 * statically, about its argument types or return type.  The value that
+		 * names an invocation so it can be restarted or exited is a
+		 * [label][LabelDescriptor], whose types are
+		 * [label&#32;types][LabelTypeDescriptor].
+		 *
+		 * This is listed last so that the ordinals of the other entries, which
+		 * are serialized, stay fixed.
+		 */
+		CONTINUATION(
+			NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.CONTINUATION_TAG)
 
 		;
 

@@ -45,11 +45,11 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
@@ -108,9 +108,8 @@ object P_CreateContinuation : PrimitiveN(5, CanInline), Foldable
 				wholeNumbers,
 				mostGeneralTupleType,
 				naturalNumbers,
-				variableTypeFor(
-					mostGeneralContinuationType)),
-			mostGeneralContinuationType)
+				variableTypeFor(Types.CONTINUATION())),
+			Types.CONTINUATION())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

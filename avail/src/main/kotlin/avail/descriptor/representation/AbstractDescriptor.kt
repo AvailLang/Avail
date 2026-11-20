@@ -1547,9 +1547,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		aVariableType: A_Type): Boolean
 
-	abstract fun o_IsSupertypeOfContinuationType (
+	abstract fun o_IsSupertypeOfLabelType (
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean
+		aLabelType: A_Type): Boolean
 
 	abstract fun o_IsSupertypeOfCompiledCodeType (
 		self: AvailObject,
@@ -1953,9 +1953,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		another: A_Type): A_Type
 
-	abstract fun o_TypeIntersectionOfContinuationType (
+	abstract fun o_TypeIntersectionOfLabelType (
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type
+		aLabelType: A_Type): A_Type
 
 	abstract fun o_TypeIntersectionOfCompiledCodeType (
 		self: AvailObject,
@@ -2019,9 +2019,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 
-	abstract fun o_TypeUnionOfContinuationType (
+	abstract fun o_TypeUnionOfLabelType (
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type
+		aLabelType: A_Type): A_Type
 
 	abstract fun o_TypeUnionOfCompiledCodeType (
 		self: AvailObject,
@@ -2506,9 +2506,13 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		aContinuation: A_Continuation): Boolean
 
-	abstract fun o_EqualsContinuationType (
+	abstract fun o_EqualsLabel (
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean
+		aLabel: A_Label): Boolean
+
+	abstract fun o_EqualsLabelType (
+		self: AvailObject,
+		aLabelType: A_Type): Boolean
 
 	abstract fun o_EqualsCompiledCodeType (
 		self: AvailObject,

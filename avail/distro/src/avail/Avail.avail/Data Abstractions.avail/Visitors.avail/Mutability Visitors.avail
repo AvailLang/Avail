@@ -161,6 +161,13 @@ Private method "_'s⁇visitable components" is
 
 Private method "_'s⁇visitable components" is
 [
+	value : label
+|
+	<value's function, value's caller>
+];
+
+Private method "_'s⁇visitable components" is
+[
 	value : function implementation
 |
 	value's literals

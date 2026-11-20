@@ -45,8 +45,8 @@ Names
 	"unfinished room",
 	"`#“_”(with label)",
 	"_'s⁇adjacent room ids",
-	"_'s⁇label",
-	"_'s⁇label:=_",
+	"_'s⁇room label",
+	"_'s⁇room label:=_",
 	"_'s⁇room`#",
 
 	/* Cave. */
@@ -104,7 +104,7 @@ Private method "an unfinished room" is
 ] : unfinished room;
 
 /* Define the field atoms for the "room" type. */
-"label" is a new atom constrained to ↑string;
+"room label" is a new atom constrained to ↑string;
 
 /**
  * A room is a location within a cave. Every room has an {@type "room id"
@@ -117,7 +117,7 @@ Private method "an unfinished room" is
  *        "cave"}, so the identifier is retained here only as a cross-check.
  * @field "exits" "<room id…|3>"
  *        The {@type "room id" identifiers} of the three adjacent rooms.
- * @field "label" "↑string"
+ * @field "room label" "↑string"
  *        A label assigned to the room by the player.
  */
 Public class "room" extends unfinished room
@@ -125,7 +125,7 @@ Public class "room" extends unfinished room
 		public room# : room id,
 		public adjacent room ids : {room id|3}
 	with mutable field
-		public label : string;
+		public room label : string;
 
 /**
  * The {@type "agent"} begins her adventure in the entrance room. It is the only
@@ -212,9 +212,9 @@ Public method "`#“_”(with label)" is
 |
 	format "#“id”‘name’" with
 		id ::= aRoom's room#,
-		name ::= if aRoom's label is empty
+		name ::= if aRoom's room label is empty
 			then [""]
-			else [" (" ++ aRoom's label ++ ")"]
+			else [" (" ++ aRoom's room label ++ ")"]
 ] : string;
 
 /* Define the field atoms for the "cave" type. */
@@ -364,7 +364,7 @@ Public method "a cave" is
 			else if subscript ≤ 3 then [pit room]
 			else [room];
 		s : string := "";
-		theRoom ::= rooms[id] as roomType with label ::= ↑s;
+		theRoom ::= rooms[id] as roomType with room label ::= ↑s;
 		rooms := rooms[id] → theRoom;
 	];
 	/* Coerce the tuple of rooms to the stronger type required for a cave's

@@ -102,11 +102,10 @@ import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TypeDescriptor
@@ -728,11 +727,11 @@ class L1Translator private constructor(
 		// contain the reified caller.
 		val writeReifiedCaller = boxedWrite(
 			topFrame.reifiedCaller(),
-			restrictionForType(mostGeneralContinuationType))
+			restrictionForType(Types.CONTINUATION()))
 		+L2_GET_CURRENT_CONTINUATION(writeReifiedCaller)
 		val newContinuationWrite = boxedWriteTemp(
 			"new continuation",
-			restrictionForType(mostGeneralContinuationType))
+			restrictionForType(Types.CONTINUATION()))
 		val afterCreation = createBasicBlock("Return reified", zone)
 		val create = when (defaultEntryPoint)
 		{
@@ -2467,7 +2466,7 @@ class L1Translator private constructor(
 		else
 		{
 			val continuationType =
-				continuationTypeForFunctionType(code.functionType())
+				labelTypeForFunctionType(code.functionType())
 			val destinationRegister = boxedWrite(
 				semanticLabel, restrictionForType(continuationType))
 			+L2_VIRTUAL_CREATE_LABEL(

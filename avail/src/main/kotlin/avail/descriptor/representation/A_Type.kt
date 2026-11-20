@@ -299,13 +299,13 @@ interface A_Type : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 *
-		 * @param aContinuationType
+		 * @param aLabelType
 		 * @return
 		 */
-		fun A_Type.isSupertypeOfContinuationType(
-			aContinuationType: A_Type
+		fun A_Type.isSupertypeOfLabelType(
+			aLabelType: A_Type
 		): Boolean = dispatch {
-			o_IsSupertypeOfContinuationType(it, aContinuationType)
+			o_IsSupertypeOfLabelType(it, aLabelType)
 		}
 
 		/**
@@ -702,13 +702,13 @@ interface A_Type : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 *
-		 * @param aContinuationType
+		 * @param aLabelType
 		 * @return
 		 */
-		fun A_Type.typeIntersectionOfContinuationType(
-			aContinuationType: A_Type
+		fun A_Type.typeIntersectionOfLabelType(
+			aLabelType: A_Type
 		): A_Type = dispatch {
-			o_TypeIntersectionOfContinuationType(it, aContinuationType)
+			o_TypeIntersectionOfLabelType(it, aLabelType)
 		}
 
 		/**
@@ -825,13 +825,13 @@ interface A_Type : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 *
-		 * @param aContinuationType
+		 * @param aLabelType
 		 * @return
 		 */
-		fun A_Type.typeUnionOfContinuationType(
-			aContinuationType: A_Type
+		fun A_Type.typeUnionOfLabelType(
+			aLabelType: A_Type
 		): A_Type = dispatch {
-			o_TypeUnionOfContinuationType(it, aContinuationType)
+			o_TypeUnionOfLabelType(it, aLabelType)
 		}
 
 		/**

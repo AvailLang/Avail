@@ -130,9 +130,10 @@ object DefaultL1ExecutableChunk : ExecutableChunk
 		}
 
 		/**
-		 * This entry point is invoked after reification takes place, expecting
-		 * the label (a continuation containing only the arguments) to have been
-		 * pushed in the frame.
+		 * This entry point is invoked after the caller has been reified so
+		 * that a label can be created.  It rebuilds the frame from the reified
+		 * continuation and retries the push-label instruction, which now finds
+		 * its caller reified.
 		 */
 		object AFTER_REIFICATION_FOR_LABEL_CREATION : DefaultEntryPoint(2)
 		{

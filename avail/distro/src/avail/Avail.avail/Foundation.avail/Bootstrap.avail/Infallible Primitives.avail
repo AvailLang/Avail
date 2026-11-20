@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/26/26, 3:53 PM
+ * * Last Generated: 11/20/26, 12:04 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -52,6 +52,7 @@ Uses
 		"Breakpoint",
 		"Cast|cast_into_else_",
 		"Crash:_",
+		"Exit current fiber with_",
 		"Exit_if_",
 		"Park current fiber",
 		"Request termination of_",
@@ -337,9 +338,9 @@ Primitive "_'s⁇character type number" is
  *
  * @category "Primitives" "Continuations" "Variables" "Constructors"
  * @method "_'s⁇caller"
- * @param "aContinuation" "$[…]→⊥"
+ * @param "aContinuation" "continuation"
  *        A continuation.
- * @returns "↑$[…]→⊥"
+ * @returns "↑continuation"
  *    A variable that, if assigned, holds the argument's caller. If unassigned,
  *    then the argument has no caller.
  */
@@ -355,7 +356,7 @@ Primitive "_'s⁇caller" is
  *
  * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇function"
- * @param "aContinuation" "$[…]→⊥"
+ * @param "aContinuation" "continuation"
  *        A continuation.
  * @returns "[…]→⊤"
  *    The argument's current function. This is the function whose execution
@@ -375,7 +376,7 @@ Primitive "_'s⁇function" is
  *
  * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇program counter"
- * @param "aContinuation" "$[…]→⊥"
+ * @param "aContinuation" "continuation"
  *        A continuation.
  * @returns "ℕ"
  *    The argument's Level One program counter.
@@ -397,7 +398,7 @@ Primitive "_'s⁇program counter" is
  *
  * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇stack"
- * @param "aContinuation" "$[…]→⊥"
+ * @param "aContinuation" "continuation"
  *        A continuation.
  * @returns "tuple"
  *    The argument's stack.
@@ -416,7 +417,7 @@ Primitive "_'s⁇stack" is
  *
  * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇stack pointer"
- * @param "aContinuation" "$[…]→⊥"
+ * @param "aContinuation" "continuation"
  *        A continuation.
  * @returns "ℕ"
  *    The argument's stack pointer.
@@ -429,62 +430,122 @@ Primitive "_'s⁇stack pointer" is
 ] : natural number;
 
 /**
- * Answer the type of the function represented by the specified continuation.
- *
- * @category "Primitives" "Types" "Continuations" "Queries"
- * @method "_'s⁇function type"
- * @param "continuationType" "{$[…]→⊥}ᵀ"
- *        A continuation type.
- * @returns "{[…]→⊤}ᵀ"
- *    The argument's current function's type.
- */
-Primitive "_'s⁇function type" is
-[
-	continuationType : continuation meta
-|
-	Primitive ContinuationTypeToFunctionType;
-] : function meta;
-
-/**
- * Compute and answer a continuation type capable of representing a current
- * function of the specified type.
+ * Compute and answer the label type for labels of functions of the specified
+ * type.
  *
  * @category "Primitives" "Types" "Continuations" "Constructors"
  * @method "$_"
  * @param "functionType" "{[…]→⊤}ᵀ"
  *        A function type.
  * @returns "{$[…]→⊥}ᵀ"
- *    The requested continuation type.
+ *    The requested label type.
  */
 Primitive "$_" is
 [
 	functionType : function meta
 |
-	Primitive FunctionTypeToContinuationType;
-] : continuation meta;
+	Primitive FunctionTypeToLabelType;
+] : label meta;
 
 /**
- * If the provided boolean is true, exit the ⊤-producing continuation. Execution
- * proceeds as though the continuation had just returned normally. The current
- * continuation (in which this primitive was invoked) is completely replaced by
- * the specified continuation's resumed caller.  If the provided boolean is
- * false, do nothing.
+ * Construct and answer a variable that holds the caller of the specified
+ * label, which is the continuation that restarting or exiting the label returns
+ * control to.  This variable will be unassigned if the label's function was the
+ * outermost frame of its fiber.
+ *
+ * @category "Primitives" "Continuations" "Variables" "Constructors"
+ * @method "_'s⁇caller"
+ * @param "aLabel" "$[…]→⊥"
+ *        A label.
+ * @returns "↑continuation"
+ *    A variable that, if assigned, holds the argument's caller.  If
+ *    unassigned, then the argument has no caller.
+ */
+Primitive "_'s⁇caller" is
+[
+	aLabel : label
+|
+	Primitive LabelCaller;
+] : continuation variable;
+
+/**
+ * Answer the function of the specified label.  This is the function that is
+ * invoked again if the label is restarted.
+ *
+ * @category "Primitives" "Continuations" "Queries"
+ * @method "_'s⁇function"
+ * @param "aLabel" "$[…]→⊥"
+ *        A label.
+ * @returns "[…]→⊤"
+ *    The argument's function.
+ */
+Primitive "_'s⁇function" is
+[
+	aLabel : label
+|
+	Primitive LabelFunction;
+] : function;
+
+/**
+ * Answer the type of the function whose invocations labels of the specified
+ * label type name.
+ *
+ * @category "Primitives" "Types" "Continuations" "Queries"
+ * @method "_'s⁇function type"
+ * @param "labelType" "{$[…]→⊥}ᵀ"
+ *        A label type.
+ * @returns "{[…]→⊤}ᵀ"
+ *    The argument's function type.
+ */
+Primitive "_'s⁇function type" is
+[
+	labelType : label meta
+|
+	Primitive LabelTypeToFunctionType;
+] : function meta;
+
+/**
+ * If the provided boolean is true, exit the ⊤-producing label.  Execution
+ * proceeds as though the label's function had just returned normally.  The
+ * current continuation (in which this primitive was invoked) is completely
+ * replaced by the label's resumed caller.  If the provided boolean is false, do
+ * nothing.
  *
  * @category "Primitives" "Continuations" "Control Structures"
  * @method "Exit_if_"
- * @param "aContinuation" "$[…]→⊤"
- *        The continuation to exit.
+ * @param "aLabel" "$[…]→⊤"
+ *        The label to exit.
  * @param "condition" "boolean"
  *        Whether to exit.
  * @raises "⊤"
  */
 Primitive "Exit_if_" is
 [
-	aContinuation : continuation returning top,
+	aLabel : label returning top,
 	condition : boolean
 |
 	Primitive ExitContinuationIf;
 ] : ⊤;
+
+/**
+ * End the current fiber cleanly with the given result, as though its outermost
+ * frame had just returned it.  Unlike {@method "Terminate current fiber"},
+ * this does not run the fiber's failure handling.  Any value is acceptable for
+ * a fiber whose result type is ⊤; otherwise, whatever joins the fiber checks
+ * the result against the fiber's result type.
+ *
+ * @category "Primitives" "Bootstrap" "Concurrency"
+ * @method "Exit current fiber with_"
+ * @param "result" "any"
+ *        The fiber's result.
+ * @returns "⊥"
+ */
+Primitive "Exit current fiber with_" is
+[
+	result : any
+|
+	Primitive ExitCurrentFiber;
+] : ⊥;
 
 /**
  * Compute and answer the numeric argument as a double-precision floating point
@@ -2465,7 +2526,7 @@ Primitive "`«_:_:=_`»" is
 Primitive "`«$_:_`»" is
 [
 	name : token,
-	declaredType : continuation meta
+	declaredType : label meta
 |
 	Primitive CreateLabelDeclaration;
 ] : label phrase;

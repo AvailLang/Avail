@@ -43,7 +43,6 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.register.L2Register
@@ -342,12 +341,6 @@ constructor (
 			is L2_ENTER_L2_CHUNK ->
 			{
 				entryPointLiveInfo[targetInstruction.offset] = layout
-			}
-			is L2_ENTER_L2_CHUNK_FOR_CALL ->
-			{
-				// There should be no live registers on the edge back to the
-				// start due to a surviving L2_VIRTUAL_CREATE_LABEL.
-				assert(layout.isEmpty)
 			}
 			else -> throw AssertionError("Invalid target of $this")
 		}

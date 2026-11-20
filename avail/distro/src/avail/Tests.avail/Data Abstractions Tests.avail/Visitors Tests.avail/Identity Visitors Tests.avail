@@ -245,6 +245,7 @@ Test "has identity (type)" in identity visitors test suite is
 			fiber,
 			function,
 			function implementation,
+			label,
 			map,
 			module,
 			number,

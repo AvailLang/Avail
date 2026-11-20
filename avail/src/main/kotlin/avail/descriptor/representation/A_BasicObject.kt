@@ -350,12 +350,22 @@ interface A_BasicObject : JSONFriendly
 	/**
 	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aContinuationType
-	 *   A continuation type.
+	 * @param aLabel
+	 *   A label.
 	 * @return
-	 *   The result of comparing the receiver and aContinuationType.
+	 *   The result of comparing the receiver and aLabel.
 	 */
-	fun equalsContinuationType(aContinuationType: A_Type): Boolean
+	fun equalsLabel(aLabel: A_Label): Boolean
+
+	/**
+	 * Answer whether the receiver equals the argument.
+	 *
+	 * @param aLabelType
+	 *   A label type.
+	 * @return
+	 *   The result of comparing the receiver and aLabelType.
+	 */
+	fun equalsLabelType(aLabelType: A_Type): Boolean
 
 	/**
 	 * Answer whether the receiver equals the argument.

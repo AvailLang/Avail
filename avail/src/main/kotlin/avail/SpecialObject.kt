@@ -65,9 +65,6 @@ import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
@@ -93,6 +90,9 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
@@ -152,8 +152,8 @@ constructor(
 	RawFunction(mostGeneralCompiledCodeType()),
 	Variable(mostGeneralVariableType),
 	VariableMeta(mostGeneralVariableMeta),
-	Continuation(mostGeneralContinuationType),
-	ContinuationMeta(continuationMeta),
+	Continuation(Types.CONTINUATION()),
+	Label(mostGeneralLabelType),
 	Atom(Types.ATOM()),
 	Double(Types.DOUBLE()),
 	ExtendedInteger(extendedIntegers),
@@ -238,7 +238,7 @@ constructor(
 	PojoThrowable(pojoTypeForClass(Throwable::class.java)),
 	NullaryFunction(functionType(emptyTuple(), TOP())),
 	NullaryFunctionreturningBoolean(functionType(emptyTuple(), booleanType)),
-	ContinuationVariable(variableTypeFor(mostGeneralContinuationType)),
+	ContinuationVariable(variableTypeFor(Types.CONTINUATION())),
 	MapFromAtomToAny(
 		mapTypeForSizesKeyTypeValueType(
 			wholeNumbers, Types.ATOM(), Types.ANY())),
@@ -359,8 +359,7 @@ constructor(
 	WhitespaceTokenClassifier(TokenType.WHITESPACE.atom),
 	ParseRejectionLevel(inclusive(1, 4)),
 	CharacterTypeNumber(inclusive(0, 31)),
-	ContinuationReturningTop(
-		continuationTypeForFunctionType(functionTypeReturning(TOP()))),
+	LabelReturningTop(labelTypeForFunctionType(functionTypeReturning(TOP()))),
 	DigitNonemptyString(CharacterDescriptor.nonemptyStringOfDigitsType),
 	OptionalSendPhraseAndReportString(
 		tupleTypeForTypes(
@@ -413,7 +412,8 @@ constructor(
 	HookRaiseJavaExceptionInAvail(HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL),
 	HookBaseFrame(HookType.BASE_FRAME),
 	HookDebuggableBaseFrame(HookType.DEBUGGABLE_BASE_FRAME),
-	HookDefaultStyler(HookType.DEFAULT_STYLER)
+	HookDefaultStyler(HookType.DEFAULT_STYLER),
+	LabelMeta(labelMeta)
 
 	;
 

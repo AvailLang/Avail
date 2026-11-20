@@ -2092,22 +2092,6 @@ raise Java exception function :=
  */
 Grammatical restriction "$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅, ∅>;
 
-/* If the unhandled exception handler catches a termination-requested exception,
- * we want the fiber to exit cleanly, so use an uninitialized variable. This is
- * because we don't want the synthetic base continuation to have a calling
- * continuation. When a base continuation returns, the fiber exits cleanly, in
- * this case without a final result.
- *
- * Note that the stack tuple must include a value for each stack slot required
- * by the continuation. The stack grows downward, and pre-decrements before
- * pushing, so the stack pointer should begin at the first invalid index.
- */
-syntheticBase ::=
-	[
-		caller : continuation;
-		$[Ignore: 0;]@pc=0 stack=<⊥>[2] caller=↑caller
-	]();
-
 /*
  * Reject the current parse *without unwinding*.  This gets sent after unwinding
  * to the base frame, so it would be wrong to attempt to unwind further.
@@ -2156,15 +2140,15 @@ noUnhandledExceptionHandler :=
 			Immediately reject parse(confidence=4), expected: msg
 		];
 		/* If the unhandled exception is a termination-requested exception, then
-		 * arrange to exit the current fiber cleanly. Note that this will only
-		 * work correctly if the current fiber isn't expected to produce a
-		 * result.
+		 * exit the current fiber cleanly.  The exception itself is the result;
+		 * any value is fine for a fiber that isn't expected to produce one,
+		 * and whatever joins a fiber that is will reject it as the wrong type.
 		 */
 		Cast unhandled into
 		[
-			unused : termination-requested exception
+			terminationRequest : termination-requested exception
 		|
-			Exit syntheticBase
+			Exit current fiber with terminationRequest
 		]
 		else
 		[

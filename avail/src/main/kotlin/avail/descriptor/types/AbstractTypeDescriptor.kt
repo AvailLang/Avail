@@ -182,9 +182,9 @@ protected constructor(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean
 
-	abstract override fun o_IsSupertypeOfContinuationType(
+	abstract override fun o_IsSupertypeOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean
+		aLabelType: A_Type): Boolean
 
 	abstract override fun o_IsSupertypeOfCompiledCodeType(
 		self: AvailObject,
@@ -280,9 +280,9 @@ protected constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 
-	abstract override fun o_TypeIntersectionOfContinuationType(
+	abstract override fun o_TypeIntersectionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type
+		aLabelType: A_Type): A_Type
 
 	abstract override fun o_TypeIntersectionOfCompiledCodeType(
 		self: AvailObject,
@@ -350,9 +350,9 @@ protected constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 
-	abstract override fun o_TypeUnionOfContinuationType(
+	abstract override fun o_TypeUnionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type
+		aLabelType: A_Type): A_Type
 
 	abstract override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,

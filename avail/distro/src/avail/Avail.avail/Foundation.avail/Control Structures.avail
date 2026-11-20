@@ -833,23 +833,22 @@ Public macro "For each…from_to_§do_" is
 styled by loop styler;
 
 /**
- * Restart the continuation with the specified arguments. Execution proceeds as
- * though the continuation's caller had just invoked the continuation's current
- * function with the given arguments instead of the original arguments. The
- * current continuation (in which this primitive was invoked) is completely
- * replaced by the restarted continuation.
+ * Restart the label with the specified arguments.  Execution proceeds as though
+ * the label's caller had just invoked the label's function with the given
+ * arguments.  The current continuation (in which this primitive was invoked) is
+ * completely replaced by the new invocation.
  *
  * @method "_(«_‡,»)"
- * @param "aContinuation" "continuation"
- *        The continuation to restart.
+ * @param "aLabel" "label"
+ *        The label to restart.
  * @param "arguments" "tuple"
- *        The new arguments with which to restart {@param "aContinuation"}.
+ *        The new arguments with which to restart {@param "aLabel"}.
  * @returns "⊥"
  * @category "Control Structures" "Loops"
  */
 Method "_(«_‡,»)" is
 [
-	aContinuation : continuation,
+	aLabel : label,
 	arguments : tuple
 |
 	Primitive RestartContinuationWithArguments (failureCode : natural number);
@@ -858,18 +857,18 @@ Method "_(«_‡,»)" is
 
 /**
  * Reject the current parse if the argument types do not conform to the
- * continuation's parameter types.
+ * label's parameter types.
  *
  * @method "_(«_‡,»)"
- * @restricts "continuation meta"
+ * @restricts "label meta"
  * @restricts "tuple meta"
  */
 Semantic restriction "_(«_‡,»)" is
 [
-	continuationType : continuation meta,
+	labelType : label meta,
 	argumentsType : tuple meta
 |
-	functionType ::= continuationType's function type;
+	functionType ::= labelType's function type;
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
 	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
@@ -896,7 +895,7 @@ Semantic restriction "_(«_‡,»)" is
 					++ “index”
 					++ " of type ("
 					++ “argumentsType[index]”
-					++ ") to agree with corresponding continuation's "
+					++ ") to agree with corresponding label's "
 					++ "parameter type ("
 					++ “parametersType[index]”
 					++ ")"

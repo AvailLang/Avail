@@ -37,8 +37,8 @@ import avail.descriptor.representation.A_Continuation.Companion.caller
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
@@ -61,12 +61,12 @@ object P_ContinuationCaller : Primitive1(CannotFail, CanInline), Foldable
 		con: AvailObject
 	): A_BasicObject? = interpreter.run {
 		return newVariableWithContentType(
-			mostGeneralContinuationType,
+			Types.CONTINUATION(),
 			con.caller)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType),
-			variableTypeFor(mostGeneralContinuationType))
+			tuple(Types.CONTINUATION()),
+			variableTypeFor(Types.CONTINUATION()))
 }

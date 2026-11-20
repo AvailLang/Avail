@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/26/26, 3:53 PM
+ * * Last Generated: 11/20/26, 12:04 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -60,6 +60,7 @@ Names
 	"Copy macros from_to_",
 	"Crash:_",
 	"Error:_",
+	"Exit current fiber with_",
 	"Exit_if_",
 	"Exit_with_if_",
 	"Export_as a new name",

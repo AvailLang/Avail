@@ -518,9 +518,9 @@ protected constructor (
 		self: AvailObject,
 		aVariableType: A_Type): Boolean = unsupported
 
-	override fun o_IsSupertypeOfContinuationType (
+	override fun o_IsSupertypeOfLabelType (
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean = unsupported
+		aLabelType: A_Type): Boolean = unsupported
 
 	override fun o_IsSupertypeOfCompiledCodeType (
 		self: AvailObject,
@@ -803,9 +803,9 @@ protected constructor (
 			another: A_Type): A_Type =
 		unsupported
 
-	override fun o_TypeIntersectionOfContinuationType (
+	override fun o_TypeIntersectionOfLabelType (
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type = unsupported
+		aLabelType: A_Type): A_Type = unsupported
 
 	override fun o_TypeIntersectionOfCompiledCodeType (
 		self: AvailObject,
@@ -870,9 +870,9 @@ protected constructor (
 		self: AvailObject,
 		aVariableType: A_Type): A_Type = unsupported
 
-	override fun o_TypeUnionOfContinuationType (
+	override fun o_TypeUnionOfLabelType (
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type = unsupported
+		aLabelType: A_Type): A_Type = unsupported
 
 	override fun o_TypeUnionOfCompiledCodeType (
 		self: AvailObject,
@@ -1227,9 +1227,13 @@ protected constructor (
 		self: AvailObject,
 		aContinuation: A_Continuation) = false
 
-	override fun o_EqualsContinuationType (
+	override fun o_EqualsLabel (
 		self: AvailObject,
-		aContinuationType: A_Type) = false
+		aLabel: A_Label) = false
+
+	override fun o_EqualsLabelType (
+		self: AvailObject,
+		aLabelType: A_Type) = false
 
 	override fun o_EqualsCompiledCodeType (
 		self: AvailObject,

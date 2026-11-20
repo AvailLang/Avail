@@ -744,7 +744,7 @@ Test "integer interval tuple" in tuple test suite is
 
 Test "serialization" in tuple test suite is
 [
-	$label;
+	$body;
 	forCapture : string := "Take me!";
 	/* Each line that initializes "expected" tests a distinct range of
 	 * serializer functionality.
@@ -815,7 +815,7 @@ Test "serialization" in tuple test suite is
 		/* 47 - 48 */ extended integer+, <double, float, nonempty string…|2..6>,
 			/* Integer types */
 		/* 49 - 50 */ (-∞..8], [8..∞),
-			/* Continuation types */
+			/* Label types */
 		/* 51      */ $[integer, string]→tuple,
 			/* Enumeration types */
 		/* 52      */ {1, 2, 3, 5, 8, 13, "cheese"}ᵀ,

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/26/26, 3:53 PM
+ * * Last Generated: 11/20/26, 12:04 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -66,8 +66,6 @@ Names
 	/*  38 */ "code point",
 	/* 165 */ "comment",
 	/*   9 */ "continuation",
-	/*  10 */ "continuation meta",
-	/* 169 */ "continuation returning top",
 	/*  92 */ "continuation variable",
 	/* 190 */ "debuggableBaseFrameDefaultHook",
 	/*  61 */ "declaration phrase",
@@ -106,7 +104,10 @@ Names
 	/* 186 */ "invalidMessageSendDefaultHook",
 	/*  95 */ "key-value tuple",
 	/* 162 */ "keyword",
+	/*  10 */ "label",
+	/* 192 */ "label meta",
 	/*  63 */ "label phrase",
+	/* 169 */ "label returning top",
 	/* 158 */ "lexer body function",
 	/* 157 */ "lexer filter function",
 	/*  59 */ "list phrase",
@@ -401,25 +402,28 @@ Special object "variable" is special object 7;
 Special object "variable meta" is special object 8;
 
 /**
- * TODO: Special object description goes here.
+ * The type of all continuations, each of which is an activated execution
+ * frame.  Continuation types have no structure: finding a continuation on the
+ * stack says nothing useful, statically, about its argument types or return
+ * type.
  *
  * @category "Primitives" "Types"
  * @type "continuation"
- * @alias "$[…]→⊥"
- * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
+ * @supertype "nontype"
  */
 Special object "continuation" is special object 9;
 
 /**
- * TODO: Special object description goes here.
+ * The most general label type.  A label names an invocation of a function so
+ * that it can be restarted with new arguments or exited with a value.  Label
+ * types are contravariant in both their argument types and their return type,
+ * so the most general one accepts no arguments and returns ⊥.
  *
  * @category "Primitives" "Types"
- * @type "continuation meta"
- * @alias "($[…]→⊥)'s type"
- * @sticky
- * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
+ * @type "label"
+ * @alias "$[…]→⊥"
  */
-Special object "continuation meta" is special object 10;
+Special object "label" is special object 10;
 
 /**
  * An {@code "atom"} is a mutable value associated with a module-allocated
@@ -1554,7 +1558,7 @@ Special object "predicate function" is special object 91;
  *
  * @category "Primitives" "Types"
  * @type "continuation variable"
- * @alias "↑$[…]→⊥"
+ * @alias "↑continuation"
  */
 Special object "continuation variable" is special object 92;
 
@@ -2276,13 +2280,13 @@ Special object "parse rejection level" is special object 167;
 Special object "character type number" is special object 168;
 
 /**
- * The continuation type for continuations based on ⊤-valued functions.
+ * The label type for labels of ⊤-valued functions.
  *
  * @category "Primitives" "Types"
  * @type "$[…]→⊤"
- * @alias "continuation returning top"
+ * @alias "label returning top"
  */
-Special object "continuation returning top" is special object 169;
+Special object "label returning top" is special object 169;
 
 /**
  * The type for non-empty strings composed entirely of digit characters.
@@ -2498,4 +2502,13 @@ Special object "debuggableBaseFrameDefaultHook" is special object 190;
  * @alias "defaultStylerDefaultHook"
  */
 Special object "defaultStylerDefaultHook" is special object 191;
+
+/**
+ * The metatype of all label types.
+ *
+ * @category "Primitives" "Types"
+ * @type "label meta"
+ * @alias "($[…]→⊥)'s type"
+ */
+Special object "label meta" is special object 192;
 

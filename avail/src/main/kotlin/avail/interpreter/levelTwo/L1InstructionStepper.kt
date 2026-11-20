@@ -40,8 +40,8 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
 import avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import avail.descriptor.functions.LabelDescriptor.Companion.createLabel
 import avail.descriptor.functions.RegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_BasicObject
@@ -132,7 +132,6 @@ import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doSetLocal_ord
 import avail.interpreter.levelOne.L1Operation.Ordinals.L1_doSetOuter_ord
 import avail.optimizer.DefaultL1ExecutableChunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
-import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_PRIMITIVE_FAILURE
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_REIFICATION_FOR_LABEL_CREATION
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.StackReifier
@@ -492,13 +491,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				L1Ext_doPushLabel_ord ->
 				{
 					assert(code.codePrimitive() == null)
-					// Note that neither the arguments nor the locals are
-					// present in the new continuation.  A restart supplies
-					// new arguments, and new locals will be created.
-					// Freeze all fields of the new object, including its
-					// caller and function.
-					// ...always a fresh copy, always mutable (uniquely owned).
-					// ...and continue running the chunk.
+					// A label holds only this frame's caller and function.  A
+					// restart supplies new arguments, and new locals will be
+					// created.  The caller must be reified first.
 					if (!interpreter.callerIsReified())
 					{
 						// Unfortunately, the caller is not yet reified. Reify
@@ -548,15 +543,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					// The caller has already been reified, so we don't need
 					// to force reification here.
-					val labelContinuation = createLabelContinuation(
+					frame[--stackp] = createLabel(
 						interpreter.function!!,
-						interpreter.getReifiedContinuation()!!,
-						DefaultL1Chunk,
-						AFTER_PRIMITIVE_FAILURE.offset)
-					// Freeze all fields of the new object, including its
-					// caller and function.
-					labelContinuation.makeSubobjectsImmutable()
-					frame[--stackp] = labelContinuation as AvailObject
+						interpreter.getReifiedContinuation()!!)
 				}
 				L1Ext_doGetLiteral_ord ->
 				{

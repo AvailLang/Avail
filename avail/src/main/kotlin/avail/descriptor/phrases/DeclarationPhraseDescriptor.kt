@@ -76,8 +76,8 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.ContinuationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
+import avail.descriptor.types.LabelTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -915,11 +915,11 @@ class DeclarationPhraseDescriptor(
 		 * @param returnTypeExpression
 		 *   The [expression][PhraseDescriptor] that produced the type for the
 		 *   entity being declared, or [nil] if there was no such expression.
-		 *   Note that this expression produced the return type of the
-		 *   continuation type, not the continuation type itself.
+		 *   Note that this expression produced the return type of the label
+		 *   type, not the label type itself.
 		 * @param declaredType
 		 *   The [type][TypeDescriptor] of the label being declared, which must
-		 *   be a [continuation&#32;type][ContinuationTypeDescriptor] whose
+		 *   be a [label&#32;type][LabelTypeDescriptor] whose
 		 *   contained [function&#32;type][FunctionTypeDescriptor] agrees with
 		 *   the block in which the label occurs.
 		 * @return The new label declaration.

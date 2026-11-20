@@ -41,9 +41,9 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -68,7 +68,7 @@ object P_ContinuationPC : Primitive1(CannotFail, CanInline), Foldable
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType),
+			tuple(Types.CONTINUATION()),
 			naturalNumbers)
 
 	override val canDestroyArguments get() = false

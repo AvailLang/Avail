@@ -72,7 +72,6 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
@@ -92,6 +91,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
@@ -812,7 +812,7 @@ class SimpleOptimizerTest
 	fun testElidedLocalBeyondIntSurvivesSharing()
 	{
 		val sharedVariable =
-			newVariableWithContentType(mostGeneralContinuationType)
+			newVariableWithContentType(mostGeneralLabelType)
 				.makeShared()
 		defineShareCaller(sharedVariable)
 		val rawFunction = helper.rawFunction(i64) {
@@ -930,7 +930,7 @@ class SimpleOptimizerTest
 	fun testFrozenLocalHoldsLatestAssignment()
 	{
 		val sharedVariable =
-			newVariableWithContentType(mostGeneralContinuationType)
+			newVariableWithContentType(mostGeneralLabelType)
 				.makeShared()
 		defineShareCaller(sharedVariable)
 		val rawFunction = helper.rawFunction(integers) {
@@ -983,7 +983,7 @@ class SimpleOptimizerTest
 	fun testFrozenUnassignedLocalCanBeAssigned()
 	{
 		val sharedVariable =
-			newVariableWithContentType(mostGeneralContinuationType)
+			newVariableWithContentType(mostGeneralLabelType)
 				.makeShared()
 		defineShareCaller(sharedVariable)
 		val rawFunction = helper.rawFunction(integers) {
@@ -3448,7 +3448,7 @@ class SimpleOptimizerTest
 				arguments = listOf("index" to naturalNumbers),
 				outers = listOf(
 					"args" to argsType,
-					"body" to mostGeneralContinuationType),
+					"body" to mostGeneralLabelType),
 				returnType = TOP())
 			callNewDummy(
 				"From_to_by_do_",

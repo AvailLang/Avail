@@ -38,8 +38,8 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -69,5 +69,5 @@ object P_ResumeContinuation : Primitive1(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralContinuationType), bottom)
+		functionType(tuple(Types.CONTINUATION()), bottom)
 }

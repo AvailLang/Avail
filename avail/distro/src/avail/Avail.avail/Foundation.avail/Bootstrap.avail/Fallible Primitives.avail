@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 9/26/26, 3:53 PM
+ * * Last Generated: 11/20/26, 12:04 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -590,11 +590,11 @@ Primitive "_→function" is
  * @param "stackPointer" "ℕ"
  *        @param "aFunction"'s stack pointer. This is the index of the
  *        top of the stack.
- * @param "caller" "↑$[…]→⊥"
+ * @param "caller" "↑continuation"
  *        A variable holding the new continuation's calling continuation.
  *        If the variable is unassigned, then create a root continuation (i.e.,
  *        one without a caller).
- * @returns "$[…]→⊥"
+ * @returns "continuation"
  *    The requested continuation.
  * @raises "incorrect-continuation-stack-size code"
  * @raises "cannot-create-continuation-for-infallible-primitive-function code"
@@ -614,28 +614,27 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
 ] : continuation;
 
 /**
- * If the provided boolean is true, exit the continuation and answer the
- * specified value to the continuation's caller. Execution proceeds as though
- * the continuation had just returned from its current function with the
- * supplied value. The current continuation (in which this primitive was
- * invoked) is completely replaced by the specified continuation's resumed
- * caller.  If the provided boolean is false, do nothing.
+ * If the provided boolean is true, exit the label and answer the specified
+ * value to the label's caller.  Execution proceeds as though the label's
+ * function had just returned the supplied value.  The current continuation (in
+ * which this primitive was invoked) is completely replaced by the label's
+ * resumed caller.  If the provided boolean is false, do nothing.
  *
  * @category "Primitives" "Continuations" "Control Structures"
  * @method "Exit_with_if_"
- * @param "aContinuation" "$[…]→⊥"
- *        The continuation to exit.
+ * @param "aLabel" "$[…]→⊥"
+ *        The label to exit.
  * @param "value" "any"
- *         The value with which to exit {@param "aContinuation"}.
+ *         The value with which to exit {@param "aLabel"}.
  * @param "condition" "boolean"
  *        Whether to exit.
  * @returns "⊤"
  * @raises "continuation-expected-stronger-type code"
- *         If the value to return isn't strong enough for the continuation.
+ *         If the value to return isn't strong enough for the label.
  */
 Primitive "Exit_with_if_" is
 [
-	aContinuation : continuation,
+	aLabel : label,
 	value : any,
 	condition : boolean
 |
@@ -669,25 +668,24 @@ Primitive "Invoke|invoke_with_" is
 ] : ⊤;
 
 /**
- * Restart the continuation with the specified arguments. Execution proceeds as
- * though the continuation's caller had just invoked the continuation's current
- * function with the given arguments instead of the original arguments. The
- * current continuation (in which this primitive was invoked) is completely
- * replaced by the restarted continuation.
+ * Restart the label with the specified arguments.  Execution proceeds as though
+ * the label's caller had just invoked the label's function with the given
+ * arguments.  The current continuation (in which this primitive was invoked) is
+ * completely replaced by the new invocation.
  *
  * @category "Primitives" "Continuations" "Control Structures"
  * @method "Restart_with_"
- * @param "aContinuation" "$[…]→⊥"
- *        The continuation to restart.
+ * @param "aLabel" "$[…]→⊥"
+ *        The label to restart.
  * @param "arguments" "tuple"
- *        The new arguments with which to restart {@param "aContinuation"}.
+ *        The new arguments with which to restart {@param "aLabel"}.
  * @returns "⊥"
  * @raises "incorrect-number-of-arguments code"
  * @raises "incorrect-argument-type code"
  */
 Primitive "Restart_with_" is
 [
-	aContinuation : continuation,
+	aLabel : label,
 	arguments : tuple
 |
 	Primitive RestartContinuationWithArguments (failureCode : {
@@ -697,28 +695,27 @@ Primitive "Restart_with_" is
 ] : ⊥;
 
 /**
- * If the condition is false, do nothing.  Otherwise, restart the continuation
- * with the specified arguments. Execution proceeds as though the continuation's
- * caller had just invoked the continuation's current function with the given
- * arguments instead of the original arguments. The current continuation (in
- * which this primitive was invoked) is completely replaced by the restarted
- * continuation.
+ * If the condition is false, do nothing.  Otherwise, restart the label with the
+ * specified arguments.  Execution proceeds as though the label's caller had
+ * just invoked the label's function with the given arguments.  The current
+ * continuation (in which this primitive was invoked) is completely replaced by
+ * the new invocation.
  *
  * @category "Primitives" "Continuations" "Control Structures"
  * @method "Restart_with_if_"
- * @param "aContinuation" "$[…]→⊥"
- *        The continuation to restart.
+ * @param "aLabel" "$[…]→⊥"
+ *        The label to restart.
  * @param "arguments" "tuple"
- *        The new arguments with which to restart {@param "aContinuation"}.
+ *        The new arguments with which to restart {@param "aLabel"}.
  * @param "condition" "boolean"
- *        Whether to restart the continuation.
+ *        Whether to restart the label.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments code"
  * @raises "incorrect-argument-type code"
  */
 Primitive "Restart_with_if_" is
 [
-	aContinuation : continuation,
+	aLabel : label,
 	arguments : tuple,
 	condition : boolean
 |

@@ -156,10 +156,10 @@ protected constructor(
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		computeIntersectionWith(self, another)
 
-	override fun o_TypeIntersectionOfContinuationType(
+	override fun o_TypeIntersectionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type =
-			computeIntersectionWith(self, aContinuationType)
+		aLabelType: A_Type): A_Type =
+			computeIntersectionWith(self, aLabelType)
 
 	override fun o_TypeIntersectionOfCompiledCodeType(
 		self: AvailObject,
@@ -237,10 +237,10 @@ protected constructor(
 		self: AvailObject,
 		another: A_Type): A_Type = computeUnionWith(self, another)
 
-	override fun o_TypeUnionOfContinuationType(
+	override fun o_TypeUnionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type =
-			computeUnionWith(self, aContinuationType)
+		aLabelType: A_Type): A_Type =
+			computeUnionWith(self, aLabelType)
 
 	override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,
@@ -417,9 +417,9 @@ protected constructor(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean = false
 
-	override fun o_IsSupertypeOfContinuationType(
+	override fun o_IsSupertypeOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean = false
+		aLabelType: A_Type): Boolean = false
 
 	override fun o_IsSupertypeOfCompiledCodeType(
 		self: AvailObject,

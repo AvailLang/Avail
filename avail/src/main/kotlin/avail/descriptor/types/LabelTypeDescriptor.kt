@@ -1,6 +1,6 @@
 /*
- * ContinuationTypeDescriptor.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * LabelTypeDescriptor.kt
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +31,28 @@
  */
 package avail.descriptor.types
 
-import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.functionType
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
-import avail.descriptor.representation.A_Type.Companion.isSupertypeOfContinuationType
+import avail.descriptor.representation.A_Type.Companion.isSupertypeOfLabelType
 import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
-import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfContinuationType
+import avail.descriptor.representation.A_Type.Companion.typeIntersectionOfLabelType
 import avail.descriptor.representation.A_Type.Companion.typeUnion
-import avail.descriptor.representation.A_Type.Companion.typeUnionOfContinuationType
+import avail.descriptor.representation.A_Type.Companion.typeUnionOfLabelType
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
-import avail.descriptor.types.ContinuationTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromArgumentTupleType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.LabelTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.serialization.SerializerOperation
@@ -61,37 +60,36 @@ import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * Continuation types are the types of [continuations][ContinuationDescriptor].
- * They contain information about the
- * [types&#32;of&#32;function][FunctionTypeDescriptor] that can appear
- * on the top stack frame for a continuation of this type.
+ * Label types are the types of [labels][LabelDescriptor], written
+ * `$[…]→R` in Avail.  A label type contains the
+ * [type&#32;of&#32;function][FunctionTypeDescriptor] whose invocations its
+ * labels name.
  *
- * Continuations can be
+ * Labels can be
  * [restarted&#32;with&#32;a&#32;new&#32;tuple&#32;of&#32;arguments][P_RestartContinuationWithArguments],
- * so continuation types are contravariant with respect to their function types'
- * argument types.  Surprisingly, continuation types are also contravariant with
- * respect to their function types' return types.  This is due to the capability
- * to [exit][P_ExitContinuationWithResultIf] a continuation with a specific
+ * so label types are contravariant with respect to their function types'
+ * argument types.  Surprisingly, label types are also contravariant with
+ * respect to their function types' return types.  This is due to the
+ * capability to [exit][P_ExitContinuationWithResultIf] a label with a specific
  * value.
  *
  * Note: If/when function types support checked exceptions we won't need to
- * mention them in continuation types, since invoking a continuation in any way
- * (restart, exit, resume) causes exception obligations/permissions to be
- * instantly voided.
+ * mention them in label types, since restarting or exiting a label causes
+ * exception obligations/permissions to be instantly voided.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- *  Construct a new `ContinuationTypeDescriptor`.
+ * Construct a new `LabelTypeDescriptor`.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class ContinuationTypeDescriptor private constructor(mutability: Mutability)
+class LabelTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
 		mutability,
-		TypeTag.CONTINUATION_TYPE_TAG,
-		TypeTag.CONTINUATION_TAG,
+		TypeTag.LABEL_TYPE_TAG,
+		TypeTag.LABEL_TAG,
 		ObjectSlots::class.java,
 		null)
 {
@@ -101,9 +99,8 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The type of function that this
-		 * [continuation&#32;type][ContinuationTypeDescriptor] supports.
-		 * Continuation types are contravariant with respect to the function
+		 * The type of function that this [label&#32;type][LabelTypeDescriptor]
+		 * supports.  Label types are contravariant with respect to the function
 		 * type's argument types, and, surprisingly, they are also contravariant
 		 * with respect to the function type's return type.
 		 */
@@ -124,20 +121,19 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
-		another.equalsContinuationType(self)
+		another.equalsLabelType(self)
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Continuation types compare for equality by comparing their function
-	 * types.
+	 * Label types compare for equality by comparing their function types.
 	 */
-	override fun o_EqualsContinuationType(
+	override fun o_EqualsLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type
+		aLabelType: A_Type
 	): Boolean =
-		(self.sameAddressAs(aContinuationType)
-			|| aContinuationType.functionType.equals(self.functionType))
+		(self.sameAddressAs(aLabelType)
+			|| aLabelType.functionType.equals(self.functionType))
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
 		self[FUNCTION_TYPE]
@@ -146,23 +142,23 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		combine2(self.functionType.hash(), 0x3E20409)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
-		aType.isSupertypeOfContinuationType(self)
+		aType.isSupertypeOfLabelType(self)
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Since the only things that can be done with continuations are to restart
-	 * them or to exit them, continuation subtypes must accept any values that
-	 * could be passed as arguments or as the return value to the supertype.
-	 * Therefore, continuation types must be contravariant with respect to the
-	 * contained functionType's arguments, and also contravariant with respect
-	 * to the contained functionType's result type.
+	 * Since the only things that can be done with labels are to restart them
+	 * or to exit them, label subtypes must accept any values that could be
+	 * passed as arguments or as the return value to the supertype.  Therefore,
+	 * label types must be contravariant with respect to the contained
+	 * functionType's arguments, and also contravariant with respect to the
+	 * contained functionType's result type.
 	 */
-	override fun o_IsSupertypeOfContinuationType(
+	override fun o_IsSupertypeOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean
+		aLabelType: A_Type): Boolean
 	{
-		val subFunctionType = aContinuationType.functionType
+		val subFunctionType = aLabelType.functionType
 		val superFunctionType = self.functionType
 		return (superFunctionType.returnType.isSubtypeOf(
 				subFunctionType.returnType)
@@ -180,15 +176,15 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	{
 		self.isSubtypeOf(another) -> self
 		another.isSubtypeOf(self) -> another
-		else -> another.typeIntersectionOfContinuationType(self)
+		else -> another.typeIntersectionOfLabelType(self)
 	}
 
-	override fun o_TypeIntersectionOfContinuationType(
+	override fun o_TypeIntersectionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type
+		aLabelType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType
-		val functionType2 = aContinuationType.functionType
+		val functionType2 = aLabelType.functionType
 		if (functionType1.equals(functionType2))
 		{
 			return self
@@ -199,7 +195,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			functionType2.returnType)
 		val intersection = functionTypeFromArgumentTupleType(
 			argsTupleType, returnType, emptySet)
-		return continuationTypeForFunctionType(intersection)
+		return labelTypeForFunctionType(intersection)
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -209,16 +205,16 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			else ->
 			{
 				if (another.isSubtypeOf(self)) self
-				else another.typeUnionOfContinuationType(self)
+				else another.typeUnionOfLabelType(self)
 			}
 		}
 
-	override fun o_TypeUnionOfContinuationType(
+	override fun o_TypeUnionOfLabelType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type
+		aLabelType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType
-		val functionType2 = aContinuationType.functionType
+		val functionType2 = aLabelType.functionType
 		if (functionType1.equals(functionType2))
 		{
 			// Optimization only
@@ -230,72 +226,72 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			functionType1.returnType.typeIntersection(
 				functionType2.returnType),
 			emptySet)
-		return continuationTypeForFunctionType(union)
+		return labelTypeForFunctionType(union)
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		SerializerOperation.CONTINUATION_TYPE
+		SerializerOperation.LABEL_TYPE
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
-		writer.write("continuation type")
+		writer.write("label type")
 		writer.write("function type")
 		self[FUNCTION_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 
-	override fun mutable(): ContinuationTypeDescriptor = mutable
+	override fun mutable(): LabelTypeDescriptor = mutable
 
-	override fun immutable(): ContinuationTypeDescriptor = immutable
+	override fun immutable(): LabelTypeDescriptor = immutable
 
-	override fun shared(): ContinuationTypeDescriptor = shared
+	override fun shared(): LabelTypeDescriptor = shared
 
 	companion object
 	{
 		/**
-		 * Create a continuation type based on the passed
+		 * Create a label type based on the passed
 		 * [function&#32;type][FunctionTypeDescriptor]. Ignore the function
 		 * type's exception set.
 		 *
 		 * @param functionType
 		 *   A [function&#32;type][FunctionTypeDescriptor] on which to base
-		 *   the new continuation type.
+		 *   the new label type.
 		 * @return
-		 *   A new continuation type.
+		 *   A new label type.
 		 */
-		fun continuationTypeForFunctionType(
+		fun labelTypeForFunctionType(
 			functionType: A_Type
 		): A_Type = mutable.createImmutable {
 			setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 		}
 
-		/** The mutable [ContinuationTypeDescriptor]. */
-		private val mutable = ContinuationTypeDescriptor(Mutability.MUTABLE)
+		/** The mutable [LabelTypeDescriptor]. */
+		private val mutable = LabelTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ContinuationTypeDescriptor]. */
-		private val immutable = ContinuationTypeDescriptor(Mutability.IMMUTABLE)
+		/** The immutable [LabelTypeDescriptor]. */
+		private val immutable = LabelTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ContinuationTypeDescriptor]. */
-		private val shared = ContinuationTypeDescriptor(Mutability.SHARED)
+		/** The shared [LabelTypeDescriptor]. */
+		private val shared = LabelTypeDescriptor(Mutability.SHARED)
 
 		/**
-		 * The most general continuation type.  Since continuation types are
-		 * contravariant by argument types and contravariant by return type, the
-		 * most general type is the one taking bottom as the arguments list
-		 * (i.e., not specific enough to be able to call it), and having the
-		 * return type bottom.
+		 * The most general label type.  Since label types are contravariant
+		 * by argument types and contravariant by return type, the most general
+		 * type is the one taking bottom as the arguments list (i.e., not
+		 * specific enough to be able to call it), and having the return type
+		 * bottom.
 		 */
-		val mostGeneralContinuationType: A_Type =
-			continuationTypeForFunctionType(functionTypeReturning(bottom))
+		val mostGeneralLabelType: A_Type =
+			labelTypeForFunctionType(functionTypeReturning(bottom))
 				.makeShared()
 
 		/**
-		 * The metatype for all continuation types.  In particular, it's just
-		 * the [instanceMeta] for the [mostGeneralContinuationType].
+		 * The metatype for all label types.  In particular, it's just the
+		 * [instanceMeta] for the [mostGeneralLabelType].
 		 */
-		val continuationMeta: A_Type =
-			instanceMeta(mostGeneralContinuationType).makeShared()
+		val labelMeta: A_Type =
+			instanceMeta(mostGeneralLabelType).makeShared()
 	}
 }

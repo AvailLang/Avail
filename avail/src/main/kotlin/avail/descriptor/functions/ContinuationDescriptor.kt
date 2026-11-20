@@ -91,21 +91,18 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Disassembler
-import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
-import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
-import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.io.TextInterface
 import avail.optimizer.DefaultL1ExecutableChunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
@@ -128,11 +125,10 @@ import kotlin.math.min
  * the previous state by nybblecode execution rules), performing necessary
  * side-effects as it does so.
  *
- * A continuation can be [exited][P_ExitContinuationWithResultIf], which causes
- * the current fiber's continuation to be replaced by the specified
- * continuation's caller. A return value is supplied to this caller.  A
- * continuation can also be [restarted][P_RestartContinuationWithArguments]
- * with a specified tuple of arguments.
+ * A continuation represents an activated frame.  The value that names an
+ * invocation so that it can be restarted or exited is a
+ * [label][LabelDescriptor], which holds only the invocation's caller and
+ * function.
  *
  * @constructor
  *
@@ -201,11 +197,9 @@ class ContinuationDescriptor private constructor(
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
 		 * The continuation that invoked this one, or [nil] for the outermost
-		 * continuation. When a continuation is not directly created by an
-		 * [L1Operation.L1Ext_doPushLabel], it will have a type pushed on it.
-		 * This type is checked against any value that the callee attempts to
-		 * return to it. This supports link-time type strengthening at call
-		 * sites.
+		 * continuation.  A calling continuation has a type pushed on it.  This
+		 * type is checked against any value that the callee attempts to return
+		 * to it.  This supports link-time type strengthening at call sites.
 		 */
 		CALLER,
 
@@ -487,8 +481,11 @@ class ContinuationDescriptor private constructor(
 		return previousPc
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type =
-		continuationTypeForFunctionType(self.function().kind())
+	/**
+	 * Answer [CONTINUATION][Types.CONTINUATION], the single type of all
+	 * continuations, which carries no structure.
+	 */
+	override fun o_Kind(self: AvailObject): A_Type = Types.CONTINUATION()
 
 	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk
 	{
@@ -637,50 +634,6 @@ class ContinuationDescriptor private constructor(
 		val continuationFunctionMethod = staticMethod(
 			::functionStatic,
 			AvailObject::class.java)
-
-		/**
-		 * Create a new continuation with the given data.  The continuation
-		 * should represent the state upon entering the new context - i.e., set
-		 * the pc to the first instruction, clear the stack, and set up new
-		 * local variables.
-		 *
-		 * @param function
-		 *   The function being invoked.
-		 * @param caller
-		 *   The calling continuation, or [nil].
-		 * @param startingChunk
-		 *   The level two chunk to invoke.
-		 * @param startingOffset
-		 *   The offset into the chunk at which to resume.
-		 * @return
-		 *   The new continuation.
-		 */
-		fun createLabelContinuation(
-			function: A_Function,
-			caller: A_Continuation,
-			startingChunk: L2Chunk,
-			startingOffset: Int
-		): A_Continuation
-		{
-			val code = function.code()
-			assert(code.codePrimitive() == null)
-			val frameSize = code.numSlots
-			return mutable.create(frameSize) {
-				setSlot(CALLER, caller)
-				setSlot(FUNCTION, function)
-				setSlot(LEVEL_TWO_REGISTER_DUMP, nil)
-				setSlot(PROGRAM_COUNTER, 0) // Indicates this is a label.
-				setSlot(STACK_POINTER, frameSize + 1)
-				setSlot(LEVEL_TWO_CHUNK, startingChunk.chunkPojo)
-				setSlot(LEVEL_TWO_OFFSET, startingOffset)
-				// Restarting a label always supplies new arguments, so a label
-				// captures neither arguments nor locals, nor a primitive
-				// failure slot.
-				// TODO: A label has no use for these slots at all; they remain
-				//  only because a label is still represented as a continuation.
-				fillSlots(FRAME_AT_, 1, frameSize, nil)
-			}
-		}
 
 		/**
 		 * Create a mutable continuation with the specified fields.  Fill the

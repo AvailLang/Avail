@@ -39,9 +39,9 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.ContinuationTypeDescriptor
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.LabelTypeDescriptor
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
@@ -53,7 +53,7 @@ import avail.interpreter.primitive.Primitive2
 /**
 * **Primitive:** Create a [label&#32;declaration][PhraseKind.LABEL_PHRASE] from
  * the specified [token][TokenDescriptor] and
- * [continuation&#32;type][ContinuationTypeDescriptor].
+ * [label&#32;type][LabelTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -74,6 +74,6 @@ object P_CreateLabelDeclaration : Primitive2(
 		functionType(
 			tuple(
 				TOKEN(),
-				continuationMeta),
+				labelMeta),
 			LABEL_PHRASE.mostGeneralType)
 }

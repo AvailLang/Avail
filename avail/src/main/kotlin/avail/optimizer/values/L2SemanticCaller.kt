@@ -32,14 +32,15 @@
 package avail.optimizer.values
 
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 
 /**
  * A semantic value which represents the fully reified caller of the current
- * [Frame].  When inlining, it can be equated with parent frame's
- * [L2SemanticLabel].
+ * [Frame].  When the frame is inlined into another, its caller is the parent
+ * frame stopped at the call site, not the parent frame's [L2SemanticLabel],
+ * which names the parent's invocation from its start.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -81,6 +82,6 @@ internal class L2SemanticCaller constructor(frame: Frame)
 	{
 		/** The default restriction for continuations. */
 		private val continuationRestriction =
-			restrictionForType(mostGeneralContinuationType)
+			restrictionForType(Types.CONTINUATION())
 	}
 }

@@ -48,7 +48,9 @@ Uses
 	"ContinuationPC Tests",
 	"ContinuationStackData Tests",
 	"ContinuationStackPointer Tests",
-	"ContinuationTypeToFunctionType Tests",
 	"CreateContinuation Tests",
-	"FunctionTypeToContinuationType Tests"
+	"FunctionTypeToLabelType Tests",
+	"LabelCaller Tests",
+	"LabelFunction Tests",
+	"LabelTypeToFunctionType Tests"
 Body

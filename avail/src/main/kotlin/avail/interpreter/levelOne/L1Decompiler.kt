@@ -112,8 +112,8 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
@@ -699,7 +699,7 @@ class L1Decompiler constructor(
 				else -> newLabel(
 					createToken("label"),
 					nil,
-					continuationTypeForFunctionType(code.functionType())
+					labelTypeForFunctionType(code.functionType())
 				).also {
 					statements.add(0, it)
 				}

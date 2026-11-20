@@ -63,8 +63,6 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
@@ -77,6 +75,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -145,12 +145,13 @@ constructor(
 	FALSE_TAG(BOOLEAN_TAG, null, Unique { falseObject }),
 	BUNDLE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE() }),
 	CHARACTER_TAG(NONTYPE_TAG, null, Sup { Types.CHARACTER() }),
-	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType }),
+	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { Types.CONTINUATION() }),
 	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION() }),
 	METHOD_DEFINITION_TAG(
 		DEFINITION_TAG, null, Sup { Types.METHOD_DEFINITION() }),
 	FIBER_TAG(NONTYPE_TAG, null, Sup { mostGeneralFiberType() }),
 	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType }),
+	LABEL_TAG(NONTYPE_TAG, null, Sup { mostGeneralLabelType }),
 	LEXER_TAG(NONTYPE_TAG, null, Sup { Types.LEXER() }),
 	MAP_TAG(NONTYPE_TAG, null, Sup { mostGeneralMapType() }),
 	MODULE_TAG(NONTYPE_TAG, null, Sup { Types.MODULE() }),
@@ -472,10 +473,10 @@ constructor(
 		instance = TUPLE_TAG,
 		Sup { instanceMeta(mostGeneralTupleType) },
 		Co("size", part = { fromInt(tupleSize) }) { sizeRange }),
-	CONTINUATION_TYPE_TAG(
+	LABEL_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		instance = CONTINUATION_TAG,
-		Sup { continuationMeta },
+		instance = LABEL_TAG,
+		Sup { labelMeta },
 		Contra("arguments") { functionType.argsTupleType },
 		Contra("result") { functionType.returnType }),
 	RAW_FUNCTION_TYPE_TAG(

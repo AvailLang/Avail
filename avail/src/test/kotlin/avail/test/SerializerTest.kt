@@ -42,6 +42,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import avail.descriptor.functions.LabelDescriptor.Companion.createLabel
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -49,6 +50,9 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_Atom
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Label
+import avail.descriptor.representation.A_Label.Companion.caller
+import avail.descriptor.representation.A_Label.Companion.function
 import avail.descriptor.representation.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.representation.A_Module.Companion.addPrivateName
 import avail.descriptor.representation.A_RawFunction
@@ -68,9 +72,11 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.files.FileManager
 import avail.interpreter.levelOne.L1InstructionWriter
+import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
 import avail.interpreter.primitive.floats.P_FloatFloor
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
@@ -78,7 +84,9 @@ import org.availlang.persistence.MalformedSerialStreamException
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -503,5 +511,44 @@ class SerializerTest
 		{
 			assertEquals(code.literalAt(i), code2.literalAt(i))
 		}
+	}
+
+	/**
+	 * Test serialization and deserialization of labels.  A label is just its
+	 * caller and its function, so two labels built from equal parts are equal
+	 * and hash alike, and a round trip preserves both parts.  As in
+	 * [testFunctions], the function's compiled code comes back as a new
+	 * object, so it is compared by its parts.
+	 *
+	 * @throws MalformedSerialStreamException
+	 *   If the stream is malformed.
+	 */
+	@Test
+	@Throws(MalformedSerialStreamException::class)
+	fun testLabels()
+	{
+		val writer = L1InstructionWriter(nil, 0, nil)
+		writer.argumentTypes()
+		writer.returnType = Types.TOP()
+		writer.returnTypeIfPrimitiveFails = Types.TOP()
+		// A function that only answered a constant would be compiled as a
+		// primitive, and a label needs a function without one.
+		writer.write(0, L1Ext_doPushLabel)
+		val function = createFunction(writer.compiledCode(), emptyTuple)
+		assertNull(function.code().codePrimitive())
+		val label = createLabel(function, nil)
+		val sameLabel = createLabel(function, nil)
+		assertNotSame(label, sameLabel)
+		assertEquals(label, sameLabel)
+		assertEquals(label.hash(), sameLabel.hash())
+		assertEquals(
+			labelTypeForFunctionType(function.kind()),
+			label.kind())
+		val newLabel: A_Label = roundTrip(label)
+		assertTrue(newLabel.caller.isNil)
+		val code2 = newLabel.function.code()
+		assertEquals(function.code().nybbles, code2.nybbles)
+		assertEquals(function.code().functionType(), code2.functionType())
+		assertEquals(label.kind(), newLabel.kind())
 	}
 }

@@ -31,18 +31,15 @@
  */
 package avail.interpreter.primitive.controlflow
 
-import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_Continuation.Companion.pc
-import avail.descriptor.representation.A_Continuation.Companion.stackp
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
-import avail.descriptor.representation.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.acceptsTupleOfArgTypes
@@ -60,8 +57,8 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
@@ -86,14 +83,11 @@ import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
 /**
- * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
- * passing in the given [tuple][TupleDescriptor] of arguments. Make sure it's a
- * label-like continuation rather than a call-like, because a call-like
- * continuation has the expected return type already pushed on the stack, and
- * requires the return value, after checking against that type, to overwrite the
- * type in the stack (without affecting the stack depth). Fail if the
- * continuation's [function][FunctionDescriptor] is not capable of accepting the
- * given arguments.
+ * **Primitive:** Restart the given [label][LabelDescriptor], passing in the
+ * given [tuple][TupleDescriptor] of arguments.  The label's caller becomes the
+ * current continuation again, and the label's [function][FunctionDescriptor]
+ * is invoked afresh with the arguments.  Fail if the function is not capable
+ * of accepting the given arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -105,22 +99,10 @@ object P_RestartContinuationWithArguments : Primitive2(
 {
 	override fun attempt2(
 		interpreter: Interpreter,
-		originalCon: AvailObject,
+		label: AvailObject,
 		arguments: AvailObject
 	): A_BasicObject? = interpreter.run {
-		val code = originalCon.function().code()
-		//TODO MvG - This should be a primitive failure.
-		assert(originalCon.stackp == code.numSlots + 1)
-		{
-			"Continuation should have been a label- rather than " +
-				"call-continuation"
-		}
-		assert(originalCon.pc == 0)
-		{
-			"Continuation should have been a label- rather than " +
-				"call-continuation"
-		}
-
+		val code = label.function().code()
 		val numArgs = code.numArgs()
 		if (numArgs != arguments.tupleSize)
 		{
@@ -137,17 +119,15 @@ object P_RestartContinuationWithArguments : Primitive2(
 		{
 			argsBuffer.add(arg)
 		}
-		// The restart entry point expects the interpreter's reifiedContinuation
-		// to be the label continuation's *caller*.
 		clearLatestResult()
 		return createReifierToRestartWithArguments(
-			originalCon,
+			label,
 			arguments.toList().toTypedArray())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType, mostGeneralTupleType),
+			tuple(mostGeneralLabelType, mostGeneralTupleType),
 			bottom)
 
 	override fun privateFailureVariableType(): A_Type =

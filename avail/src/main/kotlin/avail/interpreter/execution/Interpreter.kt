@@ -91,6 +91,7 @@ import avail.descriptor.representation.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.representation.A_Fiber.Companion.traceFlag
 import avail.descriptor.representation.A_Fiber.Companion.uniqueId
 import avail.descriptor.representation.A_Function
+import avail.descriptor.representation.A_Label
 import avail.descriptor.representation.A_Map.Companion.mapIterable
 import avail.descriptor.representation.A_Map.Companion.mapSize
 import avail.descriptor.representation.A_Module
@@ -157,6 +158,7 @@ import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
 import avail.interpreter.primitive.variables.P_SetValue
 import avail.optimizer.DefaultL1ExecutableChunk
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
+import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.INITIAL_ENTRY
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.UNREACHABLE_ENTRY
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPointCatalog
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
@@ -1933,56 +1935,25 @@ final class Interpreter(
 
 	/**
 	 * Create an appropriate [StackReifier] for restarting the specified
-	 * [A_Continuation] with the same arguments it captured when the
-	 * continuation was constructed.  Write that reifier into the interpreter.
-	 * Return `null` as an optional [AvailObject], as a convenience.
-	 *
-	 * @param continuation
-	 *   The [A_Continuation] to restart.
-	 * @return
-	 *   The value `null`, typed as an optional [AvailObject].
-	 */
-	@ReferencedInGeneratedCode
-	fun createReifierToRestart(
-		continuation: A_Continuation
-	): AvailObject?
-	{
-		currentReifier = StackReifier(
-			false,
-			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
-		) {
-			val whichFunction = continuation.function
-			val numArgs = whichFunction.code().numArgs()
-			argsBuffer.clear()
-			(1 .. numArgs).forEach {
-				argsBuffer.add(continuation.frameAt(it))
-			}
-			setReifiedContinuation(continuation.caller)
-			function = whichFunction
-			chunk = continuation.levelTwoChunk
-			offset = continuation.levelTwoOffset
-			clearLatestResult()
-			CONTINUE_FIBER
-		}
-		return null
-	}
-
-	/**
-	 * Create an appropriate [StackReifier] for restarting the specified
-	 * [A_Continuation] with the given arguments.  Write that reifier into the
+	 * [A_Label] with the given arguments.  Write that reifier into the
 	 * interpreter.  Return `null` as an optional [AvailObject], as a
 	 * convenience.
 	 *
-	 * @param continuation
-	 *   The [A_Continuation] to restart.
+	 * Restarting a label abandons the stack above its caller, makes the caller
+	 * the current continuation again, and invokes the label's function afresh
+	 * with the arguments, entering its current chunk at
+	 * [INITIAL_ENTRY][DefaultEntryPoint.INITIAL_ENTRY] like any other call.
+	 *
+	 * @param label
+	 *   The [A_Label] to restart.
 	 * @param arguments
-	 *   The arguments with which to restart the continuation.
+	 *   The arguments with which to invoke the label's function again.
 	 * @return
 	 *   The value `null`, typed as an optional [AvailObject].
 	 */
 	@ReferencedInGeneratedCode
 	fun createReifierToRestartWithArguments(
-		continuation: A_Continuation,
+		label: A_Label,
 		arguments: Array<AvailObject>
 	): AvailObject?
 	{
@@ -1990,13 +1961,16 @@ final class Interpreter(
 			false,
 			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
 		) {
-			val whichFunction = continuation.function
+			// Use the label's own accessors, since an AvailObject receiver
+			// would also match the continuation accessors imported here.
+			val (whichFunction, caller) =
+				A_Label.run { label.function to label.caller }
 			argsBuffer.clear()
 			argsBuffer.addAll(arguments)
-			setReifiedContinuation(continuation.caller)
+			setReifiedContinuation(caller)
 			function = whichFunction
-			chunk = continuation.levelTwoChunk
-			offset = continuation.levelTwoOffset
+			chunk = whichFunction.code().startingChunk
+			offset = INITIAL_ENTRY.offset
 			clearLatestResult()
 			CONTINUE_FIBER
 		}
@@ -3176,15 +3150,10 @@ final class Interpreter(
 		val reifyIfInterruptMethod = instanceMethod(
 			Interpreter::reifyIfInterrupt)
 
-		/** The [CheckedMethod] for [createReifierToRestart]. */
-		val createReifierToRestartMethod = instanceMethod(
-			Interpreter::createReifierToRestart,
-			A_Continuation::class.java)
-
 		/** The [CheckedMethod] for [createReifierToRestartWithArguments]. */
 		val createReifierToRestartWithArgumentsMethod = instanceMethod(
 			Interpreter::createReifierToRestartWithArguments,
-			A_Continuation::class.java,
+			A_Label::class.java,
 			Array<AvailObject>::class.java)
 
 		/** Access the [preinvoke0] method. */

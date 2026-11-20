@@ -449,26 +449,26 @@ Method "bootstrap restricted send_with_:_" is
 Style atom for "Exit_if_" with nonlocal control styler;
 
 /**
- * Reject the current parse unless the value supplied upon exit of a
- * continuation conforms to its function type's return type.
+ * Reject the current parse unless the value supplied upon exit of a label
+ * conforms to its function type's return type.
  *
  * @method "Exit_with_if_"
- * @restricts "continuation meta"
+ * @restricts "label meta"
  * @restricts "any meta"
  */
 Semantic restriction "Exit_with_if_" is
 [
-	continuationType : continuation meta,
+	labelType : label meta,
 	exitType : any meta,
 	conditionType : boolean's type
 |
-	functionType ::= continuationType's function type;
+	functionType ::= labelType's function type;
 	Unless exitType ⊆ functionType's return type then
 	[
 		Reject parse, expected:
 			cast concatenate <
-				"continuation (",
-				“continuationType”,
+				"label (",
+				“labelType”,
 				") to accept value (",
 				“exitType”,
 				")"
@@ -482,24 +482,23 @@ Style atom for "Exit_with_if_" with nonlocal control styler;
 exitIfAtom ::= atom for "Exit_if_";
 
 /**
- * Exit the continuation unconditionally. Execution proceeds as though the
- * continuation had just returned from its current function, and the current
- * continuation is completely replaced by the specified continuation's resumed
- * caller.
+ * Exit the label unconditionally.  Execution proceeds as though the label's
+ * function had just returned, and the current continuation is completely
+ * replaced by the label's resumed caller.
  *
  * @method "Exit_"
- * @param "aContinuation" "$[…]→⊤"
- *        The continuation to exit.
+ * @param "aLabel" "$[…]→⊤"
+ *        The label to exit.
  * @returns "⊥"
  * @category "Control Structures" "Continuations"
  */
 Public macro "Exit_" is
 [
-	aContinuation : expression phrase ⇒ $[…]→⊤
+	aLabel : expression phrase ⇒ $[…]→⊤
 |
 	trueLiteral ::= `true`("true")@0:0 → literal phrase;
 	sendPhrase ::= bootstrap restricted send exitIfAtom
-		with <aContinuation, trueLiteral> → list phrase
+		with <aLabel, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
 ] : send phrase ⇒ ⊥
@@ -508,52 +507,51 @@ styled by nonlocal control styler;
 exitWithIfAtom ::= atom for "Exit_with_if_";
 
 /**
- * Exit the continuation unconditionally. Execution proceeds as though the
- * continuation had just returned from its current function, and the current
- * continuation is completely replaced by the specified continuation's resumed
- * caller.
+ * Exit the label unconditionally.  Execution proceeds as though the label's
+ * function had just returned the value, and the current continuation is
+ * completely replaced by the label's resumed caller.
  *
  * @method "Exit_with_"
- * @param "aContinuation" "$[…]→⊤"
- *        The continuation to exit.
+ * @param "aLabel" "label"
+ *        The label to exit.
  * @param "value" "any"
-          The value to return from the continuation.
+          The value to return from the label's function.
  * @returns "⊥"
  * @category "Control Structures" "Continuations"
  */
 Public macro "Exit_with_" is
 [
-	aContinuation : expression phrase ⇒ continuation,
+	aLabel : expression phrase ⇒ label,
 	value : expression phrase ⇒ any
 |
 	trueLiteral ::= `true`("true")@0:0 → literal phrase;
 	sendPhrase ::= bootstrap restricted send exitWithIfAtom
-		with <aContinuation, value, trueLiteral> → list phrase
+		with <aLabel, value, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
 ] : send phrase ⇒ ⊥
 styled by nonlocal control styler;
 
 /**
- * Reject the current parse unless the value supplied upon exit of a
- * continuation conforms to its function type's return type.
+ * Reject the current parse unless the value supplied upon exit of a label
+ * conforms to its function type's return type.
  *
  * @method "Exit_with_"
- * @restricts "continuation meta"
+ * @restricts "label meta"
  * @restricts "any meta"
  */
 Semantic restriction "Exit_with_" is
 [
-	continuationType : continuation meta,
+	labelType : label meta,
 	exitType : any meta
 |
-	functionType ::= continuationType's function type;
+	functionType ::= labelType's function type;
 	Unless exitType ⊆ functionType's return type then
 	[
 		Reject parse, expected:
 			cast concatenate <
-				"continuation (",
-				“continuationType”,
+				"label (",
+				“labelType”,
 				") to accept value (",
 				“exitType”,
 				")"
@@ -645,27 +643,27 @@ Semantic restriction "From_to_do_" is
 /* An error message for "Restart_with_". */
 sizesIncompatibleMessage ::=
 	"size of argument tuple to be compatible with size of \
-	\|continuation's parameter tuple";
+	\|label's parameter tuple";
 
 /* An error message for "Restart_with_". */
 argumentsIncompatibleMessage ::=
-	"argument tuple to be compatible with continuation's parameter tuple type";
+	"argument tuple to be compatible with label's parameter tuple type";
 
 
 /**
  * Reject the current parse if the argument tuple cannot possibly match the
- * continuation's parameter tuple.
+ * label's parameter tuple.
  *
  * @method "Restart_with_"
- * @restricts "continuation meta"
+ * @restricts "label meta"
  * @restricts "tuple meta"
  */
 Semantic restriction "Restart_with_" is
 [
-	continuationType : continuation meta,
+	labelType : label meta,
 	argumentsType : tuple meta
 |
-	functionType ::= continuationType's function type;
+	functionType ::= labelType's function type;
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
 	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
@@ -692,20 +690,20 @@ Style atom for "Restart_with_" with nonlocal control styler;
 
 /**
  * Reject the current parse if the argument tuple cannot possibly match the
- * continuation's parameter tuple.
+ * label's parameter tuple.
  *
  * @method "Restart_with_if_"
- * @restricts "continuation meta"
+ * @restricts "label meta"
  * @restricts "tuple meta"
  * @restricts "boolean's type"
  */
 Semantic restriction "Restart_with_if_" is
 [
-	continuationType : continuation meta,
+	labelType : label meta,
 	argumentsType : tuple meta,
 	conditionType : boolean's type
 |
-	functionType ::= continuationType's function type;
+	functionType ::= labelType's function type;
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
 	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we

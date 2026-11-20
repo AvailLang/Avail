@@ -226,6 +226,7 @@ Test "is mutable (type)" in mutability visitors test suite is
 			fiber,
 			function,
 			function implementation,
+			label,
 			map,
 			module,
 			number,

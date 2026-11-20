@@ -107,10 +107,10 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.optimizer.jvm.CheckedMethod
@@ -1181,7 +1181,7 @@ class ObjectTypeDescriptor internal constructor(
 			 * [field][AtomDescriptor] of an [exception][exceptionType].
 			 */
 			val stackDumpAtom = createSpecialAtom("stack dump").apply {
-				fieldAtomConstraint = mostGeneralContinuationType
+				fieldAtomConstraint = Types.CONTINUATION()
 			}
 
 			/**

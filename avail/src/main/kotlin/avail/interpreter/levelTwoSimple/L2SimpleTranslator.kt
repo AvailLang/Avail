@@ -79,7 +79,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1OperationDispatcher
@@ -1543,7 +1543,7 @@ constructor(
 		val answer = writeSlot(
 			stackp,
 			restrictionForType(
-				continuationTypeForFunctionType(code.functionType())))
+				labelTypeForFunctionType(code.functionType())))
 		+L2Simple_PushLabel(
 			nextOffset = NEXT,
 			// Note that this is the state to capture during reification, not

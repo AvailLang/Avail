@@ -1,21 +1,21 @@
 /*
- * P_FunctionTypeToContinuationType.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * P_LabelCaller.kt
+ * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,16 +31,18 @@
  */
 package avail.interpreter.primitive.continuations
 
+import avail.descriptor.functions.LabelDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Label.Companion.caller
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.types.ContinuationTypeDescriptor
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
-import avail.descriptor.types.FunctionTypeDescriptor
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.VariableDescriptor
+import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -48,20 +50,23 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive1
 
 /**
- * **Primitive:** Answer a [continuation&#32;type][ContinuationTypeDescriptor]
- * that uses the given [function&#32;type][FunctionTypeDescriptor].
+ * **Primitive:** Answer a [variable][VariableDescriptor] containing the caller
+ * of the specified [label][LabelDescriptor], which is the continuation that
+ * restarting or exiting the label returns control to.  The variable will be
+ * unassigned if the label's function was the outermost frame of its fiber.
  */
 @Suppress("unused")
-object P_FunctionTypeToContinuationType
-	: Primitive1(CannotFail, CanInline), Foldable
+object P_LabelCaller : Primitive1(CannotFail, CanInline), Foldable
 {
 	override fun attempt1(
 		interpreter: Interpreter,
-		functionType: AvailObject
+		label: AvailObject
 	): A_BasicObject? = interpreter.run {
-		return continuationTypeForFunctionType(functionType)
+		return newVariableWithContentType(Types.CONTINUATION(), label.caller)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(functionMeta()), continuationMeta)
+		functionType(
+			tuple(mostGeneralLabelType),
+			variableTypeFor(Types.CONTINUATION()))
 }

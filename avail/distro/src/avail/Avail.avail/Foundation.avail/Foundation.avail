@@ -182,6 +182,7 @@ Extends
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"invoke_with_,⁇forked at priority_",
 		"keyword",
+		"label",
 		"label phrase",
 		"lexer filter function",
 		"lexer body function",

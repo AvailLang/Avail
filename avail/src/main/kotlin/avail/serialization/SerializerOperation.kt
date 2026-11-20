@@ -48,6 +48,8 @@ import avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCo
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import avail.descriptor.functions.LabelDescriptor
+import avail.descriptor.functions.LabelDescriptor.Companion.createLabel
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.AbstractDefinitionDescriptor
@@ -252,7 +254,6 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledCodeTypeForFunctionType
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
@@ -264,6 +265,8 @@ import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import avail.descriptor.types.LabelTypeDescriptor
+import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
 import avail.descriptor.types.ListPhraseTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import avail.descriptor.types.LiteralTokenTypeDescriptor
@@ -3198,12 +3201,11 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * The bottom [pojo&#32;type][PojoTypeDescriptor], representing the most
-	 * specific type of pojo.
+	 * A [label&#32;type][LabelTypeDescriptor], which is just its function type.
 	 */
-	CONTINUATION_TYPE(
+	LABEL_TYPE(
 		90,
-		OBJECT_REFERENCE("function type for continuation type"))
+		OBJECT_REFERENCE("function type for label type"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -3216,7 +3218,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return continuationTypeForFunctionType(subobjects[0])
+			return labelTypeForFunctionType(subobjects[0])
 		}
 	},
 
@@ -3486,6 +3488,30 @@ enum class SerializerOperation constructor(
 		{
 			val (read, write) = subobjects
 			return variableReadWriteType(read, write)
+		}
+	},
+
+	/**
+	 * A [label][LabelDescriptor], which is just its caller and its function.
+	 */
+	LABEL(
+		102,
+		OBJECT_REFERENCE("calling continuation"),
+		OBJECT_REFERENCE("label's function"))
+	{
+		override fun decompose(
+			obj: AvailObject,
+			serializer: Serializer): Array<out A_BasicObject>
+		{
+			return array(obj.caller, obj.function())
+		}
+
+		override fun compose(
+			subobjects: Array<AvailObject>,
+			deserializer: Deserializer): A_BasicObject
+		{
+			val (caller, function) = subobjects
+			return createLabel(function, caller)
 		}
 	};
 

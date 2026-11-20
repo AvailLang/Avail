@@ -32,10 +32,10 @@
 
 package avail.interpreter.levelTwoSimple.instructions
 
-import avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
+import avail.descriptor.functions.LabelDescriptor
+import avail.descriptor.functions.LabelDescriptor.Companion.createLabel
 import avail.descriptor.representation.A_RegisterDump
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleInstructionTransformer
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.registers.Offset
@@ -48,17 +48,18 @@ import avail.performance.Statistic
 import avail.performance.StatisticReport
 
 /**
- * Construct a label for restarting or exiting the current continuation.  Note
- * that this *may* cause reification to force the call chain to be reified, but
- * the reifier block answers CONTINUE_FIBER, so no *invalidation* is possible
- * before reentry happens.  Therefore, there is no need to capture the current
- * frame's state in L1 slots of the continuation – the [A_RegisterDump] will be
- * sufficient.  The reentry is a [L2Simple_ReenterToResume], which, after
- * restoring the dummy continuation's registers, jumps back to this instruction,
- * which will detect the reified stack and create the label.
+ * Construct a [label][LabelDescriptor] for restarting or exiting the current
+ * frame.  Note that this *may* cause reification to force the call chain to be
+ * reified, but the reifier block answers CONTINUE_FIBER, so no *invalidation*
+ * is possible before reentry happens.  Therefore, there is no need to capture
+ * the current frame's state in L1 slots of the continuation – the
+ * [A_RegisterDump] will be sufficient.  The reentry is a
+ * [L2Simple_ReenterToResume], which, after restoring the dummy continuation's
+ * registers, jumps back to this instruction, which will detect the reified
+ * stack and create the label.
  *
- * If the label is later restarted, its caller will be the same as the current
- * reified caller continuation, and its arguments will be the ones provided
+ * The label holds only the current reified caller continuation and the current
+ * function.  If it is later restarted, the arguments will be the ones provided
  * explicitly to [P_RestartContinuationWithArguments].
  *
  * If a label is exited via [P_ExitContinuationIf] or
@@ -83,19 +84,12 @@ class L2Simple_PushLabel(
 		interpreter: Interpreter
 	): Offset
 	{
-		val thisChunk = interpreter.chunk as L2SimpleChunk
-		val function = registers.function
 		assert(interpreter.callerIsReified())
 		// Skip the reification step (or we reified and we're back again), since
 		// the caller is already conveniently reified.
-		val label = createLabelContinuation(
-			function = function,
-			caller = interpreter.getReifiedContinuation()!!.makeImmutable(),
-			startingChunk = thisChunk,
-			// Indicates a label.
-			startingOffset = 0)
-		label.makeSubobjectsImmutable()
-		registers[answer] = label
+		registers[answer] = createLabel(
+			registers.function,
+			interpreter.getReifiedContinuation()!!)
 		return nextOffset
 	}
 

@@ -46,9 +46,9 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
@@ -126,12 +126,12 @@ object P_SetImplicitObserveFunction : Primitive1(
 				0,
 				L1Operation.L1_doCall,
 				addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
-				addLiteral(variableTypeFor(mostGeneralContinuationType)))
+				addLiteral(variableTypeFor(Types.CONTINUATION())))
 			write(
 				0,
 				L1Operation.L1_doCall,
 				addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
-				addLiteral(mostGeneralContinuationType))
+				addLiteral(Types.CONTINUATION()))
 			write(
 				0,
 				L1Operation.L1_doCall,
