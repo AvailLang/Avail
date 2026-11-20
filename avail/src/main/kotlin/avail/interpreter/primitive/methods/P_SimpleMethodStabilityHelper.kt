@@ -292,6 +292,7 @@ object P_SimpleMethodStabilityHelper : PrimitiveN(-1, Private, CanSuspend)
 
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

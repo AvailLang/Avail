@@ -87,6 +87,7 @@ object P_TupleToSet : Primitive1(CannotFail, CanInline), Foldable
 				mostGeneralTupleType),
 			mostGeneralSetType())
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
@@ -145,7 +146,7 @@ object P_TupleToSet : Primitive1(CannotFail, CanInline), Foldable
 
 		// Create the set directly from the values.  This may turn the tuple
 		// creation instruction into dead code.
-		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val restriction = guaranteedType(rawFunction, argumentTypes)
 		val semanticResult = semanticInvocation(tupleReg.semanticValue())
 		val write = boxedWrite(
 			semanticResult, restrictionForType(restriction))

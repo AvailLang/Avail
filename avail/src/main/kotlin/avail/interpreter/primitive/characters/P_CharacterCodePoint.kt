@@ -91,6 +91,7 @@ object P_CharacterCodePoint : Primitive1(CannotFail, CanInline), Foldable
 		return false
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

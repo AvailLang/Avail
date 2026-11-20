@@ -105,6 +105,7 @@ object P_AtomicFetchAndAdd : Primitive2(
 				extendedIntegers),
 			extendedIntegers)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

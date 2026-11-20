@@ -51,7 +51,6 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -66,7 +65,7 @@ import avail.interpreter.primitive.style.P_BootstrapLexerSlashStarCommentBodySty
  */
 @Suppress("unused")
 object P_BootstrapLexerSlashStarCommentBody
-	: Primitive3(CannotFail, CanInline, Bootstrap), Foldable
+	: Primitive3(CannotFail, CanInline, Bootstrap)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

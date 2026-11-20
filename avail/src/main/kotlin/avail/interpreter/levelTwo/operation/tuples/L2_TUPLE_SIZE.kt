@@ -72,7 +72,7 @@ class L2_TUPLE_SIZE(
 	override fun L2GeneratorInterface.analyzeAndOptionallyRewrite(
 	): L2Instruction?
 	{
-		var sizeType = P_TupleSize.returnTypeGuaranteedByVM(
+		var sizeType = P_TupleSize.guaranteedType(
 			null, listOf(tuple.type))
 		if (sizeType.lowerBound.equals(sizeType.upperBound))
 		{

@@ -108,6 +108,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 		return a.bitwiseAnd(b, true)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -190,7 +191,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val bound = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val bound = guaranteedType(rawFunction, argumentTypes)
 		if (bound.lowerBound.equals(bound.upperBound))
 		{
 			// Constant result.
@@ -239,7 +240,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 				argumentTypes,
 				callSiteHelper,
 				typeGuaranteeFunction = { restrictedArgTypes ->
-					returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+					guaranteedType(rawFunction, restrictedArgTypes)
 				},
 				fallbackBody = {
 					generateGeneralFunctionInvocation(

@@ -70,6 +70,7 @@ object P_PhraseExpressionType : Primitive1(CannotFail, CanInline), Foldable
 				PARSE_PHRASE.mostGeneralType),
 			topMeta)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

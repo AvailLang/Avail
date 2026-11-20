@@ -69,6 +69,7 @@ object P_SetSize : Primitive1(CannotFail, CanInline), Foldable
 			tuple(mostGeneralSetType()),
 			wholeNumbers)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

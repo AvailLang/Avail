@@ -83,6 +83,7 @@ object P_LessOrEqual : Primitive2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(NUMBER(), NUMBER()), booleanType)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

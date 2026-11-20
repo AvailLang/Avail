@@ -106,6 +106,7 @@ object P_TupleSize : Primitive1(CannotFail, CanInline), Foldable
 		}
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -121,7 +122,7 @@ object P_TupleSize : Primitive1(CannotFail, CanInline), Foldable
 	{
 		val tupleReg = arguments[0]
 
-		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val returnType = guaranteedType(rawFunction, argumentTypes)
 		val lower = returnType.lowerBound
 		val upper = returnType.upperBound
 		when

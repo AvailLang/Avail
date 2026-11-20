@@ -58,7 +58,6 @@ import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
-import avail.utility.cast
 
 /**
  * Execute a primitive with the provided arguments, writing the result into the
@@ -222,7 +221,7 @@ private constructor(
 		if (argumentRestrictions.any { it.isImpossible })
 			return TypeRestriction.bottomRestriction
 		return result.restriction().intersectionWithType(
-			primitive.constant.returnTypeGuaranteedByVM(
+			primitive.constant.guaranteedType(
 				rawFunctionOrNull,
 				argumentRestrictions.map(TypeRestriction::type)))
 	}
@@ -257,22 +256,7 @@ private constructor(
 			restriction.constantOrNull ?: return null
 		}
 		val interpreter = Interpreter.currentOrNull() ?: return null
-		// A foldable primitive must not require access to the enclosing
-		// function or its code.
-		val savedFunction = interpreter.function
-		interpreter.function = null
-		val value = try
-		{
-			interpreter.argsBuffer.clear()
-			interpreter.argsBuffer.addAll(constants)
-			prim.attempt(interpreter)
-		}
-		finally
-		{
-			interpreter.function = savedFunction
-		}
-		if (value === null || interpreter.currentReifier !== null) return null
-		return value.makeImmutable().cast()
+		return prim.foldedResultOrNull(interpreter, constants)
 	}
 
 	override fun impliedWriteRestriction(

@@ -129,6 +129,7 @@ object P_BitShiftLeft : Primitive2(CanInline), Foldable
 		}
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

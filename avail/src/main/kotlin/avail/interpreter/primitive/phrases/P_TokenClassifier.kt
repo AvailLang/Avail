@@ -75,6 +75,7 @@ object P_TokenClassifier : Primitive1(CannotFail, CanInline), Foldable
 		return TokenType.lookupTokenType(token.tokenType().ordinal).atom
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

@@ -62,7 +62,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
 import avail.optimizer.CallSiteHelper
@@ -83,8 +82,7 @@ import avail.optimizer.L1Translator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateObjectFieldGetter : Primitive2(
-	CanInline), Foldable
+object P_CreateObjectFieldGetter : Primitive2(CanInline)
 {
 	override fun attempt2(
 		interpreter: Interpreter,

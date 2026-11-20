@@ -47,7 +47,6 @@ import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -66,7 +65,7 @@ import avail.interpreter.primitive.Primitive3
  */
 @Suppress("unused")
 object P_BootstrapLexerOperatorBody
-	: Primitive3(CannotFail, CanInline, Bootstrap), Foldable
+	: Primitive3(CannotFail, CanInline, Bootstrap)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

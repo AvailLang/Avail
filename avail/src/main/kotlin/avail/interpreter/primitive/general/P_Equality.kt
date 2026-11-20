@@ -74,6 +74,7 @@ object P_Equality : Primitive2(CannotFail, CanInline), Foldable
 		return objectFromBoolean(a.equals(b))
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

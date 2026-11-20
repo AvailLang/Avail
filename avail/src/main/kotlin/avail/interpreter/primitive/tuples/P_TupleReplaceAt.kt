@@ -106,6 +106,7 @@ object P_TupleReplaceAt : Primitive3(CanInline), Foldable
 				ANY()),
 			mostGeneralTupleType)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

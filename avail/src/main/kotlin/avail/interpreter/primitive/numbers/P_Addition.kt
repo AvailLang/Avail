@@ -41,14 +41,10 @@ import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_Set.Companion.setSize
-import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -111,6 +107,7 @@ object P_Addition : Primitive2(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -119,28 +116,6 @@ object P_Addition : Primitive2(CanInline), Foldable
 		val (aType, bType) = argumentTypes
 		try
 		{
-			if (aType.isEnumeration && bType.isEnumeration)
-			{
-				val aInstances = aType.instances
-				val bInstances = bType.instances
-				// Compute the Cartesian product as an enumeration if there will
-				// be few enough entries.
-				if (aInstances.setSize.toLong() * bInstances.setSize.toLong()
-					< 100)
-				{
-					var answers = emptySet
-					for (aInstance in aInstances)
-					{
-						for (bInstance in bInstances)
-						{
-							answers = answers.setWithElementCanDestroy(
-								aInstance.plusCanDestroy(bInstance, false),
-								false)
-						}
-					}
-					return enumerationWith(answers)
-				}
-			}
 			if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 			{
 				val low = aType.lowerBound.plusCanDestroy(
@@ -228,9 +203,7 @@ object P_Addition : Primitive2(CanInline), Foldable
 		val const2 = restriction2.constantOrNull
 
 		val resultRestriction = result.restriction().intersectionWithType(
-			returnTypeGuaranteedByVM(
-				rawFunction,
-				listOf(arg1.type, arg2.type)))
+			guaranteedType(rawFunction, listOf(arg1.type, arg2.type)))
 		val resultType = resultRestriction.type
 		if (resultType.isIntegerRangeType &&
 			resultType.lowerBound.equals(resultType.upperBound))

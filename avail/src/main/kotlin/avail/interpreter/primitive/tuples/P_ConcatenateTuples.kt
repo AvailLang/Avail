@@ -97,6 +97,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 			tuple(zeroOrMoreOf(mostGeneralTupleType)),
 			mostGeneralTupleType)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
@@ -234,7 +235,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 			1 -> callSiteHelper.useAnswer(adjustedSources[0])
 			else ->
 			{
-				val guaranteedType = returnTypeGuaranteedByVM(
+				val guaranteedType = guaranteedType(
 					rawFunction, argumentTypes)
 				val write = boxedWriteTemp(
 					"concatenated",

@@ -128,6 +128,7 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM(), ANY()))),
 			mostGeneralObjectType)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
@@ -211,8 +212,7 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 
 		// The tuple has statically known keys, and valueSources has the Reads
 		// for the corresponding values.
-		val guaranteedType =
-			returnTypeGuaranteedByVM(rawFunction, listOf(tupleType))
+		val guaranteedType = guaranteedType(rawFunction, listOf(tupleType))
 		val variant = variantForFields(setFromCollection(keys))
 		val readsInVariantSlotOrder = variant.realSlots.map { atom ->
 			valueSources[keys.indexOf(atom)]

@@ -116,6 +116,7 @@ object P_CreateSendExpression : Primitive3(
 				topMeta),
 			SEND_PHRASE.mostGeneralType)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

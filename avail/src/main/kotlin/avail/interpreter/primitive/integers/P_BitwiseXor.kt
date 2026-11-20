@@ -90,6 +90,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers, integers), integers)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -176,7 +177,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanInline), Foldable
 			argumentTypes,
 			callSiteHelper,
 			typeGuaranteeFunction = { restrictedArgTypes ->
-				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+				guaranteedType(rawFunction, restrictedArgTypes)
 			},
 			fallbackBody = {
 				generateGeneralFunctionInvocation(

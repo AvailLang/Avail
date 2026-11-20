@@ -90,6 +90,7 @@ object P_RepeatedElementTuple : Primitive2(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_EXCEEDS_VM_LIMIT))
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

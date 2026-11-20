@@ -168,7 +168,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			primitive.fallibilityForArgumentTypes(argumentTypes)
 				== CallSiteCannotFail ->
 			{
-				val resultType = primitive.returnTypeGuaranteedByVM(
+				val resultType = primitive.guaranteedType(
 					rawFunction, argumentTypes)
 				+L2_RUN_INFALLIBLE_PRIMITIVE(
 					rawFunction,

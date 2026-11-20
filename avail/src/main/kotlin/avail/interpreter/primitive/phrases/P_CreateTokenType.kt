@@ -81,6 +81,7 @@ object P_CreateTokenType : Primitive1(CannotFail, CanInline), Foldable
 				type.getAtomProperty(tokenTypeOrdinalKey).extractInt))
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

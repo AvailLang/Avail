@@ -338,7 +338,7 @@ class MethodDescriptor private constructor(
 		 *
 		 * When the [L2Generator] inlines a [Primitive] method definition, it
 		 * asks the primitive what type it guarantees
-		 * ([Primitive.returnTypeGuaranteedByVM]) to return for the specific
+		 * ([Primitive.guaranteedType]) to return for the specific
 		 * provided argument types.  If that return type is sufficiently strong,
 		 * the above runtime check may be waived.
 		 */

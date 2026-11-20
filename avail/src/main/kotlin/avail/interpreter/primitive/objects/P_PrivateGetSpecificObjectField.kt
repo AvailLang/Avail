@@ -88,6 +88,7 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 	/** Specific [A_RawFunction]s will have suitable signatures. */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

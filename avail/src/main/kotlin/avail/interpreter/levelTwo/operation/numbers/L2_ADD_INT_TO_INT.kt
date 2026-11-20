@@ -104,7 +104,7 @@ class L2_ADD_INT_TO_INT(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val outputRange = P_Addition.returnTypeGuaranteedByVM(
+		val outputRange = P_Addition.guaranteedType(
 			null, listOf(augend.type, addend.type))
 		if (outputRange.isSubtypeOf(i64))
 		{

@@ -89,6 +89,7 @@ object P_AtomFieldBound : Primitive1(
 		return typeBound
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

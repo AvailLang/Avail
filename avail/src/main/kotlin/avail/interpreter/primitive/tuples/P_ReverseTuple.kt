@@ -75,6 +75,7 @@ object P_ReverseTuple : Primitive1(CannotFail, CanInline), Foldable
 		return tuple.tupleReverse()
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

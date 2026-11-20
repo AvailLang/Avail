@@ -65,6 +65,7 @@ object P_MapKeysAsSet : Primitive1(CannotFail, CanInline), Foldable
 		return map.keysAsSet
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

@@ -101,6 +101,7 @@ object P_TupleToObjectType : Primitive1(CanInline), Foldable
 			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM(), anyMeta))),
 			mostGeneralObjectMeta)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

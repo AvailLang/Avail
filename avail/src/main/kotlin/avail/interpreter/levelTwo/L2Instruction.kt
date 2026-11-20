@@ -882,7 +882,7 @@ constructor() :
 		{
 			append("${instruction.name}")
 			if (pairs.isNotEmpty()) append(":\n\t")
-			pairs.joinTo(this, ",\n\t") { (name, operand) ->
+			pairs.joinTo(this, "\n\t") { (name, operand) ->
 				val operandString =
 					increaseIndentation(operand.toString(ignoreMisconnections), 2)
 				"$name = $operandString"

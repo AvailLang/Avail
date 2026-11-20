@@ -168,7 +168,7 @@ interface Foldable
 		assert(currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
-		val returnTypeIfInts = thisPrimitive.returnTypeGuaranteedByVM(
+		val returnTypeIfInts = thisPrimitive.guaranteedType(
 			rawFunction, listOf(aInRange.type, bInRange.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
 		val intWriter = intWrite(

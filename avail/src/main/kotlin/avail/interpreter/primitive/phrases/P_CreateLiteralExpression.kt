@@ -67,6 +67,7 @@ object P_CreateLiteralExpression : Primitive1(
 		return literalNodeFromToken(token)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

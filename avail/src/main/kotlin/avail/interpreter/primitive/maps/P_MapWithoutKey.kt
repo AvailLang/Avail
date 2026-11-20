@@ -79,6 +79,7 @@ object P_MapWithoutKey : Primitive2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralMapType(), ANY()), mostGeneralMapType())
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

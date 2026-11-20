@@ -94,6 +94,7 @@ object P_AtomicGetAndSet : Primitive2(
 				ANY()),
 			ANY())
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

@@ -124,7 +124,7 @@ class L2_SUBTRACT_INT_MINUS_INT(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val outputRange = P_Subtraction.returnTypeGuaranteedByVM(
+		val outputRange = P_Subtraction.guaranteedType(
 			null, listOf(minuend.type, subtrahend.type))
 		if (outputRange.isSubtypeOf(i64))
 		{

@@ -77,6 +77,7 @@ object P_SetUnion : Primitive2(CannotFail, CanInline), Foldable
 				mostGeneralSetType()),
 			mostGeneralSetType())
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

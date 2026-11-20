@@ -42,16 +42,12 @@ import avail.descriptor.representation.A_Number
 import avail.descriptor.representation.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_Number.Companion.timesCanDestroy
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_Set.Companion.setSize
-import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -109,6 +105,7 @@ object P_Multiplication : Primitive2(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
@@ -118,33 +115,6 @@ object P_Multiplication : Primitive2(CanInline), Foldable
 		aType.makeImmutable()
 		bType.makeImmutable()
 
-		if (aType.isEnumeration && bType.isEnumeration)
-		{
-			val aValues = aType.instances
-			val bValues = bType.instances
-			// Compute the Cartesian product as an enumeration if there will
-			// be few enough entries.
-			if (aValues.setSize * bValues.setSize.toLong() < 100)
-			{
-				var answers = emptySet
-				aValues.forEach { aValue ->
-					bValues.forEach { bValue ->
-						try
-						{
-							answers = answers.setWithElementCanDestroy(
-								aValue.timesCanDestroy(bValue, false),
-								false)
-						}
-						catch (e: ArithmeticException)
-						{
-							// Ignore that combination of inputs, as it will
-							// fail rather than return a value.
-						}
-					}
-				}
-				return enumerationWith(answers)
-			}
-		}
 		return if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 		{
 			BoundCalculator(aType, bType).process()

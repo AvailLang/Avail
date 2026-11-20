@@ -76,6 +76,7 @@ object P_PushLastOuter : PrimitiveN(
 		return function.outerVarAt(1)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

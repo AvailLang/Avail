@@ -77,6 +77,7 @@ object P_BitwiseOr : Primitive2(CannotFail, CanInline), Foldable
 		return a.bitwiseOr(b, true)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -128,7 +129,7 @@ object P_BitwiseOr : Primitive2(CannotFail, CanInline), Foldable
 			argumentTypes,
 			callSiteHelper,
 			typeGuaranteeFunction = { restrictedArgTypes ->
-				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+				guaranteedType(rawFunction, restrictedArgTypes)
 			},
 			fallbackBody = {
 				generateGeneralFunctionInvocation(

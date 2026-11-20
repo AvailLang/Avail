@@ -107,6 +107,7 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 	// Keep it simple.  In theory, if we could show that the cast would not
 	// fail, and that the function was a primitive, we could ask the
 	// primitive what it would produce.
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

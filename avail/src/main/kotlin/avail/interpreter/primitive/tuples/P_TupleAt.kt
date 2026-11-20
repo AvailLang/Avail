@@ -116,6 +116,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 				naturalNumbers),
 			ANY())
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
@@ -198,7 +199,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 			if (currentlyReachable())
 			{
 				val resultRestriction = restrictionForType(
-					returnTypeGuaranteedByVM(
+					guaranteedType(
 						rawFunction,
 						listOf(
 							argumentTypes[0],
@@ -264,7 +265,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 		val writer = boxedWriteTemp(
 			"element",
 			restrictionForType(
-				returnTypeGuaranteedByVM(rawFunction, argumentTypes)))
+				guaranteedType(rawFunction, argumentTypes)))
 		if (lower.equals(upper))
 		{
 			// The subscript is a constant (and it's within range).

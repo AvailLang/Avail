@@ -80,6 +80,7 @@ object P_TupleAppend : Primitive2(CannotFail, CanInline), Foldable
 		return tuple.appendCanDestroy(newElement, true, true)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

@@ -154,6 +154,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		return CallSiteCanFail
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
@@ -213,7 +214,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 			{
 				// The inner invocation of the primitive function will always
 				// succeed. Ask the primitive what type it guarantees to return.
-				primitive.returnTypeGuaranteedByVM(code, innerArgTypes)
+				primitive.guaranteedType(code, innerArgTypes)
 			}
 			CallSiteMustFail ->
 			{
@@ -222,7 +223,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 			else ->
 			{
 				code.returnTypeIfPrimitiveFails.typeUnion(
-					primitive.returnTypeGuaranteedByVM(code, innerArgTypes))
+					primitive.guaranteedType(code, innerArgTypes))
 			}
 		}
 	}

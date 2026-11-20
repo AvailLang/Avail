@@ -86,6 +86,7 @@ object P_GetObjectTypeField : Primitive2(CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralObjectMeta, ATOM()), anyMeta)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

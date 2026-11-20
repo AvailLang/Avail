@@ -1256,10 +1256,11 @@ class L2ValueManifest
 	 * guarantees about its result and narrow the result to match.
 	 *
 	 * Skipped unless every argument satisfies the primitive's declared argument
-	 * types.  A [Primitive.returnTypeGuaranteedByVM] is written on the
-	 * assumption that it is being asked about a call that could actually
-	 * happen, and is entitled to do things like ask a metatype for its
-	 * instance; a value widened by a merge, or narrowed to ⊥ by a
+	 * types.  [Primitive.guaranteedType] starts from the primitive's own
+	 * [returnTypeGuaranteedByVM][Primitive.returnTypeGuaranteedByVM], which is
+	 * written on the assumption that it is being asked about a call that could
+	 * actually happen, and is entitled to do things like ask a metatype for
+	 * its instance; a value widened by a merge, or narrowed to ⊥ by a
 	 * contradiction, can violate that.  An argument of type ⊥ is checked for
 	 * separately, since ⊥ is a subtype of every declared argument type.
 	 * Skipping it loses nothing: the contradiction has already made the
@@ -1290,7 +1291,7 @@ class L2ValueManifest
 		}
 		updateRestriction(usingClass) {
 			intersectionWithType(
-				primitive.returnTypeGuaranteedByVM(null, argumentTypes))
+				primitive.guaranteedType(null, argumentTypes))
 		}
 	}
 

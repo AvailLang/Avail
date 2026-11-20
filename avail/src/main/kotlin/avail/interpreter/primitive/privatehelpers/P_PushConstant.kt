@@ -90,6 +90,7 @@ object P_PushConstant : PrimitiveN(
 		literals: A_Tuple
 	): Boolean = true
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

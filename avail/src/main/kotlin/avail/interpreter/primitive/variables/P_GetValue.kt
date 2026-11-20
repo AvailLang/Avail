@@ -96,6 +96,7 @@ object P_GetValue : Primitive1(
 				mostGeneralVariableType),
 			ANY())
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

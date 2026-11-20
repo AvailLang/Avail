@@ -103,6 +103,7 @@ object P_EnvironmentMap : Primitive0(CannotFail, CanInline, HasSideEffect)
 		return result
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

@@ -92,6 +92,7 @@ object P_GetObjectField : Primitive2(CanInline), Foldable
 		}
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

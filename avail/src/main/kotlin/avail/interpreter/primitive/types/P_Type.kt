@@ -69,6 +69,7 @@ object P_Type : Primitive1(CannotFail, CanInline), Foldable
 			tuple(ANY()),
 			anyMeta)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

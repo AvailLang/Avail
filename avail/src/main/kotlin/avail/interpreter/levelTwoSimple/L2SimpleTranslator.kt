@@ -927,7 +927,7 @@ constructor(
 			{
 				val argTypes = argumentRestrictions.map(TypeRestriction::type)
 				val guaranteedType =
-					prim.returnTypeGuaranteedByVM(calledCode, argTypes)
+					prim.guaranteedType(calledCode, argTypes)
 						.typeIntersection(calledCode.functionType().returnType)
 				if (guaranteedType.instanceCount.equalsInt(1)
 					&& !guaranteedType.isInstanceMeta

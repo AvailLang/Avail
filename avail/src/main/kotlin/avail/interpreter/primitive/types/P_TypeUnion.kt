@@ -79,6 +79,7 @@ object P_TypeUnion : Primitive2(CannotFail, CanInline), Foldable
 			tuple(topMeta, topMeta),
 			topMeta)
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

@@ -70,6 +70,7 @@ object P_ShortCircuitHelper : Primitive2(Invokes, CanInline, CannotFail)
 		return invokeInPrimitive(function)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type =

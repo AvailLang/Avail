@@ -107,6 +107,7 @@ object P_BitTest : Primitive2(CannotFail, CanInline), Foldable
 		return objectFromBoolean(a.bitTest(bLong))
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

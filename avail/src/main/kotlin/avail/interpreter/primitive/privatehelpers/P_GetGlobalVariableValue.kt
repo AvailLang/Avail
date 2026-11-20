@@ -88,6 +88,7 @@ object P_GetGlobalVariableValue : Primitive1(
 		}
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

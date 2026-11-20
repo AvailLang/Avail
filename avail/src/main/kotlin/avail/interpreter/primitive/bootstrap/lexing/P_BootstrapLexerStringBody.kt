@@ -54,7 +54,6 @@ import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -69,7 +68,7 @@ import avail.interpreter.primitive.style.P_BootstrapLexerStringBodyStyler
  */
 @Suppress("unused")
 object P_BootstrapLexerStringBody
-	: Primitive3(CannotFail, CanInline, Bootstrap), Foldable
+	: Primitive3(CannotFail, CanInline, Bootstrap)
 {
 	override fun attempt3(
 		interpreter: Interpreter,

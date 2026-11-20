@@ -82,6 +82,7 @@ object P_ExtractTagOrdinal
 		invocation: L2SemanticPrimitiveInvocation
 	) = "Tag(" + invocation.argumentSemanticValues.single() + ")"
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

@@ -85,6 +85,7 @@ object P_SetWith : Primitive2(CannotFail, CanInline), Foldable
 				naturalNumbers,
 				ANY()))
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type

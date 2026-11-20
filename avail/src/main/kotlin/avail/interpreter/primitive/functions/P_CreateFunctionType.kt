@@ -72,6 +72,7 @@ object P_CreateFunctionType : Primitive2(CannotFail, CanInline), Foldable
 		return functionType(argTypes, returnType)
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>

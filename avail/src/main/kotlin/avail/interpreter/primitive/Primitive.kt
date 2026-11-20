@@ -45,16 +45,21 @@ import avail.descriptor.representation.A_Phrase
 import avail.descriptor.representation.A_Phrase.Companion.declaredType
 import avail.descriptor.representation.A_Phrase.Companion.token
 import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_Set.Companion.setSize
 import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.returnType
 import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
@@ -126,6 +131,8 @@ import avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.performance.StatisticReport.REIFICATIONS
 import avail.utility.bitfield.BitFlag
 import avail.utility.bitfield.PackedBits
+import avail.utility.cartesianProductForEach
+import avail.utility.cast
 import avail.utility.isNullOr
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.POP
@@ -640,10 +647,27 @@ constructor(
 	fun blockTypeRestriction(): A_Type = blockTypeRestriction
 
 	/**
+	 * The context in which [returnTypeGuaranteedByVM] may be called.
+	 * Overrides name it in their signatures, where it resolves without an
+	 * import, but its only instance is private to [Primitive], and it is
+	 * sealed, so no other package can make one.  Only [guaranteedType] can
+	 * therefore call a primitive's own answer, which it then narrows.
+	 */
+	sealed interface GuaranteeContext
+
+	/** The only [GuaranteeContext], held by [guaranteedType]. */
+	private object PrimitiveGuaranteeContext : GuaranteeContext
+
+	/**
 	 * Answer the type of the result that will be produced by a call site with
 	 * the given argument types.  Don't include semantic restrictions defined
 	 * in the Avail code, but if convenient answer something stronger than the
 	 * return type in the primitive's basic function type.
+	 *
+	 * Only [guaranteedType] can call this, since only it holds a
+	 * [GuaranteeContext]; everything else calls [guaranteedType], which
+	 * narrows this answer further for a [Foldable] primitive.  An override may
+	 * still call `super`, whose context it already holds.
 	 *
 	 * @param rawFunction
 	 *   The [A_RawFunction] being invoked, if available.
@@ -652,12 +676,120 @@ constructor(
 	 * @return
 	 *   The return type guaranteed by the VM at some call site.
 	 */
+	context(_: GuaranteeContext)
 	open fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(rawFunction.isNullOr { codePrimitive() == this@Primitive })
 		return blockTypeRestriction().returnType
+	}
+
+	/**
+	 * Answer the type of the result that a successful call of this primitive
+	 * will produce, given the argument types.  This is the primitive's own
+	 * [returnTypeGuaranteedByVM], narrowed further when the primitive is
+	 * [Foldable] and every argument type is an enumeration other than a
+	 * metatype, whose instances combine in at most 256 ways: the primitive is
+	 * folded on every combination, and the answer is intersected with the
+	 * enumeration of the results.  A combination whose fold fails contributes
+	 * nothing, since the guarantee describes only successful calls; if every
+	 * one fails, the unnarrowed answer stands.  A metatype is excluded because
+	 * metatypes are covariant: its one instance is a type, and the subtypes of
+	 * that type are values it admits as well.
+	 *
+	 * Folding runs the primitive, so it needs the current [Interpreter]; on a
+	 * thread without one, the answer is not narrowed.
+	 *
+	 * @param rawFunction
+	 *   The [A_RawFunction] being invoked, if available.
+	 * @param argumentTypes
+	 *   A [List] of argument [types][TypeDescriptor].
+	 * @return
+	 *   The return type guaranteed by the VM at some call site.
+	 */
+	fun guaranteedType(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		val guaranteed = context(PrimitiveGuaranteeContext) {
+			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		}
+		// Metatypes are covariant: a metatype's one instance, a type, stands
+		// for the type's subtypes as well, so it doesn't list every value.
+		if (this !is Foldable
+			|| guaranteed.isBottom
+			|| !argumentTypes.all { it.isEnumeration && !it.isInstanceMeta })
+		{
+			return guaranteed
+		}
+		// Only fold on values the primitive accepts.
+		val parameterTypes = blockTypeRestriction().argsTupleType
+		val argumentInstances = argumentTypes.mapIndexed { i, argumentType ->
+			argumentType
+				.typeIntersection(parameterTypes.typeAtIndex(i + 1))
+				.instances
+		}
+		var combinationCount = 1L
+		argumentInstances.forEach { instances ->
+			combinationCount *= instances.setSize
+			if (combinationCount > guaranteeFoldLimit) return guaranteed
+		}
+		val interpreter = Interpreter.currentOrNull() ?: return guaranteed
+		val results = mutableListOf<AvailObject>()
+		argumentInstances.cartesianProductForEach { constants ->
+			foldedResultOrNull(interpreter, constants)?.let(results::add)
+		}
+		if (results.isEmpty()) return guaranteed
+		return guaranteed.typeIntersection(
+			enumerationWith(setFromCollection(results)))
+	}
+
+	/**
+	 * Answer the result of running this [Foldable] primitive on the given
+	 * constant arguments, or `null` if the primitive fails or would reify the
+	 * stack.  The [interpreter]'s function, arguments, and latest result are
+	 * restored afterward, so this may run in the middle of translating or
+	 * executing other code.  A foldable primitive must not require access to
+	 * the enclosing function, so the function is cleared while it runs.
+	 *
+	 * @param interpreter
+	 *   The current [Interpreter], which runs the primitive.
+	 * @param constants
+	 *   The argument values, which the primitive must accept.
+	 * @return
+	 *   The immutable result, or `null`.
+	 */
+	internal fun foldedResultOrNull(
+		interpreter: Interpreter,
+		constants: List<AvailObject>
+	): AvailObject?
+	{
+		assert(this is Foldable)
+		val savedFunction = interpreter.function
+		val savedArguments = interpreter.argsBuffer.toList()
+		val savedLatestResult = interpreter.latestResultOrNull()
+		interpreter.function = null
+		val value = try
+		{
+			interpreter.argsBuffer.clear()
+			interpreter.argsBuffer.addAll(constants)
+			attempt(interpreter)
+		}
+		finally
+		{
+			interpreter.function = savedFunction
+			interpreter.argsBuffer.clear()
+			interpreter.argsBuffer.addAll(savedArguments)
+			when (savedLatestResult)
+			{
+				null -> interpreter.clearLatestResult()
+				else -> interpreter.setLatestResult(savedLatestResult)
+			}
+		}
+		if (value === null || interpreter.currentReifier !== null) return null
+		return value.makeImmutable().cast()
 	}
 
 	/**
@@ -682,7 +814,7 @@ constructor(
 	): A_Type
 	{
 		assert(argCount == 2)
-		return returnTypeGuaranteedByVM(null, listOf(argType1, argType2))
+		return guaranteedType(null, listOf(argType1, argType2))
 	}
 
 	/**
@@ -1029,8 +1161,7 @@ constructor(
 		// The primitive cannot fail at this site.  Output code to run the
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
-		val guaranteedType =
-			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val guaranteedType = guaranteedType(rawFunction, argumentTypes)
 		val restriction = restrictionForType(
 			if (guaranteedType.isBottom) TOP() else guaranteedType)
 		val semanticValue: L2SemanticValue
@@ -1175,7 +1306,7 @@ constructor(
 			return false
 		}
 		val argTypes = argRestrictions.map { it.type }
-		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argTypes)
+		val guaranteedType = guaranteedType(rawFunction, argTypes)
 		if (!guaranteedType.isSubtypeOf(expectedType))
 		{
 			// The result isn't strong enough to satisfy the expectedType.
@@ -1787,3 +1918,10 @@ constructor(
 			Array<AvailObject>::class.java)
 	}
 }
+
+/**
+ * [Primitive.guaranteedType] folds a [Foldable] primitive over the Cartesian
+ * product of its arguments' enumerations only when the product has at most
+ * this many combinations, keeping type computation cheap.
+ */
+private const val guaranteeFoldLimit = 256L

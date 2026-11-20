@@ -43,15 +43,11 @@ import avail.descriptor.representation.A_Number.Companion.lessOrEqual
 import avail.descriptor.representation.A_Number.Companion.lessThan
 import avail.descriptor.representation.A_Number.Companion.minusCanDestroy
 import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_Set.Companion.setSize
-import avail.descriptor.representation.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.representation.A_Type
-import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.lowerBound
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -66,7 +62,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
-import java.lang.Math.multiplyExact
 
 /**
  * **Primitive:** Given a positive integer B, a shift factor S, and a truncation
@@ -98,6 +93,7 @@ object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 		}
 	}
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
@@ -106,45 +102,11 @@ object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 		val baseIntegers: A_Type = argumentTypes[0]
 		val shiftFactors: A_Type = argumentTypes[1]
 		val truncationBitsRange: A_Type = argumentTypes[2]
-		if (baseIntegers.isEnumeration
-			&& shiftFactors.isEnumeration
-			&& truncationBitsRange.isEnumeration)
-		{
-			val bases = baseIntegers.instances
-			val leftShifts = shiftFactors.instances
-			val truncationBits = truncationBitsRange.instances
-			val combinations = try
-			{
-				multiplyExact(
-					multiplyExact(bases.setSize, leftShifts.setSize),
-					truncationBits.setSize)
-			}
-			catch (e: ArithmeticException)
-			{
-				Int.MAX_VALUE
-			}
-			// If there are sufficiently few combinations, compute them all.
-			if (combinations <= 256L)
-			{
-				var results = SetDescriptor.emptySet
-				truncationBits.forEach { truncationBitCount ->
-					leftShifts.forEach { leftShift ->
-						bases.forEach { base ->
-							results = results.setWithElementCanDestroy(
-								base.bitShiftLeftTruncatingToBits(
-									leftShift, truncationBitCount, false),
-								true)
-						}
-					}
-				}
-				return enumerationWith(results)
-			}
-		}
-		val beforeTruncation = P_BitShiftLeft.returnTypeGuaranteedByVM(
+		val beforeTruncation = P_BitShiftLeft.guaranteedType(
 			null,
 			listOf(baseIntegers, shiftFactors))
 		// We can cop out and use 0 as the lower bound, and say the result can
-		// grow as large as the minimm of the shifted value or the largest
+		// grow as large as the minimum of the shifted value or the largest
 		// truncation mask.
 		val biggestTruncationBitCount = truncationBitsRange.upperBound
 		if (biggestTruncationBitCount.greaterThan(fromInt(1000)))

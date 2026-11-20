@@ -916,7 +916,7 @@ class L1Translator private constructor(
 						}
 					val failedFunctionType =
 						rawFunction.returnTypeIfPrimitiveFails
-					val primResultType = primitive.returnTypeGuaranteedByVM(
+					val primResultType = primitive.guaranteedType(
 						rawFunction, intersectedArgumentTypes)
 					when (primitive.fallibilityForArgumentTypes(
 						intersectedArgumentTypes))
@@ -1249,7 +1249,7 @@ class L1Translator private constructor(
 					// The primitive cannot fail at this site. Output code
 					// to run the primitive as simply as possible, feeding a
 					// register with as strong a type as possible.
-					var resultType = primitive.returnTypeGuaranteedByVM(
+					var resultType = primitive.guaranteedType(
 						rawFunction, argumentTypes)
 					if (resultType.isBottom)
 					{
@@ -1309,12 +1309,11 @@ class L1Translator private constructor(
 			}
 			guaranteedResultType = when (fallibility)
 			{
-				CallSiteCannotFail -> primitive.returnTypeGuaranteedByVM(
+				CallSiteCannotFail -> primitive.guaranteedType(
 					rawFunction, argumentTypes)
 				CallSiteMustFail -> rawFunction.returnTypeIfPrimitiveFails
 				else -> rawFunction.returnTypeIfPrimitiveFails.typeUnion(
-					primitive.returnTypeGuaranteedByVM(
-						rawFunction, argumentTypes))
+					primitive.guaranteedType(rawFunction, argumentTypes))
 			}
 		}
 		else

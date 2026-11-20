@@ -94,6 +94,7 @@ object P_ExtractObjectTypeVariantId
 		invocation: L2SemanticPrimitiveInvocation
 	) = "TypeVariant(" + invocation.argumentSemanticValues.single() + ")"
 
+	context(_: GuaranteeContext)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
