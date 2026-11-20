@@ -38,7 +38,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -54,14 +53,14 @@ import avail.optimizer.values.L2SemanticValue
  * cautiously look past these barriers.
  *
  * Say the code generator detects a loop, by encountering an invocation of
- * [P_RestartContinuation] or [P_RestartContinuationWithArguments] with the
- * current frame's label as the first argument.  It will replace the invocation,
- * if possible, with code to strip the manifest down to just the (new) input
- * arguments to the function, and do a backward jump to a special block near the
- * top of the graph.  To strip the manifest safely, we move the live values into
- * temp registers, strip the manifest to those registers, move the values into
- * new registers associated with the function's input arguments' semantic
- * values, strip them again, and do a backward jump.
+ * [P_RestartContinuationWithArguments] with the current frame's label as the
+ * first argument.  It will replace the invocation, if possible, with code to
+ * strip the manifest down to just the (new) input arguments to the function,
+ * and do a backward jump to a special block near the top of the graph.  To
+ * strip the manifest safely, we move the live values into temp registers, strip
+ * the manifest to those registers, move the values into new registers
+ * associated with the function's input arguments' semantic values, strip them
+ * again, and do a backward jump.
  *
  * The [L2_STRIP_MANIFEST] instructions must not be removed, but during register
  * coloring the corresponding inputs and outputs should be treated as moves, to

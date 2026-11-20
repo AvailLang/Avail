@@ -43,7 +43,6 @@ import avail.interpreter.levelTwoSimple.instructions.registers.RegisterSet
 import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.controlflow.P_ExitContinuationIf
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.performance.Statistic
 import avail.performance.StatisticReport
@@ -59,18 +58,16 @@ import avail.performance.StatisticReport
  * which will detect the reified stack and create the label.
  *
  * If the label is later restarted, its caller will be the same as the current
- * reified caller continuation, and its arguments will be the same if using
- * [P_RestartContinuation], or the ones provided explicitly if using
- * [P_RestartContinuationWithArguments].
+ * reified caller continuation, and its arguments will be the ones provided
+ * explicitly to [P_RestartContinuationWithArguments].
  *
  * If a label is exited via [P_ExitContinuationIf] or
  * [P_ExitContinuationWithResultIf], it's as though the current frame has been
  * returned into the (reified) caller, with either nil or a specific return
  * value, respectively.
  *
- * Note that the [stateOfL1] should have its [StateOfL1.liveSlots] set up to
- * include only the function arguments.  All live registers will still be
- * preserved, but the label itself only captures the original arguments.  The
+ * The label captures no arguments, so the [stateOfL1] has no
+ * [StateOfL1.liveSlots].  All live registers will still be preserved.  The
  * [StateOfL1.pc] and [StateOfL1.stackp] are ignored.
  */
 class L2Simple_PushLabel(
@@ -96,8 +93,7 @@ class L2Simple_PushLabel(
 			caller = interpreter.getReifiedContinuation()!!.makeImmutable(),
 			startingChunk = thisChunk,
 			// Indicates a label.
-			startingOffset = 0,
-			args = registers[stateOfL1.liveSlots].asList())
+			startingOffset = 0)
 		label.makeSubobjectsImmutable()
 		registers[answer] = label
 		return nextOffset

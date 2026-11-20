@@ -417,7 +417,7 @@ Semantic restriction "trial element of_" is
 Public method "Try again" is
 [
 	Require: inside fence;
-	Cast current fiber[checkpoint] into [retry : $[]→any | Restart retry]
+	Restart current fiber[checkpoint] ?→ $[]→any with <>
 ] : ⊥
 styled by nonlocal control styler;
 

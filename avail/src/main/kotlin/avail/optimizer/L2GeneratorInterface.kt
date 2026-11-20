@@ -71,7 +71,7 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2Optimizer.GenerationMode
@@ -131,8 +131,9 @@ interface L2GeneratorInterface : L2Visualizable
 		AFTER_OPTIONAL_PRIMITIVE,
 
 		/**
-		 * The head of the loop formed when a [P_RestartContinuation] is invoked
-		 * on a label created for the current frame.
+		 * The head of the loop formed when a
+		 * [P_RestartContinuationWithArguments] is invoked on a label created
+		 * for the current frame.
 		 */
 		RESTART_LOOP_HEAD
 	}

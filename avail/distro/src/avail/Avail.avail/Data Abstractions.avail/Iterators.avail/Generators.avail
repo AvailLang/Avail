@@ -97,7 +97,7 @@ generator's advance method is
 		else
 		[
 			aGenerator's client state := body;
-			Restart aGenerator's execution state
+			Restart aGenerator's execution state with <false>
 		]
 	] : ⊤ (false);
 ] : ⊤;
@@ -148,6 +148,13 @@ Public method "generator for_" is
 	state : continuation;
 	state :=
 		[
+			/* The argument is ignored.  It exists so that this function and
+			 * the yield function each take one argument, and the generator's
+			 * advance method can restart either kind of execution
+			 * continuation the same way.
+			 */
+			ignored : any
+		|
 			$start;
 			/* On the first run through this function, we just want to capture
 			 * the entry continuation.
@@ -203,7 +210,7 @@ Public method "generator for_" is
 				]
 			];
 			start
-		]();
+		](false);
 	/* Construct the generator. */
 	theGenerator ::= a generator with
 		element type ::=

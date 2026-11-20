@@ -1274,7 +1274,7 @@ Private method "_positive range pairs" is
 				$here : ⊤;
 				Exit here if lowBits bit∧ (lowBits + 1) = 0;
 				lowBits := lowBits bit∨ (lowBits << -1);
-				Restart here
+				Restart here with <>
 			]();
 		]
 		else
@@ -1293,7 +1293,7 @@ Private method "_positive range pairs" is
 			$here : ⊤;
 			Exit here if boundary bit∧ (boundary + 1) = 0;
 			boundary := boundary bit∨ (boundary << -1);
-			Restart here
+			Restart here with <>
 		]();
 		last ::= Cast [boundary + 1..∞) into [t : whole number's type | t];
 		Exit outer with

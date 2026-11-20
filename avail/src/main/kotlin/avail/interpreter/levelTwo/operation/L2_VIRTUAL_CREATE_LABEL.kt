@@ -95,18 +95,15 @@ import avail.optimizer.reoptimizer.L2Regenerator
  * label, it will restore these values into registers.
  *
  * The [L2_CREATE_CONTINUATION]'s level one pc is set to zero to indicate this
- * is a label.  The stack is empty, and only the arguments, function, and caller
- * are recorded – for level one.  For level two, it also captures the register
- * dump and the level two offset of the entry point above.
+ * is a label.  The stack is empty, every slot is [nil], and only the function
+ * and caller are recorded – for level one.  For level two, it also captures the
+ * register dump and the level two offset of the entry point above.
  *
  * @property code
  *   The [A_RawFunction] that is known statically to be referenced by the
  *   [function].
  * @property function
  *   The [A_Function] to use for the continuation.
- * @property arguments
- *   The [vector][L2ReadBoxedVectorOperand] of arguments that the [function]
- *   received when it was invoked.
  * @property outputLabel
  *   Where to write the new continuation.
  *
@@ -118,7 +115,6 @@ constructor(
 	var code: L2ConstantOperand,
 	@HideInAllVisualizations
 	var function: L2ReadBoxedOperand,
-	var arguments: L2ReadBoxedVectorOperand,
 	var outputLabel: L2WriteBoxedOperand
 ): L2Instruction()
 {
@@ -137,7 +133,6 @@ constructor(
 				null -> function.toString()
 				else -> f.code().methodName
 			})
-		append("\n\targuments = ").append(arguments)
 	}
 
 	override fun L2Regenerator.generateReplacement(
@@ -272,9 +267,12 @@ constructor(
 
 		startBlock(fallThrough)
 		val frameSizeInt = code.constant.numSlots
-		val slots = arguments.elements.toMutableList()
+		// A restart supplies new arguments, so a label captures neither
+		// arguments nor locals.
+		// TODO: A label has no use for these slots at all; they remain only
+		//  because a label is still represented as a continuation.
 		val nilRead = boxedConstant(nil)
-		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
+		val slots = List(frameSizeInt) { nilRead }
 		// Local variables aren't preserved by a label, so there is nothing
 		// to freeze.
 		val labelCreated = createBasicBlock(

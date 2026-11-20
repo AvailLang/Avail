@@ -47,7 +47,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.primitive.controlflow.P_ExitContinuationIf
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import java.io.BufferedOutputStream
 import java.io.Closeable
@@ -144,7 +144,7 @@ class ProfileCollector(
 	/**
 	 * The current continuation has been changed.  This is not a function call
 	 * or return, but a consequence of a [P_ExitContinuationIf] or
-	 * [P_RestartContinuation] or something of that nature.
+	 * [P_RestartContinuationWithArguments] or something of that nature.
 	 */
 	fun switchContinuation()
 	{

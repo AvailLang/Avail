@@ -326,7 +326,7 @@ Public method "a cave" is
 			neighborIds ::=
 				cast incompleteRooms \ theRoom's adjacent room ids \ {id}
 				into [s : {room id|1..20} | s]
-				else [Restart body];
+				else [Restart body with <>];
 			/* Randomly choose a neighbor. */
 			neighborId ::= the RNG's next element of neighborIds;
 			neighborRoom : unfinished room := rooms[neighborId];

@@ -491,16 +491,12 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				}
 				L1Ext_doPushLabel_ord ->
 				{
-					val numArgs = code.numArgs()
 					assert(code.codePrimitive() == null)
-					val args = (1..numArgs).map {
-						frame[it].apply { assert(notNil) }
-					}
-					// Note that the locals are not present in the new
-					// continuation, just arguments.  New locals will be
-					// created when the continuation is restarted.
-					// Freeze all fields of the new object, including
-					// its caller, function, and args.
+					// Note that neither the arguments nor the locals are
+					// present in the new continuation.  A restart supplies
+					// new arguments, and new locals will be created.
+					// Freeze all fields of the new object, including its
+					// caller and function.
 					// ...always a fresh copy, always mutable (uniquely owned).
 					// ...and continue running the chunk.
 					if (!interpreter.callerIsReified())
@@ -552,16 +548,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					// The caller has already been reified, so we don't need
 					// to force reification here.
-					// Note that the locals are not present in the new
-					// continuation, just arguments.
 					val labelContinuation = createLabelContinuation(
 						interpreter.function!!,
 						interpreter.getReifiedContinuation()!!,
 						DefaultL1Chunk,
-						AFTER_PRIMITIVE_FAILURE.offset,
-						args)
+						AFTER_PRIMITIVE_FAILURE.offset)
 					// Freeze all fields of the new object, including its
-					// caller, function, and args.
+					// caller and function.
 					labelContinuation.makeSubobjectsImmutable()
 					frame[--stackp] = labelContinuation as AvailObject
 				}

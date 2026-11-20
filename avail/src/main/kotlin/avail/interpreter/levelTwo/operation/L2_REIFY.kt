@@ -41,7 +41,6 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.jvm.JVMTranslator
 import avail.performance.Statistic
@@ -86,8 +85,7 @@ class L2_REIFY(
 
 		/**
 		 * For measuring stack-clearing reifications prior to
-		 * [P_RestartContinuation] and [P_RestartContinuationWithArguments]
-		 * invocations in L2 code.
+		 * [P_RestartContinuationWithArguments] invocations in L2 code.
 		 */
 		ABANDON_BEFORE_RESTART_IN_L2;
 

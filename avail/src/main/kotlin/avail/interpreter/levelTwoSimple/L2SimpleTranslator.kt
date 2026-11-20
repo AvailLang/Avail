@@ -1553,7 +1553,7 @@ constructor(
 			stateOfL1 = StateOfL1(
 				pc = -999,
 				stackp = -999,
-				liveSlots = ReadArray((1..code.numArgs()).map(::readSlot))),
+				liveSlots = ReadArray.empty),
 			answer = answer)
 	}
 

@@ -1219,7 +1219,7 @@ Method "map and filter_by_" is
 			]
 		);
 		index++;
-		Restart loop
+		Restart loop with <>
 	]();
 	result
 ] : tuple;

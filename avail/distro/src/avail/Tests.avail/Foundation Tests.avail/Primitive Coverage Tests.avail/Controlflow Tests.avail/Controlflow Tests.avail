@@ -52,7 +52,6 @@ Uses
 	"InvokeWithTuple Tests",
 	"MarkNearestCatch Tests",
 	"RaiseException Tests",
-	"RestartContinuation Tests",
 	"RestartContinuationWithArguments Tests",
 	"ShortCircuitHelper Tests"
 Body

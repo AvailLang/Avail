@@ -183,7 +183,6 @@ import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushArgument2
 import avail.interpreter.primitive.privatehelpers.P_PushArgument3
@@ -414,15 +413,12 @@ class L1Translator private constructor(
 	 * continuation slot. The slots are the arguments, then the locals, then the
 	 * stack entries. The slots are numbered starting at 1.
 	 *
-	 * This is only public to allow primitives like [P_RestartContinuation] to
-	 * be able to fetch the current arguments.
-	 *
 	 * @param slotIndex
 	 *   The index into the continuation's slots.
 	 * @return
 	 *   An [L2ReadBoxedOperand] representing that continuation slot.
 	 */
-	fun readSlot(slotIndex: Int): L2ReadBoxedOperand =
+	private fun readSlot(slotIndex: Int): L2ReadBoxedOperand =
 		readBoxed(semanticSlot(slotIndex))
 
 	/**
@@ -2460,9 +2456,8 @@ class L1Translator private constructor(
 		// replaced by code to force reification of the caller (or do nothing if
 		// it has migrated into an off-ramp), and then create the label using
 		// the up-to-date caller.  Since label building only preserves the
-		// frame's function and arguments, only those are used by the virtual
-		// instruction.  The label continuation's pc will be 0, and its stack
-		// will be empty.
+		// frame's function, only that is used by the virtual instruction.  The
+		// label continuation's pc will be 0, and its stack will be empty.
 		assert(code.codePrimitive() == null)
 		val semanticLabel = topFrame.label()
 		if (currentManifest.hasSemanticValue(semanticLabel))
@@ -2471,11 +2466,6 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			val argumentsForLabel = mutableListOf<L2ReadBoxedOperand>()
-			for (i in 1..numArgs)
-			{
-				argumentsForLabel.add(readSlot(i))
-			}
 			val continuationType =
 				continuationTypeForFunctionType(code.functionType())
 			val destinationRegister = boxedWrite(
@@ -2483,7 +2473,6 @@ class L1Translator private constructor(
 			+L2_VIRTUAL_CREATE_LABEL(
 				L2ConstantOperand(code),
 				currentFunction,
-				L2ReadBoxedVectorOperand(argumentsForLabel),
 				destinationRegister)
 		}
 		// Now push the label.

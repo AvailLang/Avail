@@ -39,7 +39,6 @@ import avail.descriptor.representation.A_Token
 import avail.descriptor.representation.A_Tuple
 import avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.io.NybbleOutputStream
 
@@ -50,9 +49,9 @@ import avail.io.NybbleOutputStream
  * [function][FunctionDescriptor] started running, resetting the program
  * counter, stack pointer, and stack slots, and creating new local variables.
  *
- * The new continuation can subsequently be [restart][P_RestartContinuation],
- * [restarted&#32;with&#32;new&#32;arguments][P_RestartContinuationWithArguments],
- * or [exited][P_ExitContinuationWithResultIf].
+ * The new continuation can subsequently be
+ * [restarted][P_RestartContinuationWithArguments] with new arguments, or
+ * [exited][P_ExitContinuationWithResultIf].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -71,31 +70,18 @@ class AvailPushLabel constructor(relevantTokens: A_Tuple)
 
 	/**
 	 * Push a label, which is a [ continuation][ContinuationDescriptor].  Since
-	 * the label can be restarted (which constructs new locals while reusing the
-	 * arguments), or exited (which has no static effect on optimizations), I
-	 * only have an effect on arguments and outer variables.  Scan all arguments
-	 * and outer variables and ensure the most recent pushes are reset so that
-	 * isLastAccess is false.
+	 * the label can be restarted (which runs the same function again, with new
+	 * arguments and new locals), or exited (which has no static effect on
+	 * optimizations), I only have an effect on outer variables.  The label
+	 * does not keep the original arguments, so they need not be preserved.
+	 * Scan all outer variables and ensure the most recent pushes are reset so
+	 * that isLastAccess is false.
 	 */
 	override fun fixUsageFlags(
 		localData: MutableList<AvailVariableAccessNote?>,
 		outerData: MutableList<AvailVariableAccessNote?>,
 		codeGenerator: AvailCodeGenerator)
 	{
-		for (index in 0 until codeGenerator.numArgs)
-		{
-			var note = localData[index]
-			if (note === null)
-			{
-				note = AvailVariableAccessNote()
-				localData[index] = note
-			}
-			// If any argument was pushed before this pushLabel, set its
-			// isLastAccess to false, as a restart will need to have these
-			// arguments intact.
-			note.previousPush?.isLastAccess = false
-		}
-
 		for (outerNote in outerData)
 		{
 			if (outerNote !== null)

@@ -491,7 +491,7 @@ Method "filter_by_" is
 			result := eject result + element;
 		];
 		index++;
-		Restart loop
+		Restart loop with <>
 	]();
 	result
 ] : set
@@ -648,7 +648,7 @@ Method "map and filter_by_" is
 				];
 			]);
 		index++;
-		Restart loop
+		Restart loop with <>
 	]();
 	result
 ] : set

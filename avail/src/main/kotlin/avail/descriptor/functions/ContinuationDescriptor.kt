@@ -105,7 +105,6 @@ import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
-import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.io.TextInterface
 import avail.optimizer.DefaultL1ExecutableChunk
@@ -132,9 +131,8 @@ import kotlin.math.min
  * A continuation can be [exited][P_ExitContinuationWithResultIf], which causes
  * the current fiber's continuation to be replaced by the specified
  * continuation's caller. A return value is supplied to this caller.  A
- * continuation can also be [restarted][P_RestartContinuationWithArguments],
- * either with a specified tuple of arguments or with the
- * [original&#32;arguments][P_RestartContinuation].
+ * continuation can also be [restarted][P_RestartContinuationWithArguments]
+ * with a specified tuple of arguments.
  *
  * @constructor
  *
@@ -654,8 +652,6 @@ class ContinuationDescriptor private constructor(
 		 *   The level two chunk to invoke.
 		 * @param startingOffset
 		 *   The offset into the chunk at which to resume.
-		 * @param args
-		 *   The [List] of arguments.
 		 * @return
 		 *   The new continuation.
 		 */
@@ -663,8 +659,7 @@ class ContinuationDescriptor private constructor(
 			function: A_Function,
 			caller: A_Continuation,
 			startingChunk: L2Chunk,
-			startingOffset: Int,
-			args: List<AvailObject>
+			startingOffset: Int
 		): A_Continuation
 		{
 			val code = function.code()
@@ -678,18 +673,12 @@ class ContinuationDescriptor private constructor(
 				setSlot(STACK_POINTER, frameSize + 1)
 				setSlot(LEVEL_TWO_CHUNK, startingChunk.chunkPojo)
 				setSlot(LEVEL_TWO_OFFSET, startingOffset)
-				//  Set up arguments...
-				val numArgs = args.size
-				assert(numArgs == code.numArgs())
-
-				// Arguments area.  These are used by P_RestartContinuation, but
-				// they're replaced before resumption if using
-				// P_RestartContinuationWithArguments.
-				setSlotsFromList(FRAME_AT_, 1, args, 0, numArgs)
-
-				// All the remaining slots.  DO NOT capture or build locals, nor
-				// a primitive failure slot.
-				fillSlots(FRAME_AT_, numArgs + 1, frameSize - numArgs, nil)
+				// Restarting a label always supplies new arguments, so a label
+				// captures neither arguments nor locals, nor a primitive
+				// failure slot.
+				// TODO: A label has no use for these slots at all; they remain
+				//  only because a label is still represented as a continuation.
+				fillSlots(FRAME_AT_, 1, frameSize, nil)
 			}
 		}
 

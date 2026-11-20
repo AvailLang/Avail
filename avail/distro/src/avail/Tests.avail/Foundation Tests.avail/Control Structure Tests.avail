@@ -54,7 +54,7 @@ Test "continuations" in control structure test suite is
 			continue ::= action(1);
 			If continue then
 			[
-				Restart loop
+				Restart loop with <>
 			];
 		];
 	]();
@@ -66,7 +66,7 @@ Test "continuations" in control structure test suite is
 	[
 		$loop : ⊤;
 		Exit loop if action2(1);
-		Restart loop
+		Restart loop with <>
 	] : ⊤ ();
 	Require: value = 4;
 

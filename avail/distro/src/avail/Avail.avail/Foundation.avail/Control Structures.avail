@@ -251,7 +251,7 @@ Public method "Repeat_" is
 |
 	$loop;
 	action();
-	Restart loop
+	Restart loop with <action>
 ] : ⊥
 styled by loop styler;
 
@@ -1457,7 +1457,7 @@ Public method "While_" is
 |
 	$loop : ⊤;
 	Exit loop if action() = false;
-	Restart loop
+	Restart loop with <action>
 ] : ⊤
 styled by loop styler;
 
@@ -1494,7 +1494,7 @@ Public method "Until_" is
 	$loop : ⊤;
 	shouldExit ::= action();
 	Exit loop if shouldExit;
-	Restart loop
+	Restart loop with <action>
 ] : ⊤
 styled by loop styler;
 
@@ -1534,7 +1534,7 @@ Public method "While_do_" is
 	$loop : ⊤;
 	Exit loop if predicate() = false;
 	action();
-	Restart loop
+	Restart loop with <predicate, action>
 ] : ⊤
 styled by loop styler;
 
@@ -1598,7 +1598,7 @@ Public method "Until_do_" is
 	$loop : ⊤;
 	Exit loop if predicate();
 	action();
-	Restart loop
+	Restart loop with <predicate, action>
 ] : ⊤
 styled by loop styler;
 
@@ -1662,7 +1662,7 @@ Public method "Do_while_" is
 	$loop : ⊤;
 	action();
 	Exit loop if predicate() = false;
-	Restart loop
+	Restart loop with <action, predicate>
 ] : ⊤
 styled by loop styler;
 
@@ -1732,7 +1732,7 @@ Public method "Do_while_alternate with_" is
 	action();
 	Exit loop if predicate() = false;
 	between();
-	Restart loop
+	Restart loop with <action, predicate, between>
 ]
 styled by loop styler;
 
@@ -1808,7 +1808,7 @@ Public method "While_do_alternate with_" is
 		action();
 		Exit loop if predicate() = false;
 		between();
-		Restart loop
+		Restart loop with <>
 	];
 ]
 styled by loop styler;
@@ -1877,7 +1877,7 @@ Public method "Do_until_" is
 	$loop : ⊤;
 	action();
 	Exit loop if predicate();
-	Restart loop
+	Restart loop with <action, predicate>
 ] : ⊤
 styled by loop styler;
 
@@ -1947,7 +1947,7 @@ Public method "Do_until_alternate with_" is
 	action();
 	Exit loop if predicate();
 	between();
-	Restart loop
+	Restart loop with <action, predicate, between>
 ]
 styled by loop styler;
 
@@ -2023,7 +2023,7 @@ Public method "Until_do_alternate with_" is
 		action();
 		Exit loop if predicate();
 		between();
-		Restart loop
+		Restart loop with <>
 	];
 ]
 styled by loop styler;

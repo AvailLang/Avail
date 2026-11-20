@@ -112,7 +112,6 @@ Extends
 		"Remove_[_]",
 		"Remove current fiber[_]",
 		"Reset to mark",
-		"Restart_",
 		"Restart_with_",
 		"Restart_with_if_",
 		"Request termination of_",

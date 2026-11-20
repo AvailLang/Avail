@@ -55,7 +55,6 @@ Uses
 		"Exit_if_",
 		"Park current fiber",
 		"Request termination of_",
-		"Restart_",
 		"Set name of function implementation_to_",
 		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
@@ -486,26 +485,6 @@ Primitive "Exit_if_" is
 |
 	Primitive ExitContinuationIf;
 ] : ⊤;
-
-/**
- * Restart the continuation with its original arguments. Execution proceeds as
- * though the continuation's caller had just invoked the continuation's current
- * function with its original arguments. The current continuation (in which
- * this primitive was invoked) is completely replaced by the restarted
- * continuation.
- *
- * @category "Primitives" "Continuations" "Control Structures"
- * @method "Restart_"
- * @param "aContinuation" "$[…]→⊥"
- *        The continuation to restart.
- * @returns "⊥"
- */
-Primitive "Restart_" is
-[
-	aContinuation : continuation
-|
-	Primitive RestartContinuation;
-] : ⊥;
 
 /**
  * Compute and answer the numeric argument as a double-precision floating point
