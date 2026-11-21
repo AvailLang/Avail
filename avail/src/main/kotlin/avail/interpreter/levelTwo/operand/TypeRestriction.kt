@@ -176,6 +176,8 @@ class TypeRestriction private constructor(
 		else
 		{
 			assert(!type.equals(bottomMeta))
+			// The constant ⊥ cannot be a value that is known not to be ⊥.
+			assert(positiveGroup.constants.isNullOr { !contains(bottom) })
 		}
 		assert(negativeGroup.constants != null)
 		positiveGroup.constants?.run { assert(size == 1) }

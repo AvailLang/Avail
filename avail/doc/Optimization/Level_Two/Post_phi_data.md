@@ -164,6 +164,17 @@ resolves a jump to a jump-only block as a jump to that block's target.
 Chains of them cannot form a cycle, since every backward jump leads to code
 that checks for interrupts.
 
+A conditional branch whose targets all lead, through jump-only blocks, to the
+same block is different.  Control arrives there whichever way the test goes,
+so [L2Optimizer] replaces the branch with a jump to that block, and the work
+that computed what it tested becomes dead.  The jump-only blocks along the
+way are discarded with their data, which is sound because their data records
+each block's own outcome of the test, and that no longer holds once the test
+is gone.  The new jump's edge instead carries the manifest from just before
+the branch, which the branch captures when it is added to its block.  The
+target keeps its own data, which already merged what every path into it
+knew.
+
 ## Other uses
 
 Once a graph is complete, a block's post-phi data is the authoritative record

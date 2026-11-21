@@ -54,8 +54,6 @@ class L2_GET_CURRENT_FUNCTION(
 	var currentFunction: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	override val hasSideEffect get() = true
-
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,

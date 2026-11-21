@@ -74,7 +74,6 @@ class L2_JUMP_IF_SUBTYPE(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		if (replaceWithJumpIfPossible(this)) return
 		+this@L2_JUMP_IF_SUBTYPE
 	}
 

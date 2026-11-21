@@ -196,6 +196,12 @@ constructor() :
 		newInstruction.basicBlock = block
 		block.instructions()[index] = newInstruction
 		newInstruction.justInserted()
+		// Removing a control flow instruction cleared the block's flag, so
+		// restore it if the replacement also alters control flow.
+		if (newInstruction.altersControlFlow)
+		{
+			block.hasControlFlowAtEnd = true
+		}
 	}
 
 

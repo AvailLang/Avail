@@ -103,7 +103,6 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		if (replaceWithJumpIfPossible(this)) return
 		type.constantOrNull?.let { constantType ->
 			jumpIfKindOfConstant(
 				value,

@@ -56,6 +56,7 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Variable
 import avail.descriptor.representation.A_Variable.Companion.clearValue
 import avail.descriptor.representation.A_Variable.Companion.getValue
@@ -80,6 +81,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
@@ -93,6 +95,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -204,6 +207,8 @@ import avail.interpreter.primitive.numbers.P_LessThan
 import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.interpreter.primitive.phrases.P_LiteralTokenTypeValueType
+import avail.interpreter.primitive.phrases.P_PhraseExpressionType
+import avail.interpreter.primitive.phrases.P_PhraseTypeExpressionType
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.interpreter.primitive.rawfunctions.P_PrivateForceOptimizationForTests
@@ -853,6 +858,98 @@ class SimpleOptimizerTest
 	}
 
 	/**
+	 * Check that optimizing a function whose outer tuple type may be ⊥ leaves
+	 * no [L2_IMPOSSIBLE_CODE] behind.  The function is a reduction of block #1
+	 * of the semantic restriction of the list phrase notation in
+	 * `Phrases.avail`:
+	 *
+	 * ```
+	 * [
+	 *     tTuple[1]'s semantic type;
+	 *     variable := variable;
+	 *     true
+	 * ]
+	 * ```
+	 *
+	 * Subscripting dispatches on whether `tTuple` is a tuple type or ⊥, and
+	 * on the ⊥ path every value derived from it is the type ⊥, which is a
+	 * legitimate value here.  None of those paths is impossible.  Both
+	 * definitions of the semantic type and the variable's read and write are
+	 * needed to provoke the impossible code.
+	 */
+	@Test
+	fun testBottomTupleTypeLeavesNoImpossibleCode()
+	{
+		val tupleTypeType = defineBottomTupleTypeSubscript()
+		val rawFunction = helper.rawFunction(trueType) {
+			val tTuple = createOuter(tupleTypeType)
+			val variable = createOuter(variableTypeFor(Types.ANY()))
+			// :: tTuple[1]'s semantic type;
+			L1_doPushLastOuter(tTuple)
+			pushLiteral(one)
+			call("_⟦_⟧", anyMeta)
+			call("_'s⁇semantic type", topMeta)
+			L1_doPop()
+			// :: variable := variable;
+			L1_doGetLastOuter(variable)
+			L1_doSetOuter(variable)
+			// :: true
+			pushLiteral(trueObject)
+		}
+		helper.testOptimize(rawFunction)
+		val impossible = rawFunction.l2Instructions
+			.filterIsInstance<L2_IMPOSSIBLE_CODE>()
+		assertTrue(
+			impossible.isEmpty(),
+			"Expected no impossible code, but found it in " +
+				impossible.map { it.basicBlock().name() })
+	}
+
+	/**
+	 * Check that a function whose outer tuple type may be ⊥ translates to a
+	 * JVM chunk that passes verification.  The function is block #1 of the
+	 * semantic restriction of the list phrase notation in `Phrases.avail`,
+	 * without its final assignment:
+	 *
+	 * ```
+	 * [ i : natural number |
+	 *     phraseType ::= tTuple[i] ?→ phrase meta;
+	 *     semanticType ::= phraseType's semantic type;
+	 *     true ]
+	 * ```
+	 *
+	 * A JVM local that the tuple type subscript's primitive reads must be
+	 * written along every path that reaches it, or the class fails to load,
+	 * and the translation fails with it.
+	 */
+	@Test
+	fun testBottomTupleTypeTranslatesToVerifiableCode()
+	{
+		val phraseMeta = instanceMeta(PARSE_PHRASE.mostGeneralType)
+		val tupleTypeType = defineBottomTupleTypeSubscript()
+		val rawFunction = helper.rawFunction(trueType) {
+			argumentTypes(naturalNumbers)
+			val phraseType = createConstant(phraseMeta)
+			val semanticType = createConstant(topMeta)
+			val tTuple = createOuter(tupleTypeType)
+			// :: phraseType ::= tTuple[i] ?→ phrase meta;
+			L1_doPushLastOuter(tTuple)
+			L1_doPushLastLocal(1)
+			call("_⟦_⟧", anyMeta)
+			pushLiteral(phraseMeta)
+			call("_`?→_†", phraseMeta)
+			L1Ext_doSetLocalSlot(phraseType)
+			// :: semanticType ::= phraseType's semantic type;
+			L1_doPushLastLocal(phraseType)
+			call("_'s⁇semantic type", topMeta)
+			L1Ext_doSetLocalSlot(semanticType)
+			// :: true
+			pushLiteral(trueObject)
+		}
+		helper.testOptimize(rawFunction)
+	}
+
+	/**
 	 * Check that a reification whose save-all code splitting has duplicated
 	 * still freezes correctly.  The function dispatches on its first argument,
 	 * assigns an elided local, calls "share caller", then dispatches on the
@@ -972,6 +1069,43 @@ class SimpleOptimizerTest
 			L1Ext_doSetLiteral(addLiteral(sharedVariable))
 			pushLiteral(zero)
 		}
+	}
+
+	/**
+	 * Define "_'s⁇semantic type" for both expression phrase types and phrase
+	 * type types, and a tuple type subscript "_⟦_⟧" that dispatches on whether
+	 * its tuple type is a real tuple type, answering its element type, or ⊥,
+	 * answering ⊥.  The subscript has a name of its own, so that the fixture's
+	 * tuple subscript takes no part.  Looking up either of its definitions by
+	 * its own signature is ambiguous, since ⊥ is an instance of every
+	 * metatype, so its lookup tree is warmed by values instead, as calls
+	 * would warm it.
+	 *
+	 * @return
+	 *   The type of the tuple types that the subscript is warmed with, the
+	 *   metatype of tuples of expression phrases.
+	 */
+	private fun defineBottomTupleTypeSubscript(): A_Type
+	{
+		val tupleTypeType =
+			instanceMeta(zeroOrMoreOf(EXPRESSION_PHRASE.create(Types.ANY())))
+		helper.definePrimitives(
+			"_'s⁇semantic type" to P_PhraseExpressionType,
+			"_'s⁇semantic type" to P_PhraseTypeExpressionType)
+		helper.defineMethod("_⟦_⟧", anyMeta, suppressLookup = true) {
+			argumentTypes(tupleMeta, naturalNumbers)
+			primitive = P_TupleTypeAt
+		}
+		helper.defineMethod("_⟦_⟧", bottom, suppressLookup = true) {
+			argumentTypes(instanceMeta(bottom), naturalNumbers)
+			pushLiteral(bottom)
+		}
+		helper.lookupOrCreate("_⟦_⟧").bundleMethod.run {
+			lookupByValuesFromList(listOf(bottom, one), null)
+			lookupByValuesFromList(
+				listOf(tupleTypeType.instance, one), null)
+		}
+		return tupleTypeType
 	}
 
 	/**

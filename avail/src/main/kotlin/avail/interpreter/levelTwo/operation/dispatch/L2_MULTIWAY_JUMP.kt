@@ -48,6 +48,7 @@ import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.mapToSet
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.IF_ICMPGE
@@ -135,7 +136,7 @@ constructor(
 	override fun PostPhiData.interestingConditions() =
 		splitter.constant.interestingConditions(value, branchEdges.edges, this)
 
-	override fun L2GeneratorInterface.generateConditionalReplacement(
+	override fun L2Regenerator.generateReplacement(
 		originalInstruction: L2Instruction)
 	{
 		+splitter.constant.run {

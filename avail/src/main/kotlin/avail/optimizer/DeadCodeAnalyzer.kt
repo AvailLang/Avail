@@ -45,6 +45,11 @@ import avail.utility.deepForEach
  *   The policy about which kinds of entity to consider for liveness.
  * @property controlFlowGraph
  *   The [L2ControlFlowGraph] to analyze.
+ * @property keepsEveryInstruction
+ *   Whether to treat every instruction as live, so that every read counts
+ *   toward liveness.  That's plain liveness, which is what code that emits
+ *   every instruction must respect, rather than the liveness that ignores
+ *   reads by dead instructions, which is what decides which code is dead.
  *
  * @constructor
  * Construct a `DeadCodeAnalyzer`.
@@ -54,10 +59,13 @@ import avail.utility.deepForEach
  *   be the basis for liveness.
  * @param controlFlowGraph
  *   The [L2ControlFlowGraph] being analyzed.
+ * @param keepsEveryInstruction
+ *   Whether to treat every instruction as live.
  */
 internal class DeadCodeAnalyzer constructor(
 	private val dataCouplingMode: DataCouplingMode,
-	private val controlFlowGraph: L2ControlFlowGraph)
+	private val controlFlowGraph: L2ControlFlowGraph,
+	private val keepsEveryInstruction: Boolean = false)
 {
 	/** The [L2Instruction]s that have been marked as live so far. */
 	val liveInstructions: Set<L2Instruction>
@@ -124,7 +132,8 @@ internal class DeadCodeAnalyzer constructor(
 						"Encountered a non-phi before a phi"
 					}
 					var keep =
-						dataCouplingMode.visitInstruction(instruction, liveness)
+						dataCouplingMode.visitInstruction(
+							instruction, liveness, keepsEveryInstruction)
 					if (keep) liveInstructions.add(instruction)
 				}
 			}

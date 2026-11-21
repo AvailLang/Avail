@@ -88,7 +88,6 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		if (replaceWithJumpIfPossible(this)) return
 		val restriction1 = currentManifest.restrictionFor(first.semanticValue())
 		val restriction2 = currentManifest.restrictionFor(second.semanticValue())
 		if (restriction1.intersection(restriction2).isImpossible)

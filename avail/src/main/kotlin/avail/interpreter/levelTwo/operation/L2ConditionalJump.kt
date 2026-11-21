@@ -33,12 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.optimizer.L2BasicBlock
-import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * Jump to `"if satisfied"` if some condition is met, otherwise jump to
@@ -56,6 +52,24 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 abstract class L2ConditionalJump : L2ControlFlowInstruction()
 {
+	/**
+	 * A copy of the manifest just before this branch, captured when the
+	 * instruction is added to its block, or `null` before then.  If every
+	 * target edge turns out to lead to the same block through blocks holding
+	 * only a jump, the branch can be replaced by a jump to that block, and this
+	 * is what that jump's edge knows.  The edges' own manifests won't do, since
+	 * each records its own outcome of the test, which no longer holds once the
+	 * test is gone.
+	 */
+	var preBranchManifest: L2ValueManifest? = null
+		private set
+
+	override fun justAdded(manifest: L2ValueManifest)
+	{
+		preBranchManifest = L2ValueManifest(manifest)
+		super.justAdded(manifest)
+	}
+
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
@@ -67,99 +81,6 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 	override val hasSideEffect: Boolean get() = true
 
 	override fun canReduceToJumpIfOnePathRemains(): Boolean = true
-
-	/**
-	 * If this instruction leads to the same target block after skipping all
-	 * blocks that only contain jumps, then replace it with a jump to that block
-	 * and answer `true`, otherwise answer `false`.
-	 *
-	 * @param generator
-	 *   Where to write the jump if the target edges are equivalent.
-	 * @return
-	 *   Whether an [L2_JUMP] was emitted.
-	 */
-	open fun replaceWithJumpIfPossible(generator: L2GeneratorInterface): Boolean
-	{
-		// If optimizations have caused the branches to go to the same place,
-		// eliminate the branch entirely.
-		val allTargets = targetEdges
-			.mapTo(mutableSetOf(), L2PcOperand::targetBlockSkippingBareJumps)
-			.distinct()
-		allTargets.singleOrNull()?.let {
-			val jump = L2_JUMP(
-				edgeTo(targetEdges.first().targetBlock(), "elided branch"))
-			println("Reduced jump to $jump") //TODO Remove
-			jump.run {
-				generator.emitTransformedInstruction()
-			}
-			return true
-		}
-		return false
-	}
-
-	override fun L2Regenerator.generateReplacement(
-		originalInstruction: L2Instruction)
-	{
-		// Determine if all edges lead to the same target block through chains
-		// of jumps in blocks that have no other instructions.  If so, just emit
-		// a jump to that target.  Note that we don't have to do anything to
-		// preserve edge-split SSA, since the new fan-out will be 1.
-		//
-		// Note that this should only be done *after* code splitting, or there
-		// may be missed opportunities for leveraging the narrower restrictions.
-		val edgesToOriginalTargets = mutableMapOf<L2PcOperand, L2BasicBlock>()
-		if (originalInstruction is L2ConditionalJump)
-		{
-			originalInstruction.targetEdges.forEach { edge ->
-				var targetBlock: L2BasicBlock = edge.targetBlock()
-				while (true)
-				{
-					if (targetBlock.instructions().size != 1) break
-					val jump = targetBlock.finalInstruction()
-					if (jump !is L2_JUMP) break
-					targetBlock = jump.target.targetBlock()
-				}
-				edgesToOriginalTargets[edge] = targetBlock
-			}
-			// Just to keep it simple, only remove the multi-way jump if *all*
-			// of the edges lead to the same ultimate target block.
-			if (edgesToOriginalTargets.values.distinct().size == 1)
-			{
-				// Because the new fan-out is 1, we don't have to do anything to
-				// preserve edge-split form.  Note that we jump to one (any) of
-				// the new instruction's ultimate targets.
-				// We *must not* jump to one of the direct targets, since there
-				// will may be restrictions captuured along the subsequent old
-				// edges that *will not hold* if we replace this branch with a
-				// singular jump.  Jumping to the (transformation of the) common
-				// *ultimate* target should be safe.
-				val oldTarget = edgesToOriginalTargets.values.first()
-				val newTarget = mapBlock(oldTarget)
-				jumpTo(newTarget)
-				return
-			}
-		}
-		generateConditionalReplacement(originalInstruction)
-	}
-
-	/**
-	 * In order for subclasses to always check for branches that always go to
-	 * the same ultimate target, and turn them into a jump, we make
-	 * [generateReplacement] be final in this class, but allow the herein
-	 * introduced [generateConditionalReplacement] be open and called by the
-	 * can't-collapse-to-a-jump case in [generateReplacement].  A default
-	 * implementation is provided that uses the super [generateReplacement].
-	 *
-	 * @receiver
-	 *   The [L2GeneratorInterface] on which to write instructions.
-	 * @param originalInstruction
-	 *   The [L2Instruction] on which the receiver was based.
-	 */
-	open fun L2GeneratorInterface.generateConditionalReplacement(
-		originalInstruction: L2Instruction)
-	{
-		emitTransformedInstruction()
-	}
 
 	companion object
 	{

@@ -79,10 +79,10 @@ enum class DataCouplingMode constructor(
 	/**
 	 * The current state of [liveness] reflects the registers and/or semantic
 	 * values that are live after the given instruction.  If the instruction has
-	 * a side effect or if it produces any of the live values, remove the
-	 * produced values from liveness, add any values consumed by the
-	 * instruction, and answer `true` (to keep the instruction).  Otherwise
-	 * answer `false`.
+	 * a side effect, if it produces any of the live values, or if every
+	 * instruction is to be kept, remove the produced values from liveness, add
+	 * any values consumed by the instruction, and answer `true` (to keep the
+	 * instruction).  Otherwise answer `false`.
 	 *
 	 * As a simplifying assumption, pretend an altersControlFlow instruction at
 	 * the end of the block populates *all* of the entities that are visible
@@ -92,17 +92,24 @@ enum class DataCouplingMode constructor(
 	 *
 	 * @param instruction
 	 *   The [L2Instruction] to analyze.
+	 * @param liveness
+	 *   The [L2Liveness] after the instruction, updated in place to the
+	 *   liveness before it if the instruction is kept.
+	 * @param keepsEveryInstruction
+	 *   Whether to keep the instruction even if it's dead, so that its reads
+	 *   count toward liveness.
 	 * @return
 	 *   Whether the instruction should be kept, having already propagated
 	 *   liveness changes if `true`.
 	 */
 	fun visitInstruction(
 		instruction: L2Instruction,
-		liveness: L2Liveness
+		liveness: L2Liveness,
+		keepsEveryInstruction: Boolean
 	): Boolean
 	{
 		assert(instruction !is L2_PHI<*>)
-		var keep = instruction.hasSideEffect
+		var keep = keepsEveryInstruction || instruction.hasSideEffect
 		if (!keep && considersRegisters)
 		{
 			keep = instruction.writeOperands.any { write ->

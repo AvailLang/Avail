@@ -3328,6 +3328,17 @@ class L2ValueManifest
 			val restriction = manifests
 				.map { it.restrictionFor(firstSemanticValue) }
 				.reduce(TypeRestriction::union)
+			// A merged restriction may exclude ⊥ only if every incoming one
+			// does.
+			assert(restriction.canBeBottom
+				|| manifests.none {
+					it.restrictionFor(firstSemanticValue).canBeBottom
+				})
+			{
+				"Common register merge of $firstSemanticValue excludes ⊥, " +
+					"but an incoming restriction permits it: " +
+					manifests.map { it.restrictionFor(firstSemanticValue) }
+			}
 			val constant = restriction.constantOrNull
 			val semanticValuesToInclude = when
 			{
@@ -3375,6 +3386,13 @@ class L2ValueManifest
 			kind.readOperand(
 				firstLive,
 				m.getDefinition(firstLive, kind))
+		}
+		// The phi's destination may exclude ⊥ only if every source does.
+		assert(restriction.canBeBottom
+			|| manifests.none { it.restrictionFor(firstLive).canBeBottom })
+		{
+			"Phi for $firstLive excludes ⊥, but a source permits it: " +
+				manifests.map { it.restrictionFor(firstLive) }
 		}
 		generator.addInstruction(
 			kind.createPhi(

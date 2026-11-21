@@ -214,24 +214,20 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
-	 * Remove any unnecessary instructions.
+	 * Remove any unnecessary instructions by regenerating the graph by
+	 * [semantic value][BySemanticValue], producing [L2_PHI]s at merges.
 	 *
 	 * @param dataCouplingMode
 	 *   The [DataCouplingMode] that chooses how to trace liveness.
-	 * @param mode
-	 *   How to connect values in the new graph.  This primarily controls
-	 *   whether to produce [L2_PHI]s automatically, based on [L2SemanticValue]
-	 *   matching.
 	 */
 	private fun removeDeadInstructions(
-		dataCouplingMode: DataCouplingMode,
-		mode: GenerationMode)
+		dataCouplingMode: DataCouplingMode)
 	{
 		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
 		analyzer.analyzeReads()
 		val liveInstructions = analyzer.liveInstructions
 		regenerateGraph(
-			mode = mode,
+			mode = BySemanticValue,
 			isRemovingDeadCode = true,
 			collapseUnconditionalJumps = true
 		) { sourceInstruction ->
@@ -266,12 +262,47 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
+	 * Remove the dead instructions from the blocks where they sit, without
+	 * regenerating the graph.  This suits a graph that is connected by
+	 * register, where removing code can't make room for any postponement, and
+	 * it leaves the registers, the edges, and each block's post-phi data
+	 * untouched, including any registers already colored.
+	 *
+	 * @param dataCouplingMode
+	 *   The [DataCouplingMode] that chooses how to trace liveness.
+	 */
+	private fun removeDeadInstructionsInPlace(
+		dataCouplingMode: DataCouplingMode)
+	{
+		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
+		analyzer.analyzeReads()
+		val liveInstructions = analyzer.liveInstructions
+		for (block in blocks)
+		{
+			// A block's final instruction alters control flow, which counts as
+			// a side effect, so it's always live.
+			assert(block.finalInstruction() in liveInstructions)
+			block.instructions().removeIf { instruction ->
+				(instruction !in liveInstructions).also { isDead ->
+					if (isDead) instruction.justRemoved()
+				}
+			}
+		}
+	}
+
+	/**
 	 * Remove all unreachable blocks and all instructions that don't either have
 	 * a side-effect or produce a value ultimately used by an instruction that
-	 * has a side-effect.
+	 * has a side-effect.  When generating phis, regenerate the graph by
+	 * semantic value, which may postpone instructions further.  Otherwise the
+	 * graph is connected by register, so remove the dead instructions in
+	 * place.
 	 *
 	 * @param dataCouplingMode
 	 *   How to trace data dependencies.
+	 * @param generatePhis
+	 *   Whether to regenerate the graph by semantic value, producing phis at
+	 *   merges, rather than removing the dead instructions in place.
 	 */
 	fun removeDeadCode(
 		dataCouplingMode: DataCouplingMode,
@@ -280,12 +311,11 @@ class L2Optimizer internal constructor(
 		// Removing instructions won't cause blocks to be inaccessible, so just
 		// clean up unreachable blocks once at the start.
 		removeUnreachableBlocks()
-		val mode = when
+		when
 		{
-			generatePhis -> BySemanticValue
-			else -> ByRegister
+			generatePhis -> removeDeadInstructions(dataCouplingMode)
+			else -> removeDeadInstructionsInPlace(dataCouplingMode)
 		}
-		removeDeadInstructions(dataCouplingMode, mode)
 	}
 
 	/**
@@ -532,11 +562,19 @@ class L2Optimizer internal constructor(
 	 * between always-live-in, where all future paths from the start of a block
 	 * lead to a use of the register, and sometimes-live-in, where at least one
 	 * future path from the start of the block leads to a use of the register.
+	 *
+	 * @param dataCouplingMode
+	 *   The [DataCouplingMode] that chooses how to trace liveness.
+	 * @param keepsEveryInstruction
+	 *   Whether every read counts, even one by a dead instruction.  Without
+	 *   it, a register read only by dead instructions is not live.
 	 */
 	fun computeLivenessAtEachEdge(
-		dataCouplingMode: DataCouplingMode)
+		dataCouplingMode: DataCouplingMode,
+		keepsEveryInstruction: Boolean = false)
 	{
-		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
+		val analyzer = DeadCodeAnalyzer(
+			dataCouplingMode, controlFlowGraph, keepsEveryInstruction)
 		analyzer.analyzeReads()
 	}
 
@@ -842,11 +880,14 @@ class L2Optimizer internal constructor(
 
 	/**
 	 * Determine which pairs of registers have to be simultaneously live and
-	 * potentially holding distinct values.
+	 * potentially holding distinct values.  Every read counts, even one by a
+	 * dead instruction, since any instruction still in the graph is emitted,
+	 * and its registers must not share a color with a live register.
 	 */
 	fun computeInterferenceGraph()
 	{
-		computeLivenessAtEachEdge(FOLLOW_REGISTERS)
+		computeLivenessAtEachEdge(
+			FOLLOW_REGISTERS, keepsEveryInstruction = true)
 		colorer = L2RegisterColorer(controlFlowGraph)
 		colorer!!.computeInterferenceGraph()
 	}
@@ -936,11 +977,17 @@ class L2Optimizer internal constructor(
 	 * loses nothing that the block's post-phi data records, and the block is
 	 * removed once no edges lead to it
 	 * (doc/Optimization/Level_Two/Post_phi_data.md §Jump-only blocks).
+	 * Finally, a branch whose targets all lead to the same block is replaced by
+	 * a jump to that block (see [collapsePointlessBranches]).
 	 *
 	 * Don't do this if the destination block is [L2BasicBlock.isIrremovable].
+	 *
+	 * @return
+	 *   Whether the graph was changed.
 	 */
-	fun adjustEdgesLeadingToJumps()
+	fun adjustEdgesLeadingToJumps(): Boolean
 	{
+		var everChanged = false
 		do
 		{
 			var changed = concatenateAcrossJumps()
@@ -948,11 +995,13 @@ class L2Optimizer internal constructor(
 			{
 				changed = true
 			}
-			if (removeUselessBranches())
+			if (collapsePointlessBranches())
 			{
 				changed = true
 			}
+			everChanged = everChanged || changed
 		} while (changed)
+		return everChanged
 	}
 
 	/**
@@ -1070,68 +1119,75 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
-	 * Replace any branches that lead to the same target with a simple jump.  If
-	 * any such replacements are made, we'll need to run this again, to allow
-	 * the newly constructed jumps to be elided, if possible.
+	 * Replace each [L2ConditionalJump] whose target edges all lead to the same
+	 * block, directly or through blocks holding only a jump, with a jump to
+	 * that block.  Control arrives there whichever way the test goes, so the
+	 * test is pointless, and once it's gone, so is the work that computed what
+	 * it tested.  The new jump's edge carries the branch's
+	 * [L2ConditionalJump.preBranchManifest], since each old edge's manifest
+	 * records its own outcome of the test, which no longer holds.  The blocks
+	 * that held only a jump become unreachable and are removed, taking with
+	 * them their post-phi data, which recorded those outcomes too.  The target
+	 * block keeps its own.
+	 *
+	 * @return
+	 *   Whether the graph was changed.
 	 */
-	private fun removeUselessBranches(): Boolean
+	private fun collapsePointlessBranches(): Boolean
 	{
-		var uselessBranches = mutableSetOf<L2ConditionalJump>()
-		for (block in blocks)
+		var changed = false
+		// Iterate over a copy, since collapsing removes blocks.
+		for (block in blocks.toList())
 		{
+			if (block !in blocks) continue
 			if (block.isIrremovable || block.isLoopHead) continue
-			val branch = block.instructions().last()
+			val branch = block.finalInstruction()
 			if (branch !is L2ConditionalJump) continue
-			// Preserve instructions that conditionally write to a register.
-			if (branch.writeOperands.isNotEmpty()) continue
 			if (branch.targetEdges.any { it.isBackward }) continue
 			val target = branch.targetEdges
-				.mapToSet { it.targetBlock() }
+				.mapToSet { it.targetBlockSkippingBareJumps() }
 				.singleOrNull()
 				?: continue
 			if (target.isIrremovable) continue
 			if (target.isLoopHead) continue
-			uselessBranches.add(branch)
+			val oldTargets = branch.targetEdges.map(L2PcOperand::targetBlock)
+			branch.replaceWith(
+				L2_JUMP(
+					L2PcOperand(
+						target,
+						false,
+						L2ValueManifest(branch.preBranchManifest!!),
+						"collapsed branch")))
+			oldTargets.forEach(::removeOrphanedJumpChain)
+			changed = true
 		}
-		if (uselessBranches.isEmpty())
+		return changed
+	}
+
+	/**
+	 * Starting at the given block, remove each block that no edge leads to
+	 * any more and that holds only a jump, then continue with that jump's
+	 * target.  Unreachable blocks must be removed outright, since an
+	 * unreachable block's jump would still count as an incoming edge of its
+	 * target.
+	 *
+	 * @param start
+	 *   The first block to consider removing.
+	 */
+	private fun removeOrphanedJumpChain(start: L2BasicBlock)
+	{
+		var block = start
+		while (block in blocks
+			&& !block.isIrremovable
+			&& block.predecessorEdges().isEmpty())
 		{
-			return false
+			val jump = block.instructions().single() as L2_JUMP
+			val next = jump.target.targetBlock()
+			jump.justRemoved()
+			block.instructions().clear()
+			blocks.remove(block)
+			block = next
 		}
-		// Collect all registers that are in use.
-		val allRegisters = buildSet {
-			for (block in blocks)
-			{
-				for (instruction in block.instructions())
-				{
-					addAll(instruction.sourceRegisters)
-					addAll(instruction.destinationRegisters)
-				}
-			}
-		}
-		// A register must never be shared between graphs, so map each one to
-		// a fresh copy with the same number and color, but no definitions or
-		// uses yet.  Constant pseudo-registers are reused for constant reads,
-		// and are not mapped.
-		val registerCopyMap = allRegisters
-			.filterNot(L2Register<*>::isConstant)
-			.associateWithTo(mutableMapOf<L2Register<*>, L2Register<*>>()) {
-				it.copyAfterColoring(it.uniqueValue)
-			}
-		// Rewrite the graph with the useless branches replaced by jumps.
-		regenerateGraph(
-			WithFixedRegisterMap(registerCopyMap),
-			collapseUnconditionalJumps = true,
-			isRemovingDeadCode = true
-		) { instruction ->
-			if (instruction in uselessBranches)
-				+L2_JUMP(instruction.targetEdges[0])
-					.transformedByRegenerator(this)
-			else
-			{
-				+instruction.transformedByRegenerator(this)
-			}
-		}
-		return true
 	}
 
 	/**

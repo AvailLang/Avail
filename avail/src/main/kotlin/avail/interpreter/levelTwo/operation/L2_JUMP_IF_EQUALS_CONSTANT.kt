@@ -57,6 +57,7 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.Opcodes
 
 /**
@@ -105,7 +106,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			desiredOperandTypes, ::value, ::constant)
 	}
 
-	override fun L2GeneratorInterface.generateConditionalReplacement(
+	override fun L2Regenerator.generateReplacement(
 		originalInstruction: L2Instruction)
 	{
 		jumpIfEqualsConstant(
@@ -118,7 +119,6 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		assert(!currentManifest.hasImpossibleRestriction)
-		if (replaceWithJumpIfPossible(this)) return
 		val valueRestriction =
 			currentManifest.restrictionFor(value.semanticValue())
 		valueRestriction.constantOrNull?.let { valueValue ->

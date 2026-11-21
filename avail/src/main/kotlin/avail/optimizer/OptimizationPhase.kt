@@ -195,14 +195,20 @@ internal enum class OptimizationPhase constructor(
 	 * to the target of the jump (transitively, if the jump leads to another
 	 * jump).  We specifically do this after inserting phi moves to ensure
 	 * we don't jump past irremovable phi moves.
+	 *
+	 * Each round of adjustment can leave blocks unreachable, and can leave a
+	 * branch whose targets have become the same block, which collapses to a
+	 * jump, killing the code that computed its condition.  Removing that code
+	 * can leave its block as nothing but a jump, so alternate the adjustment
+	 * with dead code removal until the adjustment changes nothing.
 	 */
-	ADJUST_EDGES_LEADING_TO_JUMPS(L2Optimizer::adjustEdgesLeadingToJumps),
-
-	/**
-	 * Having adjusted edges to avoid landing on [L2_JUMP]s, some blocks may
-	 * have become unreachable.
-	 */
-	REMOVE_UNREACHABLE_BLOCKS(L2Optimizer::removeUnreachableBlocks),
+	ADJUST_EDGES_AND_REMOVE_DEAD_CODE(
+		{
+			while (adjustEdgesLeadingToJumps())
+			{
+				removeDeadCode(FOLLOW_REGISTERS, false)
+			}
+		}),
 
 	/**
 	 * Recompute liveness information about all registers on each edge.  This
@@ -212,9 +218,16 @@ internal enum class OptimizationPhase constructor(
 	 * sure this phase happens after any phases that might regenerate the
 	 * [L2ControlFlowGraph], since this information is not preserved across such
 	 * a regeneration.
+	 *
+	 * Every read counts here, even one by a dead instruction, since the
+	 * [JVMTranslator] emits every instruction, and the JVM verifier rejects a
+	 * read of a local that isn't written along every path to it.
 	 */
 	COMPUTE_LIVENESS_AT_EDGES_2(
-		{ computeLivenessAtEachEdge(FOLLOW_REGISTERS) }),
+		{
+			computeLivenessAtEachEdge(
+				FOLLOW_REGISTERS, keepsEveryInstruction = true)
+		}),
 
 	/**
 	 * Insert an [L2_MAKE_IMMUTABLE] instruction just prior to any use of a
